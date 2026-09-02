@@ -1,2 +1,3 @@
 # yeah-buddy
+
 YeahBuddy!
