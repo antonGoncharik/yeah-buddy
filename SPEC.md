@@ -1,0 +1,1861 @@
+# SPEC.md — Чистый MVP: Telegram Mini App + своя база продуктов
+
+## 1. Главное решение текущей версии
+
+Делаем только чистый MVP:
+
+```text
+Telegram Mini App
++ Telegram Bot как точка входа
++ Next.js как фронтенд и бэкенд
++ Supabase Postgres как база данных
++ только своя база продуктов
+```
+
+Ключевые правила:
+
+1. Никаких внешних провайдеров продуктов.
+2. Никакого парсинга.
+3. Никакого краулера внутри приложения.
+4. Никаких Open Food Facts, USDA, FatSecret и других источников.
+5. Никаких штрихкодов.
+6. Только свои продукты.
+7. Продукты можно добавлять, редактировать, удалять, искать и добавлять в избранное.
+8. При первом входе можно создать стартовый сид продуктов и шаблонов.
+9. Дневник питания работает только на основе своей базы продуктов.
+10. Позже отдельный краулер может наполнять базу продуктами, но в этом приложении он не реализуется.
+
+---
+
+## 2. Что входит в MVP
+
+### 2.1. Telegram
+
+1. Telegram-бот:
+   - команда `/start`;
+   - кнопка открытия Mini App.
+
+2. Telegram Mini App:
+   - открывается внутри Telegram;
+   - автоматически авторизует пользователя;
+   - мобильный интерфейс на русском языке.
+
+---
+
+### 2.2. Авторизация
+
+1. Авторизация через Telegram `initData`.
+2. Проверка подписи на сервере.
+3. Создание пользователя в базе.
+4. Сессия через HTTP-only cookie.
+
+---
+
+### 2.3. Своя база продуктов
+
+1. Список своих продуктов.
+2. Поиск по своим продуктам.
+3. Добавление продукта вручную.
+4. Редактирование продукта.
+5. Удаление продукта.
+6. Избранное.
+7. Недавние продукты.
+8. Стартовый сид продуктов при первом входе.
+
+---
+
+### 2.4. Дневник питания
+
+1. День питания.
+2. Приёмы пищи:
+   - завтрак;
+   - обед;
+   - полдник;
+   - ужин;
+   - предтрен;
+   - посттрен.
+3. Добавление продуктов в приём пищи.
+4. Указание граммов.
+5. Автоматический подсчёт БЖУ и калорий.
+6. План и факт за день.
+7. Переключение типа дня:
+   - отдых;
+   - тренировка.
+8. Копирование вчерашнего дня.
+
+---
+
+### 2.5. Шаблоны дней
+
+1. Шаблоны создаются только в стартовом сиде.
+2. Используются для быстрого создания дня:
+   - день отдыха;
+   - день тренировки.
+3. Отдельный экран редактирования шаблонов в MVP не делаем.
+4. Пользователь может менять продукты в уже созданном дне.
+
+---
+
+### 2.6. Цели БЖУ
+
+По умолчанию:
+
+#### День отдыха
+
+```text
+Белки: 200
+Жиры: 70
+Углеводы: 130
+```
+
+#### День тренировки
+
+```text
+Белки: 200
+Жиры: 70
+Углеводы: 200
+```
+
+Формула калорий:
+
+```text
+ккал = белки * 4 + жиры * 9 + углеводы * 4
+```
+
+---
+
+## 3. Что НЕ делаем в этой версии
+
+Запрещено добавлять:
+
+- парсинг сайтов;
+- краулер;
+- внешние API продуктов;
+- edostavka;
+- Open Food Facts;
+- USDA;
+- FatSecret;
+- штрихкоды;
+- сканер штрихкодов;
+- импорт продуктов из внешних источников;
+- тренировки;
+- динамику;
+- статику;
+- макроциклы;
+- добавки;
+- витамины;
+- графики;
+- аналитику;
+- отчёты;
+- PWA;
+- service worker;
+- сложный офлайн;
+- Telegram Stars;
+- платежи;
+- подписки;
+- реферальную систему;
+- публичный каталог продуктов;
+- мультипользовательские социальные функции.
+
+Если появляется идея из этого списка — не делать.
+
+---
+
+## 4. Технологический стек
+
+Использовать:
+
+```text
+Next.js 15+, App Router
+TypeScript
+React
+Tailwind CSS
+shadcn/ui
+Supabase Postgres
+@supabase/supabase-js
+grammY
+@twa-dev/sdk
+date-fns
+zod
+lucide-react
+jose
+```
+
+Хостинг:
+
+```text
+Vercel
+```
+
+База данных:
+
+```text
+Supabase Postgres
+```
+
+---
+
+## 5. Общая архитектура
+
+```text
+Пользователь в Telegram
+      ↓
+Telegram Bot
+      ↓
+Telegram Mini App
+      ↓
+Next.js приложение на Vercel
+      ↓
+Supabase Postgres
+```
+
+Важно:
+
+```text
+Клиент не ходит напрямую в Supabase.
+Все операции с базой идут только через серверную часть Next.js.
+```
+
+---
+
+## 6. Переменные окружения
+
+Создать `.env.local`:
+
+```env
+NEXT_PUBLIC_APP_URL=
+
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_MINI_APP_URL=
+
+SESSION_SECRET=
+```
+
+Назначение:
+
+```text
+NEXT_PUBLIC_APP_URL — URL приложения на Vercel
+TELEGRAM_MINI_APP_URL — URL Mini App, обычно тот же домен
+TELEGRAM_BOT_TOKEN — токен бота
+SUPABASE_URL — адрес Supabase
+SUPABASE_SERVICE_ROLE_KEY — серверный ключ Supabase
+SESSION_SECRET — секрет для подписи сессии
+```
+
+Важно:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY нельзя использовать в клиентском коде.
+TELEGRAM_BOT_TOKEN нельзя использовать в клиентском коде.
+```
+
+---
+
+## 7. Пользователь
+
+Пользователь хранится в таблице:
+
+```text
+users
+```
+
+Основной идентификатор:
+
+```text
+telegram_id
+```
+
+После первого входа создаются:
+
+```text
+users
+user_settings
+стартовые продукты
+стартовые шаблоны
+```
+
+---
+
+## 8. Авторизация через Telegram
+
+### Поток
+
+1. Пользователь открывает Mini App.
+2. Мини-приложение получает:
+
+```ts
+window.Telegram.WebApp.initData
+```
+
+3. Фронтенд отправляет `initData` на сервер:
+
+```text
+POST /api/auth/telegram
+```
+
+4. Сервер проверяет подпись `initData`.
+5. Сервер достаёт `telegram_id`.
+6. Сервер создаёт или находит пользователя.
+7. Сервер создаёт сессию.
+8. Пользователь получает доступ к приложению.
+
+### Требования к сессии
+
+Cookie должна быть:
+
+```text
+httpOnly
+secure
+sameSite=lax
+```
+
+Для подписи сессии использовать `jose` или аналог.
+
+Если `initData` нет или она невалидна:
+
+```text
+Откройте приложение через Telegram-бота.
+```
+
+---
+
+## 9. Доступ к базе данных
+
+Все операции с базой делать только на сервере.
+
+Использовать:
+
+```text
+Supabase service role client
+```
+
+Запрещено:
+
+```text
+Использовать Supabase anon key в браузере для прямой записи.
+Давать клиенту прямой доступ к таблицам.
+Хранить service role key в клиентском бандле.
+```
+
+---
+
+## 10. Продукты
+
+Продукты хранятся только в нашей базе.
+
+Таблица:
+
+```text
+foods
+```
+
+Продукт содержит:
+
+```text
+название
+бренд
+состояние
+белки на 100 г
+жиры на 100 г
+углеводы на 100 г
+ккал на 100 г
+стандартная порция
+название стандартной порции
+избранное
+заметки
+```
+
+Никаких внешних идентификаторов и провайдерских полей в MVP не делаем.
+
+---
+
+## 11. Состояние продукта
+
+Использовать значения:
+
+```text
+raw — сырой
+dry — сухой
+cooked — приготовленный
+as_is — как есть
+liquid — жидкий
+```
+
+Русские подписи:
+
+```text
+raw = сырой
+dry = сухой
+cooked = приготовленный
+as_is = как есть
+liquid = жидкий
+```
+
+Примеры:
+
+```text
+макароны — сухой
+рис — сухой
+овес — сухой
+куриное филе — сырой
+минтай — сырой
+тунец — сырой
+банан — как есть
+творог — как есть
+фета — как есть
+экспонента — как есть
+протеин — как есть
+оливковое масло — жидкий
+```
+
+---
+
+## 12. Правило хранения БЖУ
+
+Продукты хранятся как значения на 100 г.
+
+Формула расчёта порции:
+
+```text
+белки = белки_на_100 * граммы / 100
+жиры = жиры_на_100 * граммы / 100
+углеводы = углеводы_на_100 * граммы / 100
+ккал = ккал_на_100 * граммы / 100
+```
+
+Отображение:
+
+```text
+Белки, жиры, углеводы: 1 знак после запятой
+Ккал: целое число
+```
+
+Если пользователь не указывает ккал, считать автоматически:
+
+```text
+ккал = белки * 4 + жиры * 9 + углеводы * 4
+```
+
+---
+
+## 13. Приёмы пищи
+
+Использовать коды:
+
+```text
+breakfast
+lunch
+snack
+dinner
+pre_workout
+post_workout
+```
+
+Русские названия:
+
+```text
+breakfast = Завтрак
+lunch = Обед
+snack = Полдник
+dinner = Ужин
+pre_workout = Предтрен
+post_workout = Посттрен
+```
+
+Порядок отображения:
+
+```text
+1. Завтрак
+2. Обед
+3. Полдник
+4. Предтрен
+5. Посттрен
+6. Ужин
+```
+
+---
+
+## 14. День питания
+
+Для каждого дня хранить:
+
+```text
+дата
+тип дня: отдых / тренировка
+цели БЖУ
+приёмы пищи
+продукты в приёмах
+```
+
+Если день ещё не создан, показать кнопки:
+
+```text
+Создать день отдыха
+Создать тренировочный день
+Скопировать вчера
+```
+
+При создании дня из шаблона создавать приёмы и продукты согласно шаблону.
+
+При создании пустого дня создавать пустые приёмы:
+
+```text
+Завтрак
+Обед
+Полдник
+Предтрен
+Посттрен
+Ужин
+```
+
+---
+
+## 15. Копирование вчерашнего дня
+
+Если пользователь нажимает:
+
+```text
+Скопировать вчера
+```
+
+Сервер должен:
+
+1. Найти вчерашний день пользователя.
+2. Создать сегодняшний день.
+3. Скопировать тип дня.
+4. Скопировать цели.
+5. Скопировать приёмы пищи.
+6. Скопировать все продукты и граммы.
+
+Если сегодняшний день уже существует:
+
+```text
+Сегодняшний день уже существует.
+Заменить его копией вчерашнего?
+```
+
+---
+
+## 16. Снапшоты в дневнике
+
+При добавлении продукта в приём пищи обязательно сохранять снимок:
+
+```json
+{
+  "name_snapshot": "Творог",
+  "grams": 200,
+  "protein": 34,
+  "fat": 10,
+  "carbs": 3,
+  "kcal": 238,
+  "per_100_snapshot": {
+    "protein": 17,
+    "fat": 5,
+    "carbs": 1.5,
+    "kcal": 119
+  }
+}
+```
+
+Это нужно, чтобы:
+
+```text
+история дневника не ломалась;
+изменение продукта не меняло старые записи;
+удаление продукта не уничтожало данные в прошлых днях.
+```
+
+---
+
+## 17. Итоги дня
+
+На главном экране показывать:
+
+```text
+Факт:
+Белки
+Жиры
+Углеводы
+Ккал
+
+План:
+Белки
+Жиры
+Углеводы
+Ккал
+
+Осталось:
+Белки
+Жиры
+Углеводы
+Ккал
+```
+
+Если факт больше плана, показывать превышение.
+
+---
+
+## 18. Экраны приложения
+
+### 18.1. `/today`
+
+Главный экран.
+
+Показать:
+
+```text
+Дата
+Тип дня
+План
+Факт
+Остаток
+Приёмы пищи
+Кнопки действий
+```
+
+Действия:
+
+```text
+Создать день отдыха
+Создать тренировочный день
+Скопировать вчера
+```
+
+---
+
+### 18.2. `/foods`
+
+Список продуктов.
+
+Функции:
+
+```text
+поиск
+избранное
+недавние
+добавить продукт
+редактировать продукт
+удалить продукт
+переключить избранное
+```
+
+---
+
+### 18.3. `/settings`
+
+Настройки целей.
+
+Разделы:
+
+```text
+День отдыха
+День тренировки
+```
+
+Поля:
+
+```text
+Белки
+Жиры
+Углеводы
+```
+
+Изменение целей не должно менять старые дни.
+
+---
+
+## 19. Добавление продукта в приём пищи
+
+Поток:
+
+1. Пользователь нажимает «Добавить» возле приёма.
+2. Открывается экран выбора продукта.
+3. Показываются:
+
+```text
+Избранные
+Недавние
+Все продукты
+Поиск
+Добавить вручную
+```
+
+4. Пользователь выбирает продукт.
+5. Открывается экран граммов.
+6. Показываются:
+
+```text
+Название
+БЖУ на 100 г
+Граммы
+Итоговые БЖУ
+Ккал
+```
+
+7. Быстрые кнопки:
+
+```text
+10
+50
+100
+150
+200
+250
+300
+400
+```
+
+8. Кнопка стандартной порции:
+
+```text
+Стандартная порция
+```
+
+9. После сохранения продукт попадает в приём.
+
+---
+
+## 20. Ручное добавление продукта
+
+Это основной способ создания продуктов в MVP.
+
+Поля формы:
+
+```text
+Название
+Бренд
+Состояние
+Белки на 100 г
+Жиры на 100 г
+Углеводы на 100 г
+Ккал на 100 г
+Стандартная порция в граммах
+Название стандартной порции
+Заметки
+Избранное
+```
+
+Валидация:
+
+```text
+Название обязательно.
+Белки, жиры, углеводы — числа >= 0.
+Ккал — число >= 0 или вычисляется автоматически.
+Стандартная порция — необязательное число > 0.
+```
+
+---
+
+## 21. Стартовый сид продуктов
+
+При первом входе пользователя автоматически создавать стартовые продукты, если их ещё нет.
+
+Все стартовые продукты по умолчанию:
+
+```text
+is_favorite = true
+```
+
+### Список стартовых продуктов
+
+| Название | Состояние | Белки / 100 г | Жиры / 100 г | Углеводы / 100 г | Ккал / 100 г | Стандартная порция |
+|---|---:|---:|---:|---:|---:|---:|
+| Овес резаный | dry | 12 | 6 | 62 | 350 | 100 г |
+| Яйца куриные | as_is | 13.3 | 12 | 0.7 | 167 | 150 г = 3 шт |
+| Макароны сухие | dry | 14 | 2 | 70 | 354 | 100 г |
+| Томатная паста | as_is | 1 | 3 | 6 | 55 | 100 г |
+| Куриное филе | raw | 23 | 1 | 0 | 101 | 200 г |
+| Филе минтая | raw | 20 | 1 | 0 | 89 | 300 г |
+| Тунец | raw | 23 | 1 | 0 | 101 | 200 г |
+| Фета | as_is | 13 | 14 | 2 | 186 | 62.5 г |
+| Оливковое масло | liquid | 0 | 100 | 0 | 900 | 5 мл |
+| Протеин | as_is | 80 | 6 | 2 | 382 | 50 г |
+| Банан | as_is | 1.5 | 0.3 | 21 | 89 | 110 г = 1 шт |
+| Творог | as_is | 17 | 5 | 1.5 | 119 | 200 г |
+| Экспонента | as_is | 12.5 | 0 | 3.1 | 63 | 160 г |
+| Грецкие орехи | as_is | 15 | 60 | 10 | 640 | 20 г |
+| Рис сухой | dry | 7 | 1 | 71 | 321 | 100 г |
+
+---
+
+## 22. Стартовые шаблоны дней
+
+При первом входе пользователя также создавать два шаблона, если их ещё нет.
+
+---
+
+### Шаблон 1: День отдыха
+
+Название:
+
+```text
+День отдыха
+```
+
+Тип:
+
+```text
+rest
+```
+
+Состав:
+
+#### Завтрак
+
+```text
+Овес резаный — 80 г
+Яйца куриные — 150 г
+```
+
+#### Обед
+
+```text
+Макароны сухие — 80 г
+Томатная паста — 100 г
+Куриное филе — 200 г
+Фета — 62.5 г
+Оливковое масло — 5 г
+```
+
+#### Полдник
+
+```text
+Протеин — 50 г
+```
+
+#### Ужин
+
+```text
+Творог — 200 г
+Экспонента — 160 г
+Грецкие орехи — 20 г
+```
+
+---
+
+### Шаблон 2: День тренировки
+
+Название:
+
+```text
+День тренировки
+```
+
+Тип:
+
+```text
+training
+```
+
+Состав:
+
+#### Завтрак
+
+```text
+Овес резаный — 100 г
+Яйца куриные — 150 г
+```
+
+#### Обед
+
+```text
+Макароны сухие — 100 г
+Томатная паста — 100 г
+Куриное филе — 200 г
+Фета — 62.5 г
+Оливковое масло — 5 г
+```
+
+#### Предтрен
+
+```text
+Банан — 110 г
+```
+
+#### Посттрен
+
+```text
+Банан — 110 г
+Протеин — 50 г
+```
+
+#### Ужин
+
+```text
+Творог — 200 г
+Экспонента — 160 г
+Грецкие орехи — 20 г
+```
+
+---
+
+## 23. Логика генерации дня
+
+Когда пользователь создаёт день:
+
+1. Создать запись в `days`.
+2. Установить цели:
+   - если отдых: 200 / 70 / 130;
+   - если тренировка: 200 / 70 / 200.
+3. Найти шаблон по типу дня.
+4. Создать нужные приёмы пищи.
+5. Для каждого элемента шаблона:
+   - взять продукт;
+   - взять граммы;
+   - рассчитать БЖУ;
+   - сохранить в `meal_items` со снапшотом продукта.
+
+Порядок приёмов:
+
+```text
+breakfast = 10
+lunch = 20
+snack = 30
+pre_workout = 40
+post_workout = 50
+dinner = 60
+```
+
+Если шаблон отсутствует, создавать пустые приёмы.
+
+---
+
+## 24. Требования к интерфейсу
+
+Интерфейс должен быть:
+
+```text
+мобильный
+русский
+крупные кнопки
+минимум полей
+быстрый поиск
+понятные пустые состояния
+```
+
+Нижняя навигация:
+
+```text
+Сегодня
+Продукты
+Настройки
+```
+
+---
+
+## 25. Ошибки и пустые состояния
+
+Если данных нет, показывать понятные пустые состояния.
+
+Примеры:
+
+```text
+Сегодня нет записей.
+Создайте день отдыха или тренировочный день.
+```
+
+```text
+Продукты пока не добавлены.
+```
+
+```text
+Не удалось загрузить данные.
+Повторить.
+```
+
+```text
+Откройте приложение через Telegram-бота.
+```
+
+Не показывать сырые технические ошибки пользователю.
+
+---
+
+## 26. Офлайн-поведение
+
+Для текущего MVP не делать полноценный офлайн-режим.
+
+Допускается:
+
+```text
+показ ошибки, если нет сети;
+локальный черновик текущего дня в localStorage.
+```
+
+Полноценный offline-first не делаем.
+
+---
+
+## 27. Уведомления
+
+В этой версии не делаем.
+
+Бот нужен только как точка входа:
+
+```text
+/start
+кнопка открытия Mini App
+```
+
+---
+
+## 28. SQL-схема базы данных
+
+Создать файл:
+
+```text
+supabase/migrations/0001_init.sql
+```
+
+Содержимое:
+
+```sql
+-- =========================================
+-- Чистый MVP: дневник питания
+-- Только своя база продуктов
+-- =========================================
+
+create extension if not exists "pgcrypto";
+
+-- -----------------------------------------
+-- Пользователи
+-- -----------------------------------------
+create table if not exists public.users (
+  id uuid primary key default gen_random_uuid(),
+  telegram_id bigint not null unique,
+  username text,
+  first_name text,
+  language_code text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists users_telegram_id_idx
+  on public.users(telegram_id);
+
+-- -----------------------------------------
+-- Настройки пользователя
+-- -----------------------------------------
+create table if not exists public.user_settings (
+  user_id uuid primary key references public.users(id) on delete cascade,
+  rest_protein numeric(8,2) not null default 200,
+  rest_fat numeric(8,2) not null default 70,
+  rest_carbs numeric(8,2) not null default 130,
+  training_protein numeric(8,2) not null default 200,
+  training_fat numeric(8,2) not null default 70,
+  training_carbs numeric(8,2) not null default 200,
+  updated_at timestamptz not null default now()
+);
+
+-- -----------------------------------------
+-- Продукты
+-- -----------------------------------------
+create table if not exists public.foods (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  name text not null,
+  brand text,
+  state text not null default 'as_is' check (
+    state in ('raw', 'dry', 'cooked', 'as_is', 'liquid')
+  ),
+  protein_per_100 numeric(8,2) not null default 0,
+  fat_per_100 numeric(8,2) not null default 0,
+  carbs_per_100 numeric(8,2) not null default 0,
+  kcal_per_100 numeric(8,2) not null default 0,
+  default_portion_g numeric(8,2),
+  default_portion_label text,
+  is_favorite boolean not null default false,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists foods_user_id_idx
+  on public.foods(user_id);
+
+create index if not exists foods_user_name_idx
+  on public.foods(user_id, name);
+
+-- -----------------------------------------
+-- Дни питания
+-- -----------------------------------------
+create table if not exists public.days (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  date date not null,
+  is_training_day boolean not null default false,
+  target_protein numeric(8,2) not null default 200,
+  target_fat numeric(8,2) not null default 70,
+  target_carbs numeric(8,2) not null default 130,
+  target_kcal numeric(10,2) generated always as (
+    (target_protein * 4) + (target_fat * 9) + (target_carbs * 4)
+  ) stored,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id, date)
+);
+
+create index if not exists days_user_date_idx
+  on public.days(user_id, date);
+
+-- -----------------------------------------
+-- Приёмы пищи
+-- -----------------------------------------
+create table if not exists public.meals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  day_id uuid not null references public.days(id) on delete cascade,
+  meal_type text not null check (
+    meal_type in (
+      'breakfast',
+      'lunch',
+      'snack',
+      'dinner',
+      'pre_workout',
+      'post_workout'
+    )
+  ),
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  unique(day_id, meal_type)
+);
+
+create index if not exists meals_day_id_idx
+  on public.meals(day_id);
+
+-- -----------------------------------------
+-- Продукты в приёме пищи
+-- -----------------------------------------
+create table if not exists public.meal_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  meal_id uuid not null references public.meals(id) on delete cascade,
+  food_id uuid references public.foods(id) on delete set null,
+  name_snapshot text not null,
+  grams numeric(8,2) not null check (grams > 0),
+  protein numeric(8,2) not null default 0,
+  fat numeric(8,2) not null default 0,
+  carbs numeric(8,2) not null default 0,
+  kcal numeric(10,2) not null default 0,
+  per_100_snapshot jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists meal_items_meal_id_idx
+  on public.meal_items(meal_id);
+
+create index if not exists meal_items_food_id_idx
+  on public.meal_items(food_id);
+
+-- -----------------------------------------
+-- Шаблоны дней
+-- -----------------------------------------
+create table if not exists public.meal_templates (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  name text not null,
+  day_type text not null check (
+    day_type in ('rest', 'training')
+  ),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists meal_templates_user_id_idx
+  on public.meal_templates(user_id);
+
+-- -----------------------------------------
+-- Состав шаблонов дней
+-- -----------------------------------------
+create table if not exists public.meal_template_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  template_id uuid not null references public.meal_templates(id) on delete cascade,
+  meal_type text not null check (
+    meal_type in (
+      'breakfast',
+      'lunch',
+      'snack',
+      'dinner',
+      'pre_workout',
+      'post_workout'
+    )
+  ),
+  food_id uuid not null references public.foods(id) on delete cascade,
+  grams numeric(8,2) not null check (grams > 0),
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meal_template_items_template_id_idx
+  on public.meal_template_items(template_id);
+
+-- -----------------------------------------
+-- updated_at триггеры
+-- -----------------------------------------
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create trigger users_set_updated_at
+before update on public.users
+for each row execute function public.set_updated_at();
+
+create trigger user_settings_set_updated_at
+before update on public.user_settings
+for each row execute function public.set_updated_at();
+
+create trigger foods_set_updated_at
+before update on public.foods
+for each row execute function public.set_updated_at();
+
+create trigger days_set_updated_at
+before update on public.days
+for each row execute function public.set_updated_at();
+
+create trigger meal_items_set_updated_at
+before update on public.meal_items
+for each row execute function public.set_updated_at();
+
+create trigger meal_templates_set_updated_at
+before update on public.meal_templates
+for each row execute function public.set_updated_at();
+
+-- -----------------------------------------
+-- RLS
+-- -----------------------------------------
+-- Клиент не должен ходить в базу напрямую.
+-- Сервер использует service role key.
+alter table public.users enable row level security;
+alter table public.user_settings enable row level security;
+alter table public.foods enable row level security;
+alter table public.days enable row level security;
+alter table public.meals enable row level security;
+alter table public.meal_items enable row level security;
+alter table public.meal_templates enable row level security;
+alter table public.meal_template_items enable row level security;
+```
+
+---
+
+## 29. Типы данных в TypeScript
+
+Создать файл:
+
+```text
+src/lib/types.ts
+```
+
+Основные типы:
+
+```ts
+export type FoodState =
+  | 'raw'
+  | 'dry'
+  | 'cooked'
+  | 'as_is'
+  | 'liquid';
+
+export type MealType =
+  | 'breakfast'
+  | 'lunch'
+  | 'snack'
+  | 'dinner'
+  | 'pre_workout'
+  | 'post_workout';
+
+export type DayType =
+  | 'rest'
+  | 'training';
+
+export interface User {
+  id: string;
+  telegram_id: number;
+  username: string | null;
+  first_name: string | null;
+  language_code: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserSettings {
+  user_id: string;
+  rest_protein: number;
+  rest_fat: number;
+  rest_carbs: number;
+  training_protein: number;
+  training_fat: number;
+  training_carbs: number;
+  updated_at: string;
+}
+
+export interface Food {
+  id: string;
+  user_id: string;
+  name: string;
+  brand: string | null;
+  state: FoodState;
+  protein_per_100: number;
+  fat_per_100: number;
+  carbs_per_100: number;
+  kcal_per_100: number;
+  default_portion_g: number | null;
+  default_portion_label: string | null;
+  is_favorite: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Day {
+  id: string;
+  user_id: string;
+  date: string;
+  is_training_day: boolean;
+  target_protein: number;
+  target_fat: number;
+  target_carbs: number;
+  target_kcal: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Meal {
+  id: string;
+  user_id: string;
+  day_id: string;
+  meal_type: MealType;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface MealItem {
+  id: string;
+  user_id: string;
+  meal_id: string;
+  food_id: string | null;
+  name_snapshot: string;
+  grams: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+  per_100_snapshot: {
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MealTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  day_type: DayType;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MealTemplateItem {
+  id: string;
+  user_id: string;
+  template_id: string;
+  meal_type: MealType;
+  food_id: string;
+  grams: number;
+  sort_order: number;
+  created_at: string;
+}
+```
+
+---
+
+## 30. Утилиты питания
+
+Создать файл:
+
+```text
+src/lib/nutrition.ts
+```
+
+Функции:
+
+```ts
+calcMacrosFromPer100(per100, grams)
+sumMealItems(items)
+sumMeals(mealsWithItems)
+formatMacro(value)
+formatKcal(value)
+getMealLabel(mealType)
+getMealOrder(mealType)
+```
+
+Пример:
+
+```ts
+function calcMacrosFromPer100(
+  per100: {
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal: number;
+  },
+  grams: number
+) {
+  return {
+    protein: (per100.protein * grams) / 100,
+    fat: (per100.fat * grams) / 100,
+    carbs: (per100.carbs * grams) / 100,
+    kcal: (per100.kcal * grams) / 100,
+  };
+}
+```
+
+---
+
+## 31. Стартовый сид
+
+Создать файл:
+
+```text
+src/lib/seed.ts
+```
+
+Функция:
+
+```ts
+ensureInitialData(userId: string)
+```
+
+Логика:
+
+1. Проверить, есть ли продукты пользователя.
+2. Если нет — создать стартовые продукты.
+3. Проверить, есть ли шаблоны пользователя.
+4. Если нет — создать шаблоны.
+5. Связать элементы шаблонов с созданными продуктами по точному названию.
+
+Вызывать после успешной авторизации через Telegram.
+
+---
+
+## 32. Архитектура кода
+
+Рекомендуемая структура:
+
+```text
+src/
+  app/
+    page.tsx
+    today/
+      page.tsx
+    foods/
+      page.tsx
+    food/
+      [id]/
+        page.tsx
+    settings/
+      page.tsx
+    api/
+      auth/
+        telegram/
+          route.ts
+      telegram/
+        webhook/
+          route.ts
+  components/
+    layout/
+      bottom-nav.tsx
+      app-header.tsx
+      telegram-gate.tsx
+    day/
+      day-summary.tsx
+      meal-card.tsx
+      meal-item-row.tsx
+      add-meal-item-sheet.tsx
+      copy-yesterday-button.tsx
+      create-day-buttons.tsx
+    foods/
+      food-list.tsx
+      food-form.tsx
+      food-search.tsx
+    ui/
+  lib/
+    supabase/
+      server.ts
+    telegram/
+      bot.ts
+      verify-init-data.ts
+    auth/
+      session.ts
+    nutrition.ts
+    seed.ts
+    types.ts
+    utils.ts
+```
+
+---
+
+## 33. Telegram-бот
+
+Бот должен поддерживать:
+
+```text
+/start
+```
+
+Ответ:
+
+```text
+Привет! Это дневник питания.
+
+Здесь можно вести свои продукты, быстро добавлять приёмы пищи и видеть итог БЖУ за день.
+```
+
+Кнопка:
+
+```text
+Открыть дневник питания
+```
+
+Кнопка открывает Mini App.
+
+---
+
+## 34. Telegram Mini App
+
+Mini App должен:
+
+```text
+вызывать Telegram.WebApp.ready()
+вызывать Telegram.WebApp.expand()
+работать внутри Telegram
+показывать ошибку вне Telegram
+```
+
+Если нет `initData`:
+
+```text
+Откройте приложение через Telegram-бота.
+```
+
+---
+
+## 35. План реализации
+
+### Этап 1. Инициализация проекта
+
+Создать:
+
+```bash
+npx create-next-app@latest
+```
+
+Выбрать:
+
+```text
+TypeScript
+App Router
+Tailwind
+src directory
+```
+
+Установить:
+
+```bash
+npm install @supabase/supabase-js grammY @twa-dev/sdk date-fns zod lucide-react jose
+```
+
+Настроить:
+
+```text
+shadcn/ui
+```
+
+---
+
+### Этап 2. Переменные окружения
+
+Создать:
+
+```text
+.env.local
+```
+
+Добавить:
+
+```env
+NEXT_PUBLIC_APP_URL=
+
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_MINI_APP_URL=
+
+SESSION_SECRET=
+```
+
+---
+
+### Этап 3. База данных
+
+Создать:
+
+```text
+supabase/migrations/0001_init.sql
+```
+
+Вставить SQL из этой спеки.
+
+Применить миграцию в Supabase.
+
+---
+
+### Этап 4. Авторизация
+
+Сделать:
+
+```text
+/api/auth/telegram
+```
+
+Реализовать:
+
+```text
+проверку initData
+создание пользователя
+создание настроек
+выдачу сессии
+```
+
+---
+
+### Этап 5. Стартовый сид
+
+После первой успешной авторизации вызывать:
+
+```ts
+ensureInitialData(userId)
+```
+
+Создавать:
+
+```text
+стартовые продукты
+стартовые шаблоны
+```
+
+---
+
+### Этап 6. Экран продуктов
+
+Сделать:
+
+```text
+/foods
+```
+
+Функции:
+
+```text
+список
+поиск
+избранное
+добавление
+редактирование
+удаление
+```
+
+---
+
+### Этап 7. Дневник питания
+
+Сделать:
+
+```text
+/today
+```
+
+Функции:
+
+```text
+создание дня из шаблона
+переключение отдых / тренировка
+приёмы пищи
+добавление продукта
+граммы
+итоги
+копирование вчера
+```
+
+---
+
+### Этап 8. Настройки
+
+Сделать:
+
+```text
+/settings
+```
+
+Функции:
+
+```text
+цели отдыха
+цели тренировки
+```
+
+---
+
+### Этап 9. Бот
+
+Сделать:
+
+```text
+/api/telegram/webhook
+```
+
+Реализовать:
+
+```text
+/start
+кнопку открытия Mini App
+```
+
+---
+
+## 36. Критерии готовности
+
+Версия готова, если:
+
+1. Пользователь открывает бота.
+2. `/start` работает.
+3. Кнопка открывает Mini App.
+4. Mini App авторизует пользователя через Telegram.
+5. После первого входа автоматически созданы стартовые продукты.
+6. После первого входа автоматически созданы стартовые шаблоны.
+7. Можно открыть список продуктов.
+8. Можно добавить продукт вручную.
+9. Можно отредактировать продукт.
+10. Можно удалить продукт.
+11. Можно найти продукт поиском.
+12. Можно добавить продукт в избранное.
+13. Можно создать день отдыха из шаблона.
+14. Можно создать тренировочный день из шаблона.
+15. Можно скопировать вчерашний день.
+16. Можно добавить продукт в приём пищи.
+17. Можно изменить граммы.
+18. Можно удалить продукт из приёма.
+19. БЖУ и ккал считаются автоматически.
+20. Видно факт, план и остаток.
+21. Можно переключить день отдыха / тренировки.
+22. Нет функций, которые запрещены в этой версии.
+
+---
+
+## 37. Правила для Cursor
+
+Во время работы над проектом:
+
+1. Не добавлять функции, которых нет в спеке.
+2. Не делать парсинг.
+3. Не делать краулер.
+4. Не делать внешние API продуктов.
+5. Не делать импорт продуктов из внешних источников.
+6. Не делать штрихкоды.
+7. Не делать тренировки, добавки, графики и аналитику.
+8. Не делать PWA.
+9. Не делать отдельный экран редактирования шаблонов.
+10. Использовать только свою базу продуктов.
+11. Все запросы к базе делать только через сервер.
+12. Не хранить секреты в клиентском коде.
+13. Использовать русский язык в интерфейсе.
+14. Делать мобильный интерфейс.
+15. При изменении продукта не пересчитывать старые приёмы пищи.
+16. Всегда хранить снапшот БЖУ в `meal_items`.
+17. Если есть неоднозначность, выбирать самый простой вариант, соответствующий спеке.
+
+---
+
+## 38. Будущие этапы, не делать сейчас
+
+Позже можно добавить:
+
+1. Отдельный краулер, который будет наполнять базу продуктов.
+2. Импорт продуктов из краулера.
+3. Дедупликацию импортированных продуктов.
+4. Редактирование шаблонов дней.
+5. Утренние и вечерние сообщения в боте.
+6. Графики БЖУ.
+7. Аналитику по дням.
+8. Тренировки.
+9. Добавки.
+10. Штрихкоды.
+11. Публичный доступ.
+12. Telegram Stars.
+13. Платные функции.
+14. Импорт истории из Excel.
+15. Офлайн-режим.
+
+---
+
+## 39. Первый промпт для Cursor
+
+После того как этот файл сохранён как `SPEC.md`, можно отправить Cursor:
+
+```text
+Прочитай файл SPEC.md в корне проекта.
+
+Это спека чистого MVP приложения "Дневник питания армрестлера" в формате Telegram Mini App.
+
+Сейчас нужно сделать только свою базу продуктов и дневник питания.
+
+Не делай парсинг, краулер, внешние API, штрихкоды, тренировки, добавки, графики, аналитику, PWA и Telegram Stars.
+Не делай импорт продуктов из внешних источников.
+Все продукты должны быть только своими и храниться в нашей базе.
+
+Начни по шагам:
+
+1. Проверь текущую структуру проекта.
+2. Если проект ещё не создан, создай Next.js 15+ App Router проект с TypeScript, Tailwind CSS и src directory.
+3. Добавь зависимости:
+   - @supabase/supabase-js
+   - grammY
+   - @twa-dev/sdk
+   - date-fns
+   - zod
+   - lucide-react
+   - jose
+4. Настрой shadcn/ui.
+5. Создай структуру папок согласно SPEC.md.
+6. Создай файл src/lib/types.ts с типами из спеки.
+7. Создай файл src/lib/nutrition.ts с функциями расчёта БЖУ.
+8. Создай файл supabase/migrations/0001_init.sql и вставь туда SQL из спеки.
+9. Создай серверную проверку Telegram initData.
+10. Создай API route /api/auth/telegram.
+11. Создай src/lib/seed.ts со стартовыми продуктами и шаблонами.
+12. После этого остановись и покажи, что сделано.
+
+Не пытайся реализовать всё приложение за один раз.
+Двигайся по этапам из SPEC.md.
+```
