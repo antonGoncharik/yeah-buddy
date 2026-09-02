@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { setSessionCookie } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
+import { ensureInitialData } from "@/lib/seed";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
 import type { User } from "@/lib/types";
@@ -45,6 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const user = await upsertTelegramUser(telegramUser);
+    await ensureInitialData(user.id);
     await setSessionCookie({
       userId: user.id,
       telegramId: user.telegram_id,
