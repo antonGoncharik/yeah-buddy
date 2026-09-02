@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 
 import { cn } from "@/lib/utils";
@@ -15,10 +15,18 @@ export const metadata: Metadata = {
   description: "Telegram Mini App для дневника питания",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ru" className={cn("font-sans", geist.variable)}>
-      <body>{children}</body>
+      <body className="min-h-dvh bg-background text-foreground antialiased">
+        {children}
+      </body>
     </html>
   );
 }

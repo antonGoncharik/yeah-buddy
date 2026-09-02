@@ -3,13 +3,11 @@ import { z } from "zod";
 
 import { setSessionCookie } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
+import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
 import { ensureInitialData } from "@/lib/seed";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
 import type { User } from "@/lib/types";
-
-const OPEN_VIA_BOT = "Откройте приложение через Telegram-бота.";
-const GENERIC_ERROR = "Не удалось загрузить данные.";
 
 const bodySchema = z.object({
   initData: z.string().min(1),
@@ -33,7 +31,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     env = getServerEnv();
   } catch (error) {
     console.error(error);
-    return jsonError(GENERIC_ERROR, 500);
+    return jsonError(LOAD_FAILED, 500);
   }
 
   const telegramUser = verifyTelegramInitData(
@@ -55,7 +53,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ user });
   } catch (error) {
     console.error(error);
-    return jsonError(GENERIC_ERROR, 500);
+    return jsonError(LOAD_FAILED, 500);
   }
 }
 
