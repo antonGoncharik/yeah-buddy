@@ -1,51 +1,104 @@
 "use client";
 
+import { format } from "date-fns";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { LOAD_FAILED, WORKOUTS_NEED_EXERCISES } from "@/lib/messages";
-import type { CurrentMacroState, ExerciseWithMax } from "@/lib/types";
+import {
+  LOAD_FAILED,
+  readApiError,
+  WORKOUTS_NEED_EXERCISES,
+} from "@/lib/messages";
+import type {
+  CurrentMacroState,
+  ExerciseWithMax,
+  ScheduleWorkoutType,
+  WorkoutKind,
+  WorkoutSession,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import {
+  PHASE_TYPE_LABELS,
+  SESSION_STATUS_LABELS,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 export function WorkoutsHubScreen() {
+  const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
+  const [session, setSession] = useState<WorkoutSession | null>(null);
+  const [scheduledType, setScheduledType] =
+    useState<ScheduleWorkoutType>("rest");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [exercisesResponse, macroResponse] = await Promise.all([
-        fetch("/api/exercises?filter=active"),
-        fetch("/api/macros"),
-      ]);
-      if (!exercisesResponse.ok || !macroResponse.ok) {
+      const [exercisesResponse, macroResponse, todayResponse] =
+        await Promise.all([
+          fetch("/api/exercises?filter=active"),
+          fetch("/api/macros"),
+          fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
+        ]);
+      if (!exercisesResponse.ok || !macroResponse.ok || !todayResponse.ok) {
         throw new Error("load failed");
       }
 
       const exercisesData: unknown = await exercisesResponse.json();
       const macroData: unknown = await macroResponse.json();
+      const todayData: unknown = await todayResponse.json();
       setExercises(readExercises(exercisesData));
       setMacro(readMacro(macroData));
+      setSession(readTodaySession(todayData));
+      setScheduledType(readScheduledType(todayData));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
       setMacro(null);
+      setSession(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [date]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function createToday(workoutType: WorkoutKind) {
+    setCreating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_date: date,
+          workout_type: workoutType,
+        }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      await load();
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -111,6 +164,82 @@ export function WorkoutsHubScreen() {
             <p className="mt-1 text-sm text-muted-foreground">
               с {macro.phase.start_date}
             </p>
+          </Link>
+        ) : null}
+
+        {!loading && !error && session ? (
+          <Link
+            href={`/workouts/sessions/${session.id}`}
+            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
+          >
+            <p className="text-sm text-muted-foreground">Сегодня</p>
+            <p className="text-2xl font-semibold">
+              {WORKOUT_KIND_LABELS[session.workout_type]}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {SESSION_STATUS_LABELS[session.status]}
+            </p>
+          </Link>
+        ) : null}
+
+        {!loading &&
+        !error &&
+        !session &&
+        macro?.macro &&
+        scheduledType === "rest" ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
+            <h2 className="text-xl font-semibold">Сегодня отдых</h2>
+            <p className="text-base text-muted-foreground">
+              Можно всё равно провести тренировку — расписание не изменится.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                className="h-12 text-base"
+                disabled={creating}
+                onClick={() => void createToday("dynamic")}
+              >
+                Динамика
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-12 text-base"
+                disabled={creating}
+                onClick={() => void createToday("static")}
+              >
+                Статика
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        {!loading &&
+        !error &&
+        !session &&
+        macro?.macro &&
+        scheduledType !== "rest" ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
+            <p className="text-lg font-medium">
+              По расписанию сегодня {WORKOUT_KIND_LABELS[scheduledType]}.
+            </p>
+            <Button
+              type="button"
+              className="h-12 text-base"
+              disabled={creating}
+              onClick={() => void createToday(scheduledType)}
+            >
+              Создать тренировку
+            </Button>
+          </section>
+        ) : null}
+
+        {!loading && !error ? (
+          <Link
+            href="/workouts/schedule"
+            className="text-sm font-medium text-primary"
+          >
+            Расписание
           </Link>
         ) : null}
 
@@ -180,4 +309,32 @@ function readMacro(data: unknown): CurrentMacroState | null {
   }
 
   return data as CurrentMacroState;
+}
+
+function readTodaySession(data: unknown): WorkoutSession | null {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("session" in data) ||
+    !data.session
+  ) {
+    return null;
+  }
+
+  return data.session as WorkoutSession;
+}
+
+function readScheduledType(data: unknown): ScheduleWorkoutType {
+  if (
+    data &&
+    typeof data === "object" &&
+    "scheduled_type" in data &&
+    (data.scheduled_type === "dynamic" ||
+      data.scheduled_type === "static" ||
+      data.scheduled_type === "rest")
+  ) {
+    return data.scheduled_type;
+  }
+
+  return "rest";
 }
