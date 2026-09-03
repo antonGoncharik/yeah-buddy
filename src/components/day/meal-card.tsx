@@ -52,7 +52,7 @@ export function MealCard({
       )}
 
       {meal.items.length > 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-muted-foreground">
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
         </p>

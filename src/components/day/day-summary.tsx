@@ -43,18 +43,21 @@ export function DaySummary({
           label="Белки"
           fact={fact.protein}
           plan={day.target_protein}
+          kcalPerGram={4}
           barClass="bg-[var(--macro-protein)]"
         />
         <MacroBar
           label="Жиры"
           fact={fact.fat}
           plan={day.target_fat}
+          kcalPerGram={9}
           barClass="bg-[var(--macro-fat)]"
         />
         <MacroBar
           label="Углеводы"
           fact={fact.carbs}
           plan={day.target_carbs}
+          kcalPerGram={4}
           barClass="bg-[var(--macro-carbs)]"
         />
       </div>
@@ -66,16 +69,19 @@ function MacroBar({
   label,
   fact,
   plan,
+  kcalPerGram,
   barClass,
 }: {
   label: string;
   fact: number;
   plan: number;
+  kcalPerGram: number;
   barClass: string;
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
+  const remainingKcal = Math.abs(remaining) * kcalPerGram;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -102,8 +108,8 @@ function MacroBar({
         )}
       >
         {overflow
-          ? `+${formatMacro(Math.abs(remaining))}`
-          : `ещё ${formatMacro(remaining)}`}
+          ? `+${formatMacro(Math.abs(remaining))} · +${formatKcal(remainingKcal)} ккал`
+          : `ещё ${formatMacro(remaining)} · ${formatKcal(remainingKcal)} ккал`}
       </p>
     </div>
   );

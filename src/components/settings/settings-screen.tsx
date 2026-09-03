@@ -144,16 +144,19 @@ export function SettingsScreen() {
               <MacroField
                 label="Белки"
                 value={form.rest_protein}
+                kcalPerGram={4}
                 onChange={(value) => updateField("rest_protein", value)}
               />
               <MacroField
                 label="Жиры"
                 value={form.rest_fat}
+                kcalPerGram={9}
                 onChange={(value) => updateField("rest_fat", value)}
               />
               <MacroField
                 label="Углеводы"
                 value={form.rest_carbs}
+                kcalPerGram={4}
                 onChange={(value) => updateField("rest_carbs", value)}
               />
               {restKcal != null ? (
@@ -168,16 +171,19 @@ export function SettingsScreen() {
               <MacroField
                 label="Белки"
                 value={form.training_protein}
+                kcalPerGram={4}
                 onChange={(value) => updateField("training_protein", value)}
               />
               <MacroField
                 label="Жиры"
                 value={form.training_fat}
+                kcalPerGram={9}
                 onChange={(value) => updateField("training_fat", value)}
               />
               <MacroField
                 label="Углеводы"
                 value={form.training_carbs}
+                kcalPerGram={4}
                 onChange={(value) => updateField("training_carbs", value)}
               />
               {trainingKcal != null ? (
@@ -205,15 +211,27 @@ export function SettingsScreen() {
 function MacroField({
   label,
   value,
+  kcalPerGram,
   onChange,
 }: {
   label: string;
   value: string;
+  kcalPerGram: number;
   onChange: (value: string) => void;
 }) {
+  const grams = parseMacro(value);
+  const kcal = grams == null ? null : grams * kcalPerGram;
+
   return (
     <div className="flex flex-col gap-2">
-      <Label className="text-base">{label}</Label>
+      <div className="flex items-baseline justify-between gap-3">
+        <Label className="text-base">{label}</Label>
+        {kcal != null ? (
+          <p className="text-sm text-muted-foreground">
+            {formatKcal(kcal)} ккал
+          </p>
+        ) : null}
+      </div>
       <Input
         required
         inputMode="decimal"
