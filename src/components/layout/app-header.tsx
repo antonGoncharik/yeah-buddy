@@ -9,7 +9,7 @@ export function AppHeader({
   backHref?: string;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-background/50 to-transparent px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
+    <header className="flex items-center gap-2 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
       {backHref ? (
         <Link
           href={backHref}
