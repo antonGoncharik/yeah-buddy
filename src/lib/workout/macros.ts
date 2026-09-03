@@ -10,6 +10,7 @@ import type {
   PhaseMax,
   PhaseMaxRow,
   PhaseType,
+  TransitionPreview,
   WorkoutPhase,
 } from "@/lib/types";
 import { listExercises } from "@/lib/workout/exercises";
@@ -58,7 +59,13 @@ export const createMacroSchema = z.object({
 
 export const phaseMaxInputSchema = maxInputSchema;
 
+export const confirmTransitionSchema = z.object({
+  end_date: z.string().refine(isIsoDate, "Некорректная дата."),
+  maxes: z.array(maxInputSchema).min(1),
+});
+
 export type CreateMacroInput = z.infer<typeof createMacroSchema>;
+export type ConfirmTransitionInput = z.infer<typeof confirmTransitionSchema>;
 
 export async function getCurrentMacroState(
   userId: string,
@@ -217,28 +224,109 @@ export async function listCurrentPhaseMaxes(
   );
 }
 
-export function proposePhaseMaxes(
-  current: PhaseMaxRow[],
-  from: PhaseType,
-  to: PhaseType,
-  increasePercent: number,
-  weightStep: number,
-): Array<{ exercise_id: string; max_weight: number; source: MaxSource }> {
-  const bump = shouldIncreaseMax(from, to);
-  return current.flatMap((row) => {
+export async function previewTransition(
+  userId: string,
+): Promise<TransitionPreview> {
+  const state = await getCurrentMacroState(userId);
+  if (!state.macro || !state.phase) {
+    throw new Error("Нет текущей фазы.");
+  }
+
+  const settings = await ensureWorkoutSettings(userId);
+  const nextType = nextPhaseType(state.phase.phase_type);
+
+  if (!nextType) {
+    const peak = await getPeakPhaseMaxes(userId, state.macro.id);
+    const source = peak.some((row) => row.phase_max) ? peak : state.maxes;
+    return {
+      from_phase: state.phase.phase_type,
+      to_phase: null,
+      new_macro: true,
+      increased: false,
+      maxes: toTransitionMaxes(source, (weight) => weight),
+    };
+  }
+
+  const increased = shouldIncreaseMax(state.phase.phase_type, nextType);
+  return {
+    from_phase: state.phase.phase_type,
+    to_phase: nextType,
+    new_macro: false,
+    increased,
+    maxes: toTransitionMaxes(state.maxes, (weight) =>
+      increased
+        ? increaseMax(
+            weight,
+            settings.max_increase_percent,
+            settings.weight_step,
+          )
+        : weight,
+    ),
+  };
+}
+
+export async function confirmTransition(
+  userId: string,
+  input: ConfirmTransitionInput,
+): Promise<CurrentMacroState> {
+  const preview = await previewTransition(userId);
+  if (preview.new_macro) {
+    return completeMacroAndStartNext(userId, {
+      start_date: input.end_date,
+      note: null,
+      maxes: input.maxes,
+    });
+  }
+
+  const state = await getCurrentMacroState(userId);
+  if (!state.macro || !state.phase || !preview.to_phase) {
+    throw new Error("Нет текущей фазы.");
+  }
+
+  const supabase = createSupabaseServerClient();
+  const closed = await supabase
+    .from("workout_phases")
+    .update({
+      status: "completed",
+      end_date: input.end_date,
+    })
+    .eq("id", state.phase.id)
+    .eq("user_id", userId)
+    .eq("status", "current");
+
+  if (closed.error) {
+    throw closed.error;
+  }
+
+  await createPhase(userId, {
+    macroId: state.macro.id,
+    phaseType: preview.to_phase,
+    startDate: input.end_date,
+    maxes: input.maxes.map((item) => ({
+      exercise_id: item.exercise_id,
+      max_weight: item.max_weight,
+      source: preview.increased ? "auto" : "auto",
+    })),
+  });
+
+  return getCurrentMacroState(userId);
+}
+
+function toTransitionMaxes(
+  rows: PhaseMaxRow[],
+  propose: (current: number) => number,
+): TransitionPreview["maxes"] {
+  return rows.flatMap((row) => {
     if (!row.phase_max) {
       return [];
     }
 
-    const maxWeight = bump
-      ? increaseMax(row.phase_max.max_weight, increasePercent, weightStep)
-      : row.phase_max.max_weight;
-
     return [
       {
         exercise_id: row.exercise.id,
-        max_weight: maxWeight,
-        source: bump ? ("auto" as const) : ("auto" as const),
+        name: row.exercise.short_name || row.exercise.name,
+        current_weight: row.phase_max.max_weight,
+        proposed_weight: propose(row.phase_max.max_weight),
       },
     ];
   });
@@ -266,65 +354,6 @@ export async function getPeakPhaseMaxes(
   }
 
   return listPhaseMaxRows(userId, String(peak.data.id));
-}
-
-export async function completeCurrentPhase(userId: string, endDate: string) {
-  const state = await getCurrentMacroState(userId);
-  if (!state.macro || !state.phase) {
-    throw new Error("Нет текущей фазы.");
-  }
-
-  const settings = await ensureWorkoutSettings(userId);
-  const nextType = nextPhaseType(state.phase.phase_type);
-  const supabase = createSupabaseServerClient();
-
-  const closed = await supabase
-    .from("workout_phases")
-    .update({
-      status: "completed",
-      end_date: endDate,
-    })
-    .eq("id", state.phase.id)
-    .eq("user_id", userId)
-    .eq("status", "current");
-
-  if (closed.error) {
-    throw closed.error;
-  }
-
-  if (!nextType) {
-    return {
-      kind: "macro_complete" as const,
-      macro: state.macro,
-      finishedPhase: {
-        ...state.phase,
-        status: "completed" as const,
-        end_date: endDate,
-      },
-      proposedMaxes: await getPeakPhaseMaxes(userId, state.macro.id),
-    };
-  }
-
-  const proposed = proposePhaseMaxes(
-    state.maxes,
-    state.phase.phase_type,
-    nextType,
-    settings.max_increase_percent,
-    settings.weight_step,
-  );
-
-  await createPhase(userId, {
-    macroId: state.macro.id,
-    phaseType: nextType,
-    startDate: endDate,
-    maxes: proposed,
-  });
-
-  return {
-    kind: "phase_started" as const,
-    state: await getCurrentMacroState(userId),
-    increased: shouldIncreaseMax(state.phase.phase_type, nextType),
-  };
 }
 
 export async function completeMacroAndStartNext(

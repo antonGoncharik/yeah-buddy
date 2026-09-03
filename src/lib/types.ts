@@ -284,6 +284,21 @@ export interface CurrentMacroState {
   maxes: PhaseMaxRow[];
 }
 
+export interface TransitionMaxRow {
+  exercise_id: string;
+  name: string;
+  current_weight: number;
+  proposed_weight: number;
+}
+
+export interface TransitionPreview {
+  from_phase: PhaseType;
+  to_phase: PhaseType | null;
+  new_macro: boolean;
+  increased: boolean;
+  maxes: TransitionMaxRow[];
+}
+
 export interface SessionExerciseDetail extends SessionExercise {
   exercise: Exercise;
   sets: WorkoutSet[];

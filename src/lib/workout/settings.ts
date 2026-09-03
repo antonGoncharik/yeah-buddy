@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   FormulaPhaseSpec,
-  FormulaSetSpec,
   PhaseType,
   WorkoutFormulas,
   WorkoutKind,
@@ -148,8 +147,4 @@ export function getFormulaPhase(
   phase: PhaseType,
 ): FormulaPhaseSpec {
   return formulas[kind][phase];
-}
-
-export function listFormulaSets(spec: FormulaPhaseSpec): FormulaSetSpec[] {
-  return [...spec.warmup, ...spec.work];
 }

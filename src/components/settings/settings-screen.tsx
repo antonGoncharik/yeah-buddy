@@ -239,6 +239,8 @@ export function SettingsScreen() {
             </Button>
           </form>
         ) : null}
+
+        <WorkoutSettingsCard />
       </div>
     </div>
   );
@@ -363,4 +365,162 @@ function readSettings(data: unknown): UserSettings | null {
   }
 
   return data.settings as UserSettings;
+}
+
+function WorkoutSettingsCard() {
+  const [weightStep, setWeightStep] = useState("2.5");
+  const [increasePercent, setIncreasePercent] = useState("5");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    setSaved(false);
+
+    try {
+      const response = await fetch("/api/workout-settings");
+      if (!response.ok) {
+        throw new Error("load failed");
+      }
+
+      const data: unknown = await response.json();
+      const settings = readWorkoutSettings(data);
+      if (!settings) {
+        throw new Error("load failed");
+      }
+
+      setWeightStep(String(settings.weight_step));
+      setIncreasePercent(String(settings.max_increase_percent));
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function onSave() {
+    const step = parseMacro(weightStep);
+    const percent = parseMacro(increasePercent);
+    if (step == null || step <= 0 || percent == null || percent < 0) {
+      setError("Проверьте поля формы.");
+      setSaved(false);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+
+    try {
+      const response = await fetch("/api/workout-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weight_step: step,
+          max_increase_percent: percent,
+        }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const settings = readWorkoutSettings(data);
+      if (settings) {
+        setWeightStep(String(settings.weight_step));
+        setIncreasePercent(String(settings.max_increase_percent));
+      }
+      setSaved(true);
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+      <h2 className="text-xl font-semibold">Тренировки</h2>
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Загрузка…</p>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            <Label className="text-base">Шаг округления веса, кг</Label>
+            <Input
+              inputMode="decimal"
+              value={weightStep}
+              onChange={(event) => {
+                setSaved(false);
+                setWeightStep(event.target.value);
+              }}
+              className="h-12 text-base"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="text-base">Прирост максимума, %</Label>
+            <Input
+              inputMode="decimal"
+              value={increasePercent}
+              onChange={(event) => {
+                setSaved(false);
+                setIncreasePercent(event.target.value);
+              }}
+              className="h-12 text-base"
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            При переходе набор → рывок максимумы предлагаются с этим процентом.
+          </p>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {saved ? (
+            <p className="text-sm text-muted-foreground">Сохранено.</p>
+          ) : null}
+          <Button
+            type="button"
+            className="h-12 text-base"
+            disabled={saving}
+            onClick={() => void onSave()}
+          >
+            {saving ? "Сохранение…" : "Сохранить формулы"}
+          </Button>
+        </>
+      )}
+    </section>
+  );
+}
+
+function readWorkoutSettings(data: unknown): {
+  weight_step: number;
+  max_increase_percent: number;
+} | null {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("settings" in data) ||
+    !data.settings ||
+    typeof data.settings !== "object"
+  ) {
+    return null;
+  }
+
+  const settings = data.settings as {
+    weight_step?: unknown;
+    max_increase_percent?: unknown;
+  };
+  const weight_step = Number(settings.weight_step);
+  const max_increase_percent = Number(settings.max_increase_percent);
+  if (!Number.isFinite(weight_step) || !Number.isFinite(max_increase_percent)) {
+    return null;
+  }
+
+  return { weight_step, max_increase_percent };
 }

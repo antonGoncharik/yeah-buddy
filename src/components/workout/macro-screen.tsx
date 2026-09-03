@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -7,7 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
-import type { CurrentMacroState } from "@/lib/types";
+import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -18,6 +19,14 @@ export function MacroScreen() {
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<TransitionPreview | null>(null);
+  const [transitionDate, setTransitionDate] = useState(
+    format(new Date(), "yyyy-MM-dd"),
+  );
+  const [transitionMaxes, setTransitionMaxes] = useState<
+    Record<string, string>
+  >({});
+  const [transitioning, setTransitioning] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,6 +95,82 @@ export function MacroScreen() {
       setError(LOAD_FAILED);
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function openTransition() {
+    setError(null);
+    setTransitioning(true);
+
+    try {
+      const response = await fetch("/api/macros/transition");
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const next = readPreview(data);
+      if (!next) {
+        setError(LOAD_FAILED);
+        return;
+      }
+
+      setPreview(next);
+      setTransitionDate(format(new Date(), "yyyy-MM-dd"));
+      setTransitionMaxes(
+        Object.fromEntries(
+          next.maxes.map((row) => [
+            row.exercise_id,
+            formatWeight(row.proposed_weight),
+          ]),
+        ),
+      );
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setTransitioning(false);
+    }
+  }
+
+  async function confirmTransition() {
+    const maxes = (preview?.maxes ?? []).flatMap((row) => {
+      const weight = parseDecimal(transitionMaxes[row.exercise_id] ?? "");
+      if (weight == null || weight <= 0) {
+        return [];
+      }
+      return [{ exercise_id: row.exercise_id, max_weight: weight }];
+    });
+
+    if (!preview || maxes.length !== preview.maxes.length) {
+      setError("Проверьте предложенные максимумы.");
+      return;
+    }
+
+    setTransitioning(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/macros/transition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          end_date: transitionDate,
+          maxes,
+        }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      setPreview(null);
+      await load();
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setTransitioning(false);
     }
   }
 
@@ -193,6 +278,80 @@ export function MacroScreen() {
             </section>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+            {preview ? (
+              <section className="card-surface flex flex-col gap-3 px-5 py-5">
+                <h2 className="text-xl font-semibold">
+                  {preview.new_macro
+                    ? "Новый макроцикл"
+                    : `Дальше: ${preview.to_phase ? PHASE_TYPE_LABELS[preview.to_phase] : ""}`}
+                </h2>
+                {preview.increased ? (
+                  <p className="text-sm text-muted-foreground">
+                    Максимумы предложены с приростом. Можно поправить перед
+                    подтверждением.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Максимумы копируются без изменений. Можно поправить.
+                  </p>
+                )}
+                <Input
+                  type="date"
+                  value={transitionDate}
+                  onChange={(event) => setTransitionDate(event.target.value)}
+                  className="h-12 text-base"
+                />
+                {preview.maxes.map((row) => (
+                  <div key={row.exercise_id} className="flex flex-col gap-1">
+                    <p className="text-base font-medium">{row.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      было {formatWeight(row.current_weight)} → предлагаем{" "}
+                      {formatWeight(row.proposed_weight)}
+                    </p>
+                    <Input
+                      inputMode="decimal"
+                      value={transitionMaxes[row.exercise_id] ?? ""}
+                      onChange={(event) =>
+                        setTransitionMaxes((current) => ({
+                          ...current,
+                          [row.exercise_id]: event.target.value,
+                        }))
+                      }
+                      className="h-12 text-base"
+                    />
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  className="h-14 text-lg"
+                  disabled={transitioning}
+                  onClick={() => void confirmTransition()}
+                >
+                  {transitioning ? "Сохранение…" : "Подтвердить"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-12 text-base"
+                  disabled={transitioning}
+                  onClick={() => setPreview(null)}
+                >
+                  Отмена
+                </Button>
+              </section>
+            ) : (
+              <Button
+                type="button"
+                className="h-14 text-lg"
+                disabled={transitioning}
+                onClick={() => void openTransition()}
+              >
+                {state.phase.phase_type === "deload"
+                  ? "Завершить макроцикл"
+                  : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
+              </Button>
+            )}
           </>
         ) : null}
       </div>
@@ -206,4 +365,17 @@ function readState(data: unknown): CurrentMacroState | null {
   }
 
   return data as CurrentMacroState;
+}
+
+function readPreview(data: unknown): TransitionPreview | null {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("preview" in data) ||
+    !data.preview
+  ) {
+    return null;
+  }
+
+  return data.preview as TransitionPreview;
 }
