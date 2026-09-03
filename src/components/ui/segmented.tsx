@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +12,7 @@ export function Segmented<T extends string>({
   disabled,
 }: {
   value: T;
-  options: Array<{ id: T; label: string }>;
+  options: Array<{ id: T; label: string; icon?: ReactNode }>;
   onChange: (id: T) => void;
   disabled?: boolean;
 }) {
@@ -29,7 +31,7 @@ export function Segmented<T extends string>({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1 bottom-1 left-1 rounded-xl bg-card shadow-sm transition-transform duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none"
+        className="pointer-events-none absolute top-1 bottom-1 left-1 rounded-xl bg-card shadow-sm transition-[transform,background-color,box-shadow] duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none"
         style={{
           width: `calc((100% - 0.5rem - ${(count - 1) * 0.25}rem) / ${count})`,
           transform: `translateX(calc(${selectedIndex} * (100% + 0.25rem)))`,
@@ -45,13 +47,14 @@ export function Segmented<T extends string>({
             variant="ghost"
             disabled={disabled}
             className={cn(
-              "relative z-10 h-11 rounded-xl text-base shadow-none hover:bg-transparent",
+              "relative z-10 h-11 gap-2 rounded-xl text-base shadow-none hover:bg-transparent",
               selected
                 ? "bg-transparent text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
             onClick={() => onChange(option.id)}
           >
+            {option.icon}
             {option.label}
           </Button>
         );

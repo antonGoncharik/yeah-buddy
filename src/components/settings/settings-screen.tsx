@@ -1,5 +1,6 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -129,8 +130,16 @@ export function SettingsScreen() {
           <Segmented
             value={theme}
             options={[
-              { id: "light", label: "Светлая" },
-              { id: "dark", label: "Тёмная" },
+              {
+                id: "light",
+                label: "Светлая",
+                icon: <Sun className="size-4" aria-hidden />,
+              },
+              {
+                id: "dark",
+                label: "Тёмная",
+                icon: <Moon className="size-4" aria-hidden />,
+              },
             ]}
             onChange={setTheme}
           />
