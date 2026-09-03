@@ -270,3 +270,16 @@ export interface WorkoutSet {
   is_completed: boolean;
   created_at: string;
 }
+
+export interface PhaseMaxRow {
+  exercise: ExerciseWithMax;
+  phase_max: PhaseMax | null;
+  proposed_weight: number | null;
+}
+
+export interface CurrentMacroState {
+  macro: MacroCycle | null;
+  phase: WorkoutPhase | null;
+  phases: WorkoutPhase[];
+  maxes: PhaseMaxRow[];
+}

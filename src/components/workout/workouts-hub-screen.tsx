@@ -6,12 +6,14 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { LOAD_FAILED, WORKOUTS_NEED_EXERCISES } from "@/lib/messages";
-import type { ExerciseWithMax } from "@/lib/types";
+import type { CurrentMacroState, ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 export function WorkoutsHubScreen() {
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
+  const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,16 +22,22 @@ export function WorkoutsHubScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/exercises?filter=active");
-      if (!response.ok) {
+      const [exercisesResponse, macroResponse] = await Promise.all([
+        fetch("/api/exercises?filter=active"),
+        fetch("/api/macros"),
+      ]);
+      if (!exercisesResponse.ok || !macroResponse.ok) {
         throw new Error("load failed");
       }
 
-      const data: unknown = await response.json();
-      setExercises(readExercises(data));
+      const exercisesData: unknown = await exercisesResponse.json();
+      const macroData: unknown = await macroResponse.json();
+      setExercises(readExercises(exercisesData));
+      setMacro(readMacro(macroData));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
+      setMacro(null);
     } finally {
       setLoading(false);
     }
@@ -72,6 +80,38 @@ export function WorkoutsHubScreen() {
               Добавить упражнение
             </Link>
           </section>
+        ) : null}
+
+        {!loading && !error && exercises.length > 0 && !macro?.macro ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
+            <h2 className="text-xl font-semibold">Макроцикл</h2>
+            <p className="text-base text-muted-foreground">
+              Задайте максимумы и начните фазу разгон.
+            </p>
+            <Link
+              href="/workouts/macro/new"
+              className={cn(buttonVariants(), "h-14 text-lg")}
+            >
+              Создать макроцикл
+            </Link>
+          </section>
+        ) : null}
+
+        {!loading && !error && macro?.macro && macro.phase ? (
+          <Link
+            href="/workouts/macro"
+            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
+          >
+            <p className="text-sm text-muted-foreground">
+              Макроцикл №{macro.macro.number}
+            </p>
+            <p className="text-2xl font-semibold">
+              {PHASE_TYPE_LABELS[macro.phase.phase_type]}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              с {macro.phase.start_date}
+            </p>
+          </Link>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
@@ -132,4 +172,12 @@ function readExercises(data: unknown): ExerciseWithMax[] {
   }
 
   return data.exercises as ExerciseWithMax[];
+}
+
+function readMacro(data: unknown): CurrentMacroState | null {
+  if (!data || typeof data !== "object" || !("macro" in data)) {
+    return null;
+  }
+
+  return data as CurrentMacroState;
 }
