@@ -85,3 +85,14 @@ export function getMealLabel(mealType: MealType): string {
 export function getMealOrder(mealType: MealType): number {
   return MEAL_ORDER[mealType];
 }
+
+export function isMealVisible(
+  mealType: MealType,
+  isTrainingDay: boolean,
+): boolean {
+  if (isTrainingDay) {
+    return true;
+  }
+
+  return mealType !== "pre_workout" && mealType !== "post_workout";
+}

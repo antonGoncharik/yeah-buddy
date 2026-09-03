@@ -18,7 +18,7 @@ import {
   TODAY_EMPTY,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
-import { sumMeals } from "@/lib/nutrition";
+import { isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { DayType, MealItem } from "@/lib/types";
 
 function todayIsoDate(): string {
@@ -60,13 +60,17 @@ export function TodayScreen() {
     void load();
   }, [load]);
 
-  const fact = useMemo(() => {
+  const visibleMeals = useMemo(() => {
     if (!day) {
-      return { protein: 0, fat: 0, carbs: 0, kcal: 0 };
+      return [];
     }
 
-    return sumMeals(day.meals);
+    return day.meals.filter((meal) =>
+      isMealVisible(meal.meal_type, day.is_training_day),
+    );
   }, [day]);
+
+  const fact = useMemo(() => sumMeals(visibleMeals), [visibleMeals]);
 
   async function createDay(dayType: DayType) {
     setBusy(true);
@@ -277,7 +281,7 @@ export function TodayScreen() {
 
             <DaySummary day={day} fact={fact} />
 
-            {day.meals.map((meal) => (
+            {visibleMeals.map((meal) => (
               <MealCard
                 key={meal.id}
                 meal={meal}
