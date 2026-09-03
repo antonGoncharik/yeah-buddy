@@ -122,7 +122,7 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
   }
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <form className="animate-rise flex flex-col gap-4" onSubmit={onSubmit}>
       <Field label="Название">
         <Input
           required

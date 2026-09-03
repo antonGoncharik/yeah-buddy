@@ -65,7 +65,7 @@ export function AddMealItemScreen({ mealId }: { mealId: string }) {
   }, [foods, query]);
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-4">
+    <div className="animate-rise flex flex-col gap-3 px-4 pb-4">
       <FoodSearch value={query} onChange={setQuery} />
 
       <Segmented value={filter} options={FILTERS} onChange={setFilter} />

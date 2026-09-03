@@ -13,7 +13,7 @@ export function AppHeader({
       {backHref ? (
         <Link
           href={backHref}
-          className="flex size-11 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-muted"
+          className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
           aria-label="Назад"
         >
           <ChevronLeft className="size-6" />

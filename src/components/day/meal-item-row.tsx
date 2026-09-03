@@ -18,7 +18,7 @@ export function MealItemRow({
     <div className="flex items-stretch gap-1">
       <Link
         href={`/today/items/${item.id}`}
-        className="min-w-0 flex-1 rounded-xl px-1 py-3 transition-colors hover:bg-muted/60"
+        className="min-w-0 flex-1 rounded-xl px-1 py-3 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60"
       >
         <p className="truncate text-lg font-medium">{item.name_snapshot}</p>
         <p className="text-sm text-muted-foreground">

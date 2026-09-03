@@ -291,10 +291,17 @@ export function TodayScreen() {
               />
             ))}
 
-            <CopyYesterdayButton
-              busy={busy}
-              onCopy={() => void copyYesterday()}
-            />
+            <div
+              className="animate-rise"
+              style={{
+                animationDelay: `${80 + visibleMeals.length * 50}ms`,
+              }}
+            >
+              <CopyYesterdayButton
+                busy={busy}
+                onCopy={() => void copyYesterday()}
+              />
+            </div>
           </div>
         ) : null}
       </div>

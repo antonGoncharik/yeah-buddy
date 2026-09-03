@@ -102,7 +102,7 @@ export function FoodsScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Продукты" />
 
-      <div className="flex flex-col gap-3 px-4">
+      <div className="animate-rise flex flex-col gap-3 px-4">
         <FoodSearch value={query} onChange={setQuery} />
 
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />
@@ -110,13 +110,13 @@ export function FoodsScreen() {
 
       <div className="px-4 pb-4">
         {loading ? (
-          <p className="py-12 text-center text-lg text-muted-foreground">
+          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             Загрузка…
           </p>
         ) : null}
 
         {!loading && error ? (
-          <div className="flex flex-col items-center gap-3 py-12">
+          <div className="animate-rise flex flex-col items-center gap-3 py-12">
             <p className="text-center text-lg font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
@@ -128,7 +128,7 @@ export function FoodsScreen() {
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 ? (
-          <p className="py-12 text-center text-lg text-muted-foreground">
+          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             {emptyMessage(filter, query)}
           </p>
         ) : null}
@@ -141,7 +141,7 @@ export function FoodsScreen() {
         ) : null}
       </div>
 
-      <div className="px-4">
+      <div className="animate-rise px-4" style={{ animationDelay: "80ms" }}>
         <Link
           href="/food/new"
           className={cn(buttonVariants(), "h-14 w-full text-lg")}

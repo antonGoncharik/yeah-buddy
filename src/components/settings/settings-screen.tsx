@@ -122,11 +122,13 @@ export function SettingsScreen() {
 
       <div className="px-4 pb-4">
         {loading ? (
-          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
+          <p className="animate-fade py-10 text-center text-muted-foreground">
+            Загрузка…
+          </p>
         ) : null}
 
         {!loading && error && !form ? (
-          <div className="flex flex-col items-center gap-3 py-10">
+          <div className="animate-rise flex flex-col items-center gap-3 py-10">
             <p className="text-center font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
@@ -139,7 +141,7 @@ export function SettingsScreen() {
 
         {!loading && form ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">День отдыха</h2>
               <MacroField
                 label="Белки"
@@ -166,7 +168,10 @@ export function SettingsScreen() {
               ) : null}
             </section>
 
-            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+            <section
+              className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
+              style={{ animationDelay: "50ms" }}
+            >
               <h2 className="text-xl font-semibold">День тренировки</h2>
               <MacroField
                 label="Белки"
@@ -195,10 +200,17 @@ export function SettingsScreen() {
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
-              <p className="text-sm text-muted-foreground">Сохранено.</p>
+              <p className="animate-fade text-sm text-muted-foreground">
+                Сохранено.
+              </p>
             ) : null}
 
-            <Button type="submit" className="h-14 text-lg" disabled={saving}>
+            <Button
+              type="submit"
+              className="animate-rise h-14 text-lg"
+              style={{ animationDelay: "90ms" }}
+              disabled={saving}
+            >
               {saving ? "Сохранение…" : "Сохранить"}
             </Button>
           </form>

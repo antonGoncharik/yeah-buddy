@@ -63,8 +63,8 @@ export function FoodList({
               >
                 <Star
                   className={cn(
-                    "size-5",
-                    food.is_favorite && "fill-current text-primary",
+                    "size-5 transition-[transform,fill,color] duration-300 ease-[var(--ease-out-soft)]",
+                    food.is_favorite && "scale-110 fill-current text-primary",
                   )}
                 />
               </Button>

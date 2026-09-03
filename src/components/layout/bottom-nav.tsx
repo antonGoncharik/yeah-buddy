@@ -30,17 +30,22 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium transition-colors",
+                  "flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-full transition-colors",
-                    active && "bg-primary/12",
+                    "flex size-8 items-center justify-center rounded-full transition-[transform,background-color] duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+                    active ? "scale-100 bg-primary/12" : "scale-90",
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon
+                    className={cn(
+                      "size-5 transition-transform duration-300 ease-[var(--ease-out-soft)]",
+                      active && "scale-105",
+                    )}
+                  />
                 </span>
                 {item.label}
               </Link>

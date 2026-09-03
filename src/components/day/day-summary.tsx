@@ -25,7 +25,7 @@ export function DaySummary({
         </p>
         <p
           className={cn(
-            "mt-1 text-3xl font-semibold tracking-tight",
+            "mt-1 text-3xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
             overflow && "text-destructive",
           )}
         >
@@ -95,7 +95,7 @@ function MacroBar({
       <div className="h-2.5 overflow-hidden rounded-full bg-muted">
         <div
           className={cn(
-            "h-full rounded-full transition-[width] duration-500 ease-out",
+            "h-full rounded-full transition-[width,background-color] duration-700 ease-[var(--ease-out-soft)]",
             overflow ? "bg-destructive" : barClass,
           )}
           style={{ width: `${Math.round(ratio * 100)}%` }}
@@ -103,7 +103,7 @@ function MacroBar({
       </div>
       <p
         className={cn(
-          "text-sm",
+          "text-sm transition-colors duration-300 ease-[var(--ease-out-soft)]",
           overflow ? "text-destructive" : "text-muted-foreground",
         )}
       >
