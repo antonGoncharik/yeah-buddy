@@ -10,6 +10,7 @@ import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
 import { AppHeader } from "@/components/layout/app-header";
+import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import type { DayWithMeals } from "@/lib/days";
@@ -29,6 +30,7 @@ function todayIsoDate(): string {
 
 export function TodayScreen() {
   const date = todayIsoDate();
+  const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -61,6 +63,17 @@ export function TodayScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!day) {
+      if (!loading) {
+        setMood(null);
+      }
+      return;
+    }
+
+    setMood(day.is_training_day ? "training" : "rest");
+  }, [day, loading, setMood]);
 
   const visibleMeals = useMemo(() => {
     if (!day) {

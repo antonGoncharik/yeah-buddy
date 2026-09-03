@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
 
+import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import {
   DARK_THEME_COLOR,
@@ -46,7 +47,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       style={{ colorScheme: theme }}
     >
       <body className="min-h-dvh bg-background text-foreground antialiased">
-        <ThemeProvider initialTheme={theme}>{children}</ThemeProvider>
+        <ThemeProvider initialTheme={theme}>
+          <DayMoodProvider>
+            <DayBackdrop />
+            <div className="relative z-10">{children}</div>
+          </DayMoodProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
