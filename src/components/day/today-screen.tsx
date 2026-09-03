@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Dumbbell, Sofa } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
@@ -270,8 +271,16 @@ export function TodayScreen() {
                 value={day.is_training_day ? "training" : "rest"}
                 disabled={busy}
                 options={[
-                  { id: "rest", label: "Отдых" },
-                  { id: "training", label: "Тренировка" },
+                  {
+                    id: "rest",
+                    label: "Отдых",
+                    icon: <Sofa className="size-4" aria-hidden />,
+                  },
+                  {
+                    id: "training",
+                    label: "Тренировка",
+                    icon: <Dumbbell className="size-4" aria-hidden />,
+                  },
                 ]}
                 onChange={(dayType) => void switchType(dayType)}
               />
