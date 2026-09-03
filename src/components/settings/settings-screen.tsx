@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useTheme } from "@/components/layout/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Segmented } from "@/components/ui/segmented";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { UserSettings } from "@/lib/types";
@@ -20,6 +22,7 @@ type FormState = {
 };
 
 export function SettingsScreen() {
+  const { theme, setTheme } = useTheme();
   const [form, setForm] = useState<FormState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +123,19 @@ export function SettingsScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Настройки" />
 
-      <div className="px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-4">
+        <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+          <h2 className="text-xl font-semibold">Тема</h2>
+          <Segmented
+            value={theme}
+            options={[
+              { id: "light", label: "Светлая" },
+              { id: "dark", label: "Тёмная" },
+            ]}
+            onChange={setTheme}
+          />
+        </section>
+
         {loading ? (
           <p className="animate-fade py-10 text-center text-muted-foreground">
             Загрузка…
