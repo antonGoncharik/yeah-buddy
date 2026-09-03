@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Settings, Utensils } from "lucide-react";
+import { CalendarDays, Dumbbell, Settings, Utensils } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/today", label: "Сегодня", icon: CalendarDays },
+  { href: "/workouts", label: "Тренировки", icon: Dumbbell },
   { href: "/foods", label: "Продукты", icon: Utensils },
   { href: "/settings", label: "Настройки", icon: Settings },
 ] as const;
@@ -17,7 +18,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border/70 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
-      <ul className="mx-auto grid max-w-lg grid-cols-3">
+      <ul className="mx-auto grid max-w-lg grid-cols-4">
         {ITEMS.map((item) => {
           const active =
             item.href === "/foods"
@@ -30,7 +31,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+                  "flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >

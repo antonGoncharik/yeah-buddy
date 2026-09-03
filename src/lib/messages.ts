@@ -9,6 +9,11 @@ export const YESTERDAY_MISSING = "Вчерашнего дня нет.";
 export const BOT_START =
   "Привет! Это дневник питания.\n\nЗдесь можно вести свои продукты, быстро добавлять приёмы пищи и видеть итог БЖУ за день.";
 export const BOT_OPEN_DIARY = "Открыть дневник питания";
+export const EXERCISES_EMPTY =
+  "Упражнений пока нет. Добавьте упражнение и укажите начальный максимум.";
+export const EXERCISES_ARCHIVED_EMPTY = "Архивных упражнений нет.";
+export const WORKOUTS_NEED_EXERCISES =
+  "Сначала добавьте упражнения — без них нельзя создать макроцикл.";
 
 export function readApiError(data: unknown): string | null {
   if (

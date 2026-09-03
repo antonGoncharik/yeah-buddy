@@ -114,3 +114,159 @@ export interface MealTemplateItem {
   sort_order: number;
   created_at: string;
 }
+
+export type ExerciseCategory = "base" | "armwrestling" | "isolation";
+
+export type ExerciseWorkoutType = "dynamic" | "static" | "both";
+
+export type ExerciseUnit = "reps" | "seconds";
+
+export type WorkoutKind = "dynamic" | "static";
+
+export type ScheduleWorkoutType = "dynamic" | "static" | "rest";
+
+export type PhaseType = "ramp" | "volume" | "peak" | "deload";
+
+export type CycleStatus = "current" | "completed";
+
+export type MaxSource = "auto" | "manual";
+
+export type SessionStatus = "planned" | "completed" | "skipped";
+
+export type SetType = "warmup" | "work";
+
+export interface FormulaSetSpec {
+  percent: number;
+  reps: number | null;
+  seconds: number | null;
+}
+
+export interface FormulaPhaseSpec {
+  warmup: FormulaSetSpec[];
+  work: FormulaSetSpec[];
+}
+
+export type WorkoutFormulas = Record<
+  WorkoutKind,
+  Record<PhaseType, FormulaPhaseSpec>
+>;
+
+export interface WorkoutSettings {
+  user_id: string;
+  weight_step: number;
+  max_increase_percent: number;
+  formulas: WorkoutFormulas;
+  updated_at: string;
+}
+
+export interface Exercise {
+  id: string;
+  user_id: string;
+  name: string;
+  short_name: string | null;
+  category: ExerciseCategory;
+  workout_type: ExerciseWorkoutType;
+  unit: ExerciseUnit;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface GlobalMax {
+  id: string;
+  user_id: string;
+  exercise_id: string;
+  max_weight: number;
+  achieved_at: string;
+  phase_id: string | null;
+  workout_session_id: string | null;
+  created_at: string;
+}
+
+export interface ExerciseWithMax extends Exercise {
+  current_max: GlobalMax | null;
+  max_history: GlobalMax[];
+}
+
+export interface MacroCycle {
+  id: string;
+  user_id: string;
+  number: number;
+  start_date: string;
+  end_date: string | null;
+  status: CycleStatus;
+  note: string | null;
+  created_at: string;
+}
+
+export interface WorkoutPhase {
+  id: string;
+  user_id: string;
+  macro_cycle_id: string;
+  phase_type: PhaseType;
+  start_date: string;
+  end_date: string | null;
+  status: CycleStatus;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface PhaseMax {
+  id: string;
+  user_id: string;
+  phase_id: string;
+  exercise_id: string;
+  max_weight: number;
+  source: MaxSource;
+  set_at: string;
+  created_at: string;
+}
+
+export interface WorkoutScheduleDay {
+  id: string;
+  user_id: string;
+  day_of_week: number;
+  workout_type: ScheduleWorkoutType;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  user_id: string;
+  session_date: string;
+  macro_cycle_id: string;
+  phase_id: string;
+  workout_type: WorkoutKind;
+  status: SessionStatus;
+  note: string | null;
+  created_at: string;
+}
+
+export interface SessionExercise {
+  id: string;
+  user_id: string;
+  session_id: string;
+  exercise_id: string;
+  sort_order: number;
+  max_weight: number;
+  created_at: string;
+}
+
+export interface WorkoutSet {
+  id: string;
+  user_id: string;
+  session_exercise_id: string;
+  set_type: SetType;
+  set_number: number;
+  planned_weight: number | null;
+  planned_reps: number | null;
+  planned_seconds: number | null;
+  actual_weight: number | null;
+  actual_reps: number | null;
+  actual_seconds: number | null;
+  is_completed: boolean;
+  created_at: string;
+}
