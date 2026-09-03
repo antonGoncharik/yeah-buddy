@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ type Filter = "favorites" | "recent" | "all";
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "favorites", label: "Избранные" },
   { id: "recent", label: "Недавние" },
-  { id: "all", label: "Все продукты" },
+  { id: "all", label: "Все" },
 ];
 
 export function AddMealItemScreen({ mealId }: { mealId: string }) {
@@ -67,19 +68,7 @@ export function AddMealItemScreen({ mealId }: { mealId: string }) {
     <div className="flex flex-col gap-3 px-4 pb-4">
       <FoodSearch value={query} onChange={setQuery} />
 
-      <div className="grid grid-cols-3 gap-2">
-        {FILTERS.map((item) => (
-          <Button
-            key={item.id}
-            type="button"
-            variant={filter === item.id ? "default" : "outline"}
-            className="h-11 px-2 text-xs"
-            onClick={() => setFilter(item.id)}
-          >
-            {item.label}
-          </Button>
-        ))}
-      </div>
+      <Segmented value={filter} options={FILTERS} onChange={setFilter} />
 
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>

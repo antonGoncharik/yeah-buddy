@@ -16,7 +16,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border/70 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       <ul className="mx-auto grid max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active =
@@ -30,11 +30,18 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 text-sm font-medium",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  "flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium transition-colors",
+                  active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="size-5" />
+                <span
+                  className={cn(
+                    "flex size-8 items-center justify-center rounded-full transition-colors",
+                    active && "bg-primary/12",
+                  )}
+                >
+                  <Icon className="size-5" />
+                </span>
                 {item.label}
               </Link>
             </li>

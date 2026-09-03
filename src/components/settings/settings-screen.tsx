@@ -139,8 +139,8 @@ export function SettingsScreen() {
 
         {!loading && form ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-            <section className="flex flex-col gap-3 rounded-xl border bg-card px-4 py-3">
-              <h2 className="text-lg font-semibold">День отдыха</h2>
+            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+              <h2 className="text-xl font-semibold">День отдыха</h2>
               <MacroField
                 label="Белки"
                 value={form.rest_protein}
@@ -163,8 +163,8 @@ export function SettingsScreen() {
               ) : null}
             </section>
 
-            <section className="flex flex-col gap-3 rounded-xl border bg-card px-4 py-3">
-              <h2 className="text-lg font-semibold">День тренировки</h2>
+            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+              <h2 className="text-xl font-semibold">День тренировки</h2>
               <MacroField
                 label="Белки"
                 value={form.training_protein}
@@ -192,7 +192,7 @@ export function SettingsScreen() {
               <p className="text-sm text-muted-foreground">Сохранено.</p>
             ) : null}
 
-            <Button type="submit" className="h-12 text-base" disabled={saving}>
+            <Button type="submit" className="h-14 text-lg" disabled={saving}>
               {saving ? "Сохранение…" : "Сохранить"}
             </Button>
           </form>

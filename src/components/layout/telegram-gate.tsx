@@ -1,5 +1,6 @@
 "use client";
 
+import { Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -55,23 +56,28 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-primary/12 text-primary">
+        <Utensils className="size-8" />
+      </span>
       {state === "loading" ? (
-        <p className="text-base text-muted-foreground">Загрузка…</p>
+        <p className="animate-rise text-lg text-muted-foreground">Загрузка…</p>
       ) : null}
       {state === "outside" ? (
-        <p className="text-lg font-medium">{OPEN_VIA_BOT}</p>
+        <p className="animate-rise max-w-xs text-xl font-semibold leading-snug">
+          {OPEN_VIA_BOT}
+        </p>
       ) : null}
       {state === "error" ? (
-        <>
-          <p className="text-lg font-medium">{LOAD_FAILED}</p>
+        <div className="animate-rise flex flex-col items-center gap-4">
+          <p className="text-xl font-semibold">{LOAD_FAILED}</p>
           <Button
-            className="h-12 min-w-40 text-base"
+            className="h-14 min-w-40 text-lg"
             onClick={() => void authenticate()}
           >
             Повторить
           </Button>
-        </>
+        </div>
       ) : null}
     </main>
   );

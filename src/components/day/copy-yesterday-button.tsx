@@ -13,7 +13,7 @@ export function CopyYesterdayButton({
     <Button
       type="button"
       variant="outline"
-      className="h-12 w-full text-base"
+      className="h-14 w-full text-lg"
       disabled={busy}
       onClick={onCopy}
     >

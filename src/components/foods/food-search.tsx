@@ -14,7 +14,7 @@ export function FoodSearch({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder="Поиск"
-      className="h-12 text-base"
+      className="h-14 rounded-2xl text-base"
       inputMode="search"
       enterKeyHint="search"
     />

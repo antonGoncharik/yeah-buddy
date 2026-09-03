@@ -24,14 +24,18 @@ export function FoodList({
 
   return (
     <ul className="flex flex-col gap-2">
-      {foods.map((food) => (
-        <li key={food.id}>
-          <div className="flex items-stretch rounded-xl border bg-card">
+      {foods.map((food, index) => (
+        <li
+          key={food.id}
+          className="animate-rise"
+          style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
+        >
+          <div className="card-surface flex items-stretch overflow-hidden">
             <Link
               href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
-              className="min-w-0 flex-1 px-4 py-3"
+              className="min-w-0 flex-1 px-5 py-4 transition-colors hover:bg-muted/40"
             >
-              <p className="truncate text-base font-medium">{food.name}</p>
+              <p className="truncate text-lg font-medium">{food.name}</p>
               <p className="truncate text-sm text-muted-foreground">
                 {[food.brand, FOOD_STATE_LABELS[food.state]]
                   .filter(Boolean)
@@ -49,7 +53,7 @@ export function FoodList({
                 type="button"
                 variant="ghost"
                 size="icon-lg"
-                className="h-auto min-w-14 rounded-none rounded-r-xl"
+                className="h-auto min-w-14 rounded-none rounded-r-2xl"
                 aria-label={
                   food.is_favorite
                     ? "Убрать из избранного"
@@ -60,7 +64,7 @@ export function FoodList({
                 <Star
                   className={cn(
                     "size-5",
-                    food.is_favorite && "fill-current text-yellow-500",
+                    food.is_favorite && "fill-current text-primary",
                   )}
                 />
               </Button>

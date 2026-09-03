@@ -69,10 +69,10 @@ export function GramsScreen({
   }
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-4">
+    <div className="animate-rise flex flex-col gap-5 px-4 pb-4">
       <div>
-        <p className="text-xl font-semibold">{name}</p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-2xl font-semibold tracking-tight">{name}</p>
+        <p className="mt-1 text-base text-muted-foreground">
           На 100 г: Б {formatMacro(protein)} · Ж {formatMacro(fat)} · У{" "}
           {formatMacro(carbs)} · {formatKcal(kcal)} ккал
         </p>
@@ -84,15 +84,15 @@ export function GramsScreen({
           inputMode="decimal"
           value={gramsInput}
           onChange={(event) => setGramsInput(event.target.value)}
-          className="h-12 text-base"
+          className="h-14 text-lg"
         />
       </div>
 
       {totals ? (
-        <p className="text-base">
+        <div className="card-surface px-5 py-4 text-lg">
           Итого: Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} ·
           У {formatMacro(totals.carbs)} · {formatKcal(totals.kcal)} ккал
-        </p>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-4 gap-2">
@@ -101,7 +101,7 @@ export function GramsScreen({
             key={value}
             type="button"
             variant="outline"
-            className="h-11 text-base"
+            className="h-12 text-base"
             onClick={() => setGramsInput(String(value))}
           >
             {value}
@@ -113,7 +113,7 @@ export function GramsScreen({
         <Button
           type="button"
           variant="secondary"
-          className="h-12 text-base"
+          className="h-14 text-base"
           onClick={() => setGramsInput(String(defaultPortionG))}
         >
           {defaultPortionLabel
@@ -125,7 +125,7 @@ export function GramsScreen({
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <Button
-        className="h-12 text-base"
+        className="h-14 text-lg"
         disabled={saving}
         onClick={() => void onSave()}
       >

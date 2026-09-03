@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export function AppHeader({
@@ -8,16 +9,19 @@ export function AppHeader({
   backHref?: string;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border/70 bg-background/80 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-md">
       {backHref ? (
         <Link
           href={backHref}
-          className="flex h-11 min-w-11 items-center justify-center rounded-lg text-base font-medium"
+          className="flex size-11 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-muted"
+          aria-label="Назад"
         >
-          Назад
+          <ChevronLeft className="size-6" />
         </Link>
       ) : null}
-      <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+      <h1 className="truncate text-2xl font-semibold tracking-tight">
+        {title}
+      </h1>
     </header>
   );
 }

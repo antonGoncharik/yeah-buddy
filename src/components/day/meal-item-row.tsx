@@ -18,9 +18,9 @@ export function MealItemRow({
     <div className="flex items-stretch gap-1">
       <Link
         href={`/today/items/${item.id}`}
-        className="min-w-0 flex-1 rounded-lg px-1 py-2"
+        className="min-w-0 flex-1 rounded-xl px-1 py-3 transition-colors hover:bg-muted/60"
       >
-        <p className="truncate text-base font-medium">{item.name_snapshot}</p>
+        <p className="truncate text-lg font-medium">{item.name_snapshot}</p>
         <p className="text-sm text-muted-foreground">
           {formatMacro(item.grams)} г · Б {formatMacro(item.protein)} · Ж{" "}
           {formatMacro(item.fat)} · У {formatMacro(item.carbs)} ·{" "}
@@ -45,7 +45,7 @@ export function MealAddLink({ mealId }: { mealId: string }) {
       href={`/today/meals/${mealId}/add`}
       className={cn(
         buttonVariants({ variant: "outline" }),
-        "h-11 w-full text-base",
+        "h-12 w-full rounded-xl text-base",
       )}
     >
       Добавить

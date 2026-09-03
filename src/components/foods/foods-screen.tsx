@@ -7,6 +7,7 @@ import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -104,29 +105,19 @@ export function FoodsScreen() {
       <div className="flex flex-col gap-3 px-4">
         <FoodSearch value={query} onChange={setQuery} />
 
-        <div className="grid grid-cols-3 gap-2">
-          {FILTERS.map((item) => (
-            <Button
-              key={item.id}
-              type="button"
-              variant={filter === item.id ? "default" : "outline"}
-              className={cn("h-11 text-sm")}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
+        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
       </div>
 
       <div className="px-4 pb-4">
         {loading ? (
-          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
+          <p className="py-12 text-center text-lg text-muted-foreground">
+            Загрузка…
+          </p>
         ) : null}
 
         {!loading && error ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <p className="text-center font-medium">{error}</p>
+          <div className="flex flex-col items-center gap-3 py-12">
+            <p className="text-center text-lg font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
               onClick={() => void load(filter)}
@@ -137,7 +128,7 @@ export function FoodsScreen() {
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 ? (
-          <p className="py-10 text-center text-muted-foreground">
+          <p className="py-12 text-center text-lg text-muted-foreground">
             {emptyMessage(filter, query)}
           </p>
         ) : null}
@@ -153,7 +144,7 @@ export function FoodsScreen() {
       <div className="px-4">
         <Link
           href="/food/new"
-          className={cn(buttonVariants(), "h-12 w-full text-base")}
+          className={cn(buttonVariants(), "h-14 w-full text-lg")}
         >
           Добавить продукт
         </Link>

@@ -15,11 +15,11 @@ export function CreateDayButtons({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <Button className="h-12 text-base" disabled={busy} onClick={onCreateRest}>
+      <Button className="h-14 text-lg" disabled={busy} onClick={onCreateRest}>
         Создать день отдыха
       </Button>
       <Button
-        className="h-12 text-base"
+        className="h-14 text-lg"
         disabled={busy}
         onClick={onCreateTraining}
       >
@@ -27,7 +27,7 @@ export function CreateDayButtons({
       </Button>
       <Button
         variant="outline"
-        className="h-12 text-base"
+        className="h-14 text-lg"
         disabled={busy}
         onClick={onCopyYesterday}
       >

@@ -10,6 +10,7 @@ import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import type { DayWithMeals } from "@/lib/days";
 import {
   DAY_EXISTS_REPLACE,
@@ -223,14 +224,16 @@ export function TodayScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title={titleDate} />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
-          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
+          <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
+            Загрузка…
+          </p>
         ) : null}
 
         {!loading && loadError ? (
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-center font-medium">{LOAD_FAILED}</p>
+          <div className="animate-rise flex flex-col items-center gap-3">
+            <p className="text-center text-lg font-medium">{LOAD_FAILED}</p>
             <Button
               className="h-12 min-w-40 text-base"
               onClick={() => void load()}
@@ -241,50 +244,49 @@ export function TodayScreen() {
         ) : null}
 
         {!loading && !loadError && actionError ? (
-          <p className="text-center font-medium">{actionError}</p>
+          <p className="animate-rise text-center text-lg font-medium">
+            {actionError}
+          </p>
         ) : null}
 
         {!loading && !loadError && !day ? (
-          <>
-            <p className="text-center text-muted-foreground">{TODAY_EMPTY}</p>
+          <div className="animate-rise flex flex-col gap-5">
+            <p className="text-center text-lg leading-relaxed text-muted-foreground">
+              {TODAY_EMPTY}
+            </p>
             <CreateDayButtons
               busy={busy}
               onCreateRest={() => void createDay("rest")}
               onCreateTraining={() => void createDay("training")}
               onCopyYesterday={() => void copyYesterday()}
             />
-          </>
+          </div>
         ) : null}
 
         {!loading && !loadError && day ? (
-          <>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant={day.is_training_day ? "outline" : "default"}
-                className="h-11 text-base"
+          <div className="flex flex-col gap-5">
+            <div className="animate-rise">
+              <Segmented
+                value={day.is_training_day ? "training" : "rest"}
                 disabled={busy}
-                onClick={() => void switchType("rest")}
-              >
-                Отдых
-              </Button>
-              <Button
-                type="button"
-                variant={day.is_training_day ? "default" : "outline"}
-                className="h-11 text-base"
-                disabled={busy}
-                onClick={() => void switchType("training")}
-              >
-                Тренировка
-              </Button>
+                options={[
+                  { id: "rest", label: "Отдых" },
+                  { id: "training", label: "Тренировка" },
+                ]}
+                onChange={(dayType) => void switchType(dayType)}
+              />
             </div>
 
-            <DaySummary day={day} fact={fact} />
+            <div className="animate-rise" style={{ animationDelay: "40ms" }}>
+              <DaySummary day={day} fact={fact} />
+            </div>
 
-            {visibleMeals.map((meal) => (
+            {visibleMeals.map((meal, index) => (
               <MealCard
                 key={meal.id}
                 meal={meal}
+                className="animate-rise"
+                style={{ animationDelay: `${80 + index * 50}ms` }}
                 onDeleteItem={(item) => void deleteItem(item)}
               />
             ))}
@@ -293,7 +295,7 @@ export function TodayScreen() {
               busy={busy}
               onCopy={() => void copyYesterday()}
             />
-          </>
+          </div>
         ) : null}
       </div>
     </div>
