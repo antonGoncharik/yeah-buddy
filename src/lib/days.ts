@@ -7,15 +7,9 @@ import {
   type Macros,
   MEAL_DISPLAY_ORDER,
 } from "@/lib/nutrition";
+import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  Day,
-  DayType,
-  Meal,
-  MealItem,
-  MealType,
-  UserSettings,
-} from "@/lib/types";
+import type { Day, DayType, Meal, MealItem, MealType } from "@/lib/types";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -552,21 +546,7 @@ async function loadTemplateItems(
 }
 
 async function getTargets(userId: string, dayType: DayType): Promise<Macros> {
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("user_settings")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  const settings = result.data
-    ? mapSettings(result.data as Record<string, unknown>)
-    : null;
-
+  const settings = await getUserSettings(userId);
   const protein =
     dayType === "training"
       ? (settings?.training_protein ?? 200)
@@ -689,19 +669,6 @@ function mapPer100(value: unknown): Macros {
     fat: toNumber(snapshot.fat),
     carbs: toNumber(snapshot.carbs),
     kcal: toNumber(snapshot.kcal),
-  };
-}
-
-function mapSettings(row: Record<string, unknown>): UserSettings {
-  return {
-    user_id: String(row.user_id),
-    rest_protein: toNumber(row.rest_protein),
-    rest_fat: toNumber(row.rest_fat),
-    rest_carbs: toNumber(row.rest_carbs),
-    training_protein: toNumber(row.training_protein),
-    training_fat: toNumber(row.training_fat),
-    training_carbs: toNumber(row.training_carbs),
-    updated_at: String(row.updated_at),
   };
 }
 
