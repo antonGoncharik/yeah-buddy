@@ -283,3 +283,15 @@ export interface CurrentMacroState {
   phases: WorkoutPhase[];
   maxes: PhaseMaxRow[];
 }
+
+export interface SessionExerciseDetail extends SessionExercise {
+  exercise: Exercise;
+  sets: WorkoutSet[];
+}
+
+export interface SessionDetail {
+  session: WorkoutSession;
+  phase: WorkoutPhase | null;
+  exercises: SessionExerciseDetail[];
+  available_exercises: Exercise[];
+}

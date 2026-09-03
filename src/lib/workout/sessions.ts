@@ -37,19 +37,7 @@ export const createSessionSchema = z.object({
 
 export const patchSessionSchema = z.object({
   status: z.enum(["planned", "completed", "skipped"]).optional(),
-  note: z
-    .union([z.string(), z.null()])
-    .optional()
-    .transform((value) => {
-      if (value === undefined) {
-        return undefined;
-      }
-      if (value == null) {
-        return null;
-      }
-      const trimmed = value.trim();
-      return trimmed === "" ? null : trimmed;
-    }),
+  note: z.union([z.string(), z.null()]).optional(),
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
@@ -191,7 +179,8 @@ export async function patchSession(
     .from("workout_sessions")
     .update({
       status: input.status ?? current.status,
-      note: input.note === undefined ? current.note : input.note,
+      note:
+        input.note === undefined ? current.note : toNullableString(input.note),
     })
     .eq("user_id", userId)
     .eq("id", id)
