@@ -21,27 +21,33 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
       webApp.expand();
 
       const initData = webApp.initData;
-      if (!initData) {
-        setState("outside");
+      if (initData) {
+        const response = await fetch("/api/auth/telegram", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData }),
+        });
+
+        if (response.status === 401) {
+          setState("outside");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("auth failed");
+        }
+
+        setState("ready");
         return;
       }
 
-      const response = await fetch("/api/auth/telegram", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData }),
-      });
-
-      if (response.status === 401) {
-        setState("outside");
+      const devResponse = await fetch("/api/auth/dev", { method: "POST" });
+      if (devResponse.ok) {
+        setState("ready");
         return;
       }
 
-      if (!response.ok) {
-        throw new Error("auth failed");
-      }
-
-      setState("ready");
+      setState("outside");
     } catch {
       setState("error");
     }

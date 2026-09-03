@@ -1,7 +1,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
-import { getServerEnv, isHttpsAppUrl } from "@/lib/env";
+import { getServerEnv } from "@/lib/env";
 
 export const SESSION_COOKIE = "session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -61,7 +61,7 @@ export async function setSessionCookie(payload: SessionPayload): Promise<void> {
 
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: isHttpsAppUrl(),
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
