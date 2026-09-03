@@ -153,7 +153,7 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
               state: event.target.value as FoodState,
             }))
           }
-          className="h-12 w-full rounded-lg border border-input bg-transparent px-2.5 text-base"
+          className="h-12 w-full rounded-lg border border-input bg-muted px-2.5 text-base"
         >
           {FOOD_STATES.map((state) => (
             <option key={state} value={state}>
