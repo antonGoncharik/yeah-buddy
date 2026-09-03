@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
-import { LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { Food, FoodState } from "@/lib/types";
 
@@ -26,7 +26,7 @@ type FormState = {
   is_favorite: boolean;
 };
 
-export function FoodForm({ food }: { food?: Food }) {
+export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(toFormState(food));
   const [error, setError] = useState<string | null>(null);
@@ -65,10 +65,19 @@ export function FoodForm({ food }: { food?: Food }) {
         },
       );
 
+      const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
-        const data: unknown = await response.json().catch(() => null);
-        setError(readError(data) ?? LOAD_FAILED);
+        setError(readApiError(data) ?? LOAD_FAILED);
         return;
+      }
+
+      if (!food && mealId) {
+        const created = readFood(data);
+        if (created) {
+          router.push(`/today/meals/${mealId}/add/${created.id}`);
+          router.refresh();
+          return;
+        }
       }
 
       router.push("/foods");
@@ -99,7 +108,7 @@ export function FoodForm({ food }: { food?: Food }) {
 
       if (!response.ok) {
         const data: unknown = await response.json().catch(() => null);
-        setError(readError(data) ?? LOAD_FAILED);
+        setError(readApiError(data) ?? LOAD_FAILED);
         return;
       }
 
@@ -400,15 +409,10 @@ function toPayload(
   };
 }
 
-function readError(data: unknown): string | null {
-  if (
-    data &&
-    typeof data === "object" &&
-    "error" in data &&
-    typeof data.error === "string"
-  ) {
-    return data.error;
+function readFood(data: unknown): Food | null {
+  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
+    return null;
   }
 
-  return null;
+  return data.food as Food;
 }

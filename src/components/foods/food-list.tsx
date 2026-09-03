@@ -11,18 +11,24 @@ import { cn } from "@/lib/utils";
 
 export function FoodList({
   foods,
+  hrefForFood,
+  showFavorite = true,
   onToggleFavorite,
 }: {
   foods: Food[];
-  onToggleFavorite: (food: Food) => void;
+  hrefForFood?: (food: Food) => string;
+  showFavorite?: boolean;
+  onToggleFavorite?: (food: Food) => void;
 }) {
+  const favoriteVisible = showFavorite && onToggleFavorite;
+
   return (
     <ul className="flex flex-col gap-2">
       {foods.map((food) => (
         <li key={food.id}>
           <div className="flex items-stretch rounded-xl border bg-card">
             <Link
-              href={`/food/${food.id}`}
+              href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
               className="min-w-0 flex-1 px-4 py-3"
             >
               <p className="truncate text-base font-medium">{food.name}</p>
@@ -38,25 +44,27 @@ export function FoodList({
                 {formatKcal(food.kcal_per_100)} ккал
               </p>
             </Link>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              className="h-auto min-w-14 rounded-none rounded-r-xl"
-              aria-label={
-                food.is_favorite
-                  ? "Убрать из избранного"
-                  : "Добавить в избранное"
-              }
-              onClick={() => onToggleFavorite(food)}
-            >
-              <Star
-                className={cn(
-                  "size-5",
-                  food.is_favorite && "fill-current text-yellow-500",
-                )}
-              />
-            </Button>
+            {favoriteVisible ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                className="h-auto min-w-14 rounded-none rounded-r-xl"
+                aria-label={
+                  food.is_favorite
+                    ? "Убрать из избранного"
+                    : "Добавить в избранное"
+                }
+                onClick={() => onToggleFavorite(food)}
+              >
+                <Star
+                  className={cn(
+                    "size-5",
+                    food.is_favorite && "fill-current text-yellow-500",
+                  )}
+                />
+              </Button>
+            ) : null}
           </div>
         </li>
       ))}

@@ -7,6 +7,15 @@ export type Macros = {
   kcal: number;
 };
 
+export const MEAL_DISPLAY_ORDER: MealType[] = [
+  "breakfast",
+  "lunch",
+  "snack",
+  "pre_workout",
+  "post_workout",
+  "dinner",
+];
+
 const MEAL_ORDER: Record<MealType, number> = {
   breakfast: 10,
   lunch: 20,
