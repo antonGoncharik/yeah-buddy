@@ -3,9 +3,11 @@ import Link from "next/link";
 
 export function AppHeader({
   title,
+  subtitle,
   backHref,
 }: {
   title: string;
+  subtitle?: string;
   backHref?: string;
 }) {
   return (
@@ -19,9 +21,14 @@ export function AppHeader({
           <ChevronLeft className="size-6" />
         </Link>
       ) : null}
-      <h1 className="truncate text-2xl font-semibold tracking-tight">
-        {title}
-      </h1>
+      <div className="min-w-0">
+        <h1 className="truncate text-2xl font-semibold tracking-tight">
+          {title}
+        </h1>
+        {subtitle ? (
+          <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+        ) : null}
+      </div>
     </header>
   );
 }

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
 import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
@@ -143,7 +144,8 @@ export function ScheduleScreen() {
         ) : null}
 
         {!loading && active.length > 0 ? (
-          <section className="animate-rise">
+          <section className="animate-rise flex flex-col gap-2">
+            <h2 className="px-1 text-lg font-semibold">Очередь</h2>
             <SortableList
               items={active}
               disabled={saving}
@@ -157,12 +159,16 @@ export function ScheduleScreen() {
                     <p className="text-base font-medium leading-snug">
                       {template.name}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {WORKOUT_KIND_LABELS[template.kind]}
-                      {template.exercises.length > 0
-                        ? ` · ${template.exercises.length} упр.`
-                        : ""}
-                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <StatusPill>
+                        {WORKOUT_KIND_LABELS[template.kind]}
+                      </StatusPill>
+                      {template.exercises.length > 0 ? (
+                        <StatusPill>
+                          {template.exercises.length} упр.
+                        </StatusPill>
+                      ) : null}
+                    </div>
                   </Link>
                   <Button
                     type="button"
@@ -186,25 +192,29 @@ export function ScheduleScreen() {
             <h2 className="px-1 text-sm font-medium text-muted-foreground">
               Выключены
             </h2>
-            <div className="card-surface overflow-hidden">
+            <div className="overflow-hidden">
               {inactive.map((template) => (
                 <div
                   key={template.id}
-                  className="flex items-center gap-1 border-b border-border/70 px-2 py-1 last:border-b-0"
+                  className="flex items-center gap-1 border-b border-border/70 px-1 py-1 last:border-b-0"
                 >
                   <Link
                     href={`/workouts/templates/${template.id}`}
-                    className="min-w-0 flex-1 rounded-xl px-3 py-2"
+                    className="min-w-0 flex-1 rounded-xl px-2 py-2"
                   >
                     <p className="text-base font-medium leading-snug">
                       {template.name}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {WORKOUT_KIND_LABELS[template.kind]}
-                      {template.exercises.length > 0
-                        ? ` · ${template.exercises.length} упр.`
-                        : ""}
-                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <StatusPill>
+                        {WORKOUT_KIND_LABELS[template.kind]}
+                      </StatusPill>
+                      {template.exercises.length > 0 ? (
+                        <StatusPill>
+                          {template.exercises.length} упр.
+                        </StatusPill>
+                      ) : null}
+                    </div>
                   </Link>
                   <Button
                     type="button"

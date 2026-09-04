@@ -17,7 +17,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -68,7 +67,7 @@ export function SortableList<T extends { id: string }>({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="card-surface">
+        <div>
           {items.map((item, index) => (
             <SortableRow
               key={item.id}
@@ -125,17 +124,21 @@ function SortableRow({
       {showHandle ? (
         <button
           type="button"
-          className="flex size-11 shrink-0 touch-none items-center justify-center rounded-xl text-muted-foreground disabled:opacity-50"
+          className="flex size-11 shrink-0 touch-none items-center justify-center rounded-xl disabled:opacity-50"
           aria-label="Перетащить"
           disabled={disabled}
           {...attributes}
           {...listeners}
         >
-          <GripVertical className="size-5" />
+          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
+            {index + 1}
+          </span>
         </button>
       ) : (
-        <span className="flex size-11 shrink-0 items-center justify-center text-sm font-semibold tabular-nums text-muted-foreground">
-          {index + 1}
+        <span className="flex size-11 shrink-0 items-center justify-center">
+          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
+            {index + 1}
+          </span>
         </span>
       )}
       {children}

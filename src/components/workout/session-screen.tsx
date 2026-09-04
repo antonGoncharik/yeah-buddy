@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatusPill } from "@/components/ui/status-pill";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   SessionDetail,
@@ -153,13 +154,20 @@ export function SessionScreen() {
       ]
         .filter(Boolean)
         .join(" · ")
-    : "";
+    : undefined;
+  const showStickyComplete = session?.status === "planned";
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title={title} backHref="/workouts" />
+      <AppHeader title={title} subtitle={subtitle} backHref="/workouts" />
 
-      <div className="flex flex-col gap-5 px-4 pb-4">
+      <div
+        className={
+          showStickyComplete
+            ? "flex flex-col gap-5 px-4 pb-24"
+            : "flex flex-col gap-5 px-4 pb-4"
+        }
+      >
         {loading ? (
           <p className="animate-fade py-12 text-center text-muted-foreground">
             Загрузка…
@@ -180,10 +188,6 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            <p className="animate-fade px-1 text-base text-muted-foreground">
-              {subtitle}
-            </p>
-
             {detail.exercises.length === 0 ? (
               <p className="text-base leading-relaxed text-muted-foreground">
                 В шаблоне нет упражнений с максимумом.
@@ -229,29 +233,32 @@ export function SessionScreen() {
             ) : null}
 
             {session.status === "planned" ? (
-              <>
-                <Button
-                  type="button"
-                  className="h-14 text-lg"
-                  disabled={busy || detail.exercises.length === 0}
-                  onClick={() => void complete()}
-                >
-                  Сделал как в плане
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-11 text-base text-muted-foreground"
-                  disabled={busy}
-                  onClick={() => void setStatus("skipped")}
-                >
-                  Пропустить
-                </Button>
-              </>
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 text-base text-muted-foreground"
+                disabled={busy}
+                onClick={() => void setStatus("skipped")}
+              >
+                Пропустить
+              </Button>
             ) : null}
           </>
         ) : null}
       </div>
+
+      {showStickyComplete && detail ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+          <Button
+            type="button"
+            className="pointer-events-auto h-14 w-full text-lg"
+            disabled={busy || detail.exercises.length === 0}
+            onClick={() => void complete()}
+          >
+            Сделал как в плане
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -288,7 +295,7 @@ function ExerciseRow({
     <div className="border-b border-border/70 last:border-b-0">
       <button
         type="button"
-        className="flex w-full flex-col items-start gap-1 px-5 py-4 text-left"
+        className="flex w-full flex-col items-start gap-2.5 px-5 py-4 text-left"
         onClick={onToggle}
         disabled={disabled}
       >
@@ -301,14 +308,22 @@ function ExerciseRow({
           </span>
         </div>
         {warmup.length > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {formatSetLine(warmup, kind, showActual)}
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {warmup.map((set) => (
+              <StatusPill key={set.id}>
+                {formatSetChip(set, kind, showActual)}
+              </StatusPill>
+            ))}
+          </div>
         ) : null}
         {work.length > 0 ? (
-          <p className="text-lg font-semibold tracking-tight">
-            {formatSetLine(work, kind, showActual)}
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {work.map((set) => (
+              <StatusPill key={set.id} tone="strong">
+                {formatSetChip(set, kind, showActual)}
+              </StatusPill>
+            ))}
+          </div>
         ) : null}
       </button>
 
@@ -390,32 +405,28 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
-function formatSetLine(
-  sets: WorkoutSet[],
+function formatSetChip(
+  set: WorkoutSet,
   kind: "dynamic" | "static",
   showActual: boolean,
 ): string {
-  return sets
-    .map((set) => {
-      const weightValue = showActual
-        ? (set.actual_weight ?? set.planned_weight)
-        : set.planned_weight;
-      const weight = weightValue == null ? "—" : formatWeight(weightValue);
-      if (kind === "dynamic") {
-        const reps = showActual
-          ? (set.actual_reps ?? set.planned_reps)
-          : set.planned_reps;
-        return `${weight}×${reps ?? "—"}`;
-      }
+  const weightValue = showActual
+    ? (set.actual_weight ?? set.planned_weight)
+    : set.planned_weight;
+  const weight = weightValue == null ? "—" : formatWeight(weightValue);
+  if (kind === "dynamic") {
+    const reps = showActual
+      ? (set.actual_reps ?? set.planned_reps)
+      : set.planned_reps;
+    return `${weight}×${reps ?? "—"}`;
+  }
 
-      const secondsValue = showActual
-        ? (set.actual_seconds ?? set.planned_seconds)
-        : set.planned_seconds;
-      return `${weight}×${
-        secondsValue == null ? "—" : `${formatSeconds(secondsValue)}с`
-      }`;
-    })
-    .join(" · ");
+  const secondsValue = showActual
+    ? (set.actual_seconds ?? set.planned_seconds)
+    : set.planned_seconds;
+  return `${weight}×${
+    secondsValue == null ? "—" : `${formatSeconds(secondsValue)}с`
+  }`;
 }
 
 function draftsFromDetail(detail: SessionDetail): Record<string, SetDraft> {

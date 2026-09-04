@@ -1,11 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
 import {
   LOAD_FAILED,
   readApiError,
@@ -124,9 +126,11 @@ export function WorkoutsHubScreen() {
     }
   }
 
+  const todayLabel = format(new Date(), "d MMMM", { locale: ru });
+
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Тренировки" />
+      <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
@@ -178,51 +182,67 @@ export function WorkoutsHubScreen() {
         {!loading && !error && session ? (
           <Link
             href={`/workouts/sessions/${session.id}`}
-            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
+            className="card-surface animate-rise block px-5 py-6 transition-colors hover:bg-muted/40"
           >
-            <p className="text-sm text-muted-foreground">Сегодня</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+            <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
+            <h2 className="mt-1 text-3xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
             </h2>
-            <p className="mt-1 text-base text-muted-foreground">
-              {SESSION_STATUS_LABELS[session.status]}
-              {macro?.phase
-                ? ` · ${PHASE_TYPE_LABELS[macro.phase.phase_type]}`
-                : ""}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <StatusPill>{SESSION_STATUS_LABELS[session.status]}</StatusPill>
+              <StatusPill>
+                {WORKOUT_KIND_LABELS[session.workout_type]}
+              </StatusPill>
+              {sessionTemplate && sessionTemplate.exercises.length > 0 ? (
+                <StatusPill>{sessionTemplate.exercises.length} упр.</StatusPill>
+              ) : null}
+              {macro?.phase ? (
+                <StatusPill>
+                  {PHASE_TYPE_LABELS[macro.phase.phase_type]}
+                </StatusPill>
+              ) : null}
+            </div>
           </Link>
         ) : null}
 
         {!loading && !error && !session && nextTemplate ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <p className="text-sm text-muted-foreground">Сегодня</p>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              {nextTemplate.name}
-            </h2>
-            <p className="text-base text-muted-foreground">
-              {WORKOUT_KIND_LABELS[nextTemplate.kind]}
-              {nextTemplate.exercises.length > 0
-                ? ` · ${nextTemplate.exercises.length} упр.`
-                : ""}
-              {macro?.phase
-                ? ` · ${PHASE_TYPE_LABELS[macro.phase.phase_type]}`
-                : ""}
-            </p>
+          <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Сегодня
+              </p>
+              <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+                {nextTemplate.name}
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusPill>
+                  {WORKOUT_KIND_LABELS[nextTemplate.kind]}
+                </StatusPill>
+                {nextTemplate.exercises.length > 0 ? (
+                  <StatusPill>{nextTemplate.exercises.length} упр.</StatusPill>
+                ) : null}
+                {macro?.phase ? (
+                  <StatusPill>
+                    {PHASE_TYPE_LABELS[macro.phase.phase_type]}
+                  </StatusPill>
+                ) : null}
+              </div>
+            </div>
             <Button
               type="button"
               className="h-14 text-lg"
               disabled={creating}
               onClick={() => void createToday(nextTemplate.id)}
             >
-              Начать тренировку
+              Начать
             </Button>
           </section>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
           <div
-            className="animate-rise flex flex-col gap-3"
+            className="animate-rise flex flex-col gap-5"
             style={{ animationDelay: "40ms" }}
           >
             {macro?.macro && macro.phase ? (
@@ -230,10 +250,9 @@ export function WorkoutsHubScreen() {
                 href="/workouts/macro"
                 className="flex items-baseline justify-between gap-3 px-1 text-base"
               >
-                <span className="text-muted-foreground">
-                  Макроцикл №{macro.macro.number}
-                </span>
+                <span className="text-muted-foreground">Макроцикл</span>
                 <span className="font-medium">
+                  №{macro.macro.number} ·{" "}
                   {PHASE_TYPE_LABELS[macro.phase.phase_type]}
                 </span>
               </Link>
@@ -249,19 +268,34 @@ export function WorkoutsHubScreen() {
             {activeTemplates.length > 0 ? (
               <Link
                 href="/workouts/schedule"
-                className="card-surface block px-5 py-4 transition-colors hover:bg-muted/40"
+                className="flex flex-col gap-3 px-1"
               >
-                <p className="text-sm text-muted-foreground">Шаблоны</p>
-                <p className="mt-1 text-base leading-snug">
-                  {activeTemplates.map((template) => template.name).join(" → ")}
-                </p>
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className="text-lg font-semibold">Очередь</h2>
+                  <span className="text-sm font-medium text-primary">
+                    Изменить
+                  </span>
+                </div>
+                <ol className="flex flex-col gap-2">
+                  {activeTemplates.map((template, index) => (
+                    <li
+                      key={template.id}
+                      className="flex items-center gap-3 text-base"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0 truncate">{template.name}</span>
+                    </li>
+                  ))}
+                </ol>
               </Link>
             ) : (
               <Link
                 href="/workouts/schedule"
                 className="text-sm font-medium text-primary"
               >
-                Шаблоны
+                Собрать очередь
               </Link>
             )}
           </div>
@@ -269,7 +303,7 @@ export function WorkoutsHubScreen() {
 
         {!loading && !error && exercises.length > 0 ? (
           <section
-            className="card-surface animate-rise px-5 py-4"
+            className="animate-rise flex flex-col gap-3 px-1"
             style={{ animationDelay: "80ms" }}
           >
             <div className="flex items-baseline justify-between gap-3">
@@ -281,7 +315,7 @@ export function WorkoutsHubScreen() {
                 Все
               </Link>
             </div>
-            <ul className="mt-3 flex flex-col gap-2">
+            <ul className="flex flex-col gap-2.5">
               {exercises.slice(0, 6).map((exercise) => (
                 <li
                   key={exercise.id}

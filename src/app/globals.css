@@ -341,11 +341,9 @@ html.dark[data-day="training"] {
 
 @utility card-surface {
   border-radius: var(--radius-2xl);
-  border: 1px solid color-mix(in oklch, var(--border) 85%, transparent);
+  border: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
   background: var(--card);
-  box-shadow:
-    0 1px 2px oklch(0.28 0.04 50 / 4%),
-    0 10px 28px oklch(0.28 0.04 50 / 5%);
+  box-shadow: 0 1px 2px oklch(0.28 0.04 50 / 3%);
   transition:
     background-color 0.28s var(--ease-out-soft),
     border-color 0.28s var(--ease-out-soft),
@@ -354,9 +352,9 @@ html.dark[data-day="training"] {
 }
 
 @utility field-control {
-  border-width: 2px;
+  border-width: 1px;
   border-style: solid;
-  border-color: var(--input);
+  border-color: color-mix(in oklch, var(--input) 55%, var(--border));
   background-color: var(--input-bg);
 }
 
@@ -434,7 +432,5 @@ html.dark[data-day="training"] {
 }
 
 .dark .card-surface {
-  box-shadow:
-    0 1px 2px oklch(0 0 0 / 28%),
-    0 12px 32px oklch(0 0 0 / 28%);
+  box-shadow: none;
 }

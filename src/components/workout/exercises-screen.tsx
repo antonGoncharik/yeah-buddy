@@ -93,28 +93,29 @@ export function ExercisesScreen() {
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
-          <ul className="flex flex-col gap-2">
-            {exercises.map((exercise, index) => (
+          <ul className="animate-rise flex flex-col">
+            {exercises.map((exercise) => (
               <li
                 key={exercise.id}
-                className="animate-rise"
-                style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
+                className="border-b border-border/70 last:border-b-0"
               >
                 <Link
                   href={`/workouts/exercises/${exercise.id}`}
-                  className="card-surface block px-5 py-4 transition-colors hover:bg-muted/40"
+                  className="flex items-baseline justify-between gap-3 py-3.5"
                 >
-                  <p className="truncate text-lg font-medium">
-                    {exercise.name}
-                  </p>
-                  <p className="truncate text-sm text-muted-foreground">
-                    шаг {exercise.weight_step} кг
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <span className="min-w-0">
+                    <span className="block truncate text-base font-medium">
+                      {exercise.name}
+                    </span>
+                    <span className="block text-sm text-muted-foreground">
+                      шаг {exercise.weight_step} кг
+                    </span>
+                  </span>
+                  <span className="shrink-0 tabular-nums text-base font-medium">
                     {exercise.current_max
                       ? `${formatWeight(exercise.current_max.max_weight)} кг`
-                      : "максимум не задан"}
-                  </p>
+                      : "—"}
+                  </span>
                 </Link>
               </li>
             ))}
