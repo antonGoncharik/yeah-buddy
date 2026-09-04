@@ -91,7 +91,7 @@ export function isMealVisible(
   isTrainingDay: boolean,
 ): boolean {
   if (isTrainingDay) {
-    return true;
+    return mealType !== "snack";
   }
 
   return mealType !== "pre_workout" && mealType !== "post_workout";
