@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, FoodState, MealType } from "@/lib/types";
+import { ensureStarterExercises } from "@/lib/workout/seed";
 
 const MEAL_SORT: Record<MealType, number> = {
   breakfast: 10,
@@ -235,6 +236,7 @@ export async function ensureInitialData(userId: string): Promise<void> {
   const supabase = createSupabaseServerClient();
   await ensureStarterFoods(supabase, userId);
   await ensureStarterTemplates(supabase, userId);
+  await ensureStarterExercises(supabase, userId);
 }
 
 async function ensureStarterFoods(

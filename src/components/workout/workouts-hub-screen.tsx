@@ -14,25 +14,25 @@ import {
 import type {
   CurrentMacroState,
   ExerciseWithMax,
-  ScheduleWorkoutType,
-  WorkoutKind,
   WorkoutSession,
+  WorkoutSlot,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   PHASE_TYPE_LABELS,
   SESSION_STATUS_LABELS,
-  WORKOUT_KIND_LABELS,
+  SLOT_ROTATION,
+  WORKOUT_SLOT_LABELS,
 } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
+import { isWorkoutSlot } from "@/lib/workout/slots";
 
 export function WorkoutsHubScreen() {
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [scheduledType, setScheduledType] =
-    useState<ScheduleWorkoutType>("rest");
+  const [nextSlot, setNextSlot] = useState<WorkoutSlot>("a");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -58,7 +58,7 @@ export function WorkoutsHubScreen() {
       setExercises(readExercises(exercisesData));
       setMacro(readMacro(macroData));
       setSession(readTodaySession(todayData));
-      setScheduledType(readScheduledType(todayData));
+      setNextSlot(readNextSlot(todayData));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
@@ -73,7 +73,7 @@ export function WorkoutsHubScreen() {
     void load();
   }, [load]);
 
-  async function createToday(workoutType: WorkoutKind) {
+  async function createToday(slot: WorkoutSlot) {
     setCreating(true);
     setError(null);
 
@@ -83,7 +83,7 @@ export function WorkoutsHubScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_date: date,
-          workout_type: workoutType,
+          slot,
         }),
       });
       const data: unknown = await response.json().catch(() => null);
@@ -139,7 +139,8 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
             <h2 className="text-xl font-semibold">Макроцикл</h2>
             <p className="text-base text-muted-foreground">
-              Задайте максимумы и начните фазу разгон.
+              Максимумы уже подставлены из дневника — проверьте и начните
+              разгон.
             </p>
             <Link
               href="/workouts/macro/new"
@@ -174,7 +175,7 @@ export function WorkoutsHubScreen() {
           >
             <p className="text-sm text-muted-foreground">Сегодня</p>
             <p className="text-2xl font-semibold">
-              {WORKOUT_KIND_LABELS[session.workout_type]}
+              {session.slot ? WORKOUT_SLOT_LABELS[session.slot] : "Тренировка"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {SESSION_STATUS_LABELS[session.status]}
@@ -182,55 +183,38 @@ export function WorkoutsHubScreen() {
           </Link>
         ) : null}
 
-        {!loading &&
-        !error &&
-        !session &&
-        macro?.macro &&
-        scheduledType === "rest" ? (
+        {!loading && !error && !session && macro?.macro ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <h2 className="text-xl font-semibold">Сегодня отдых</h2>
+            <p className="text-sm text-muted-foreground">Следующий слот</p>
+            <h2 className="text-2xl font-semibold">
+              {WORKOUT_SLOT_LABELS[nextSlot]}
+            </h2>
             <p className="text-base text-muted-foreground">
-              Можно всё равно провести тренировку — расписание не изменится.
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                className="h-12 text-base"
-                disabled={creating}
-                onClick={() => void createToday("dynamic")}
-              >
-                Динамика
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="h-12 text-base"
-                disabled={creating}
-                onClick={() => void createToday("static")}
-              >
-                Статика
-              </Button>
-            </div>
-          </section>
-        ) : null}
-
-        {!loading &&
-        !error &&
-        !session &&
-        macro?.macro &&
-        scheduledType !== "rest" ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <p className="text-lg font-medium">
-              По расписанию сегодня {WORKOUT_KIND_LABELS[scheduledType]}.
+              Веса посчитаются сами. Можно взять другой слот — ротация подхватит
+              с него.
             </p>
             <Button
               type="button"
-              className="h-12 text-base"
+              className="h-14 text-lg"
               disabled={creating}
-              onClick={() => void createToday(scheduledType)}
+              onClick={() => void createToday(nextSlot)}
             >
-              Создать тренировку
+              Начать сегодня
             </Button>
+            <div className="grid grid-cols-2 gap-2">
+              {SLOT_ROTATION.map((slot) => (
+                <Button
+                  key={slot}
+                  type="button"
+                  variant={slot === nextSlot ? "secondary" : "outline"}
+                  className="h-11 text-sm"
+                  disabled={creating}
+                  onClick={() => void createToday(slot)}
+                >
+                  {WORKOUT_SLOT_LABELS[slot]}
+                </Button>
+              ))}
+            </div>
           </section>
         ) : null}
 
@@ -239,7 +223,7 @@ export function WorkoutsHubScreen() {
             href="/workouts/schedule"
             className="text-sm font-medium text-primary"
           >
-            Расписание
+            Как устроена ротация
           </Link>
         ) : null}
 
@@ -247,7 +231,7 @@ export function WorkoutsHubScreen() {
           <>
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
               <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-xl font-semibold">Рекорды</h2>
+                <h2 className="text-xl font-semibold">Максимумы</h2>
                 <Link
                   href="/workouts/exercises"
                   className="text-sm font-medium text-primary"
@@ -256,7 +240,7 @@ export function WorkoutsHubScreen() {
                 </Link>
               </div>
               <ul className="flex flex-col gap-2">
-                {exercises.slice(0, 6).map((exercise) => (
+                {exercises.slice(0, 8).map((exercise) => (
                   <li
                     key={exercise.id}
                     className="flex items-baseline justify-between gap-3"
@@ -324,17 +308,15 @@ function readTodaySession(data: unknown): WorkoutSession | null {
   return data.session as WorkoutSession;
 }
 
-function readScheduledType(data: unknown): ScheduleWorkoutType {
+function readNextSlot(data: unknown): WorkoutSlot {
   if (
     data &&
     typeof data === "object" &&
-    "scheduled_type" in data &&
-    (data.scheduled_type === "dynamic" ||
-      data.scheduled_type === "static" ||
-      data.scheduled_type === "rest")
+    "next_slot" in data &&
+    isWorkoutSlot(data.next_slot)
   ) {
-    return data.scheduled_type;
+    return data.next_slot;
   }
 
-  return "rest";
+  return "a";
 }

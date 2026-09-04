@@ -9,12 +9,15 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
-import { mapExercise, raiseGlobalMax } from "@/lib/workout/exercises";
-import { plannedSetsFromFormula } from "@/lib/workout/formulas";
+import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import { mapExercise } from "@/lib/workout/exercises";
+import {
+  plannedSetsFromFormula,
+  resolvePhaseSpec,
+} from "@/lib/workout/formulas";
 import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import { getSession, patchSession } from "@/lib/workout/sessions";
-import { ensureWorkoutSettings, getFormulaPhase } from "@/lib/workout/settings";
 
 export const addSessionExerciseSchema = z.object({
   exercise_id: z.string().uuid(),
@@ -195,15 +198,6 @@ export async function patchWorkoutSet(
     if (session.status === "planned") {
       await patchSession(userId, session.id, { status: "completed" });
     }
-
-    await raiseGlobalMax({
-      userId,
-      exerciseId: String(sessionExercise.data.exercise_id),
-      maxWeight: next.actual_weight,
-      achievedAt: session.session_date,
-      phaseId: session.phase_id,
-      workoutSessionId: session.id,
-    });
   }
 
   const refreshed = await getSession(userId, sessionId);
@@ -227,7 +221,7 @@ async function ensureSessionPlan(userId: string, session: WorkoutSession) {
     return;
   }
 
-  const candidates = await listMatchingExercises(userId, session.workout_type);
+  const candidates = await listSlotExercises(userId, session);
   const maxes = await listCurrentPhaseMaxes(userId, session.phase_id);
 
   let sortOrder = 10;
@@ -235,6 +229,10 @@ async function ensureSessionPlan(userId: string, session: WorkoutSession) {
     const phaseMax = maxes.get(exercise.id);
     const maxWeight = phaseMax?.max_weight;
     if (maxWeight == null || maxWeight <= 0) {
+      continue;
+    }
+
+    if (exercise.formula_preset === "none") {
       continue;
     }
 
@@ -256,18 +254,18 @@ async function insertSessionExercise(
   maxWeight: number,
   sortOrder: number,
 ) {
-  const settings = await ensureWorkoutSettings(userId);
   const phase = await getPhase(userId, session.phase_id);
   const phaseType = phase?.phase_type ?? "ramp";
-  const formula = getFormulaPhase(
-    settings.formulas,
+  const formula = resolvePhaseSpec(
+    DEFAULT_WORKOUT_FORMULAS[session.workout_type][phaseType],
     session.workout_type,
     phaseType,
+    exercise.formula_preset,
   );
   const planned = plannedSetsFromFormula(
     formula,
     maxWeight,
-    settings.weight_step,
+    exercise.weight_step,
     session.workout_type,
   );
 
@@ -294,6 +292,10 @@ async function insertSessionExercise(
   const sessionExercise = mapSessionExercise(
     inserted.data as Record<string, unknown>,
   );
+  if (planned.length === 0) {
+    return;
+  }
+
   const setsInsert = await supabase.from("workout_sets").insert(
     planned.map((set) => ({
       user_id: userId,
@@ -338,7 +340,7 @@ async function loadSessionDetail(
     sessionExercises.map((item) => item.id),
   );
 
-  const matching = await listMatchingExercises(userId, session.workout_type);
+  const matching = await listSlotExercises(userId, session);
   const used = new Set(exerciseIds);
 
   return {
@@ -362,28 +364,40 @@ async function loadSessionDetail(
   };
 }
 
-async function listMatchingExercises(
-  userId: string,
-  kind: "dynamic" | "static",
-) {
+async function listSlotExercises(userId: string, session: WorkoutSession) {
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("exercises")
     .select("*")
     .eq("user_id", userId)
     .eq("is_active", true)
-    .order("name", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (result.error) {
     throw result.error;
   }
 
-  return (result.data ?? [])
-    .map((row) => mapExercise(row as Record<string, unknown>))
-    .filter(
+  const exercises = (result.data ?? []).map((row) =>
+    mapExercise(row as Record<string, unknown>),
+  );
+
+  if (session.workout_type === "static" || session.slot === "static") {
+    return exercises.filter(
       (exercise) =>
-        exercise.workout_type === "both" || exercise.workout_type === kind,
+        exercise.workout_type === "both" || exercise.workout_type === "static",
     );
+  }
+
+  const slot = session.slot;
+  if (slot === "a" || slot === "b" || slot === "c") {
+    return exercises.filter((exercise) => exercise.slot === slot);
+  }
+
+  return exercises.filter(
+    (exercise) =>
+      exercise.workout_type === "both" ||
+      exercise.workout_type === session.workout_type,
+  );
 }
 
 async function mapExercisesById(userId: string, ids: string[]) {

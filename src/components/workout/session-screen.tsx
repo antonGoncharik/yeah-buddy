@@ -13,6 +13,7 @@ import {
   SESSION_STATUS_LABELS,
   SET_TYPE_LABELS,
   WORKOUT_KIND_LABELS,
+  WORKOUT_SLOT_LABELS,
 } from "@/lib/workout/labels";
 import {
   formatSeconds,
@@ -200,7 +201,9 @@ export function SessionScreen() {
                 {session.session_date}
               </p>
               <h2 className="text-2xl font-semibold">
-                {WORKOUT_KIND_LABELS[session.workout_type]}
+                {session.slot
+                  ? WORKOUT_SLOT_LABELS[session.slot]
+                  : WORKOUT_KIND_LABELS[session.workout_type]}
               </h2>
               <p className="text-base text-muted-foreground">
                 {SESSION_STATUS_LABELS[session.status]}
@@ -348,10 +351,8 @@ function SetRow({
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-muted/60 px-3 py-3">
       <div className="flex items-baseline justify-between gap-2">
-        <p className="text-sm font-medium">
-          {SET_TYPE_LABELS[set.set_type]} {set.set_number}
-        </p>
-        <p className="text-sm text-muted-foreground">план {planned}</p>
+        <p className="text-sm font-medium">{SET_TYPE_LABELS[set.set_type]}</p>
+        <p className="text-lg font-semibold">{planned}</p>
       </div>
       <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
         <Input

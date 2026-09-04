@@ -13,10 +13,7 @@ import {
 } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  EXERCISE_CATEGORY_LABELS,
-  EXERCISE_WORKOUT_TYPE_LABELS,
-} from "@/lib/workout/labels";
+import { EXERCISE_SLOT_LABELS } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 type Filter = "active" | "archived";
@@ -113,17 +110,18 @@ export function ExercisesScreen() {
                   </p>
                   <p className="truncate text-sm text-muted-foreground">
                     {[
-                      exercise.short_name,
-                      EXERCISE_CATEGORY_LABELS[exercise.category],
-                      EXERCISE_WORKOUT_TYPE_LABELS[exercise.workout_type],
+                      exercise.slot
+                        ? EXERCISE_SLOT_LABELS[exercise.slot]
+                        : null,
+                      `шаг ${exercise.weight_step} кг`,
                     ]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {exercise.current_max
-                      ? `Рекорд ${formatWeight(exercise.current_max.max_weight)} кг`
-                      : "Рекорд ещё не задан"}
+                      ? `${formatWeight(exercise.current_max.max_weight)} кг`
+                      : "максимум не задан"}
                   </p>
                 </Link>
               </li>

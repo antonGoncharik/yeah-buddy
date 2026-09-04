@@ -14,54 +14,42 @@ function seconds(percent: number, count: number): FormulaSetSpec {
   return { percent, reps: null, seconds: count };
 }
 
-const DYNAMIC_WARMUP: FormulaSetSpec[] = [
+export const BARBELL_WARMUP: FormulaSetSpec[] = [
   reps(50, 5),
   reps(70, 3),
   reps(80, 1),
 ];
 
-const STATIC_WARMUP: FormulaSetSpec[] = [
+export const CABLE_WARMUP: FormulaSetSpec[] = [reps(50, 5), reps(70, 3)];
+
+export const CABLE_SHORT_WARMUP: FormulaSetSpec[] = [reps(50, 8), reps(75, 3)];
+
+export const STATIC_WARMUP: FormulaSetSpec[] = [
   seconds(50, 10),
-  seconds(80, 5),
-  seconds(100, 5),
+  seconds(80, 3),
+  seconds(100, 2),
 ];
 
+const DYNAMIC_WORK_RAMP = [reps(88, 3), reps(82, 5), reps(76, 7)];
+const DYNAMIC_WORK_VOLUME = [reps(88, 5), reps(82, 5), reps(76, 7)];
+const DYNAMIC_DELOAD = [reps(60, 5), reps(60, 5), reps(60, 5)];
+
+const STATIC_WORK_RAMP = [seconds(115, 6), seconds(115, 6), seconds(115, 6)];
+const STATIC_WORK_VOLUME = [seconds(115, 8), seconds(115, 6), seconds(115, 6)];
+const STATIC_DELOAD = [seconds(50, 3), seconds(50, 3)];
+
 const DYNAMIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
-  ramp: {
-    warmup: DYNAMIC_WARMUP,
-    work: [reps(87.5, 3), reps(80, 5), reps(72.5, 7)],
-  },
-  volume: {
-    warmup: DYNAMIC_WARMUP,
-    work: [reps(87.5, 5), reps(80, 5), reps(72.5, 7)],
-  },
-  peak: {
-    warmup: DYNAMIC_WARMUP,
-    work: [reps(87.5, 3), reps(80, 5), reps(72.5, 7)],
-  },
-  deload: {
-    warmup: [],
-    work: [reps(59, 5), reps(59, 5), reps(59, 5)],
-  },
+  ramp: { warmup: BARBELL_WARMUP, work: DYNAMIC_WORK_RAMP },
+  volume: { warmup: BARBELL_WARMUP, work: DYNAMIC_WORK_VOLUME },
+  peak: { warmup: BARBELL_WARMUP, work: DYNAMIC_WORK_RAMP },
+  deload: { warmup: [], work: DYNAMIC_DELOAD },
 };
 
 const STATIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
-  ramp: {
-    warmup: STATIC_WARMUP,
-    work: [seconds(114, 6), seconds(114, 6), seconds(114, 6)],
-  },
-  volume: {
-    warmup: STATIC_WARMUP,
-    work: [seconds(114, 8), seconds(114, 6), seconds(114, 6)],
-  },
-  peak: {
-    warmup: STATIC_WARMUP,
-    work: [seconds(114, 6), seconds(114, 6), seconds(114, 6)],
-  },
-  deload: {
-    warmup: [],
-    work: [seconds(50, 3), seconds(50, 3), seconds(50, 3)],
-  },
+  ramp: { warmup: STATIC_WARMUP, work: STATIC_WORK_RAMP },
+  volume: { warmup: STATIC_WARMUP, work: STATIC_WORK_VOLUME },
+  peak: { warmup: STATIC_WARMUP, work: STATIC_WORK_RAMP },
+  deload: { warmup: [], work: STATIC_DELOAD },
 };
 
 export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas = {

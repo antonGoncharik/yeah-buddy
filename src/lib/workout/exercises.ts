@@ -5,16 +5,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Exercise,
   ExerciseCategory,
+  ExerciseSlot,
   ExerciseUnit,
   ExerciseWithMax,
   ExerciseWorkoutType,
+  FormulaPreset,
   GlobalMax,
 } from "@/lib/types";
 import {
   defaultUnitForWorkoutType,
   EXERCISE_CATEGORIES,
+  EXERCISE_SLOTS,
   EXERCISE_UNITS,
   EXERCISE_WORKOUT_TYPES,
+  FORMULA_PRESETS,
 } from "@/lib/workout/labels";
 import { toNullableString, toNumber } from "@/lib/workout/numbers";
 
@@ -37,6 +41,9 @@ export const exerciseCreateSchema = z
     category: z.enum(EXERCISE_CATEGORIES),
     workout_type: z.enum(EXERCISE_WORKOUT_TYPES),
     unit: z.enum(EXERCISE_UNITS).optional(),
+    weight_step: z.number().finite().positive().optional(),
+    formula_preset: z.enum(FORMULA_PRESETS).optional(),
+    slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
     max_weight: z.number().finite().positive(),
     achieved_at: z.string().optional(),
   })
@@ -46,6 +53,9 @@ export const exerciseCreateSchema = z
     category: value.category,
     workout_type: value.workout_type,
     unit: value.unit ?? defaultUnitForWorkoutType(value.workout_type),
+    weight_step: value.weight_step ?? 2.5,
+    formula_preset: value.formula_preset ?? "barbell",
+    slot: value.slot ?? null,
     max_weight: value.max_weight,
     achieved_at: value.achieved_at,
   }));
@@ -56,6 +66,9 @@ export const exerciseUpdateSchema = z.object({
   category: z.enum(EXERCISE_CATEGORIES),
   workout_type: z.enum(EXERCISE_WORKOUT_TYPES),
   unit: z.enum(EXERCISE_UNITS).optional(),
+  weight_step: z.number().finite().positive().optional(),
+  formula_preset: z.enum(FORMULA_PRESETS).optional(),
+  slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
 });
 
 export type ExerciseCreateInput = z.infer<typeof exerciseCreateSchema>;
@@ -133,6 +146,9 @@ export async function createExercise(
       category: input.category,
       workout_type: input.workout_type,
       unit: input.unit,
+      weight_step: input.weight_step,
+      formula_preset: input.formula_preset,
+      slot: input.slot,
     })
     .select("*")
     .single();
@@ -147,6 +163,7 @@ export async function createExercise(
     maxWeight: input.max_weight,
     achievedAt: resolveAchievedAt(input.achieved_at),
   });
+  await copyMaxToCurrentPhase(supabase, userId, exercise.id, input.max_weight);
 
   const created = await getExercise(userId, exercise.id);
   if (!created) {
@@ -170,6 +187,11 @@ export async function updateExercise(
       category: input.category,
       workout_type: input.workout_type,
       unit: input.unit ?? defaultUnitForWorkoutType(input.workout_type),
+      ...(input.weight_step != null ? { weight_step: input.weight_step } : {}),
+      ...(input.formula_preset != null
+        ? { formula_preset: input.formula_preset }
+        : {}),
+      ...(input.slot !== undefined ? { slot: input.slot } : {}),
     })
     .eq("user_id", userId)
     .eq("id", id)
@@ -247,6 +269,9 @@ export function mapExercise(row: Record<string, unknown>): Exercise {
     category: toCategory(row.category),
     workout_type: toWorkoutType(row.workout_type),
     unit: toUnit(row.unit),
+    weight_step: toNumber(row.weight_step) || 2.5,
+    formula_preset: toPreset(row.formula_preset),
+    slot: toExerciseSlot(row.slot),
     is_active: Boolean(row.is_active),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -297,6 +322,40 @@ async function listGlobalMaxes(
   }
 
   return byExercise;
+}
+
+async function copyMaxToCurrentPhase(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+  userId: string,
+  exerciseId: string,
+  maxWeight: number,
+): Promise<void> {
+  const currentPhase = await supabase
+    .from("workout_phases")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "current")
+    .maybeSingle();
+
+  if (currentPhase.error) {
+    throw currentPhase.error;
+  }
+
+  if (!currentPhase.data) {
+    return;
+  }
+
+  const inserted = await supabase.from("phase_maxes").insert({
+    user_id: userId,
+    phase_id: currentPhase.data.id,
+    exercise_id: exerciseId,
+    max_weight: maxWeight,
+    source: "manual",
+  });
+
+  if (inserted.error) {
+    throw inserted.error;
+  }
 }
 
 async function insertGlobalMax(
@@ -399,4 +458,25 @@ function toUnit(value: unknown): ExerciseUnit {
   }
 
   return "reps";
+}
+
+function toPreset(value: unknown): FormulaPreset {
+  if (
+    value === "barbell" ||
+    value === "cable" ||
+    value === "cable_short" ||
+    value === "none"
+  ) {
+    return value;
+  }
+
+  return "barbell";
+}
+
+function toExerciseSlot(value: unknown): ExerciseSlot | null {
+  if (value === "a" || value === "b" || value === "c") {
+    return value;
+  }
+
+  return null;
 }

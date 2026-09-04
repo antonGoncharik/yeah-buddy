@@ -2,11 +2,20 @@ import { z } from "zod";
 
 import { isIsoDate } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { SessionStatus, WorkoutKind, WorkoutSession } from "@/lib/types";
+import type {
+  SessionStatus,
+  WorkoutKind,
+  WorkoutSession,
+  WorkoutSlot,
+} from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { toNullableString } from "@/lib/workout/numbers";
-import { ensureSchedule, isoDayOfWeek } from "@/lib/workout/schedule";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import {
+  isWorkoutSlot,
+  kindFromSlot,
+  nextSlotAfter,
+} from "@/lib/workout/slots";
 
 export class SessionConflictError extends Error {
   constructor() {
@@ -22,7 +31,7 @@ export class NoCurrentPhaseError extends Error {
 
 export const createSessionSchema = z.object({
   session_date: z.string().refine(isIsoDate, "Некорректная дата."),
-  workout_type: z.enum(["dynamic", "static"]),
+  slot: z.enum(["a", "b", "c", "static"]),
   note: z
     .union([z.string(), z.null()])
     .optional()
@@ -89,40 +98,47 @@ export async function getSession(
   return mapWorkoutSession(result.data as Record<string, unknown>);
 }
 
-export async function ensureTodaySession(
+export async function getTodayWorkoutState(
   userId: string,
   date: string,
 ): Promise<{
   session: WorkoutSession | null;
-  scheduled_type: "dynamic" | "static" | "rest";
+  next_slot: WorkoutSlot;
 }> {
   await ensureWorkoutSettings(userId);
-  const schedule = await ensureSchedule(userId);
-  const weekday = isoDayOfWeek(date);
-  const day = schedule.find((item) => item.day_of_week === weekday);
-  const scheduledType = day?.workout_type ?? "rest";
   const existing = await getSessionByDate(userId, date);
+  const nextSlot = await getNextSlot(userId);
 
-  if (existing) {
-    return { session: existing, scheduled_type: scheduledType };
-  }
+  return { session: existing, next_slot: nextSlot };
+}
 
-  if (scheduledType === "rest") {
-    return { session: null, scheduled_type: scheduledType };
-  }
-
+export async function getNextSlot(userId: string): Promise<WorkoutSlot> {
   const macro = await getCurrentMacroState(userId);
-  if (!macro.macro || !macro.phase) {
-    return { session: null, scheduled_type: scheduledType };
+  if (!macro.phase) {
+    return "a";
   }
 
-  const session = await createSession(userId, {
-    session_date: date,
-    workout_type: scheduledType,
-    note: null,
-  });
+  const supabase = createSupabaseServerClient();
+  const last = await supabase
+    .from("workout_sessions")
+    .select("slot")
+    .eq("user_id", userId)
+    .eq("phase_id", macro.phase.id)
+    .neq("status", "skipped")
+    .order("session_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  return { session, scheduled_type: scheduledType };
+  if (last.error) {
+    throw last.error;
+  }
+
+  if (!last.data) {
+    return "a";
+  }
+
+  return nextSlotAfter(isWorkoutSlot(last.data.slot) ? last.data.slot : null);
 }
 
 export async function createSession(
@@ -147,7 +163,8 @@ export async function createSession(
       session_date: input.session_date,
       macro_cycle_id: macro.macro.id,
       phase_id: macro.phase.id,
-      workout_type: input.workout_type,
+      workout_type: kindFromSlot(input.slot),
+      slot: input.slot,
       status: "planned",
       note: input.note ?? null,
     })
@@ -208,6 +225,7 @@ export function mapWorkoutSession(
     macro_cycle_id: String(row.macro_cycle_id),
     phase_id: String(row.phase_id),
     workout_type: toWorkoutKind(row.workout_type),
+    slot: isWorkoutSlot(row.slot) ? row.slot : null,
     status: toSessionStatus(row.status),
     note: toNullableString(row.note),
     created_at: String(row.created_at),

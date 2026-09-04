@@ -13,7 +13,7 @@ import type {
   TransitionPreview,
   WorkoutPhase,
 } from "@/lib/types";
-import { listExercises } from "@/lib/workout/exercises";
+import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
 import {
   increaseMax,
   nextPhaseType,
@@ -253,13 +253,9 @@ export async function previewTransition(
     to_phase: nextType,
     new_macro: false,
     increased,
-    maxes: toTransitionMaxes(state.maxes, (weight) =>
+    maxes: toTransitionMaxes(state.maxes, (weight, step) =>
       increased
-        ? increaseMax(
-            weight,
-            settings.max_increase_percent,
-            settings.weight_step,
-          )
+        ? increaseMax(weight, settings.max_increase_percent, step)
         : weight,
     ),
   };
@@ -314,7 +310,7 @@ export async function confirmTransition(
 
 function toTransitionMaxes(
   rows: PhaseMaxRow[],
-  propose: (current: number) => number,
+  propose: (current: number, step: number) => number,
 ): TransitionPreview["maxes"] {
   return rows.flatMap((row) => {
     if (!row.phase_max) {
@@ -326,7 +322,10 @@ function toTransitionMaxes(
         exercise_id: row.exercise.id,
         name: row.exercise.short_name || row.exercise.name,
         current_weight: row.phase_max.max_weight,
-        proposed_weight: propose(row.phase_max.max_weight),
+        proposed_weight: propose(
+          row.phase_max.max_weight,
+          row.exercise.weight_step,
+        ),
       },
     ];
   });
@@ -486,6 +485,16 @@ async function createPhase(
 
     if (maxInsert.error) {
       throw maxInsert.error;
+    }
+
+    for (const item of input.maxes) {
+      await raiseGlobalMax({
+        userId,
+        exerciseId: item.exercise_id,
+        maxWeight: item.max_weight,
+        achievedAt: input.startDate,
+        phaseId: phase.id,
+      });
     }
   }
 

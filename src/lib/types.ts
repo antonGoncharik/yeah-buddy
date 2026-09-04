@@ -135,6 +135,12 @@ export type SessionStatus = "planned" | "completed" | "skipped";
 
 export type SetType = "warmup" | "work";
 
+export type FormulaPreset = "barbell" | "cable" | "cable_short" | "none";
+
+export type ExerciseSlot = "a" | "b" | "c";
+
+export type WorkoutSlot = ExerciseSlot | "static";
+
 export interface FormulaSetSpec {
   percent: number;
   reps: number | null;
@@ -167,6 +173,9 @@ export interface Exercise {
   category: ExerciseCategory;
   workout_type: ExerciseWorkoutType;
   unit: ExerciseUnit;
+  weight_step: number;
+  formula_preset: FormulaPreset;
+  slot: ExerciseSlot | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -240,6 +249,7 @@ export interface WorkoutSession {
   macro_cycle_id: string;
   phase_id: string;
   workout_type: WorkoutKind;
+  slot: WorkoutSlot | null;
   status: SessionStatus;
   note: string | null;
   created_at: string;

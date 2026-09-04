@@ -1,0 +1,376 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type {
+  ExerciseCategory,
+  ExerciseSlot,
+  ExerciseWorkoutType,
+  FormulaPreset,
+} from "@/lib/types";
+
+type StarterExercise = {
+  name: string;
+  short_name: string;
+  category: ExerciseCategory;
+  workout_type: ExerciseWorkoutType;
+  slot: ExerciseSlot;
+  weight_step: number;
+  formula_preset: FormulaPreset;
+  max_weight: number;
+};
+
+export const STARTER_EXERCISES: StarterExercise[] = [
+  {
+    name: "присед в колодец",
+    short_name: "присед",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 230,
+  },
+  {
+    name: "румынская тяга",
+    short_name: "RDL",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 147,
+  },
+  {
+    name: "подъем на икры стоя со штангой в смитте",
+    short_name: "икры",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 147,
+  },
+  {
+    name: "жим со штангой сидя",
+    short_name: "жим сидя",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 126,
+  },
+  {
+    name: "махи с гантелями на среднюю дельту",
+    short_name: "средняя дельта",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 33,
+  },
+  {
+    name: "махи с гантелями на заднюю дельту",
+    short_name: "задняя дельта",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 27,
+  },
+  {
+    name: "жим со штангой лежа",
+    short_name: "жим лежа",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 154,
+  },
+  {
+    name: "жим со штангой на наклонной скамье",
+    short_name: "жим наклонный",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 120,
+  },
+  {
+    name: "отжимания на брусьях в тренажере одной рукой",
+    short_name: "брусья",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 63,
+  },
+  {
+    name: "тяга верхнего блока одной рукой с ручкой",
+    short_name: "тяга блока",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 74,
+  },
+  {
+    name: "тяга Мэдоуза",
+    short_name: "Мэдоуз",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 74,
+  },
+  {
+    name: "шраги со штангой",
+    short_name: "шраги",
+    category: "isolation",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+    max_weight: 264,
+  },
+  {
+    name: "сгибание проксимальный фаланг пальцев с ручкой на лямках на блоке",
+    short_name: "пальцы",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 33,
+  },
+  {
+    name: "сгибание кисти с ручкой на лямках на блоке",
+    short_name: "кисть",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 35,
+  },
+  {
+    name: "сгибание кисти с ручкой Ларратта",
+    short_name: "Ларратт",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 22,
+  },
+  {
+    name: "отведение кисти на блоке",
+    short_name: "отведение",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 22,
+  },
+  {
+    name: "пронация предплечья с лямкой на блоке",
+    short_name: "пронация",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 37,
+  },
+  {
+    name: "подъем на плечелучевую с лямкой с нижнего блока",
+    short_name: "плечелучевая",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 80,
+  },
+  {
+    name: "подъем на бицепс с ручкой с нижнего блока",
+    short_name: "бицепс",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 74,
+  },
+  {
+    name: "боковой нажим корпусом",
+    short_name: "боковой",
+    category: "armwrestling",
+    workout_type: "both",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+    max_weight: 38,
+  },
+];
+
+export async function ensureStarterExercises(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const existing = await supabase
+    .from("exercises")
+    .select("id, name, slot, created_at")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  if (existing.error) {
+    throw existing.error;
+  }
+
+  const byName = new Map<string, { id: string; slot: unknown }>();
+  const duplicateIds: string[] = [];
+  for (const row of existing.data ?? []) {
+    const key = normalizeName(String(row.name));
+    if (byName.has(key)) {
+      duplicateIds.push(String(row.id));
+      continue;
+    }
+    byName.set(key, { id: String(row.id), slot: row.slot });
+  }
+
+  if (duplicateIds.length > 0) {
+    const archived = await supabase
+      .from("exercises")
+      .update({
+        is_active: false,
+        archived_at: new Date().toISOString(),
+      })
+      .eq("user_id", userId)
+      .in("id", duplicateIds);
+
+    if (archived.error) {
+      throw archived.error;
+    }
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const phaseId = await currentPhaseId(supabase, userId);
+  const insertedIds: Array<{ id: string; maxWeight: number }> = [];
+
+  for (const exercise of STARTER_EXERCISES) {
+    const match = byName.get(normalizeName(exercise.name));
+    if (match) {
+      if (match.slot == null) {
+        const patched = await supabase
+          .from("exercises")
+          .update({
+            short_name: exercise.short_name,
+            category: exercise.category,
+            workout_type: exercise.workout_type,
+            weight_step: exercise.weight_step,
+            formula_preset: exercise.formula_preset,
+            slot: exercise.slot,
+          })
+          .eq("id", match.id)
+          .eq("user_id", userId);
+
+        if (patched.error) {
+          throw patched.error;
+        }
+      }
+      continue;
+    }
+
+    const inserted = await supabase
+      .from("exercises")
+      .insert({
+        user_id: userId,
+        name: exercise.name,
+        short_name: exercise.short_name,
+        category: exercise.category,
+        workout_type: exercise.workout_type,
+        unit: exercise.workout_type === "static" ? "seconds" : "reps",
+        weight_step: exercise.weight_step,
+        formula_preset: exercise.formula_preset,
+        slot: exercise.slot,
+      })
+      .select("id")
+      .single();
+
+    if (inserted.error) {
+      if (inserted.error.code === "23505") {
+        continue;
+      }
+      throw inserted.error;
+    }
+
+    if (!inserted.data) {
+      throw new Error("Exercise seed failed");
+    }
+
+    const maxInsert = await supabase.from("global_maxes").insert({
+      user_id: userId,
+      exercise_id: inserted.data.id,
+      max_weight: exercise.max_weight,
+      achieved_at: today,
+    });
+
+    if (maxInsert.error) {
+      throw maxInsert.error;
+    }
+
+    insertedIds.push({
+      id: inserted.data.id,
+      maxWeight: exercise.max_weight,
+    });
+  }
+
+  if (!phaseId || insertedIds.length === 0) {
+    return;
+  }
+
+  const phaseMaxes = await supabase.from("phase_maxes").insert(
+    insertedIds.map((item) => ({
+      user_id: userId,
+      phase_id: phaseId,
+      exercise_id: item.id,
+      max_weight: item.maxWeight,
+      source: "manual",
+    })),
+  );
+
+  if (phaseMaxes.error) {
+    throw phaseMaxes.error;
+  }
+}
+
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+async function currentPhaseId(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const result = await supabase
+    .from("workout_phases")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "current")
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return result.data ? String(result.data.id) : null;
+}

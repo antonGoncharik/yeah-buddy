@@ -6,7 +6,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import {
   createSession,
   createSessionSchema,
-  ensureTodaySession,
+  getTodayWorkoutState,
   NoCurrentPhaseError,
   SessionConflictError,
 } from "@/lib/workout/sessions";
@@ -23,7 +23,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const today = await ensureTodaySession(auth.session.userId, date);
+    const today = await getTodayWorkoutState(auth.session.userId, date);
     return NextResponse.json(today);
   } catch (error) {
     console.error(error);

@@ -1,11 +1,22 @@
-import type { FormulaPhaseSpec, PhaseType, WorkoutKind } from "@/lib/types";
+import type {
+  FormulaPhaseSpec,
+  FormulaPreset,
+  PhaseType,
+  WorkoutKind,
+} from "@/lib/types";
+import {
+  BARBELL_WARMUP,
+  CABLE_SHORT_WARMUP,
+  CABLE_WARMUP,
+} from "@/lib/workout/default-formulas";
 
-export function roundToStep(weight: number, step: number): number {
-  if (!(step > 0)) {
+export function floorToStep(weight: number, step: number): number {
+  if (!(step > 0) || !Number.isFinite(weight)) {
     return weight;
   }
 
-  return Math.round(weight / step) * step;
+  const units = Math.floor((weight + 1e-9) / step);
+  return Math.round(units * step * 100) / 100;
 }
 
 export function calcPlannedWeight(
@@ -13,7 +24,7 @@ export function calcPlannedWeight(
   percent: number,
   step: number,
 ): number {
-  return roundToStep((maxWeight * percent) / 100, step);
+  return floorToStep((maxWeight * percent) / 100, step);
 }
 
 export function increaseMax(
@@ -21,7 +32,32 @@ export function increaseMax(
   percent: number,
   step: number,
 ): number {
-  return roundToStep(maxWeight * (1 + percent / 100), step);
+  return floorToStep(maxWeight * (1 + percent / 100), step);
+}
+
+export function resolvePhaseSpec(
+  base: FormulaPhaseSpec,
+  kind: WorkoutKind,
+  phase: PhaseType,
+  preset: FormulaPreset,
+): FormulaPhaseSpec {
+  if (preset === "none") {
+    return { warmup: [], work: [] };
+  }
+
+  if (kind === "static" || phase === "deload") {
+    return base;
+  }
+
+  if (preset === "cable") {
+    return { warmup: CABLE_WARMUP, work: base.work };
+  }
+
+  if (preset === "cable_short") {
+    return { warmup: CABLE_SHORT_WARMUP, work: base.work };
+  }
+
+  return { warmup: BARBELL_WARMUP, work: base.work };
 }
 
 export function plannedSetsFromFormula(

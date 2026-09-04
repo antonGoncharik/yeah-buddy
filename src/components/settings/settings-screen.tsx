@@ -368,7 +368,6 @@ function readSettings(data: unknown): UserSettings | null {
 }
 
 function WorkoutSettingsCard() {
-  const [weightStep, setWeightStep] = useState("2.5");
   const [increasePercent, setIncreasePercent] = useState("5");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -392,7 +391,6 @@ function WorkoutSettingsCard() {
         throw new Error("load failed");
       }
 
-      setWeightStep(String(settings.weight_step));
       setIncreasePercent(String(settings.max_increase_percent));
     } catch {
       setError(LOAD_FAILED);
@@ -406,9 +404,8 @@ function WorkoutSettingsCard() {
   }, [load]);
 
   async function onSave() {
-    const step = parseMacro(weightStep);
     const percent = parseMacro(increasePercent);
-    if (step == null || step <= 0 || percent == null || percent < 0) {
+    if (percent == null || percent < 0) {
       setError("Проверьте поля формы.");
       setSaved(false);
       return;
@@ -423,7 +420,6 @@ function WorkoutSettingsCard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          weight_step: step,
           max_increase_percent: percent,
         }),
       });
@@ -435,7 +431,6 @@ function WorkoutSettingsCard() {
 
       const settings = readWorkoutSettings(data);
       if (settings) {
-        setWeightStep(String(settings.weight_step));
         setIncreasePercent(String(settings.max_increase_percent));
       }
       setSaved(true);
@@ -454,18 +449,6 @@ function WorkoutSettingsCard() {
       ) : (
         <>
           <div className="flex flex-col gap-2">
-            <Label className="text-base">Шаг округления веса, кг</Label>
-            <Input
-              inputMode="decimal"
-              value={weightStep}
-              onChange={(event) => {
-                setSaved(false);
-                setWeightStep(event.target.value);
-              }}
-              className="h-12 text-base"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
             <Label className="text-base">Прирост максимума, %</Label>
             <Input
               inputMode="decimal"
@@ -478,7 +461,8 @@ function WorkoutSettingsCard() {
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            При переходе набор → рывок максимумы предлагаются с этим процентом.
+            При переходе набор → рывок система предлагает максимумы с этим
+            процентом. Шаг веса и разминка живут на упражнении.
           </p>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           {saved ? (
@@ -490,7 +474,7 @@ function WorkoutSettingsCard() {
             disabled={saving}
             onClick={() => void onSave()}
           >
-            {saving ? "Сохранение…" : "Сохранить формулы"}
+            {saving ? "Сохранение…" : "Сохранить"}
           </Button>
         </>
       )}
@@ -499,7 +483,6 @@ function WorkoutSettingsCard() {
 }
 
 function readWorkoutSettings(data: unknown): {
-  weight_step: number;
   max_increase_percent: number;
 } | null {
   if (
@@ -513,14 +496,12 @@ function readWorkoutSettings(data: unknown): {
   }
 
   const settings = data.settings as {
-    weight_step?: unknown;
     max_increase_percent?: unknown;
   };
-  const weight_step = Number(settings.weight_step);
   const max_increase_percent = Number(settings.max_increase_percent);
-  if (!Number.isFinite(weight_step) || !Number.isFinite(max_increase_percent)) {
+  if (!Number.isFinite(max_increase_percent)) {
     return null;
   }
 
-  return { weight_step, max_increase_percent };
+  return { max_increase_percent };
 }
