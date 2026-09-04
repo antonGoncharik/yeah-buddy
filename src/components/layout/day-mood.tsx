@@ -188,32 +188,40 @@ function RestBackdrop() {
 function TrainingBackdrop() {
   return (
     <>
-      <div className="absolute inset-0 bg-[repeating-linear-gradient(-22deg,oklch(0.52_0.16_32_/_0.14)_0_3px,transparent_3px_20px)] dark:bg-[repeating-linear-gradient(-22deg,oklch(0.62_0.16_32_/_0.16)_0_3px,transparent_3px_20px)]" />
+      <div className="absolute inset-0 bg-[repeating-linear-gradient(-38deg,oklch(0.38_0.24_24_/_0.34)_0_1.5px,transparent_1.5px_9px)] dark:bg-[repeating-linear-gradient(-38deg,oklch(0.78_0.2_24_/_0.34)_0_1.5px,transparent_1.5px_9px)]" />
       <svg
         aria-hidden
         className="absolute inset-0 h-full w-full motion-safe:animate-train-slash"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
+        viewBox="0 0 400 800"
+        preserveAspectRatio="xMidYMid slice"
       >
         <polygon
-          points="58,0 100,0 100,42"
-          className="fill-[oklch(0.58_0.19_35_/_0.34)] dark:fill-[oklch(0.52_0.16_35_/_0.38)]"
+          points="296,0 400,0 400,68"
+          className="fill-[oklch(0.42_0.24_26_/_0.58)] dark:fill-[oklch(0.52_0.2_26_/_0.52)]"
         />
         <polygon
-          points="100,28 100,72 72,100 100,100"
-          className="fill-[oklch(0.48_0.17_28_/_0.28)] dark:fill-[oklch(0.45_0.15_28_/_0.32)]"
+          points="400,40 400,250 372,800 400,800"
+          className="fill-[oklch(0.36_0.22_20_/_0.5)] dark:fill-[oklch(0.42_0.18_20_/_0.48)]"
         />
         <polygon
-          points="0,62 28,100 0,100"
-          className="fill-[oklch(0.5_0.16_40_/_0.26)] dark:fill-[oklch(0.48_0.14_40_/_0.3)]"
+          points="0,692 40,800 0,800"
+          className="fill-[oklch(0.4_0.21_30_/_0.46)] dark:fill-[oklch(0.48_0.17_30_/_0.44)]"
         />
         <polygon
-          points="0,0 18,0 0,22"
-          className="fill-[oklch(0.55_0.18_32_/_0.22)] dark:fill-[oklch(0.5_0.15_32_/_0.28)]"
+          points="0,0 26,0 0,34"
+          className="fill-[oklch(0.44_0.22_24_/_0.42)] dark:fill-[oklch(0.5_0.18_24_/_0.4)]"
         />
         <polygon
-          points="8,38 36,18 42,26 14,46"
-          className="fill-[oklch(0.45_0.16_25_/_0.2)] dark:fill-[oklch(0.55_0.14_25_/_0.22)]"
+          points="16,468 176,214 183,224 23,478"
+          className="fill-[oklch(0.34_0.22_20_/_0.5)] dark:fill-[oklch(0.66_0.18_20_/_0.44)]"
+        />
+        <polygon
+          points="198,736 354,472 361,483 205,747"
+          className="fill-[oklch(0.36_0.2_26_/_0.42)] dark:fill-[oklch(0.68_0.16_26_/_0.38)]"
+        />
+        <polygon
+          points="68,800 218,584 224,594 74,800"
+          className="fill-[oklch(0.32_0.2_22_/_0.38)] dark:fill-[oklch(0.72_0.15_22_/_0.34)]"
         />
       </svg>
     </>
