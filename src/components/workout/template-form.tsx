@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
-import { SortButtons } from "@/components/workout/sort-buttons";
+import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   ExerciseWithMax,
@@ -32,7 +32,6 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sorting, setSorting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,27 +102,6 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     );
   }
 
-  function move(id: string, direction: -1 | 1) {
-    setExerciseIds((current) => {
-      const index = current.indexOf(id);
-      const nextIndex = index + direction;
-      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) {
-        return current;
-      }
-
-      const next = [...current];
-      const item = next[index];
-      const swap = next[nextIndex];
-      if (!item || !swap) {
-        return current;
-      }
-
-      next[index] = swap;
-      next[nextIndex] = item;
-      return next;
-    });
-  }
-
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = name.trim();
@@ -192,43 +170,22 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
           </Field>
 
           <section className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-base font-medium">Состав</h2>
-              {selected.length > 1 ? (
-                <button
-                  type="button"
-                  className="text-sm font-medium text-primary"
-                  onClick={() => setSorting((current) => !current)}
-                >
-                  {sorting ? "Готово" : "Порядок"}
-                </button>
-              ) : null}
-            </div>
+            <h2 className="text-base font-medium">Состав</h2>
             {selected.length === 0 ? (
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Порядок в списке — порядок в зале.
               </p>
             ) : (
-              <div className="card-surface overflow-hidden">
-                {selected.map((exercise, index) => (
-                  <div
-                    key={exercise.id}
-                    className="flex items-center gap-1 border-b border-border/70 px-2 py-1 last:border-b-0"
-                  >
-                    <span className="w-6 shrink-0 text-center text-sm tabular-nums text-muted-foreground">
-                      {index + 1}
-                    </span>
+              <SortableList
+                items={selected}
+                onReorder={(next) =>
+                  setExerciseIds(next.map((exercise) => exercise.id))
+                }
+                renderItem={(exercise) => (
+                  <>
                     <p className="min-w-0 flex-1 px-1 text-base font-medium leading-snug">
                       {exercise.short_name || exercise.name}
                     </p>
-                    {sorting ? (
-                      <SortButtons
-                        disableUp={index === 0}
-                        disableDown={index === selected.length - 1}
-                        onUp={() => move(exercise.id, -1)}
-                        onDown={() => move(exercise.id, 1)}
-                      />
-                    ) : null}
                     <Button
                       type="button"
                       variant="ghost"
@@ -239,9 +196,9 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
                     >
                       <X className="size-5" />
                     </Button>
-                  </div>
-                ))}
-              </div>
+                  </>
+                )}
+              />
             )}
           </section>
 

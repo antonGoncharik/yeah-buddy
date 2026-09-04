@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { SortButtons } from "@/components/workout/sort-buttons";
+import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,6 @@ export function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [sorting, setSorting] = useState(false);
 
   const active = useMemo(
     () => templates.filter((template) => template.is_active),
@@ -91,25 +90,6 @@ export function ScheduleScreen() {
     void save(next);
   }
 
-  function move(id: string, direction: -1 | 1) {
-    const index = active.findIndex((template) => template.id === id);
-    const nextIndex = index + direction;
-    if (index < 0 || nextIndex < 0 || nextIndex >= active.length) {
-      return;
-    }
-
-    const nextActive = [...active];
-    const current = nextActive[index];
-    const swap = nextActive[nextIndex];
-    if (!current || !swap) {
-      return;
-    }
-
-    nextActive[index] = swap;
-    nextActive[nextIndex] = current;
-    persist(nextActive, inactive);
-  }
-
   function setInCircle(id: string, inCircle: boolean) {
     if (inCircle) {
       const template = inactive.find((item) => item.id === id);
@@ -163,27 +143,13 @@ export function ScheduleScreen() {
         ) : null}
 
         {!loading && active.length > 0 ? (
-          <section className="animate-rise flex flex-col gap-2">
-            {active.length > 1 ? (
-              <div className="flex justify-end px-1">
-                <button
-                  type="button"
-                  className="text-sm font-medium text-primary"
-                  onClick={() => setSorting((current) => !current)}
-                >
-                  {sorting ? "Готово" : "Порядок"}
-                </button>
-              </div>
-            ) : null}
-            <div className="card-surface overflow-hidden">
-              {active.map((template, index) => (
-                <div
-                  key={template.id}
-                  className="flex items-center gap-1 border-b border-border/70 px-2 py-1 last:border-b-0"
-                >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/12 text-sm font-semibold tabular-nums">
-                    {index + 1}
-                  </span>
+          <section className="animate-rise">
+            <SortableList
+              items={active}
+              disabled={saving}
+              onReorder={(nextActive) => persist(nextActive, inactive)}
+              renderItem={(template) => (
+                <>
                   <Link
                     href={`/workouts/templates/${template.id}`}
                     className="min-w-0 flex-1 rounded-xl px-2 py-2"
@@ -198,31 +164,20 @@ export function ScheduleScreen() {
                         : ""}
                     </p>
                   </Link>
-                  {sorting ? (
-                    <>
-                      <SortButtons
-                        disabled={saving}
-                        disableUp={index === 0}
-                        disableDown={index === active.length - 1}
-                        onUp={() => move(template.id, -1)}
-                        onDown={() => move(template.id, 1)}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-lg"
-                        className="size-11"
-                        disabled={saving}
-                        aria-label="Убрать из круга"
-                        onClick={() => setInCircle(template.id, false)}
-                      >
-                        <Minus className="size-5" />
-                      </Button>
-                    </>
-                  ) : null}
-                </div>
-              ))}
-            </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-lg"
+                    className="size-11"
+                    disabled={saving}
+                    aria-label="Убрать из круга"
+                    onClick={() => setInCircle(template.id, false)}
+                  >
+                    <Minus className="size-5" />
+                  </Button>
+                </>
+              )}
+            />
           </section>
         ) : null}
 
