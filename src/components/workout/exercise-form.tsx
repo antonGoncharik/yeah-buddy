@@ -127,7 +127,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         />
       </Field>
 
-      <Field label="Короткое название">
+      <Field label="Кратко">
         <Input
           value={form.short_name}
           placeholder="плечелучевая"
@@ -197,21 +197,20 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           ))}
         </select>
         <p className="text-sm text-muted-foreground">
-          Пресет задаёт только разминку. Рабочие веса считает система.
+          Только разминка. Рабочие веса считает система.
         </p>
       </Field>
 
       {exercise ? (
         <div className="card-surface flex flex-col gap-2 px-5 py-4">
-          <p className="text-base font-medium">Рабочий максимум</p>
+          <p className="text-base font-medium">Максимум</p>
           <p className="text-2xl font-semibold tracking-tight">
             {exercise.current_max
               ? `${formatWeight(exercise.current_max.max_weight)} кг`
-              : "ещё нет"}
+              : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От него считаются веса. Меняется при переходе фазы, не с рабочего
-            подхода.
+            От него считаются веса. Меняется на переходе фазы.
           </p>
         </div>
       ) : (
@@ -233,7 +232,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {exercise && exercise.max_history.length > 1 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-base font-medium">История рекордов</h2>
+          <h2 className="text-base font-medium">Рекорды</h2>
           <ul className="card-surface divide-y divide-border/70">
             {exercise.max_history.map((record) => (
               <li

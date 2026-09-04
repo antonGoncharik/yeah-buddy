@@ -29,8 +29,8 @@ const MEAL_LABELS: Record<MealType, string> = {
   breakfast: "Завтрак",
   lunch: "Обед",
   snack: "Полдник",
-  pre_workout: "Предтрен",
-  post_workout: "Посттрен",
+  pre_workout: "До тренировки",
+  post_workout: "После тренировки",
   dinner: "Ужин",
 };
 

@@ -237,7 +237,7 @@ export function MacroScreen() {
             </section>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-xl font-semibold">Максимумы фазы</h2>
+              <h2 className="text-xl font-semibold">Максимумы</h2>
               {state.maxes.map((row) => (
                 <div
                   key={row.exercise.id}
@@ -270,7 +270,7 @@ export function MacroScreen() {
                       disabled={savingId === row.exercise.id}
                       onClick={() => void saveMax(row.exercise.id)}
                     >
-                      {savingId === row.exercise.id ? "…" : "Ок"}
+                      {savingId === row.exercise.id ? "…" : "Сохранить"}
                     </Button>
                   </div>
                 </div>
@@ -288,8 +288,7 @@ export function MacroScreen() {
                 </h2>
                 {preview.increased ? (
                   <p className="text-sm text-muted-foreground">
-                    Максимумы предложены с приростом. Можно поправить перед
-                    подтверждением.
+                    Максимумы с приростом +5%. Можно поправить.
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground">
@@ -306,7 +305,7 @@ export function MacroScreen() {
                   <div key={row.exercise_id} className="flex flex-col gap-1">
                     <p className="text-base font-medium">{row.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      было {formatWeight(row.current_weight)} → предлагаем{" "}
+                      сейчас {formatWeight(row.current_weight)} → будет{" "}
                       {formatWeight(row.proposed_weight)}
                     </p>
                     <Input

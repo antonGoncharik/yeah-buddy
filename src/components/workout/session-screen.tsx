@@ -330,7 +330,7 @@ function ExerciseRow({
                 />
                 {kind === "dynamic" ? (
                   <FieldInput
-                    label="повт"
+                    label="раз"
                     value={draft.reps}
                     disabled={disabled}
                     inputMode="numeric"

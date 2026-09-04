@@ -20,8 +20,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Дневник питания",
-  description: "Telegram Mini App для дневника питания",
+  title: "Дневник",
+  description: "Питание и тренировки",
 };
 
 export async function generateViewport(): Promise<Viewport> {

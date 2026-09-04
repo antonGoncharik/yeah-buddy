@@ -16,14 +16,14 @@ export function CreateDayButtons({
   return (
     <div className="flex flex-col gap-3">
       <Button className="h-14 text-lg" disabled={busy} onClick={onCreateRest}>
-        Создать день отдыха
+        Отдых
       </Button>
       <Button
         className="h-14 text-lg"
         disabled={busy}
         onClick={onCreateTraining}
       >
-        Создать тренировочный день
+        Тренировка
       </Button>
       <Button
         variant="outline"
@@ -31,7 +31,7 @@ export function CreateDayButtons({
         disabled={busy}
         onClick={onCopyYesterday}
       >
-        Скопировать вчера
+        Как вчера
       </Button>
     </div>
   );

@@ -358,11 +358,32 @@ const STARTER_TEMPLATES: Array<{
   name: string;
   kind: WorkoutKind;
   slots: ExerciseSlot[];
+  aliases: string[];
 }> = [
-  { name: "A · ноги и жим сидя", kind: "dynamic", slots: ["a"] },
-  { name: "Статика", kind: "static", slots: ["c"] },
-  { name: "B · жимы и тяги", kind: "dynamic", slots: ["b"] },
-  { name: "C · арм динамика", kind: "dynamic", slots: ["c"] },
+  {
+    name: "Ноги и жим сидя",
+    kind: "dynamic",
+    slots: ["a"],
+    aliases: ["A · ноги и жим сидя"],
+  },
+  {
+    name: "Статика",
+    kind: "static",
+    slots: ["c"],
+    aliases: [],
+  },
+  {
+    name: "Жимы и тяги",
+    kind: "dynamic",
+    slots: ["b"],
+    aliases: ["B · жимы и тяги"],
+  },
+  {
+    name: "Арм",
+    kind: "dynamic",
+    slots: ["c"],
+    aliases: ["C · арм динамика"],
+  },
 ];
 
 export async function ensureStarterTemplates(
@@ -444,8 +465,60 @@ export async function ensureStarterTemplates(
   }
 
   let sortOrder = (existing.data?.length ?? 0) * 10 + 10;
+
   for (const template of STARTER_TEMPLATES) {
-    if (byName.has(normalizeName(template.name))) {
+    const keys = [
+      normalizeName(template.name),
+      ...template.aliases.map((alias) => normalizeName(alias)),
+    ];
+    const matches = keys.flatMap((key) => {
+      const id = byName.get(key);
+      return id ? [{ key, id }] : [];
+    });
+    const uniqueIds = [...new Set(matches.map((item) => item.id))];
+    const keepId = uniqueIds
+      .map((id) => (existing.data ?? []).find((row) => String(row.id) === id))
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+      .sort((left, right) =>
+        String(left.created_at).localeCompare(String(right.created_at)),
+      )[0]?.id;
+
+    if (keepId) {
+      const extras = uniqueIds.filter((id) => id !== keepId);
+      if (extras.length > 0) {
+        const cleared = await supabase
+          .from("workout_sessions")
+          .update({ template_id: null })
+          .eq("user_id", userId)
+          .in("template_id", extras);
+        if (cleared.error) {
+          throw cleared.error;
+        }
+
+        const removed = await supabase
+          .from("workout_templates")
+          .delete()
+          .eq("user_id", userId)
+          .in("id", extras);
+        if (removed.error) {
+          throw removed.error;
+        }
+      }
+
+      const renamed = await supabase
+        .from("workout_templates")
+        .update({
+          name: template.name,
+          ...(extras.length > 0
+            ? { sort_order: (STARTER_TEMPLATES.indexOf(template) + 1) * 10 }
+            : {}),
+        })
+        .eq("id", keepId)
+        .eq("user_id", userId);
+      if (renamed.error) {
+        throw renamed.error;
+      }
+
       continue;
     }
 

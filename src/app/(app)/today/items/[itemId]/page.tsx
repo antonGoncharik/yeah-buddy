@@ -77,7 +77,7 @@ export default function EditMealItemPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Граммы" backHref="/today" />
+      <AppHeader title="Порция" backHref="/today" />
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
       ) : null}

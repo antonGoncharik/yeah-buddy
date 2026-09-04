@@ -215,7 +215,7 @@ export function WorkoutsHubScreen() {
               disabled={creating}
               onClick={() => void createToday(nextTemplate.id)}
             >
-              Начать
+              Начать тренировку
             </Button>
           </section>
         ) : null}
@@ -251,7 +251,7 @@ export function WorkoutsHubScreen() {
                 href="/workouts/schedule"
                 className="card-surface block px-5 py-4 transition-colors hover:bg-muted/40"
               >
-                <p className="text-sm text-muted-foreground">Круг</p>
+                <p className="text-sm text-muted-foreground">Шаблоны</p>
                 <p className="mt-1 text-base leading-snug">
                   {activeTemplates.map((template) => template.name).join(" → ")}
                 </p>

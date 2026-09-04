@@ -1,21 +1,17 @@
 export const OPEN_VIA_BOT = "Откройте приложение через Telegram-бота.";
 export const LOAD_FAILED = "Не удалось загрузить данные.";
-export const FOODS_EMPTY = "Продукты пока не добавлены.";
-export const TODAY_EMPTY =
-  "Сегодня нет записей. Создайте день отдыха или тренировочный день.";
+export const FOODS_EMPTY = "Продуктов пока нет.";
+export const TODAY_EMPTY = "Сегодня ещё пусто. Это день отдыха или тренировки?";
 export const DAY_EXISTS_REPLACE =
-  "Сегодняшний день уже существует. Заменить его копией вчерашнего?";
+  "Сегодня уже есть записи. Заменить вчерашним днём?";
 export const YESTERDAY_MISSING = "Вчерашнего дня нет.";
 export const BOT_START =
-  "Привет! Это дневник питания.\n\nЗдесь можно вести свои продукты, быстро добавлять приёмы пищи и видеть итог БЖУ за день.";
-export const BOT_OPEN_DIARY = "Открыть дневник питания";
-export const EXERCISES_EMPTY =
-  "Упражнений пока нет. Добавьте упражнение и укажите начальный максимум.";
-export const EXERCISES_ARCHIVED_EMPTY = "Архивных упражнений нет.";
-export const WORKOUTS_NEED_EXERCISES =
-  "Сначала добавьте упражнения — без них нельзя создать макроцикл.";
-export const WORKOUTS_NEED_TEMPLATES =
-  "Соберите шаблон тренировки — без него нечего начинать.";
+  "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
+export const BOT_OPEN_DIARY = "Открыть дневник";
+export const EXERCISES_EMPTY = "Добавьте упражнение и максимум.";
+export const EXERCISES_ARCHIVED_EMPTY = "В архиве пусто.";
+export const WORKOUTS_NEED_EXERCISES = "Сначала добавьте упражнения.";
+export const WORKOUTS_NEED_TEMPLATES = "Соберите первую тренировку.";
 
 export function readApiError(data: unknown): string | null {
   if (

@@ -207,7 +207,7 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
         </Field>
       </div>
 
-      <Field label="Стандартная порция в граммах">
+      <Field label="Порция, г">
         <Input
           inputMode="decimal"
           value={form.default_portion_g}
@@ -221,7 +221,7 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
         />
       </Field>
 
-      <Field label="Название стандартной порции">
+      <Field label="Название порции">
         <Input
           value={form.default_portion_label}
           onChange={(event) =>

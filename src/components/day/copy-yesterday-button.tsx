@@ -17,7 +17,7 @@ export function CopyYesterdayButton({
       disabled={busy}
       onClick={onCopy}
     >
-      Скопировать вчера
+      Как вчера
     </Button>
   );
 }

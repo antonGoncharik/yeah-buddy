@@ -64,7 +64,7 @@ export default function AddMealItemGramsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Граммы" backHref={backHref} />
+      <AppHeader title="Порция" backHref={backHref} />
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
       ) : null}

@@ -46,27 +46,27 @@ export const PHASE_ORDER: Record<PhaseType, number> = {
 };
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
-  base: "база",
-  armwrestling: "армрестлинг",
-  isolation: "изоляция",
+  base: "База",
+  armwrestling: "Армрестлинг",
+  isolation: "Изоляция",
 };
 
 export const EXERCISE_WORKOUT_TYPE_LABELS: Record<ExerciseWorkoutType, string> =
   {
-    dynamic: "динамика",
-    static: "статика",
-    both: "оба",
+    dynamic: "Динамика",
+    static: "Статика",
+    both: "Оба",
   };
 
 export const WORKOUT_KIND_LABELS: Record<WorkoutKind, string> = {
-  dynamic: "динамика",
-  static: "статика",
+  dynamic: "Динамика",
+  static: "Статика",
 };
 
 export const SCHEDULE_TYPE_LABELS: Record<ScheduleWorkoutType, string> = {
-  dynamic: "динамика",
-  static: "статика",
-  rest: "отдых",
+  dynamic: "Динамика",
+  static: "Статика",
+  rest: "Отдых",
 };
 
 export const EXERCISE_UNIT_LABELS: Record<ExerciseUnit, string> = {
@@ -75,10 +75,10 @@ export const EXERCISE_UNIT_LABELS: Record<ExerciseUnit, string> = {
 };
 
 export const PHASE_TYPE_LABELS: Record<PhaseType, string> = {
-  ramp: "разгон",
-  volume: "набор",
-  peak: "рывок",
-  deload: "сброс",
+  ramp: "Разгон",
+  volume: "Набор",
+  peak: "Рывок",
+  deload: "Сброс",
 };
 
 export const CYCLE_STATUS_LABELS: Record<CycleStatus, string> = {
@@ -87,33 +87,33 @@ export const CYCLE_STATUS_LABELS: Record<CycleStatus, string> = {
 };
 
 export const SESSION_STATUS_LABELS: Record<SessionStatus, string> = {
-  planned: "запланирована",
-  completed: "выполнена",
-  skipped: "пропущена",
+  planned: "В плане",
+  completed: "Сделана",
+  skipped: "Пропущена",
 };
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
-  warmup: "разминка",
-  work: "рабочий",
+  warmup: "Разминка",
+  work: "Рабочий",
 };
 
 export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
-  barbell: "штанга · 3 разминочных",
-  cable: "блок · 2 разминочных",
-  cable_short: "блок · короткая разминка",
-  none: "без процентов",
+  barbell: "Штанга",
+  cable: "Блок",
+  cable_short: "Короткий блок",
+  none: "Без разминки",
 };
 
 export const EXERCISE_SLOT_LABELS: Record<ExerciseSlot, string> = {
-  a: "A · ноги и жим сидя",
-  b: "B · жимы и тяги",
-  c: "C · арм",
+  a: "Ноги и жим сидя",
+  b: "Жимы и тяги",
+  c: "Арм",
 };
 
 export const WORKOUT_SLOT_LABELS: Record<WorkoutSlot, string> = {
-  a: "A · ноги и жим сидя",
-  b: "B · жимы и тяги",
-  c: "C · арм динамика",
+  a: "Ноги и жим сидя",
+  b: "Жимы и тяги",
+  c: "Арм",
   static: "Статика",
 };
 

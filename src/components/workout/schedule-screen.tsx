@@ -138,7 +138,7 @@ export function ScheduleScreen() {
 
         {!loading && templates.length === 0 ? (
           <p className="animate-fade text-center text-base leading-relaxed text-muted-foreground">
-            Соберите первую тренировку — это и будет шаблон.
+            Соберите первую тренировку.
           </p>
         ) : null}
 
@@ -160,7 +160,7 @@ export function ScheduleScreen() {
                     <p className="text-sm text-muted-foreground">
                       {WORKOUT_KIND_LABELS[template.kind]}
                       {template.exercises.length > 0
-                        ? ` · ${template.exercises.length}`
+                        ? ` · ${template.exercises.length} упр.`
                         : ""}
                     </p>
                   </Link>
@@ -170,7 +170,7 @@ export function ScheduleScreen() {
                     size="icon-lg"
                     className="size-11"
                     disabled={saving}
-                    aria-label="Убрать из круга"
+                    aria-label="Выключить"
                     onClick={() => setInCircle(template.id, false)}
                   >
                     <Minus className="size-5" />
@@ -184,7 +184,7 @@ export function ScheduleScreen() {
         {!loading && inactive.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
             <h2 className="px-1 text-sm font-medium text-muted-foreground">
-              Не в круге
+              Выключены
             </h2>
             <div className="card-surface overflow-hidden">
               {inactive.map((template) => (
@@ -202,7 +202,7 @@ export function ScheduleScreen() {
                     <p className="text-sm text-muted-foreground">
                       {WORKOUT_KIND_LABELS[template.kind]}
                       {template.exercises.length > 0
-                        ? ` · ${template.exercises.length}`
+                        ? ` · ${template.exercises.length} упр.`
                         : ""}
                     </p>
                   </Link>
@@ -212,7 +212,7 @@ export function ScheduleScreen() {
                     size="icon-lg"
                     className="size-11"
                     disabled={saving}
-                    aria-label="Вернуть в круг"
+                    aria-label="Включить"
                     onClick={() => setInCircle(template.id, true)}
                   >
                     <Plus className="size-5" />
