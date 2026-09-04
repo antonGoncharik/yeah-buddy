@@ -5,14 +5,6 @@ import type { Food, FoodState } from "@/lib/types";
 
 export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
 
-export const FOOD_STATE_LABELS: Record<FoodState, string> = {
-  raw: "сырой",
-  dry: "сухой",
-  cooked: "приготовленный",
-  as_is: "как есть",
-  liquid: "жидкий",
-};
-
 const optionalText = z
   .union([z.string(), z.null()])
   .optional()
@@ -29,7 +21,7 @@ export const foodInputSchema = z
   .object({
     name: z.string().trim().min(1, "Название обязательно."),
     brand: optionalText,
-    state: z.enum(FOOD_STATES),
+    state: z.enum(FOOD_STATES).optional(),
     protein_per_100: z.number().finite().min(0),
     fat_per_100: z.number().finite().min(0),
     carbs_per_100: z.number().finite().min(0),
@@ -52,7 +44,7 @@ export const foodInputSchema = z
     return {
       name: value.name,
       brand: value.brand ?? null,
-      state: value.state,
+      ...(value.state != null ? { state: value.state } : {}),
       protein_per_100: value.protein_per_100,
       fat_per_100: value.fat_per_100,
       carbs_per_100: value.carbs_per_100,

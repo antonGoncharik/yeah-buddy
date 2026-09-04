@@ -77,6 +77,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       .insert({
         user_id: auth.session.userId,
         ...parsed.data,
+        state: parsed.data.state ?? "as_is",
       })
       .select("*")
       .single();

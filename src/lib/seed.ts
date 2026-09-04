@@ -37,7 +37,7 @@ type StarterTemplate = {
 
 const STARTER_FOODS: StarterFood[] = [
   {
-    name: "Овес резаный",
+    name: "Овес резаный сухой",
     state: "dry",
     protein_per_100: 12,
     fat_per_100: 6,
@@ -77,7 +77,7 @@ const STARTER_FOODS: StarterFood[] = [
     default_portion_label: "100 г",
   },
   {
-    name: "Куриное филе",
+    name: "Куриное филе сырое",
     state: "raw",
     protein_per_100: 23,
     fat_per_100: 1,
@@ -87,7 +87,7 @@ const STARTER_FOODS: StarterFood[] = [
     default_portion_label: "200 г",
   },
   {
-    name: "Филе минтая",
+    name: "Филе минтая сырое",
     state: "raw",
     protein_per_100: 20,
     fat_per_100: 1,
@@ -97,7 +97,7 @@ const STARTER_FOODS: StarterFood[] = [
     default_portion_label: "300 г",
   },
   {
-    name: "Тунец",
+    name: "Тунец сырой",
     state: "raw",
     protein_per_100: 23,
     fat_per_100: 1,
@@ -193,11 +193,11 @@ const STARTER_TEMPLATES: StarterTemplate[] = [
     name: "День отдыха",
     dayType: "rest",
     items: [
-      { mealType: "breakfast", foodName: "Овес резаный", grams: 80 },
+      { mealType: "breakfast", foodName: "Овес резаный сухой", grams: 80 },
       { mealType: "breakfast", foodName: "Яйца куриные", grams: 150 },
       { mealType: "lunch", foodName: "Макароны сухие", grams: 80 },
       { mealType: "lunch", foodName: "Томатная паста", grams: 100 },
-      { mealType: "lunch", foodName: "Куриное филе", grams: 200 },
+      { mealType: "lunch", foodName: "Куриное филе сырое", grams: 200 },
       { mealType: "lunch", foodName: "Фета", grams: 62.5 },
       { mealType: "lunch", foodName: "Оливковое масло", grams: 5 },
       { mealType: "snack", foodName: "Протеин", grams: 50 },
@@ -210,11 +210,11 @@ const STARTER_TEMPLATES: StarterTemplate[] = [
     name: "День тренировки",
     dayType: "training",
     items: [
-      { mealType: "breakfast", foodName: "Овес резаный", grams: 100 },
+      { mealType: "breakfast", foodName: "Овес резаный сухой", grams: 100 },
       { mealType: "breakfast", foodName: "Яйца куриные", grams: 150 },
       { mealType: "lunch", foodName: "Макароны сухие", grams: 100 },
       { mealType: "lunch", foodName: "Томатная паста", grams: 100 },
-      { mealType: "lunch", foodName: "Куриное филе", grams: 200 },
+      { mealType: "lunch", foodName: "Куриное филе сырое", grams: 200 },
       { mealType: "lunch", foodName: "Фета", grams: 62.5 },
       { mealType: "lunch", foodName: "Оливковое масло", grams: 5 },
       { mealType: "pre_workout", foodName: "Банан", grams: 110 },

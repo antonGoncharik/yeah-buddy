@@ -35,7 +35,7 @@ export function MealCard({
           {getMealLabel(meal.meal_type)}
         </h2>
         {meal.items.length > 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base font-semibold tabular-nums">
             {formatKcal(totals.kcal)} ккал
           </p>
         ) : null}
@@ -52,7 +52,7 @@ export function MealCard({
       )}
 
       {meal.items.length > 0 ? (
-        <p className="text-sm font-medium text-muted-foreground">
+        <p className="text-lg font-semibold tabular-nums tracking-tight">
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
         </p>

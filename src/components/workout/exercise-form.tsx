@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
@@ -151,7 +151,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               category: event.target.value as ExerciseCategory,
             }))
           }
-          className="h-12 w-full rounded-lg border border-input bg-muted px-2.5 text-base"
+          className={nativeSelectClassName}
         >
           {EXERCISE_CATEGORIES.map((category) => (
             <option key={category} value={category}>
@@ -172,7 +172,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               unit: defaultUnitForWorkoutType(workoutType),
             }));
           }}
-          className="h-12 w-full rounded-lg border border-input bg-muted px-2.5 text-base"
+          className={nativeSelectClassName}
         >
           {EXERCISE_WORKOUT_TYPES.map((type) => (
             <option key={type} value={type}>
@@ -192,7 +192,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
                 unit: event.target.value as ExerciseUnit,
               }))
             }
-            className="h-12 w-full rounded-lg border border-input bg-muted px-2.5 text-base"
+            className={nativeSelectClassName}
           >
             {EXERCISE_UNITS.map((unit) => (
               <option key={unit} value={unit}>

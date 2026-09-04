@@ -1,6 +1,6 @@
 "use client";
 
-import { Utensils } from "lucide-react";
+import { Dumbbell, Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -63,8 +63,12 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
-      <span className="flex size-16 items-center justify-center rounded-full bg-primary/12 text-primary">
-        <Utensils className="size-8" />
+      <span
+        className="flex h-16 items-center justify-center gap-1.5 rounded-full bg-primary/12 px-5 text-primary"
+        aria-hidden
+      >
+        <Dumbbell className="size-7" strokeWidth={2.25} />
+        <Utensils className="size-7" strokeWidth={2.25} />
       </span>
       {state === "loading" ? (
         <p className="animate-rise text-lg text-muted-foreground">Загрузка…</p>

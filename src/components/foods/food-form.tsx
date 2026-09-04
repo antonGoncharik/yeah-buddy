@@ -7,15 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
-import type { Food, FoodState } from "@/lib/types";
+import type { Food } from "@/lib/types";
 
 type FormState = {
   name: string;
   brand: string;
-  state: FoodState;
   protein_per_100: string;
   fat_per_100: string;
   carbs_per_100: string;
@@ -142,25 +140,6 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
           }
           className="h-12 text-base"
         />
-      </Field>
-
-      <Field label="Состояние">
-        <select
-          value={form.state}
-          onChange={(event) =>
-            setForm((current) => ({
-              ...current,
-              state: event.target.value as FoodState,
-            }))
-          }
-          className="h-12 w-full rounded-lg border border-input bg-muted px-2.5 text-base"
-        >
-          {FOOD_STATES.map((state) => (
-            <option key={state} value={state}>
-              {FOOD_STATE_LABELS[state]}
-            </option>
-          ))}
-        </select>
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
@@ -324,7 +303,6 @@ function toFormState(food?: Food): FormState {
   return {
     name: food?.name ?? "",
     brand: food?.brand ?? "",
-    state: food?.state ?? "as_is",
     protein_per_100: food ? String(food.protein_per_100) : "",
     fat_per_100: food ? String(food.fat_per_100) : "",
     carbs_per_100: food ? String(food.carbs_per_100) : "",
@@ -343,7 +321,6 @@ function toPayload(
 ): {
   name: string;
   brand: string | null;
-  state: FoodState;
   protein_per_100: number;
   fat_per_100: number;
   carbs_per_100: number;
@@ -394,7 +371,6 @@ function toPayload(
   return {
     name: form.name.trim(),
     brand: form.brand.trim() === "" ? null : form.brand.trim(),
-    state: form.state,
     protein_per_100: protein,
     fat_per_100: fat,
     carbs_per_100: carbs,
