@@ -1,5 +1,7 @@
 "use client";
 
+import { format, parseISO } from "date-fns";
+import { ru } from "date-fns/locale";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -12,11 +14,7 @@ import type {
   SessionExerciseDetail,
   WorkoutSet,
 } from "@/lib/types";
-import {
-  PHASE_TYPE_LABELS,
-  SESSION_STATUS_LABELS,
-  WORKOUT_KIND_LABELS,
-} from "@/lib/workout/labels";
+import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import {
   formatSeconds,
   formatWeight,
@@ -117,6 +115,10 @@ export function SessionScreen() {
       return;
     }
 
+    if (status === "skipped" && !window.confirm("Пропустить эту тренировку?")) {
+      return;
+    }
+
     setBusy(true);
     setError(null);
 
@@ -141,18 +143,31 @@ export function SessionScreen() {
   }
 
   const session = detail?.session;
+  const title =
+    detail?.template?.name ??
+    (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка");
+  const subtitle = session
+    ? [
+        formatSessionDate(session.session_date),
+        detail?.phase ? PHASE_TYPE_LABELS[detail.phase.phase_type] : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Тренировка" backHref="/workouts" />
+      <AppHeader title={title} backHref="/workouts" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
-          <p className="py-12 text-center text-muted-foreground">Загрузка…</p>
+          <p className="animate-fade py-12 text-center text-muted-foreground">
+            Загрузка…
+          </p>
         ) : null}
 
         {!loading && error && !detail ? (
-          <div className="flex flex-col items-center gap-3 py-12">
+          <div className="animate-rise flex flex-col items-center gap-3 py-12">
             <p className="text-center font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
@@ -165,48 +180,40 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            <section className="card-surface flex flex-col gap-2 px-5 py-5">
-              <p className="text-sm text-muted-foreground">
-                {session.session_date}
-              </p>
-              <h2 className="text-2xl font-semibold">
-                {detail.template?.name ??
-                  WORKOUT_KIND_LABELS[session.workout_type]}
-              </h2>
-              <p className="text-base text-muted-foreground">
-                {SESSION_STATUS_LABELS[session.status]}
-                {detail.phase
-                  ? ` · ${PHASE_TYPE_LABELS[detail.phase.phase_type]}`
-                  : ""}
-              </p>
-            </section>
+            <p className="animate-fade px-1 text-base text-muted-foreground">
+              {subtitle}
+            </p>
 
             {detail.exercises.length === 0 ? (
-              <p className="text-base text-muted-foreground">
-                В шаблоне нет упражнений с максимумом. Добавьте упражнения в
-                шаблон.
+              <p className="text-base leading-relaxed text-muted-foreground">
+                В шаблоне нет упражнений с максимумом.
               </p>
-            ) : null}
-
-            {detail.exercises.map((item) => (
-              <ExerciseCard
-                key={item.id}
-                item={item}
-                kind={session.workout_type}
-                open={openId === item.id}
-                disabled={busy || session.status === "skipped"}
-                drafts={drafts}
-                onToggle={() =>
-                  setOpenId((current) => (current === item.id ? null : item.id))
-                }
-                onDraft={(setId, patch) =>
-                  setDrafts((current) => ({
-                    ...current,
-                    [setId]: { ...current[setId], ...patch },
-                  }))
-                }
-              />
-            ))}
+            ) : (
+              <section className="card-surface animate-rise overflow-hidden">
+                {detail.exercises.map((item) => (
+                  <ExerciseRow
+                    key={item.id}
+                    item={item}
+                    kind={session.workout_type}
+                    open={openId === item.id}
+                    disabled={busy || session.status === "skipped"}
+                    showActual={session.status === "completed"}
+                    drafts={drafts}
+                    onToggle={() =>
+                      setOpenId((current) =>
+                        current === item.id ? null : item.id,
+                      )
+                    }
+                    onDraft={(setId, patch) =>
+                      setDrafts((current) => ({
+                        ...current,
+                        [setId]: { ...current[setId], ...patch },
+                      }))
+                    }
+                  />
+                ))}
+              </section>
+            )}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
@@ -219,29 +226,29 @@ export function SessionScreen() {
               >
                 Вернуть в план
               </Button>
-            ) : (
+            ) : null}
+
+            {session.status === "planned" ? (
               <>
-                {session.status !== "completed" ? (
-                  <Button
-                    type="button"
-                    className="h-14 text-lg"
-                    disabled={busy || detail.exercises.length === 0}
-                    onClick={() => void complete()}
-                  >
-                    Сделал как в плане
-                  </Button>
-                ) : null}
                 <Button
                   type="button"
-                  variant="destructive"
                   className="h-14 text-lg"
+                  disabled={busy || detail.exercises.length === 0}
+                  onClick={() => void complete()}
+                >
+                  Сделал как в плане
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11 text-base text-muted-foreground"
                   disabled={busy}
                   onClick={() => void setStatus("skipped")}
                 >
                   Пропустить
                 </Button>
               </>
-            )}
+            ) : null}
           </>
         ) : null}
       </div>
@@ -255,11 +262,12 @@ type SetDraft = {
   seconds: string;
 };
 
-function ExerciseCard({
+function ExerciseRow({
   item,
   kind,
   open,
   disabled,
+  showActual,
   drafts,
   onToggle,
   onDraft,
@@ -268,6 +276,7 @@ function ExerciseCard({
   kind: "dynamic" | "static";
   open: boolean;
   disabled: boolean;
+  showActual: boolean;
   drafts: Record<string, SetDraft>;
   onToggle: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
@@ -276,100 +285,137 @@ function ExerciseCard({
   const work = item.sets.filter((set) => set.set_type === "work");
 
   return (
-    <section className="card-surface flex flex-col gap-3 px-5 py-4">
+    <div className="border-b border-border/70 last:border-b-0">
       <button
         type="button"
-        className="flex flex-col items-start gap-1 text-left"
+        className="flex w-full flex-col items-start gap-1 px-5 py-4 text-left"
         onClick={onToggle}
         disabled={disabled}
       >
-        <h3 className="text-lg font-semibold">
-          {item.exercise.short_name || item.exercise.name}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          максимум {formatWeight(item.max_weight)} кг
-        </p>
+        <div className="flex w-full items-baseline justify-between gap-3">
+          <h3 className="truncate text-lg font-semibold">
+            {item.exercise.short_name || item.exercise.name}
+          </h3>
+          <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+            {formatWeight(item.max_weight)} кг
+          </span>
+        </div>
         {warmup.length > 0 ? (
-          <p className="text-base">
-            <span className="text-muted-foreground">разминка </span>
-            {formatSetLine(warmup, kind)}
+          <p className="text-sm text-muted-foreground">
+            {formatSetLine(warmup, kind, showActual)}
           </p>
         ) : null}
         {work.length > 0 ? (
-          <p className="text-lg font-semibold">{formatSetLine(work, kind)}</p>
+          <p className="text-lg font-semibold tracking-tight">
+            {formatSetLine(work, kind, showActual)}
+          </p>
         ) : null}
-        <p className="text-sm text-muted-foreground">
-          {open ? "Скрыть правку" : "Изменить веса"}
-        </p>
       </button>
 
-      {open
-        ? item.sets.map((set) => {
+      {open ? (
+        <div className="flex flex-col gap-2 px-5 pb-4">
+          {item.sets.map((set) => {
             const draft = drafts[set.id] ?? draftFromSet(set);
             return (
               <div
                 key={set.id}
                 className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3"
               >
-                <Input
-                  inputMode="decimal"
+                <FieldInput
+                  label="кг"
                   value={draft.weight}
                   disabled={disabled}
-                  onChange={(event) =>
-                    onDraft(set.id, { weight: event.target.value })
-                  }
-                  className="h-11 text-base"
-                  aria-label="Вес"
+                  inputMode="decimal"
+                  onChange={(value) => onDraft(set.id, { weight: value })}
                 />
                 {kind === "dynamic" ? (
-                  <Input
-                    inputMode="numeric"
+                  <FieldInput
+                    label="повт"
                     value={draft.reps}
                     disabled={disabled}
-                    onChange={(event) =>
-                      onDraft(set.id, { reps: event.target.value })
-                    }
-                    className="h-11 text-base"
-                    aria-label="Повторения"
+                    inputMode="numeric"
+                    onChange={(value) => onDraft(set.id, { reps: value })}
                   />
                 ) : (
-                  <Input
-                    inputMode="decimal"
+                  <FieldInput
+                    label="сек"
                     value={draft.seconds}
                     disabled={disabled}
-                    onChange={(event) =>
-                      onDraft(set.id, { seconds: event.target.value })
-                    }
-                    className="h-11 text-base"
-                    aria-label="Секунды"
+                    inputMode="decimal"
+                    onChange={(value) => onDraft(set.id, { seconds: value })}
                   />
                 )}
               </div>
             );
-          })
-        : null}
-    </section>
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
-function formatSetLine(sets: WorkoutSet[], kind: "dynamic" | "static"): string {
+function FieldInput({
+  label,
+  value,
+  disabled,
+  inputMode,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  disabled: boolean;
+  inputMode: "decimal" | "numeric";
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <Input
+        inputMode={inputMode}
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-11 text-base"
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
+function formatSessionDate(isoDate: string): string {
+  try {
+    return format(parseISO(isoDate), "d MMMM", { locale: ru });
+  } catch {
+    return isoDate;
+  }
+}
+
+function formatSetLine(
+  sets: WorkoutSet[],
+  kind: "dynamic" | "static",
+  showActual: boolean,
+): string {
   return sets
     .map((set) => {
-      const weight =
-        set.planned_weight == null
-          ? "—"
-          : `${formatWeight(set.planned_weight)}`;
+      const weightValue = showActual
+        ? (set.actual_weight ?? set.planned_weight)
+        : set.planned_weight;
+      const weight = weightValue == null ? "—" : formatWeight(weightValue);
       if (kind === "dynamic") {
-        return `${weight}×${set.planned_reps ?? "—"}`;
+        const reps = showActual
+          ? (set.actual_reps ?? set.planned_reps)
+          : set.planned_reps;
+        return `${weight}×${reps ?? "—"}`;
       }
 
+      const secondsValue = showActual
+        ? (set.actual_seconds ?? set.planned_seconds)
+        : set.planned_seconds;
       return `${weight}×${
-        set.planned_seconds == null
-          ? "—"
-          : `${formatSeconds(set.planned_seconds)}с`
+        secondsValue == null ? "—" : `${formatSeconds(secondsValue)}с`
       }`;
     })
-    .join(" / ");
+    .join(" · ");
 }
 
 function draftsFromDetail(detail: SessionDetail): Record<string, SetDraft> {

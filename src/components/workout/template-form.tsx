@@ -1,11 +1,14 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input, nativeSelectClassName } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Segmented } from "@/components/ui/segmented";
+import { SortButtons } from "@/components/workout/sort-buttons";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   ExerciseWithMax,
@@ -13,6 +16,11 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+
+const KIND_OPTIONS: Array<{ id: WorkoutKind; label: string }> = [
+  { id: "dynamic", label: WORKOUT_KIND_LABELS.dynamic },
+  { id: "static", label: WORKOUT_KIND_LABELS.static },
+];
 
 export function TemplateForm({ templateId }: { templateId?: string }) {
   const router = useRouter();
@@ -24,6 +32,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sorting, setSorting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -164,7 +173,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
   );
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-5" onSubmit={onSubmit}>
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
       ) : (
@@ -179,87 +188,79 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
           </Field>
 
           <Field label="Тип">
-            <select
-              value={kind}
-              onChange={(event) => setKind(event.target.value as WorkoutKind)}
-              className={nativeSelectClassName}
-            >
-              {(["dynamic", "static"] as const).map((value) => (
-                <option key={value} value={value}>
-                  {WORKOUT_KIND_LABELS[value]}
-                </option>
-              ))}
-            </select>
+            <Segmented value={kind} options={KIND_OPTIONS} onChange={setKind} />
           </Field>
 
-          <label className="flex items-center gap-3 text-base">
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={(event) => setIsActive(event.target.checked)}
-              className="size-5"
-            />
-            В круге
-          </label>
-
-          {selected.length > 0 ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">Состав</h2>
-              {selected.map((exercise, index) => (
-                <div
-                  key={exercise.id}
-                  className="card-surface flex flex-col gap-2 px-4 py-3"
+          <section className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-base font-medium">Состав</h2>
+              {selected.length > 1 ? (
+                <button
+                  type="button"
+                  className="text-sm font-medium text-primary"
+                  onClick={() => setSorting((current) => !current)}
                 >
-                  <p className="text-base font-medium">
-                    {exercise.short_name || exercise.name}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10"
-                      disabled={index === 0}
-                      onClick={() => move(exercise.id, -1)}
-                    >
-                      Выше
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10"
-                      disabled={index === selected.length - 1}
-                      onClick={() => move(exercise.id, 1)}
-                    >
-                      Ниже
-                    </Button>
+                  {sorting ? "Готово" : "Порядок"}
+                </button>
+              ) : null}
+            </div>
+            {selected.length === 0 ? (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Порядок в списке — порядок в зале.
+              </p>
+            ) : (
+              <div className="card-surface overflow-hidden">
+                {selected.map((exercise, index) => (
+                  <div
+                    key={exercise.id}
+                    className="flex items-center gap-1 border-b border-border/70 px-2 py-1 last:border-b-0"
+                  >
+                    <span className="w-6 shrink-0 text-center text-sm tabular-nums text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    <p className="min-w-0 flex-1 px-1 text-base font-medium leading-snug">
+                      {exercise.short_name || exercise.name}
+                    </p>
+                    {sorting ? (
+                      <SortButtons
+                        disableUp={index === 0}
+                        disableDown={index === selected.length - 1}
+                        onUp={() => move(exercise.id, -1)}
+                        onDown={() => move(exercise.id, 1)}
+                      />
+                    ) : null}
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-10"
+                      size="icon-lg"
+                      className="size-11"
+                      aria-label="Убрать"
                       onClick={() => toggleExercise(exercise.id)}
                     >
-                      Убрать
+                      <X className="size-5" />
                     </Button>
                   </div>
-                </div>
-              ))}
-            </section>
-          ) : null}
+                ))}
+              </div>
+            )}
+          </section>
 
           {available.length > 0 ? (
             <section className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">Добавить</h2>
-              {available.map((exercise) => (
-                <Button
-                  key={exercise.id}
-                  type="button"
-                  variant="outline"
-                  className="h-12 justify-start text-base"
-                  onClick={() => toggleExercise(exercise.id)}
-                >
-                  {exercise.short_name || exercise.name}
-                </Button>
-              ))}
+              <h2 className="text-base font-medium">Добавить</h2>
+              <div className="flex flex-wrap gap-2">
+                {available.map((exercise) => (
+                  <Button
+                    key={exercise.id}
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-full px-3.5 text-sm font-medium"
+                    onClick={() => toggleExercise(exercise.id)}
+                  >
+                    {exercise.short_name || exercise.name}
+                  </Button>
+                ))}
+              </div>
             </section>
           ) : null}
 

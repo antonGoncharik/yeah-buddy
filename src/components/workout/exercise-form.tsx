@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Segmented } from "@/components/ui/segmented";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   ExerciseCategory,
@@ -141,10 +142,13 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       </Field>
 
       <Field label="Тип">
-        <select
+        <Segmented
           value={form.workout_type}
-          onChange={(event) => {
-            const workout_type = event.target.value as ExerciseWorkoutType;
+          options={EXERCISE_WORKOUT_TYPES.map((type) => ({
+            id: type,
+            label: EXERCISE_WORKOUT_TYPE_LABELS[type],
+          }))}
+          onChange={(workout_type) =>
             setForm((current) => ({
               ...current,
               workout_type,
@@ -154,35 +158,25 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
                     current.workout_type === "static"
                   ? { weight_step: 2.5, formula_preset: "barbell" as const }
                   : {}),
-            }));
-          }}
-          className={nativeSelectClassName}
-        >
-          {EXERCISE_WORKOUT_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {EXERCISE_WORKOUT_TYPE_LABELS[type]}
-            </option>
-          ))}
-        </select>
+            }))
+          }
+        />
       </Field>
 
       <Field label="Шаг веса">
-        <select
+        <Segmented
           value={String(form.weight_step)}
-          onChange={(event) =>
+          options={WEIGHT_STEP_OPTIONS.map((step) => ({
+            id: String(step),
+            label: `${step} кг`,
+          }))}
+          onChange={(step) =>
             setForm((current) => ({
               ...current,
-              weight_step: Number(event.target.value),
+              weight_step: Number(step),
             }))
           }
-          className={nativeSelectClassName}
-        >
-          {WEIGHT_STEP_OPTIONS.map((step) => (
-            <option key={step} value={step}>
-              {step} кг
-            </option>
-          ))}
-        </select>
+        />
       </Field>
 
       <Field label="Разминка">

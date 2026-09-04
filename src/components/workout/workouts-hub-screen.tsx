@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import { formatWeight } from "@/lib/workout/numbers";
 export function WorkoutsHubScreen() {
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
+  const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [sessionTemplate, setSessionTemplate] =
@@ -39,25 +40,42 @@ export function WorkoutsHubScreen() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  const activeTemplates = useMemo(
+    () => templates.filter((template) => template.is_active),
+    [templates],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [exercisesResponse, macroResponse, todayResponse] =
-        await Promise.all([
-          fetch("/api/exercises?filter=active"),
-          fetch("/api/macros"),
-          fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
-        ]);
-      if (!exercisesResponse.ok || !macroResponse.ok || !todayResponse.ok) {
+      const [
+        exercisesResponse,
+        templatesResponse,
+        macroResponse,
+        todayResponse,
+      ] = await Promise.all([
+        fetch("/api/exercises?filter=active"),
+        fetch("/api/templates"),
+        fetch("/api/macros"),
+        fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
+      ]);
+      if (
+        !exercisesResponse.ok ||
+        !templatesResponse.ok ||
+        !macroResponse.ok ||
+        !todayResponse.ok
+      ) {
         throw new Error("load failed");
       }
 
       const exercisesData: unknown = await exercisesResponse.json();
+      const templatesData: unknown = await templatesResponse.json();
       const macroData: unknown = await macroResponse.json();
       const todayData: unknown = await todayResponse.json();
       setExercises(readExercises(exercisesData));
+      setTemplates(readTemplates(templatesData));
       setMacro(readMacro(macroData));
       setSession(readTodaySession(todayData));
       setSessionTemplate(readTemplate(todayData, "session_template"));
@@ -65,6 +83,7 @@ export function WorkoutsHubScreen() {
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
+      setTemplates([]);
       setMacro(null);
       setSession(null);
       setSessionTemplate(null);
@@ -109,7 +128,7 @@ export function WorkoutsHubScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Тренировки" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
           <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             Загрузка…
@@ -156,58 +175,38 @@ export function WorkoutsHubScreen() {
           </section>
         ) : null}
 
-        {!loading && !error && macro?.macro && macro.phase ? (
-          <Link
-            href="/workouts/macro"
-            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
-          >
-            <p className="text-sm text-muted-foreground">
-              Макроцикл №{macro.macro.number}
-            </p>
-            <p className="text-2xl font-semibold">
-              {PHASE_TYPE_LABELS[macro.phase.phase_type]}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              с {macro.phase.start_date}
-            </p>
-          </Link>
-        ) : null}
-
-        {!loading && !error && exercises.length > 0 && !macro?.macro ? (
-          <Link
-            href="/workouts/macro/new"
-            className="text-sm font-medium text-primary"
-          >
-            Создать макроцикл — иначе веса от текущего максимума
-          </Link>
-        ) : null}
-
         {!loading && !error && session ? (
           <Link
             href={`/workouts/sessions/${session.id}`}
             className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
           >
             <p className="text-sm text-muted-foreground">Сегодня</p>
-            <p className="text-2xl font-semibold">
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            </h2>
+            <p className="mt-1 text-base text-muted-foreground">
               {SESSION_STATUS_LABELS[session.status]}
+              {macro?.phase
+                ? ` · ${PHASE_TYPE_LABELS[macro.phase.phase_type]}`
+                : ""}
             </p>
           </Link>
         ) : null}
 
         {!loading && !error && !session && nextTemplate ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <p className="text-sm text-muted-foreground">
-              Следующая тренировка
-            </p>
-            <h2 className="text-2xl font-semibold">{nextTemplate.name}</h2>
+            <p className="text-sm text-muted-foreground">Сегодня</p>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {nextTemplate.name}
+            </h2>
             <p className="text-base text-muted-foreground">
               {WORKOUT_KIND_LABELS[nextTemplate.kind]}
               {nextTemplate.exercises.length > 0
                 ? ` · ${nextTemplate.exercises.length} упр.`
+                : ""}
+              {macro?.phase
+                ? ` · ${PHASE_TYPE_LABELS[macro.phase.phase_type]}`
                 : ""}
             </p>
             <Button
@@ -216,61 +215,90 @@ export function WorkoutsHubScreen() {
               disabled={creating}
               onClick={() => void createToday(nextTemplate.id)}
             >
-              Начать сегодня
+              Начать
             </Button>
           </section>
         ) : null}
 
-        {!loading && !error ? (
-          <Link
-            href="/workouts/schedule"
-            className="text-sm font-medium text-primary"
+        {!loading && !error && exercises.length > 0 ? (
+          <div
+            className="animate-rise flex flex-col gap-3"
+            style={{ animationDelay: "40ms" }}
           >
-            Шаблоны и круг
-          </Link>
+            {macro?.macro && macro.phase ? (
+              <Link
+                href="/workouts/macro"
+                className="flex items-baseline justify-between gap-3 px-1 text-base"
+              >
+                <span className="text-muted-foreground">
+                  Макроцикл №{macro.macro.number}
+                </span>
+                <span className="font-medium">
+                  {PHASE_TYPE_LABELS[macro.phase.phase_type]}
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/workouts/macro/new"
+                className="px-1 text-sm font-medium text-primary"
+              >
+                Создать макроцикл
+              </Link>
+            )}
+
+            {activeTemplates.length > 0 ? (
+              <Link
+                href="/workouts/schedule"
+                className="card-surface block px-5 py-4 transition-colors hover:bg-muted/40"
+              >
+                <p className="text-sm text-muted-foreground">Круг</p>
+                <p className="mt-1 text-base leading-snug">
+                  {activeTemplates.map((template) => template.name).join(" → ")}
+                </p>
+              </Link>
+            ) : (
+              <Link
+                href="/workouts/schedule"
+                className="text-sm font-medium text-primary"
+              >
+                Шаблоны
+              </Link>
+            )}
+          </div>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
-          <>
-            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-xl font-semibold">Максимумы</h2>
-                <Link
-                  href="/workouts/exercises"
-                  className="text-sm font-medium text-primary"
+          <section
+            className="card-surface animate-rise px-5 py-4"
+            style={{ animationDelay: "80ms" }}
+          >
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-lg font-semibold">Максимумы</h2>
+              <Link
+                href="/workouts/exercises"
+                className="text-sm font-medium text-primary"
+              >
+                Все
+              </Link>
+            </div>
+            <ul className="mt-3 flex flex-col gap-2">
+              {exercises.slice(0, 6).map((exercise) => (
+                <li
+                  key={exercise.id}
+                  className="flex items-baseline justify-between gap-3"
                 >
-                  Все упражнения
-                </Link>
-              </div>
-              <ul className="flex flex-col gap-2">
-                {exercises.slice(0, 8).map((exercise) => (
-                  <li
-                    key={exercise.id}
-                    className="flex items-baseline justify-between gap-3"
-                  >
-                    <span className="truncate text-base">
-                      {exercise.short_name || exercise.name}
-                    </span>
-                    <span className="shrink-0 text-base font-medium">
-                      {exercise.current_max
-                        ? `${formatWeight(exercise.current_max.max_weight)} кг`
-                        : "—"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <Link
-              href="/workouts/exercises/new"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "h-14 text-lg",
-              )}
-            >
-              Добавить упражнение
-            </Link>
-          </>
+                  <span className="truncate text-base">
+                    {exercise.short_name || exercise.name}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-base font-medium">
+                    {exercise.current_max
+                      ? `${formatWeight(exercise.current_max.max_weight)} кг`
+                      : "—"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : null}
       </div>
     </div>
@@ -288,6 +316,19 @@ function readExercises(data: unknown): ExerciseWithMax[] {
   }
 
   return data.exercises as ExerciseWithMax[];
+}
+
+function readTemplates(data: unknown): WorkoutTemplateDetail[] {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("templates" in data) ||
+    !Array.isArray(data.templates)
+  ) {
+    return [];
+  }
+
+  return data.templates as WorkoutTemplateDetail[];
 }
 
 function readMacro(data: unknown): CurrentMacroState | null {
