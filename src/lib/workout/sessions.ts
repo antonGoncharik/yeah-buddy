@@ -6,16 +6,18 @@ import type {
   SessionStatus,
   WorkoutKind,
   WorkoutSession,
-  WorkoutSlot,
+  WorkoutTemplateDetail,
 } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { toNullableString } from "@/lib/workout/numbers";
+import { ensureStarterExercises } from "@/lib/workout/seed";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { isWorkoutSlot } from "@/lib/workout/slots";
 import {
-  isWorkoutSlot,
-  kindFromSlot,
-  nextSlotAfter,
-} from "@/lib/workout/slots";
+  getNextTemplate,
+  getTemplate,
+  TemplateNotFoundError,
+} from "@/lib/workout/templates";
 
 export class SessionConflictError extends Error {
   constructor() {
@@ -23,15 +25,9 @@ export class SessionConflictError extends Error {
   }
 }
 
-export class NoCurrentPhaseError extends Error {
-  constructor() {
-    super("Сначала создайте макроцикл и фазу.");
-  }
-}
-
 export const createSessionSchema = z.object({
   session_date: z.string().refine(isIsoDate, "Некорректная дата."),
-  slot: z.enum(["a", "b", "c", "static"]),
+  template_id: z.string().uuid(),
   note: z
     .union([z.string(), z.null()])
     .optional()
@@ -103,42 +99,23 @@ export async function getTodayWorkoutState(
   date: string,
 ): Promise<{
   session: WorkoutSession | null;
-  next_slot: WorkoutSlot;
+  next_template: WorkoutTemplateDetail | null;
+  session_template: WorkoutTemplateDetail | null;
 }> {
   await ensureWorkoutSettings(userId);
+  await ensureStarterExercises(createSupabaseServerClient(), userId);
   const existing = await getSessionByDate(userId, date);
-  const nextSlot = await getNextSlot(userId);
-
-  return { session: existing, next_slot: nextSlot };
-}
-
-export async function getNextSlot(userId: string): Promise<WorkoutSlot> {
   const macro = await getCurrentMacroState(userId);
-  if (!macro.phase) {
-    return "a";
-  }
+  const nextTemplate = await getNextTemplate(userId, macro.phase?.id ?? null);
+  const sessionTemplate = existing?.template_id
+    ? await getTemplate(userId, existing.template_id)
+    : null;
 
-  const supabase = createSupabaseServerClient();
-  const last = await supabase
-    .from("workout_sessions")
-    .select("slot")
-    .eq("user_id", userId)
-    .eq("phase_id", macro.phase.id)
-    .neq("status", "skipped")
-    .order("session_date", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (last.error) {
-    throw last.error;
-  }
-
-  if (!last.data) {
-    return "a";
-  }
-
-  return nextSlotAfter(isWorkoutSlot(last.data.slot) ? last.data.slot : null);
+  return {
+    session: existing,
+    next_template: nextTemplate,
+    session_template: sessionTemplate,
+  };
 }
 
 export async function createSession(
@@ -150,21 +127,22 @@ export async function createSession(
     throw new SessionConflictError();
   }
 
-  const macro = await getCurrentMacroState(userId);
-  if (!macro.macro || !macro.phase) {
-    throw new NoCurrentPhaseError();
+  const template = await getTemplate(userId, input.template_id);
+  if (!template) {
+    throw new TemplateNotFoundError();
   }
 
+  const macro = await getCurrentMacroState(userId);
   const supabase = createSupabaseServerClient();
   const inserted = await supabase
     .from("workout_sessions")
     .insert({
       user_id: userId,
       session_date: input.session_date,
-      macro_cycle_id: macro.macro.id,
-      phase_id: macro.phase.id,
-      workout_type: kindFromSlot(input.slot),
-      slot: input.slot,
+      macro_cycle_id: macro.macro?.id ?? null,
+      phase_id: macro.phase?.id ?? null,
+      workout_type: template.kind,
+      template_id: template.id,
       status: "planned",
       note: input.note ?? null,
     })
@@ -222,9 +200,10 @@ export function mapWorkoutSession(
     id: String(row.id),
     user_id: String(row.user_id),
     session_date: String(row.session_date).slice(0, 10),
-    macro_cycle_id: String(row.macro_cycle_id),
-    phase_id: String(row.phase_id),
+    macro_cycle_id: toNullableString(row.macro_cycle_id),
+    phase_id: toNullableString(row.phase_id),
     workout_type: toWorkoutKind(row.workout_type),
+    template_id: toNullableString(row.template_id),
     slot: isWorkoutSlot(row.slot) ? row.slot : null,
     status: toSessionStatus(row.status),
     note: toNullableString(row.note),

@@ -13,7 +13,6 @@ import {
 } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { EXERCISE_SLOT_LABELS } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 type Filter = "active" | "archived";
@@ -109,14 +108,7 @@ export function ExercisesScreen() {
                     {exercise.name}
                   </p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {[
-                      exercise.slot
-                        ? EXERCISE_SLOT_LABELS[exercise.slot]
-                        : null,
-                      `шаг ${exercise.weight_step} кг`,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    шаг {exercise.weight_step} кг
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {exercise.current_max

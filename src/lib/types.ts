@@ -232,6 +232,30 @@ export interface PhaseMax {
   created_at: string;
 }
 
+export interface WorkoutTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  kind: WorkoutKind;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutTemplateExercise {
+  id: string;
+  user_id: string;
+  template_id: string;
+  exercise_id: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface WorkoutTemplateDetail extends WorkoutTemplate {
+  exercises: Exercise[];
+}
+
 export interface WorkoutScheduleDay {
   id: string;
   user_id: string;
@@ -246,9 +270,10 @@ export interface WorkoutSession {
   id: string;
   user_id: string;
   session_date: string;
-  macro_cycle_id: string;
-  phase_id: string;
+  macro_cycle_id: string | null;
+  phase_id: string | null;
   workout_type: WorkoutKind;
+  template_id: string | null;
   slot: WorkoutSlot | null;
   status: SessionStatus;
   note: string | null;
@@ -316,7 +341,7 @@ export interface SessionExerciseDetail extends SessionExercise {
 
 export interface SessionDetail {
   session: WorkoutSession;
+  template: WorkoutTemplate | null;
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
-  available_exercises: Exercise[];
 }

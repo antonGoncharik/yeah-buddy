@@ -7,9 +7,9 @@ import {
   createSession,
   createSessionSchema,
   getTodayWorkoutState,
-  NoCurrentPhaseError,
   SessionConflictError,
 } from "@/lib/workout/sessions";
+import { TemplateNotFoundError } from "@/lib/workout/templates";
 
 export async function GET(request: Request): Promise<NextResponse> {
   const auth = await requireSession();
@@ -61,7 +61,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     if (
       error instanceof SessionConflictError ||
-      error instanceof NoCurrentPhaseError
+      error instanceof TemplateNotFoundError
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }

@@ -10,29 +10,31 @@ import {
   LOAD_FAILED,
   readApiError,
   WORKOUTS_NEED_EXERCISES,
+  WORKOUTS_NEED_TEMPLATES,
 } from "@/lib/messages";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
   WorkoutSession,
-  WorkoutSlot,
+  WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   PHASE_TYPE_LABELS,
   SESSION_STATUS_LABELS,
-  SLOT_ROTATION,
-  WORKOUT_SLOT_LABELS,
+  WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
-import { isWorkoutSlot } from "@/lib/workout/slots";
 
 export function WorkoutsHubScreen() {
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [nextSlot, setNextSlot] = useState<WorkoutSlot>("a");
+  const [sessionTemplate, setSessionTemplate] =
+    useState<WorkoutTemplateDetail | null>(null);
+  const [nextTemplate, setNextTemplate] =
+    useState<WorkoutTemplateDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -58,12 +60,15 @@ export function WorkoutsHubScreen() {
       setExercises(readExercises(exercisesData));
       setMacro(readMacro(macroData));
       setSession(readTodaySession(todayData));
-      setNextSlot(readNextSlot(todayData));
+      setSessionTemplate(readTemplate(todayData, "session_template"));
+      setNextTemplate(readTemplate(todayData, "next_template"));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
       setMacro(null);
       setSession(null);
+      setSessionTemplate(null);
+      setNextTemplate(null);
     } finally {
       setLoading(false);
     }
@@ -73,7 +78,7 @@ export function WorkoutsHubScreen() {
     void load();
   }, [load]);
 
-  async function createToday(slot: WorkoutSlot) {
+  async function createToday(templateId: string) {
     setCreating(true);
     setError(null);
 
@@ -83,7 +88,7 @@ export function WorkoutsHubScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_date: date,
-          slot,
+          template_id: templateId,
         }),
       });
       const data: unknown = await response.json().catch(() => null);
@@ -135,18 +140,18 @@ export function WorkoutsHubScreen() {
           </section>
         ) : null}
 
-        {!loading && !error && exercises.length > 0 && !macro?.macro ? (
+        {!loading &&
+        !error &&
+        !session &&
+        exercises.length > 0 &&
+        !nextTemplate ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <h2 className="text-xl font-semibold">Макроцикл</h2>
-            <p className="text-base text-muted-foreground">
-              Максимумы уже подставлены из дневника — проверьте и начните
-              разгон.
-            </p>
+            <p className="text-lg font-medium">{WORKOUTS_NEED_TEMPLATES}</p>
             <Link
-              href="/workouts/macro/new"
+              href="/workouts/schedule"
               className={cn(buttonVariants(), "h-14 text-lg")}
             >
-              Создать макроцикл
+              Собрать шаблоны
             </Link>
           </section>
         ) : null}
@@ -168,6 +173,15 @@ export function WorkoutsHubScreen() {
           </Link>
         ) : null}
 
+        {!loading && !error && exercises.length > 0 && !macro?.macro ? (
+          <Link
+            href="/workouts/macro/new"
+            className="text-sm font-medium text-primary"
+          >
+            Создать макроцикл — иначе веса от текущего максимума
+          </Link>
+        ) : null}
+
         {!loading && !error && session ? (
           <Link
             href={`/workouts/sessions/${session.id}`}
@@ -175,7 +189,8 @@ export function WorkoutsHubScreen() {
           >
             <p className="text-sm text-muted-foreground">Сегодня</p>
             <p className="text-2xl font-semibold">
-              {session.slot ? WORKOUT_SLOT_LABELS[session.slot] : "Тренировка"}
+              {sessionTemplate?.name ??
+                WORKOUT_KIND_LABELS[session.workout_type]}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {SESSION_STATUS_LABELS[session.status]}
@@ -183,38 +198,26 @@ export function WorkoutsHubScreen() {
           </Link>
         ) : null}
 
-        {!loading && !error && !session && macro?.macro ? (
+        {!loading && !error && !session && nextTemplate ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <p className="text-sm text-muted-foreground">Следующий слот</p>
-            <h2 className="text-2xl font-semibold">
-              {WORKOUT_SLOT_LABELS[nextSlot]}
-            </h2>
+            <p className="text-sm text-muted-foreground">
+              Следующая тренировка
+            </p>
+            <h2 className="text-2xl font-semibold">{nextTemplate.name}</h2>
             <p className="text-base text-muted-foreground">
-              Веса посчитаются сами. Можно взять другой слот — ротация подхватит
-              с него.
+              {WORKOUT_KIND_LABELS[nextTemplate.kind]}
+              {nextTemplate.exercises.length > 0
+                ? ` · ${nextTemplate.exercises.length} упр.`
+                : ""}
             </p>
             <Button
               type="button"
               className="h-14 text-lg"
               disabled={creating}
-              onClick={() => void createToday(nextSlot)}
+              onClick={() => void createToday(nextTemplate.id)}
             >
               Начать сегодня
             </Button>
-            <div className="grid grid-cols-2 gap-2">
-              {SLOT_ROTATION.map((slot) => (
-                <Button
-                  key={slot}
-                  type="button"
-                  variant={slot === nextSlot ? "secondary" : "outline"}
-                  className="h-11 text-sm"
-                  disabled={creating}
-                  onClick={() => void createToday(slot)}
-                >
-                  {WORKOUT_SLOT_LABELS[slot]}
-                </Button>
-              ))}
-            </div>
           </section>
         ) : null}
 
@@ -223,7 +226,7 @@ export function WorkoutsHubScreen() {
             href="/workouts/schedule"
             className="text-sm font-medium text-primary"
           >
-            Как устроена ротация
+            Шаблоны и круг
           </Link>
         ) : null}
 
@@ -308,15 +311,18 @@ function readTodaySession(data: unknown): WorkoutSession | null {
   return data.session as WorkoutSession;
 }
 
-function readNextSlot(data: unknown): WorkoutSlot {
-  if (
-    data &&
-    typeof data === "object" &&
-    "next_slot" in data &&
-    isWorkoutSlot(data.next_slot)
-  ) {
-    return data.next_slot;
+function readTemplate(
+  data: unknown,
+  key: "next_template" | "session_template",
+): WorkoutTemplateDetail | null {
+  if (!data || typeof data !== "object" || !(key in data)) {
+    return null;
   }
 
-  return "a";
+  const value = (data as Record<string, unknown>)[key];
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return value as WorkoutTemplateDetail;
 }

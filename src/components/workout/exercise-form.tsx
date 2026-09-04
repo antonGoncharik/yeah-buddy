@@ -9,13 +9,13 @@ import { Label } from "@/components/ui/label";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   ExerciseCategory,
-  ExerciseSlot,
   ExerciseWithMax,
+  ExerciseWorkoutType,
   FormulaPreset,
 } from "@/lib/types";
 import {
-  EXERCISE_SLOT_LABELS,
-  EXERCISE_SLOTS,
+  EXERCISE_WORKOUT_TYPE_LABELS,
+  EXERCISE_WORKOUT_TYPES,
   FORMULA_PRESET_LABELS,
   FORMULA_PRESETS,
   WEIGHT_STEP_OPTIONS,
@@ -25,7 +25,7 @@ import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 type FormState = {
   name: string;
   short_name: string;
-  slot: ExerciseSlot;
+  workout_type: ExerciseWorkoutType;
   weight_step: number;
   formula_preset: FormulaPreset;
   max_weight: string;
@@ -140,26 +140,27 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         />
       </Field>
 
-      <Field label="Слот">
+      <Field label="Тип">
         <select
-          value={form.slot}
+          value={form.workout_type}
           onChange={(event) => {
-            const slot = event.target.value as ExerciseSlot;
+            const workout_type = event.target.value as ExerciseWorkoutType;
             setForm((current) => ({
               ...current,
-              slot,
-              ...(slot === "c"
+              workout_type,
+              ...(workout_type === "both" || workout_type === "static"
                 ? { weight_step: 1, formula_preset: "cable" as const }
-                : current.slot === "c"
+                : current.workout_type === "both" ||
+                    current.workout_type === "static"
                   ? { weight_step: 2.5, formula_preset: "barbell" as const }
                   : {}),
             }));
           }}
           className={nativeSelectClassName}
         >
-          {EXERCISE_SLOTS.map((slot) => (
-            <option key={slot} value={slot}>
-              {EXERCISE_SLOT_LABELS[slot]}
+          {EXERCISE_WORKOUT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {EXERCISE_WORKOUT_TYPE_LABELS[type]}
             </option>
           ))}
         </select>
@@ -303,7 +304,7 @@ function toFormState(exercise?: ExerciseWithMax): FormState {
   return {
     name: exercise?.name ?? "",
     short_name: exercise?.short_name ?? "",
-    slot: exercise?.slot ?? "a",
+    workout_type: exercise?.workout_type ?? "dynamic",
     weight_step: exercise?.weight_step ?? 2.5,
     formula_preset: exercise?.formula_preset ?? "barbell",
     max_weight: "",
@@ -316,18 +317,16 @@ function toPayload(form: FormState, isEdit: boolean) {
   }
 
   const category: ExerciseCategory =
-    form.slot === "c" ? "armwrestling" : "base";
-  const workoutType = form.slot === "c" ? "both" : "dynamic";
-  const unit = "reps" as const;
+    form.workout_type === "both" ? "armwrestling" : "base";
+  const unit = form.workout_type === "static" ? "seconds" : "reps";
   const shared = {
     name: form.name.trim(),
     short_name: form.short_name.trim() === "" ? null : form.short_name.trim(),
     category,
-    workout_type: workoutType,
+    workout_type: form.workout_type,
     unit,
     weight_step: form.weight_step,
     formula_preset: form.formula_preset,
-    slot: form.slot,
   };
 
   if (isEdit) {

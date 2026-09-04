@@ -5,6 +5,7 @@ import type {
   ExerciseSlot,
   ExerciseWorkoutType,
   FormulaPreset,
+  WorkoutKind,
 } from "@/lib/types";
 
 type StarterExercise = {
@@ -334,22 +335,162 @@ export async function ensureStarterExercises(
     });
   }
 
-  if (!phaseId || insertedIds.length === 0) {
-    return;
+  if (phaseId && insertedIds.length > 0) {
+    const phaseMaxes = await supabase.from("phase_maxes").insert(
+      insertedIds.map((item) => ({
+        user_id: userId,
+        phase_id: phaseId,
+        exercise_id: item.id,
+        max_weight: item.maxWeight,
+        source: "manual",
+      })),
+    );
+
+    if (phaseMaxes.error) {
+      throw phaseMaxes.error;
+    }
   }
 
-  const phaseMaxes = await supabase.from("phase_maxes").insert(
-    insertedIds.map((item) => ({
-      user_id: userId,
-      phase_id: phaseId,
-      exercise_id: item.id,
-      max_weight: item.maxWeight,
-      source: "manual",
-    })),
-  );
+  await ensureStarterTemplates(supabase, userId);
+}
 
-  if (phaseMaxes.error) {
-    throw phaseMaxes.error;
+const STARTER_TEMPLATES: Array<{
+  name: string;
+  kind: WorkoutKind;
+  slots: ExerciseSlot[];
+}> = [
+  { name: "A · ноги и жим сидя", kind: "dynamic", slots: ["a"] },
+  { name: "Статика", kind: "static", slots: ["c"] },
+  { name: "B · жимы и тяги", kind: "dynamic", slots: ["b"] },
+  { name: "C · арм динамика", kind: "dynamic", slots: ["c"] },
+];
+
+export async function ensureStarterTemplates(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const existing = await supabase
+    .from("workout_templates")
+    .select("id, name, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (existing.error) {
+    throw existing.error;
+  }
+
+  const byName = new Map<string, string>();
+  const duplicateIds: string[] = [];
+  for (const row of existing.data ?? []) {
+    const key = normalizeName(String(row.name));
+    if (byName.has(key)) {
+      duplicateIds.push(String(row.id));
+      continue;
+    }
+    byName.set(key, String(row.id));
+  }
+
+  if (duplicateIds.length > 0) {
+    const cleared = await supabase
+      .from("workout_sessions")
+      .update({ template_id: null })
+      .eq("user_id", userId)
+      .in("template_id", duplicateIds);
+
+    if (cleared.error) {
+      throw cleared.error;
+    }
+
+    const removed = await supabase
+      .from("workout_templates")
+      .delete()
+      .eq("user_id", userId)
+      .in("id", duplicateIds);
+
+    if (removed.error) {
+      throw removed.error;
+    }
+  }
+
+  const exerciseRows = await supabase
+    .from("exercises")
+    .select("id, name, slot")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  if (exerciseRows.error) {
+    throw exerciseRows.error;
+  }
+
+  const slotByName = new Map(
+    STARTER_EXERCISES.map((exercise) => [
+      normalizeName(exercise.name),
+      exercise.slot,
+    ]),
+  );
+  const bySlot: Record<ExerciseSlot, string[]> = { a: [], b: [], c: [] };
+  for (const row of exerciseRows.data ?? []) {
+    const fromRow = row.slot;
+    let slot: ExerciseSlot | undefined;
+    if (fromRow === "a" || fromRow === "b" || fromRow === "c") {
+      slot = fromRow;
+    } else {
+      slot = slotByName.get(normalizeName(String(row.name)));
+    }
+    if (slot) {
+      bySlot[slot].push(String(row.id));
+    }
+  }
+
+  let sortOrder = (existing.data?.length ?? 0) * 10 + 10;
+  for (const template of STARTER_TEMPLATES) {
+    if (byName.has(normalizeName(template.name))) {
+      continue;
+    }
+
+    const inserted = await supabase
+      .from("workout_templates")
+      .insert({
+        user_id: userId,
+        name: template.name,
+        kind: template.kind,
+        sort_order: sortOrder,
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (inserted.error) {
+      if (inserted.error.code === "23505") {
+        continue;
+      }
+      throw inserted.error;
+    }
+
+    if (!inserted.data) {
+      throw new Error("Template seed failed");
+    }
+
+    const exerciseIds = [
+      ...new Set(template.slots.flatMap((slot) => bySlot[slot])),
+    ];
+    if (exerciseIds.length > 0) {
+      const items = await supabase.from("workout_template_exercises").insert(
+        exerciseIds.map((exerciseId, index) => ({
+          user_id: userId,
+          template_id: inserted.data.id,
+          exercise_id: exerciseId,
+          sort_order: (index + 1) * 10,
+        })),
+      );
+
+      if (items.error) {
+        throw items.error;
+      }
+    }
+
+    sortOrder += 10;
   }
 }
 

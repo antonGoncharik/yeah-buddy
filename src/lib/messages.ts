@@ -14,6 +14,8 @@ export const EXERCISES_EMPTY =
 export const EXERCISES_ARCHIVED_EMPTY = "Архивных упражнений нет.";
 export const WORKOUTS_NEED_EXERCISES =
   "Сначала добавьте упражнения — без них нельзя создать макроцикл.";
+export const WORKOUTS_NEED_TEMPLATES =
+  "Соберите шаблон тренировки — без него нечего начинать.";
 
 export function readApiError(data: unknown): string | null {
   if (

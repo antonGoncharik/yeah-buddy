@@ -7,13 +7,15 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
-import type { SessionDetail, WorkoutSet } from "@/lib/types";
+import type {
+  SessionDetail,
+  SessionExerciseDetail,
+  WorkoutSet,
+} from "@/lib/types";
 import {
   PHASE_TYPE_LABELS,
   SESSION_STATUS_LABELS,
-  SET_TYPE_LABELS,
   WORKOUT_KIND_LABELS,
-  WORKOUT_SLOT_LABELS,
 } from "@/lib/workout/labels";
 import {
   formatSeconds,
@@ -27,6 +29,8 @@ export function SessionScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -44,7 +48,9 @@ export function SessionScreen() {
       }
 
       const data: unknown = await response.json();
-      setDetail(readDetail(data));
+      const next = readDetail(data);
+      setDetail(next);
+      setDrafts(next ? draftsFromDetail(next) : {});
     } catch {
       setError(LOAD_FAILED);
       setDetail(null);
@@ -57,18 +63,53 @@ export function SessionScreen() {
     void load();
   }, [load]);
 
-  async function applyDetail(response: Response) {
-    const data: unknown = await response.json().catch(() => null);
-    if (!response.ok) {
-      setError(readApiError(data) ?? LOAD_FAILED);
-      return false;
+  async function complete() {
+    if (!detail) {
+      return;
     }
 
-    const next = readDetail(data);
-    if (next) {
-      setDetail(next);
+    setBusy(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/sessions/${detail.session.id}/complete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sets: Object.entries(drafts).map(([id, draft]) => ({
+              id,
+              actual_weight: parseDecimal(draft.weight),
+              actual_reps:
+                detail.session.workout_type === "dynamic"
+                  ? parseInteger(draft.reps)
+                  : null,
+              actual_seconds:
+                detail.session.workout_type === "static"
+                  ? parseDecimal(draft.seconds)
+                  : null,
+            })),
+          }),
+        },
+      );
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const next = readDetail(data);
+      if (next) {
+        setDetail(next);
+        setDrafts(draftsFromDetail(next));
+        setOpenId(null);
+      }
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setBusy(false);
     }
-    return true;
   }
 
   async function setStatus(status: "skipped" | "planned") {
@@ -92,78 +133,6 @@ export function SessionScreen() {
       }
 
       await load();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function addExercise(exerciseId: string) {
-    if (!detail) {
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/sessions/${detail.session.id}/exercises`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exercise_id: exerciseId }),
-        },
-      );
-      await applyDetail(response);
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function removeExercise(sessionExerciseId: string) {
-    if (!detail) {
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}`,
-        { method: "DELETE" },
-      );
-      await applyDetail(response);
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function saveSet(
-    setId: string,
-    payload: {
-      actual_weight: number | null;
-      actual_reps: number | null;
-      actual_seconds: number | null;
-      is_completed: boolean;
-    },
-  ) {
-    setBusy(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/sets/${setId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      await applyDetail(response);
     } catch {
       setError(LOAD_FAILED);
     } finally {
@@ -201,9 +170,8 @@ export function SessionScreen() {
                 {session.session_date}
               </p>
               <h2 className="text-2xl font-semibold">
-                {session.slot
-                  ? WORKOUT_SLOT_LABELS[session.slot]
-                  : WORKOUT_KIND_LABELS[session.workout_type]}
+                {detail.template?.name ??
+                  WORKOUT_KIND_LABELS[session.workout_type]}
               </h2>
               <p className="text-base text-muted-foreground">
                 {SESSION_STATUS_LABELS[session.status]}
@@ -215,68 +183,30 @@ export function SessionScreen() {
 
             {detail.exercises.length === 0 ? (
               <p className="text-base text-muted-foreground">
-                Нет упражнений с максимумом в этой фазе. Добавьте упражнение
-                вручную.
+                В шаблоне нет упражнений с максимумом. Добавьте упражнения в
+                шаблон.
               </p>
             ) : null}
 
             {detail.exercises.map((item) => (
-              <section
+              <ExerciseCard
                 key={item.id}
-                className="card-surface flex flex-col gap-3 px-5 py-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      {item.exercise.short_name || item.exercise.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      максимум {formatWeight(item.max_weight)} кг
-                    </p>
-                  </div>
-                  {item.sets.every((set) => !set.is_completed) ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-10 text-sm"
-                      disabled={busy}
-                      onClick={() => void removeExercise(item.id)}
-                    >
-                      Убрать
-                    </Button>
-                  ) : null}
-                </div>
-
-                {item.sets.map((set) => (
-                  <SetRow
-                    key={set.id}
-                    set={set}
-                    kind={session.workout_type}
-                    disabled={busy || session.status === "skipped"}
-                    onSave={(payload) => void saveSet(set.id, payload)}
-                  />
-                ))}
-              </section>
+                item={item}
+                kind={session.workout_type}
+                open={openId === item.id}
+                disabled={busy || session.status === "skipped"}
+                drafts={drafts}
+                onToggle={() =>
+                  setOpenId((current) => (current === item.id ? null : item.id))
+                }
+                onDraft={(setId, patch) =>
+                  setDrafts((current) => ({
+                    ...current,
+                    [setId]: { ...current[setId], ...patch },
+                  }))
+                }
+              />
             ))}
-
-            {detail.available_exercises.length > 0 &&
-            session.status !== "skipped" ? (
-              <section className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">Добавить упражнение</h2>
-                {detail.available_exercises.map((exercise) => (
-                  <Button
-                    key={exercise.id}
-                    type="button"
-                    variant="outline"
-                    className="h-12 justify-start text-base"
-                    disabled={busy}
-                    onClick={() => void addExercise(exercise.id)}
-                  >
-                    {exercise.short_name || exercise.name}
-                  </Button>
-                ))}
-              </section>
-            ) : null}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
@@ -290,15 +220,27 @@ export function SessionScreen() {
                 Вернуть в план
               </Button>
             ) : (
-              <Button
-                type="button"
-                variant="destructive"
-                className="h-14 text-lg"
-                disabled={busy}
-                onClick={() => void setStatus("skipped")}
-              >
-                Пропустить
-              </Button>
+              <>
+                {session.status !== "completed" ? (
+                  <Button
+                    type="button"
+                    className="h-14 text-lg"
+                    disabled={busy || detail.exercises.length === 0}
+                    onClick={() => void complete()}
+                  >
+                    Сделал как в плане
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="h-14 text-lg"
+                  disabled={busy}
+                  onClick={() => void setStatus("skipped")}
+                >
+                  Пропустить
+                </Button>
+              </>
             )}
           </>
         ) : null}
@@ -307,104 +249,146 @@ export function SessionScreen() {
   );
 }
 
-function SetRow({
-  set,
+type SetDraft = {
+  weight: string;
+  reps: string;
+  seconds: string;
+};
+
+function ExerciseCard({
+  item,
   kind,
+  open,
   disabled,
-  onSave,
+  drafts,
+  onToggle,
+  onDraft,
 }: {
-  set: WorkoutSet;
+  item: SessionExerciseDetail;
   kind: "dynamic" | "static";
+  open: boolean;
   disabled: boolean;
-  onSave: (payload: {
-    actual_weight: number | null;
-    actual_reps: number | null;
-    actual_seconds: number | null;
-    is_completed: boolean;
-  }) => void;
+  drafts: Record<string, SetDraft>;
+  onToggle: () => void;
+  onDraft: (setId: string, patch: Partial<SetDraft>) => void;
 }) {
-  const [weight, setWeight] = useState(
-    toDraft(set.actual_weight ?? set.planned_weight),
-  );
-  const [reps, setReps] = useState(
-    toDraft(set.actual_reps ?? set.planned_reps),
-  );
-  const [seconds, setSeconds] = useState(
-    toDraft(set.actual_seconds ?? set.planned_seconds),
-  );
-
-  useEffect(() => {
-    setWeight(toDraft(set.actual_weight ?? set.planned_weight));
-    setReps(toDraft(set.actual_reps ?? set.planned_reps));
-    setSeconds(toDraft(set.actual_seconds ?? set.planned_seconds));
-  }, [set]);
-
-  const planned =
-    kind === "dynamic"
-      ? `${formatMaybeWeight(set.planned_weight)} × ${set.planned_reps ?? "—"}`
-      : `${formatMaybeWeight(set.planned_weight)} × ${
-          set.planned_seconds == null
-            ? "—"
-            : `${formatSeconds(set.planned_seconds)}с`
-        }`;
+  const warmup = item.sets.filter((set) => set.set_type === "warmup");
+  const work = item.sets.filter((set) => set.set_type === "work");
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-muted/60 px-3 py-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <p className="text-sm font-medium">{SET_TYPE_LABELS[set.set_type]}</p>
-        <p className="text-lg font-semibold">{planned}</p>
-      </div>
-      <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-        <Input
-          inputMode="decimal"
-          value={weight}
-          disabled={disabled || set.is_completed}
-          onChange={(event) => setWeight(event.target.value)}
-          className="h-11 text-base"
-          aria-label="Вес"
-        />
-        {kind === "dynamic" ? (
-          <Input
-            inputMode="numeric"
-            value={reps}
-            disabled={disabled || set.is_completed}
-            onChange={(event) => setReps(event.target.value)}
-            className="h-11 text-base"
-            aria-label="Повторения"
-          />
-        ) : (
-          <Input
-            inputMode="decimal"
-            value={seconds}
-            disabled={disabled || set.is_completed}
-            onChange={(event) => setSeconds(event.target.value)}
-            className="h-11 text-base"
-            aria-label="Секунды"
-          />
-        )}
-        <Button
-          type="button"
-          variant={set.is_completed ? "secondary" : "default"}
-          className="h-11 px-3 text-sm"
-          disabled={disabled}
-          onClick={() =>
-            onSave({
-              actual_weight: parseDecimal(weight),
-              actual_reps: kind === "dynamic" ? parseInteger(reps) : null,
-              actual_seconds: kind === "static" ? parseDecimal(seconds) : null,
-              is_completed: !set.is_completed,
-            })
-          }
-        >
-          {set.is_completed ? "Снять" : "Готово"}
-        </Button>
-      </div>
-    </div>
+    <section className="card-surface flex flex-col gap-3 px-5 py-4">
+      <button
+        type="button"
+        className="flex flex-col items-start gap-1 text-left"
+        onClick={onToggle}
+        disabled={disabled}
+      >
+        <h3 className="text-lg font-semibold">
+          {item.exercise.short_name || item.exercise.name}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          максимум {formatWeight(item.max_weight)} кг
+        </p>
+        {warmup.length > 0 ? (
+          <p className="text-base">
+            <span className="text-muted-foreground">разминка </span>
+            {formatSetLine(warmup, kind)}
+          </p>
+        ) : null}
+        {work.length > 0 ? (
+          <p className="text-lg font-semibold">{formatSetLine(work, kind)}</p>
+        ) : null}
+        <p className="text-sm text-muted-foreground">
+          {open ? "Скрыть правку" : "Изменить веса"}
+        </p>
+      </button>
+
+      {open
+        ? item.sets.map((set) => {
+            const draft = drafts[set.id] ?? draftFromSet(set);
+            return (
+              <div
+                key={set.id}
+                className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3"
+              >
+                <Input
+                  inputMode="decimal"
+                  value={draft.weight}
+                  disabled={disabled}
+                  onChange={(event) =>
+                    onDraft(set.id, { weight: event.target.value })
+                  }
+                  className="h-11 text-base"
+                  aria-label="Вес"
+                />
+                {kind === "dynamic" ? (
+                  <Input
+                    inputMode="numeric"
+                    value={draft.reps}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onDraft(set.id, { reps: event.target.value })
+                    }
+                    className="h-11 text-base"
+                    aria-label="Повторения"
+                  />
+                ) : (
+                  <Input
+                    inputMode="decimal"
+                    value={draft.seconds}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onDraft(set.id, { seconds: event.target.value })
+                    }
+                    className="h-11 text-base"
+                    aria-label="Секунды"
+                  />
+                )}
+              </div>
+            );
+          })
+        : null}
+    </section>
   );
 }
 
-function formatMaybeWeight(value: number | null): string {
-  return value == null ? "—" : `${formatWeight(value)} кг`;
+function formatSetLine(sets: WorkoutSet[], kind: "dynamic" | "static"): string {
+  return sets
+    .map((set) => {
+      const weight =
+        set.planned_weight == null
+          ? "—"
+          : `${formatWeight(set.planned_weight)}`;
+      if (kind === "dynamic") {
+        return `${weight}×${set.planned_reps ?? "—"}`;
+      }
+
+      return `${weight}×${
+        set.planned_seconds == null
+          ? "—"
+          : `${formatSeconds(set.planned_seconds)}с`
+      }`;
+    })
+    .join(" / ");
+}
+
+function draftsFromDetail(detail: SessionDetail): Record<string, SetDraft> {
+  const next: Record<string, SetDraft> = {};
+  for (const item of detail.exercises) {
+    for (const set of item.sets) {
+      next[set.id] = draftFromSet(set);
+    }
+  }
+
+  return next;
+}
+
+function draftFromSet(set: WorkoutSet): SetDraft {
+  return {
+    weight: toDraft(set.actual_weight ?? set.planned_weight),
+    reps: toDraft(set.actual_reps ?? set.planned_reps),
+    seconds: toDraft(set.actual_seconds ?? set.planned_seconds),
+  };
 }
 
 function toDraft(value: number | null): string {

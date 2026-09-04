@@ -10,7 +10,11 @@ import type {
   WorkoutSet,
 } from "@/lib/types";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
-import { mapExercise } from "@/lib/workout/exercises";
+import {
+  getExercise,
+  listExercises,
+  mapExercise,
+} from "@/lib/workout/exercises";
 import {
   plannedSetsFromFormula,
   resolvePhaseSpec,
@@ -18,6 +22,7 @@ import {
 import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import { getSession, patchSession } from "@/lib/workout/sessions";
+import { getTemplate } from "@/lib/workout/templates";
 
 export const addSessionExerciseSchema = z.object({
   exercise_id: z.string().uuid(),
@@ -30,7 +35,21 @@ export const patchSetSchema = z.object({
   is_completed: z.boolean().optional(),
 });
 
+export const completeSessionSchema = z.object({
+  sets: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        actual_weight: z.number().finite().positive().nullable().optional(),
+        actual_reps: z.number().int().positive().nullable().optional(),
+        actual_seconds: z.number().finite().positive().nullable().optional(),
+      }),
+    )
+    .optional(),
+});
+
 export type PatchSetInput = z.infer<typeof patchSetSchema>;
+export type CompleteSessionInput = z.infer<typeof completeSessionSchema>;
 
 export async function getSessionDetail(
   userId: string,
@@ -204,6 +223,71 @@ export async function patchWorkoutSet(
   return refreshed ? loadSessionDetail(userId, refreshed) : null;
 }
 
+export async function completeSessionAsPlanned(
+  userId: string,
+  sessionId: string,
+  input: CompleteSessionInput = {},
+): Promise<SessionDetail | null> {
+  const session = await getSession(userId, sessionId);
+  if (!session) {
+    return null;
+  }
+
+  const detail = await getSessionDetail(userId, sessionId);
+  if (!detail) {
+    return null;
+  }
+
+  const overrides = new Map(
+    (input.sets ?? []).map((set) => [set.id, set] as const),
+  );
+  const supabase = createSupabaseServerClient();
+
+  for (const item of detail.exercises) {
+    for (const set of item.sets) {
+      const override = overrides.get(set.id);
+      const actual_weight =
+        override?.actual_weight !== undefined
+          ? override.actual_weight
+          : (set.actual_weight ?? set.planned_weight);
+      const actual_reps =
+        override?.actual_reps !== undefined
+          ? override.actual_reps
+          : (set.actual_reps ?? set.planned_reps);
+      const actual_seconds =
+        override?.actual_seconds !== undefined
+          ? override.actual_seconds
+          : (set.actual_seconds ?? set.planned_seconds);
+
+      if (
+        (actual_weight == null || actual_weight <= 0) &&
+        set.planned_weight != null
+      ) {
+        throw new Error("Укажите фактический вес.");
+      }
+
+      const updated = await supabase
+        .from("workout_sets")
+        .update({
+          actual_weight,
+          actual_reps,
+          actual_seconds,
+          is_completed: true,
+        })
+        .eq("user_id", userId)
+        .eq("id", set.id);
+
+      if (updated.error) {
+        throw updated.error;
+      }
+    }
+  }
+
+  await patchSession(userId, session.id, { status: "completed" });
+  const refreshed = await getSession(userId, sessionId);
+  return refreshed ? loadSessionDetail(userId, refreshed) : null;
+}
+
 async function ensureSessionPlan(userId: string, session: WorkoutSession) {
   const supabase = createSupabaseServerClient();
   const existing = await supabase
@@ -221,13 +305,24 @@ async function ensureSessionPlan(userId: string, session: WorkoutSession) {
     return;
   }
 
-  const candidates = await listSlotExercises(userId, session);
-  const maxes = await listCurrentPhaseMaxes(userId, session.phase_id);
+  const candidates = await listPlanExercises(userId, session);
+  const phaseMaxes = session.phase_id
+    ? await listCurrentPhaseMaxes(userId, session.phase_id)
+    : new Map();
+  const catalog = await listExercises(userId, "active");
+  const globalMaxes = new Map(
+    catalog.map((exercise) => [
+      exercise.id,
+      exercise.current_max?.max_weight ?? null,
+    ]),
+  );
 
   let sortOrder = 10;
   for (const exercise of candidates) {
-    const phaseMax = maxes.get(exercise.id);
-    const maxWeight = phaseMax?.max_weight;
+    const maxWeight =
+      phaseMaxes.get(exercise.id)?.max_weight ??
+      globalMaxes.get(exercise.id) ??
+      null;
     if (maxWeight == null || maxWeight <= 0) {
       continue;
     }
@@ -318,7 +413,12 @@ async function loadSessionDetail(
   session: WorkoutSession,
 ): Promise<SessionDetail> {
   const supabase = createSupabaseServerClient();
-  const phase = await getPhase(userId, session.phase_id);
+  const phase = session.phase_id
+    ? await getPhase(userId, session.phase_id)
+    : null;
+  const template = session.template_id
+    ? await getTemplate(userId, session.template_id)
+    : null;
   const exerciseRows = await supabase
     .from("session_exercises")
     .select("*")
@@ -340,11 +440,9 @@ async function loadSessionDetail(
     sessionExercises.map((item) => item.id),
   );
 
-  const matching = await listSlotExercises(userId, session);
-  const used = new Set(exerciseIds);
-
   return {
     session,
+    template,
     phase,
     exercises: sessionExercises.flatMap((item) => {
       const exercise = exercisesById.get(item.exercise_id);
@@ -360,11 +458,15 @@ async function loadSessionDetail(
         },
       ];
     }),
-    available_exercises: matching.filter((exercise) => !used.has(exercise.id)),
   };
 }
 
-async function listSlotExercises(userId: string, session: WorkoutSession) {
+async function listPlanExercises(userId: string, session: WorkoutSession) {
+  if (session.template_id) {
+    const template = await getTemplate(userId, session.template_id);
+    return template?.exercises ?? [];
+  }
+
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("exercises")
@@ -478,19 +580,31 @@ async function resolveExerciseMax(
   session: WorkoutSession,
   exerciseId: string,
 ): Promise<number> {
-  const maxes = await listCurrentPhaseMaxes(userId, session.phase_id);
-  const phaseMax = maxes.get(exerciseId)?.max_weight;
-  if (phaseMax != null && phaseMax > 0) {
-    return phaseMax;
+  if (session.phase_id) {
+    const maxes = await listCurrentPhaseMaxes(userId, session.phase_id);
+    const phaseMax = maxes.get(exerciseId)?.max_weight;
+    if (phaseMax != null && phaseMax > 0) {
+      return phaseMax;
+    }
   }
 
-  throw new Error("Для упражнения нет максимума в текущей фазе.");
+  const exercise = await getExercise(userId, exerciseId);
+  const globalMax = exercise?.current_max?.max_weight;
+  if (globalMax != null && globalMax > 0) {
+    return globalMax;
+  }
+
+  throw new Error("Для упражнения нет максимума.");
 }
 
 async function getPhase(
   userId: string,
-  phaseId: string,
+  phaseId: string | null,
 ): Promise<WorkoutPhase | null> {
+  if (!phaseId) {
+    return null;
+  }
+
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("workout_phases")
