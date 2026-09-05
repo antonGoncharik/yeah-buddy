@@ -2,7 +2,14 @@
 
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Dumbbell, Sofa } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Dumbbell,
+  History,
+  Sofa,
+} from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
@@ -19,7 +26,7 @@ import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import type { DayWithMeals } from "@/lib/days";
-import { nextIsoDate, previousIsoDate } from "@/lib/days";
+import { isIsoDate, nextIsoDate, previousIsoDate } from "@/lib/days";
 import {
   DAY_EMPTY,
   DAY_EXISTS_REPLACE,
@@ -36,9 +43,16 @@ function todayIsoDate(): string {
   return format(new Date(), "yyyy-MM-dd");
 }
 
-export function TodayScreen() {
+function resolveStartDate(value: string | undefined, today: string): string {
+  if (value && isIsoDate(value) && value <= today) {
+    return value;
+  }
+  return today;
+}
+
+export function TodayScreen({ initialDate }: { initialDate?: string }) {
   const today = todayIsoDate();
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [banner, setBanner] = useState<TodayWorkoutBannerState | null>(null);
@@ -262,6 +276,13 @@ export function TodayScreen() {
         subtitle={isToday ? undefined : "Не сегодня"}
         trailing={
           <>
+            <Link
+              href="/today/history"
+              className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+              aria-label="История питания"
+            >
+              <History className="size-5" />
+            </Link>
             <button
               type="button"
               className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"

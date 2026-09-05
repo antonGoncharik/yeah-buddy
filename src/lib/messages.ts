@@ -19,6 +19,8 @@ export const WORKOUTS_NEED_TEMPLATES =
   "Собери очередь: какие тренировки идут по кругу.";
 export const SESSION_HISTORY_EMPTY =
   "Тренировок ещё нет — после зала они будут здесь.";
+export const NUTRITION_HISTORY_EMPTY =
+  "Дней питания ещё нет — они появятся после «Сегодня».";
 
 export function readApiError(data: unknown): string | null {
   if (

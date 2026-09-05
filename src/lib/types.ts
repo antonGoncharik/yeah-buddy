@@ -406,3 +406,16 @@ export interface StrengthProgress {
   grown_count: number;
   avg_percent: number | null;
 }
+
+export interface DayHistoryRow {
+  date: string;
+  is_training_day: boolean;
+  target_protein: number;
+  target_fat: number;
+  target_carbs: number;
+  target_kcal: number;
+  fact_protein: number;
+  fact_fat: number;
+  fact_carbs: number;
+  fact_kcal: number;
+}

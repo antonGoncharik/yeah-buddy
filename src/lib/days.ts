@@ -9,7 +9,14 @@ import {
 } from "@/lib/nutrition";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Day, DayType, Meal, MealItem, MealType } from "@/lib/types";
+import type {
+  Day,
+  DayHistoryRow,
+  DayType,
+  Meal,
+  MealItem,
+  MealType,
+} from "@/lib/types";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -99,6 +106,57 @@ export async function dateHasDay(
   }
 
   return (result.count ?? 0) > 0;
+}
+
+export async function listDayHistory(
+  userId: string,
+  options: { before?: string; limit: number },
+): Promise<{ items: DayHistoryRow[]; next_before: string | null }> {
+  const limit = Math.min(Math.max(options.limit, 1), 50);
+  const supabase = createSupabaseServerClient();
+  let query = supabase
+    .from("days")
+    .select(
+      `
+      date,
+      is_training_day,
+      target_protein,
+      target_fat,
+      target_carbs,
+      target_kcal,
+      meals (
+        meal_items (
+          protein,
+          fat,
+          carbs,
+          kcal
+        )
+      )
+    `,
+    )
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .limit(limit + 1);
+
+  if (options.before && isIsoDate(options.before)) {
+    query = query.lt("date", options.before);
+  }
+
+  const result = await query;
+  if (result.error) {
+    throw result.error;
+  }
+
+  const rows = (result.data ?? []).map((row) =>
+    mapDayHistoryRow(row as Record<string, unknown>),
+  );
+  const hasMore = rows.length > limit;
+  const items = hasMore ? rows.slice(0, limit) : rows;
+
+  return {
+    items,
+    next_before: hasMore ? (items.at(-1)?.date ?? null) : null,
+  };
 }
 
 export async function createDayFromTemplate(
@@ -614,6 +672,47 @@ function buildMealItemRow({
     carbs: macros.carbs,
     kcal: macros.kcal,
     per_100_snapshot: per100,
+  };
+}
+
+function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
+  let protein = 0;
+  let fat = 0;
+  let carbs = 0;
+  let kcal = 0;
+  if (Array.isArray(row.meals)) {
+    for (const meal of row.meals) {
+      if (!meal || typeof meal !== "object" || !("meal_items" in meal)) {
+        continue;
+      }
+      const items = (meal as { meal_items: unknown }).meal_items;
+      if (!Array.isArray(items)) {
+        continue;
+      }
+      for (const item of items) {
+        if (!item || typeof item !== "object") {
+          continue;
+        }
+        const macros = item as Record<string, unknown>;
+        protein += toNumber(macros.protein);
+        fat += toNumber(macros.fat);
+        carbs += toNumber(macros.carbs);
+        kcal += toNumber(macros.kcal);
+      }
+    }
+  }
+
+  return {
+    date: String(row.date).slice(0, 10),
+    is_training_day: Boolean(row.is_training_day),
+    target_protein: toNumber(row.target_protein),
+    target_fat: toNumber(row.target_fat),
+    target_carbs: toNumber(row.target_carbs),
+    target_kcal: toNumber(row.target_kcal),
+    fact_protein: protein,
+    fact_fat: fat,
+    fact_carbs: carbs,
+    fact_kcal: kcal,
   };
 }
 
