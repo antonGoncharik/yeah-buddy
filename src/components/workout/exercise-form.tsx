@@ -199,8 +199,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             </option>
           ))}
         </select>
-        <p className="text-sm text-muted-foreground">
-          Только разминка. Рабочие — в Схеме.
+        <p className="text-base leading-relaxed text-muted-foreground">
+          {warmupHint(form.formula_preset)}
         </p>
       </Field>
 
@@ -213,7 +213,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От него считаются веса. Меняется на переходе фазы.
+            От него считаются все веса в зале. На переходе фазы можно поднять.
           </p>
         </div>
       ) : (
@@ -294,6 +294,16 @@ function Field({
       {children}
     </div>
   );
+}
+
+function warmupHint(preset: FormulaPreset): string {
+  if (preset === "barbell") {
+    return "Штанга: разминочные подходы из Схемы, обычно 50% / 70% / 80%. На рабочие веса не влияет.";
+  }
+  if (preset === "cable") {
+    return "Блок: разминка из Схемы, обычно два подхода. Для блока и статики. Рабочие — отдельно.";
+  }
+  return "В план тренировки само не попадёт. Добавить можно уже в зале, кнопкой «Ещё упражнение».";
 }
 
 function toFormState(exercise?: ExerciseWithMax): FormState {

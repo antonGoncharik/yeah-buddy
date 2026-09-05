@@ -411,7 +411,7 @@ export function WorkoutsHubScreen() {
               {SESSION_KIND_LABELS.table}
             </p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-                {tableSession.status === "completed"
+              {tableSession.status === "completed"
                 ? tableSession.note || "Стол"
                 : "Записать"}
             </h2>
@@ -478,7 +478,7 @@ export function WorkoutsHubScreen() {
                 href="/workouts/macro"
                 className="px-1 text-sm leading-relaxed text-muted-foreground"
               >
-                Без макроцикла — как в разгоне.
+                Без макроцикла веса как в разгоне — от максимума упражнения.
               </Link>
             ) : null}
 
@@ -498,7 +498,7 @@ export function WorkoutsHubScreen() {
                   className="flex items-baseline justify-between gap-3 text-sm"
                 >
                   <span className="text-muted-foreground">
-                    Проценты и подходы
+                    Как считаются веса
                   </span>
                   <span className="font-medium text-primary">Схема</span>
                 </Link>

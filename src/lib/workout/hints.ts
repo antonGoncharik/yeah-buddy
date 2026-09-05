@@ -48,15 +48,15 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
 
 export function completePhaseHint(phaseType: PhaseType): string {
   if (phaseType === "ramp") {
-    return "Дальше набор: те же максимумы, другие проценты и повторы.";
+    return "Дальше набор: максимумы те же, в рабочих больше повторов.";
   }
   if (phaseType === "volume") {
-    return "Дальше рывок: максимумы +5%, меньше повторов. Можно поправить.";
+    return "Дальше рывок: максимумы поднимаются, рабочих меньше. Цифры можно поправить.";
   }
   if (phaseType === "peak") {
-    return "Дальше сброс: легче. Максимумы как в рывке.";
+    return "Дальше сброс: легче, чтобы восстановиться. Максимумы как в рывке.";
   }
-  return "Закроет этот макроцикл и начнёт следующий с разгона. Максимумы возьмутся с рывка.";
+  return "Закроет этот макроцикл и начнёт следующий с разгона. Максимумы — те, что были в рывке.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
@@ -64,10 +64,10 @@ export function transitionExplain(preview: TransitionPreview): string {
     return "Сброс закрывается, начинается следующий макроцикл с разгона. Максимумы — с рывка, можно поправить.";
   }
   if (preview.increased) {
-    return "Рывок: меньше повторов, больше процент. Максимумы +5% — можно поправить.";
+    return "Рывок: меньше повторов, максимумы поднимаются. Можно поправить цифры перед стартом.";
   }
   if (preview.to_phase === "volume") {
-    return "Набор: те же максимумы, другие проценты и повторы. Можно поправить.";
+    return "Набор: максимумы те же, другие проценты и повторы. Можно поправить.";
   }
   if (preview.to_phase === "deload") {
     return "Сброс: легче, максимумы как в рывке. Можно поправить.";

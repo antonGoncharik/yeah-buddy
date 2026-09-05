@@ -23,7 +23,7 @@ import {
   cloneFormulas,
   DEFAULT_WORKOUT_FORMULAS,
 } from "@/lib/workout/default-formulas";
-import { calcPlannedWeight } from "@/lib/workout/formulas";
+import { calcPlannedWeight, previewMaxForPhase } from "@/lib/workout/formulas";
 import {
   FORMULA_PRESET_LABELS,
   PHASE_TYPE_LABELS,
@@ -144,12 +144,17 @@ export function FormulasScreen() {
 
   const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
   const exampleStep = previewStep[kind];
+  const increasePercent = parseDecimal(maxIncrease) ?? 0;
+  const raisedMax =
+    exampleMax > 0
+      ? previewMaxForPhase("peak", exampleMax, increasePercent, exampleStep)
+      : 0;
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Схема"
-        subtitle="Проценты, подходы, повторы"
+        subtitle="Откуда берутся веса в зале"
         backHref="/settings"
       />
 
@@ -163,10 +168,26 @@ export function FormulasScreen() {
         {!loading && formulas ? (
           <>
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+              <h2 className="text-xl font-semibold">Как это работает</h2>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Вес подхода — максимум упражнения × процент, вниз до шага
+                блинов. Разминка общая: штанга или блок, как в карточке
+                упражнения. Рабочие — свои на каждую фазу.
+              </p>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Плюс добавляет подход, минус убирает.
+              </p>
+            </section>
+
+            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-xl font-semibold">На рывке</h2>
                 <p className="text-sm text-muted-foreground">к максимуму</p>
               </div>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Когда набор заканчивается, максимумы поднимаются на этот
+                процент. Рывок и сброс в примере ниже уже от нового веса.
+              </p>
               <div className="flex items-center gap-2">
                 <Input
                   inputMode="decimal"
@@ -193,8 +214,12 @@ export function FormulasScreen() {
 
             <section className="card-surface flex flex-col gap-3 px-5 py-4">
               <h2 className="text-lg font-semibold">Пример веса</h2>
-              <p className="text-sm text-muted-foreground">
-                Как в зале, не сохраняется.
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Подставь максимум разгона — справа в подходах появятся
+                килограммы. Это черновик, в дневник не пишется.
+                {raisedMax > 0 && raisedMax !== exampleMax
+                  ? ` Рывок и сброс от ${formatWeight(raisedMax)} кг.`
+                  : ""}
               </p>
               <div className="flex items-center gap-2">
                 <Input
@@ -228,8 +253,10 @@ export function FormulasScreen() {
 
             {kind === "dynamic" ? (
               <>
-                <p className="px-1 text-sm text-muted-foreground">
-                  Разминка — пресет упражнения. Рабочие — от фазы.
+                <p className="px-1 text-base leading-relaxed text-muted-foreground">
+                  Разминка подставляется из упражнения (штанга или блок).
+                  Рабочие зависят от фазы. В рывке разминка тоже от уже нового
+                  максимума.
                 </p>
                 {WARMUP_PRESET_IDS.map((preset) => (
                   <SetCard
@@ -258,12 +285,15 @@ export function FormulasScreen() {
                   <SetCard
                     key={phase}
                     title={PHASE_TYPE_LABELS[phase]}
-                    hint={
-                      phase === "deload" ? "Рабочие, без разминки" : "Рабочие"
-                    }
+                    hint={phaseWorkHint(phase, exampleMax, raisedMax)}
                     kind="dynamic"
                     sets={formulas.dynamic[phase].work}
-                    exampleMax={exampleMax}
+                    exampleMax={previewMaxForPhase(
+                      phase,
+                      exampleMax,
+                      increasePercent,
+                      exampleStep,
+                    )}
                     exampleStep={exampleStep}
                     onChange={(work) => {
                       setSaved(false);
@@ -278,19 +308,23 @@ export function FormulasScreen() {
               </>
             ) : (
               <>
-                <p className="px-1 text-sm text-muted-foreground">
-                  Здесь удержания. Сброс — без разминки.
+                <p className="px-1 text-base leading-relaxed text-muted-foreground">
+                  Здесь рабочие удержания в секундах. Разминка у упражнения та
+                  же, в повторах. Сброс — без разминки.
                 </p>
                 {PHASE_TYPES.map((phase) => (
                   <SetCard
                     key={phase}
                     title={PHASE_TYPE_LABELS[phase]}
-                    hint={
-                      phase === "deload" ? "Рабочие, без разминки" : "Рабочие"
-                    }
+                    hint={phaseWorkHint(phase, exampleMax, raisedMax)}
                     kind="static"
                     sets={formulas.static[phase].work}
-                    exampleMax={exampleMax}
+                    exampleMax={previewMaxForPhase(
+                      phase,
+                      exampleMax,
+                      increasePercent,
+                      exampleStep,
+                    )}
                     exampleStep={exampleStep}
                     onChange={(work) => {
                       setSaved(false);
@@ -308,7 +342,7 @@ export function FormulasScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено. Новые тренировки пойдут по этой схеме.
+                Сохранено. Следующая тренировка пойдёт уже по этой схеме.
               </p>
             ) : null}
 
@@ -405,13 +439,29 @@ function SetCard({
           exampleMax > 0
             ? calcPlannedWeight(exampleMax, set.percent, exampleStep)
             : null;
+        const canRemove = allowEmpty || sets.length > 1;
 
         return (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: identical work sets share values
             key={index}
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-2 rounded-xl bg-muted/50 px-3 py-3"
           >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-muted-foreground">
+                Подход {index + 1}
+              </p>
+              <button
+                type="button"
+                className="flex h-10 items-center gap-1 rounded-xl px-2 text-sm text-muted-foreground transition-[background-color,transform] hover:bg-muted active:scale-95 disabled:opacity-30"
+                aria-label={`Убрать подход ${index + 1}`}
+                disabled={!canRemove}
+                onClick={() => removeAt(index)}
+              >
+                <Minus className="size-4" />
+                Убрать
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <Input
                 inputMode="decimal"
@@ -454,15 +504,6 @@ function SetCard({
               <p className="min-w-0 flex-1 text-right text-base font-medium tabular-nums">
                 {weight == null ? "—" : `${formatWeight(weight)} кг`}
               </p>
-              <button
-                type="button"
-                className="flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-[background-color,transform] hover:bg-muted active:scale-95 disabled:opacity-30"
-                aria-label={`Удалить подход ${index + 1}`}
-                disabled={!allowEmpty && sets.length <= 1}
-                onClick={() => removeAt(index)}
-              >
-                <Minus className="size-5" />
-              </button>
             </div>
           </div>
         );
@@ -480,6 +521,24 @@ function SetCard({
       </Button>
     </section>
   );
+}
+
+function phaseWorkHint(
+  phase: PhaseType,
+  exampleMax: number,
+  raisedMax: number,
+): string {
+  const raised =
+    exampleMax > 0 && raisedMax > 0 && raisedMax !== exampleMax
+      ? ` · от ${formatWeight(raisedMax)} кг`
+      : "";
+  if (phase === "deload") {
+    return `Рабочие, без разминки${raised}`;
+  }
+  if (phase === "peak") {
+    return `Рабочие${raised}`;
+  }
+  return "Рабочие";
 }
 
 function patchPhaseWork(

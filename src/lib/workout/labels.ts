@@ -88,7 +88,7 @@ export const SET_TYPE_LABELS: Record<SetType, string> = {
 export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
   barbell: "Штанга",
   cable: "Блок",
-  none: "Без разминки",
+  none: "Не в план",
 };
 
 export const WARMUP_PRESET_IDS = ["barbell", "cable"] as const;

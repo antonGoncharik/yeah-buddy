@@ -4,6 +4,7 @@ import {
   floorToStep,
   increaseMax,
   plannedSetsFromFormula,
+  previewMaxForPhase,
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
 
@@ -22,6 +23,10 @@ assertEqual(calcPlannedWeight(76, 115, 1), 87, "calc 76 115");
 assertEqual(calcPlannedWeight(80, 115, 1), 92, "calc 80 115");
 assertEqual(increaseMax(220, 5, 2.5), 230, "220 +5% шаг 2.5");
 assertEqual(increaseMax(70, 5, 1), 73, "70 +5% шаг 1");
+assertEqual(previewMaxForPhase("ramp", 220, 5, 2.5), 220, "пример разгона");
+assertEqual(previewMaxForPhase("volume", 220, 5, 2.5), 220, "пример набора");
+assertEqual(previewMaxForPhase("peak", 220, 5, 2.5), 230, "пример рывка");
+assertEqual(previewMaxForPhase("deload", 220, 5, 2.5), 230, "пример сброса");
 assertEqual(calcPlannedWeight(220, 50, 2.5), 110, "220×50 разминка");
 assertEqual(calcPlannedWeight(220, 70, 2.5), 152.5, "220×70 разминка");
 assertEqual(calcPlannedWeight(220, 80, 2.5), 175, "220×80 разминка");

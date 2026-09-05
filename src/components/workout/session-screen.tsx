@@ -401,6 +401,11 @@ export function SessionScreen() {
               </p>
             ) : (
               <section className="card-surface animate-rise overflow-hidden">
+                {session.status === "planned" ? (
+                  <p className="border-b border-border/70 px-5 py-3 text-sm leading-relaxed text-muted-foreground">
+                    Это план. Если в зале было иначе — нажми подход и поправь.
+                  </p>
+                ) : null}
                 {detail.exercises.map((item) => (
                   <ExerciseRow
                     key={item.id}
@@ -585,6 +590,15 @@ function ExerciseRow({
   const work = item.sets.filter((set) => set.set_type === "work");
   const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
   const leadSet = openSets[0] ?? null;
+  const leadGroup =
+    leadSet?.set_type === "warmup"
+      ? warmup
+      : leadSet?.set_type === "work"
+        ? work
+        : [];
+  const leadNumber = leadSet
+    ? leadGroup.findIndex((set) => set.id === leadSet.id) + 1
+    : 0;
 
   return (
     <div className="border-b border-border/70 last:border-b-0">
@@ -599,7 +613,9 @@ function ExerciseRow({
               className="text-sm text-muted-foreground"
               onClick={onToggleWarmup}
             >
-              Разминка
+              {warmupOpen
+                ? "Скрыть разминку"
+                : `Разминка · ${warmup.length} ${setCountWord(warmup.length)}`}
             </button>
             {warmupOpen ? (
               <SetButtons
@@ -629,6 +645,7 @@ function ExerciseRow({
           draft={drafts[leadSet.id] ?? draftFromSet(leadSet)}
           disabled={disabled}
           groupCount={openSets.length}
+          setNumber={leadNumber}
           onDraft={(patch) => {
             for (const set of openSets) {
               onDraft(set.id, patch);
@@ -654,68 +671,42 @@ function SetButtons({
   onPick: (ids: string[]) => void;
 }) {
   const labels = sets.map((set) => formatSetLine(set, { showActual }));
-  const same =
-    labels.length > 1 && labels.every((label) => label === labels[0]);
-
-  if (tone === "work" && same) {
-    const lead = sets[0];
-    const showPlan =
-      showActual && lead != null && sets.some((set) => workSetDiffers(set));
-    return (
-      <div className="flex flex-col gap-1">
-        <span className="text-sm text-muted-foreground">Работа</span>
-        <button
-          type="button"
-          className="text-left text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums disabled:opacity-60"
-          disabled={disabled}
-          onClick={() => onPick(sets.map((set) => set.id))}
-        >
-          {labels[0]}
-        </button>
-        <button
-          type="button"
-          className="text-left text-sm text-muted-foreground disabled:opacity-60"
-          disabled={disabled}
-          onClick={() => onPick(sets.map((set) => set.id))}
-        >
-          {labels.length} {setCountWord(labels.length)}
-          {showPlan && lead
-            ? ` · план ${formatSetLine(lead, { compact: true })}`
-            : ""}
-        </button>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex w-full flex-col gap-1">
       {tone === "work" ? (
-        <span className="text-sm text-muted-foreground">Работа</span>
+        <span className="text-sm text-muted-foreground">Рабочие</span>
       ) : null}
-      <p
-        className={
-          tone === "work"
-            ? "flex flex-wrap gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight tabular-nums"
-            : "flex flex-wrap gap-x-3 gap-y-1 text-base tabular-nums text-muted-foreground"
-        }
-      >
+      <ol className="flex flex-col gap-1.5">
         {sets.map((set, index) => (
-          <button
-            key={set.id}
-            type="button"
-            className="text-left disabled:opacity-60"
-            disabled={disabled}
-            onClick={() => onPick([set.id])}
-          >
-            {labels[index]}
-            {showActual && workSetDiffers(set) ? (
-              <span className="mt-1 block text-sm font-normal text-muted-foreground">
-                план {formatSetLine(set, { compact: true })}
+          <li key={set.id}>
+            <button
+              type="button"
+              className="flex w-full items-baseline gap-2.5 text-left disabled:opacity-60"
+              disabled={disabled}
+              onClick={() => onPick([set.id])}
+            >
+              <span className="w-5 shrink-0 text-sm tabular-nums text-muted-foreground">
+                {index + 1}
               </span>
+              <span
+                className={
+                  tone === "work"
+                    ? "text-2xl font-semibold tracking-tight tabular-nums"
+                    : "text-base tabular-nums text-muted-foreground"
+                }
+              >
+                {labels[index]}
+              </span>
+            </button>
+            {showActual && workSetDiffers(set) ? (
+              <p className="mt-0.5 pl-7 text-sm text-muted-foreground">
+                план {formatSetLine(set, { compact: true })}
+              </p>
             ) : null}
-          </button>
+          </li>
         ))}
-      </p>
+      </ol>
     </div>
   );
 }
@@ -725,18 +716,21 @@ function SetEditor({
   draft,
   disabled,
   groupCount,
+  setNumber,
   onDraft,
 }: {
   set: WorkoutSet;
   draft: SetDraft;
   disabled: boolean;
   groupCount: number;
+  setNumber: number;
   onDraft: (patch: Partial<SetDraft>) => void;
 }) {
+  const kind = set.set_type === "warmup" ? "Разминка" : "Рабочий";
   const title =
     groupCount > 1
-      ? `${set.set_type === "warmup" ? "Разминка" : "Работа"} · ${groupCount} ${setCountWord(groupCount)}`
-      : `${set.set_type === "warmup" ? "Разминка" : "Работа"} ${set.set_number}`;
+      ? `${kind} · ${groupCount} ${setCountWord(groupCount)}`
+      : `${kind} ${setNumber}`;
 
   return (
     <div className="grid grid-cols-2 gap-2 px-5 pb-4">

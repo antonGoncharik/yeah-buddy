@@ -157,7 +157,7 @@ export function SettingsScreen() {
               <span className="text-sm font-medium text-primary">Править</span>
             </span>
             <span className="text-sm text-muted-foreground">
-              Проценты, разминка, рабочие, повторы и секунды
+              Разминка, рабочие по фазам и как растёт максимум на рывке
             </span>
           </Link>
         </section>

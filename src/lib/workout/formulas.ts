@@ -33,6 +33,19 @@ export function increaseMax(
   return floorToStep(maxWeight * (1 + percent / 100), step);
 }
 
+/** Example kg on the formulas screen: peak/deload already use the raised max. */
+export function previewMaxForPhase(
+  phase: PhaseType,
+  maxWeight: number,
+  increasePercent: number,
+  step: number,
+): number {
+  if (phase === "peak" || phase === "deload") {
+    return increaseMax(maxWeight, increasePercent, step);
+  }
+  return maxWeight;
+}
+
 export function resolvePhaseSpec(
   base: FormulaPhaseSpec,
   _kind: WorkoutKind,
