@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -27,8 +28,38 @@ export function SessionScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openSetId, setOpenSetId] = useState<string | null>(null);
+  const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
+  const [nextName, setNextName] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
+
+  const loadNextName = useCallback(async (sessionDate: string) => {
+    try {
+      const response = await fetch(
+        `/api/sessions?date=${encodeURIComponent(sessionDate)}`,
+      );
+      if (!response.ok) {
+        setNextName(null);
+        return;
+      }
+      const data: unknown = await response.json();
+      if (
+        data &&
+        typeof data === "object" &&
+        "next_template" in data &&
+        data.next_template &&
+        typeof data.next_template === "object" &&
+        "name" in data.next_template &&
+        typeof data.next_template.name === "string"
+      ) {
+        setNextName(data.next_template.name);
+        return;
+      }
+      setNextName(null);
+    } catch {
+      setNextName(null);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,13 +80,19 @@ export function SessionScreen() {
       const next = readDetail(data);
       setDetail(next);
       setDrafts(next ? draftsFromDetail(next) : {});
+      setOpenSetId(null);
+      if (next?.session.status === "completed") {
+        void loadNextName(next.session.session_date);
+      } else {
+        setNextName(null);
+      }
     } catch {
       setError(LOAD_FAILED);
       setDetail(null);
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [loadNextName, params.id]);
 
   useEffect(() => {
     void load();
@@ -101,7 +138,8 @@ export function SessionScreen() {
       if (next) {
         setDetail(next);
         setDrafts(draftsFromDetail(next));
-        setOpenId(null);
+        setOpenSetId(null);
+        await loadNextName(next.session.session_date);
       }
     } catch {
       setError(LOAD_FAILED);
@@ -115,7 +153,7 @@ export function SessionScreen() {
       return;
     }
 
-    if (status === "skipped" && !window.confirm("Пропустить эту тренировку?")) {
+    if (status === "skipped" && !window.confirm("Не смог сегодня? Очередь не сдвинется.")) {
       return;
     }
 
@@ -198,14 +236,21 @@ export function SessionScreen() {
                     key={item.id}
                     item={item}
                     kind={session.workout_type}
-                    open={openId === item.id}
+                    openSetId={openSetId}
+                    warmupOpen={Boolean(warmupOpen[item.id])}
                     disabled={busy || session.status === "skipped"}
                     showActual={session.status === "completed"}
                     drafts={drafts}
-                    onToggle={() =>
-                      setOpenId((current) =>
-                        current === item.id ? null : item.id,
+                    onOpenSet={(setId) =>
+                      setOpenSetId((current) =>
+                        current === setId ? null : setId,
                       )
+                    }
+                    onToggleWarmup={() =>
+                      setWarmupOpen((current) => ({
+                        ...current,
+                        [item.id]: !current[item.id],
+                      }))
                     }
                     onDraft={(setId, patch) =>
                       setDrafts((current) => ({
@@ -219,6 +264,15 @@ export function SessionScreen() {
             )}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+            {session.status === "completed" && nextName ? (
+              <Link
+                href="/workouts"
+                className="text-base font-medium text-primary"
+              >
+                Дальше: {nextName}
+              </Link>
+            ) : null}
 
             {session.status === "skipped" ? (
               <Button
@@ -239,7 +293,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void setStatus("skipped")}
               >
-                Пропустить
+                Не смог сегодня
               </Button>
             ) : null}
           </>
@@ -271,90 +325,195 @@ type SetDraft = {
 function ExerciseRow({
   item,
   kind,
-  open,
+  openSetId,
+  warmupOpen,
   disabled,
   showActual,
   drafts,
-  onToggle,
+  onOpenSet,
+  onToggleWarmup,
   onDraft,
 }: {
   item: SessionExerciseDetail;
   kind: "dynamic" | "static";
-  open: boolean;
+  openSetId: string | null;
+  warmupOpen: boolean;
   disabled: boolean;
   showActual: boolean;
   drafts: Record<string, SetDraft>;
-  onToggle: () => void;
+  onOpenSet: (setId: string) => void;
+  onToggleWarmup: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
+  const openSet = item.sets.find((set) => set.id === openSetId) ?? null;
 
   return (
     <div className="border-b border-border/70 last:border-b-0">
-      <button
-        type="button"
-        className="flex w-full flex-col items-start gap-2.5 px-5 py-4 text-left"
-        onClick={onToggle}
-        disabled={disabled}
-      >
+      <div className="flex flex-col items-start gap-2.5 px-5 py-4">
         <h3 className="text-xl font-semibold tracking-tight">
           {item.exercise.short_name || item.exercise.name}
         </h3>
         {warmup.length > 0 ? (
-          <SetPreview sets={warmup} kind={kind} showActual={showActual} tone="warmup" />
+          <div className="flex w-full flex-col items-start gap-1">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground"
+              onClick={onToggleWarmup}
+            >
+              Разминка
+            </button>
+            {warmupOpen ? (
+          <SetButtons
+            sets={warmup}
+            kind={kind}
+            showActual={showActual}
+            disabled={disabled || showActual}
+            tone="warmup"
+            onPick={onOpenSet}
+          />
+            ) : null}
+          </div>
         ) : null}
         {work.length > 0 ? (
-          <SetPreview sets={work} kind={kind} showActual={showActual} tone="work" />
+          <SetButtons
+            sets={work}
+            kind={kind}
+            showActual={showActual}
+            disabled={disabled || showActual}
+            tone="work"
+            onPick={onOpenSet}
+          />
         ) : null}
-      </button>
+      </div>
 
-      {open ? (
-        <div className="flex flex-col gap-2 px-5 pb-4">
-          {item.sets.map((set) => {
-            const draft = drafts[set.id] ?? draftFromSet(set);
-            const groupNumber =
-              item.sets
-                .filter((entry) => entry.set_type === set.set_type)
-                .findIndex((entry) => entry.id === set.id) + 1;
-            return (
-              <div
-                key={set.id}
-                className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3"
-              >
-                <p className="col-span-2 text-sm text-muted-foreground">
-                  {set.set_type === "warmup" ? "Разминка" : "Работа"}{" "}
-                  {groupNumber}
-                </p>
-                <FieldInput
-                  label="кг"
-                  value={draft.weight}
-                  disabled={disabled}
-                  inputMode="decimal"
-                  onChange={(value) => onDraft(set.id, { weight: value })}
-                />
-                {kind === "dynamic" ? (
-                  <FieldInput
-                    label="раз"
-                    value={draft.reps}
-                    disabled={disabled}
-                    inputMode="numeric"
-                    onChange={(value) => onDraft(set.id, { reps: value })}
-                  />
-                ) : (
-                  <FieldInput
-                    label="сек"
-                    value={draft.seconds}
-                    disabled={disabled}
-                    inputMode="decimal"
-                    onChange={(value) => onDraft(set.id, { seconds: value })}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {openSet ? (
+        <SetEditor
+          set={openSet}
+          kind={kind}
+          draft={drafts[openSet.id] ?? draftFromSet(openSet)}
+          disabled={disabled}
+          onDraft={(patch) => onDraft(openSet.id, patch)}
+        />
       ) : null}
+    </div>
+  );
+}
+
+function SetButtons({
+  sets,
+  kind,
+  showActual,
+  disabled,
+  tone,
+  onPick,
+}: {
+  sets: WorkoutSet[];
+  kind: "dynamic" | "static";
+  showActual: boolean;
+  disabled: boolean;
+  tone: "warmup" | "work";
+  onPick: (setId: string) => void;
+}) {
+  const labels = sets.map((set) =>
+    formatSet(set, kind, showActual, tone === "warmup"),
+  );
+  const same =
+    labels.length > 1 && labels.every((label) => label === labels[0]);
+
+  if (tone === "work" && same) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm text-muted-foreground">Работа</span>
+        <button
+          type="button"
+          className="text-left text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums disabled:opacity-60"
+          disabled={disabled}
+          onClick={() => onPick(sets[0]?.id ?? "")}
+        >
+          {labels[0]}
+        </button>
+        <span className="text-sm text-muted-foreground">
+          {labels.length} {setCountWord(labels.length)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      {tone === "work" ? (
+        <span className="text-sm text-muted-foreground">Работа</span>
+      ) : null}
+      <p
+        className={
+          tone === "work"
+            ? "flex flex-wrap gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight tabular-nums"
+            : "flex flex-wrap gap-x-3 gap-y-1 text-base tabular-nums text-muted-foreground"
+        }
+      >
+        {sets.map((set, index) => (
+          <button
+            key={set.id}
+            type="button"
+            className="text-left disabled:opacity-60"
+            disabled={disabled}
+            onClick={() => onPick(set.id)}
+          >
+            {labels[index]}
+          </button>
+        ))}
+      </p>
+    </div>
+  );
+}
+
+function SetEditor({
+  set,
+  kind,
+  draft,
+  disabled,
+  onDraft,
+}: {
+  set: WorkoutSet;
+  kind: "dynamic" | "static";
+  draft: SetDraft;
+  disabled: boolean;
+  onDraft: (patch: Partial<SetDraft>) => void;
+}) {
+  const groupNumber = set.set_number;
+  return (
+    <div className="grid grid-cols-2 gap-2 px-5 pb-4">
+      <div className="col-span-2 grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
+        <p className="col-span-2 text-sm text-muted-foreground">
+          {set.set_type === "warmup" ? "Разминка" : "Работа"} {groupNumber}
+        </p>
+        <FieldInput
+          label="кг"
+          value={draft.weight}
+          disabled={disabled}
+          inputMode="decimal"
+          onChange={(value) => onDraft({ weight: value })}
+        />
+        {kind === "dynamic" ? (
+          <FieldInput
+            label="раз"
+            value={draft.reps}
+            disabled={disabled}
+            inputMode="numeric"
+            onChange={(value) => onDraft({ reps: value })}
+          />
+        ) : (
+          <FieldInput
+            label="сек"
+            value={draft.seconds}
+            disabled={disabled}
+            inputMode="decimal"
+            onChange={(value) => onDraft({ seconds: value })}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -395,58 +554,7 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
-function SetPreview({
-  sets,
-  kind,
-  showActual,
-  tone,
-}: {
-  sets: WorkoutSet[];
-  kind: "dynamic" | "static";
-  showActual: boolean;
-  tone: "warmup" | "work";
-}) {
-  const labels = sets.map((set) =>
-    formatSet(set, kind, showActual, tone === "warmup"),
-  );
-  const same =
-    labels.length > 1 && labels.every((label) => label === labels[0]);
-
-  if (tone === "work" && same) {
-    return (
-      <div className="flex flex-col gap-1">
-        <span className="text-sm text-muted-foreground">Работа</span>
-        <p className="text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums">
-          {labels[0]}
-        </p>
-        <span className="text-sm text-muted-foreground">
-          {labels.length} {setCountWord(labels.length)}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-sm text-muted-foreground">
-        {tone === "work" ? "Работа" : "Разминка"}
-      </span>
-      <p
-        className={
-          tone === "work"
-            ? "flex flex-wrap gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight tabular-nums"
-            : "flex flex-wrap gap-x-3 gap-y-1 text-base tabular-nums text-muted-foreground"
-        }
-      >
-        {labels.map((label, index) => (
-          <span key={`${label}-${index}`}>{label}</span>
-        ))}
-      </p>
-    </div>
-  );
-}
-
-function formatSet(
+function formatSessionDate(isoDate: string): string {
   set: WorkoutSet,
   kind: "dynamic" | "static",
   showActual: boolean,
