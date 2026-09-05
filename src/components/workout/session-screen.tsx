@@ -4,26 +4,34 @@ import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cachedGet } from "@/lib/api-cache";
+import { Textarea } from "@/components/ui/textarea";
+import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
+  ExerciseWithMax,
   SessionDetail,
   SessionExerciseDetail,
   WorkoutSet,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
-import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import {
-  formatSeconds,
-  formatWeight,
-  parseDecimal,
-} from "@/lib/workout/numbers";
+  PHASE_TYPE_LABELS,
+  SESSION_KIND_LABELS,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
+import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import {
+  formatSetLine,
+  setUsesSeconds,
+  workAbovePlan,
+  workSetDiffers,
+} from "@/lib/workout/session-format";
 
 export function SessionScreen() {
   const params = useParams<{ id: string }>();
@@ -37,6 +45,11 @@ export function SessionScreen() {
   const [nextName, setNextName] = useState<string | null>(null);
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
+  const [note, setNote] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [catalog, setCatalog] = useState<ExerciseWithMax[] | null>(null);
+
+  const sessionUrl = `/api/sessions/${params.id}`;
 
   const loadFollowUp = useCallback(async (sessionDate: string) => {
     try {
@@ -70,22 +83,30 @@ export function SessionScreen() {
     }
   }, []);
 
+  const applyDetail = useCallback((next: SessionDetail) => {
+    setDetail(next);
+    setDrafts(draftsFromDetail(next));
+    setNote(next.session.note ?? "");
+    setOpenSetIds([]);
+  }, []);
+
   const load = useCallback(async () => {
     begin();
     setError(null);
 
     try {
       await cachedGet(
-        `/api/sessions/${params.id}`,
+        sessionUrl,
         (data) => {
           const next = readDetail(data);
           if (!next) {
             return false;
           }
-          setDetail(next);
-          setDrafts(draftsFromDetail(next));
-          setOpenSetIds([]);
-          if (next.session.status === "completed") {
+          applyDetail(next);
+          if (
+            next.session.status === "completed" &&
+            next.session.kind === "gym"
+          ) {
             void loadFollowUp(next.session.session_date);
           } else {
             setNextName(null);
@@ -101,7 +122,7 @@ export function SessionScreen() {
       setDetail(null);
       done(false);
     }
-  }, [begin, done, loadFollowUp, params.id]);
+  }, [applyDetail, begin, done, loadFollowUp, sessionUrl]);
 
   useEffect(() => {
     if (params.id.length > 0) {
@@ -112,6 +133,15 @@ export function SessionScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const abovePlan = useMemo(() => {
+    if (detail?.session.status !== "completed") {
+      return false;
+    }
+    return detail.exercises.some((item) =>
+      item.sets.some((set) => workAbovePlan(set)),
+    );
+  }, [detail]);
 
   async function complete() {
     if (!detail) {
@@ -128,6 +158,7 @@ export function SessionScreen() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            note: note.trim() === "" ? null : note.trim(),
             sets: Object.entries(drafts).map(([id, draft]) => ({
               id,
               actual_weight: parseDecimal(draft.weight),
@@ -151,10 +182,11 @@ export function SessionScreen() {
 
       const next = readDetail(data);
       if (next) {
-        setDetail(next);
-        setDrafts(draftsFromDetail(next));
-        setOpenSetIds([]);
-        await loadFollowUp(next.session.session_date);
+        writeJson(sessionUrl, data);
+        applyDetail(next);
+        if (next.session.kind === "gym") {
+          await loadFollowUp(next.session.session_date);
+        }
       }
     } catch {
       setError(LOAD_FAILED);
@@ -163,16 +195,102 @@ export function SessionScreen() {
     }
   }
 
+  async function saveNote() {
+    if (!detail) {
+      return;
+    }
+
+    const trimmed = note.trim() === "" ? null : note.trim();
+    if (trimmed === (detail.session.note ?? null)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/sessions/${detail.session.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: trimmed }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+      setDetail((current) =>
+        current
+          ? { ...current, session: { ...current.session, note: trimmed } }
+          : current,
+      );
+    } catch {
+      setError(LOAD_FAILED);
+    }
+  }
+
+  async function addExercise(exerciseId: string) {
+    if (!detail) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/sessions/${detail.session.id}/exercises`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ exercise_id: exerciseId }),
+        },
+      );
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const next = readDetail(data);
+      if (next) {
+        writeJson(sessionUrl, data);
+        applyDetail(next);
+        setPickerOpen(false);
+      }
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openPicker() {
+    setPickerOpen((current) => !current);
+    if (catalog) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/exercises?filter=active");
+      if (!response.ok) {
+        setError(LOAD_FAILED);
+        return;
+      }
+      const data: unknown = await response.json();
+      setCatalog(readExercises(data));
+    } catch {
+      setError(LOAD_FAILED);
+    }
+  }
+
   async function cancelToday() {
     if (!detail) {
       return;
     }
 
-    if (
-      !window.confirm(
-        "Не получилось? Сессия пропадёт, очередь останется. Можно начать другую сегодня.",
-      )
-    ) {
+    const message =
+      detail.session.kind === "table"
+        ? "Убрать стол? Можно записать снова."
+        : "Не получилось? Сессия пропадёт, очередь останется. Можно начать другую сегодня.";
+    if (!window.confirm(message)) {
       return;
     }
 
@@ -198,18 +316,46 @@ export function SessionScreen() {
   }
 
   const session = detail?.session;
-  const title =
-    detail?.template?.name ??
-    (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка");
+  const isTable = session?.kind === "table";
+  const title = isTable
+    ? SESSION_KIND_LABELS.table
+    : (detail?.template?.name ??
+      (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка"));
   const subtitle = session
     ? [
         formatSessionDate(session.session_date),
-        detail?.phase ? PHASE_TYPE_LABELS[detail.phase.phase_type] : null,
+        !isTable && detail?.phase
+          ? PHASE_TYPE_LABELS[detail.phase.phase_type]
+          : null,
       ]
         .filter(Boolean)
         .join(" · ")
     : undefined;
   const showStickyComplete = session?.status === "planned";
+  const addable = useMemo(() => {
+    if (!detail || !catalog) {
+      return [];
+    }
+    const taken = new Set(detail.exercises.map((item) => item.exercise_id));
+    return catalog.filter((exercise) => {
+      if (taken.has(exercise.id) || !exercise.is_active) {
+        return false;
+      }
+      if (exercise.formula_preset === "none") {
+        return false;
+      }
+      if (
+        (exercise.current_max?.max_weight ?? 0) <= 0 &&
+        detail.session.phase_id == null
+      ) {
+        return false;
+      }
+      return (
+        exercise.workout_type === "both" ||
+        exercise.workout_type === detail.session.workout_type
+      );
+    });
+  }, [catalog, detail]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -242,7 +388,11 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            {detail.exercises.length === 0 ? (
+            {isTable ? (
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Стол не занимает круг. Напиши как прошло — и всё.
+              </p>
+            ) : detail.exercises.length === 0 ? (
               <p className="text-base leading-relaxed text-muted-foreground">
                 В шаблоне нет упражнений с максимумом — задай его в упражнении.
               </p>
@@ -252,7 +402,6 @@ export function SessionScreen() {
                   <ExerciseRow
                     key={item.id}
                     item={item}
-                    kind={session.workout_type}
                     openSetIds={openSetIds}
                     warmupOpen={Boolean(warmupOpen[item.id])}
                     disabled={busy || session.status === "skipped"}
@@ -283,15 +432,90 @@ export function SessionScreen() {
               </section>
             )}
 
-            {session.status === "planned" && detail.exercises.length > 0 ? (
+            {session.status === "planned" &&
+            !isTable &&
+            detail.exercises.length > 0 ? (
               <p className="text-sm text-muted-foreground">
                 Тапни подход, если вес или повторы другие.
               </p>
             ) : null}
 
+            {session.status === "planned" && !isTable ? (
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11 justify-start px-1 text-base text-muted-foreground"
+                  disabled={busy}
+                  onClick={() => void openPicker()}
+                >
+                  {pickerOpen ? "Скрыть список" : "Ещё упражнение"}
+                </Button>
+                {pickerOpen ? (
+                  <ul className="card-surface flex flex-col">
+                    {addable.length === 0 ? (
+                      <li className="px-5 py-4 text-sm text-muted-foreground">
+                        Больше нечего добавить — нет максимума или уже в плане.
+                      </li>
+                    ) : (
+                      addable.map((exercise) => (
+                        <li key={exercise.id}>
+                          <button
+                            type="button"
+                            className="flex w-full items-baseline justify-between gap-3 px-5 py-3 text-left disabled:opacity-50"
+                            disabled={busy}
+                            onClick={() => void addExercise(exercise.id)}
+                          >
+                            <span className="text-base">
+                              {exercise.short_name || exercise.name}
+                            </span>
+                            {exercise.current_max ? (
+                              <span className="text-sm text-muted-foreground">
+                                {formatWeight(exercise.current_max.max_weight)}{" "}
+                                кг
+                              </span>
+                            ) : null}
+                          </button>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="flex flex-col gap-2">
+              <span className="text-sm text-muted-foreground">Заметка</span>
+              <Textarea
+                id="session-note"
+                value={note}
+                disabled={busy || session.status === "skipped"}
+                placeholder={
+                  isTable
+                    ? "Кто, сколько подходов, как рука"
+                    : "Стол после, локоть, что поменять"
+                }
+                onChange={(event) => setNote(event.target.value)}
+                onBlur={() => void saveNote()}
+                className="min-h-20 text-base"
+                aria-label="Заметка"
+              />
+            </div>
+
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            {session.status === "completed" && nextName ? (
+            {session.status === "completed" && abovePlan ? (
+              <Link
+                href="/workouts/macro"
+                className="text-base leading-snug text-primary"
+              >
+                Вес выше плана — обновить максимум?
+              </Link>
+            ) : null}
+
+            {session.status === "completed" &&
+            session.kind === "gym" &&
+            nextName ? (
               <Link
                 href="/workouts"
                 className="text-base font-medium text-primary"
@@ -317,9 +541,11 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                {session.status === "skipped"
-                  ? "Убрать — можно начать другую"
-                  : "Не получилось сегодня"}
+                {isTable
+                  ? "Убрать стол"
+                  : session.status === "skipped"
+                    ? "Убрать — можно начать другую"
+                    : "Не получилось сегодня"}
               </Button>
             ) : null}
           </>
@@ -331,10 +557,10 @@ export function SessionScreen() {
           <Button
             type="button"
             className="pointer-events-auto h-14 w-full text-lg"
-            disabled={busy || detail.exercises.length === 0}
+            disabled={busy || (!isTable && detail.exercises.length === 0)}
             onClick={() => void complete()}
           >
-            Сделал как в плане
+            {isTable ? "Стол был" : "Сделал как в плане"}
           </Button>
         </div>
       ) : null}
@@ -350,7 +576,6 @@ type SetDraft = {
 
 function ExerciseRow({
   item,
-  kind,
   openSetIds,
   warmupOpen,
   disabled,
@@ -361,7 +586,6 @@ function ExerciseRow({
   onDraft,
 }: {
   item: SessionExerciseDetail;
-  kind: "dynamic" | "static";
   openSetIds: string[];
   warmupOpen: boolean;
   disabled: boolean;
@@ -394,7 +618,6 @@ function ExerciseRow({
             {warmupOpen ? (
               <SetButtons
                 sets={warmup}
-                kind={kind}
                 showActual={showActual}
                 disabled={disabled || showActual}
                 tone="warmup"
@@ -406,7 +629,6 @@ function ExerciseRow({
         {work.length > 0 ? (
           <SetButtons
             sets={work}
-            kind={kind}
             showActual={showActual}
             disabled={disabled || showActual}
             tone="work"
@@ -434,26 +656,25 @@ function ExerciseRow({
 
 function SetButtons({
   sets,
-  kind,
   showActual,
   disabled,
   tone,
   onPick,
 }: {
   sets: WorkoutSet[];
-  kind: "dynamic" | "static";
   showActual: boolean;
   disabled: boolean;
   tone: "warmup" | "work";
   onPick: (ids: string[]) => void;
 }) {
-  const labels = sets.map((set) =>
-    formatSet(set, kind, showActual, tone === "warmup"),
-  );
+  const labels = sets.map((set) => formatSetLine(set, { showActual }));
   const same =
     labels.length > 1 && labels.every((label) => label === labels[0]);
 
   if (tone === "work" && same) {
+    const lead = sets[0];
+    const showPlan =
+      showActual && lead != null && sets.some((set) => workSetDiffers(set));
     return (
       <div className="flex flex-col gap-1">
         <span className="text-sm text-muted-foreground">Работа</span>
@@ -472,6 +693,9 @@ function SetButtons({
           onClick={() => onPick(sets.map((set) => set.id))}
         >
           {labels.length} {setCountWord(labels.length)}
+          {showPlan && lead
+            ? ` · план ${formatSetLine(lead, { compact: true })}`
+            : ""}
         </button>
       </div>
     );
@@ -498,6 +722,11 @@ function SetButtons({
             onClick={() => onPick([set.id])}
           >
             {labels[index]}
+            {showActual && workSetDiffers(set) ? (
+              <span className="mt-1 block text-sm font-normal text-muted-foreground">
+                план {formatSetLine(set, { compact: true })}
+              </span>
+            ) : null}
           </button>
         ))}
       </p>
@@ -592,38 +821,6 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
-function setUsesSeconds(set: WorkoutSet): boolean {
-  return set.planned_seconds != null;
-}
-
-function formatSet(
-  set: WorkoutSet,
-  _kind: "dynamic" | "static",
-  showActual: boolean,
-  compact = false,
-): string {
-  const weightValue = showActual
-    ? (set.actual_weight ?? set.planned_weight)
-    : set.planned_weight;
-  const weight = weightValue == null ? "—" : formatWeight(weightValue);
-  if (setUsesSeconds(set)) {
-    const secondsValue = showActual
-      ? (set.actual_seconds ?? set.planned_seconds)
-      : set.planned_seconds;
-    const secondsLabel =
-      secondsValue == null ? "—" : formatSeconds(secondsValue);
-    return compact
-      ? `${weight}×${secondsLabel}с`
-      : `${weight} × ${secondsLabel} с`;
-  }
-
-  const reps = showActual
-    ? (set.actual_reps ?? set.planned_reps)
-    : set.planned_reps;
-  const repsLabel = reps ?? "—";
-  return compact ? `${weight}×${repsLabel}` : `${weight} × ${repsLabel}`;
-}
-
 function setCountWord(count: number): string {
   const mod10 = count % 10;
   const mod100 = count % 100;
@@ -684,4 +881,17 @@ function readDetail(data: unknown): SessionDetail | null {
   }
 
   return data as SessionDetail;
+}
+
+function readExercises(data: unknown): ExerciseWithMax[] {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("exercises" in data) ||
+    !Array.isArray(data.exercises)
+  ) {
+    return [];
+  }
+
+  return data.exercises as ExerciseWithMax[];
 }

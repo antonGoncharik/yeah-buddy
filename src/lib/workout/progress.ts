@@ -12,6 +12,7 @@ import {
   mapWorkoutPhase,
 } from "@/lib/workout/macros";
 import { percentChange } from "@/lib/workout/numbers";
+import { listExerciseWorkPoints } from "@/lib/workout/session-log";
 
 export async function getStrengthProgress(
   userId: string,
@@ -88,7 +89,10 @@ export async function getStrengthProgress(
     globalPoints.set(record.exercise_id, list);
   }
 
+  const workByExercise = await listExerciseWorkPoints(userId);
+
   const progress: ExerciseProgress[] = exercises.map((exercise) => {
+    const workPoints = workByExercise.get(exercise.id) ?? [];
     const phasePoints: ProgressPoint[] = [];
     for (const phase of phases) {
       const weight = latestByPhase.get(`${phase.id}:${exercise.id}`);
@@ -108,10 +112,12 @@ export async function getStrengthProgress(
       });
     }
 
-    const points =
+    const fallback =
       phasePoints.length > 0
         ? phasePoints
         : (globalPoints.get(exercise.id) ?? []);
+    const from_work = workPoints.length > 0;
+    const points = from_work ? workPoints : fallback;
     const start_weight = points[0]?.weight ?? null;
     const current_weight = points.at(-1)?.weight ?? null;
     const delta =
@@ -132,6 +138,7 @@ export async function getStrengthProgress(
       delta,
       percent,
       points,
+      from_work,
     };
   });
 

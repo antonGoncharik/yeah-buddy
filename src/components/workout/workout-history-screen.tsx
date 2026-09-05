@@ -113,7 +113,11 @@ export function WorkoutHistoryScreen() {
                             {item.template_name ??
                               WORKOUT_KIND_LABELS[item.session.workout_type]}
                           </span>
-                          {item.session.status !== "completed" ? (
+                          {item.summary ? (
+                            <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                              {item.summary}
+                            </span>
+                          ) : item.session.status !== "completed" ? (
                             <span className="text-sm text-muted-foreground">
                               {SESSION_STATUS_LABELS[item.session.status]}
                             </span>

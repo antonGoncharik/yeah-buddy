@@ -22,7 +22,8 @@ export async function getPhaseCircleProgress(
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("phase_id", phase.id)
-    .eq("status", "completed");
+    .eq("status", "completed")
+    .not("template_id", "is", null);
 
   if (result.error) {
     throw result.error;

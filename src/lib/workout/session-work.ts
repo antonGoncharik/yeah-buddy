@@ -40,6 +40,7 @@ export const patchSetSchema = z.object({
 });
 
 export const completeSessionSchema = z.object({
+  note: z.union([z.string(), z.null()]).optional(),
   sets: z
     .array(
       z.object({
@@ -81,6 +82,10 @@ export async function addExerciseToSession(
   const exercise = await getOwnedExercise(userId, exerciseId);
   if (!exercise?.is_active) {
     throw new Error("Упражнение не найдено.");
+  }
+
+  if (session.kind === "table") {
+    throw new Error("К столу нельзя добавить упражнение из зала.");
   }
 
   if (
@@ -225,15 +230,7 @@ export async function patchWorkoutSet(
     return null;
   }
 
-  if (next.is_completed && next.actual_weight != null) {
-    if (session.status === "planned") {
-      await patchSession(userId, session.id, { status: "completed" });
-      await clearSkipTemplateIds(userId);
-    }
-  }
-
-  const refreshed = await getSession(userId, sessionId);
-  return refreshed ? loadSessionDetail(userId, refreshed) : null;
+  return loadSessionDetail(userId, session);
 }
 
 export async function completeSessionAsPlanned(
@@ -296,13 +293,22 @@ export async function completeSessionAsPlanned(
     }
   }
 
-  await patchSession(userId, session.id, { status: "completed" });
-  await clearSkipTemplateIds(userId);
+  await patchSession(userId, session.id, {
+    status: "completed",
+    note: input.note !== undefined ? input.note : undefined,
+  });
+  if (session.kind === "gym") {
+    await clearSkipTemplateIds(userId);
+  }
   const refreshed = await getSession(userId, sessionId);
   return refreshed ? loadSessionDetail(userId, refreshed) : null;
 }
 
 async function ensureSessionPlan(userId: string, session: WorkoutSession) {
+  if (session.kind === "table") {
+    return;
+  }
+
   const supabase = createSupabaseServerClient();
   const existing = await supabase
     .from("session_exercises")
@@ -480,32 +486,12 @@ async function loadSessionDetail(
 }
 
 async function listPlanExercises(userId: string, session: WorkoutSession) {
-  if (session.template_id) {
-    const template = await getTemplate(userId, session.template_id);
-    return template?.exercises ?? [];
+  if (!session.template_id) {
+    return [];
   }
 
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("exercises")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  const exercises = (result.data ?? []).map((row) =>
-    mapExercise(row as Record<string, unknown>),
-  );
-
-  return exercises.filter(
-    (exercise) =>
-      exercise.workout_type === "both" ||
-      exercise.workout_type === session.workout_type,
-  );
+  const template = await getTemplate(userId, session.template_id);
+  return template?.exercises ?? [];
 }
 
 async function mapExercisesById(userId: string, ids: string[]) {

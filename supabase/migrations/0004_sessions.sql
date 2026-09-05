@@ -11,12 +11,15 @@ create table if not exists public.workout_sessions (
   workout_type text not null check (
     workout_type in ('dynamic', 'static')
   ),
+  kind text not null default 'gym' check (
+    kind in ('gym', 'table')
+  ),
   status text not null check (
     status in ('planned', 'completed', 'skipped')
   ),
   note text,
   created_at timestamptz not null default now(),
-  unique (user_id, session_date)
+  unique (user_id, session_date, kind)
 );
 
 create index if not exists workout_sessions_user_date_idx

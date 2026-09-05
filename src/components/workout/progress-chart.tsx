@@ -41,7 +41,7 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
   if (!shape) {
     return (
       <p className="py-6 text-center text-sm text-muted-foreground">
-        Пока одна точка — кривая появится после смены фазы.
+        Пока одна точка — кривая появится после следующих тренировок.
       </p>
     );
   }
@@ -58,7 +58,7 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
         viewBox={`0 0 ${width} ${height}`}
         className="h-44 w-full overflow-visible"
         role="img"
-        aria-label="Прогресс максимумов"
+        aria-label="Прогресс рабочих весов"
       >
         <defs>
           <linearGradient id="progress-fill" x1="0" x2="0" y1="0" y2="1">

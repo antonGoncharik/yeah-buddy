@@ -129,6 +129,8 @@ export type CycleStatus = "current" | "completed";
 
 export type MaxSource = "auto" | "manual";
 
+export type SessionKind = "gym" | "table";
+
 export type SessionStatus = "planned" | "completed" | "skipped";
 
 export type SetType = "warmup" | "work";
@@ -258,6 +260,7 @@ export interface WorkoutTemplateDetail extends WorkoutTemplate {
 export interface RecentWorkoutSession {
   session: WorkoutSession;
   template_name: string | null;
+  summary: string | null;
 }
 
 export interface WorkoutSession {
@@ -267,10 +270,22 @@ export interface WorkoutSession {
   macro_cycle_id: string | null;
   phase_id: string | null;
   workout_type: WorkoutKind;
+  kind: SessionKind;
   template_id: string | null;
   status: SessionStatus;
   note: string | null;
   created_at: string;
+}
+
+export interface TodayWorkoutState {
+  session: WorkoutSession | null;
+  table_session: WorkoutSession | null;
+  next_template: WorkoutTemplateDetail | null;
+  following_template: WorkoutTemplateDetail | null;
+  session_template: WorkoutTemplateDetail | null;
+  recent: RecentWorkoutSession[];
+  can_unskip: boolean;
+  phase_circle: PhaseCircleProgress | null;
 }
 
 export interface SessionExercise {
@@ -386,6 +401,7 @@ export interface ExerciseProgress {
   delta: number | null;
   percent: number | null;
   points: ProgressPoint[];
+  from_work: boolean;
 }
 
 export interface StrengthProgress {

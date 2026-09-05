@@ -104,7 +104,9 @@ export function ProgressScreen() {
           <>
             <section className="card-surface animate-rise px-5 py-5">
               <p className="text-sm font-medium text-muted-foreground">
-                С первых максимумов
+                {progress.exercises.some((item) => item.from_work)
+                  ? "С первых рабочих в зале"
+                  : "С первых максимумов"}
               </p>
               <p className="mt-1 text-3xl font-semibold tracking-tight">
                 {progress.avg_percent == null ? (
@@ -121,7 +123,9 @@ export function ProgressScreen() {
               <p className="mt-2 text-sm text-muted-foreground">
                 {progress.grown_count > 0
                   ? `Выросли ${progress.grown_count} из ${progress.exercises.length}`
-                  : "Кривая строится по максимумам фаз: разгон → рывок."}
+                  : progress.exercises.some((item) => item.from_work)
+                    ? "Кривая — рабочие веса из зала."
+                    : "После тренировок здесь будут рабочие веса, не заявленный максимум."}
               </p>
             </section>
 

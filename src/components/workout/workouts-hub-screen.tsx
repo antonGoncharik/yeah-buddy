@@ -32,6 +32,7 @@ import {
   readPhaseCircle,
 } from "@/lib/workout/hints";
 import {
+  SESSION_KIND_LABELS,
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
@@ -43,6 +44,7 @@ export function WorkoutsHubScreen() {
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [session, setSession] = useState<WorkoutSession | null>(null);
+  const [tableSession, setTableSession] = useState<WorkoutSession | null>(null);
   const [sessionTemplate, setSessionTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
   const [nextTemplate, setNextTemplate] =
@@ -108,6 +110,7 @@ export function WorkoutsHubScreen() {
         sessionUrl,
         (data) => {
           setSession(readTodaySession(data));
+          setTableSession(readTableSession(data));
           setSessionTemplate(readTemplate(data, "session_template"));
           setNextTemplate(readTemplate(data, "next_template"));
           setFollowingTemplate(readTemplate(data, "following_template"));
@@ -147,6 +150,39 @@ export function WorkoutsHubScreen() {
         body: JSON.stringify({
           session_date: date,
           template_id: templateId,
+        }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const created = readTodaySession(data);
+      if (created) {
+        router.push(`/workouts/sessions/${created.id}`);
+        return;
+      }
+
+      await load();
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function createTable() {
+    setCreating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_date: date,
+          kind: "table",
         }),
       });
       const data: unknown = await response.json().catch(() => null);
@@ -367,6 +403,39 @@ export function WorkoutsHubScreen() {
           </section>
         ) : null}
 
+        {!loading && !error && tableSession ? (
+          <Link
+            href={`/workouts/sessions/${tableSession.id}`}
+            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
+          >
+            <p className="text-sm font-medium text-muted-foreground">
+              {SESSION_KIND_LABELS.table}
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              {tableSession.status === "completed"
+                ? tableSession.note || "Записан"
+                : "На сегодня"}
+            </h2>
+            <p className="mt-2 text-base text-muted-foreground">
+              {tableSession.status === "planned"
+                ? "Отметить"
+                : SESSION_STATUS_LABELS[tableSession.status]}
+            </p>
+          </Link>
+        ) : null}
+
+        {!loading && !error && !tableSession ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 text-base text-muted-foreground"
+            disabled={creating || skipping}
+            onClick={() => void createTable()}
+          >
+            Стол сегодня
+          </Button>
+        ) : null}
+
         {!loading && !error && exercises.length > 0 ? (
           <div
             className="animate-rise flex flex-col gap-5"
@@ -521,11 +590,18 @@ export function WorkoutsHubScreen() {
                 <li key={item.session.id}>
                   <Link
                     href={`/workouts/sessions/${item.session.id}`}
-                    className="flex items-baseline justify-between gap-3 py-1"
+                    className="flex items-start justify-between gap-3 py-1"
                   >
-                    <span className="truncate text-base">
-                      {item.template_name ??
-                        WORKOUT_KIND_LABELS[item.session.workout_type]}
+                    <span className="min-w-0">
+                      <span className="truncate text-base">
+                        {item.template_name ??
+                          WORKOUT_KIND_LABELS[item.session.workout_type]}
+                      </span>
+                      {item.summary ? (
+                        <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                          {item.summary}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="shrink-0 text-sm text-muted-foreground">
                       {formatSessionDay(item.session.session_date)}
@@ -595,6 +671,19 @@ function readTodaySession(data: unknown): WorkoutSession | null {
   }
 
   return data.session as WorkoutSession;
+}
+
+function readTableSession(data: unknown): WorkoutSession | null {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("table_session" in data) ||
+    !data.table_session
+  ) {
+    return null;
+  }
+
+  return data.table_session as WorkoutSession;
 }
 
 function readTemplate(

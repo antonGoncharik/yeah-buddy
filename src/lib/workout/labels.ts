@@ -5,6 +5,7 @@ import type {
   ExerciseWorkoutType,
   FormulaPreset,
   PhaseType,
+  SessionKind,
   SessionStatus,
   SetType,
   WorkoutKind,
@@ -72,6 +73,11 @@ export const SESSION_STATUS_LABELS: Record<SessionStatus, string> = {
   planned: "В плане",
   completed: "Сделана",
   skipped: "Пропущена",
+};
+
+export const SESSION_KIND_LABELS: Record<SessionKind, string> = {
+  gym: "Зал",
+  table: "Стол",
 };
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {
