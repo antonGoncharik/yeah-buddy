@@ -2,6 +2,7 @@ import type {
   FormulaPhaseSpec,
   FormulaSetSpec,
   PhaseType,
+  WarmupPresetId,
   WorkoutFormulas,
   WorkoutKind,
 } from "@/lib/types";
@@ -52,10 +53,22 @@ const STATIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
   deload: { warmup: [], work: STATIC_DELOAD },
 };
 
+export const DEFAULT_WARMUP_PRESETS: Record<WarmupPresetId, FormulaSetSpec[]> =
+  {
+    barbell: BARBELL_WARMUP,
+    cable: CABLE_WARMUP,
+    cable_short: CABLE_SHORT_WARMUP,
+  };
+
 export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas = {
   dynamic: DYNAMIC_PHASES,
   static: STATIC_PHASES,
+  warmups: DEFAULT_WARMUP_PRESETS,
 };
+
+export function cloneFormulas(formulas: WorkoutFormulas): WorkoutFormulas {
+  return structuredClone(formulas);
+}
 
 export function isWorkoutKind(value: unknown): value is WorkoutKind {
   return value === "dynamic" || value === "static";

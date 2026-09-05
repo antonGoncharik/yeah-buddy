@@ -104,6 +104,8 @@ export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
   none: "Без разминки",
 };
 
+export const WARMUP_PRESET_IDS = ["barbell", "cable", "cable_short"] as const;
+
 export const EXERCISE_SLOT_LABELS: Record<ExerciseSlot, string> = {
   a: "Ноги и плечи",
   b: "Грудь и спина",

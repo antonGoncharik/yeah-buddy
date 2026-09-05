@@ -1,14 +1,12 @@
 import type {
   FormulaPhaseSpec,
   FormulaPreset,
+  FormulaSetSpec,
   PhaseType,
+  WarmupPresetId,
   WorkoutKind,
 } from "@/lib/types";
-import {
-  BARBELL_WARMUP,
-  CABLE_SHORT_WARMUP,
-  CABLE_WARMUP,
-} from "@/lib/workout/default-formulas";
+import { DEFAULT_WARMUP_PRESETS } from "@/lib/workout/default-formulas";
 
 export function floorToStep(weight: number, step: number): number {
   if (!(step > 0) || !Number.isFinite(weight)) {
@@ -40,6 +38,7 @@ export function resolvePhaseSpec(
   kind: WorkoutKind,
   phase: PhaseType,
   preset: FormulaPreset,
+  warmups: Record<WarmupPresetId, FormulaSetSpec[]> = DEFAULT_WARMUP_PRESETS,
 ): FormulaPhaseSpec {
   if (preset === "none") {
     return { warmup: [], work: [] };
@@ -49,15 +48,10 @@ export function resolvePhaseSpec(
     return base;
   }
 
-  if (preset === "cable") {
-    return { warmup: CABLE_WARMUP, work: base.work };
-  }
-
-  if (preset === "cable_short") {
-    return { warmup: CABLE_SHORT_WARMUP, work: base.work };
-  }
-
-  return { warmup: BARBELL_WARMUP, work: base.work };
+  return {
+    warmup: warmups[preset] ?? DEFAULT_WARMUP_PRESETS.barbell,
+    work: base.work,
+  };
 }
 
 export function plannedSetsFromFormula(

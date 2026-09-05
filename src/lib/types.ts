@@ -152,10 +152,13 @@ export interface FormulaPhaseSpec {
   work: FormulaSetSpec[];
 }
 
-export type WorkoutFormulas = Record<
-  WorkoutKind,
-  Record<PhaseType, FormulaPhaseSpec>
->;
+export type WarmupPresetId = Exclude<FormulaPreset, "none">;
+
+export interface WorkoutFormulas {
+  dynamic: Record<PhaseType, FormulaPhaseSpec>;
+  static: Record<PhaseType, FormulaPhaseSpec>;
+  warmups: Record<WarmupPresetId, FormulaSetSpec[]>;
+}
 
 export interface WorkoutSettings {
   user_id: string;

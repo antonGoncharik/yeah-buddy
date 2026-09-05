@@ -5,11 +5,11 @@ import type {
   Exercise,
   SessionDetail,
   SessionExercise,
+  WorkoutFormulas,
   WorkoutPhase,
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
-import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 import {
   getExercise,
   listExercises,
@@ -22,7 +22,10 @@ import {
 import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import { getSession, patchSession } from "@/lib/workout/sessions";
-import { clearSkipTemplateIds } from "@/lib/workout/settings";
+import {
+  clearSkipTemplateIds,
+  ensureWorkoutSettings,
+} from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
 
 export const addSessionExerciseSchema = z.object({
@@ -96,8 +99,16 @@ export async function addExerciseToSession(
   const sortOrder =
     detail.exercises.reduce((max, item) => Math.max(max, item.sort_order), 0) +
     10;
+  const settings = await ensureWorkoutSettings(userId);
 
-  await insertSessionExercise(userId, session, exercise, maxWeight, sortOrder);
+  await insertSessionExercise(
+    userId,
+    session,
+    exercise,
+    maxWeight,
+    sortOrder,
+    settings.formulas,
+  );
   return loadSessionDetail(userId, session);
 }
 
@@ -319,6 +330,7 @@ async function ensureSessionPlan(userId: string, session: WorkoutSession) {
       exercise.current_max?.max_weight ?? null,
     ]),
   );
+  const settings = await ensureWorkoutSettings(userId);
 
   let sortOrder = 10;
   for (const exercise of candidates) {
@@ -340,6 +352,7 @@ async function ensureSessionPlan(userId: string, session: WorkoutSession) {
       exercise,
       maxWeight,
       sortOrder,
+      settings.formulas,
     );
     sortOrder += 10;
   }
@@ -351,14 +364,16 @@ async function insertSessionExercise(
   exercise: Exercise,
   maxWeight: number,
   sortOrder: number,
+  formulas: WorkoutFormulas,
 ) {
   const phase = await getPhase(userId, session.phase_id);
   const phaseType = phase?.phase_type ?? "ramp";
   const formula = resolvePhaseSpec(
-    DEFAULT_WORKOUT_FORMULAS[session.workout_type][phaseType],
+    formulas[session.workout_type][phaseType],
     session.workout_type,
     phaseType,
     exercise.formula_preset,
+    formulas.warmups,
   );
   const planned = plannedSetsFromFormula(
     formula,

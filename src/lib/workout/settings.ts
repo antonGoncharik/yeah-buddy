@@ -8,7 +8,11 @@ import type {
   WorkoutKind,
   WorkoutSettings,
 } from "@/lib/types";
-import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import {
+  cloneFormulas,
+  DEFAULT_WARMUP_PRESETS,
+  DEFAULT_WORKOUT_FORMULAS,
+} from "@/lib/workout/default-formulas";
 import { toNumber } from "@/lib/workout/numbers";
 
 const formulaSetSchema = z.object({
@@ -20,6 +24,12 @@ const formulaSetSchema = z.object({
 const formulaPhaseSchema = z.object({
   warmup: z.array(formulaSetSchema),
   work: z.array(formulaSetSchema).min(1),
+});
+
+const warmupPresetsSchema = z.object({
+  barbell: z.array(formulaSetSchema),
+  cable: z.array(formulaSetSchema),
+  cable_short: z.array(formulaSetSchema),
 });
 
 const formulasSchema = z.object({
@@ -35,6 +45,7 @@ const formulasSchema = z.object({
     peak: formulaPhaseSchema,
     deload: formulaPhaseSchema,
   }),
+  warmups: warmupPresetsSchema.optional(),
 });
 
 export const workoutSettingsPatchSchema = z.object({
@@ -69,7 +80,7 @@ export async function ensureWorkoutSettings(
       user_id: userId,
       weight_step: 2.5,
       max_increase_percent: 5,
-      formulas: DEFAULT_WORKOUT_FORMULAS,
+      formulas: cloneFormulas(DEFAULT_WORKOUT_FORMULAS),
     })
     .select("*")
     .single();
@@ -108,7 +119,7 @@ export async function saveWorkoutSettings(
       max_increase_percent:
         patch.max_increase_percent ?? current.max_increase_percent,
       formulas: withSkipTemplateIds(
-        patch.formulas ?? current.formulas,
+        patch.formulas ? fillFormulas(patch.formulas) : current.formulas,
         current.skip_template_ids,
       ),
     })
@@ -221,10 +232,20 @@ async function saveSkipTemplateIds(
 function parseFormulas(value: unknown): WorkoutFormulas {
   const parsed = formulasSchema.safeParse(value);
   if (parsed.success) {
-    return parsed.data;
+    return fillFormulas(parsed.data);
   }
 
-  return DEFAULT_WORKOUT_FORMULAS;
+  return cloneFormulas(DEFAULT_WORKOUT_FORMULAS);
+}
+
+function fillFormulas(value: z.infer<typeof formulasSchema>): WorkoutFormulas {
+  return {
+    dynamic: value.dynamic,
+    static: value.static,
+    warmups: value.warmups
+      ? structuredClone(value.warmups)
+      : structuredClone(DEFAULT_WARMUP_PRESETS),
+  };
 }
 
 export function getFormulaPhase(

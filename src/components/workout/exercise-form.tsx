@@ -197,7 +197,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           ))}
         </select>
         <p className="text-sm text-muted-foreground">
-          Только разминка. Рабочие веса считает система.
+          Только разминка. Рабочие проценты — в Настройках → Схема. Статика и
+          сброс берут свою схему, этот пресет их не меняет.
         </p>
       </Field>
 

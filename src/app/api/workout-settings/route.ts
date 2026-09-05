@@ -20,6 +20,7 @@ export async function GET(): Promise<NextResponse> {
       settings: {
         weight_step: settings.weight_step,
         max_increase_percent: settings.max_increase_percent,
+        formulas: settings.formulas,
       },
     });
   } catch (error) {
@@ -61,6 +62,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       settings: {
         weight_step: settings.weight_step,
         max_increase_percent: settings.max_increase_percent,
+        formulas: settings.formulas,
       },
     });
   } catch (error) {

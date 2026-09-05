@@ -58,4 +58,22 @@ const staticHold = plannedSetsFromFormula(
 assertEqual(staticHold[3]?.planned_weight ?? 0, 87, "static work 76×115");
 assertEqual(staticHold[3]?.planned_seconds ?? 0, 6, "static work seconds");
 
+const customWarmup = resolvePhaseSpec(
+  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp,
+  "dynamic",
+  "ramp",
+  "barbell",
+  {
+    barbell: [{ percent: 40, reps: 10, seconds: null }],
+    cable: DEFAULT_WORKOUT_FORMULAS.warmups.cable,
+    cable_short: DEFAULT_WORKOUT_FORMULAS.warmups.cable_short,
+  },
+);
+if (
+  customWarmup.warmup.length !== 1 ||
+  customWarmup.warmup[0]?.percent !== 40
+) {
+  throw new Error("custom warmup preset should replace barbell warmup");
+}
+
 console.log("workout formulas ok");

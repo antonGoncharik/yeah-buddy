@@ -170,6 +170,18 @@ export function SettingsScreen() {
               фазу.
             </span>
           </Link>
+          <Link
+            href="/settings/formulas"
+            className="flex flex-col gap-0.5 py-2"
+          >
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-lg font-medium">Схема подходов</span>
+              <span className="text-sm font-medium text-primary">Править</span>
+            </span>
+            <span className="text-sm text-muted-foreground">
+              Проценты, разминка, рабочие, повторы и секунды
+            </span>
+          </Link>
         </section>
 
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">

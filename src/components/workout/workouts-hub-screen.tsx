@@ -425,6 +425,15 @@ export function WorkoutsHubScreen() {
                     Изменить
                   </span>
                 </Link>
+                <Link
+                  href="/settings/formulas"
+                  className="flex items-baseline justify-between gap-3 text-sm"
+                >
+                  <span className="text-muted-foreground">
+                    Проценты и подходы
+                  </span>
+                  <span className="font-medium text-primary">Схема</span>
+                </Link>
                 <ol className="flex flex-col gap-1">
                   {activeTemplates.map((template, index) => {
                     const isNext = nextTemplate?.id === template.id;
