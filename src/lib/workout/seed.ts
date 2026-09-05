@@ -17,11 +17,12 @@ type StarterExercise = {
   weight_step: number;
   formula_preset: FormulaPreset;
   max_weight: number;
+  aliases?: string[];
 };
 
 export const STARTER_EXERCISES: StarterExercise[] = [
   {
-    name: "присед в колодец",
+    name: "присед в тренажере колодец",
     short_name: "присед",
     category: "base",
     workout_type: "dynamic",
@@ -29,6 +30,7 @@ export const STARTER_EXERCISES: StarterExercise[] = [
     weight_step: 2.5,
     formula_preset: "barbell",
     max_weight: 230,
+    aliases: ["присед в колодец"],
   },
   {
     name: "румынская тяга",
@@ -212,7 +214,7 @@ export const STARTER_EXERCISES: StarterExercise[] = [
   },
   {
     name: "боковой нажим корпусом",
-    short_name: "боковой",
+    short_name: "бок",
     category: "armwrestling",
     workout_type: "both",
     slot: "c",
@@ -237,7 +239,10 @@ export async function ensureStarterExercises(
     throw existing.error;
   }
 
-  const byName = new Map<string, { id: string; slot: unknown }>();
+  const byName = new Map<
+    string,
+    { id: string; name: string; slot: unknown }
+  >();
   const duplicateIds: string[] = [];
   for (const row of existing.data ?? []) {
     const key = normalizeName(String(row.name));
@@ -245,7 +250,11 @@ export async function ensureStarterExercises(
       duplicateIds.push(String(row.id));
       continue;
     }
-    byName.set(key, { id: String(row.id), slot: row.slot });
+    byName.set(key, {
+      id: String(row.id),
+      name: String(row.name),
+      slot: row.slot,
+    });
   }
 
   if (duplicateIds.length > 0) {
@@ -268,12 +277,18 @@ export async function ensureStarterExercises(
   const insertedIds: Array<{ id: string; maxWeight: number }> = [];
 
   for (const exercise of STARTER_EXERCISES) {
-    const match = byName.get(normalizeName(exercise.name));
+    const match =
+      byName.get(normalizeName(exercise.name)) ??
+      exercise.aliases
+        ?.map((alias) => byName.get(normalizeName(alias)))
+        .find((row) => row != null);
     if (match) {
-      if (match.slot == null) {
+      const rename = match.name !== exercise.name;
+      if (match.slot == null || rename) {
         const patched = await supabase
           .from("exercises")
           .update({
+            name: exercise.name,
             short_name: exercise.short_name,
             category: exercise.category,
             workout_type: exercise.workout_type,
@@ -283,6 +298,17 @@ export async function ensureStarterExercises(
           })
           .eq("id", match.id)
           .eq("user_id", userId);
+
+        if (patched.error) {
+          throw patched.error;
+        }
+      } else {
+        const patched = await supabase
+          .from("exercises")
+          .update({ short_name: exercise.short_name })
+          .eq("id", match.id)
+          .eq("user_id", userId)
+          .neq("short_name", exercise.short_name);
 
         if (patched.error) {
           throw patched.error;
@@ -361,22 +387,22 @@ const STARTER_TEMPLATES: Array<{
   aliases: string[];
 }> = [
   {
-    name: "Ноги и жим сидя",
+    name: "Ноги и плечи",
     kind: "dynamic",
     slots: ["a"],
-    aliases: ["A · ноги и жим сидя"],
+    aliases: ["Ноги и жим сидя", "A · ноги и жим сидя"],
   },
   {
-    name: "Статика",
+    name: "Армрестлинг статика",
     kind: "static",
     slots: ["c"],
-    aliases: [],
+    aliases: ["Статика"],
   },
   {
-    name: "Жимы и тяги",
+    name: "Грудь и спина",
     kind: "dynamic",
     slots: ["b"],
-    aliases: ["B · жимы и тяги"],
+    aliases: ["Жимы и тяги", "B · жимы и тяги"],
   },
   {
     name: "Арм",

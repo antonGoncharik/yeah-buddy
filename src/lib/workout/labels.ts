@@ -105,16 +105,16 @@ export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
 };
 
 export const EXERCISE_SLOT_LABELS: Record<ExerciseSlot, string> = {
-  a: "Ноги и жим сидя",
-  b: "Жимы и тяги",
+  a: "Ноги и плечи",
+  b: "Грудь и спина",
   c: "Арм",
 };
 
 export const WORKOUT_SLOT_LABELS: Record<WorkoutSlot, string> = {
-  a: "Ноги и жим сидя",
-  b: "Жимы и тяги",
+  a: "Ноги и плечи",
+  b: "Грудь и спина",
   c: "Арм",
-  static: "Статика",
+  static: "Армрестлинг статика",
 };
 
 export const WEIGHT_STEP_OPTIONS = [1, 2.5, 5] as const;
