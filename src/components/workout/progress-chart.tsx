@@ -24,10 +24,11 @@ export function ProgressSparkline({
       <path
         d={shape.line}
         fill="none"
-        className="stroke-primary"
+        className="stroke-primary motion-safe:animate-draw-line"
         strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
+        pathLength={1}
       />
     </svg>
   );
@@ -76,14 +77,19 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
             strokeWidth="1"
           />
         ))}
-        <path d={shape.area} fill="url(#progress-fill)" />
+        <path
+          d={shape.area}
+          fill="url(#progress-fill)"
+          className="origin-bottom motion-safe:animate-fade"
+        />
         <path
           d={shape.line}
           fill="none"
-          className="stroke-primary"
+          className="stroke-primary motion-safe:animate-draw-line"
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
+          pathLength={1}
         />
         {shape.dots.map((dot, index) => (
           <circle
@@ -91,7 +97,8 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
             cx={dot.x}
             cy={dot.y}
             r={index === shape.dots.length - 1 ? 5 : 3.5}
-            className="fill-primary"
+            className="fill-primary motion-safe:animate-fade"
+            style={{ animationDelay: `${120 + index * 40}ms` }}
           />
         ))}
         <text x="16" y="12" className="fill-muted-foreground text-[11px]">

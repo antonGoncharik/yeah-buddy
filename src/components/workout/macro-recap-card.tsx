@@ -36,7 +36,12 @@ export function MacroRecapCard({
           : "Максимумы те же";
 
   return (
-    <section className="card-surface flex flex-col gap-3 px-5 py-5">
+    <section
+      className={cn(
+        "card-surface flex flex-col gap-3 px-5 py-5",
+        featured && "motion-safe:animate-recap-glow",
+      )}
+    >
       <button
         type="button"
         className="flex w-full flex-col gap-1 text-left"

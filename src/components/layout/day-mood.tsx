@@ -59,7 +59,7 @@ export function DayBackdrop() {
     >
       <div
         className={cn(
-          "absolute inset-0 transition-opacity duration-500 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+          "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
           mood === "rest" ? "opacity-100" : "opacity-0",
         )}
       >
@@ -67,7 +67,7 @@ export function DayBackdrop() {
       </div>
       <div
         className={cn(
-          "absolute inset-0 transition-opacity duration-500 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+          "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
           mood === "training" ? "opacity-100" : "opacity-0",
         )}
       >
@@ -113,6 +113,13 @@ function RestBackdrop() {
           ry="140"
           filter="url(#rest-soft)"
           className="fill-[oklch(0.86_0.05_145_/_0.36)] dark:fill-[oklch(0.36_0.05_160_/_0.28)]"
+        />
+        <circle
+          cx="210"
+          cy="360"
+          r="120"
+          filter="url(#rest-soft)"
+          className="fill-[oklch(0.88_0.04_190_/_0.22)] dark:fill-[oklch(0.34_0.05_190_/_0.2)]"
         />
         <circle
           cx="48"
@@ -222,6 +229,10 @@ function TrainingBackdrop() {
         <polygon
           points="68,800 218,584 224,594 74,800"
           className="fill-[oklch(0.32_0.2_22_/_0.38)] dark:fill-[oklch(0.72_0.15_22_/_0.34)]"
+        />
+        <polygon
+          points="120,40 280,-20 286,-8 126,52"
+          className="fill-[oklch(0.4_0.22_28_/_0.28)] dark:fill-[oklch(0.62_0.16_28_/_0.26)]"
         />
       </svg>
     </>

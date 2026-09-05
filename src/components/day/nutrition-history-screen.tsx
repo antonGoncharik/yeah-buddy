@@ -194,7 +194,7 @@ function MiniBar({
     <div className="h-1.5 overflow-hidden rounded-full bg-muted">
       <div
         className={cn(
-          "h-full rounded-full",
+          "h-full rounded-full transition-[width,opacity] duration-500 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
           barClass,
           overflow && "opacity-90",
         )}

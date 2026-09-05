@@ -398,7 +398,7 @@ html.dark[data-day="training"] {
     transform: translate(0, 0) scale(1);
   }
   50% {
-    transform: translate(2.5%, 1.5%) scale(1.04);
+    transform: translate(3.2%, 2%) scale(1.06);
   }
 }
 
@@ -408,7 +408,7 @@ html.dark[data-day="training"] {
     transform: translateX(0) translateY(0);
   }
   50% {
-    transform: translateX(-2.2%) translateY(0.8%);
+    transform: translateX(-3%) translateY(1.2%);
   }
 }
 
@@ -420,11 +420,44 @@ html.dark[data-day="training"] {
   animation: train-slash 3.6s var(--ease-out-soft) infinite;
 }
 
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes recap-glow {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent);
+  }
+  40% {
+    box-shadow: 0 0 0 8px color-mix(in oklch, var(--primary) 18%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent);
+  }
+}
+
+@utility animate-draw-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 0.9s var(--ease-out-soft) 0.05s both;
+}
+
+@utility animate-recap-glow {
+  animation: recap-glow 1.2s var(--ease-out-soft) 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-rise,
   .animate-fade,
   .animate-rest-drift,
-  .animate-train-slash {
+  .animate-train-slash,
+  .animate-draw-line,
+  .animate-recap-glow {
     animation: none;
   }
 
