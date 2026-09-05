@@ -138,50 +138,95 @@ export async function getTodayWorkoutState(
         ? followingTemplate
         : null,
     session_template: sessionTemplate,
-    recent: await listRecentCompletedSessions(userId, 5),
+    recent: await listSessionHistory(userId, {
+      limit: 5,
+      statuses: ["completed"],
+    }).then((page) => page.items),
     can_unskip: settings.skip_template_ids.length > 0,
     phase_circle: macro.phase_circle,
   };
 }
 
-export async function listRecentCompletedSessions(
+export async function listSessionHistory(
   userId: string,
-  limit: number,
-): Promise<RecentWorkoutSession[]> {
+  options: {
+    before?: string;
+    limit: number;
+    statuses?: SessionStatus[];
+  },
+): Promise<{ items: RecentWorkoutSession[]; next_before: string | null }> {
+  const limit = Math.min(Math.max(options.limit, 1), 50);
+  const statuses = options.statuses ?? ["completed", "skipped"];
   const supabase = createSupabaseServerClient();
-  const result = await supabase
+  let query = supabase
     .from("workout_sessions")
     .select("*")
     .eq("user_id", userId)
-    .eq("status", "completed")
+    .in("status", statuses)
     .order("session_date", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit + 1);
+
+  if (options.before && isIsoDate(options.before)) {
+    query = query.lt("session_date", options.before);
+  }
+
+  const result = await query;
+  if (result.error) {
+    throw result.error;
+  }
+
+  const rows = (result.data ?? []).map((row) =>
+    mapWorkoutSession(row as Record<string, unknown>),
+  );
+  const hasMore = rows.length > limit;
+  const sessions = hasMore ? rows.slice(0, limit) : rows;
+  const names = await templateNamesById(
+    userId,
+    sessions.flatMap((session) =>
+      session.template_id ? [session.template_id] : [],
+    ),
+  );
+
+  return {
+    items: sessions.map((session) => ({
+      session,
+      template_name: session.template_id
+        ? (names.get(session.template_id) ?? null)
+        : null,
+    })),
+    next_before: hasMore ? (sessions.at(-1)?.session_date ?? null) : null,
+  };
+}
+
+async function templateNamesById(
+  userId: string,
+  templateIds: string[],
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  const unique = [...new Set(templateIds)];
+  if (unique.length === 0) {
+    return names;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_templates")
+    .select("id, name")
+    .eq("user_id", userId)
+    .in("id", unique);
 
   if (result.error) {
     throw result.error;
   }
 
-  const sessions = (result.data ?? []).map((row) =>
-    mapWorkoutSession(row as Record<string, unknown>),
-  );
-  const names = new Map<string, string>();
-  for (const session of sessions) {
-    if (!session.template_id || names.has(session.template_id)) {
-      continue;
-    }
-    const template = await getTemplate(userId, session.template_id);
-    if (template) {
-      names.set(template.id, template.name);
+  for (const row of result.data ?? []) {
+    if (typeof row.id === "string" && typeof row.name === "string") {
+      names.set(row.id, row.name);
     }
   }
 
-  return sessions.map((session) => ({
-    session,
-    template_name: session.template_id
-      ? (names.get(session.template_id) ?? null)
-      : null,
-  }));
+  return names;
 }
 
 export async function createSession(

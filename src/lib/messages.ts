@@ -17,6 +17,8 @@ export const WORKOUTS_NEED_EXERCISES =
   "Сначала упражнения и рабочие максимумы — от них считаются веса.";
 export const WORKOUTS_NEED_TEMPLATES =
   "Собери очередь: какие тренировки идут по кругу.";
+export const SESSION_HISTORY_EMPTY =
+  "Тренировок ещё нет — после зала они будут здесь.";
 
 export function readApiError(data: unknown): string | null {
   if (

@@ -483,28 +483,42 @@ export function WorkoutsHubScreen() {
           </div>
         ) : null}
 
-        {!loading && !error && recent.length > 0 ? (
+        {!loading && !error && (recent.length > 0 || exercises.length > 0) ? (
           <section
             className="animate-rise flex flex-col gap-3 px-1"
             style={{ animationDelay: "80ms" }}
           >
-            <h2 className="text-lg font-semibold">Недавние</h2>
-            <ul className="flex flex-col gap-2.5">
-              {recent.map((item) => (
-                <li
-                  key={item.session.id}
-                  className="flex items-baseline justify-between gap-3"
-                >
-                  <span className="truncate text-base">
-                    {item.template_name ??
-                      WORKOUT_KIND_LABELS[item.session.workout_type]}
-                  </span>
-                  <span className="shrink-0 text-sm text-muted-foreground">
-                    {formatSessionDay(item.session.session_date)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <Link
+              href="/workouts/history"
+              className="flex items-baseline justify-between gap-3"
+            >
+              <h2 className="text-lg font-semibold">История</h2>
+              <span className="text-sm font-medium text-primary">Все</span>
+            </Link>
+            {recent.length > 0 ? (
+              <ul className="flex flex-col gap-1">
+                {recent.map((item) => (
+                  <li key={item.session.id}>
+                    <Link
+                      href={`/workouts/sessions/${item.session.id}`}
+                      className="flex items-baseline justify-between gap-3 py-1"
+                    >
+                      <span className="truncate text-base">
+                        {item.template_name ??
+                          WORKOUT_KIND_LABELS[item.session.workout_type]}
+                      </span>
+                      <span className="shrink-0 text-sm text-muted-foreground">
+                        {formatSessionDay(item.session.session_date)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                После зала записи появятся здесь.
+              </p>
+            )}
           </section>
         ) : null}
       </div>
