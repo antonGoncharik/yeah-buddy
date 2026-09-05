@@ -1,2660 +1,519 @@
-# Модуль БЖУ
+# Yeah Buddy
 
-## 1. Главное решение текущей версии
+Telegram Mini App: дневник питания и тренировок армрестлера в одном приложении.
 
-Делаем только чистый MVP:
+Питание — своя база продуктов, дни, приёмы, БЖУ. Зал — шаблоны по кругу, сессии, макроциклы с фазами, рабочие веса от максимума. Связь через дату: начатая тренировка помечает день питания как тренировочный.
+
+Интерфейс мобильный, русский.
+
+---
+
+## 1. Стек и границы
 
 ```text
-Telegram Mini App
-+ Telegram Bot как точка входа
-+ Next.js как фронтенд и бэкенд
-+ Supabase Postgres как база данных
-+ только своя база продуктов
-```
-
-Ключевые правила:
-
-1. Никаких внешних провайдеров продуктов.
-2. Никакого парсинга.
-3. Никакого краулера внутри приложения.
-4. Никаких Open Food Facts, USDA, FatSecret и других источников.
-5. Никаких штрихкодов.
-6. Только свои продукты.
-7. Продукты можно добавлять, редактировать, удалять, искать и добавлять в избранное.
-8. При первом входе можно создать стартовый сид продуктов и шаблонов.
-9. Дневник питания работает только на основе своей базы продуктов.
-10. Позже отдельный краулер может наполнять базу продуктами, но в этом приложении он не реализуется.
-
----
-
-## 2. Что входит в MVP
-
-### 2.1. Telegram
-
-1. Telegram-бот:
-   - команда `/start`;
-   - кнопка открытия Mini App.
-
-2. Telegram Mini App:
-   - открывается внутри Telegram;
-   - автоматически авторизует пользователя;
-   - мобильный интерфейс на русском языке.
-
----
-
-### 2.2. Авторизация
-
-1. Авторизация через Telegram `initData`.
-2. Проверка подписи на сервере.
-3. Создание пользователя в базе.
-4. Сессия через HTTP-only cookie.
-
----
-
-### 2.3. Своя база продуктов
-
-1. Список своих продуктов.
-2. Поиск по своим продуктам.
-3. Добавление продукта вручную.
-4. Редактирование продукта.
-5. Удаление продукта.
-6. Избранное.
-7. Недавние продукты.
-8. Стартовый сид продуктов при первом входе.
-
----
-
-### 2.4. Дневник питания
-
-1. День питания.
-2. Приёмы пищи:
-   - завтрак;
-   - обед;
-   - полдник;
-   - ужин;
-   - предтрен;
-   - посттрен.
-3. Добавление продуктов в приём пищи.
-4. Указание граммов.
-5. Автоматический подсчёт БЖУ и калорий.
-6. План и факт за день.
-7. Переключение типа дня:
-   - отдых;
-   - тренировка.
-8. Копирование вчерашнего дня.
-
----
-
-### 2.5. Шаблоны дней
-
-1. Шаблоны создаются только в стартовом сиде.
-2. Используются для быстрого создания дня:
-   - день отдыха;
-   - день тренировки.
-3. Отдельный экран редактирования шаблонов в MVP не делаем.
-4. Пользователь может менять продукты в уже созданном дне.
-
----
-
-### 2.6. Цели БЖУ
-
-По умолчанию:
-
-#### День отдыха
-
-```text
-Белки: 200
-Жиры: 70
-Углеводы: 130
-```
-
-#### День тренировки
-
-```text
-Белки: 200
-Жиры: 70
-Углеводы: 200
-```
-
-Формула калорий:
-
-```text
-ккал = белки * 4 + жиры * 9 + углеводы * 4
-```
-
----
-
-## 3. Что НЕ делаем в этой версии
-
-Запрещено добавлять:
-
-- парсинг сайтов;
-- краулер;
-- внешние API продуктов;
-- edostavka;
-- Open Food Facts;
-- USDA;
-- FatSecret;
-- штрихкоды;
-- сканер штрихкодов;
-- импорт продуктов из внешних источников;
-- добавки;
-- витамины;
-- графики;
-- аналитику;
-- отчёты;
-- PWA;
-- service worker;
-- сложный офлайн;
-- Telegram Stars;
-- платежи;
-- подписки;
-- реферальную систему;
-- публичный каталог продуктов;
-- мультипользовательские социальные функции.
-
-Если появляется идея из этого списка — не делать.
-
----
-
-## 4. Технологический стек
-
-Использовать:
-
-```text
-Next.js 15+, App Router
-TypeScript
-React
-Tailwind CSS
-shadcn/ui
+Telegram Mini App + бот (grammY)
+Next.js App Router (TypeScript, React)
+Tailwind CSS + shadcn/ui
 Supabase Postgres
-@supabase/supabase-js
-grammY
-@twa-dev/sdk
-date-fns
-zod
-lucide-react
-jose
+jose — сессия
+@twa-dev/sdk — WebApp
+date-fns, zod, lucide-react
+@dnd-kit — порядок шаблонов в круге
 ```
 
-Хостинг:
+Клиент в Supabase не ходит. Все чтения и записи — через серверные API Next.js и service role key.
 
-```text
-Vercel
-```
-
-База данных:
-
-```text
-Supabase Postgres
-```
+RLS на таблицах включён. Политик для anon нет: доступ только с сервера.
 
 ---
 
-## 5. Общая архитектура
-
-```text
-Пользователь в Telegram
-      ↓
-Telegram Bot
-      ↓
-Telegram Mini App
-      ↓
-Next.js приложение на Vercel
-      ↓
-Supabase Postgres
-```
-
-Важно:
-
-```text
-Клиент не ходит напрямую в Supabase.
-Все операции с базой идут только через серверную часть Next.js.
-```
-
----
-
-## 6. Переменные окружения
-
-Создать `.env.local`:
+## 2. Окружение
 
 ```env
-NEXT_PUBLIC_APP_URL=
-
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-
 TELEGRAM_BOT_TOKEN=
-TELEGRAM_MINI_APP_URL=
-
 SESSION_SECRET=
-```
-
-Назначение:
-
-```text
-NEXT_PUBLIC_APP_URL — URL приложения на Vercel
-TELEGRAM_MINI_APP_URL — URL Mini App, обычно тот же домен
-TELEGRAM_BOT_TOKEN — токен бота
-SUPABASE_URL — адрес Supabase
-SUPABASE_SERVICE_ROLE_KEY — серверный ключ Supabase
-SESSION_SECRET — секрет для подписи сессии
-```
-
-Важно:
-
-```text
-SUPABASE_SERVICE_ROLE_KEY нельзя использовать в клиентском коде.
-TELEGRAM_BOT_TOKEN нельзя использовать в клиентском коде.
-```
-
----
-
-## 7. Пользователь
-
-Пользователь хранится в таблице:
-
-```text
-users
-```
-
-Основной идентификатор:
-
-```text
-telegram_id
-```
-
-После первого входа создаются:
-
-```text
-users
-user_settings
-стартовые продукты
-стартовые шаблоны
-```
-
----
-
-## 8. Авторизация через Telegram
-
-### Поток
-
-1. Пользователь открывает Mini App.
-2. Мини-приложение получает:
-
-```ts
-window.Telegram.WebApp.initData
-```
-
-3. Фронтенд отправляет `initData` на сервер:
-
-```text
-POST /api/auth/telegram
-```
-
-4. Сервер проверяет подпись `initData`.
-5. Сервер достаёт `telegram_id`.
-6. Сервер создаёт или находит пользователя.
-7. Сервер создаёт сессию.
-8. Пользователь получает доступ к приложению.
-
-### Требования к сессии
-
-Cookie должна быть:
-
-```text
-httpOnly
-secure
-sameSite=lax
-```
-
-Для подписи сессии использовать `jose` или аналог.
-
-Если `initData` нет или она невалидна:
-
-```text
-Откройте приложение через Telegram-бота.
-```
-
----
-
-## 9. Доступ к базе данных
-
-Все операции с базой делать только на сервере.
-
-Использовать:
-
-```text
-Supabase service role client
-```
-
-Запрещено:
-
-```text
-Использовать Supabase anon key в браузере для прямой записи.
-Давать клиенту прямой доступ к таблицам.
-Хранить service role key в клиентском бандле.
-```
-
----
-
-## 10. Продукты
-
-Продукты хранятся только в нашей базе.
-
-Таблица:
-
-```text
-foods
-```
-
-Продукт содержит:
-
-```text
-название
-бренд
-состояние
-белки на 100 г
-жиры на 100 г
-углеводы на 100 г
-ккал на 100 г
-стандартная порция
-название стандартной порции
-избранное
-заметки
-```
-
-Никаких внешних идентификаторов и провайдерских полей в MVP не делаем.
-
----
-
-## 11. Состояние продукта
-
-Использовать значения:
-
-```text
-raw — сырой
-dry — сухой
-cooked — приготовленный
-as_is — как есть
-liquid — жидкий
-```
-
-Русские подписи:
-
-```text
-raw = сырой
-dry = сухой
-cooked = приготовленный
-as_is = как есть
-liquid = жидкий
-```
-
-Примеры:
-
-```text
-макароны — сухой
-рис — сухой
-овес — сухой
-куриное филе — сырой
-минтай — сырой
-тунец — сырой
-банан — как есть
-творог — как есть
-фета — как есть
-экспонента — как есть
-протеин — как есть
-оливковое масло — жидкий
-```
-
----
-
-## 12. Правило хранения БЖУ
-
-Продукты хранятся как значения на 100 г.
-
-Формула расчёта порции:
-
-```text
-белки = белки_на_100 * граммы / 100
-жиры = жиры_на_100 * граммы / 100
-углеводы = углеводы_на_100 * граммы / 100
-ккал = ккал_на_100 * граммы / 100
-```
-
-Отображение:
-
-```text
-Белки, жиры, углеводы: 1 знак после запятой
-Ккал: целое число
-```
-
-Если пользователь не указывает ккал, считать автоматически:
-
-```text
-ккал = белки * 4 + жиры * 9 + углеводы * 4
-```
-
----
-
-## 13. Приёмы пищи
-
-Использовать коды:
-
-```text
-breakfast
-lunch
-snack
-dinner
-pre_workout
-post_workout
-```
-
-Русские названия:
-
-```text
-breakfast = Завтрак
-lunch = Обед
-snack = Полдник
-dinner = Ужин
-pre_workout = До тренировки
-post_workout = После тренировки
-```
-
-Порядок отображения:
-
-```text
-1. Завтрак
-2. Обед
-3. Полдник
-4. До тренировки
-5. После тренировки
-6. Ужин
-```
-
----
-
-## 14. День питания
-
-Для каждого дня хранить:
-
-```text
-дата
-тип дня: отдых / тренировка
-цели БЖУ
-приёмы пищи
-продукты в приёмах
-```
-
-Если день ещё не создан, показать кнопки:
-
-```text
-Создать день отдыха
-Создать тренировочный день
-Скопировать вчера
-```
-
-При создании дня из шаблона создавать приёмы и продукты согласно шаблону.
-
-При создании пустого дня создавать пустые приёмы:
-
-```text
-Завтрак
-Обед
-Полдник
-До тренировки
-После тренировки
-Ужин
-```
-
----
-
-## 15. Копирование вчерашнего дня
-
-Если пользователь нажимает:
-
-```text
-Скопировать вчера
-```
-
-Сервер должен:
-
-1. Найти вчерашний день пользователя.
-2. Создать сегодняшний день.
-3. Скопировать тип дня.
-4. Скопировать цели.
-5. Скопировать приёмы пищи.
-6. Скопировать все продукты и граммы.
-
-Если сегодняшний день уже существует:
-
-```text
-Сегодняшний день уже существует.
-Заменить его копией вчерашнего?
-```
-
----
-
-## 16. Снапшоты в дневнике
-
-При добавлении продукта в приём пищи обязательно сохранять снимок:
-
-```json
-{
-  "name_snapshot": "Творог",
-  "grams": 200,
-  "protein": 34,
-  "fat": 10,
-  "carbs": 3,
-  "kcal": 238,
-  "per_100_snapshot": {
-    "protein": 17,
-    "fat": 5,
-    "carbs": 1.5,
-    "kcal": 119
-  }
-}
-```
-
-Это нужно, чтобы:
-
-```text
-история дневника не ломалась;
-изменение продукта не меняло старые записи;
-удаление продукта не уничтожало данные в прошлых днях.
-```
-
----
-
-## 17. Итоги дня
-
-На главном экране показывать:
-
-```text
-Факт:
-Белки
-Жиры
-Углеводы
-Ккал
-
-План:
-Белки
-Жиры
-Углеводы
-Ккал
-
-Осталось:
-Белки
-Жиры
-Углеводы
-Ккал
-```
-
-Если факт больше плана, показывать превышение.
-
----
-
-## 18. Экраны приложения
-
-### 18.1. `/today`
-
-Главный экран.
-
-Показать:
-
-```text
-Дата
-Тип дня
-План
-Факт
-Остаток
-Приёмы пищи
-Кнопки действий
-```
-
-Действия:
-
-```text
-Создать день отдыха
-Создать тренировочный день
-Скопировать вчера
-```
-
----
-
-### 18.2. `/foods`
-
-Список продуктов.
-
-Функции:
-
-```text
-поиск
-избранное
-недавние
-добавить продукт
-редактировать продукт
-удалить продукт
-переключить избранное
-```
-
----
-
-### 18.3. `/settings`
-
-Настройки целей.
-
-Разделы:
-
-```text
-День отдыха
-День тренировки
-```
-
-Поля:
-
-```text
-Белки
-Жиры
-Углеводы
-```
-
-Изменение целей не должно менять старые дни.
-
----
-
-## 19. Добавление продукта в приём пищи
-
-Поток:
-
-1. Пользователь нажимает «Добавить» возле приёма.
-2. Открывается экран выбора продукта.
-3. Показываются:
-
-```text
-Избранные
-Недавние
-Все продукты
-Поиск
-Добавить вручную
-```
-
-4. Пользователь выбирает продукт.
-5. Открывается экран граммов.
-6. Показываются:
-
-```text
-Название
-БЖУ на 100 г
-Граммы
-Итоговые БЖУ
-Ккал
-```
-
-7. Быстрые кнопки:
-
-```text
-10
-50
-100
-150
-200
-250
-300
-400
-```
-
-8. Кнопка стандартной порции:
-
-```text
-Стандартная порция
-```
-
-9. После сохранения продукт попадает в приём.
-
----
-
-## 20. Ручное добавление продукта
-
-Это основной способ создания продуктов в MVP.
-
-Поля формы:
-
-```text
-Название
-Бренд
-Состояние
-Белки на 100 г
-Жиры на 100 г
-Углеводы на 100 г
-Ккал на 100 г
-Стандартная порция в граммах
-Название стандартной порции
-Заметки
-Избранное
-```
-
-Валидация:
-
-```text
-Название обязательно.
-Белки, жиры, углеводы — числа >= 0.
-Ккал — число >= 0 или вычисляется автоматически.
-Стандартная порция — необязательное число > 0.
-```
-
----
-
-## 21. Стартовый сид продуктов
-
-При первом входе пользователя автоматически создавать стартовые продукты, если их ещё нет.
-
-Все стартовые продукты по умолчанию:
-
-```text
-is_favorite = true
-```
-
-### Список стартовых продуктов
-
-| Название | Состояние | Белки / 100 г | Жиры / 100 г | Углеводы / 100 г | Ккал / 100 г | Стандартная порция |
-|---|---:|---:|---:|---:|---:|---:|
-| Овес резаный | dry | 12 | 6 | 62 | 350 | 100 г |
-| Яйца куриные | as_is | 13.3 | 12 | 0.7 | 167 | 150 г = 3 шт |
-| Макароны сухие | dry | 14 | 2 | 70 | 354 | 100 г |
-| Томатная паста | as_is | 1 | 3 | 6 | 55 | 100 г |
-| Куриное филе | raw | 23 | 1 | 0 | 101 | 200 г |
-| Филе минтая | raw | 20 | 1 | 0 | 89 | 300 г |
-| Тунец | raw | 23 | 1 | 0 | 101 | 200 г |
-| Фета | as_is | 13 | 14 | 2 | 186 | 62.5 г |
-| Оливковое масло | liquid | 0 | 100 | 0 | 900 | 5 мл |
-| Протеин | as_is | 80 | 6 | 2 | 382 | 50 г |
-| Банан | as_is | 1.5 | 0.3 | 21 | 89 | 110 г = 1 шт |
-| Творог | as_is | 17 | 5 | 1.5 | 119 | 200 г |
-| Экспонента | as_is | 12.5 | 0 | 3.1 | 63 | 160 г |
-| Грецкие орехи | as_is | 15 | 60 | 10 | 640 | 20 г |
-| Рис сухой | dry | 7 | 1 | 71 | 321 | 100 г |
-
----
-
-## 22. Стартовые шаблоны дней
-
-При первом входе пользователя также создавать два шаблона, если их ещё нет.
-
----
-
-### Шаблон 1: День отдыха
-
-Название:
-
-```text
-День отдыха
-```
-
-Тип:
-
-```text
-rest
-```
-
-Состав:
-
-#### Завтрак
-
-```text
-Овес резаный — 80 г
-Яйца куриные — 150 г
-```
-
-#### Обед
-
-```text
-Макароны сухие — 80 г
-Томатная паста — 100 г
-Куриное филе — 200 г
-Фета — 62.5 г
-Оливковое масло — 5 г
-```
-
-#### Полдник
-
-```text
-Протеин — 50 г
-```
-
-#### Ужин
-
-```text
-Творог — 200 г
-Экспонента — 160 г
-Грецкие орехи — 20 г
-```
-
----
-
-### Шаблон 2: День тренировки
-
-Название:
-
-```text
-День тренировки
-```
-
-Тип:
-
-```text
-training
-```
-
-Состав:
-
-#### Завтрак
-
-```text
-Овес резаный — 100 г
-Яйца куриные — 150 г
-```
-
-#### Обед
-
-```text
-Макароны сухие — 100 г
-Томатная паста — 100 г
-Куриное филе — 200 г
-Фета — 62.5 г
-Оливковое масло — 5 г
-```
-
-#### До тренировки
-
-```text
-Банан — 110 г
-```
-
-#### После тренировки
-
-```text
-Банан — 110 г
-Протеин — 50 г
-```
-
-#### Ужин
-
-```text
-Творог — 200 г
-Экспонента — 160 г
-Грецкие орехи — 20 г
-```
-
----
-
-## 23. Логика генерации дня
-
-Когда пользователь создаёт день:
-
-1. Создать запись в `days`.
-2. Установить цели:
-   - если отдых: 200 / 70 / 130;
-   - если тренировка: 200 / 70 / 200.
-3. Найти шаблон по типу дня.
-4. Создать нужные приёмы пищи.
-5. Для каждого элемента шаблона:
-   - взять продукт;
-   - взять граммы;
-   - рассчитать БЖУ;
-   - сохранить в `meal_items` со снапшотом продукта.
-
-Порядок приёмов:
-
-```text
-breakfast = 10
-lunch = 20
-snack = 30
-pre_workout = 40
-post_workout = 50
-dinner = 60
-```
-
-Если шаблон отсутствует, создавать пустые приёмы.
-
----
-
-## 24. Требования к интерфейсу
-
-Интерфейс должен быть:
-
-```text
-мобильный
-русский
-крупные кнопки
-минимум полей
-быстрый поиск
-понятные пустые состояния
-```
-
-Нижняя навигация:
-
-```text
-Сегодня
-Тренировки
-Продукты
-Настройки
-```
-
----
-
-## 25. Ошибки и пустые состояния
-
-Если данных нет, показывать понятные пустые состояния.
-
-Примеры:
-
-```text
-Сегодня нет записей.
-Создайте день отдыха или тренировочный день.
-```
-
-```text
-Продукты пока не добавлены.
-```
-
-```text
-Не удалось загрузить данные.
-Повторить.
-```
-
-```text
-Откройте приложение через Telegram-бота.
-```
-
-Не показывать сырые технические ошибки пользователю.
-
----
-
-## 26. Офлайн-поведение
-
-Для текущего MVP не делать полноценный офлайн-режим.
-
-Допускается:
-
-```text
-показ ошибки, если нет сети;
-локальный черновик текущего дня в localStorage.
-```
-
-Полноценный offline-first не делаем.
-
----
-
-## 27. Уведомления
-
-В этой версии не делаем.
-
-Бот нужен только как точка входа:
-
-```text
-/start
-кнопка открытия Mini App
-```
-
----
-
-## 28. SQL-схема базы данных
-
-Создать файл:
-
-```text
-supabase/migrations/0001_init.sql
-```
-
-Содержимое:
-
-```sql
--- =========================================
--- Чистый MVP: дневник питания
--- Только своя база продуктов
--- =========================================
-
-create extension if not exists "pgcrypto";
-
--- -----------------------------------------
--- Пользователи
--- -----------------------------------------
-create table if not exists public.users (
-  id uuid primary key default gen_random_uuid(),
-  telegram_id bigint not null unique,
-  username text,
-  first_name text,
-  language_code text,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists users_telegram_id_idx
-  on public.users(telegram_id);
-
--- -----------------------------------------
--- Настройки пользователя
--- -----------------------------------------
-create table if not exists public.user_settings (
-  user_id uuid primary key references public.users(id) on delete cascade,
-  rest_protein numeric(8,2) not null default 200,
-  rest_fat numeric(8,2) not null default 70,
-  rest_carbs numeric(8,2) not null default 130,
-  training_protein numeric(8,2) not null default 200,
-  training_fat numeric(8,2) not null default 70,
-  training_carbs numeric(8,2) not null default 200,
-  updated_at timestamptz not null default now()
-);
-
--- -----------------------------------------
--- Продукты
--- -----------------------------------------
-create table if not exists public.foods (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  name text not null,
-  brand text,
-  state text not null default 'as_is' check (
-    state in ('raw', 'dry', 'cooked', 'as_is', 'liquid')
-  ),
-  protein_per_100 numeric(8,2) not null default 0,
-  fat_per_100 numeric(8,2) not null default 0,
-  carbs_per_100 numeric(8,2) not null default 0,
-  kcal_per_100 numeric(8,2) not null default 0,
-  default_portion_g numeric(8,2),
-  default_portion_label text,
-  is_favorite boolean not null default false,
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists foods_user_id_idx
-  on public.foods(user_id);
-
-create index if not exists foods_user_name_idx
-  on public.foods(user_id, name);
-
--- -----------------------------------------
--- Дни питания
--- -----------------------------------------
-create table if not exists public.days (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  date date not null,
-  is_training_day boolean not null default false,
-  target_protein numeric(8,2) not null default 200,
-  target_fat numeric(8,2) not null default 70,
-  target_carbs numeric(8,2) not null default 130,
-  target_kcal numeric(10,2) generated always as (
-    (target_protein * 4) + (target_fat * 9) + (target_carbs * 4)
-  ) stored,
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique(user_id, date)
-);
-
-create index if not exists days_user_date_idx
-  on public.days(user_id, date);
-
--- -----------------------------------------
--- Приёмы пищи
--- -----------------------------------------
-create table if not exists public.meals (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  day_id uuid not null references public.days(id) on delete cascade,
-  meal_type text not null check (
-    meal_type in (
-      'breakfast',
-      'lunch',
-      'snack',
-      'dinner',
-      'pre_workout',
-      'post_workout'
-    )
-  ),
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now(),
-  unique(day_id, meal_type)
-);
-
-create index if not exists meals_day_id_idx
-  on public.meals(day_id);
-
--- -----------------------------------------
--- Продукты в приёме пищи
--- -----------------------------------------
-create table if not exists public.meal_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  meal_id uuid not null references public.meals(id) on delete cascade,
-  food_id uuid references public.foods(id) on delete set null,
-  name_snapshot text not null,
-  grams numeric(8,2) not null check (grams > 0),
-  protein numeric(8,2) not null default 0,
-  fat numeric(8,2) not null default 0,
-  carbs numeric(8,2) not null default 0,
-  kcal numeric(10,2) not null default 0,
-  per_100_snapshot jsonb not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists meal_items_meal_id_idx
-  on public.meal_items(meal_id);
-
-create index if not exists meal_items_food_id_idx
-  on public.meal_items(food_id);
-
--- -----------------------------------------
--- Шаблоны дней
--- -----------------------------------------
-create table if not exists public.meal_templates (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  name text not null,
-  day_type text not null check (
-    day_type in ('rest', 'training')
-  ),
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists meal_templates_user_id_idx
-  on public.meal_templates(user_id);
-
--- -----------------------------------------
--- Состав шаблонов дней
--- -----------------------------------------
-create table if not exists public.meal_template_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.users(id) on delete cascade,
-  template_id uuid not null references public.meal_templates(id) on delete cascade,
-  meal_type text not null check (
-    meal_type in (
-      'breakfast',
-      'lunch',
-      'snack',
-      'dinner',
-      'pre_workout',
-      'post_workout'
-    )
-  ),
-  food_id uuid not null references public.foods(id) on delete cascade,
-  grams numeric(8,2) not null check (grams > 0),
-  sort_order integer not null default 0,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists meal_template_items_template_id_idx
-  on public.meal_template_items(template_id);
-
--- -----------------------------------------
--- updated_at триггеры
--- -----------------------------------------
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
-create trigger users_set_updated_at
-before update on public.users
-for each row execute function public.set_updated_at();
-
-create trigger user_settings_set_updated_at
-before update on public.user_settings
-for each row execute function public.set_updated_at();
-
-create trigger foods_set_updated_at
-before update on public.foods
-for each row execute function public.set_updated_at();
-
-create trigger days_set_updated_at
-before update on public.days
-for each row execute function public.set_updated_at();
-
-create trigger meal_items_set_updated_at
-before update on public.meal_items
-for each row execute function public.set_updated_at();
-
-create trigger meal_templates_set_updated_at
-before update on public.meal_templates
-for each row execute function public.set_updated_at();
-
--- -----------------------------------------
--- RLS
--- -----------------------------------------
--- Клиент не должен ходить в базу напрямую.
--- Сервер использует service role key.
-alter table public.users enable row level security;
-alter table public.user_settings enable row level security;
-alter table public.foods enable row level security;
-alter table public.days enable row level security;
-alter table public.meals enable row level security;
-alter table public.meal_items enable row level security;
-alter table public.meal_templates enable row level security;
-alter table public.meal_template_items enable row level security;
-```
-
----
-
-## 29. Типы данных в TypeScript
-
-Создать файл:
-
-```text
-src/lib/types.ts
-```
-
-Основные типы:
-
-```ts
-export type FoodState =
-  | 'raw'
-  | 'dry'
-  | 'cooked'
-  | 'as_is'
-  | 'liquid';
-
-export type MealType =
-  | 'breakfast'
-  | 'lunch'
-  | 'snack'
-  | 'dinner'
-  | 'pre_workout'
-  | 'post_workout';
-
-export type DayType =
-  | 'rest'
-  | 'training';
-
-export interface User {
-  id: string;
-  telegram_id: number;
-  username: string | null;
-  first_name: string | null;
-  language_code: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserSettings {
-  user_id: string;
-  rest_protein: number;
-  rest_fat: number;
-  rest_carbs: number;
-  training_protein: number;
-  training_fat: number;
-  training_carbs: number;
-  updated_at: string;
-}
-
-export interface Food {
-  id: string;
-  user_id: string;
-  name: string;
-  brand: string | null;
-  state: FoodState;
-  protein_per_100: number;
-  fat_per_100: number;
-  carbs_per_100: number;
-  kcal_per_100: number;
-  default_portion_g: number | null;
-  default_portion_label: string | null;
-  is_favorite: boolean;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Day {
-  id: string;
-  user_id: string;
-  date: string;
-  is_training_day: boolean;
-  target_protein: number;
-  target_fat: number;
-  target_carbs: number;
-  target_kcal: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Meal {
-  id: string;
-  user_id: string;
-  day_id: string;
-  meal_type: MealType;
-  sort_order: number;
-  created_at: string;
-}
-
-export interface MealItem {
-  id: string;
-  user_id: string;
-  meal_id: string;
-  food_id: string | null;
-  name_snapshot: string;
-  grams: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-  kcal: number;
-  per_100_snapshot: {
-    protein: number;
-    fat: number;
-    carbs: number;
-    kcal: number;
-  };
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MealTemplate {
-  id: string;
-  user_id: string;
-  name: string;
-  day_type: DayType;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MealTemplateItem {
-  id: string;
-  user_id: string;
-  template_id: string;
-  meal_type: MealType;
-  food_id: string;
-  grams: number;
-  sort_order: number;
-  created_at: string;
-}
-```
-
----
-
-## 30. Утилиты питания
-
-Создать файл:
-
-```text
-src/lib/nutrition.ts
-```
-
-Функции:
-
-```ts
-calcMacrosFromPer100(per100, grams)
-sumMealItems(items)
-sumMeals(mealsWithItems)
-formatMacro(value)
-formatKcal(value)
-getMealLabel(mealType)
-getMealOrder(mealType)
-```
-
-Пример:
-
-```ts
-function calcMacrosFromPer100(
-  per100: {
-    protein: number;
-    fat: number;
-    carbs: number;
-    kcal: number;
-  },
-  grams: number
-) {
-  return {
-    protein: (per100.protein * grams) / 100,
-    fat: (per100.fat * grams) / 100,
-    carbs: (per100.carbs * grams) / 100,
-    kcal: (per100.kcal * grams) / 100,
-  };
-}
-```
-
----
-
-## 31. Стартовый сид
-
-Создать файл:
-
-```text
-src/lib/seed.ts
-```
-
-Функция:
-
-```ts
-ensureInitialData(userId: string)
-```
-
-Логика:
-
-1. Проверить, есть ли продукты пользователя.
-2. Если нет — создать стартовые продукты.
-3. Проверить, есть ли шаблоны пользователя.
-4. Если нет — создать шаблоны.
-5. Связать элементы шаблонов с созданными продуктами по точному названию.
-
-Вызывать после успешной авторизации через Telegram.
-
----
-
-## 32. Архитектура кода
-
-Рекомендуемая структура:
-
-```text
-src/
-  app/
-    page.tsx
-    today/
-      page.tsx
-    foods/
-      page.tsx
-    food/
-      [id]/
-        page.tsx
-    settings/
-      page.tsx
-    api/
-      auth/
-        telegram/
-          route.ts
-      telegram/
-        webhook/
-          route.ts
-  components/
-    layout/
-      bottom-nav.tsx
-      app-header.tsx
-      telegram-gate.tsx
-    day/
-      day-summary.tsx
-      meal-card.tsx
-      meal-item-row.tsx
-      add-meal-item-sheet.tsx
-      copy-yesterday-button.tsx
-      create-day-buttons.tsx
-    foods/
-      food-list.tsx
-      food-form.tsx
-      food-search.tsx
-    ui/
-  lib/
-    supabase/
-      server.ts
-    telegram/
-      bot.ts
-      verify-init-data.ts
-    auth/
-      session.ts
-    nutrition.ts
-    seed.ts
-    types.ts
-    utils.ts
-```
-
----
-
-## 33. Telegram-бот
-
-Бот должен поддерживать:
-
-```text
-/start
-```
-
-Ответ:
-
-```text
-Привет! Это дневник питания.
-
-Здесь можно вести свои продукты, быстро добавлять приёмы пищи и видеть итог БЖУ за день.
-```
-
-Кнопка:
-
-```text
-Открыть дневник питания
-```
-
-Кнопка открывает Mini App.
-
----
-
-## 34. Telegram Mini App
-
-Mini App должен:
-
-```text
-вызывать Telegram.WebApp.ready()
-вызывать Telegram.WebApp.expand()
-работать внутри Telegram
-показывать ошибку вне Telegram
-```
-
-Если нет `initData`:
-
-```text
-Откройте приложение через Telegram-бота.
-```
-
----
-
-## 35. План реализации
-
-### Этап 1. Инициализация проекта
-
-Создать:
-
-```bash
-npx create-next-app@latest
-```
-
-Выбрать:
-
-```text
-TypeScript
-App Router
-Tailwind
-src directory
-```
-
-Установить:
-
-```bash
-npm install @supabase/supabase-js grammY @twa-dev/sdk date-fns zod lucide-react jose
-```
-
-Настроить:
-
-```text
-shadcn/ui
-```
-
----
-
-### Этап 2. Переменные окружения
-
-Создать:
-
-```text
-.env.local
-```
-
-Добавить:
-
-```env
 NEXT_PUBLIC_APP_URL=
-
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-
-TELEGRAM_BOT_TOKEN=
 TELEGRAM_MINI_APP_URL=
-
-SESSION_SECRET=
 ```
+
+`SESSION_SECRET` — не короче 32 символов.
+
+`TELEGRAM_MINI_APP_URL` или `NEXT_PUBLIC_APP_URL` — HTTPS URL Mini App для кнопки бота. Без HTTPS кнопка не ставится.
+
+На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`. В клиентский бандл не класть.
 
 ---
 
-### Этап 3. База данных
+## 3. Авторизация
 
-Создать:
+1. Mini App вызывает `Telegram.WebApp.ready()` и `expand()`.
+2. `POST /api/auth/telegram` с `{ initData }`.
+3. Сервер проверяет HMAC `initData` (окно 24 часа).
+4. Upsert `users` по `telegram_id`, при первом входе — `user_settings`.
+5. `ensureInitialData`: стартовые продукты, шаблоны еды, упражнения, шаблоны зала.
+6. HTTP-only cookie `session` (JWT jose, 7 дней, `sameSite=lax`, `secure` в production).
+
+Вне Telegram: «Откройте приложение через Telegram-бота.»
+
+В development без `initData`: `POST /api/auth/dev` (в production 404).
+
+---
+
+## 4. Навигация и экраны
+
+Нижняя панель — три вкладки:
 
 ```text
-supabase/migrations/0001_init.sql
+Сегодня      /today
+Тренировки   /workouts
+Настройки    /settings
 ```
 
-Вставить SQL из этой спеки.
+Продукты — не вкладка. Живут под Настройками: `/foods`, `/food/new`, `/food/[id]`. Вкладка «Настройки» подсвечивается и на этих путях.
 
-Применить миграцию в Supabase.
+`/` редиректит на `/today`.
 
----
-
-### Этап 4. Авторизация
-
-Сделать:
+### Питание
 
 ```text
-/api/auth/telegram
+/today                              день: дата, тип, БЖУ, приёмы, баннер зала
+/today?date=YYYY-MM-DD              прошлый день (будущие даты отсекаются)
+/today/history                      история дней: среднее, бары БЖУ
+/today/meals/[mealId]/add           выбор продукта
+/today/meals/[mealId]/add/[foodId]  граммы
+/today/items/[itemId]               правка граммов
+/foods                              список продуктов
+/food/new                           новый продукт
+/food/[id]                          правка / удаление
+/settings                           цели БЖУ, тема, ссылки на продукты / историю / прогресс / макро
 ```
 
-Реализовать:
+### Зал
 
 ```text
-проверку initData
-создание пользователя
-создание настроек
-выдачу сессии
+/workouts                      хаб: очередь, начать сегодня, фаза
+/workouts/schedule             круг шаблонов (порядок, вкл/выкл), не дни недели
+/workouts/templates/new        новый шаблон
+/workouts/templates/[id]       состав шаблона
+/workouts/sessions/[id]        шпаргалка сессии
+/workouts/exercises            список
+/workouts/exercises/new        упражнение + начальный максимум
+/workouts/exercises/[id]       правка, архив
+/workouts/macro                фазы, максимумы, переход
+/workouts/macro/new            первый макроцикл
+/workouts/progress             кривые максимумов
+/workouts/history              история сессий
 ```
+
+Пустые состояния и ошибки — человеческие фразы из `src/lib/messages.ts`. Сырые ошибки БД пользователю не показывать.
+
+Тема: светлая / тёмная, cookie, цвет шапки Telegram.
 
 ---
 
-### Этап 5. Стартовый сид
+## 5. Питание
 
-После первой успешной авторизации вызывать:
+### Продукты
 
-```ts
-ensureInitialData(userId)
-```
+Только своя база. Внешних каталогов, штрихкодов, импорта нет.
 
-Создавать:
+Поля: название, бренд, состояние, БЖУ и ккал на 100 г, стандартная порция (граммы + подпись), избранное, заметки.
+
+Состояния:
 
 ```text
-стартовые продукты
-стартовые шаблоны
+raw      сырой
+dry      сухой
+cooked   приготовленный
+as_is    как есть
+liquid   жидкий
 ```
 
----
-
-### Этап 6. Экран продуктов
-
-Сделать:
+БЖУ хранятся на 100 г. Порция:
 
 ```text
-/foods
+макро = макро_на_100 × граммы / 100
+ккал  = ккал_на_100 × граммы / 100
 ```
 
-Функции:
+Если ккал не указали при создании: `белки×4 + жиры×9 + углеводы×4`.
+
+Экран: 1 знак у БЖУ, ккал целые.
+
+Список: поиск по имени и бренду, фильтры Все / Избранное / Недавние. Недавние — уникальные `food_id` из последних `meal_items`. Добавление, правка, удаление, избранное.
+
+Удаление продукта не ломает старые дни: в `meal_items.food_id` — `on delete set null`, снапшот остаётся.
+
+### Приёмы
 
 ```text
-список
-поиск
-избранное
-добавление
-редактирование
-удаление
+breakfast      Завтрак
+lunch          Обед
+snack          Полдник
+pre_workout    До тренировки
+post_workout   После тренировки
+dinner         Ужин
 ```
 
----
+Порядок: завтрак → обед → полдник → до → после → ужин (`sort_order` 10…60).
 
-### Этап 7. Дневник питания
+На экране дня:
 
-Сделать:
+- отдых — без «до/после тренировки»;
+- тренировка — без полдника.
+
+В БД все шесть приёмов создаются всегда.
+
+### День
+
+Один день на пользователя: `unique(user_id, date)`.
+
+Тип: отдых / тренировка (`is_training_day`). Цели БЖУ копируются из `user_settings` в момент создания или смены типа. Старые дни от смены настроек не пересчитываются.
+
+Пустой день:
 
 ```text
-/today
+Отдых
+Как в зале
+Скопировать вчера
 ```
 
-Функции:
+Создание берёт шаблон еды того же типа (`meal_templates.day_type`). Нет шаблона — пустые приёмы.
+
+Копирование вчера: тип, цели, приёмы, снапшоты. Если день уже есть — подтверждение замены.
+
+Смена типа на экране дня переписывает цели из текущих настроек.
+
+### Снапшоты
+
+Каждая позиция в приёме хранит имя, граммы, БЖУ порции и `per_100_snapshot`. Правка продукта не меняет прошлые записи.
+
+### Цели по умолчанию
+
+Отдых: 200 / 70 / 130. Тренировка: 200 / 70 / 200. Ккал = Б×4 + Ж×9 + У×4 (в `days.target_kcal` — generated column).
+
+### Шаблоны еды
+
+Два шаблона сида: «День отдыха», «День тренировки». Экрана редактирования нет. Пользователь меняет уже созданный день.
+
+Состав сида — `src/lib/seed.ts`. Стартовые продукты сразу в избранном. Имена в сиде с уточнением состояния, например «Овес резаный сухой», «Куриное филе сырое».
+
+### История питания
+
+`/today/history`: дни с фактом и планом, бары БЖУ, среднее по загруженным (окно до 7), группировка по месяцам, переход на `/today?date=`.
+
+### Добавление в приём
+
+Избранные / недавние / все / поиск / создать вручную → граммы. Быстрые: 10, 50, 100, 150, 200, 250, 300, 400 и стандартная порция.
+
+---
+
+## 6. Тренировки
+
+Модель продукта — **шаблоны и круг**, не календарь ПН/СР/ПТ.
+
+### Упражнения
+
+Справочник пользователя. Архивация, не удаление.
+
+Поля: имя, короткое имя, категория, тип (динамика / статика / оба), единица, шаг веса `1 | 2.5 | 5`, пресет разминки, опциональный слот.
+
+Категории: `base` / `armwrestling` / `isolation`.
+
+В форме создания категория не выбирается: тип «оба» → армрестлинг, иначе база. Изоляция — у сидовых упражнений.
+
+Пресет разминки:
 
 ```text
-создание дня из шаблона
-переключение отдых / тренировка
-приёмы пищи
-добавление продукта
-граммы
-итоги
-копирование вчера
+barbell       штанга     50×5 / 70×3 / 80×1
+cable         блок       50×5 / 70×3
+cable_short   короткий   50×8 / 75×3
+none          без плана  упражнение не попадает в автоплан сессии
 ```
 
----
+Рабочие проценты пресет не меняет. Статика и сброс — своя схема, пресет динамики на них не накладывается.
 
-### Этап 8. Настройки
+При создании задаётся начальный глобальный максимум. Понизить глобальный рекорд формой нельзя. Фазовый максимум правится на экране макроцикла.
 
-Сделать:
+### Шаблоны и круг
+
+Шаблон: имя, вид (`dynamic` | `static`), `sort_order`, `is_active`, упорядоченный список упражнений.
+
+Круг = активные шаблоны по `sort_order`.
+
+Сид:
 
 ```text
-/settings
+Ноги и жим сидя   динамика   слот a
+Статика           статика    слот c (арм, тип both)
+Жимы и тяги       динамика   слот b
+Арм               динамика   слот c
 ```
 
-Функции:
+Слот упражнения нужен сиду, чтобы собрать эти четыре шаблона. В рантайме состав сессии берётся из шаблона, не из слота.
+
+Следующий шаблон: после последней не пропущенной сессии текущей фазы (без фазы — после последней сессии с `template_id`). GET хаба сессию не создаёт.
+
+Пропуск в круге: «Не это — взять следующую» пишет id в `skip_template_ids` (лежит внутри jsonb `workout_settings.formulas`). Дату не занимает. «Вернуть в круг» снимает последний пропуск. После выполненной сессии список пропусков очищается.
+
+Пользователь может начать не следующий шаблон — с подтверждением.
+
+### Сессии
+
+Одна тренировка на дату: `unique(user_id, session_date)`.
+
+Создаётся только по кнопке «Начать» (хаб, сегодня). Макроцикл и фаза подставляются, если есть; без макро — `macro_cycle_id` и `phase_id` пустые, веса как в разгоне от глобального максимума.
+
+Статусы: `planned` | `completed` | `skipped`. UI создаёт `planned`, завершает в `completed`. Не начатую сессию «Не получилось сегодня» **удаляет**, не помечает skipped. Статус `skipped` в схеме есть, продуктовый поток его не ставит.
+
+План упражнений: из шаблона, только с максимумом фазы или глобальным и пресетом ≠ `none`. Единица подхода — вид шаблона: динамика → повторы, статика → секунды.
+
+Экран сессии — шпаргалка в зале:
+
+- рабочие подходы сразу;
+- разминка скрыта, открывается тапом «Разминка»;
+- тап по подходу — правка веса / повторов / секунд (группа одинаковых);
+- «Сделал как в плане» копирует план в факт по всем подходам (с учётом правок). Подход за подходом не подтверждают.
+
+После завершения: ссылка на следующий шаблон круга; если в фазе набран полный круг — намёк закрыть фазу (сам не закроется).
+
+История: `/workouts/history` и блок на хабе (последние completed).
+
+### Макроциклы и фазы
+
+Порядок фаз: разгон → набор → рывок → сброс (`ramp` → `volume` → `peak` → `deload`).
+
+Один текущий макроцикл и одна текущая фаза на пользователя.
+
+Макро необязателен. Без него круг работает, схема весов — разгон.
+
+Переход фазы — руками на `/workouts/macro`. Круг фазу не закрывает. После числа completed-сессий ≥ размера круга показывается подсказка.
+
+Переходы максимумов:
 
 ```text
-цели отдыха
-цели тренировки
+разгон → набор     копировать
+набор → рывок      +max_increase_percent (по умолчанию 5%), FLOOR до шага упражнения
+рывок → сброс      копировать
+сброс → новый макро  закрыть макро, следующий номер, фаза разгон,
+                     максимумы с рывка (если рывка не было — с текущей фазы)
 ```
 
----
+Пользователь правит предложенные числа до подтверждения. `phase_maxes` только дополняются; текущий = последняя строка по `(phase_id, exercise_id)`.
 
-### Этап 9. Бот
+Глобальный рекорд (`global_maxes`) пишется при создании упражнения и если новый фазовый максимум больше текущего. С рабочего сета ~88% не обновляется.
 
-Сделать:
+После закрытого макро — карточка recap: прирост максимумов разгон → рывок.
+
+### Формулы весов
+
+Как в коде `src/lib/workout/default-formulas.ts` и `formulas.ts`.
 
 ```text
-/api/telegram/webhook
+вес = FLOOR(максимум × процент / 100, шаг_упражнения)
 ```
 
-Реализовать:
+FLOOR вниз, не к ближайшему. Шаг на упражнении.
+
+План сессии считается от **зашитых** `DEFAULT_WORKOUT_FORMULAS`, не от редактора jsonb. В `workout_settings.formulas` лежит копия схемы и служебные `_skip_template_ids`. Экрана правки процентов нет. Для перехода рывка читается `max_increase_percent` (дефолт 5). Глобальный `weight_step` в `workout_settings` на расчёт не влияет.
+
+Динамика, рабочие:
 
 ```text
-/start
-кнопку открытия Mini App
+разгон и рывок   88%×3 / 82%×5 / 76%×7
+набор            88%×5 / 82%×5 / 76%×7
+сброс            без разминки, 60%×5 три раза
 ```
 
----
-
-## 36. Критерии готовности
-
-Версия готова, если:
-
-1. Пользователь открывает бота.
-2. `/start` работает.
-3. Кнопка открывает Mini App.
-4. Mini App авторизует пользователя через Telegram.
-5. После первого входа автоматически созданы стартовые продукты.
-6. После первого входа автоматически созданы стартовые шаблоны.
-7. Можно открыть список продуктов.
-8. Можно добавить продукт вручную.
-9. Можно отредактировать продукт.
-10. Можно удалить продукт.
-11. Можно найти продукт поиском.
-12. Можно добавить продукт в избранное.
-13. Можно создать день отдыха из шаблона.
-14. Можно создать тренировочный день из шаблона.
-15. Можно скопировать вчерашний день.
-16. Можно добавить продукт в приём пищи.
-17. Можно изменить граммы.
-18. Можно удалить продукт из приёма.
-19. БЖУ и ккал считаются автоматически.
-20. Видно факт, план и остаток.
-21. Можно переключить день отдыха / тренировки.
-22. Нет функций, которые запрещены в этой версии.
-
----
-
-## 37. Правила для Cursor
-
-Во время работы над проектом:
-
-1. Не добавлять функции, которых нет в спеке.
-2. Не делать парсинг.
-3. Не делать краулер.
-4. Не делать внешние API продуктов.
-5. Не делать импорт продуктов из внешних источников.
-6. Не делать штрихкоды.
-7. Не делать добавки, графики и аналитику. Тренировки — отдельный модуль в этой же спеке.
-8. Не делать PWA.
-9. Не делать отдельный экран редактирования шаблонов.
-10. Использовать только свою базу продуктов.
-11. Все запросы к базе делать только через сервер.
-12. Не хранить секреты в клиентском коде.
-13. Использовать русский язык в интерфейсе.
-14. Делать мобильный интерфейс.
-15. При изменении продукта не пересчитывать старые приёмы пищи.
-16. Всегда хранить снапшот БЖУ в `meal_items`.
-17. Если есть неоднозначность, выбирать самый простой вариант, соответствующий спеке.
-
----
-
-## 38. Будущие этапы, не делать сейчас
-
-Позже можно добавить:
-
-1. Отдельный краулер, который будет наполнять базу продуктов.
-2. Импорт продуктов из краулера.
-3. Дедупликацию импортированных продуктов.
-4. Редактирование шаблонов дней.
-5. Утренние и вечерние сообщения в боте.
-6. Графики БЖУ.
-7. Аналитику по дням.
-8. Добавки.
-9. Штрихкоды.
-10. Публичный доступ.
-11. Telegram Stars.
-12. Платные функции.
-13. Импорт истории из Excel.
-14. Офлайн-режим.
-
----
-
-## 39. Первый промпт для Cursor
-
-После того как этот файл сохранён как `SPEC.md`, можно отправить Cursor:
+Статика:
 
 ```text
-Прочитай файл SPEC.md в корне проекта.
-
-Это спека чистого MVP приложения "Дневник питания армрестлера" в формате Telegram Mini App.
-
-Сейчас нужно сделать только свою базу продуктов и дневник питания.
-
-Не делай парсинг, краулер, внешние API, штрихкоды, тренировки, добавки, графики, аналитику, PWA и Telegram Stars.
-Не делай импорт продуктов из внешних источников.
-Все продукты должны быть только своими и храниться в нашей базе.
-
-Начни по шагам:
-
-1. Проверь текущую структуру проекта.
-2. Если проект ещё не создан, создай Next.js 15+ App Router проект с TypeScript, Tailwind CSS и src directory.
-3. Добавь зависимости:
-   - @supabase/supabase-js
-   - grammY
-   - @twa-dev/sdk
-   - date-fns
-   - zod
-   - lucide-react
-   - jose
-4. Настрой shadcn/ui.
-5. Создай структуру папок согласно SPEC.md.
-6. Создай файл src/lib/types.ts с типами из спеки.
-7. Создай файл src/lib/nutrition.ts с функциями расчёта БЖУ.
-8. Создай файл supabase/migrations/0001_init.sql и вставь туда SQL из спеки.
-9. Создай серверную проверку Telegram initData.
-10. Создай API route /api/auth/telegram.
-11. Создай src/lib/seed.ts со стартовыми продуктами и шаблонами.
-12. После этого остановись и покажи, что сделано.
-
-Не пытайся реализовать всё приложение за один раз.
-Двигайся по этапам из SPEC.md.
+разминка разгон/набор/рывок   50%×10с / 80%×3с / 100%×2с
+рабочие разгон и рывок        115%×6с три раза
+рабочие набор                 115%×8с / 6с / 6с
+сброс                         без разминки, 50%×3с два раза
 ```
 
-# Модуль тренировок: полная спецификация
-
-## 1. Суть модуля
-
-Дневник тренировок армрестлера с периодизацией по макроциклам.
-
-**Два типа тренировок:**
-- Динамика — подходы с повторениями
-- Статика — подходы с удержанием в секундах
-
-**Периодизация:**
-- Макроцикл → 4 фазы: разгон → набор → рывок → сброс
-- Максимум увеличивается на ~5% при переходе между фазами и макроциклами
-- Разгон и набор работают с одним максимумом
-- Рывок и сброс работают с повышенным максимумом
-
-**Принципы:**
-- История хранится навсегда, ничего не удаляется
-- Система всё предлагает сама, пользователь подтверждает или корректирует
-- Расписание настраивается и может меняться на лету
-- Формулы расчёта весов настраиваются, не зашиты жёстко
-
----
-
-## 2. Модель данных: таблицы
-
-### 2.1. Упражнения (exercises)
-
-Справочник упражнений. Создаётся один раз, переиспользуется.
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| name | TEXT, NOT NULL | Полное название: «подъем на плечелучевую с лямкой с нижнего блока» |
-| short_name | TEXT | Короткое название: «плечелучевая» |
-| category | ENUM | база / армрестлинг / изоляция |
-| workout_type | ENUM | динамика / статика / оба |
-| unit | ENUM | повторения / секунды |
-| is_active | BOOLEAN, DEFAULT true | Активно / архивировано |
-| created_at | TIMESTAMP | Дата создания |
-| archived_at | TIMESTAMP, NULL | Дата архивации |
-
-**Особенности:**
-- Архивация вместо удаления — история сохраняется
-- При создании нового упражнения нужно задать начальный максимум
-- Категория и тип тренировки определяют, в какие тренировки упражнение предлагается
-
----
-
-### 2.2. Макроциклы (macro_cycles)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| number | INTEGER, NOT NULL | Номер: 1, 2, 3, 4... |
-| start_date | DATE, NOT NULL | Дата начала |
-| end_date | DATE, NULL | Дата окончания (пустая, если ещё идёт) |
-| status | ENUM | текущий / завершённый |
-| note | TEXT, NULL | Примечание |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Одновременно только один текущий макроцикл
-- При завершении макро система предлагает создать следующий
-- Макро не удаляется, только завершается
-- Номер макроцикла увеличивается автоматически
-
----
-
-### 2.3. Фазы макроцикла (phases)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| macro_cycle_id | UUID, FK → macro_cycles | Ссылка на макроцикл |
-| phase_type | ENUM | разгон / набор / рывок / сброс |
-| start_date | DATE, NOT NULL | Дата начала |
-| end_date | DATE, NULL | Дата окончания (пустая, если ещё идёт) |
-| status | ENUM | текущая / завершённая |
-| order | INTEGER | Порядок фазы в макро: 1, 2, 3, 4 |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Фазы идут строго по порядку: разгон → набор → рывок → сброс
-- Одновременно только одна текущая фаза
-- При завершении фазы система предлагает создать следующую
-- После сброса система предлагает завершить макро и создать новый
-
----
-
-### 2.4. Максимумы фаз (phase_maxes)
-
-Максимум хранится для каждой фазы отдельно, так как он может меняться внутри макроцикла.
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| phase_id | UUID, FK → phases | Ссылка на фазу |
-| exercise_id | UUID, FK → exercises | Ссылка на упражнение |
-| max_weight | DECIMAL(6,2), NOT NULL | Максимум (вес) |
-| source | ENUM | автоматически / вручную |
-| set_at | TIMESTAMP | Дата установки |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Разгон и набор обычно имеют один максимум
-- Рывок и сброс обычно имеют повышенный максимум (+5%)
-- При создании новой фазы система копирует максимумы из предыдущей фазы
-- При переходе разгон → рывок система предлагает +5%
-- При переходе рывок → разгон (новый макро) система наследует максимум рывка
-- Пользователь может изменить любой максимум вручную
-
-**Паттерн изменения максимумов (на основе данных):**
-```
-Макро 1:
-  разгон: 200 → набор: 200 → рывок: 210 → сброс: 210
-Макро 2:
-  разгон: 210 → набор: 210 → рывок: 220 → сброс: 220
-Макро 3:
-  разгон: 220 → набор: 220 → рывок: 230 → сброс: 230
-Макро 4:
-  разгон: 230 → набор: 230 → рывок: 241 → сброс: 241
-```
-
----
-
-### 2.5. Глобальные максимумы (global_maxes)
-
-Рекорд пользователя по упражнению за всё время.
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| exercise_id | UUID, FK → exercises | Ссылка на упражнение |
-| max_weight | DECIMAL(6,2), NOT NULL | Рекордный вес |
-| achieved_at | DATE | Дата достижения |
-| phase_id | UUID, FK → phases, NULL | Фаза, в которой достигнут |
-| workout_session_id | UUID, FK → workout_sessions, NULL | Тренировка, в которой достигнут |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Обновляется автоматически, если рабочий вес в тренировке превысил текущий рекорд
-- Пользователь всегда видит свой рекорд за всё время
-- Хранится история рекордов (не только текущий)
-
----
-
-### 2.6. Расписание тренировок (schedule)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| day_of_week | INTEGER | День недели: 1=ПН, 2=ВТ, 3=СР, 4=ЧТ, 5=ПТ, 6=СБ, 7=ВС |
-| workout_type | ENUM | динамика / статика / отдых |
-| is_active | BOOLEAN, DEFAULT true | Активно |
-| created_at | TIMESTAMP | Дата создания |
-| updated_at | TIMESTAMP | Дата обновления |
-
-**Особенности:**
-- Настраивается пользователем (например, ПН/СР/ПТ — динамика)
-- Можно менять на лету — расписание не жёсткое
-- Если тренировка прошла в другой день — это просто отражается в факте, расписание не меняется
-- Используется для автоматического создания запланированных тренировок
-
----
-
-### 2.7. Тренировочные дни (workout_sessions)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| session_date | DATE, NOT NULL | Дата тренировки |
-| macro_cycle_id | UUID, FK → macro_cycles | Ссылка на макроцикл |
-| phase_id | UUID, FK → phases | Ссылка на фазу |
-| workout_type | ENUM | динамика / статика |
-| status | ENUM | в плане / сделана / пропущена |
-| note | TEXT, NULL | Примечание |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Создаются автоматически по расписанию (запланированные)
-- Пользователь может создать тренировку вручную (если расписание изменилось)
-- Статус меняется на «сделана», когда пользователь подтверждает тренировку
-- Пропущенные тренировки помечаются, но не удаляются
-
----
-
-### 2.8. Упражнения в тренировке (session_exercises)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| session_id | UUID, FK → workout_sessions | Ссылка на тренировку |
-| exercise_id | UUID, FK → exercises | Ссылка на упражнение |
-| order | INTEGER | Порядок выполнения |
-| max_weight | DECIMAL(6,2), NOT NULL | Максимум для этой тренировки |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Система предлагает список упражнений на основе фазы и типа тренировки
-- Пользователь может убрать лишние или добавить новые
-- Порядок можно менять
-- Максимум копируется из таблицы phase_maxes для текущей фазы
-
----
-
-### 2.9. Подходы (sets)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID, PK | Уникальный идентификатор |
-| session_exercise_id | UUID, FK → session_exercises | Ссылка на упражнение в тренировке |
-| set_type | ENUM | разминка / рабочий |
-| set_number | INTEGER | Номер подхода: 1, 2, 3 |
-| planned_weight | DECIMAL(6,2), NULL | Расчётный вес (от системы) |
-| planned_reps | INTEGER, NULL | Расчётные повторения (для динамики) |
-| planned_seconds | DECIMAL(4,1), NULL | Расчётные секунды (для статики) |
-| actual_weight | DECIMAL(6,2), NULL | Фактический вес (от пользователя) |
-| actual_reps | INTEGER, NULL | Фактические повторения |
-| actual_seconds | DECIMAL(4,1), NULL | Фактические секунды |
-| is_completed | BOOLEAN, DEFAULT false | Выполнено |
-| created_at | TIMESTAMP | Дата создания |
-
-**Особенности:**
-- Система предлагает веса на основе максимума и фазы
-- Пользователь может изменить любой вес
-- Факт и расчёт хранятся отдельно — для будущего анализа
-- Для статики вместо повторений используются секунды
-- Подход считается выполненным, когда заполнены фактические значения и is_completed = true
-
----
-
-## 3. Связи между таблицами
-
-```
-exercises (1) ──── (М) phase_maxes (М) ──── (1) phases (М) ──── (1) macro_cycles
-                                                     │
-                                                     ├── (М) workout_sessions
-                                                     │          │
-                                                     │          ├── (М) session_exercises
-                                                     │          │          │
-                                                     │          │          └── (М) sets
-                                                     │          │
-                                                     │          └── (М) phase_maxes (через session_exercises.max_weight)
-                                                     │
-exercises (1) ──── (М) global_maxes
-                                                     │
-schedule (независимо, настраивается отдельно)
-```
-
-**Ключевые связи:**
-- Упражнение может иметь разные максимумы в разных фазах
-- Фаза привязана к макроциклу
-- Тренировка привязана к фазе и макроциклу
-- Подходы привязаны к упражнению в тренировке
-- Глобальный максимум привязан к упражнению
-
----
-
-## 4. Формулы расчёта весов
-
-Источник правды — `scratch/Дневник тренировок.xlsx`. Старые 87.5/80/72.5, 59% и 114% — ошибка обратного расчёта из уже округлённого веса. Дефолт ядра — схема макро 2–4.
-
-### 4.1. Как считается вес
-
-```text
-вес = FLOOR(максимум_фазы × процент / 100, шаг_упражнения)
-```
-
-`FLOOR` — вниз, никогда к ближайшему.
-
-Шаг живёт на упражнении, не глобально:
-
-```text
-2.5 — штанга
-1   — блок, гантели, стек
-5   — крупные базовые, если так удобнее
-```
-
-Примеры из дневника:
-
-```text
-210 × 87.5% , шаг 2.5 → FLOOR(183.75, 2.5) = 182.5
-220 × 60%   , шаг 2.5 → FLOOR(132, 2.5)    = 130
-76  × 115%  , шаг 1   → FLOOR(87.4, 1)     = 87
-```
-
-Пользователь может перебить любой вес вручную. План и факт хранятся отдельно.
-
-Прирост максимума на рывке тоже FLOOR до шага упражнения:
-
-```text
-220 × 1.05 , шаг 2.5 → 230
-```
-
-Число 241 в дневнике — ручная правка, не формула.
-
-### 4.2. Что видит пользователь
-
-Человек не редактирует проценты. Система считает сама.
-
-На упражнении настраивается только:
-
-```text
-шаг         1 / 2.5 / 5
-пресет      штанга / блок / блок короткая / без процентов
-```
-
-Состав тренировки живёт в шаблоне, не на упражнении.
-
-Пресет меняет только разминку динамики. Рабочие проценты и вся статика берутся из фазы.
-
-```text
-штанга          разминка 50×5 / 70×3 / 80×1
-блок            разминка 50×5 / 70×3
-блок короткая   разминка 50×8 / 75×3
-без процентов   подходы не считаются, только факт
-```
-
-В сбросе разминки нет, пресет её не добавляет.
-
-### 4.3. Динамика: рабочие
-
-С макро 2 рабочие проценты одинаковые во всех рабочих фазах:
-
-```text
-88% / 82% / 76%
-```
-
-Повторы:
-
-```text
-разгон и рывок:  3 / 5 / 7
-набор:           5 / 5 / 7
-```
-
-Сброс динамики: без разминки, три рабочих `60% × 5`.
-
-Пример, максимум 220, шаг 2.5, разгон:
+Пример, максимум 220, шаг 2.5, динамика разгон, пресет штанга:
 
 ```text
 Разминка: 110×5 / 152.5×3 / 175×1
 Рабочие:  192.5×3 / 180×5 / 165×7
 ```
 
-Сброс того же максимума:
-
-```text
-130×5 / 130×5 / 130×5
-```
-
-Схема макро 1 (87.5/80/72.5 и сброс 50%×10) — история, не дефолт.
-
-### 4.4. Статика
-
-Разминка разгон/набор/рывок (секунды, шаг 1 кг):
-
-```text
-50% × 10с / 80% × 3с / 100% × 2с
-```
-
-Рабочие — **115%**, не 114%:
-
-```text
-разгон и рывок:  6 / 6 / 6
-набор:           8 / 6 / 6
-```
-
-Сброс статики: без разминки, два рабочих `50% × 3с`.
-
-Пример, максимум 76:
+Статика, максимум 76, шаг 1:
 
 ```text
 Разминка: 38×10с / 60×3с / 76×2с
 Рабочие:  87×6с / 87×6с / 87×6с
 ```
 
-Макро 1–2 сброс статики мог быть с резиной: упражнения в сессии есть, `planned_weight` пустой. В MVP достаточно nullable веса и заметки сессии.
+Один максимум фазы на упражнение для динамики и статики.
 
-### 4.5. Шаблоны и круг
+### Прогресс
 
-Недельное «ПН/СР/ПТ динамика» не описывает дневник. Тренировка — сохранённый шаблон: имя, тип (динамика / статика), упорядоченный список упражнений. Одно упражнение может быть в нескольких шаблонах.
+`/workouts/progress`: кривые по упражнениям (точки — максимумы фаз, иначе глобальные), фильтр база / арм / изоляция, среднее изменение с первых точек.
 
-Круг — порядок активных шаблонов. Стартовый набор как в дневнике:
+---
+
+## 7. Связь еда ↔ зал
+
+Общий ключ — календарная дата.
+
+Старт сессии: если день питания на эту дату уже есть и он отдых — сервер ставит тренировочный тип и цели зала. День питания сам не создаётся.
+
+Баннер на «Сегодня»: если сессия есть — ссылка на неё; если нет и это сегодня — следующий шаблон круга («Начни, если идёшь в зал»).
+
+Тип дня питания пользователь может переключить вручную независимо от зала.
+
+---
+
+## 8. Кэш last-known
+
+`src/lib/api-cache.ts`: GET-ответы в `localStorage` (`yb.v1:`). Сначала показать кэш, потом сеть. Если сеть упала и кэш есть — остаться на кэше, экран рабочий. Это не offline-first: новые записи без сети не ставятся в очередь, service worker нет.
+
+---
+
+## 9. Бот и Mini App
+
+Бот: только `/start`. Текст — дневник питания и тренировок. Кнопка «Открыть дневник» (webApp).
+
+Webhook: `POST /api/telegram/webhook`.
+
+Уведомлений, рассылок, Stars нет.
+
+Mini App: `ready` + `expand`, авторизация `initData`, иначе экран «через бота».
+
+---
+
+## 10. Схема
+
+Миграции по порядку:
 
 ```text
-Ноги и жим сидя
-Статика
-Жимы и тяги
-Арм
-→ снова ноги
+supabase/migrations/0001_init.sql              users, settings, foods, days, meals, meal_items, meal_templates
+supabase/migrations/0002_exercises.sql         workout_settings, exercises, global_maxes
+supabase/migrations/0003_macro_cycles.sql      macro_cycles, workout_phases, phase_maxes
+supabase/migrations/0004_schedule.sql          workout_schedule, workout_sessions
+supabase/migrations/0005_sets.sql              session_exercises, workout_sets
+supabase/migrations/0006_slots_and_steps.sql   weight_step, formula_preset, slot на exercises/sessions
+supabase/migrations/0007_templates.sql         workout_templates, template_exercises; template_id; макро/фаза на сессии nullable
 ```
 
-Следующий шаблон считается от последней не пропущенной сессии текущей фазы (без фазы — от последней сессии вообще). Дату пользователь выбирает сам. Система не создаёт сессию молча при открытии хаба.
+Актуальная схема — сумма этих файлов, не один `0001`.
 
-Одна тренировка на дату: `unique(user_id, session_date)`.
+### Питание
 
-На сессию попадают упражнения шаблона. Единица подхода берётся из типа шаблона: динамика → повторы, статика → секунды.
+`users` — `telegram_id` уникален.
 
-Фаза макроцикла не меняет состав. Она меняет рецепт: проценты, повторы, секунды. Без макроцикла круг идёт со схемой разгона от глобального максимума.
+`user_settings` — цели отдыха и тренировки.
 
-На экране сессии план читается целиком. Одна кнопка «Сделал как в плане» пишет факт = план. Если вес меняли — правят упражнение и жмут ту же кнопку. Подтверждать каждый подход нельзя.
+`foods` — продукты пользователя.
 
-### 4.6. Два максимума
+`days` — дата, `is_training_day`, цели; `target_kcal` generated.
 
-Колонка «м» в Excel — тренировочный максимум для процентов (`phase_maxes`). Это не 1ПМ и не лучший рабочий подход.
+`meals` — `meal_type`, `sort_order`; unique `(day_id, meal_type)`.
+
+`meal_items` — снапшот + `food_id` nullable.
+
+`meal_templates` / `meal_template_items` — сид шаблонов дня.
+
+### Зал
+
+`exercises` — архив через `is_active` / `archived_at`.
+
+`global_maxes` — история рекордов, строки не обновляются.
+
+`macro_cycles` — номер, статус current/completed; один current на пользователя.
+
+`workout_phases` — тип фазы, sort_order 1–4; одна current на пользователя.
+
+`phase_maxes` — append-only.
+
+`workout_templates` / `workout_template_exercises` — круг и состав.
+
+`workout_sessions` — дата, вид, `template_id`, nullable макро/фаза, `slot` (legacy).
+
+`session_exercises` / `workout_sets` — план и факт отдельно (`planned_*` / `actual_*`).
+
+`workout_settings` — `max_increase_percent`, jsonb `formulas` (дефолтная схема + `_skip_template_ids`).
+
+### Legacy в БД, не продукт
+
+`workout_schedule` — дни недели. API `GET/PATCH /api/schedule` есть, UI не использует. Сессии по weekday не создаются.
+
+`exercises.slot` (`a`/`b`/`c`) — группировка сида шаблонов. Форма упражнения слот не показывает.
+
+`workout_sessions.slot` — запасной путь плана, если у сессии нет `template_id`. Новые сессии всегда с шаблоном.
+
+`nextSlotAfter` / `kindFromSlot` — не драйвер круга.
+
+---
+
+## 11. Коды и подписи (зал)
 
 ```text
-phase_maxes  — база формул. +5% на рывке — предложение, человек подтверждает любое число, в том числе 0% или снижение.
-global_maxes — витрина рекорда. Не обновлять автоматически с рабочего сета ~88%.
+exercise.category         base | armwrestling | isolation
+exercise.workout_type     dynamic | static | both
+exercise.unit             reps | seconds
+formula_preset            barbell | cable | cable_short | none
+macro/phase.status        current | completed
+phase_type                ramp | volume | peak | deload
+phase_maxes.source        auto | manual
+session.workout_type      dynamic | static
+session.status            planned | completed | skipped
+set_type                  warmup | work
 ```
-
-Одно арм-упражнение имеет один максимум фазы на динамику и статику.
-
-
-
-## 5. Логика переходов фаз и макроциклов
-
-### 5.1. Жизненный цикл
-
-1. Пользователь создаёт макроцикл №1
-2. Задаёт максимумы по всем упражнениям вручную (это первый макро)
-3. Создаётся фаза «разгон»
-4. Тренировки идут по кругу шаблонов. Фаза меняет веса и повторы, не состав
-5. Пользователь завершает «разгон» → система создаёт «набор»
-   - Максимумы копируются из «разгона» без изменений
-6. Завершает «набор» → система создаёт «рывок»
-   - Система предлагает максимумы +5% от «набора»
-7. Завершает «рывок» → система создаёт «сброс»
-   - Максимумы копируются из «рывка» без изменений
-8. Завершает «сброс» → система предлагает:
-   - Завершить макроцикл №1
-   - Создать макроцикл №2
-   - Создать фазу «разгон» в макроцикле №2
-   - Максимумы наследуются из «рывка» макроцикла №1 (или предлагаются +5%)
-9. Пользователь подтверждает или корректирует максимумы вручную
-
-### 5.2. Паттерн изменения максимумов
-
-```
-Макро 1:
-  разгон: 200 → набор: 200 → рывок: 210 (+5%) → сброс: 210
-Макро 2:
-  разгон: 210 → набор: 210 → рывок: 220 (+5%) → сброс: 220
-Макро 3:
-  разгон: 220 → набор: 220 → рывок: 230 (+5%) → сброс: 230
-Макро 4:
-  разгон: 230 → набор: 230 → рывок: 241 (+5%) → сброс: 241
-```
-
-**Правило:**
-- Разгон → набор: максимум без изменений
-- Набор → рывок: максимум +5%
-- Рывок → сброс: максимум без изменений
-- Сброс → разгон (новый макро): максимум наследуется из рывка предыдущего макро
-
----
-
-## 6. Автоматизация
-
-### 6.1. Что система предлагает автоматически
-
-- Следующий шаблон по кругу
-- Список упражнений из шаблона
-- Максимумы для упражнений (копируются из предыдущей фазы или глобальный)
-- Веса разминки и рабочих подходов (на основе максимума и фазы)
-- Повторения / секунды удержания
-- Переход к следующей фазе
-- Создание нового макроцикла с максимумами
-
-### 6.2. Что пользователь делает
-
-- Собирает шаблоны и их порядок в круге
-- Начинает предложенную тренировку
-- Корректирует веса, если нужно
-- Жмёт «Сделал как в плане»
-- На переходах фаз подтверждает или правит максимумы
-
----
-
-## 7. История и хранение
-
-### 7.1. Всё хранится навсегда
-
-- Все макроциклы
-- Все фазы
-- Все тренировки
-- Все подходы с фактическими весами
-- Все максимумы (по фазам и глобальные)
-
-### 7.2. Ничего не удаляется
-
-- Упражнения архивируются, а не удаляются
-- Тренировки помечаются как пропущенные, а не удаляются
-- Максимумы имеют историю изменений
-
-### 7.3. Это дневник жизни
-
-Потом на основе этой истории будут строиться анализы и графики.
-
----
-
-## 8. Интеграция с питанием
-
-### 8.1. Связь через дату
-
-- Тренировочный день привязан к дате
-- День питания тоже привязан к дате
-- По дате можно сопоставить: что ел + как тренировался
-
-### 8.2. Использование в питании
-
-- Тип дня в питании (отдых / тренировка) может подтягиваться из расписания тренировок
-- Если сегодня тренировка — план БЖУ тренировочный
-- Если отдых — план отдыха
-
----
-
-## 9. Что потом (не делать сейчас)
-
-**Аналитика:**
-- Прогресс рабочих весов по упражнениям
-- Прогресс максимумов по макроциклам
-- Сравнение фаз между собой
-- Объём тренировок (тоннаж)
-
-**Графики:**
-- Кривая прогресса по упражнению
-- Сравнение макроциклов
-- Частота тренировок
-
-**Отчёты:**
-- Итоги макроцикла
-- Прирост максимумов
-- Соблюдение плана
-
-**Уведомления:**
-- Напоминание о тренировке
-- Напоминание о переходе фазы
-
----
-
-## 10. Порядок реализации
-
-### Этап 1: Справочники и максимумы
-
-1. Создать таблицу exercises
-2. Создать таблицу global_maxes
-3. Экран управления упражнениями
-4. Создание упражнения с заданием начального максимума
-5. Просмотр глобальных максимумов
-
-### Этап 2: Макроциклы и фазы
-
-1. Создать таблицы macro_cycles, phases, phase_maxes
-2. Создание первого макроцикла
-3. Задание максимумов по упражнениям
-4. Создание фазы разгон
-5. Логика перехода между фазами
-
-### Этап 3: Расписание и тренировки
-
-1. Создать таблицу schedule
-2. Создать таблицу workout_sessions
-3. Настройка расписания (ПН/СР/ПТ)
-4. Автоматическое создание запланированных тренировок
-5. Экран тренировки со списком упражнений
-
-### Этап 4: Упражнения в тренировке и подходы
-
-1. Создать таблицы session_exercises, sets
-2. Предложение весов на основе максимума и фазы
-3. Ввод фактических весов
-4. Отметка выполненных подходов
-
-### Этап 5: Переходы и автоматизация
-
-1. Завершение фазы → создание следующей
-2. Завершение макро → создание нового
-3. Копирование максимумов между фазами
-4. Предложение +5% при переходе набор → рывок
-
----
-
-## 11. Критерии готовности модуля
-
-**Модуль готов, когда:**
-
-1. ✅ Можно создать упражнение и задать максимум
-2. ✅ Можно создать макроцикл с максимумами по упражнениям
-3. ✅ Можно создать фазу разгон
-4. ✅ Можно настроить расписание ПН/СР/ПТ
-5. ✅ Система автоматически создаёт запланированные тренировки
-6. ✅ Система предлагает веса подходов на основе максимума и фазы
-7. ✅ Можно записать фактические веса и повторения/секунды
-8. ✅ Можно завершить фазу и создать следующую
-9. ✅ Максимумы копируются между фазами
-10. ✅ При переходе набор → рывок система предлагает +5%
-11. ✅ Можно завершить макро и создать новый
-12. ✅ Вся история сохраняется и доступна для просмотра
-13. ✅ Глобальный максимум по упражнению виден пользователю
-14. ✅ Для нового упражнения можно задать максимум вручную
-
----
-
-## 12. Правила для Cursor
-
-При работе над модулем тренировок:
-
-1. Не делать аналитику и графики — это потом
-2. Не делать уведомления — это потом
-3. Проценты рабочих подходов — ядро из раздела 4. В UI настраиваются шаг, пресет разминки и состав шаблона, не jsonb-карта процентов
-4. Хранить всё — это дневник жизни, ничего не удалять
-5. Всё предлагать автоматически, но давать пользователю менять
-6. Не привязываться жёстко к расписанию — оно может меняться
-7. Динамика и статика — разные типы тренировок, но одна структура данных
-8. Единица измерения зависит от типа тренировки: повторения или секунды
-9. Максимумы хранятся для каждой фазы отдельно
-10. История максимумов не перезаписывается, только дополняется
-11. В статике рабочие веса выше 100% от максимума (115%)
-12. Разминка и рабочие подходы считаются от максимума фазы
-13. Веса: FLOOR вниз до шага упражнения (1 / 2.5 / 5), не к ближайшему
-14. Факт и расчёт хранятся отдельно — для будущего анализа
-15. Все таблицы тренировок содержат `user_id`
-16. Упражнения архивируются, а не удаляются
-17. Клиент не ходит в Supabase напрямую — только через API Next.js
-18. На сессии одна кнопка «сделал как в плане». Не подтверждать каждый подход
-
----
-
-## 13. Доработки для реализации
-
-Спека выше описывает модель. Ниже — решения, без которых модуль не стыкуется с уже существующим Mini App.
-
-### 13.1. Мультипользователь
-
-Все таблицы питания уже имеют `user_id`. Таблицы тренировок тоже:
 
 ```text
-user_id uuid not null references public.users(id) on delete cascade
-```
-
-Одновременно один текущий макроцикл и одна текущая фаза **на пользователя**.
-
-### 13.2. Имена таблиц и колонок
-
-В Postgres `order` — зарезервированное слово, `phases` и `schedule` слишком общие.
-
-| В модели | В SQL |
-|---|---|
-| phases | workout_phases |
-| schedule | workout_schedule |
-| sets | workout_sets |
-| order | sort_order |
-
-Плюс таблица настроек формул:
-
-```text
-workout_settings
-```
-
-### 13.3. Коды перечислений
-
-Как в питании: `text` + `check`, не Postgres ENUM.
-
-```text
-exercise.category:        base | armwrestling | isolation
-exercise.workout_type:    dynamic | static | both
-exercise.unit:            reps | seconds
-macro_cycles.status:      current | completed
-workout_phases.phase_type: ramp | volume | peak | deload
-workout_phases.status:    current | completed
-phase_maxes.source:       auto | manual
-workout_schedule.workout_type: dynamic | static | rest
-workout_sessions.workout_type: dynamic | static
-workout_sessions.status:  planned | completed | skipped
-workout_sets.set_type:    warmup | work
-```
-
-Русские подписи:
-
-```text
-base = база
-armwrestling = армрестлинг
-isolation = изоляция
-dynamic = динамика
-static = статика
-both = оба
-reps = повторения
-seconds = секунды
+base = База
+armwrestling = Армрестлинг
+isolation = Изоляция
+dynamic = Динамика
+static = Статика
+both = Оба
 ramp = Разгон
 volume = Набор
 peak = Рывок
 deload = Сброс
-current = текущий
-completed = завершённый
 planned = В плане
+completed = Сделана
 skipped = Пропущена
-warmup = разминка
-work = рабочий
-auto = автоматически
-manual = вручную
+warmup = Разминка
+work = Рабочий
 ```
 
-### 13.4. Настройки формул
+---
 
-В `workout_settings` остаются только:
+## 12. Правила, которые остаются в силе
 
-```text
-max_increase_percent numeric default 5
-formulas jsonb
-```
+1. Только своя база продуктов. Нет внешних API, краулера, штрихкодов, Open Food Facts и импорта.
+2. База только с сервера. Секреты не в клиенте.
+3. Снапшоты в `meal_items`. Правка продукта не пересчитывает историю.
+4. Упражнения архивировать, не удалять. История сессий и максимумов — дневник, не затирать.
+5. `phase_maxes` и `global_maxes` дополнять, не UPDATE текущей строки.
+6. Состав сессии — шаблон. Круг — `sort_order` активных шаблонов.
+7. Сессия не создаётся молча при GET. Одна сессия на дату.
+8. Веса: FLOOR до шага упражнения. План и факт раздельно.
+9. На сессии одна кнопка «сделал как в плане».
+10. UI русский, мобильный.
+11. Кэш last-known — показывать сразу; полный offline-first не делать.
+12. Шаблоны еды не редактировать отдельным экраном, пока его нет в продукте.
 
-Глобальный `weight_step` больше не источник расчёта — шаг на упражнении.
+---
 
-`formulas` — рабочие проценты и повторы/секунды по `dynamic|static` × фазе. Разминку динамики накладывает пресет упражнения. UI jsonb не редактирует.
+## 13. Сейчас не делаем
 
-Дефолты — раздел 4 (88/82/76, сброс 60%, статика 115%).
-
-На `exercises`:
-
-```text
-weight_step      1 | 2.5 | 5
-formula_preset   barbell | cable | cable_short | none
-```
-
-`slot` в БД может остаться у старых строк, источником состава не является.
-
-Шаблоны:
-
-```text
-workout_templates            name, kind dynamic|static, sort_order, is_active
-workout_template_exercises   template_id, exercise_id, sort_order
-workout_sessions.template_id от какого шаблона создана сессия
-```
-
-Круг = активные шаблоны по `sort_order`. `workout_schedule` по дням недели экраном не используется.
-
-### 13.5. История максимумов
-
-`global_maxes` и `phase_maxes` только дополняются, строки не обновляются и не удаляются.
-
-- Текущий максимум фазы = последняя строка по `(phase_id, exercise_id)` с наибольшим `set_at`.
-- Глобальный рекорд не писать с рабочего сета. Писать при создании упражнения и если новый `phase_max` больше текущего рекорда.
-- Понижать глобальный рекорд через форму нельзя. Фазовый максимум понижать можно.
-
-### 13.6. Экраны
-
-Нижняя навигация: Сегодня · Тренировки · Продукты · Настройки.
-
-```text
-/workouts                         хаб: фаза, следующий шаблон, сегодняшняя сессия
-/workouts/exercises               список: шаг, рабочий максимум
-/workouts/exercises/new           упражнение: шаг, пресет, максимум
-/workouts/exercises/[id]          правка, архив
-/workouts/macro                   фазы и переход
-/workouts/macro/new               максимумы по упражнениям
-/workouts/schedule                круг шаблонов
-/workouts/templates/new           новый шаблон
-/workouts/templates/[id]          состав шаблона
-/workouts/sessions/[id]           план + «сделал как в плане»
-```
-
-### 13.7. Круг и сессии
-
-- Одна тренировка на дату: `unique(user_id, session_date)`.
-- У сессии есть `template_id`. Старый `slot` только история.
-- Круг: активные шаблоны по `sort_order`.
-- Сессия не создаётся при GET хаба. Хаб показывает следующий шаблон и кнопку «Начать сегодня».
-- Макроцикл не обязателен: без фазы веса считаются от глобального максимума схемой разгона.
-- `macro_cycle_id` и `phase_id` на сессии nullable.
-
-### 13.8. Предложение упражнений на сессию
-
-- Упражнения шаблона в его порядке, у которых есть максимум фазы или глобальный.
-- Состав правится в шаблоне, не в уже начатой сессии.
-- Единица подхода — из типа шаблона: динамика → повторы, статика → секунды.
-- Вес подхода: `FLOOR(max × percent / 100, exercise.weight_step)`.
-- «Сделал как в плане» копирует план в факт по всем подходам.
-
-### 13.9. Переходы
-
-```text
-разгон → набор:     копировать максимумы
-набор → рывок:      предложить +max_increase_percent (по умолчанию 5%)
-рывок → сброс:      копировать максимумы
-сброс → новый макро: завершить макро, создать следующий, фаза разгон,
-                     максимумы из рывка предыдущего макро
-```
-
-Пользователь подтверждает предложенные максимумы или правит их до создания фазы.
-
-### 13.10. SQL-файлы
-
-```text
-supabase/migrations/0002_exercises.sql
-supabase/migrations/0003_macro_cycles.sql
-supabase/migrations/0004_schedule.sql
-supabase/migrations/0005_sets.sql
-supabase/migrations/0006_slots_and_steps.sql
-supabase/migrations/0007_templates.sql
-```
+- краулер, парсинг сайтов, внешние каталоги продуктов;
+- штрихкоды и сканер;
+- добавки / витамины как отдельная сущность;
+- PWA, service worker, очередь офлайн-записей;
+- Telegram Stars, платежи, подписки, рефералка;
+- публичный каталог, социал, мультиаккаунт кроме изоляции по `user_id`;
+- экран редактирования шаблонов еды;
+- автосоздание сессий по дням недели;
+- уведомления бота;
+- редактор процентов формул в UI;
+- подтверждение каждого подхода на сессии.
