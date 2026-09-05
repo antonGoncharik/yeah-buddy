@@ -100,7 +100,7 @@ export function FoodsScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Продукты" />
+      <AppHeader title="Продукты" backHref="/settings" />
 
       <div className="animate-rise flex flex-col gap-3 px-4">
         <FoodSearch value={query} onChange={setQuery} />

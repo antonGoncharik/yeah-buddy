@@ -3,7 +3,7 @@
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -24,11 +24,12 @@ import {
 
 export function SessionScreen() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [openSetId, setOpenSetId] = useState<string | null>(null);
+  const [openSetIds, setOpenSetIds] = useState<string[]>([]);
   const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
   const [nextName, setNextName] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
@@ -80,7 +81,7 @@ export function SessionScreen() {
       const next = readDetail(data);
       setDetail(next);
       setDrafts(next ? draftsFromDetail(next) : {});
-      setOpenSetId(null);
+      setOpenSetIds([]);
       if (next?.session.status === "completed") {
         void loadNextName(next.session.session_date);
       } else {
@@ -138,7 +139,7 @@ export function SessionScreen() {
       if (next) {
         setDetail(next);
         setDrafts(draftsFromDetail(next));
-        setOpenSetId(null);
+        setOpenSetIds([]);
         await loadNextName(next.session.session_date);
       }
     } catch {
@@ -148,12 +149,16 @@ export function SessionScreen() {
     }
   }
 
-  async function setStatus(status: "skipped" | "planned") {
+  async function cancelToday() {
     if (!detail) {
       return;
     }
 
-    if (status === "skipped" && !window.confirm("Не смог сегодня? Очередь не сдвинется.")) {
+    if (
+      !window.confirm(
+        "Не смог сегодня? Очередь не сдвинется. Можно начать другую.",
+      )
+    ) {
       return;
     }
 
@@ -162,9 +167,7 @@ export function SessionScreen() {
 
     try {
       const response = await fetch(`/api/sessions/${detail.session.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        method: "DELETE",
       });
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
@@ -172,7 +175,7 @@ export function SessionScreen() {
         return;
       }
 
-      await load();
+      router.replace("/workouts");
     } catch {
       setError(LOAD_FAILED);
     } finally {
@@ -236,15 +239,18 @@ export function SessionScreen() {
                     key={item.id}
                     item={item}
                     kind={session.workout_type}
-                    openSetId={openSetId}
+                    openSetIds={openSetIds}
                     warmupOpen={Boolean(warmupOpen[item.id])}
                     disabled={busy || session.status === "skipped"}
                     showActual={session.status === "completed"}
                     drafts={drafts}
-                    onOpenSet={(setId) =>
-                      setOpenSetId((current) =>
-                        current === setId ? null : setId,
-                      )
+                    onOpenSets={(ids) =>
+                      setOpenSetIds((current) => {
+                        const same =
+                          current.length === ids.length &&
+                          ids.every((id) => current.includes(id));
+                        return same ? [] : ids;
+                      })
                     }
                     onToggleWarmup={() =>
                       setWarmupOpen((current) => ({
@@ -274,26 +280,17 @@ export function SessionScreen() {
               </Link>
             ) : null}
 
-            {session.status === "skipped" ? (
-              <Button
-                type="button"
-                className="h-14 text-lg"
-                disabled={busy}
-                onClick={() => void setStatus("planned")}
-              >
-                Вернуть в план
-              </Button>
-            ) : null}
-
-            {session.status === "planned" ? (
+            {session.status === "planned" || session.status === "skipped" ? (
               <Button
                 type="button"
                 variant="ghost"
                 className="h-11 text-base text-muted-foreground"
                 disabled={busy}
-                onClick={() => void setStatus("skipped")}
+                onClick={() => void cancelToday()}
               >
-                Не смог сегодня
+                {session.status === "skipped"
+                  ? "Убрать — можно начать другую"
+                  : "Не смог сегодня"}
               </Button>
             ) : null}
           </>
@@ -325,29 +322,30 @@ type SetDraft = {
 function ExerciseRow({
   item,
   kind,
-  openSetId,
+  openSetIds,
   warmupOpen,
   disabled,
   showActual,
   drafts,
-  onOpenSet,
+  onOpenSets,
   onToggleWarmup,
   onDraft,
 }: {
   item: SessionExerciseDetail;
   kind: "dynamic" | "static";
-  openSetId: string | null;
+  openSetIds: string[];
   warmupOpen: boolean;
   disabled: boolean;
   showActual: boolean;
   drafts: Record<string, SetDraft>;
-  onOpenSet: (setId: string) => void;
+  onOpenSets: (ids: string[]) => void;
   onToggleWarmup: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
-  const openSet = item.sets.find((set) => set.id === openSetId) ?? null;
+  const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
+  const leadSet = openSets[0] ?? null;
 
   return (
     <div className="border-b border-border/70 last:border-b-0">
@@ -365,14 +363,14 @@ function ExerciseRow({
               Разминка
             </button>
             {warmupOpen ? (
-          <SetButtons
-            sets={warmup}
-            kind={kind}
-            showActual={showActual}
-            disabled={disabled || showActual}
-            tone="warmup"
-            onPick={onOpenSet}
-          />
+              <SetButtons
+                sets={warmup}
+                kind={kind}
+                showActual={showActual}
+                disabled={disabled || showActual}
+                tone="warmup"
+                onPick={onOpenSets}
+              />
             ) : null}
           </div>
         ) : null}
@@ -383,18 +381,23 @@ function ExerciseRow({
             showActual={showActual}
             disabled={disabled || showActual}
             tone="work"
-            onPick={onOpenSet}
+            onPick={onOpenSets}
           />
         ) : null}
       </div>
 
-      {openSet ? (
+      {leadSet ? (
         <SetEditor
-          set={openSet}
+          set={leadSet}
           kind={kind}
-          draft={drafts[openSet.id] ?? draftFromSet(openSet)}
+          draft={drafts[leadSet.id] ?? draftFromSet(leadSet)}
           disabled={disabled}
-          onDraft={(patch) => onDraft(openSet.id, patch)}
+          groupCount={openSets.length}
+          onDraft={(patch) => {
+            for (const set of openSets) {
+              onDraft(set.id, patch);
+            }
+          }}
         />
       ) : null}
     </div>
@@ -414,7 +417,7 @@ function SetButtons({
   showActual: boolean;
   disabled: boolean;
   tone: "warmup" | "work";
-  onPick: (setId: string) => void;
+  onPick: (ids: string[]) => void;
 }) {
   const labels = sets.map((set) =>
     formatSet(set, kind, showActual, tone === "warmup"),
@@ -430,13 +433,18 @@ function SetButtons({
           type="button"
           className="text-left text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums disabled:opacity-60"
           disabled={disabled}
-          onClick={() => onPick(sets[0]?.id ?? "")}
+          onClick={() => onPick(sets.map((set) => set.id))}
         >
           {labels[0]}
         </button>
-        <span className="text-sm text-muted-foreground">
+        <button
+          type="button"
+          className="text-left text-sm text-muted-foreground disabled:opacity-60"
+          disabled={disabled}
+          onClick={() => onPick(sets.map((set) => set.id))}
+        >
           {labels.length} {setCountWord(labels.length)}
-        </span>
+        </button>
       </div>
     );
   }
@@ -459,7 +467,7 @@ function SetButtons({
             type="button"
             className="text-left disabled:opacity-60"
             disabled={disabled}
-            onClick={() => onPick(set.id)}
+            onClick={() => onPick([set.id])}
           >
             {labels[index]}
           </button>
@@ -474,21 +482,25 @@ function SetEditor({
   kind,
   draft,
   disabled,
+  groupCount,
   onDraft,
 }: {
   set: WorkoutSet;
   kind: "dynamic" | "static";
   draft: SetDraft;
   disabled: boolean;
+  groupCount: number;
   onDraft: (patch: Partial<SetDraft>) => void;
 }) {
-  const groupNumber = set.set_number;
+  const title =
+    groupCount > 1
+      ? `${set.set_type === "warmup" ? "Разминка" : "Работа"} · ${groupCount} ${setCountWord(groupCount)}`
+      : `${set.set_type === "warmup" ? "Разминка" : "Работа"} ${set.set_number}`;
+
   return (
     <div className="grid grid-cols-2 gap-2 px-5 pb-4">
       <div className="col-span-2 grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
-        <p className="col-span-2 text-sm text-muted-foreground">
-          {set.set_type === "warmup" ? "Разминка" : "Работа"} {groupNumber}
-        </p>
+        <p className="col-span-2 text-sm text-muted-foreground">{title}</p>
         <FieldInput
           label="кг"
           value={draft.weight}
@@ -554,7 +566,7 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
-function formatSessionDate(isoDate: string): string {
+function formatSet(
   set: WorkoutSet,
   kind: "dynamic" | "static",
   showActual: boolean,
@@ -575,8 +587,7 @@ function formatSessionDate(isoDate: string): string {
   const secondsValue = showActual
     ? (set.actual_seconds ?? set.planned_seconds)
     : set.planned_seconds;
-  const secondsLabel =
-    secondsValue == null ? "—" : formatSeconds(secondsValue);
+  const secondsLabel = secondsValue == null ? "—" : formatSeconds(secondsValue);
   return compact
     ? `${weight}×${secondsLabel}с`
     : `${weight} × ${secondsLabel} с`;

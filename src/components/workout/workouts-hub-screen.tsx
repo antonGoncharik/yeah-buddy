@@ -3,6 +3,7 @@
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/workout/labels";
 
 export function WorkoutsHubScreen() {
+  const router = useRouter();
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
@@ -40,6 +42,7 @@ export function WorkoutsHubScreen() {
   const [followingTemplate, setFollowingTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
   const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
+  const [canUnskip, setCanUnskip] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -87,6 +90,7 @@ export function WorkoutsHubScreen() {
       setNextTemplate(readTemplate(todayData, "next_template"));
       setFollowingTemplate(readTemplate(todayData, "following_template"));
       setRecent(readRecent(todayData));
+      setCanUnskip(readCanUnskip(todayData));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
@@ -97,6 +101,7 @@ export function WorkoutsHubScreen() {
       setNextTemplate(null);
       setFollowingTemplate(null);
       setRecent([]);
+      setCanUnskip(false);
     } finally {
       setLoading(false);
     }
@@ -122,6 +127,12 @@ export function WorkoutsHubScreen() {
       const data: unknown = await response.json().catch(() => null);
       if (!response.ok) {
         setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const created = readTodaySession(data);
+      if (created) {
+        router.push(`/workouts/sessions/${created.id}`);
         return;
       }
 
@@ -155,6 +166,46 @@ export function WorkoutsHubScreen() {
     } finally {
       setSkipping(false);
     }
+  }
+
+  async function unskipLast() {
+    setSkipping(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/rotation/unskip", {
+        method: "POST",
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      await load();
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setSkipping(false);
+    }
+  }
+
+  function pickTemplate(template: WorkoutTemplateDetail) {
+    if (session) {
+      return;
+    }
+
+    if (
+      nextTemplate &&
+      template.id !== nextTemplate.id &&
+      !window.confirm(
+        `Сейчас в круге «${nextTemplate.name}». Начать «${template.name}» сегодня?`,
+      )
+    ) {
+      return;
+    }
+
+    void createToday(template.id);
   }
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
@@ -282,6 +333,17 @@ export function WorkoutsHubScreen() {
                 Не это, следующая
               </Button>
             ) : null}
+            {canUnskip ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 text-base text-muted-foreground"
+                disabled={creating || skipping}
+                onClick={() => void unskipLast()}
+              >
+                Вернуть предыдущую
+              </Button>
+            ) : null}
             <p className="text-sm leading-relaxed text-muted-foreground">
               Не идёшь сегодня — ничего не нажимай. Завтра снова она.
             </p>
@@ -304,25 +366,56 @@ export function WorkoutsHubScreen() {
                   {PHASE_TYPE_LABELS[macro.phase.phase_type]}
                 </span>
               </Link>
-            ) : (
-              <Link
-                href="/workouts/macro/new"
-                className="px-1 text-sm text-muted-foreground"
-              >
-                Фазы макроцикла
-              </Link>
-            )}
+            ) : null}
 
             {activeTemplates.length > 0 ? (
-              <Link
-                href="/workouts/schedule"
-                className="flex items-baseline justify-between gap-3 px-1"
-              >
-                <h2 className="text-lg font-semibold">Очередь</h2>
-                <span className="text-sm font-medium text-primary">
-                  Изменить
-                </span>
-              </Link>
+              <div className="flex flex-col gap-2 px-1">
+                <Link
+                  href="/workouts/schedule"
+                  className="flex items-baseline justify-between gap-3"
+                >
+                  <h2 className="text-lg font-semibold">Очередь</h2>
+                  <span className="text-sm font-medium text-primary">
+                    Изменить
+                  </span>
+                </Link>
+                <ol className="flex flex-col gap-1">
+                  {activeTemplates.map((template, index) => {
+                    const isNext = nextTemplate?.id === template.id;
+                    const label = `${index + 1}. ${template.name}`;
+                    if (session) {
+                      return (
+                        <li
+                          key={template.id}
+                          className={
+                            isNext
+                              ? "text-base font-medium"
+                              : "text-base text-muted-foreground"
+                          }
+                        >
+                          {label}
+                        </li>
+                      );
+                    }
+
+                    return (
+                      <li key={template.id}>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full py-1 text-left text-base disabled:opacity-50",
+                            isNext ? "font-medium" : "text-muted-foreground",
+                          )}
+                          disabled={creating || skipping}
+                          onClick={() => pickTemplate(template)}
+                        >
+                          {label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
             ) : (
               <Link
                 href="/workouts/schedule"
@@ -403,6 +496,15 @@ function readMacro(data: unknown): CurrentMacroState | null {
   }
 
   return data as CurrentMacroState;
+}
+
+function readCanUnskip(data: unknown): boolean {
+  return Boolean(
+    data &&
+      typeof data === "object" &&
+      "can_unskip" in data &&
+      data.can_unskip === true,
+  );
 }
 
 function readTodaySession(data: unknown): WorkoutSession | null {

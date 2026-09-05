@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -125,6 +126,23 @@ export function SettingsScreen() {
       <AppHeader title="Настройки" />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
+        <section className="card-surface animate-rise flex flex-col gap-1 px-5 py-4">
+          <Link
+            href="/foods"
+            className="flex items-baseline justify-between gap-3 py-2"
+          >
+            <span className="text-lg font-medium">Продукты</span>
+            <span className="text-sm font-medium text-primary">Список</span>
+          </Link>
+          <Link
+            href="/workouts/macro"
+            className="flex items-baseline justify-between gap-3 py-2"
+          >
+            <span className="text-lg font-medium">Фазы макроцикла</span>
+            <span className="text-sm font-medium text-primary">Открыть</span>
+          </Link>
+        </section>
+
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
           <h2 className="text-xl font-semibold">Тема</h2>
           <Segmented

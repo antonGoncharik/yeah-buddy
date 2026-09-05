@@ -1,74 +1,47 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
-import { SESSION_STATUS_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import {
+  SESSION_STATUS_LABELS,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
 
-export function TodayWorkoutBanner({
-  date,
-  showNext = true,
-}: {
-  date: string;
-  showNext?: boolean;
-}) {
-  const [state, setState] = useState<BannerState | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const response = await fetch(
-          `/api/sessions?date=${encodeURIComponent(date)}`,
-        );
-        if (!response.ok) {
-          return;
-        }
-        const data: unknown = await response.json();
-        if (!cancelled) {
-          setState(readBanner(data, showNext));
-        }
-      } catch {
-        if (!cancelled) {
-          setState(null);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [date, showNext]);
-
-  if (!state?.href || !state.title) {
-    return null;
-  }
-
-  return (
-    <Link
-      href={state.href}
-      className="card-surface animate-rise block px-5 py-4 transition-colors hover:bg-muted/40"
-    >
-      <p className="text-sm font-medium text-muted-foreground">{state.label}</p>
-      <p className="mt-1 text-xl font-semibold tracking-tight">{state.title}</p>
-      {state.hint ? (
-        <p className="mt-1 text-sm text-muted-foreground">{state.hint}</p>
-      ) : null}
-    </Link>
-  );
-}
-
-type BannerState = {
+export type TodayWorkoutBannerState = {
   href: string;
   label: string;
   title: string;
   hint: string | null;
 };
 
-function readBanner(data: unknown, showNext: boolean): BannerState | null {
+export function TodayWorkoutBanner({
+  href,
+  title,
+  hint,
+  label = "В зале",
+}: {
+  href: string;
+  title: string;
+  hint?: string | null;
+  label?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="card-surface animate-rise block px-5 py-4 transition-colors hover:bg-muted/40"
+    >
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>
+      {hint ? (
+        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
+      ) : null}
+    </Link>
+  );
+}
+
+export function bannerFromTodayState(
+  data: unknown,
+  showNext: boolean,
+): TodayWorkoutBannerState | null {
   if (!data || typeof data !== "object") {
     return null;
   }
@@ -85,8 +58,7 @@ function readBanner(data: unknown, showNext: boolean): BannerState | null {
     return {
       href: `/workouts/sessions/${session.id}`,
       label: "В зале",
-      title:
-        sessionTemplate?.name ?? WORKOUT_KIND_LABELS[session.workout_type],
+      title: sessionTemplate?.name ?? WORKOUT_KIND_LABELS[session.workout_type],
       hint: SESSION_STATUS_LABELS[session.status],
     };
   }

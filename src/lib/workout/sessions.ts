@@ -18,9 +18,15 @@ import {
   getNextTemplate,
   getTemplate,
   listActiveTemplates,
-  templateAfter,
   TemplateNotFoundError,
+  templateAfter,
 } from "@/lib/workout/templates";
+
+export class SessionLockedError extends Error {
+  constructor() {
+    super("Сделанную тренировку нельзя убрать.");
+  }
+}
 
 export class SessionConflictError extends Error {
   constructor() {
@@ -106,8 +112,9 @@ export async function getTodayWorkoutState(
   following_template: WorkoutTemplateDetail | null;
   session_template: WorkoutTemplateDetail | null;
   recent: RecentWorkoutSession[];
+  can_unskip: boolean;
 }> {
-  await ensureWorkoutSettings(userId);
+  const settings = await ensureWorkoutSettings(userId);
   await ensureStarterExercises(createSupabaseServerClient(), userId);
   const existing = await getSessionByDate(userId, date);
   const macro = await getCurrentMacroState(userId);
@@ -130,6 +137,7 @@ export async function getTodayWorkoutState(
         : null,
     session_template: sessionTemplate,
     recent: await listRecentCompletedSessions(userId, 5),
+    can_unskip: settings.skip_template_ids.length > 0,
   };
 }
 
@@ -214,6 +222,33 @@ export async function createSession(
   await markDateAsTrainingIfExists(userId, input.session_date);
 
   return mapWorkoutSession(inserted.data as Record<string, unknown>);
+}
+
+export async function cancelSession(
+  userId: string,
+  id: string,
+): Promise<boolean> {
+  const current = await getSession(userId, id);
+  if (!current) {
+    return false;
+  }
+
+  if (current.status === "completed") {
+    throw new SessionLockedError();
+  }
+
+  const supabase = createSupabaseServerClient();
+  const deleted = await supabase
+    .from("workout_sessions")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", id);
+
+  if (deleted.error) {
+    throw deleted.error;
+  }
+
+  return true;
 }
 
 export async function patchSession(

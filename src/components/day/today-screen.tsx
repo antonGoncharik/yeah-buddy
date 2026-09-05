@@ -9,7 +9,11 @@ import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
-import { TodayWorkoutBanner } from "@/components/day/today-workout-banner";
+import {
+  bannerFromTodayState,
+  TodayWorkoutBanner,
+  type TodayWorkoutBannerState,
+} from "@/components/day/today-workout-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,7 @@ import {
   LOAD_FAILED,
   readApiError,
   TODAY_EMPTY,
+  TODAY_EMPTY_GYM,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
@@ -36,6 +41,7 @@ export function TodayScreen() {
   const [date, setDate] = useState(today);
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
+  const [banner, setBanner] = useState<TodayWorkoutBannerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -47,18 +53,27 @@ export function TodayScreen() {
     setActionError(null);
 
     try {
-      const response = await fetch(
-        `/api/days?date=${encodeURIComponent(date)}`,
-      );
-      if (!response.ok) {
+      const [dayResponse, workoutResponse] = await Promise.all([
+        fetch(`/api/days?date=${encodeURIComponent(date)}`),
+        fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
+      ]);
+      if (!dayResponse.ok) {
         throw new Error("load failed");
       }
 
-      const data: unknown = await response.json();
+      const data: unknown = await dayResponse.json();
       setDay(readDay(data));
+
+      if (workoutResponse.ok) {
+        const workoutData: unknown = await workoutResponse.json();
+        setBanner(bannerFromTodayState(workoutData, date === todayIsoDate()));
+      } else {
+        setBanner(null);
+      }
     } catch {
       setLoadError(true);
       setDay(null);
+      setBanner(null);
     } finally {
       setLoading(false);
     }
@@ -274,8 +289,13 @@ export function TodayScreen() {
       />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {!loading && !loadError ? (
-          <TodayWorkoutBanner date={date} showNext={isToday} />
+        {!loading && !loadError && banner ? (
+          <TodayWorkoutBanner
+            href={banner.href}
+            title={banner.title}
+            hint={banner.hint}
+            label={banner.label}
+          />
         ) : null}
         {loading ? (
           <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
@@ -304,10 +324,15 @@ export function TodayScreen() {
         {!loading && !loadError && !day ? (
           <div className="animate-rise flex flex-col gap-5">
             <p className="text-center text-lg leading-relaxed text-muted-foreground">
-              {isToday ? TODAY_EMPTY : DAY_EMPTY}
+              {isToday && banner
+                ? TODAY_EMPTY_GYM
+                : isToday
+                  ? TODAY_EMPTY
+                  : DAY_EMPTY}
             </p>
             <CreateDayButtons
               busy={busy}
+              trainingFirst={isToday}
               onCreateRest={() => void createDay("rest")}
               onCreateTraining={() => void createDay("training")}
               onCopyYesterday={() => void copyYesterday()}

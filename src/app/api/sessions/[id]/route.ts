@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/require-session";
 import { LOAD_FAILED } from "@/lib/messages";
 import { getSessionDetail } from "@/lib/workout/session-work";
-import { patchSession, patchSessionSchema } from "@/lib/workout/sessions";
+import {
+  cancelSession,
+  patchSession,
+  patchSessionSchema,
+  SessionLockedError,
+} from "@/lib/workout/sessions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -76,6 +81,37 @@ export async function PATCH(
 
     return NextResponse.json({ session });
   } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  context: RouteContext,
+): Promise<NextResponse> {
+  const auth = await requireSession();
+  if ("response" in auth) {
+    return auth.response;
+  }
+
+  const { id } = await context.params;
+
+  try {
+    const deleted = await cancelSession(auth.session.userId, id);
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Тренировка не найдена." },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (error instanceof SessionLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
   }

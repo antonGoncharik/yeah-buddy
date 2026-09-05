@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Dumbbell, Settings, Utensils } from "lucide-react";
+import { CalendarDays, Dumbbell, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 const ITEMS = [
   { href: "/today", label: "Сегодня", icon: CalendarDays },
   { href: "/workouts", label: "Тренировки", icon: Dumbbell },
-  { href: "/foods", label: "Продукты", icon: Utensils },
   { href: "/settings", label: "Настройки", icon: Settings },
 ] as const;
 
@@ -18,11 +17,13 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border/70 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
-      <ul className="mx-auto grid max-w-lg grid-cols-4">
+      <ul className="mx-auto grid max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active =
-            item.href === "/foods"
-              ? pathname.startsWith("/foods") || pathname.startsWith("/food/")
+            item.href === "/settings"
+              ? pathname.startsWith("/settings") ||
+                pathname.startsWith("/foods") ||
+                pathname.startsWith("/food/")
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 

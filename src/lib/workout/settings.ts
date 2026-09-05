@@ -179,6 +179,17 @@ export async function skipTemplateInRotation(
   return saveSkipTemplateIds(userId, skipTemplateIds);
 }
 
+export async function unskipLastTemplate(
+  userId: string,
+): Promise<WorkoutSettings> {
+  const current = await ensureWorkoutSettings(userId);
+  if (current.skip_template_ids.length === 0) {
+    return current;
+  }
+
+  return saveSkipTemplateIds(userId, current.skip_template_ids.slice(0, -1));
+}
+
 export async function clearSkipTemplateIds(
   userId: string,
 ): Promise<WorkoutSettings> {
