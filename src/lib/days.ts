@@ -318,6 +318,18 @@ export async function setDayType(
   return day;
 }
 
+export async function markDateAsTrainingIfExists(
+  userId: string,
+  date: string,
+): Promise<void> {
+  const day = await getDayByDate(userId, date);
+  if (!day || day.is_training_day) {
+    return;
+  }
+
+  await setDayType(userId, day.id, "training");
+}
+
 export async function addMealItem(
   userId: string,
   mealId: string,

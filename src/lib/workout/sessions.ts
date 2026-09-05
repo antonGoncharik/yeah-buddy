@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isIsoDate } from "@/lib/days";
+import { isIsoDate, markDateAsTrainingIfExists } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   RecentWorkoutSession,
@@ -210,6 +210,8 @@ export async function createSession(
     }
     throw inserted.error ?? new Error("Session insert failed");
   }
+
+  await markDateAsTrainingIfExists(userId, input.session_date);
 
   return mapWorkoutSession(inserted.data as Record<string, unknown>);
 }

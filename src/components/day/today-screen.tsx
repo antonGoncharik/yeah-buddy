@@ -9,6 +9,7 @@ import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
+import { TodayWorkoutBanner } from "@/components/day/today-workout-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
@@ -239,6 +240,9 @@ export function TodayScreen() {
       <AppHeader title={titleDate} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
+        {!loading && !loadError ? (
+          <TodayWorkoutBanner date={date} />
+        ) : null}
         {loading ? (
           <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
             Загрузка…
