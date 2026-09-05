@@ -6,12 +6,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { StatusPill } from "@/components/ui/status-pill";
 import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function ScheduleScreen() {
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
@@ -159,16 +157,6 @@ export function ScheduleScreen() {
                     <p className="text-base font-medium leading-snug">
                       {template.name}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <StatusPill>
-                        {WORKOUT_KIND_LABELS[template.kind]}
-                      </StatusPill>
-                      {template.exercises.length > 0 ? (
-                        <StatusPill>
-                          {template.exercises.length} упр.
-                        </StatusPill>
-                      ) : null}
-                    </div>
                   </Link>
                   <Button
                     type="button"
@@ -205,16 +193,6 @@ export function ScheduleScreen() {
                     <p className="text-base font-medium leading-snug">
                       {template.name}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <StatusPill>
-                        {WORKOUT_KIND_LABELS[template.kind]}
-                      </StatusPill>
-                      {template.exercises.length > 0 ? (
-                        <StatusPill>
-                          {template.exercises.length} упр.
-                        </StatusPill>
-                      ) : null}
-                    </div>
                   </Link>
                   <Button
                     type="button"

@@ -105,15 +105,12 @@ export function ExercisesScreen() {
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-base font-medium">
-                      {exercise.name}
-                    </span>
-                    <span className="block text-sm text-muted-foreground">
-                      шаг {exercise.weight_step} кг
+                      {exercise.short_name || exercise.name}
                     </span>
                   </span>
-                  <span className="shrink-0 tabular-nums text-base font-medium">
+                  <span className="shrink-0 text-lg tabular-nums font-semibold tracking-tight">
                     {exercise.current_max
-                      ? `${formatWeight(exercise.current_max.max_weight)} кг`
+                      ? formatWeight(exercise.current_max.max_weight)
                       : "—"}
                   </span>
                 </Link>

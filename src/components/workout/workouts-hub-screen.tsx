@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { StatusPill } from "@/components/ui/status-pill";
 import {
   LOAD_FAILED,
   readApiError,
@@ -127,6 +126,13 @@ export function WorkoutsHubScreen() {
   }
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
+  const todayTemplateId = sessionTemplate?.id ?? nextTemplate?.id ?? null;
+  const sessionAction =
+    session?.status === "completed"
+      ? SESSION_STATUS_LABELS.completed
+      : session?.status === "skipped"
+        ? SESSION_STATUS_LABELS.skipped
+        : "Открыть";
 
   return (
     <div className="flex flex-col gap-4">
@@ -189,20 +195,15 @@ export function WorkoutsHubScreen() {
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
             </h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <StatusPill>{SESSION_STATUS_LABELS[session.status]}</StatusPill>
-              <StatusPill>
-                {WORKOUT_KIND_LABELS[session.workout_type]}
-              </StatusPill>
-              {sessionTemplate && sessionTemplate.exercises.length > 0 ? (
-                <StatusPill>{sessionTemplate.exercises.length} упр.</StatusPill>
-              ) : null}
-              {macro?.phase ? (
-                <StatusPill>
-                  {PHASE_TYPE_LABELS[macro.phase.phase_type]}
-                </StatusPill>
-              ) : null}
-            </div>
+            <p
+              className={
+                session.status === "planned"
+                  ? "mt-3 text-base font-medium text-primary"
+                  : "mt-3 text-base text-muted-foreground"
+              }
+            >
+              {sessionAction}
+            </p>
           </Link>
         ) : null}
 
@@ -215,19 +216,6 @@ export function WorkoutsHubScreen() {
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
               </h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <StatusPill>
-                  {WORKOUT_KIND_LABELS[nextTemplate.kind]}
-                </StatusPill>
-                {nextTemplate.exercises.length > 0 ? (
-                  <StatusPill>{nextTemplate.exercises.length} упр.</StatusPill>
-                ) : null}
-                {macro?.phase ? (
-                  <StatusPill>
-                    {PHASE_TYPE_LABELS[macro.phase.phase_type]}
-                  </StatusPill>
-                ) : null}
-              </div>
             </div>
             <Button
               type="button"
@@ -277,17 +265,34 @@ export function WorkoutsHubScreen() {
                   </span>
                 </div>
                 <ol className="flex flex-col gap-2">
-                  {activeTemplates.map((template, index) => (
-                    <li
-                      key={template.id}
-                      className="flex items-center gap-3 text-base"
-                    >
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
-                        {index + 1}
-                      </span>
-                      <span className="min-w-0 truncate">{template.name}</span>
-                    </li>
-                  ))}
+                  {activeTemplates.map((template, index) => {
+                    const isToday = template.id === todayTemplateId;
+                    return (
+                      <li
+                        key={template.id}
+                        className={cn(
+                          "flex items-center gap-3 text-base",
+                          isToday
+                            ? "font-semibold"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums",
+                            isToday
+                              ? "bg-foreground text-background"
+                              : "bg-muted text-foreground/70",
+                          )}
+                        >
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 truncate">
+                          {template.name}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ol>
               </Link>
             ) : (
@@ -315,18 +320,18 @@ export function WorkoutsHubScreen() {
                 Все
               </Link>
             </div>
-            <ul className="flex flex-col gap-2.5">
-              {exercises.slice(0, 6).map((exercise) => (
+            <ul className="flex flex-col gap-3">
+              {exercises.slice(0, 5).map((exercise) => (
                 <li
                   key={exercise.id}
                   className="flex items-baseline justify-between gap-3"
                 >
-                  <span className="truncate text-base">
+                  <span className="truncate text-base text-muted-foreground">
                     {exercise.short_name || exercise.name}
                   </span>
-                  <span className="shrink-0 tabular-nums text-base font-medium">
+                  <span className="shrink-0 text-lg tabular-nums font-semibold tracking-tight">
                     {exercise.current_max
-                      ? `${formatWeight(exercise.current_max.max_weight)} кг`
+                      ? formatWeight(exercise.current_max.max_weight)
                       : "—"}
                   </span>
                 </li>

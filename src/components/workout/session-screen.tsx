@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusPill } from "@/components/ui/status-pill";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   SessionDetail,
@@ -299,31 +298,14 @@ function ExerciseRow({
         onClick={onToggle}
         disabled={disabled}
       >
-        <div className="flex w-full items-baseline justify-between gap-3">
-          <h3 className="truncate text-lg font-semibold">
-            {item.exercise.short_name || item.exercise.name}
-          </h3>
-          <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-            {formatWeight(item.max_weight)} кг
-          </span>
-        </div>
+        <h3 className="text-xl font-semibold tracking-tight">
+          {item.exercise.short_name || item.exercise.name}
+        </h3>
         {warmup.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {warmup.map((set) => (
-              <StatusPill key={set.id}>
-                {formatSetChip(set, kind, showActual)}
-              </StatusPill>
-            ))}
-          </div>
+          <SetPreview sets={warmup} kind={kind} showActual={showActual} tone="warmup" />
         ) : null}
         {work.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {work.map((set) => (
-              <StatusPill key={set.id} tone="strong">
-                {formatSetChip(set, kind, showActual)}
-              </StatusPill>
-            ))}
-          </div>
+          <SetPreview sets={work} kind={kind} showActual={showActual} tone="work" />
         ) : null}
       </button>
 
@@ -331,11 +313,19 @@ function ExerciseRow({
         <div className="flex flex-col gap-2 px-5 pb-4">
           {item.sets.map((set) => {
             const draft = drafts[set.id] ?? draftFromSet(set);
+            const groupNumber =
+              item.sets
+                .filter((entry) => entry.set_type === set.set_type)
+                .findIndex((entry) => entry.id === set.id) + 1;
             return (
               <div
                 key={set.id}
                 className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3"
               >
+                <p className="col-span-2 text-sm text-muted-foreground">
+                  {set.set_type === "warmup" ? "Разминка" : "Работа"}{" "}
+                  {groupNumber}
+                </p>
                 <FieldInput
                   label="кг"
                   value={draft.weight}
@@ -405,10 +395,62 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
-function formatSetChip(
+function SetPreview({
+  sets,
+  kind,
+  showActual,
+  tone,
+}: {
+  sets: WorkoutSet[];
+  kind: "dynamic" | "static";
+  showActual: boolean;
+  tone: "warmup" | "work";
+}) {
+  const labels = sets.map((set) =>
+    formatSet(set, kind, showActual, tone === "warmup"),
+  );
+  const same =
+    labels.length > 1 && labels.every((label) => label === labels[0]);
+
+  if (tone === "work" && same) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm text-muted-foreground">Работа</span>
+        <p className="text-[1.75rem] font-semibold leading-none tracking-tight tabular-nums">
+          {labels[0]}
+        </p>
+        <span className="text-sm text-muted-foreground">
+          {labels.length} {setCountWord(labels.length)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-sm text-muted-foreground">
+        {tone === "work" ? "Работа" : "Разминка"}
+      </span>
+      <p
+        className={
+          tone === "work"
+            ? "flex flex-wrap gap-x-3 gap-y-1 text-2xl font-semibold tracking-tight tabular-nums"
+            : "flex flex-wrap gap-x-3 gap-y-1 text-base tabular-nums text-muted-foreground"
+        }
+      >
+        {labels.map((label, index) => (
+          <span key={`${label}-${index}`}>{label}</span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
+function formatSet(
   set: WorkoutSet,
   kind: "dynamic" | "static",
   showActual: boolean,
+  compact = false,
 ): string {
   const weightValue = showActual
     ? (set.actual_weight ?? set.planned_weight)
@@ -418,15 +460,30 @@ function formatSetChip(
     const reps = showActual
       ? (set.actual_reps ?? set.planned_reps)
       : set.planned_reps;
-    return `${weight}×${reps ?? "—"}`;
+    const repsLabel = reps ?? "—";
+    return compact ? `${weight}×${repsLabel}` : `${weight} × ${repsLabel}`;
   }
 
   const secondsValue = showActual
     ? (set.actual_seconds ?? set.planned_seconds)
     : set.planned_seconds;
-  return `${weight}×${
-    secondsValue == null ? "—" : `${formatSeconds(secondsValue)}с`
-  }`;
+  const secondsLabel =
+    secondsValue == null ? "—" : formatSeconds(secondsValue);
+  return compact
+    ? `${weight}×${secondsLabel}с`
+    : `${weight} × ${secondsLabel} с`;
+}
+
+function setCountWord(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return "подход";
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "подхода";
+  }
+  return "подходов";
 }
 
 function draftsFromDetail(detail: SessionDetail): Record<string, SetDraft> {
