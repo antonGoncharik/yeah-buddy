@@ -14,7 +14,6 @@ import { getCurrentMacroState } from "@/lib/workout/macros";
 import { toNullableString } from "@/lib/workout/numbers";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
-import { isWorkoutSlot } from "@/lib/workout/slots";
 import {
   getNextTemplate,
   getTemplate,
@@ -344,7 +343,6 @@ export function mapWorkoutSession(
     phase_id: toNullableString(row.phase_id),
     workout_type: toWorkoutKind(row.workout_type),
     template_id: toNullableString(row.template_id),
-    slot: isWorkoutSlot(row.slot) ? row.slot : null,
     status: toSessionStatus(row.status),
     note: toNullableString(row.note),
     created_at: String(row.created_at),

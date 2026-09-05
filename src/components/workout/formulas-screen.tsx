@@ -276,23 +276,9 @@ export function FormulasScreen() {
             ) : (
               <>
                 <p className="px-1 text-sm text-muted-foreground">
-                  Одна разминка на разгон, набор и рывок. Сброс — без неё.
+                  Разминка как у динамики: повторы по пресету упражнения. Здесь
+                  только удержания. Сброс — без разминки.
                 </p>
-                <SetCard
-                  title="Разминка"
-                  hint="Статика"
-                  kind="static"
-                  sets={formulas.static.ramp.warmup}
-                  exampleMax={exampleMax}
-                  exampleStep={exampleStep}
-                  allowEmpty
-                  onChange={(warmup) => {
-                    setSaved(false);
-                    setFormulas((current) =>
-                      current ? patchStaticWarmup(current, warmup) : current,
-                    );
-                  }}
-                />
                 {PHASE_TYPES.map((phase) => (
                   <SetCard
                     key={phase}
@@ -509,21 +495,6 @@ function patchPhaseWork(
   };
 }
 
-function patchStaticWarmup(
-  formulas: WorkoutFormulas,
-  warmup: FormulaSetSpec[],
-): WorkoutFormulas {
-  return {
-    ...formulas,
-    static: {
-      ramp: { ...formulas.static.ramp, warmup },
-      volume: { ...formulas.static.volume, warmup },
-      peak: { ...formulas.static.peak, warmup },
-      deload: { ...formulas.static.deload, warmup: [] },
-    },
-  };
-}
-
 function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
   const max_increase_percent = parseDecimal(maxIncreaseRaw);
   if (max_increase_percent == null || max_increase_percent < 0) {
@@ -543,9 +514,6 @@ function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
     if (!setsOk(formulas.static[phase].work, "static")) {
       return null;
     }
-    if (!setsOk(formulas.static[phase].warmup, "static")) {
-      return null;
-    }
   }
 
   for (const preset of WARMUP_PRESET_IDS) {
@@ -554,7 +522,18 @@ function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
     }
   }
 
-  return { max_increase_percent, formulas };
+  return {
+    max_increase_percent,
+    formulas: {
+      ...formulas,
+      static: {
+        ramp: { warmup: [], work: formulas.static.ramp.work },
+        volume: { warmup: [], work: formulas.static.volume.work },
+        peak: { warmup: [], work: formulas.static.peak.work },
+        deload: { warmup: [], work: formulas.static.deload.work },
+      },
+    },
+  };
 }
 
 function setsOk(sets: FormulaSetSpec[], kind: WorkoutKind): boolean {

@@ -418,7 +418,6 @@ function ExerciseRow({
       {leadSet ? (
         <SetEditor
           set={leadSet}
-          kind={kind}
           draft={drafts[leadSet.id] ?? draftFromSet(leadSet)}
           disabled={disabled}
           groupCount={openSets.length}
@@ -508,14 +507,12 @@ function SetButtons({
 
 function SetEditor({
   set,
-  kind,
   draft,
   disabled,
   groupCount,
   onDraft,
 }: {
   set: WorkoutSet;
-  kind: "dynamic" | "static";
   draft: SetDraft;
   disabled: boolean;
   groupCount: number;
@@ -537,21 +534,21 @@ function SetEditor({
           inputMode="decimal"
           onChange={(value) => onDraft({ weight: value })}
         />
-        {kind === "dynamic" ? (
-          <FieldInput
-            label="раз"
-            value={draft.reps}
-            disabled={disabled}
-            inputMode="numeric"
-            onChange={(value) => onDraft({ reps: value })}
-          />
-        ) : (
+        {setUsesSeconds(set) ? (
           <FieldInput
             label="сек"
             value={draft.seconds}
             disabled={disabled}
             inputMode="decimal"
             onChange={(value) => onDraft({ seconds: value })}
+          />
+        ) : (
+          <FieldInput
+            label="раз"
+            value={draft.reps}
+            disabled={disabled}
+            inputMode="numeric"
+            onChange={(value) => onDraft({ reps: value })}
           />
         )}
       </div>
@@ -595,9 +592,13 @@ function formatSessionDate(isoDate: string): string {
   }
 }
 
+function setUsesSeconds(set: WorkoutSet): boolean {
+  return set.planned_seconds != null;
+}
+
 function formatSet(
   set: WorkoutSet,
-  kind: "dynamic" | "static",
+  _kind: "dynamic" | "static",
   showActual: boolean,
   compact = false,
 ): string {
@@ -605,21 +606,22 @@ function formatSet(
     ? (set.actual_weight ?? set.planned_weight)
     : set.planned_weight;
   const weight = weightValue == null ? "—" : formatWeight(weightValue);
-  if (kind === "dynamic") {
-    const reps = showActual
-      ? (set.actual_reps ?? set.planned_reps)
-      : set.planned_reps;
-    const repsLabel = reps ?? "—";
-    return compact ? `${weight}×${repsLabel}` : `${weight} × ${repsLabel}`;
+  if (setUsesSeconds(set)) {
+    const secondsValue = showActual
+      ? (set.actual_seconds ?? set.planned_seconds)
+      : set.planned_seconds;
+    const secondsLabel =
+      secondsValue == null ? "—" : formatSeconds(secondsValue);
+    return compact
+      ? `${weight}×${secondsLabel}с`
+      : `${weight} × ${secondsLabel} с`;
   }
 
-  const secondsValue = showActual
-    ? (set.actual_seconds ?? set.planned_seconds)
-    : set.planned_seconds;
-  const secondsLabel = secondsValue == null ? "—" : formatSeconds(secondsValue);
-  return compact
-    ? `${weight}×${secondsLabel}с`
-    : `${weight} × ${secondsLabel} с`;
+  const reps = showActual
+    ? (set.actual_reps ?? set.planned_reps)
+    : set.planned_reps;
+  const repsLabel = reps ?? "—";
+  return compact ? `${weight}×${repsLabel}` : `${weight} × ${repsLabel}`;
 }
 
 function setCountWord(count: number): string {

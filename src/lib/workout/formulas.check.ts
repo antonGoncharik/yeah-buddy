@@ -49,14 +49,41 @@ if (deload.warmup.length !== 0 || deload.work.length !== 3) {
   throw new Error("dynamic deload should be 3 work sets, no warmup");
 }
 
-const staticHold = plannedSetsFromFormula(
+const staticBarbell = resolvePhaseSpec(
   DEFAULT_WORKOUT_FORMULAS.static.ramp,
-  76,
-  1,
   "static",
+  "ramp",
+  "barbell",
+);
+if (staticBarbell.warmup.length !== 3) {
+  throw new Error("static barbell warmup should be 3 rep sets");
+}
+if (
+  staticBarbell.warmup.some((set) => set.reps == null || set.seconds != null)
+) {
+  throw new Error("static warmup must be reps, not seconds");
+}
+
+const staticHold = plannedSetsFromFormula(staticBarbell, 76, 1, "static");
+assertEqual(staticHold[0]?.planned_reps ?? 0, 5, "static warmup reps");
+assertEqual(
+  staticHold[0]?.planned_seconds ?? -1,
+  -1,
+  "static warmup no seconds",
 );
 assertEqual(staticHold[3]?.planned_weight ?? 0, 87, "static work 76×115");
 assertEqual(staticHold[3]?.planned_seconds ?? 0, 6, "static work seconds");
+assertEqual(staticHold[3]?.planned_reps ?? -1, -1, "static work no reps");
+
+const staticDeload = resolvePhaseSpec(
+  DEFAULT_WORKOUT_FORMULAS.static.deload,
+  "static",
+  "deload",
+  "barbell",
+);
+if (staticDeload.warmup.length !== 0) {
+  throw new Error("static deload should have no warmup");
+}
 
 const customWarmup = resolvePhaseSpec(
   DEFAULT_WORKOUT_FORMULAS.dynamic.ramp,
@@ -66,7 +93,6 @@ const customWarmup = resolvePhaseSpec(
   {
     barbell: [{ percent: 40, reps: 10, seconds: null }],
     cable: DEFAULT_WORKOUT_FORMULAS.warmups.cable,
-    cable_short: DEFAULT_WORKOUT_FORMULAS.warmups.cable_short,
   },
 );
 if (

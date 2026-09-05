@@ -35,7 +35,7 @@ export function increaseMax(
 
 export function resolvePhaseSpec(
   base: FormulaPhaseSpec,
-  kind: WorkoutKind,
+  _kind: WorkoutKind,
   phase: PhaseType,
   preset: FormulaPreset,
   warmups: Record<WarmupPresetId, FormulaSetSpec[]> = DEFAULT_WARMUP_PRESETS,
@@ -44,7 +44,7 @@ export function resolvePhaseSpec(
     return { warmup: [], work: [] };
   }
 
-  if (kind === "static" || phase === "deload") {
+  if (phase === "deload") {
     return base;
   }
 
@@ -58,7 +58,7 @@ export function plannedSetsFromFormula(
   spec: FormulaPhaseSpec,
   maxWeight: number,
   step: number,
-  kind: WorkoutKind,
+  _kind: WorkoutKind,
 ): Array<{
   set_type: "warmup" | "work";
   set_number: number;
@@ -75,8 +75,8 @@ export function plannedSetsFromFormula(
     set_type: set.set_type,
     set_number: index + 1,
     planned_weight: calcPlannedWeight(maxWeight, set.percent, step),
-    planned_reps: kind === "dynamic" ? set.reps : null,
-    planned_seconds: kind === "static" ? set.seconds : null,
+    planned_reps: set.reps,
+    planned_seconds: set.seconds,
   }));
 }
 

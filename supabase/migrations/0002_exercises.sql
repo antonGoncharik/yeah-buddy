@@ -3,11 +3,10 @@
 -- =========================================
 
 -- -----------------------------------------
--- Настройки формул и округления
+-- Настройки формул
 -- -----------------------------------------
 create table if not exists public.workout_settings (
   user_id uuid primary key references public.users(id) on delete cascade,
-  weight_step numeric(6,2) not null default 2.5 check (weight_step > 0),
   max_increase_percent numeric(6,2) not null default 5 check (max_increase_percent >= 0),
   formulas jsonb not null,
   updated_at timestamptz not null default now()
@@ -30,6 +29,10 @@ create table if not exists public.exercises (
   unit text not null check (
     unit in ('reps', 'seconds')
   ),
+  weight_step numeric(6,2) not null default 2.5 check (weight_step > 0),
+  formula_preset text not null default 'barbell'
+    check (formula_preset in ('barbell', 'cable', 'none')),
+  slot text check (slot is null or slot in ('a', 'b', 'c')),
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

@@ -501,18 +501,6 @@ async function listPlanExercises(userId: string, session: WorkoutSession) {
     mapExercise(row as Record<string, unknown>),
   );
 
-  if (session.workout_type === "static" || session.slot === "static") {
-    return exercises.filter(
-      (exercise) =>
-        exercise.workout_type === "both" || exercise.workout_type === "static",
-    );
-  }
-
-  const slot = session.slot;
-  if (slot === "a" || slot === "b" || slot === "c") {
-    return exercises.filter((exercise) => exercise.slot === slot);
-  }
-
   return exercises.filter(
     (exercise) =>
       exercise.workout_type === "both" ||

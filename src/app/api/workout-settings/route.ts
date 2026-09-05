@@ -18,7 +18,6 @@ export async function GET(): Promise<NextResponse> {
     const settings = await ensureWorkoutSettings(auth.session.userId);
     return NextResponse.json({
       settings: {
-        weight_step: settings.weight_step,
         max_increase_percent: settings.max_increase_percent,
         formulas: settings.formulas,
       },
@@ -60,7 +59,6 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     );
     return NextResponse.json({
       settings: {
-        weight_step: settings.weight_step,
         max_increase_percent: settings.max_increase_percent,
         formulas: settings.formulas,
       },

@@ -461,12 +461,11 @@ function toUnit(value: unknown): ExerciseUnit {
 }
 
 function toPreset(value: unknown): FormulaPreset {
-  if (
-    value === "barbell" ||
-    value === "cable" ||
-    value === "cable_short" ||
-    value === "none"
-  ) {
+  if (value === "cable_short") {
+    return "cable";
+  }
+
+  if (value === "barbell" || value === "cable" || value === "none") {
     return value;
   }
 

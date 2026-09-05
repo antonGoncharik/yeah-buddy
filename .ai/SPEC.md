@@ -228,13 +228,12 @@ dinner         Ужин
 Пресет разминки:
 
 ```text
-barbell       штанга     50×5 / 70×3 / 80×1
-cable         блок       50×5 / 70×3
-cable_short   короткий   50×8 / 75×3
-none          без плана  упражнение не попадает в автоплан сессии
+barbell   штанга     50×5 / 70×3 / 80×1
+cable     блок       50×5 / 70×3
+none      без плана  упражнение не попадает в автоплан сессии
 ```
 
-Рабочие проценты пресет не меняет. Статика и сброс — своя схема, пресет динамики на них не накладывается.
+Рабочие проценты пресет не меняет. Статика: разминка — тот же пресет (повторы), рабочие — удержания. Сброс — без разминки.
 
 При создании задаётся начальный глобальный максимум. Понизить глобальный рекорд формой нельзя. Фазовый максимум правится на экране макроцикла.
 
@@ -269,7 +268,7 @@ none          без плана  упражнение не попадает в �
 
 Статусы: `planned` | `completed` | `skipped`. UI создаёт `planned`, завершает в `completed`. Не начатую сессию «Не получилось сегодня» **удаляет**, не помечает skipped. Статус `skipped` в схеме есть, продуктовый поток его не ставит.
 
-План упражнений: из шаблона, только с максимумом фазы или глобальным и пресетом ≠ `none`. Единица подхода — вид шаблона: динамика → повторы, статика → секунды.
+План упражнений: из шаблона, только с максимумом фазы или глобальным и пресетом ≠ `none`. Единица подхода — у самого сета: `planned_reps` или `planned_seconds`. Статика: разминка в повторах (как динамика), рабочие — удержания в секундах.
 
 Экран сессии — шпаргалка в зале:
 
@@ -318,7 +317,7 @@ none          без плана  упражнение не попадает в �
 
 FLOOR вниз, не к ближайшему. Шаг на упражнении.
 
-План сессии считается от схемы в `workout_settings.formulas`. Её правит экран `/settings/formulas`. В jsonb также лежат служебные `_skip_template_ids`. Для перехода рывка — `max_increase_percent` (дефолт 5). Глобальный `weight_step` в `workout_settings` на расчёт не влияет.
+План сессии считается от схемы в `workout_settings.formulas`. Её правит экран `/settings/formulas`. В jsonb также лежат служебные `_skip_template_ids`. Для перехода рывка — `max_increase_percent` (дефолт 5). Шаг веса — на упражнении, не глобальный.
 
 Дефолт как в дневнике (`default-formulas.ts`):
 
@@ -331,7 +330,7 @@ FLOOR вниз, не к ближайшему. Шаг на упражнении.
 Статика:
 
 ```text
-разминка разгон/набор/рывок   50%×10с / 80%×3с / 100%×2с
+разминка   как у динамики, пресет упражнения (повторы, не секунды)
 рабочие разгон и рывок        115%×6с три раза
 рабочие набор                 115%×8с / 6с / 6с
 сброс                         без разминки, 50%×3с два раза
@@ -344,10 +343,10 @@ FLOOR вниз, не к ближайшему. Шаг на упражнении.
 Рабочие:  192.5×3 / 180×5 / 165×7
 ```
 
-Статика, максимум 76, шаг 1:
+Статика, максимум 76, шаг 1, пресет блок:
 
 ```text
-Разминка: 38×10с / 60×3с / 76×2с
+Разминка: 38×5 / 60×3
 Рабочие:  87×6с / 87×6с / 87×6с
 ```
 
@@ -397,10 +396,9 @@ Mini App: `ready` + `expand`, авторизация `initData`, иначе эк
 supabase/migrations/0001_init.sql              users, settings, foods, days, meals, meal_items, meal_templates
 supabase/migrations/0002_exercises.sql         workout_settings, exercises, global_maxes
 supabase/migrations/0003_macro_cycles.sql      macro_cycles, workout_phases, phase_maxes
-supabase/migrations/0004_schedule.sql          workout_schedule, workout_sessions
+supabase/migrations/0004_sessions.sql          workout_sessions
 supabase/migrations/0005_sets.sql              session_exercises, workout_sets
-supabase/migrations/0006_slots_and_steps.sql   weight_step, formula_preset, slot на exercises/sessions
-supabase/migrations/0007_templates.sql         workout_templates, template_exercises; template_id; макро/фаза на сессии nullable
+supabase/migrations/0006_templates.sql         workout_templates, template_exercises; template_id на сессии
 ```
 
 Актуальная схема — сумма этих файлов, не один `0001`.
@@ -435,21 +433,13 @@ supabase/migrations/0007_templates.sql         workout_templates, template_exerc
 
 `workout_templates` / `workout_template_exercises` — круг и состав.
 
-`workout_sessions` — дата, вид, `template_id`, nullable макро/фаза, `slot` (legacy).
+`workout_sessions` — дата, вид, `template_id`, nullable макро/фаза.
 
 `session_exercises` / `workout_sets` — план и факт отдельно (`planned_*` / `actual_*`).
 
 `workout_settings` — `max_increase_percent`, jsonb `formulas` (дефолтная схема + `_skip_template_ids`).
 
-### Legacy в БД, не продукт
-
-`workout_schedule` — дни недели. API `GET/PATCH /api/schedule` есть, UI не использует. Сессии по weekday не создаются.
-
-`exercises.slot` (`a`/`b`/`c`) — группировка сида шаблонов. Форма упражнения слот не показывает.
-
-`workout_sessions.slot` — запасной путь плана, если у сессии нет `template_id`. Новые сессии всегда с шаблоном.
-
-`nextSlotAfter` / `kindFromSlot` — не драйвер круга.
+`exercises.slot` (`a`/`b`/`c`) — только группировка сида стартовых шаблонов. Форма упражнения слот не показывает.
 
 ---
 
@@ -459,7 +449,7 @@ supabase/migrations/0007_templates.sql         workout_templates, template_exerc
 exercise.category         base | armwrestling | isolation
 exercise.workout_type     dynamic | static | both
 exercise.unit             reps | seconds
-formula_preset            barbell | cable | cable_short | none
+formula_preset            barbell | cable | none
 macro/phase.status        current | completed
 phase_type                ramp | volume | peak | deload
 phase_maxes.source        auto | manual

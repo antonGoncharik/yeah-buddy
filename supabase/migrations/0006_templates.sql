@@ -33,12 +33,6 @@ alter table public.workout_sessions
   add column if not exists template_id uuid
     references public.workout_templates(id) on delete set null;
 
-alter table public.workout_sessions
-  alter column macro_cycle_id drop not null;
-
-alter table public.workout_sessions
-  alter column phase_id drop not null;
-
 create trigger workout_templates_set_updated_at
 before update on public.workout_templates
 for each row execute function public.set_updated_at();

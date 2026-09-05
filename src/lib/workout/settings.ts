@@ -29,7 +29,6 @@ const formulaPhaseSchema = z.object({
 const warmupPresetsSchema = z.object({
   barbell: z.array(formulaSetSchema),
   cable: z.array(formulaSetSchema),
-  cable_short: z.array(formulaSetSchema),
 });
 
 const formulasSchema = z.object({
@@ -49,7 +48,6 @@ const formulasSchema = z.object({
 });
 
 export const workoutSettingsPatchSchema = z.object({
-  weight_step: z.number().finite().positive().optional(),
   max_increase_percent: z.number().finite().min(0).optional(),
   formulas: formulasSchema.optional(),
 });
@@ -78,7 +76,6 @@ export async function ensureWorkoutSettings(
     .from("workout_settings")
     .insert({
       user_id: userId,
-      weight_step: 2.5,
       max_increase_percent: 5,
       formulas: cloneFormulas(DEFAULT_WORKOUT_FORMULAS),
     })
@@ -115,7 +112,6 @@ export async function saveWorkoutSettings(
   const saved = await supabase
     .from("workout_settings")
     .update({
-      weight_step: patch.weight_step ?? current.weight_step,
       max_increase_percent:
         patch.max_increase_percent ?? current.max_increase_percent,
       formulas: withSkipTemplateIds(
@@ -139,7 +135,6 @@ export function mapWorkoutSettings(
 ): WorkoutSettings {
   return {
     user_id: String(row.user_id),
-    weight_step: toNumber(row.weight_step) || 2.5,
     max_increase_percent: toNumber(row.max_increase_percent),
     formulas: parseFormulas(row.formulas),
     skip_template_ids: parseSkipTemplateIds(row.formulas),
@@ -230,7 +225,7 @@ async function saveSkipTemplateIds(
 }
 
 function parseFormulas(value: unknown): WorkoutFormulas {
-  const parsed = formulasSchema.safeParse(value);
+  const parsed = formulasSchema.safeParse(stripLegacyCableShort(value));
   if (parsed.success) {
     return fillFormulas(parsed.data);
   }
@@ -238,10 +233,31 @@ function parseFormulas(value: unknown): WorkoutFormulas {
   return cloneFormulas(DEFAULT_WORKOUT_FORMULAS);
 }
 
+function stripLegacyCableShort(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const row = value as Record<string, unknown>;
+  const warmups = row.warmups;
+  if (!warmups || typeof warmups !== "object" || Array.isArray(warmups)) {
+    return value;
+  }
+
+  const nextWarmups = { ...(warmups as Record<string, unknown>) };
+  delete nextWarmups.cable_short;
+  return { ...row, warmups: nextWarmups };
+}
+
 function fillFormulas(value: z.infer<typeof formulasSchema>): WorkoutFormulas {
   return {
     dynamic: value.dynamic,
-    static: value.static,
+    static: {
+      ramp: { warmup: [], work: value.static.ramp.work },
+      volume: { warmup: [], work: value.static.volume.work },
+      peak: { warmup: [], work: value.static.peak.work },
+      deload: { warmup: [], work: value.static.deload.work },
+    },
     warmups: value.warmups
       ? structuredClone(value.warmups)
       : structuredClone(DEFAULT_WARMUP_PRESETS),

@@ -123,8 +123,6 @@ export type ExerciseUnit = "reps" | "seconds";
 
 export type WorkoutKind = "dynamic" | "static";
 
-export type ScheduleWorkoutType = "dynamic" | "static" | "rest";
-
 export type PhaseType = "ramp" | "volume" | "peak" | "deload";
 
 export type CycleStatus = "current" | "completed";
@@ -135,11 +133,9 @@ export type SessionStatus = "planned" | "completed" | "skipped";
 
 export type SetType = "warmup" | "work";
 
-export type FormulaPreset = "barbell" | "cable" | "cable_short" | "none";
+export type FormulaPreset = "barbell" | "cable" | "none";
 
 export type ExerciseSlot = "a" | "b" | "c";
-
-export type WorkoutSlot = ExerciseSlot | "static";
 
 export interface FormulaSetSpec {
   percent: number;
@@ -162,7 +158,6 @@ export interface WorkoutFormulas {
 
 export interface WorkoutSettings {
   user_id: string;
-  weight_step: number;
   max_increase_percent: number;
   formulas: WorkoutFormulas;
   skip_template_ids: string[];
@@ -260,16 +255,6 @@ export interface WorkoutTemplateDetail extends WorkoutTemplate {
   exercises: Exercise[];
 }
 
-export interface WorkoutScheduleDay {
-  id: string;
-  user_id: string;
-  day_of_week: number;
-  workout_type: ScheduleWorkoutType;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface RecentWorkoutSession {
   session: WorkoutSession;
   template_name: string | null;
@@ -283,7 +268,6 @@ export interface WorkoutSession {
   phase_id: string | null;
   workout_type: WorkoutKind;
   template_id: string | null;
-  slot: WorkoutSlot | null;
   status: SessionStatus;
   note: string | null;
   created_at: string;
