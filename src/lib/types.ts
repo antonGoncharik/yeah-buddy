@@ -381,3 +381,28 @@ export interface SessionDetail {
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
 }
+
+export interface ProgressPoint {
+  date: string;
+  weight: number;
+  phase_type: PhaseType | null;
+  macro_number: number | null;
+  label: string;
+}
+
+export interface ExerciseProgress {
+  exercise_id: string;
+  name: string;
+  category: ExerciseCategory;
+  current_weight: number | null;
+  start_weight: number | null;
+  delta: number | null;
+  percent: number | null;
+  points: ProgressPoint[];
+}
+
+export interface StrengthProgress {
+  exercises: ExerciseProgress[];
+  grown_count: number;
+  avg_percent: number | null;
+}

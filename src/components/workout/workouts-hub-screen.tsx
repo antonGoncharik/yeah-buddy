@@ -474,6 +474,13 @@ export function WorkoutsHubScreen() {
             )}
 
             <Link
+              href="/workouts/progress"
+              className="flex items-baseline justify-between gap-3 px-1 text-sm"
+            >
+              <span className="text-muted-foreground">Прогресс</span>
+              <span className="font-medium text-primary">Графики</span>
+            </Link>
+            <Link
               href="/workouts/exercises"
               className="flex items-baseline justify-between gap-3 px-1 text-sm"
             >
