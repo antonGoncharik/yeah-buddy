@@ -405,10 +405,10 @@ const STARTER_TEMPLATES: Array<{
     aliases: ["Жимы и тяги", "B · жимы и тяги"],
   },
   {
-    name: "Арм",
+    name: "Армрестлинг динамика",
     kind: "dynamic",
     slots: ["c"],
-    aliases: ["C · арм динамика"],
+    aliases: ["Арм", "C · арм динамика"],
   },
 ];
 

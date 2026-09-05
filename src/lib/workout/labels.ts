@@ -107,13 +107,13 @@ export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
 export const EXERCISE_SLOT_LABELS: Record<ExerciseSlot, string> = {
   a: "Ноги и плечи",
   b: "Грудь и спина",
-  c: "Арм",
+  c: "Армрестлинг динамика",
 };
 
 export const WORKOUT_SLOT_LABELS: Record<WorkoutSlot, string> = {
   a: "Ноги и плечи",
   b: "Грудь и спина",
-  c: "Арм",
+  c: "Армрестлинг динамика",
   static: "Армрестлинг статика",
 };
 
