@@ -454,13 +454,13 @@ html.dark .native-select {
   }
 }
 
-@keyframes train-slash {
+@keyframes train-heat {
   0%,
   100% {
-    transform: translateX(0) translateY(0);
+    transform: translate(0, 0) scale(1);
   }
   50% {
-    transform: translateX(-3%) translateY(1.2%);
+    transform: translate(-2.4%, 1.6%) scale(1.05);
   }
 }
 
@@ -468,8 +468,8 @@ html.dark .native-select {
   animation: rest-drift 18s var(--ease-out-soft) infinite;
 }
 
-@utility animate-train-slash {
-  animation: train-slash 8s var(--ease-out-soft) infinite;
+@utility animate-train-heat {
+  animation: train-heat 16s var(--ease-out-soft) infinite;
 }
 
 @keyframes draw-line {
@@ -507,7 +507,7 @@ html.dark .native-select {
   .animate-rise,
   .animate-fade,
   .animate-rest-drift,
-  .animate-train-slash,
+  .animate-train-heat,
   .animate-draw-line,
   .animate-recap-glow {
     animation: none;

@@ -194,35 +194,76 @@ function RestBackdrop() {
 
 function TrainingBackdrop() {
   return (
-    <>
-      <div className="absolute inset-0 bg-[repeating-linear-gradient(-38deg,oklch(0.45_0.1_40_/_0.1)_0_1.25px,transparent_1.25px_22px)] dark:bg-[repeating-linear-gradient(-38deg,oklch(0.78_0.1_40_/_0.1)_0_1.25px,transparent_1.25px_22px)]" />
-      <svg
-        aria-hidden
-        className="absolute inset-0 h-full w-full motion-safe:animate-train-slash"
-        viewBox="0 0 400 800"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <polygon
-          points="296,0 400,0 400,68"
-          className="fill-[oklch(0.45_0.16_32_/_0.32)] dark:fill-[oklch(0.5_0.14_32_/_0.3)]"
-        />
-        <polygon
-          points="400,40 400,250 372,800 400,800"
-          className="fill-[oklch(0.4_0.14_28_/_0.28)] dark:fill-[oklch(0.42_0.12_28_/_0.28)]"
-        />
-        <polygon
-          points="0,692 40,800 0,800"
-          className="fill-[oklch(0.44_0.14_34_/_0.26)] dark:fill-[oklch(0.48_0.12_34_/_0.24)]"
-        />
-        <polygon
-          points="16,468 176,214 183,224 23,478"
-          className="fill-[oklch(0.4_0.14_30_/_0.28)] dark:fill-[oklch(0.62_0.12_30_/_0.24)]"
-        />
-        <polygon
-          points="198,736 354,472 361,483 205,747"
-          className="fill-[oklch(0.42_0.12_34_/_0.22)] dark:fill-[oklch(0.66_0.1_34_/_0.2)]"
-        />
-      </svg>
-    </>
+    <svg
+      aria-hidden
+      className="absolute inset-0 h-full w-full motion-safe:animate-train-heat"
+      viewBox="0 0 400 800"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <filter id="train-soft" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="32" />
+        </filter>
+      </defs>
+      <ellipse
+        cx="330"
+        cy="80"
+        rx="210"
+        ry="170"
+        filter="url(#train-soft)"
+        className="fill-[oklch(0.74_0.12_38_/_0.4)] dark:fill-[oklch(0.42_0.1_32_/_0.36)]"
+      />
+      <ellipse
+        cx="20"
+        cy="430"
+        rx="190"
+        ry="230"
+        filter="url(#train-soft)"
+        className="fill-[oklch(0.8_0.09_50_/_0.3)] dark:fill-[oklch(0.36_0.08_42_/_0.28)]"
+      />
+      <ellipse
+        cx="280"
+        cy="780"
+        rx="250"
+        ry="160"
+        filter="url(#train-soft)"
+        className="fill-[oklch(0.72_0.1_32_/_0.34)] dark:fill-[oklch(0.4_0.09_28_/_0.3)]"
+      />
+      <circle
+        cx="356"
+        cy="148"
+        r="118"
+        fill="none"
+        strokeWidth="18"
+        className="stroke-[oklch(0.5_0.13_36_/_0.3)] dark:stroke-[oklch(0.72_0.1_40_/_0.26)]"
+      />
+      <circle
+        cx="356"
+        cy="148"
+        r="74"
+        fill="none"
+        strokeWidth="8"
+        className="stroke-[oklch(0.5_0.11_42_/_0.22)] dark:stroke-[oklch(0.74_0.08_44_/_0.2)]"
+      />
+      <circle
+        cx="356"
+        cy="148"
+        r="26"
+        className="fill-[oklch(0.48_0.13_36_/_0.24)] dark:fill-[oklch(0.62_0.09_40_/_0.22)]"
+      />
+      <path
+        d="M -50 620 C 80 500, 220 360, 460 170"
+        fill="none"
+        strokeWidth="22"
+        strokeLinecap="round"
+        className="stroke-[oklch(0.5_0.13_34_/_0.2)] dark:stroke-[oklch(0.7_0.1_36_/_0.18)]"
+      />
+      <circle
+        cx="86"
+        cy="668"
+        r="14"
+        className="fill-[oklch(0.5_0.12_40_/_0.22)] dark:fill-[oklch(0.66_0.09_38_/_0.2)]"
+      />
+    </svg>
   );
 }
