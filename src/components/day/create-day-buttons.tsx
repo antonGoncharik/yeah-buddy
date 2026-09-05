@@ -23,7 +23,7 @@ export function CreateDayButtons({
           disabled={busy}
           onClick={onCreateTraining}
         >
-          Тренировка
+          Как в зале
         </Button>
         <Button
           variant="outline"
@@ -55,7 +55,7 @@ export function CreateDayButtons({
         disabled={busy}
         onClick={onCreateTraining}
       >
-        Тренировка
+        Как в зале
       </Button>
       <Button
         variant="outline"

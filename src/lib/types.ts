@@ -323,6 +323,14 @@ export interface CurrentMacroState {
   phase: WorkoutPhase | null;
   phases: WorkoutPhase[];
   maxes: PhaseMaxRow[];
+  phase_circle: PhaseCircleProgress | null;
+}
+
+export interface PhaseCircleProgress {
+  phase_type: PhaseType;
+  completed_count: number;
+  circle_size: number;
+  suggest_end: boolean;
 }
 
 export interface TransitionMaxRow {

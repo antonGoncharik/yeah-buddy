@@ -21,7 +21,7 @@ import {
 } from "@/lib/workout/formulas";
 import { PHASE_ORDER } from "@/lib/workout/labels";
 import { toNullableString, toNumber } from "@/lib/workout/numbers";
-import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { getPhaseCircleProgress } from "@/lib/workout/phase-progress";
 
 export class MacroConflictError extends Error {
   readonly code = "MACRO_EXISTS";
@@ -83,7 +83,13 @@ export async function getCurrentMacroState(
   }
 
   if (!macros.data) {
-    return { macro: null, phase: null, phases: [], maxes: [] };
+    return {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      phase_circle: null,
+    };
   }
 
   const macro = mapMacroCycle(macros.data as Record<string, unknown>);
@@ -103,8 +109,9 @@ export async function getCurrentMacroState(
   );
   const phase = phases.find((item) => item.status === "current") ?? null;
   const maxes = phase ? await listPhaseMaxRows(userId, phase.id) : [];
+  const phase_circle = await getPhaseCircleProgress(userId, phase);
 
-  return { macro, phase, phases, maxes };
+  return { macro, phase, phases, maxes, phase_circle };
 }
 
 export async function createFirstMacro(

@@ -17,13 +17,18 @@ import {
 import type {
   CurrentMacroState,
   ExerciseWithMax,
+  PhaseCircleProgress,
   RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
-  PHASE_TYPE_LABELS,
+  phaseEndHint,
+  phaseLinkLabel,
+  readPhaseCircle,
+} from "@/lib/workout/hints";
+import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
@@ -42,6 +47,9 @@ export function WorkoutsHubScreen() {
   const [followingTemplate, setFollowingTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
   const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
+  const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
+    null,
+  );
   const [canUnskip, setCanUnskip] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +98,7 @@ export function WorkoutsHubScreen() {
       setNextTemplate(readTemplate(todayData, "next_template"));
       setFollowingTemplate(readTemplate(todayData, "following_template"));
       setRecent(readRecent(todayData));
+      setPhaseCircle(readPhaseCircle(todayData));
       setCanUnskip(readCanUnskip(todayData));
     } catch {
       setError(LOAD_FAILED);
@@ -101,6 +110,7 @@ export function WorkoutsHubScreen() {
       setNextTemplate(null);
       setFollowingTemplate(null);
       setRecent([]);
+      setPhaseCircle(null);
       setCanUnskip(false);
     } finally {
       setLoading(false);
@@ -199,7 +209,7 @@ export function WorkoutsHubScreen() {
       nextTemplate &&
       template.id !== nextTemplate.id &&
       !window.confirm(
-        `Сейчас в круге «${nextTemplate.name}». Начать «${template.name}» сегодня?`,
+        `В круге сейчас «${nextTemplate.name}». Начать «${template.name}» сегодня?`,
       )
     ) {
       return;
@@ -211,10 +221,11 @@ export function WorkoutsHubScreen() {
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =
     session?.status === "completed"
-      ? SESSION_STATUS_LABELS.completed
+      ? "Открыть запись"
       : session?.status === "skipped"
         ? SESSION_STATUS_LABELS.skipped
-        : "Открыть";
+        : "Открыть и отметить";
+  const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -272,7 +283,9 @@ export function WorkoutsHubScreen() {
             href={`/workouts/sessions/${session.id}`}
             className="card-surface animate-rise block px-5 py-6 transition-colors hover:bg-muted/40"
           >
-            <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              {session.status === "planned" ? "Сегодня в зале" : "Сегодня"}
+            </p>
             <h2 className="mt-1 text-3xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
@@ -303,7 +316,7 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Следующая
+                Сегодня в круге
               </p>
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
@@ -330,7 +343,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void skipTemplate(nextTemplate.id)}
               >
-                Не это, следующая
+                Не это — взять следующую
               </Button>
             ) : null}
             {canUnskip ? (
@@ -341,11 +354,12 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void unskipLast()}
               >
-                Вернуть предыдущую
+                Вернуть в круг
               </Button>
             ) : null}
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Не идёшь сегодня — ничего не нажимай. Завтра снова она.
+              Не идёшь — ничего не жми, очередь останется. «Не это» сдвигает
+              круг, дату сегодня не занимает.
             </p>
           </section>
         ) : null}
@@ -355,6 +369,25 @@ export function WorkoutsHubScreen() {
             className="animate-rise flex flex-col gap-5"
             style={{ animationDelay: "40ms" }}
           >
+            {phaseHint ? (
+              <Link
+                href="/workouts/macro"
+                className="card-surface block px-5 py-5 transition-colors hover:bg-muted/40"
+              >
+                <p className="text-sm font-medium text-muted-foreground">
+                  {phaseCircle?.phase_type === "deload" ? "Макроцикл" : "Фаза"}
+                </p>
+                <p className="mt-1 text-lg font-medium leading-snug">
+                  {phaseHint}
+                </p>
+                <p className="mt-2 text-base font-medium text-primary">
+                  {phaseCircle?.phase_type === "deload"
+                    ? "Закрыть макроцикл"
+                    : "Завершить фазу"}
+                </p>
+              </Link>
+            ) : null}
+
             {macro?.macro && macro.phase ? (
               <Link
                 href="/workouts/macro"
@@ -362,9 +395,19 @@ export function WorkoutsHubScreen() {
               >
                 <span className="text-muted-foreground">Макроцикл</span>
                 <span>
-                  №{macro.macro.number} ·{" "}
-                  {PHASE_TYPE_LABELS[macro.phase.phase_type]}
+                  {phaseLinkLabel(
+                    macro.macro.number,
+                    phaseCircle ?? macro.phase_circle,
+                    macro.phase.phase_type,
+                  )}
                 </span>
+              </Link>
+            ) : activeTemplates.length > 0 ? (
+              <Link
+                href="/workouts/macro"
+                className="px-1 text-sm leading-relaxed text-muted-foreground"
+              >
+                Без макроцикла веса как в разгоне. Фазы можно включить здесь.
               </Link>
             ) : null}
 
@@ -415,6 +458,11 @@ export function WorkoutsHubScreen() {
                     );
                   })}
                 </ol>
+                {!session ? (
+                  <p className="text-sm text-muted-foreground">
+                    Тапни имя, если сегодня не она.
+                  </p>
+                ) : null}
               </div>
             ) : (
               <Link

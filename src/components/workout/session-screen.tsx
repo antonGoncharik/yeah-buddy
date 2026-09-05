@@ -15,6 +15,7 @@ import type {
   SessionExerciseDetail,
   WorkoutSet,
 } from "@/lib/types";
+import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
 import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import {
   formatSeconds,
@@ -32,15 +33,17 @@ export function SessionScreen() {
   const [openSetIds, setOpenSetIds] = useState<string[]>([]);
   const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
   const [nextName, setNextName] = useState<string | null>(null);
+  const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
 
-  const loadNextName = useCallback(async (sessionDate: string) => {
+  const loadFollowUp = useCallback(async (sessionDate: string) => {
     try {
       const response = await fetch(
         `/api/sessions?date=${encodeURIComponent(sessionDate)}`,
       );
       if (!response.ok) {
         setNextName(null);
+        setPhaseHint(null);
         return;
       }
       const data: unknown = await response.json();
@@ -54,11 +57,14 @@ export function SessionScreen() {
         typeof data.next_template.name === "string"
       ) {
         setNextName(data.next_template.name);
-        return;
+      } else {
+        setNextName(null);
       }
-      setNextName(null);
+      const circle = readPhaseCircle(data);
+      setPhaseHint(circle ? phaseEndHint(circle) : null);
     } catch {
       setNextName(null);
+      setPhaseHint(null);
     }
   }, []);
 
@@ -83,9 +89,10 @@ export function SessionScreen() {
       setDrafts(next ? draftsFromDetail(next) : {});
       setOpenSetIds([]);
       if (next?.session.status === "completed") {
-        void loadNextName(next.session.session_date);
+        void loadFollowUp(next.session.session_date);
       } else {
         setNextName(null);
+        setPhaseHint(null);
       }
     } catch {
       setError(LOAD_FAILED);
@@ -93,7 +100,7 @@ export function SessionScreen() {
     } finally {
       setLoading(false);
     }
-  }, [loadNextName, params.id]);
+  }, [loadFollowUp, params.id]);
 
   useEffect(() => {
     void load();
@@ -140,7 +147,7 @@ export function SessionScreen() {
         setDetail(next);
         setDrafts(draftsFromDetail(next));
         setOpenSetIds([]);
-        await loadNextName(next.session.session_date);
+        await loadFollowUp(next.session.session_date);
       }
     } catch {
       setError(LOAD_FAILED);
@@ -156,7 +163,7 @@ export function SessionScreen() {
 
     if (
       !window.confirm(
-        "Не смог сегодня? Очередь не сдвинется. Можно начать другую.",
+        "Не получилось? Сессия пропадёт, очередь останется. Можно начать другую сегодня.",
       )
     ) {
       return;
@@ -230,7 +237,7 @@ export function SessionScreen() {
           <>
             {detail.exercises.length === 0 ? (
               <p className="text-base leading-relaxed text-muted-foreground">
-                В шаблоне нет упражнений с максимумом.
+                В шаблоне нет упражнений с максимумом — задай его в упражнении.
               </p>
             ) : (
               <section className="card-surface animate-rise overflow-hidden">
@@ -269,6 +276,12 @@ export function SessionScreen() {
               </section>
             )}
 
+            {session.status === "planned" && detail.exercises.length > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Тапни подход, если вес или повторы другие.
+              </p>
+            ) : null}
+
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
             {session.status === "completed" && nextName ? (
@@ -276,7 +289,16 @@ export function SessionScreen() {
                 href="/workouts"
                 className="text-base font-medium text-primary"
               >
-                Дальше: {nextName}
+                Дальше в круге: {nextName}
+              </Link>
+            ) : null}
+
+            {session.status === "completed" && phaseHint ? (
+              <Link
+                href="/workouts/macro"
+                className="text-base leading-snug text-muted-foreground"
+              >
+                {phaseHint}
               </Link>
             ) : null}
 
@@ -290,7 +312,7 @@ export function SessionScreen() {
               >
                 {session.status === "skipped"
                   ? "Убрать — можно начать другую"
-                  : "Не смог сегодня"}
+                  : "Не получилось сегодня"}
               </Button>
             ) : null}
           </>

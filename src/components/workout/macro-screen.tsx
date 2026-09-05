@@ -10,6 +10,12 @@ import { Input } from "@/components/ui/input";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import {
+  completePhaseHint,
+  phaseEndHint,
+  phaseLinkLabel,
+  transitionExplain,
+} from "@/lib/workout/hints";
 import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
@@ -197,7 +203,13 @@ export function MacroScreen() {
 
         {!loading && state && !state.macro ? (
           <section className="card-surface flex flex-col gap-3 px-5 py-5">
-            <p className="text-lg font-medium">Макроцикла ещё нет.</p>
+            <p className="text-lg font-medium">Макроцикла ещё нет</p>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Круг шаблонов идёт и так. Веса считаются как в разгоне от
+              глобального максимума. Макроцикл — это разгон → набор → рывок →
+              сброс: после круга в фазе закрываешь её сам, проценты меняются, на
+              рывке максимум растёт.
+            </p>
             <Link
               href="/workouts/macro/new"
               className={cn(buttonVariants(), "h-14 text-lg")}
@@ -211,14 +223,24 @@ export function MacroScreen() {
           <>
             <section className="card-surface flex flex-col gap-2 px-5 py-5">
               <p className="text-sm text-muted-foreground">
-                Макроцикл №{state.macro.number}
+                Макроцикл{" "}
+                {phaseLinkLabel(
+                  state.macro.number,
+                  state.phase_circle,
+                  state.phase.phase_type,
+                )}
               </p>
               <h2 className="text-2xl font-semibold">
                 {PHASE_TYPE_LABELS[state.phase.phase_type]}
               </h2>
               <p className="text-sm text-muted-foreground">
-                с {state.phase.start_date}
+                с {state.phase.start_date}. Круг шаблонов сам фазу не меняет.
               </p>
+              {state.phase_circle && phaseEndHint(state.phase_circle) ? (
+                <p className="text-base leading-snug">
+                  {phaseEndHint(state.phase_circle)}
+                </p>
+              ) : null}
               <ol className="mt-2 flex flex-wrap gap-2">
                 {state.phases.map((phase) => (
                   <li
@@ -237,7 +259,11 @@ export function MacroScreen() {
             </section>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-xl font-semibold">Максимумы</h2>
+              <h2 className="text-xl font-semibold">Максимумы этой фазы</h2>
+              <p className="text-sm text-muted-foreground">
+                От них считаются веса. На переходе фазы программа предложит
+                новые — здесь правишь, если уже сейчас не так.
+              </p>
               {state.maxes.map((row) => (
                 <div
                   key={row.exercise.id}
@@ -286,15 +312,9 @@ export function MacroScreen() {
                     ? "Новый макроцикл"
                     : `Дальше: ${preview.to_phase ? PHASE_TYPE_LABELS[preview.to_phase] : ""}`}
                 </h2>
-                {preview.increased ? (
-                  <p className="text-sm text-muted-foreground">
-                    Максимумы с приростом +5%. Можно поправить.
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Максимумы копируются без изменений. Можно поправить.
-                  </p>
-                )}
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {transitionExplain(preview)}
+                </p>
                 <Input
                   type="date"
                   value={transitionDate}
@@ -340,16 +360,21 @@ export function MacroScreen() {
                 </Button>
               </section>
             ) : (
-              <Button
-                type="button"
-                className="h-14 text-lg"
-                disabled={transitioning}
-                onClick={() => void openTransition()}
-              >
-                {state.phase.phase_type === "deload"
-                  ? "Завершить макроцикл"
-                  : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  className="h-14 text-lg"
+                  disabled={transitioning}
+                  onClick={() => void openTransition()}
+                >
+                  {state.phase.phase_type === "deload"
+                    ? "Закрыть макроцикл"
+                    : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
+                </Button>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {completePhaseHint(state.phase.phase_type)}
+                </p>
+              </>
             )}
           </>
         ) : null}

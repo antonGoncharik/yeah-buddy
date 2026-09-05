@@ -1,10 +1,10 @@
 export const OPEN_VIA_BOT = "Откройте приложение через Telegram-бота.";
 export const LOAD_FAILED = "Не удалось загрузить данные.";
 export const FOODS_EMPTY = "Продуктов пока нет.";
-export const TODAY_EMPTY = "Сегодня ещё пусто. Это день отдыха или тренировки?";
+export const TODAY_EMPTY = "Еды ещё нет. Отметь день — отдых или как в зале.";
 export const TODAY_EMPTY_GYM =
-  "Идёшь в зал — еду можно сразу как в тренировочный.";
-export const DAY_EMPTY = "В этот день пусто. Отдых или тренировка?";
+  "Идёшь в зал — поставь тренировочный день. БЖУ сразу как в зале.";
+export const DAY_EMPTY = "В этот день нет еды. Отдых или как в зале?";
 export const DAY_EXISTS_REPLACE =
   "В этом дне уже есть записи. Заменить предыдущим днём?";
 export const YESTERDAY_MISSING = "Вчерашнего дня нет.";
@@ -13,8 +13,10 @@ export const BOT_START =
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const EXERCISES_EMPTY = "Добавьте упражнение и максимум.";
 export const EXERCISES_ARCHIVED_EMPTY = "В архиве пусто.";
-export const WORKOUTS_NEED_EXERCISES = "Сначала добавьте упражнения.";
-export const WORKOUTS_NEED_TEMPLATES = "Соберите первую тренировку.";
+export const WORKOUTS_NEED_EXERCISES =
+  "Сначала упражнения и рабочие максимумы — от них считаются веса.";
+export const WORKOUTS_NEED_TEMPLATES =
+  "Собери очередь: какие тренировки идут по кругу.";
 
 export function readApiError(data: unknown): string | null {
   if (

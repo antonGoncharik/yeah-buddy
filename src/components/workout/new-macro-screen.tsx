@@ -125,6 +125,10 @@ export function NewMacroScreen() {
 
         {!loading && exercises.length > 0 ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Первый макроцикл начинается с разгона. Максимумы — рабочие, от них
+              считаются веса. Дальше фазы закрываешь сам после круга в зале.
+            </p>
             <div className="flex flex-col gap-2">
               <Label className="text-base">Дата начала</Label>
               <Input
@@ -148,7 +152,7 @@ export function NewMacroScreen() {
             <section className="flex flex-col gap-3">
               <h2 className="text-xl font-semibold">Максимумы</h2>
               <p className="text-sm text-muted-foreground">
-                Для первого макроцикла задайте максимум каждого упражнения.
+                Для первого макроцикла задай максимум каждого упражнения.
                 Подставлены текущие рекорды — их можно поправить.
               </p>
               {exercises.map((exercise) => (

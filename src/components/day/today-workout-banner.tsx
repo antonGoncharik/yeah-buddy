@@ -68,7 +68,7 @@ export function bannerFromTodayState(
       href: "/workouts",
       label: "В зале",
       title: nextTemplate.name,
-      hint: "Открыть, если идёшь",
+      hint: "Начни, если идёшь в зал",
     };
   }
 

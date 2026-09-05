@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isIsoDate, markDateAsTrainingIfExists } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
+  PhaseCircleProgress,
   RecentWorkoutSession,
   SessionStatus,
   WorkoutKind,
@@ -113,6 +114,7 @@ export async function getTodayWorkoutState(
   session_template: WorkoutTemplateDetail | null;
   recent: RecentWorkoutSession[];
   can_unskip: boolean;
+  phase_circle: PhaseCircleProgress | null;
 }> {
   const settings = await ensureWorkoutSettings(userId);
   await ensureStarterExercises(createSupabaseServerClient(), userId);
@@ -138,6 +140,7 @@ export async function getTodayWorkoutState(
     session_template: sessionTemplate,
     recent: await listRecentCompletedSessions(userId, 5),
     can_unskip: settings.skip_template_ids.length > 0,
+    phase_circle: macro.phase_circle,
   };
 }
 
