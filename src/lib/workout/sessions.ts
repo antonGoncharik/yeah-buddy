@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isIsoDate } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
+  RecentWorkoutSession,
   SessionStatus,
   WorkoutKind,
   WorkoutSession,
@@ -16,6 +17,8 @@ import { isWorkoutSlot } from "@/lib/workout/slots";
 import {
   getNextTemplate,
   getTemplate,
+  listActiveTemplates,
+  templateAfter,
   TemplateNotFoundError,
 } from "@/lib/workout/templates";
 
@@ -100,13 +103,20 @@ export async function getTodayWorkoutState(
 ): Promise<{
   session: WorkoutSession | null;
   next_template: WorkoutTemplateDetail | null;
+  following_template: WorkoutTemplateDetail | null;
   session_template: WorkoutTemplateDetail | null;
+  recent: RecentWorkoutSession[];
 }> {
   await ensureWorkoutSettings(userId);
   await ensureStarterExercises(createSupabaseServerClient(), userId);
   const existing = await getSessionByDate(userId, date);
   const macro = await getCurrentMacroState(userId);
   const nextTemplate = await getNextTemplate(userId, macro.phase?.id ?? null);
+  const active = await listActiveTemplates(userId);
+  const followingTemplate =
+    nextTemplate && active.length > 1
+      ? templateAfter(active, nextTemplate.id)
+      : null;
   const sessionTemplate = existing?.template_id
     ? await getTemplate(userId, existing.template_id)
     : null;
@@ -114,8 +124,53 @@ export async function getTodayWorkoutState(
   return {
     session: existing,
     next_template: nextTemplate,
+    following_template:
+      followingTemplate && followingTemplate.id !== nextTemplate?.id
+        ? followingTemplate
+        : null,
     session_template: sessionTemplate,
+    recent: await listRecentCompletedSessions(userId, 5),
   };
+}
+
+export async function listRecentCompletedSessions(
+  userId: string,
+  limit: number,
+): Promise<RecentWorkoutSession[]> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .order("session_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  const sessions = (result.data ?? []).map((row) =>
+    mapWorkoutSession(row as Record<string, unknown>),
+  );
+  const names = new Map<string, string>();
+  for (const session of sessions) {
+    if (!session.template_id || names.has(session.template_id)) {
+      continue;
+    }
+    const template = await getTemplate(userId, session.template_id);
+    if (template) {
+      names.set(template.id, template.name);
+    }
+  }
+
+  return sessions.map((session) => ({
+    session,
+    template_name: session.template_id
+      ? (names.get(session.template_id) ?? null)
+      : null,
+  }));
 }
 
 export async function createSession(

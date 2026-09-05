@@ -266,6 +266,11 @@ export interface WorkoutScheduleDay {
   updated_at: string;
 }
 
+export interface RecentWorkoutSession {
+  session: WorkoutSession;
+  template_name: string | null;
+}
+
 export interface WorkoutSession {
   id: string;
   user_id: string;

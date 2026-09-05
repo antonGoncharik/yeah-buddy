@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -16,6 +16,7 @@ import {
 import type {
   CurrentMacroState,
   ExerciseWithMax,
+  RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
@@ -25,7 +26,6 @@ import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
-import { formatWeight } from "@/lib/workout/numbers";
 
 export function WorkoutsHubScreen() {
   const date = format(new Date(), "yyyy-MM-dd");
@@ -37,6 +37,9 @@ export function WorkoutsHubScreen() {
     useState<WorkoutTemplateDetail | null>(null);
   const [nextTemplate, setNextTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
+  const [followingTemplate, setFollowingTemplate] =
+    useState<WorkoutTemplateDetail | null>(null);
+  const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -81,6 +84,8 @@ export function WorkoutsHubScreen() {
       setSession(readTodaySession(todayData));
       setSessionTemplate(readTemplate(todayData, "session_template"));
       setNextTemplate(readTemplate(todayData, "next_template"));
+      setFollowingTemplate(readTemplate(todayData, "following_template"));
+      setRecent(readRecent(todayData));
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
@@ -89,6 +94,8 @@ export function WorkoutsHubScreen() {
       setSession(null);
       setSessionTemplate(null);
       setNextTemplate(null);
+      setFollowingTemplate(null);
+      setRecent([]);
     } finally {
       setLoading(false);
     }
@@ -126,7 +133,6 @@ export function WorkoutsHubScreen() {
   }
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
-  const todayTemplateId = sessionTemplate?.id ?? nextTemplate?.id ?? null;
   const sessionAction =
     session?.status === "completed"
       ? SESSION_STATUS_LABELS.completed
@@ -204,6 +210,16 @@ export function WorkoutsHubScreen() {
             >
               {sessionAction}
             </p>
+            {session.status === "completed" && nextTemplate ? (
+              <p className="mt-2 text-base text-muted-foreground">
+                Дальше {nextTemplate.name}
+              </p>
+            ) : null}
+            {session.status === "planned" && followingTemplate ? (
+              <p className="mt-2 text-base text-muted-foreground">
+                Потом {followingTemplate.name}
+              </p>
+            ) : null}
           </Link>
         ) : null}
 
@@ -211,11 +227,16 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Сегодня
+                Следующая
               </p>
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
               </h2>
+              {followingTemplate ? (
+                <p className="mt-2 text-base text-muted-foreground">
+                  Потом {followingTemplate.name}
+                </p>
+              ) : null}
             </div>
             <Button
               type="button"
@@ -225,6 +246,9 @@ export function WorkoutsHubScreen() {
             >
               Начать
             </Button>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Не идёшь сегодня — ничего не нажимай. Завтра снова она.
+            </p>
           </section>
         ) : null}
 
@@ -236,10 +260,10 @@ export function WorkoutsHubScreen() {
             {macro?.macro && macro.phase ? (
               <Link
                 href="/workouts/macro"
-                className="flex items-baseline justify-between gap-3 px-1 text-base"
+                className="flex items-baseline justify-between gap-3 px-1 text-sm"
               >
                 <span className="text-muted-foreground">Макроцикл</span>
-                <span className="font-medium">
+                <span>
                   №{macro.macro.number} ·{" "}
                   {PHASE_TYPE_LABELS[macro.phase.phase_type]}
                 </span>
@@ -247,53 +271,21 @@ export function WorkoutsHubScreen() {
             ) : (
               <Link
                 href="/workouts/macro/new"
-                className="px-1 text-sm font-medium text-primary"
+                className="px-1 text-sm text-muted-foreground"
               >
-                Создать макроцикл
+                Фазы макроцикла
               </Link>
             )}
 
             {activeTemplates.length > 0 ? (
               <Link
                 href="/workouts/schedule"
-                className="flex flex-col gap-3 px-1"
+                className="flex items-baseline justify-between gap-3 px-1"
               >
-                <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="text-lg font-semibold">Очередь</h2>
-                  <span className="text-sm font-medium text-primary">
-                    Изменить
-                  </span>
-                </div>
-                <ol className="flex flex-col gap-2">
-                  {activeTemplates.map((template, index) => {
-                    const isToday = template.id === todayTemplateId;
-                    return (
-                      <li
-                        key={template.id}
-                        className={cn(
-                          "flex items-center gap-3 text-base",
-                          isToday
-                            ? "font-semibold"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums",
-                            isToday
-                              ? "bg-foreground text-background"
-                              : "bg-muted text-foreground/70",
-                          )}
-                        >
-                          {index + 1}
-                        </span>
-                        <span className="min-w-0 truncate">
-                          {template.name}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ol>
+                <h2 className="text-lg font-semibold">Очередь</h2>
+                <span className="text-sm font-medium text-primary">
+                  Изменить
+                </span>
               </Link>
             ) : (
               <Link
@@ -303,36 +295,35 @@ export function WorkoutsHubScreen() {
                 Собрать очередь
               </Link>
             )}
+
+            <Link
+              href="/workouts/exercises"
+              className="flex items-baseline justify-between gap-3 px-1 text-sm"
+            >
+              <span className="text-muted-foreground">Упражнения</span>
+              <span className="font-medium text-primary">Все</span>
+            </Link>
           </div>
         ) : null}
 
-        {!loading && !error && exercises.length > 0 ? (
+        {!loading && !error && recent.length > 0 ? (
           <section
             className="animate-rise flex flex-col gap-3 px-1"
             style={{ animationDelay: "80ms" }}
           >
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-lg font-semibold">Максимумы</h2>
-              <Link
-                href="/workouts/exercises"
-                className="text-sm font-medium text-primary"
-              >
-                Все
-              </Link>
-            </div>
-            <ul className="flex flex-col gap-3">
-              {exercises.slice(0, 5).map((exercise) => (
+            <h2 className="text-lg font-semibold">Недавние</h2>
+            <ul className="flex flex-col gap-2.5">
+              {recent.map((item) => (
                 <li
-                  key={exercise.id}
+                  key={item.session.id}
                   className="flex items-baseline justify-between gap-3"
                 >
-                  <span className="truncate text-base text-muted-foreground">
-                    {exercise.short_name || exercise.name}
+                  <span className="truncate text-base">
+                    {item.template_name ??
+                      WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </span>
-                  <span className="shrink-0 text-lg tabular-nums font-semibold tracking-tight">
-                    {exercise.current_max
-                      ? formatWeight(exercise.current_max.max_weight)
-                      : "—"}
+                  <span className="shrink-0 text-sm text-muted-foreground">
+                    {formatSessionDay(item.session.session_date)}
                   </span>
                 </li>
               ))}
@@ -393,7 +384,7 @@ function readTodaySession(data: unknown): WorkoutSession | null {
 
 function readTemplate(
   data: unknown,
-  key: "next_template" | "session_template",
+  key: "next_template" | "session_template" | "following_template",
 ): WorkoutTemplateDetail | null {
   if (!data || typeof data !== "object" || !(key in data)) {
     return null;
@@ -405,4 +396,25 @@ function readTemplate(
   }
 
   return value as WorkoutTemplateDetail;
+}
+
+function readRecent(data: unknown): RecentWorkoutSession[] {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("recent" in data) ||
+    !Array.isArray(data.recent)
+  ) {
+    return [];
+  }
+
+  return data.recent as RecentWorkoutSession[];
+}
+
+function formatSessionDay(isoDate: string): string {
+  try {
+    return format(parseISO(isoDate), "d MMM", { locale: ru });
+  } catch {
+    return isoDate;
+  }
 }

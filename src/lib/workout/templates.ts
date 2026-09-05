@@ -221,6 +221,17 @@ export async function getNextTemplate(
   }
 
   const lastId = await getLastTemplateId(userId, phaseId);
+  return templateAfter(templates, lastId);
+}
+
+export function templateAfter(
+  templates: WorkoutTemplateDetail[],
+  lastId: string | null,
+): WorkoutTemplateDetail | null {
+  if (templates.length === 0) {
+    return null;
+  }
+
   if (!lastId) {
     return templates[0] ?? null;
   }
