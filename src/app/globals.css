@@ -284,6 +284,12 @@ html.dark[data-day="training"] {
     @apply font-sans;
     font-size: 17px;
     color-scheme: light;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: color-mix(
+      in oklch,
+      var(--primary) 16%,
+      transparent
+    );
     transition:
       --background 0.28s var(--ease-out-soft),
       --foreground 0.28s var(--ease-out-soft),

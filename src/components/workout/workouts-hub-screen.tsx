@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   LOAD_FAILED,
@@ -22,6 +23,7 @@ import type {
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
   phaseEndHint,
@@ -51,7 +53,7 @@ export function WorkoutsHubScreen() {
     null,
   );
   const [canUnskip, setCanUnskip] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [skipping, setSkipping] = useState(false);
@@ -62,7 +64,7 @@ export function WorkoutsHubScreen() {
   );
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
 
     try {
@@ -100,6 +102,7 @@ export function WorkoutsHubScreen() {
       setRecent(readRecent(todayData));
       setPhaseCircle(readPhaseCircle(todayData));
       setCanUnskip(readCanUnskip(todayData));
+      done(true);
     } catch {
       setError(LOAD_FAILED);
       setExercises([]);
@@ -112,10 +115,9 @@ export function WorkoutsHubScreen() {
       setRecent([]);
       setPhaseCircle(null);
       setCanUnskip(false);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, [date]);
+  }, [begin, date, done]);
 
   useEffect(() => {
     void load();
@@ -232,22 +234,10 @@ export function WorkoutsHubScreen() {
       <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center text-lg font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
         {!loading && !error && exercises.length === 0 ? (
@@ -473,59 +463,55 @@ export function WorkoutsHubScreen() {
               </Link>
             )}
 
-            <Link
-              href="/workouts/progress"
-              className="flex items-baseline justify-between gap-3 px-1 text-sm"
-            >
-              <span className="text-muted-foreground">Прогресс</span>
-              <span className="font-medium text-primary">Графики</span>
-            </Link>
-            <Link
-              href="/workouts/exercises"
-              className="flex items-baseline justify-between gap-3 px-1 text-sm"
-            >
-              <span className="text-muted-foreground">Упражнения</span>
-              <span className="font-medium text-primary">Все</span>
-            </Link>
+            <nav className="grid grid-cols-3 gap-2">
+              <Link
+                href="/workouts/progress"
+                className="card-surface px-2 py-3 text-center text-sm font-medium transition-colors hover:bg-muted/40"
+              >
+                Прогресс
+              </Link>
+              <Link
+                href="/workouts/history"
+                className="card-surface px-2 py-3 text-center text-sm font-medium transition-colors hover:bg-muted/40"
+              >
+                История
+              </Link>
+              <Link
+                href="/workouts/exercises"
+                className="card-surface px-2 py-3 text-center text-sm font-medium transition-colors hover:bg-muted/40"
+              >
+                Упражнения
+              </Link>
+            </nav>
           </div>
         ) : null}
 
-        {!loading && !error && (recent.length > 0 || exercises.length > 0) ? (
+        {!loading && !error && recent.length > 0 ? (
           <section
-            className="animate-rise flex flex-col gap-3 px-1"
+            className="animate-rise flex flex-col gap-2 px-1"
             style={{ animationDelay: "80ms" }}
           >
-            <Link
-              href="/workouts/history"
-              className="flex items-baseline justify-between gap-3"
-            >
-              <h2 className="text-lg font-semibold">История</h2>
-              <span className="text-sm font-medium text-primary">Все</span>
-            </Link>
-            {recent.length > 0 ? (
-              <ul className="flex flex-col gap-1">
-                {recent.map((item) => (
-                  <li key={item.session.id}>
-                    <Link
-                      href={`/workouts/sessions/${item.session.id}`}
-                      className="flex items-baseline justify-between gap-3 py-1"
-                    >
-                      <span className="truncate text-base">
-                        {item.template_name ??
-                          WORKOUT_KIND_LABELS[item.session.workout_type]}
-                      </span>
-                      <span className="shrink-0 text-sm text-muted-foreground">
-                        {formatSessionDay(item.session.session_date)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                После зала записи появятся здесь.
-              </p>
-            )}
+            <h2 className="text-sm font-medium text-muted-foreground">
+              Недавние
+            </h2>
+            <ul className="flex flex-col gap-1">
+              {recent.map((item) => (
+                <li key={item.session.id}>
+                  <Link
+                    href={`/workouts/sessions/${item.session.id}`}
+                    className="flex items-baseline justify-between gap-3 py-1"
+                  >
+                    <span className="truncate text-base">
+                      {item.template_name ??
+                        WORKOUT_KIND_LABELS[item.session.workout_type]}
+                    </span>
+                    <span className="shrink-0 text-sm text-muted-foreground">
+                      {formatSessionDay(item.session.session_date)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
       </div>

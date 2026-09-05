@@ -15,6 +15,7 @@ import type {
   ExerciseProgress,
   StrengthProgress,
 } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
   formatSignedPercent,
@@ -33,13 +34,13 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 
 export function ProgressScreen() {
   const [progress, setProgress] = useState<StrengthProgress | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
 
     try {
@@ -53,13 +54,13 @@ export function ProgressScreen() {
         throw new Error("load failed");
       }
       setProgress(next);
+      done(true);
     } catch {
       setError(LOAD_FAILED);
       setProgress(null);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, []);
+  }, [begin, done]);
 
   useEffect(() => {
     void load();

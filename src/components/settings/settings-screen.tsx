@@ -13,6 +13,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { UserSettings } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 
 type FormState = {
   rest_protein: string;
@@ -26,13 +27,13 @@ type FormState = {
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
   const [form, setForm] = useState<FormState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
     setSaved(false);
 
@@ -49,13 +50,13 @@ export function SettingsScreen() {
       }
 
       setForm(toFormState(settings));
+      done(true);
     } catch {
       setError(LOAD_FAILED);
       setForm(null);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, []);
+  }, [begin, done]);
 
   useEffect(() => {
     void load();
@@ -134,6 +135,27 @@ export function SettingsScreen() {
             </span>
             <span className="text-sm text-muted-foreground">
               Справочник для дневника еды
+            </span>
+          </Link>
+          <Link href="/today/history" className="flex flex-col gap-0.5 py-2">
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-lg font-medium">Дни питания</span>
+              <span className="text-sm font-medium text-primary">История</span>
+            </span>
+            <span className="text-sm text-muted-foreground">
+              БЖУ по дням и среднее
+            </span>
+          </Link>
+          <Link
+            href="/workouts/progress"
+            className="flex flex-col gap-0.5 py-2"
+          >
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-lg font-medium">Прогресс в зале</span>
+              <span className="text-sm font-medium text-primary">Графики</span>
+            </span>
+            <span className="text-sm text-muted-foreground">
+              Максимумы по фазам и макроциклам
             </span>
           </Link>
           <Link href="/workouts/macro" className="flex flex-col gap-0.5 py-2">

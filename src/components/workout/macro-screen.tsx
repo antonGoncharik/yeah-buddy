@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
   completePhaseHint,
@@ -22,7 +23,7 @@ import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function MacroScreen() {
   const [state, setState] = useState<CurrentMacroState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export function MacroScreen() {
   const [justClosed, setJustClosed] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
 
     try {
@@ -57,13 +58,13 @@ export function MacroScreen() {
           ]),
         ),
       );
+      done(true);
     } catch {
       setError(LOAD_FAILED);
       setState(null);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, []);
+  }, [begin, done]);
 
   useEffect(() => {
     void load();

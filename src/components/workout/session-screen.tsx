@@ -15,6 +15,7 @@ import type {
   SessionExerciseDetail,
   WorkoutSet,
 } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
 import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import {
@@ -27,7 +28,7 @@ export function SessionScreen() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done, reset } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [openSetIds, setOpenSetIds] = useState<string[]>([]);
@@ -69,7 +70,7 @@ export function SessionScreen() {
   }, []);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
 
     try {
@@ -77,6 +78,7 @@ export function SessionScreen() {
       if (response.status === 404) {
         setError("Тренировка не найдена.");
         setDetail(null);
+        done(false);
         return;
       }
       if (!response.ok) {
@@ -94,13 +96,19 @@ export function SessionScreen() {
         setNextName(null);
         setPhaseHint(null);
       }
+      done(true);
     } catch {
       setError(LOAD_FAILED);
       setDetail(null);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, [loadFollowUp, params.id]);
+  }, [begin, done, loadFollowUp, params.id]);
+
+  useEffect(() => {
+    if (params.id.length > 0) {
+      reset();
+    }
+  }, [params.id, reset]);
 
   useEffect(() => {
     void load();

@@ -10,6 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "favorites" | "recent";
@@ -24,34 +25,40 @@ export function FoodsScreen() {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done, reset } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (nextFilter: Filter) => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(
+    async (nextFilter: Filter) => {
+      begin();
+      setError(null);
 
-    try {
-      const params =
-        nextFilter === "all" ? "" : `?filter=${encodeURIComponent(nextFilter)}`;
-      const response = await fetch(`/api/foods${params}`);
-      if (!response.ok) {
-        throw new Error("load failed");
+      try {
+        const params =
+          nextFilter === "all"
+            ? ""
+            : `?filter=${encodeURIComponent(nextFilter)}`;
+        const response = await fetch(`/api/foods${params}`);
+        if (!response.ok) {
+          throw new Error("load failed");
+        }
+
+        const data: unknown = await response.json();
+        setFoods(readFoods(data));
+        done(true);
+      } catch {
+        setError(LOAD_FAILED);
+        setFoods([]);
+        done(false);
       }
-
-      const data: unknown = await response.json();
-      setFoods(readFoods(data));
-    } catch {
-      setError(LOAD_FAILED);
-      setFoods([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [begin, done],
+  );
 
   useEffect(() => {
+    reset();
     void load(filter);
-  }, [filter, load]);
+  }, [filter, load, reset]);
 
   const visibleFoods = useMemo(() => {
     const needle = query.trim().toLowerCase();

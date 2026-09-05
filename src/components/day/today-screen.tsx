@@ -38,6 +38,7 @@ import {
 } from "@/lib/messages";
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { DayType, MealItem } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
 
 function todayIsoDate(): string {
   return format(new Date(), "yyyy-MM-dd");
@@ -56,13 +57,13 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [banner, setBanner] = useState<TodayWorkoutBannerState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, begin, done } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin(true);
     setLoadError(false);
     setActionError(null);
 
@@ -84,14 +85,14 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
       } else {
         setBanner(null);
       }
+      done(true);
     } catch {
       setLoadError(true);
       setDay(null);
       setBanner(null);
-    } finally {
-      setLoading(false);
+      done(false);
     }
-  }, [date]);
+  }, [begin, date, done]);
 
   useEffect(() => {
     void load();
