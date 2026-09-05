@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Dumbbell, Sofa } from "lucide-react";
+import { ChevronLeft, ChevronRight, Dumbbell, Sofa } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
@@ -15,7 +15,9 @@ import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import type { DayWithMeals } from "@/lib/days";
+import { nextIsoDate, previousIsoDate } from "@/lib/days";
 import {
+  DAY_EMPTY,
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
   readApiError,
@@ -30,7 +32,8 @@ function todayIsoDate(): string {
 }
 
 export function TodayScreen() {
-  const date = todayIsoDate();
+  const today = todayIsoDate();
+  const [date, setDate] = useState(today);
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [loading, setLoading] = useState(true);
@@ -234,14 +237,45 @@ export function TodayScreen() {
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
   });
+  const isToday = date === today;
+  const canGoForward = date < today;
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title={titleDate} />
+      <AppHeader
+        title={titleDate}
+        subtitle={isToday ? undefined : "Не сегодня"}
+        trailing={
+          <>
+            <button
+              type="button"
+              className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+              aria-label="Предыдущий день"
+              onClick={() => setDate(previousIsoDate(date))}
+            >
+              <ChevronLeft className="size-6" />
+            </button>
+            <button
+              type="button"
+              className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95 disabled:opacity-30"
+              aria-label="Следующий день"
+              disabled={!canGoForward}
+              onClick={() => {
+                if (!canGoForward) {
+                  return;
+                }
+                setDate(nextIsoDate(date));
+              }}
+            >
+              <ChevronRight className="size-6" />
+            </button>
+          </>
+        }
+      />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         {!loading && !loadError ? (
-          <TodayWorkoutBanner date={date} />
+          <TodayWorkoutBanner date={date} showNext={isToday} />
         ) : null}
         {loading ? (
           <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
@@ -270,7 +304,7 @@ export function TodayScreen() {
         {!loading && !loadError && !day ? (
           <div className="animate-rise flex flex-col gap-5">
             <p className="text-center text-lg leading-relaxed text-muted-foreground">
-              {TODAY_EMPTY}
+              {isToday ? TODAY_EMPTY : DAY_EMPTY}
             </p>
             <CreateDayButtons
               busy={busy}

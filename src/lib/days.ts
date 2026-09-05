@@ -46,6 +46,12 @@ export function previousIsoDate(date: string): string {
   return previous.toISOString().slice(0, 10);
 }
 
+export function nextIsoDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  return next.toISOString().slice(0, 10);
+}
+
 export async function getDayByDate(
   userId: string,
   date: string,

@@ -6,7 +6,13 @@ import { useEffect, useState } from "react";
 import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
 import { SESSION_STATUS_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
-export function TodayWorkoutBanner({ date }: { date: string }) {
+export function TodayWorkoutBanner({
+  date,
+  showNext = true,
+}: {
+  date: string;
+  showNext?: boolean;
+}) {
   const [state, setState] = useState<BannerState | null>(null);
 
   useEffect(() => {
@@ -22,7 +28,7 @@ export function TodayWorkoutBanner({ date }: { date: string }) {
         }
         const data: unknown = await response.json();
         if (!cancelled) {
-          setState(readBanner(data));
+          setState(readBanner(data, showNext));
         }
       } catch {
         if (!cancelled) {
@@ -35,7 +41,7 @@ export function TodayWorkoutBanner({ date }: { date: string }) {
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, showNext]);
 
   if (!state?.href || !state.title) {
     return null;
@@ -62,7 +68,7 @@ type BannerState = {
   hint: string | null;
 };
 
-function readBanner(data: unknown): BannerState | null {
+function readBanner(data: unknown, showNext: boolean): BannerState | null {
   if (!data || typeof data !== "object") {
     return null;
   }
@@ -85,7 +91,7 @@ function readBanner(data: unknown): BannerState | null {
     };
   }
 
-  if (nextTemplate) {
+  if (nextTemplate && showNext) {
     return {
       href: "/workouts",
       label: "В зале",

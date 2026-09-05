@@ -2,8 +2,9 @@ export const OPEN_VIA_BOT = "Откройте приложение через Te
 export const LOAD_FAILED = "Не удалось загрузить данные.";
 export const FOODS_EMPTY = "Продуктов пока нет.";
 export const TODAY_EMPTY = "Сегодня ещё пусто. Это день отдыха или тренировки?";
+export const DAY_EMPTY = "В этот день пусто. Отдых или тренировка?";
 export const DAY_EXISTS_REPLACE =
-  "Сегодня уже есть записи. Заменить вчерашним днём?";
+  "В этом дне уже есть записи. Заменить предыдущим днём?";
 export const YESTERDAY_MISSING = "Вчерашнего дня нет.";
 export const BOT_START =
   "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
