@@ -9,6 +9,7 @@ import {
   ProgressChart,
   ProgressSparkline,
 } from "@/components/workout/progress-chart";
+import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type {
   ExerciseCategory,
@@ -44,16 +45,18 @@ export function ProgressScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/progress");
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-      const data: unknown = await response.json();
-      const next = readProgress(data);
-      if (!next) {
-        throw new Error("load failed");
-      }
-      setProgress(next);
+      await cachedGet(
+        "/api/progress",
+        (data) => {
+          const next = readProgress(data);
+          if (!next) {
+            return false;
+          }
+          setProgress(next);
+          return true;
+        },
+        () => done(true),
+      );
       done(true);
     } catch {
       setError(LOAD_FAILED);

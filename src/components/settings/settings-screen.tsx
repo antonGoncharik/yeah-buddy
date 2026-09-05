@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
+import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { UserSettings } from "@/lib/types";
@@ -38,18 +39,18 @@ export function SettingsScreen() {
     setSaved(false);
 
     try {
-      const response = await fetch("/api/settings");
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await response.json();
-      const settings = readSettings(data);
-      if (!settings) {
-        throw new Error("load failed");
-      }
-
-      setForm(toFormState(settings));
+      await cachedGet(
+        "/api/settings",
+        (data) => {
+          const settings = readSettings(data);
+          if (!settings) {
+            return false;
+          }
+          setForm(toFormState(settings));
+          return true;
+        },
+        () => done(true),
+      );
       done(true);
     } catch {
       setError(LOAD_FAILED);
@@ -108,6 +109,7 @@ export function SettingsScreen() {
       const settings = readSettings(data);
       if (settings) {
         setForm(toFormState(settings));
+        writeJson("/api/settings", data);
       }
       setSaved(true);
     } catch {

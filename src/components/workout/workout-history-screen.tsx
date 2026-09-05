@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { cachedGet, fetchJson } from "@/lib/api-cache";
 import { LOAD_FAILED, SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import type { RecentWorkoutSession } from "@/lib/types";
 import {
@@ -32,17 +33,20 @@ export function WorkoutHistoryScreen() {
 
     try {
       const query = before ? `?before=${encodeURIComponent(before)}` : "";
-      const response = await fetch(`/api/sessions/history${query}`);
-      if (!response.ok) {
-        throw new Error("load failed");
+      const url = `/api/sessions/history${query}`;
+      if (appending) {
+        const data = await fetchJson(url);
+        const page = readPage(data);
+        setItems((current) => [...current, ...page.items]);
+        setNextBefore(page.next_before);
+      } else {
+        await cachedGet(url, (data) => {
+          const page = readPage(data);
+          setItems(page.items);
+          setNextBefore(page.next_before);
+          return true;
+        });
       }
-
-      const data: unknown = await response.json();
-      const page = readPage(data);
-      setItems((current) =>
-        appending ? [...current, ...page.items] : page.items,
-      );
-      setNextBefore(page.next_before);
     } catch {
       setError(LOAD_FAILED);
       if (!appending) {

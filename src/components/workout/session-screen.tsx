@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   SessionDetail,
@@ -74,28 +75,26 @@ export function SessionScreen() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/sessions/${params.id}`);
-      if (response.status === 404) {
-        setError("Тренировка не найдена.");
-        setDetail(null);
-        done(false);
-        return;
-      }
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await response.json();
-      const next = readDetail(data);
-      setDetail(next);
-      setDrafts(next ? draftsFromDetail(next) : {});
-      setOpenSetIds([]);
-      if (next?.session.status === "completed") {
-        void loadFollowUp(next.session.session_date);
-      } else {
-        setNextName(null);
-        setPhaseHint(null);
-      }
+      await cachedGet(
+        `/api/sessions/${params.id}`,
+        (data) => {
+          const next = readDetail(data);
+          if (!next) {
+            return false;
+          }
+          setDetail(next);
+          setDrafts(draftsFromDetail(next));
+          setOpenSetIds([]);
+          if (next.session.status === "completed") {
+            void loadFollowUp(next.session.session_date);
+          } else {
+            setNextName(null);
+            setPhaseHint(null);
+          }
+          return true;
+        },
+        () => done(true),
+      );
       done(true);
     } catch {
       setError(LOAD_FAILED);

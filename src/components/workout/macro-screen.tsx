@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
+import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -42,21 +43,25 @@ export function MacroScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/macros");
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await response.json();
-      const next = readState(data);
-      setState(next);
-      setDrafts(
-        Object.fromEntries(
-          (next?.maxes ?? []).map((row) => [
-            row.exercise.id,
-            row.phase_max ? formatWeight(row.phase_max.max_weight) : "",
-          ]),
-        ),
+      await cachedGet(
+        "/api/macros",
+        (data) => {
+          const next = readState(data);
+          if (!next) {
+            return false;
+          }
+          setState(next);
+          setDrafts(
+            Object.fromEntries(
+              (next.maxes ?? []).map((row) => [
+                row.exercise.id,
+                row.phase_max ? formatWeight(row.phase_max.max_weight) : "",
+              ]),
+            ),
+          );
+          return true;
+        },
+        () => done(true),
       );
       done(true);
     } catch {

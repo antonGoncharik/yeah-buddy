@@ -25,6 +25,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { cachedGet, peekJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/days";
 import { isIsoDate, nextIsoDate, previousIsoDate } from "@/lib/days";
 import {
@@ -57,42 +58,62 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [banner, setBanner] = useState<TodayWorkoutBannerState | null>(null);
-  const { loading, begin, done } = useFirstLoad();
+  const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    begin(true);
     setLoadError(false);
     setActionError(null);
-
-    try {
-      const [dayResponse, workoutResponse] = await Promise.all([
-        fetch(`/api/days?date=${encodeURIComponent(date)}`),
-        fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
-      ]);
-      if (!dayResponse.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await dayResponse.json();
-      setDay(readDay(data));
-
-      if (workoutResponse.ok) {
-        const workoutData: unknown = await workoutResponse.json();
-        setBanner(bannerFromTodayState(workoutData, date === todayIsoDate()));
-      } else {
-        setBanner(null);
-      }
+    const dayUrl = `/api/days?date=${encodeURIComponent(date)}`;
+    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
+    const showCached = () => done(true);
+    if (peekJson(dayUrl) != null || peekJson(sessionUrl) != null) {
       done(true);
-    } catch {
-      setLoadError(true);
-      setDay(null);
-      setBanner(null);
-      done(false);
+    } else {
+      begin();
     }
+
+    const results = await Promise.all([
+      cachedGet(
+        dayUrl,
+        (data) => {
+          setDay(readDay(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
+        sessionUrl,
+        (data) => {
+          setBanner(bannerFromTodayState(data, date === todayIsoDate()));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+    ]);
+
+    if (!results.some((ok) => ok)) {
+      setLoadError(true);
+      done(false);
+      return;
+    }
+
+    done(true);
   }, [begin, date, done]);
+
+  useEffect(() => {
+    if (date.length > 0) {
+      reset();
+    }
+  }, [date, reset]);
 
   useEffect(() => {
     void load();

@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { cachedGet } from "@/lib/api-cache";
 import {
   LOAD_FAILED,
   readApiError,
@@ -66,57 +67,69 @@ export function WorkoutsHubScreen() {
   const load = useCallback(async () => {
     begin();
     setError(null);
+    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
+    const showCached = () => done(true);
 
-    try {
-      const [
-        exercisesResponse,
-        templatesResponse,
-        macroResponse,
-        todayResponse,
-      ] = await Promise.all([
-        fetch("/api/exercises?filter=active"),
-        fetch("/api/templates"),
-        fetch("/api/macros"),
-        fetch(`/api/sessions?date=${encodeURIComponent(date)}`),
-      ]);
-      if (
-        !exercisesResponse.ok ||
-        !templatesResponse.ok ||
-        !macroResponse.ok ||
-        !todayResponse.ok
-      ) {
-        throw new Error("load failed");
-      }
+    const results = await Promise.all([
+      cachedGet(
+        "/api/exercises?filter=active",
+        (data) => {
+          setExercises(readExercises(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
+        "/api/templates",
+        (data) => {
+          setTemplates(readTemplates(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
+        "/api/macros",
+        (data) => {
+          setMacro(readMacro(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
+        sessionUrl,
+        (data) => {
+          setSession(readTodaySession(data));
+          setSessionTemplate(readTemplate(data, "session_template"));
+          setNextTemplate(readTemplate(data, "next_template"));
+          setFollowingTemplate(readTemplate(data, "following_template"));
+          setRecent(readRecent(data));
+          setPhaseCircle(readPhaseCircle(data));
+          setCanUnskip(readCanUnskip(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+    ]);
 
-      const exercisesData: unknown = await exercisesResponse.json();
-      const templatesData: unknown = await templatesResponse.json();
-      const macroData: unknown = await macroResponse.json();
-      const todayData: unknown = await todayResponse.json();
-      setExercises(readExercises(exercisesData));
-      setTemplates(readTemplates(templatesData));
-      setMacro(readMacro(macroData));
-      setSession(readTodaySession(todayData));
-      setSessionTemplate(readTemplate(todayData, "session_template"));
-      setNextTemplate(readTemplate(todayData, "next_template"));
-      setFollowingTemplate(readTemplate(todayData, "following_template"));
-      setRecent(readRecent(todayData));
-      setPhaseCircle(readPhaseCircle(todayData));
-      setCanUnskip(readCanUnskip(todayData));
-      done(true);
-    } catch {
+    if (!results.some((ok) => ok)) {
       setError(LOAD_FAILED);
-      setExercises([]);
-      setTemplates([]);
-      setMacro(null);
-      setSession(null);
-      setSessionTemplate(null);
-      setNextTemplate(null);
-      setFollowingTemplate(null);
-      setRecent([]);
-      setPhaseCircle(null);
-      setCanUnskip(false);
       done(false);
+      return;
     }
+
+    done(true);
   }, [begin, date, done]);
 
   useEffect(() => {

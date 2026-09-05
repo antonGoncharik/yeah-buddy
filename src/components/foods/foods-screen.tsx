@@ -8,6 +8,7 @@ import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { cachedGet } from "@/lib/api-cache";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -38,13 +39,14 @@ export function FoodsScreen() {
           nextFilter === "all"
             ? ""
             : `?filter=${encodeURIComponent(nextFilter)}`;
-        const response = await fetch(`/api/foods${params}`);
-        if (!response.ok) {
-          throw new Error("load failed");
-        }
-
-        const data: unknown = await response.json();
-        setFoods(readFoods(data));
+        await cachedGet(
+          `/api/foods${params}`,
+          (data) => {
+            setFoods(readFoods(data));
+            return true;
+          },
+          () => done(true),
+        );
         done(true);
       } catch {
         setError(LOAD_FAILED);
