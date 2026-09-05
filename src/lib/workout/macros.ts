@@ -6,6 +6,8 @@ import type {
   CurrentMacroState,
   CycleStatus,
   MacroCycle,
+  MacroGain,
+  MacroRecap,
   MaxSource,
   PhaseMax,
   PhaseMaxRow,
@@ -13,15 +15,24 @@ import type {
   TransitionPreview,
   WorkoutPhase,
 } from "@/lib/types";
-import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
+import {
+  listExercises,
+  mapExercise,
+  raiseGlobalMax,
+} from "@/lib/workout/exercises";
 import {
   increaseMax,
   nextPhaseType,
   shouldIncreaseMax,
 } from "@/lib/workout/formulas";
 import { PHASE_ORDER } from "@/lib/workout/labels";
-import { toNullableString, toNumber } from "@/lib/workout/numbers";
+import {
+  percentChange,
+  toNullableString,
+  toNumber,
+} from "@/lib/workout/numbers";
 import { getPhaseCircleProgress } from "@/lib/workout/phase-progress";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export class MacroConflictError extends Error {
   readonly code = "MACRO_EXISTS";
@@ -89,6 +100,7 @@ export async function getCurrentMacroState(
       phases: [],
       maxes: [],
       phase_circle: null,
+      last_recap: await getLatestCompletedMacroRecap(userId),
     };
   }
 
@@ -110,8 +122,9 @@ export async function getCurrentMacroState(
   const phase = phases.find((item) => item.status === "current") ?? null;
   const maxes = phase ? await listPhaseMaxRows(userId, phase.id) : [];
   const phase_circle = await getPhaseCircleProgress(userId, phase);
+  const last_recap = await getLatestCompletedMacroRecap(userId);
 
-  return { macro, phase, phases, maxes, phase_circle };
+  return { macro, phase, phases, maxes, phase_circle, last_recap };
 }
 
 export async function createFirstMacro(
@@ -405,6 +418,181 @@ export async function completeMacroAndStartNext(
   }
 
   return createFirstMacro(userId, input);
+}
+
+export async function getLatestCompletedMacroRecap(
+  userId: string,
+): Promise<MacroRecap | null> {
+  const supabase = createSupabaseServerClient();
+  const last = await supabase
+    .from("macro_cycles")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .order("number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (last.error) {
+    throw last.error;
+  }
+
+  if (!last.data) {
+    return null;
+  }
+
+  return getMacroRecap(
+    userId,
+    mapMacroCycle(last.data as Record<string, unknown>),
+  );
+}
+
+export async function getMacroRecap(
+  userId: string,
+  macro: MacroCycle,
+): Promise<MacroRecap | null> {
+  const supabase = createSupabaseServerClient();
+  const phasesResult = await supabase
+    .from("workout_phases")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("macro_cycle_id", macro.id)
+    .order("sort_order", { ascending: true });
+
+  if (phasesResult.error) {
+    throw phasesResult.error;
+  }
+
+  const phases = (phasesResult.data ?? []).map((row) =>
+    mapWorkoutPhase(row as Record<string, unknown>),
+  );
+  const startPhase =
+    phases.find((phase) => phase.phase_type === "ramp") ?? phases[0] ?? null;
+  const endPhase =
+    phases.find((phase) => phase.phase_type === "peak") ??
+    phases.find((phase) => phase.phase_type === "volume") ??
+    startPhase;
+
+  if (!startPhase || !endPhase) {
+    return null;
+  }
+
+  const [startWeights, endWeights] = await Promise.all([
+    latestWeightsByExercise(userId, startPhase.id),
+    latestWeightsByExercise(userId, endPhase.id),
+  ]);
+  const exerciseIds = [
+    ...new Set([...startWeights.keys(), ...endWeights.keys()]),
+  ];
+  const names = await exerciseNamesById(userId, exerciseIds);
+  const gains: MacroGain[] = [];
+
+  for (const exerciseId of exerciseIds) {
+    const startWeight = startWeights.get(exerciseId);
+    const endWeight = endWeights.get(exerciseId) ?? startWeight;
+    if (startWeight == null || endWeight == null) {
+      continue;
+    }
+
+    const percent = percentChange(startWeight, endWeight);
+    gains.push({
+      exercise_id: exerciseId,
+      name: names.get(exerciseId) ?? "Упражнение",
+      start_weight: startWeight,
+      end_weight: endWeight,
+      delta: endWeight - startWeight,
+      percent,
+    });
+  }
+
+  if (gains.length === 0) {
+    return null;
+  }
+
+  gains.sort((left, right) => {
+    const leftPercent = left.percent ?? -Infinity;
+    const rightPercent = right.percent ?? -Infinity;
+    if (rightPercent !== leftPercent) {
+      return rightPercent - leftPercent;
+    }
+    return left.name.localeCompare(right.name, "ru");
+  });
+
+  const percents = gains.flatMap((gain) =>
+    gain.percent == null ? [] : [gain.percent],
+  );
+  const avg_percent =
+    percents.length === 0
+      ? null
+      : percents.reduce((sum, value) => sum + value, 0) / percents.length;
+
+  return {
+    macro_id: macro.id,
+    number: macro.number,
+    start_date: macro.start_date,
+    end_date: macro.end_date,
+    from_phase: startPhase.phase_type,
+    to_phase: endPhase.phase_type,
+    gains,
+    grown_count: gains.filter((gain) => gain.delta > 0).length,
+    avg_percent,
+  };
+}
+
+async function latestWeightsByExercise(
+  userId: string,
+  phaseId: string,
+): Promise<Map<string, number>> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("phase_maxes")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("phase_id", phaseId)
+    .order("set_at", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  const latest = new Map<string, number>();
+  for (const row of result.data ?? []) {
+    const record = mapPhaseMax(row as Record<string, unknown>);
+    if (!latest.has(record.exercise_id)) {
+      latest.set(record.exercise_id, record.max_weight);
+    }
+  }
+
+  return latest;
+}
+
+async function exerciseNamesById(
+  userId: string,
+  exerciseIds: string[],
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  if (exerciseIds.length === 0) {
+    return names;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("exercises")
+    .select("*")
+    .eq("user_id", userId)
+    .in("id", exerciseIds);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  for (const row of result.data ?? []) {
+    const exercise = mapExercise(row as Record<string, unknown>);
+    names.set(exercise.id, exercise.short_name || exercise.name);
+  }
+
+  return names;
 }
 
 export function mapMacroCycle(row: Record<string, unknown>): MacroCycle {

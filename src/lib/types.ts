@@ -318,12 +318,34 @@ export interface PhaseMaxRow {
   proposed_weight: number | null;
 }
 
+export interface MacroGain {
+  exercise_id: string;
+  name: string;
+  start_weight: number;
+  end_weight: number;
+  delta: number;
+  percent: number | null;
+}
+
+export interface MacroRecap {
+  macro_id: string;
+  number: number;
+  start_date: string;
+  end_date: string | null;
+  from_phase: PhaseType;
+  to_phase: PhaseType;
+  gains: MacroGain[];
+  grown_count: number;
+  avg_percent: number | null;
+}
+
 export interface CurrentMacroState {
   macro: MacroCycle | null;
   phase: WorkoutPhase | null;
   phases: WorkoutPhase[];
   maxes: PhaseMaxRow[];
   phase_circle: PhaseCircleProgress | null;
+  last_recap: MacroRecap | null;
 }
 
 export interface PhaseCircleProgress {

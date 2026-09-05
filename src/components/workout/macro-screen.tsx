@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function MacroScreen() {
     Record<string, string>
   >({});
   const [transitioning, setTransitioning] = useState(false);
+  const [justClosed, setJustClosed] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -153,6 +155,7 @@ export function MacroScreen() {
       return;
     }
 
+    const closingMacro = preview.new_macro;
     setTransitioning(true);
     setError(null);
 
@@ -172,6 +175,7 @@ export function MacroScreen() {
       }
 
       setPreview(null);
+      setJustClosed(closingMacro);
       await load();
     } catch {
       setError(LOAD_FAILED);
@@ -202,25 +206,41 @@ export function MacroScreen() {
         ) : null}
 
         {!loading && state && !state.macro ? (
-          <section className="card-surface flex flex-col gap-3 px-5 py-5">
-            <p className="text-lg font-medium">Макроцикла ещё нет</p>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Круг шаблонов идёт и так. Веса считаются как в разгоне от
-              глобального максимума. Макроцикл — это разгон → набор → рывок →
-              сброс: после круга в фазе закрываешь её сам, проценты меняются, на
-              рывке максимум растёт.
-            </p>
-            <Link
-              href="/workouts/macro/new"
-              className={cn(buttonVariants(), "h-14 text-lg")}
-            >
-              Создать макроцикл
-            </Link>
-          </section>
+          <>
+            {state.last_recap ? (
+              <MacroRecapCard
+                key={state.last_recap.macro_id}
+                recap={state.last_recap}
+                featured={justClosed}
+              />
+            ) : null}
+            <section className="card-surface flex flex-col gap-3 px-5 py-5">
+              <p className="text-lg font-medium">Макроцикла ещё нет</p>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Круг шаблонов идёт и так. Веса считаются как в разгоне от
+                глобального максимума. Макроцикл — это разгон → набор → рывок →
+                сброс: после круга в фазе закрываешь её сам, проценты меняются,
+                на рывке максимум растёт.
+              </p>
+              <Link
+                href="/workouts/macro/new"
+                className={cn(buttonVariants(), "h-14 text-lg")}
+              >
+                Создать макроцикл
+              </Link>
+            </section>
+          </>
         ) : null}
 
         {!loading && state?.macro && state.phase ? (
           <>
+            {state.last_recap ? (
+              <MacroRecapCard
+                key={state.last_recap.macro_id}
+                recap={state.last_recap}
+                featured={justClosed}
+              />
+            ) : null}
             <section className="card-surface flex flex-col gap-2 px-5 py-5">
               <p className="text-sm text-muted-foreground">
                 Макроцикл{" "}
