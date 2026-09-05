@@ -34,16 +34,16 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
 
   if (progress.phase_type === "deload") {
     if (rounds >= 2) {
-      return `В сбросе уже ${rounds} ${circleWord(rounds)}. Можно закрыть макроцикл и начать следующий с разгона.`;
+      return `Сброс: ${rounds} ${circleWord(rounds)}. Можно закрыть макроцикл.`;
     }
-    return "В сбросе полный круг. Можно закрыть макроцикл — сам он не закроется.";
+    return "Сброс пройден. Можно закрыть макроцикл.";
   }
 
   if (rounds >= 2) {
-    return `В фазе «${phase}» уже ${rounds} ${circleWord(rounds)}. Можно завершить${nextLabel ? ` и перейти к «${nextLabel}»` : ""}. Веса сами не сменятся.`;
+    return `«${phase}»: ${rounds} ${circleWord(rounds)}. Можно завершить${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
   }
 
-  return `В фазе «${phase}» полный круг. Можно завершить${nextLabel ? ` — дальше «${nextLabel}»` : ""}. Веса сами не сменятся.`;
+  return `«${phase}» пройдена. Можно завершить${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
 }
 
 export function completePhaseHint(phaseType: PhaseType): string {

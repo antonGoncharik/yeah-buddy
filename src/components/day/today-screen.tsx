@@ -19,9 +19,9 @@ import { MealCard } from "@/components/day/meal-card";
 import {
   bannerFromTodayState,
   TodayWorkoutBanner,
-  type TodayWorkoutBannerState,
 } from "@/components/day/today-workout-banner";
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -29,12 +29,9 @@ import { cachedGet, peekJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/days";
 import { isIsoDate, nextIsoDate, previousIsoDate } from "@/lib/days";
 import {
-  DAY_EMPTY,
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
   readApiError,
-  TODAY_EMPTY,
-  TODAY_EMPTY_GYM,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
@@ -56,12 +53,22 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   const today = todayIsoDate();
   const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
   const { setMood } = useDayMood();
+  const confirm = useConfirm();
   const [day, setDay] = useState<DayWithMeals | null>(null);
-  const [banner, setBanner] = useState<TodayWorkoutBannerState | null>(null);
+  const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const banner = useMemo(
+    () =>
+      bannerFromTodayState(workoutState, {
+        isToday: date === today,
+        isTrainingDay: day?.is_training_day === true,
+      }),
+    [date, day?.is_training_day, today, workoutState],
+  );
 
   const load = useCallback(async () => {
     setLoadError(false);
@@ -90,7 +97,7 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
       cachedGet(
         sessionUrl,
         (data) => {
-          setBanner(bannerFromTodayState(data, date === todayIsoDate()));
+          setWorkoutState(data);
           return true;
         },
         showCached,
@@ -110,6 +117,8 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   }, [begin, date, done]);
 
   useEffect(() => {
+    setDay(null);
+    setWorkoutState(null);
     if (date.length > 0) {
       reset();
     }
@@ -169,7 +178,13 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   async function copyYesterday() {
     let replace = false;
     if (day) {
-      if (!window.confirm(DAY_EXISTS_REPLACE)) {
+      const ok = await confirm({
+        message: DAY_EXISTS_REPLACE,
+        confirmLabel: "Заменить",
+        cancelLabel: "Оставить",
+        destructive: true,
+      });
+      if (!ok) {
         return;
       }
       replace = true;
@@ -190,7 +205,13 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
       let data: unknown = await response.json().catch(() => null);
 
       if (response.status === 409) {
-        if (!window.confirm(readApiError(data) ?? DAY_EXISTS_REPLACE)) {
+        const ok = await confirm({
+          message: readApiError(data) ?? DAY_EXISTS_REPLACE,
+          confirmLabel: "Заменить",
+          cancelLabel: "Оставить",
+          destructive: true,
+        });
+        if (!ok) {
           return;
         }
         response = await post(true);
@@ -248,7 +269,13 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
   }
 
   async function deleteItem(item: MealItem) {
-    if (!window.confirm("Удалить продукт из приёма?")) {
+    const ok = await confirm({
+      message: "Удалить продукт?",
+      confirmLabel: "Удалить",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
       return;
     }
 
@@ -366,13 +393,6 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
 
         {!loading && !loadError && !day ? (
           <div className="animate-rise flex flex-col gap-5">
-            <p className="text-center text-lg leading-relaxed text-muted-foreground">
-              {isToday && banner
-                ? TODAY_EMPTY_GYM
-                : isToday
-                  ? TODAY_EMPTY
-                  : DAY_EMPTY}
-            </p>
             <CreateDayButtons
               busy={busy}
               trainingFirst={isToday}

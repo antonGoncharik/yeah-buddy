@@ -40,7 +40,7 @@ export function TodayWorkoutBanner({
 
 export function bannerFromTodayState(
   data: unknown,
-  showNext: boolean,
+  options: { isToday: boolean; isTrainingDay: boolean },
 ): TodayWorkoutBannerState | null {
   if (!data || typeof data !== "object") {
     return null;
@@ -73,18 +73,18 @@ export function bannerFromTodayState(
       label: "Стол",
       title:
         tableSession.status === "completed"
-          ? (tableSession.note ?? "Стол")
-          : "На сегодня",
+          ? tableSession.note || "Стол"
+          : "Записать",
       hint: SESSION_STATUS_LABELS[tableSession.status],
     };
   }
 
-  if (nextTemplate && showNext) {
+  if (nextTemplate && options.isToday && options.isTrainingDay) {
     return {
       href: "/workouts",
       label: "В зале",
       title: nextTemplate.name,
-      hint: "Начни, если идёшь в зал",
+      hint: "Начать",
     };
   }
 

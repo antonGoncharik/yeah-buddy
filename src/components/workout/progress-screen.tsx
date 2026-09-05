@@ -105,7 +105,7 @@ export function ProgressScreen() {
             <section className="card-surface animate-rise px-5 py-5">
               <p className="text-sm font-medium text-muted-foreground">
                 {progress.exercises.some((item) => item.from_work)
-                  ? "С первых рабочих в зале"
+                  ? "С первых рабочих"
                   : "С первых максимумов"}
               </p>
               <p className="mt-1 text-3xl font-semibold tracking-tight">
@@ -124,8 +124,8 @@ export function ProgressScreen() {
                 {progress.grown_count > 0
                   ? `Выросли ${progress.grown_count} из ${progress.exercises.length}`
                   : progress.exercises.some((item) => item.from_work)
-                    ? "Кривая — рабочие веса из зала."
-                    : "После тренировок здесь будут рабочие веса, не заявленный максимум."}
+                    ? "Рабочие веса из зала."
+                    : "После зала — рабочие веса."}
               </p>
             </section>
 

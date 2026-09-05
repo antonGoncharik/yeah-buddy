@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input, nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ type FormState = {
 
 export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [form, setForm] = useState<FormState>(toFormState(exercise));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,11 +82,12 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       return;
     }
 
-    const confirmed = window.confirm(
-      archived
-        ? "Архивировать упражнение? История сохранится."
-        : "Вернуть упражнение из архива?",
-    );
+    const confirmed = await confirm({
+      message: archived ? "В архив? История останется." : "Вернуть из архива?",
+      confirmLabel: archived ? "В архив" : "Вернуть",
+      cancelLabel: "Оставить",
+      destructive: archived,
+    });
     if (!confirmed) {
       return;
     }
@@ -197,8 +200,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           ))}
         </select>
         <p className="text-sm text-muted-foreground">
-          Только разминка. Рабочие проценты — в Настройках → Схема. Статика и
-          сброс берут свою схему, этот пресет их не меняет.
+          Только разминка. Рабочие — в Схеме.
         </p>
       </Field>
 

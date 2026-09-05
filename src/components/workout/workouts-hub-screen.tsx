@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
@@ -39,6 +40,7 @@ import {
 
 export function WorkoutsHubScreen() {
   const router = useRouter();
+  const confirm = useConfirm();
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
@@ -251,19 +253,20 @@ export function WorkoutsHubScreen() {
     }
   }
 
-  function pickTemplate(template: WorkoutTemplateDetail) {
+  async function pickTemplate(template: WorkoutTemplateDetail) {
     if (session) {
       return;
     }
 
-    if (
-      nextTemplate &&
-      template.id !== nextTemplate.id &&
-      !window.confirm(
-        `В круге сейчас «${nextTemplate.name}». Начать «${template.name}» сегодня?`,
-      )
-    ) {
-      return;
+    if (nextTemplate && template.id !== nextTemplate.id) {
+      const ok = await confirm({
+        message: `Начать «${template.name}» вместо «${nextTemplate.name}»?`,
+        confirmLabel: "Начать",
+        cancelLabel: "Оставить",
+      });
+      if (!ok) {
+        return;
+      }
     }
 
     void createToday(template.id);
@@ -272,10 +275,10 @@ export function WorkoutsHubScreen() {
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =
     session?.status === "completed"
-      ? "Открыть запись"
+      ? "Открыть"
       : session?.status === "skipped"
         ? SESSION_STATUS_LABELS.skipped
-        : "Открыть и отметить";
+        : "Открыть";
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
 
   return (
@@ -382,7 +385,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void skipTemplate(nextTemplate.id)}
               >
-                Не это — взять следующую
+                Не это
               </Button>
             ) : null}
             {canUnskip ? (
@@ -396,10 +399,6 @@ export function WorkoutsHubScreen() {
                 Вернуть в круг
               </Button>
             ) : null}
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Не идёшь — ничего не жми, очередь останется. «Не это» сдвигает
-              круг, дату сегодня не занимает.
-            </p>
           </section>
         ) : null}
 
@@ -412,9 +411,9 @@ export function WorkoutsHubScreen() {
               {SESSION_KIND_LABELS.table}
             </p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-              {tableSession.status === "completed"
-                ? tableSession.note || "Записан"
-                : "На сегодня"}
+                {tableSession.status === "completed"
+                ? tableSession.note || "Стол"
+                : "Записать"}
             </h2>
             <p className="mt-2 text-base text-muted-foreground">
               {tableSession.status === "planned"
@@ -479,7 +478,7 @@ export function WorkoutsHubScreen() {
                 href="/workouts/macro"
                 className="px-1 text-sm leading-relaxed text-muted-foreground"
               >
-                Без макроцикла веса как в разгоне. Фазы можно включить здесь.
+                Без макроцикла — как в разгоне.
               </Link>
             ) : null}
 
@@ -531,7 +530,7 @@ export function WorkoutsHubScreen() {
                             isNext ? "font-medium" : "text-muted-foreground",
                           )}
                           disabled={creating || skipping}
-                          onClick={() => pickTemplate(template)}
+                          onClick={() => void pickTemplate(template)}
                         >
                           {label}
                         </button>
@@ -539,11 +538,6 @@ export function WorkoutsHubScreen() {
                     );
                   })}
                 </ol>
-                {!session ? (
-                  <p className="text-sm text-muted-foreground">
-                    Тапни имя, если сегодня не она.
-                  </p>
-                ) : null}
               </div>
             ) : (
               <Link

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
@@ -17,7 +18,6 @@ type FormState = {
   protein_per_100: string;
   fat_per_100: string;
   carbs_per_100: string;
-  kcal_per_100: string;
   default_portion_g: string;
   default_portion_label: string;
   notes: string;
@@ -26,16 +26,17 @@ type FormState = {
 
 export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [form, setForm] = useState<FormState>(toFormState(food));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const autoKcal = useMemo(() => {
-    const protein = Number(form.protein_per_100);
-    const fat = Number(form.fat_per_100);
-    const carbs = Number(form.carbs_per_100);
-    if (![protein, fat, carbs].every(Number.isFinite)) {
+    const protein = parseNonneg(form.protein_per_100);
+    const fat = parseNonneg(form.fat_per_100);
+    const carbs = parseNonneg(form.carbs_per_100);
+    if (protein == null || fat == null || carbs == null) {
       return null;
     }
 
@@ -92,7 +93,13 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
       return;
     }
 
-    if (!window.confirm("Удалить продукт?")) {
+    const ok = await confirm({
+      message: "Удалить продукт?",
+      confirmLabel: "Удалить",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
       return;
     }
 
@@ -142,69 +149,58 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Белки на 100 г">
-          <Input
-            required
-            inputMode="decimal"
-            value={form.protein_per_100}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                protein_per_100: event.target.value,
-              }))
-            }
-            className="h-12 text-base"
-          />
-        </Field>
-        <Field label="Жиры на 100 г">
-          <Input
-            required
-            inputMode="decimal"
-            value={form.fat_per_100}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                fat_per_100: event.target.value,
-              }))
-            }
-            className="h-12 text-base"
-          />
-        </Field>
-        <Field label="Углеводы на 100 г">
-          <Input
-            required
-            inputMode="decimal"
-            value={form.carbs_per_100}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                carbs_per_100: event.target.value,
-              }))
-            }
-            className="h-12 text-base"
-          />
-        </Field>
-        <Field
-          label={
-            autoKcal == null
-              ? "Ккал на 100 г"
-              : `Ккал на 100 г (${formatKcal(autoKcal)})`
-          }
-        >
-          <Input
-            inputMode="decimal"
-            value={form.kcal_per_100}
-            placeholder={autoKcal == null ? "" : formatKcal(autoKcal)}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                kcal_per_100: event.target.value,
-              }))
-            }
-            className="h-12 text-base"
-          />
-        </Field>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted-foreground">На 100 г</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Белки">
+            <Input
+              required
+              inputMode="decimal"
+              value={form.protein_per_100}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  protein_per_100: event.target.value,
+                }))
+              }
+              className="h-12 text-base"
+            />
+          </Field>
+          <Field label="Жиры">
+            <Input
+              required
+              inputMode="decimal"
+              value={form.fat_per_100}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  fat_per_100: event.target.value,
+                }))
+              }
+              className="h-12 text-base"
+            />
+          </Field>
+          <Field label="Углеводы">
+            <Input
+              required
+              inputMode="decimal"
+              value={form.carbs_per_100}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  carbs_per_100: event.target.value,
+                }))
+              }
+              className="h-12 text-base"
+            />
+          </Field>
+          <div className="flex flex-col gap-2">
+            <span className="text-base font-medium">Ккал</span>
+            <p className="flex h-12 items-center text-base tabular-nums">
+              {autoKcal == null ? "—" : formatKcal(autoKcal)}
+            </p>
+          </div>
+        </div>
       </div>
 
       <Field label="Порция, г">
@@ -306,13 +302,20 @@ function toFormState(food?: Food): FormState {
     protein_per_100: food ? String(food.protein_per_100) : "",
     fat_per_100: food ? String(food.fat_per_100) : "",
     carbs_per_100: food ? String(food.carbs_per_100) : "",
-    kcal_per_100: food ? String(food.kcal_per_100) : "",
     default_portion_g:
       food?.default_portion_g == null ? "" : String(food.default_portion_g),
     default_portion_label: food?.default_portion_label ?? "",
     notes: food?.notes ?? "",
     is_favorite: food?.is_favorite ?? false,
   };
+}
+
+function parseNonneg(value: string): number | null {
+  const parsed = Number(value.trim().replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+  return parsed;
 }
 
 function toPayload(
@@ -324,39 +327,23 @@ function toPayload(
   protein_per_100: number;
   fat_per_100: number;
   carbs_per_100: number;
-  kcal_per_100: number | null;
+  kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
   notes: string | null;
   is_favorite: boolean;
 } | null {
-  const protein = Number(form.protein_per_100.replace(",", "."));
-  const fat = Number(form.fat_per_100.replace(",", "."));
-  const carbs = Number(form.carbs_per_100.replace(",", "."));
-  const kcalRaw = form.kcal_per_100.trim().replace(",", ".");
+  const protein = parseNonneg(form.protein_per_100);
+  const fat = parseNonneg(form.fat_per_100);
+  const carbs = parseNonneg(form.carbs_per_100);
   const portionRaw = form.default_portion_g.trim().replace(",", ".");
 
-  if (!form.name.trim()) {
+  if (!form.name.trim() || protein == null || fat == null || carbs == null) {
     return null;
   }
 
-  if (
-    ![protein, fat, carbs].every(
-      (value) => Number.isFinite(value) && value >= 0,
-    )
-  ) {
+  if (autoKcal == null) {
     return null;
-  }
-
-  let kcal_per_100: number | null = null;
-  if (kcalRaw !== "") {
-    const kcal = Number(kcalRaw);
-    if (!Number.isFinite(kcal) || kcal < 0) {
-      return null;
-    }
-    kcal_per_100 = kcal;
-  } else if (autoKcal != null) {
-    kcal_per_100 = autoKcal;
   }
 
   let default_portion_g: number | null = null;
@@ -374,7 +361,7 @@ function toPayload(
     protein_per_100: protein,
     fat_per_100: fat,
     carbs_per_100: carbs,
-    kcal_per_100,
+    kcal_per_100: autoKcal,
     default_portion_g,
     default_portion_label:
       form.default_portion_label.trim() === ""

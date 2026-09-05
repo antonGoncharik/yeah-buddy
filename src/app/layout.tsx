@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
+import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import {
   DARK_THEME_COLOR,
@@ -48,10 +49,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-dvh bg-background text-foreground antialiased">
         <ThemeProvider initialTheme={theme}>
-          <DayMoodProvider>
-            <DayBackdrop />
-            <div className="relative z-10">{children}</div>
-          </DayMoodProvider>
+          <ConfirmProvider>
+            <DayMoodProvider>
+              <DayBackdrop />
+              <div className="relative z-10">{children}</div>
+            </DayMoodProvider>
+          </ConfirmProvider>
         </ThemeProvider>
       </body>
     </html>

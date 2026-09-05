@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +37,7 @@ import {
 export function SessionScreen() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const confirm = useConfirm();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
@@ -286,11 +288,16 @@ export function SessionScreen() {
       return;
     }
 
-    const message =
-      detail.session.kind === "table"
-        ? "Убрать стол? Можно записать снова."
-        : "Не получилось? Сессия пропадёт, очередь останется. Можно начать другую сегодня.";
-    if (!window.confirm(message)) {
+    const ok = await confirm({
+      message:
+        detail.session.kind === "table"
+          ? "Убрать стол?"
+          : "Убрать тренировку? Очередь останется.",
+      confirmLabel: "Убрать",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
       return;
     }
 
@@ -388,13 +395,9 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            {isTable ? (
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Стол не занимает круг. Напиши как прошло — и всё.
-              </p>
-            ) : detail.exercises.length === 0 ? (
-              <p className="text-base leading-relaxed text-muted-foreground">
-                В шаблоне нет упражнений с максимумом — задай его в упражнении.
+            {isTable ? null : detail.exercises.length === 0 ? (
+              <p className="text-base text-muted-foreground">
+                Нет упражнений с максимумом.
               </p>
             ) : (
               <section className="card-surface animate-rise overflow-hidden">
@@ -432,14 +435,6 @@ export function SessionScreen() {
               </section>
             )}
 
-            {session.status === "planned" &&
-            !isTable &&
-            detail.exercises.length > 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Тапни подход, если вес или повторы другие.
-              </p>
-            ) : null}
-
             {session.status === "planned" && !isTable ? (
               <div className="flex flex-col gap-2">
                 <Button
@@ -455,7 +450,7 @@ export function SessionScreen() {
                   <ul className="card-surface flex flex-col">
                     {addable.length === 0 ? (
                       <li className="px-5 py-4 text-sm text-muted-foreground">
-                        Больше нечего добавить — нет максимума или уже в плане.
+                        Нечего добавить.
                       </li>
                     ) : (
                       addable.map((exercise) => (
@@ -485,16 +480,11 @@ export function SessionScreen() {
             ) : null}
 
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">Заметка</span>
               <Textarea
                 id="session-note"
                 value={note}
                 disabled={busy || session.status === "skipped"}
-                placeholder={
-                  isTable
-                    ? "Кто, сколько подходов, как рука"
-                    : "Стол после, локоть, что поменять"
-                }
+                placeholder={isTable ? "Как прошло" : "Как прошло, локоть"}
                 onChange={(event) => setNote(event.target.value)}
                 onBlur={() => void saveNote()}
                 className="min-h-20 text-base"
@@ -509,7 +499,7 @@ export function SessionScreen() {
                 href="/workouts/macro"
                 className="text-base leading-snug text-primary"
               >
-                Вес выше плана — обновить максимум?
+                Тяжелее плана. Обновить максимум?
               </Link>
             ) : null}
 
@@ -520,7 +510,7 @@ export function SessionScreen() {
                 href="/workouts"
                 className="text-base font-medium text-primary"
               >
-                Дальше в круге: {nextName}
+                Дальше {nextName}
               </Link>
             ) : null}
 
@@ -541,11 +531,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                {isTable
-                  ? "Убрать стол"
-                  : session.status === "skipped"
-                    ? "Убрать — можно начать другую"
-                    : "Не получилось сегодня"}
+                {isTable ? "Убрать стол" : "Убрать"}
               </Button>
             ) : null}
           </>
@@ -560,7 +546,7 @@ export function SessionScreen() {
             disabled={busy || (!isTable && detail.exercises.length === 0)}
             onClick={() => void complete()}
           >
-            {isTable ? "Стол был" : "Сделал как в плане"}
+            {isTable ? "Стол был" : "Сделал"}
           </Button>
         </div>
       ) : null}

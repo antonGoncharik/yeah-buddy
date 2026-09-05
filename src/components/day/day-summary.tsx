@@ -19,23 +19,31 @@ export function DaySummary({
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          {overflow ? "Сверх плана" : "Осталось"}
-        </p>
-        <p
-          className={cn(
-            "mt-1 text-3xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
-            overflow && "text-destructive",
-          )}
-        >
-          {overflow
-            ? `+${formatKcal(Math.abs(remainingKcal))}`
-            : formatKcal(remainingKcal)}
-          <span className="ml-1.5 text-lg font-medium text-muted-foreground">
-            ккал
-          </span>
-        </p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">
+            {overflow ? "Сверх плана" : "Осталось"}
+          </p>
+          <p
+            className={cn(
+              "mt-1 text-3xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+              overflow && "text-destructive",
+            )}
+          >
+            {overflow
+              ? `+${formatKcal(Math.abs(remainingKcal))}`
+              : formatKcal(remainingKcal)}
+            <span className="ml-1.5 text-lg font-medium text-muted-foreground">
+              ккал
+            </span>
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium text-muted-foreground">Съел</p>
+          <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
+            {formatKcal(fact.kcal)}
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

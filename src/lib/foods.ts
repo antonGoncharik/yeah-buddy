@@ -32,15 +32,6 @@ export const foodInputSchema = z
     is_favorite: z.boolean().optional(),
   })
   .transform((value) => {
-    const kcal =
-      value.kcal_per_100 == null
-        ? calcKcalFromMacros(
-            value.protein_per_100,
-            value.fat_per_100,
-            value.carbs_per_100,
-          )
-        : value.kcal_per_100;
-
     return {
       name: value.name,
       brand: value.brand ?? null,
@@ -48,7 +39,11 @@ export const foodInputSchema = z
       protein_per_100: value.protein_per_100,
       fat_per_100: value.fat_per_100,
       carbs_per_100: value.carbs_per_100,
-      kcal_per_100: kcal,
+      kcal_per_100: calcKcalFromMacros(
+        value.protein_per_100,
+        value.fat_per_100,
+        value.carbs_per_100,
+      ),
       default_portion_g: value.default_portion_g ?? null,
       default_portion_label: value.default_portion_label ?? null,
       notes: value.notes ?? null,

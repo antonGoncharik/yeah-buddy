@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ const SETTINGS_URL = "/api/workout-settings";
 type KindTab = WorkoutKind;
 
 export function FormulasScreen() {
+  const confirm = useConfirm();
   const [kind, setKind] = useState<KindTab>("dynamic");
   const [maxIncrease, setMaxIncrease] = useState("5");
   const [formulas, setFormulas] = useState<WorkoutFormulas | null>(null);
@@ -125,12 +127,13 @@ export function FormulasScreen() {
     }
   }
 
-  function restoreDefaults() {
-    if (
-      !window.confirm(
-        "Вернуть схему как в дневнике? Текущие проценты и подходы сбросятся.",
-      )
-    ) {
+  async function restoreDefaults() {
+    const ok = await confirm({
+      message: "Вернуть схему как в дневнике?",
+      confirmLabel: "Вернуть",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
       return;
     }
     setFormulas(cloneFormulas(DEFAULT_WORKOUT_FORMULAS));
@@ -191,7 +194,7 @@ export function FormulasScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-4">
               <h2 className="text-lg font-semibold">Пример веса</h2>
               <p className="text-sm text-muted-foreground">
-                Не сохраняется. Чтобы видеть килограммы, как в дневнике.
+                Как в зале, не сохраняется.
               </p>
               <div className="flex items-center gap-2">
                 <Input
@@ -276,8 +279,7 @@ export function FormulasScreen() {
             ) : (
               <>
                 <p className="px-1 text-sm text-muted-foreground">
-                  Разминка как у динамики: повторы по пресету упражнения. Здесь
-                  только удержания. Сброс — без разминки.
+                  Здесь удержания. Сброс — без разминки.
                 </p>
                 {PHASE_TYPES.map((phase) => (
                   <SetCard
@@ -323,7 +325,7 @@ export function FormulasScreen() {
               variant="ghost"
               className="h-12 text-base"
               disabled={saving}
-              onClick={restoreDefaults}
+              onClick={() => void restoreDefaults()}
             >
               Как в дневнике
             </Button>
