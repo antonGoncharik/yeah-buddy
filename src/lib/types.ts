@@ -162,6 +162,7 @@ export interface WorkoutSettings {
   weight_step: number;
   max_increase_percent: number;
   formulas: WorkoutFormulas;
+  skip_template_ids: string[];
   updated_at: string;
 }
 

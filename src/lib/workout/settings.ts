@@ -107,7 +107,10 @@ export async function saveWorkoutSettings(
       weight_step: patch.weight_step ?? current.weight_step,
       max_increase_percent:
         patch.max_increase_percent ?? current.max_increase_percent,
-      formulas: patch.formulas ?? current.formulas,
+      formulas: withSkipTemplateIds(
+        patch.formulas ?? current.formulas,
+        current.skip_template_ids,
+      ),
     })
     .eq("user_id", userId)
     .select("*")
@@ -128,8 +131,80 @@ export function mapWorkoutSettings(
     weight_step: toNumber(row.weight_step) || 2.5,
     max_increase_percent: toNumber(row.max_increase_percent),
     formulas: parseFormulas(row.formulas),
+    skip_template_ids: parseSkipTemplateIds(row.formulas),
     updated_at: String(row.updated_at),
   };
+}
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseSkipTemplateIds(value: unknown): string[] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return [];
+  }
+
+  const raw = (value as { _skip_template_ids?: unknown })._skip_template_ids;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      raw.filter(
+        (id): id is string => typeof id === "string" && UUID_PATTERN.test(id),
+      ),
+    ),
+  ];
+}
+
+function withSkipTemplateIds(
+  formulas: WorkoutFormulas,
+  skipTemplateIds: string[],
+): WorkoutFormulas & { _skip_template_ids: string[] } {
+  return {
+    ...formulas,
+    _skip_template_ids: skipTemplateIds,
+  };
+}
+
+export async function skipTemplateInRotation(
+  userId: string,
+  templateId: string,
+): Promise<WorkoutSettings> {
+  const current = await ensureWorkoutSettings(userId);
+  const skipTemplateIds = current.skip_template_ids.includes(templateId)
+    ? current.skip_template_ids
+    : [...current.skip_template_ids, templateId];
+  return saveSkipTemplateIds(userId, skipTemplateIds);
+}
+
+export async function clearSkipTemplateIds(
+  userId: string,
+): Promise<WorkoutSettings> {
+  return saveSkipTemplateIds(userId, []);
+}
+
+async function saveSkipTemplateIds(
+  userId: string,
+  skipTemplateIds: string[],
+): Promise<WorkoutSettings> {
+  const current = await ensureWorkoutSettings(userId);
+  const supabase = createSupabaseServerClient();
+  const saved = await supabase
+    .from("workout_settings")
+    .update({
+      formulas: withSkipTemplateIds(current.formulas, skipTemplateIds),
+    })
+    .eq("user_id", userId)
+    .select("*")
+    .single();
+
+  if (saved.error || !saved.data) {
+    throw saved.error ?? new Error("Workout settings save failed");
+  }
+
+  return mapWorkoutSettings(saved.data as Record<string, unknown>);
 }
 
 function parseFormulas(value: unknown): WorkoutFormulas {

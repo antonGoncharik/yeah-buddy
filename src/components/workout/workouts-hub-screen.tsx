@@ -43,6 +43,7 @@ export function WorkoutsHubScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [skipping, setSkipping] = useState(false);
 
   const activeTemplates = useMemo(
     () => templates.filter((template) => template.is_active),
@@ -129,6 +130,30 @@ export function WorkoutsHubScreen() {
       setError(LOAD_FAILED);
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function skipTemplate(templateId: string) {
+    setSkipping(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/rotation/skip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template_id: templateId }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      await load();
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setSkipping(false);
     }
   }
 
@@ -241,11 +266,22 @@ export function WorkoutsHubScreen() {
             <Button
               type="button"
               className="h-14 text-lg"
-              disabled={creating}
+              disabled={creating || skipping}
               onClick={() => void createToday(nextTemplate.id)}
             >
               Начать
             </Button>
+            {activeTemplates.length > 1 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 text-base text-muted-foreground"
+                disabled={creating || skipping}
+                onClick={() => void skipTemplate(nextTemplate.id)}
+              >
+                Не это, следующая
+              </Button>
+            ) : null}
             <p className="text-sm leading-relaxed text-muted-foreground">
               Не идёшь сегодня — ничего не нажимай. Завтра снова она.
             </p>

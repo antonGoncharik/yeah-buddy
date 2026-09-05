@@ -9,6 +9,7 @@ import type {
 } from "@/lib/types";
 import { mapExercise } from "@/lib/workout/exercises";
 import { toNumber } from "@/lib/workout/numbers";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export class TemplateNotFoundError extends Error {
   constructor() {
@@ -220,8 +221,22 @@ export async function getNextTemplate(
     return null;
   }
 
+  const settings = await ensureWorkoutSettings(userId);
+  const skipped = new Set(settings.skip_template_ids);
   const lastId = await getLastTemplateId(userId, phaseId);
-  return templateAfter(templates, lastId);
+  let current = templateAfter(templates, lastId);
+
+  for (let step = 0; step < templates.length; step += 1) {
+    if (!current) {
+      return templates[0] ?? null;
+    }
+    if (!skipped.has(current.id)) {
+      return current;
+    }
+    current = templateAfter(templates, current.id);
+  }
+
+  return templates[0] ?? null;
 }
 
 export function templateAfter(

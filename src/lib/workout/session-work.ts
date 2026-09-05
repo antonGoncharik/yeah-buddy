@@ -22,6 +22,7 @@ import {
 import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import { getSession, patchSession } from "@/lib/workout/sessions";
+import { clearSkipTemplateIds } from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
 
 export const addSessionExerciseSchema = z.object({
@@ -216,6 +217,7 @@ export async function patchWorkoutSet(
   if (next.is_completed && next.actual_weight != null) {
     if (session.status === "planned") {
       await patchSession(userId, session.id, { status: "completed" });
+      await clearSkipTemplateIds(userId);
     }
   }
 
@@ -284,6 +286,7 @@ export async function completeSessionAsPlanned(
   }
 
   await patchSession(userId, session.id, { status: "completed" });
+  await clearSkipTemplateIds(userId);
   const refreshed = await getSession(userId, sessionId);
   return refreshed ? loadSessionDetail(userId, refreshed) : null;
 }
