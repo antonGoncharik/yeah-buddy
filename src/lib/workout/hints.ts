@@ -40,10 +40,10 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
   }
 
   if (rounds >= 2) {
-    return `«${phase}»: ${rounds} ${circleWord(rounds)}. Можно завершить${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
+    return `«${phase}»: ${rounds} ${circleWord(rounds)}. Можно ещё держать или закрыть${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
   }
 
-  return `«${phase}» пройдена. Можно завершить${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
+  return `«${phase}»: круг пройден. Фазу можно оставить ещё — закрываешь сам${nextLabel ? `, дальше «${nextLabel}»` : ""}.`;
 }
 
 export function completePhaseHint(phaseType: PhaseType): string {
@@ -51,7 +51,7 @@ export function completePhaseHint(phaseType: PhaseType): string {
     return "Дальше набор: максимумы те же, в рабочих больше повторов.";
   }
   if (phaseType === "volume") {
-    return "Дальше рывок: максимумы поднимаются, рабочих меньше. Цифры можно поправить.";
+    return "Дальше рывок: предложит поднять максимумы. Не всем упражнениям нужно расти — поправь до подтверждения.";
   }
   if (phaseType === "peak") {
     return "Дальше сброс: легче, чтобы восстановиться. Максимумы как в рывке.";
@@ -64,7 +64,7 @@ export function transitionExplain(preview: TransitionPreview): string {
     return "Сброс закрывается, начинается следующий макроцикл с разгона. Максимумы — с рывка, можно поправить.";
   }
   if (preview.increased) {
-    return "Рывок: меньше повторов, максимумы поднимаются. Можно поправить цифры перед стартом.";
+    return "Рывок: предложит поднять максимумы. Можно оставить как есть или поднять не все.";
   }
   if (preview.to_phase === "volume") {
     return "Набор: максимумы те же, другие проценты и повторы. Можно поправить.";

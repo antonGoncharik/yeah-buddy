@@ -223,10 +223,10 @@ export function MacroScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
               <p className="text-lg font-medium">Макроцикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Круг шаблонов идёт и так. Веса считаются как в разгоне от
-                глобального максимума. Макроцикл — это разгон → набор → рывок →
-                сброс: после круга в фазе закрываешь её сам, проценты меняются,
-                на рывке максимум растёт.
+                Очередь идёт и так. Без цикла веса как в разгоне от рекорда.
+                Макроцикл — разгон → набор → рывок → сброс. Фазу закрываешь сам,
+                не после первого круга. На рывке предложит поднять максимумы —
+                можно поправить.
               </p>
               <Link
                 href="/workouts/macro/new"
@@ -287,8 +287,8 @@ export function MacroScreen() {
             <section className="flex flex-col gap-3">
               <h2 className="text-xl font-semibold">Максимумы этой фазы</h2>
               <p className="text-sm text-muted-foreground">
-                От них считаются веса. На переходе фазы программа предложит
-                новые — здесь правишь, если уже сейчас не так.
+                Рабочий потолок этой фазы, не рекорд. От них план. Если тяжело
+                или после паузы — поставь меньше, рекорд не затрётся.
               </p>
               {state.maxes.map((row) => (
                 <div

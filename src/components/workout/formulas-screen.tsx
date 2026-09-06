@@ -172,7 +172,8 @@ export function FormulasScreen() {
               <p className="text-base leading-relaxed text-muted-foreground">
                 Вес подхода — максимум упражнения × процент, вниз до шага
                 блинов. Разминка общая: штанга или блок, как в карточке
-                упражнения. Рабочие — свои на каждую фазу.
+                упражнения. Рабочие — свои на каждую фазу. Сетка одна на все
+                движения: в зале вес подхода всегда можно поправить.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Плюс добавляет подход, минус убирает.
