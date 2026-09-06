@@ -432,10 +432,26 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
             {visibleMeals.map((meal, index) => (
               <MealCard
                 key={meal.id}
-                meal={meal}
+                mealType={meal.meal_type}
+                items={meal.items.map((item) => ({
+                  id: item.id,
+                  name: item.name_snapshot,
+                  grams: item.grams,
+                  protein: item.protein,
+                  fat: item.fat,
+                  carbs: item.carbs,
+                  kcal: item.kcal,
+                }))}
+                itemHref={(item) => `/today/items/${item.id}`}
+                addHref={`/today/meals/${meal.id}/add`}
                 className="animate-rise"
                 style={{ animationDelay: `${80 + index * 50}ms` }}
-                onDeleteItem={(item) => void deleteItem(item)}
+                onDeleteItem={(item) => {
+                  const row = meal.items.find((entry) => entry.id === item.id);
+                  if (row) {
+                    void deleteItem(row);
+                  }
+                }}
               />
             ))}
 

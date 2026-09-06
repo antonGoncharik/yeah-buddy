@@ -3,15 +3,29 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
+import {
+  addTemplateItemGrams,
+  GramsScreen,
+} from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED } from "@/lib/messages";
+import { isDayType, isMealType } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 
-export default function AddMealItemGramsPage() {
-  const params = useParams<{ mealId: string; foodId: string }>();
-  const backHref = `/today/meals/${params.mealId}/add`;
+export default function AddTemplateItemGramsPage() {
+  const params = useParams<{
+    dayType: string;
+    mealType: string;
+    foodId: string;
+  }>();
+  const dayType = isDayType(params.dayType) ? params.dayType : null;
+  const mealType = isMealType(params.mealType) ? params.mealType : null;
+  const backHref =
+    dayType && mealType
+      ? `/settings/meals/${dayType}/${mealType}/add`
+      : "/settings/meals";
+  const doneHref = dayType ? `/settings/meals/${dayType}` : "/settings/meals";
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +93,7 @@ export default function AddMealItemGramsPage() {
           </Button>
         </div>
       ) : null}
-      {!loading && food ? (
+      {!loading && food && dayType && mealType ? (
         <GramsScreen
           name={food.name}
           protein={food.protein_per_100}
@@ -90,8 +104,10 @@ export default function AddMealItemGramsPage() {
           defaultPortionG={food.default_portion_g}
           defaultPortionLabel={food.default_portion_label}
           backHref={backHref}
-          doneHref="/today"
-          save={(grams) => addMealItemGrams(params.mealId, food.id, grams)}
+          doneHref={doneHref}
+          save={(grams) =>
+            addTemplateItemGrams(dayType, mealType, food.id, grams)
+          }
         />
       ) : null}
     </div>

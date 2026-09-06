@@ -2,28 +2,38 @@
 
 import type { CSSProperties } from "react";
 
-import { MealAddLink, MealItemRow } from "@/components/day/meal-item-row";
+import {
+  MealAddLink,
+  MealItemRow,
+  type MealLine,
+} from "@/components/day/meal-item-row";
 import {
   formatKcal,
   formatMacro,
   getMealLabel,
   sumMealItems,
 } from "@/lib/nutrition";
-import type { Meal, MealItem } from "@/lib/types";
+import type { MealType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function MealCard({
-  meal,
+  mealType,
+  items,
+  itemHref,
+  addHref,
   onDeleteItem,
   className,
   style,
 }: {
-  meal: Meal & { items: MealItem[] };
-  onDeleteItem: (item: MealItem) => void;
+  mealType: MealType;
+  items: MealLine[];
+  itemHref: (item: MealLine) => string;
+  addHref: string;
+  onDeleteItem: (item: MealLine) => void;
   className?: string;
   style?: CSSProperties;
 }) {
-  const totals = sumMealItems(meal.items);
+  const totals = sumMealItems(items);
 
   return (
     <section
@@ -31,34 +41,37 @@ export function MealCard({
       style={style}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-semibold">
-          {getMealLabel(meal.meal_type)}
-        </h2>
-        {meal.items.length > 0 ? (
+        <h2 className="text-xl font-semibold">{getMealLabel(mealType)}</h2>
+        {items.length > 0 ? (
           <p className="text-base font-semibold tabular-nums">
             {formatKcal(totals.kcal)} ккал
           </p>
         ) : null}
       </div>
 
-      {meal.items.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-base text-muted-foreground">Пока пусто.</p>
       ) : (
         <div className="flex flex-col divide-y divide-border/80">
-          {meal.items.map((item) => (
-            <MealItemRow key={item.id} item={item} onDelete={onDeleteItem} />
+          {items.map((item) => (
+            <MealItemRow
+              key={item.id}
+              item={item}
+              href={itemHref(item)}
+              onDelete={() => onDeleteItem(item)}
+            />
           ))}
         </div>
       )}
 
-      {meal.items.length > 0 ? (
+      {items.length > 0 ? (
         <p className="text-lg font-semibold tabular-nums tracking-tight">
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
         </p>
       ) : null}
 
-      <MealAddLink mealId={meal.id} />
+      <MealAddLink href={addHref} />
     </section>
   );
 }

@@ -103,6 +103,7 @@ export default function EditMealItemPage() {
           defaultPortionG={food?.default_portion_g ?? null}
           defaultPortionLabel={food?.default_portion_label ?? null}
           backHref="/today"
+          doneHref="/today"
           save={(grams) => saveMealItemGrams(item.id, grams)}
         />
       ) : null}

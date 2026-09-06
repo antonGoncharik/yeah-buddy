@@ -13,6 +13,7 @@ export const WORKOUTS_NEED_TEMPLATES = "Собери очередь тренир
 export const SESSION_HISTORY_EMPTY = "После зала появятся здесь.";
 export const NUTRITION_HISTORY_EMPTY =
   "Дней питания ещё нет — они появятся после «Сегодня».";
+export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
 
 export function readApiError(data: unknown): string | null {
   if (

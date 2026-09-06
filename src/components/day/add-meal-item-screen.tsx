@@ -19,7 +19,13 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "all", label: "Все" },
 ];
 
-export function AddMealItemScreen({ mealId }: { mealId: string }) {
+export function AddMealItemScreen({
+  hrefForFood,
+  newFoodHref,
+}: {
+  hrefForFood: (food: Food) => string;
+  newFoodHref: string;
+}) {
   const [filter, setFilter] = useState<Filter>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
@@ -96,12 +102,12 @@ export function AddMealItemScreen({ mealId }: { mealId: string }) {
         <FoodList
           foods={visibleFoods}
           showFavorite={false}
-          hrefForFood={(food) => `/today/meals/${mealId}/add/${food.id}`}
+          hrefForFood={hrefForFood}
         />
       ) : null}
 
       <Link
-        href={`/food/new?mealId=${encodeURIComponent(mealId)}`}
+        href={newFoodHref}
         className={cn(buttonVariants({ variant: "outline" }), "h-12 text-base")}
       >
         Добавить вручную

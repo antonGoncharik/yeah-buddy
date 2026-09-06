@@ -317,11 +317,15 @@ async function ensureStarterTemplates(
   }
 
   for (const template of STARTER_TEMPLATES) {
-    const templateId = await getOrCreateTemplate(supabase, userId, template);
+    const created = await getOrCreateTemplate(supabase, userId, template);
+    if (!created.created) {
+      continue;
+    }
+
     await ensureTemplateItems(
       supabase,
       userId,
-      templateId,
+      created.id,
       template.items,
       foodIdByName,
     );
@@ -332,7 +336,7 @@ async function getOrCreateTemplate(
   supabase: SupabaseClient,
   userId: string,
   template: StarterTemplate,
-): Promise<string> {
+): Promise<{ id: string; created: boolean }> {
   const existing = await supabase
     .from("meal_templates")
     .select("id")
@@ -347,7 +351,7 @@ async function getOrCreateTemplate(
   }
 
   if (existing.data && typeof existing.data.id === "string") {
-    return existing.data.id;
+    return { id: existing.data.id, created: false };
   }
 
   const created = await supabase
@@ -376,7 +380,7 @@ async function getOrCreateTemplate(
         throw raced.error ?? new Error("Template lookup failed");
       }
 
-      return raced.data.id;
+      return { id: raced.data.id, created: false };
     }
 
     throw created.error;
@@ -386,7 +390,7 @@ async function getOrCreateTemplate(
     throw new Error("Template insert returned no id");
   }
 
-  return created.data.id;
+  return { id: created.data.id, created: true };
 }
 
 async function ensureTemplateItems(

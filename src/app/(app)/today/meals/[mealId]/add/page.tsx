@@ -11,7 +11,10 @@ export default async function AddMealItemPage({
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Добавить продукт" backHref="/today" />
-      <AddMealItemScreen mealId={mealId} />
+      <AddMealItemScreen
+        hrefForFood={(food) => `/today/meals/${mealId}/add/${food.id}`}
+        newFoodHref={`/food/new?mealId=${encodeURIComponent(mealId)}`}
+      />
     </div>
   );
 }

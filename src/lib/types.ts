@@ -115,6 +115,18 @@ export interface MealTemplateItem {
   created_at: string;
 }
 
+export interface MealTemplateItemView extends MealTemplateItem {
+  food: Food;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+}
+
+export interface MealTemplateDetail extends MealTemplate {
+  items: MealTemplateItemView[];
+}
+
 export type ExerciseCategory = "base" | "armwrestling" | "isolation";
 
 export type ExerciseWorkoutType = "dynamic" | "static" | "both";

@@ -22,6 +22,7 @@ export function GramsScreen({
   defaultPortionLabel,
   save,
   backHref,
+  doneHref,
 }: {
   name: string;
   protein: number;
@@ -33,6 +34,7 @@ export function GramsScreen({
   defaultPortionLabel: string | null;
   save: (grams: number) => Promise<void>;
   backHref: string;
+  doneHref: string;
 }) {
   const router = useRouter();
   const [gramsInput, setGramsInput] = useState(String(initialGrams));
@@ -59,7 +61,7 @@ export function GramsScreen({
 
     try {
       await save(grams);
-      router.push("/today");
+      router.push(doneHref);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
@@ -165,6 +167,35 @@ export async function addMealItemGrams(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ foodId, grams }),
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(readApiError(data) ?? LOAD_FAILED);
+  }
+}
+
+export async function addTemplateItemGrams(
+  dayType: string,
+  mealType: string,
+  foodId: string,
+  grams: number,
+) {
+  const response = await fetch(`/api/meal-templates/${dayType}/items`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mealType, foodId, grams }),
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(readApiError(data) ?? LOAD_FAILED);
+  }
+}
+
+export async function saveTemplateItemGrams(itemId: string, grams: number) {
+  const response = await fetch(`/api/meal-template-items/${itemId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ grams }),
   });
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {

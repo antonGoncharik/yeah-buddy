@@ -1,4 +1,4 @@
-import type { MealType } from "@/lib/types";
+import type { DayType, MealType } from "@/lib/types";
 
 export type Macros = {
   protein: number;
@@ -95,4 +95,31 @@ export function isMealVisible(
   }
 
   return mealType !== "pre_workout" && mealType !== "post_workout";
+}
+
+export function visibleMealTypes(isTrainingDay: boolean): MealType[] {
+  return MEAL_DISPLAY_ORDER.filter((mealType) =>
+    isMealVisible(mealType, isTrainingDay),
+  );
+}
+
+export function isMealType(value: unknown): value is MealType {
+  return MEAL_DISPLAY_ORDER.includes(value as MealType);
+}
+
+export function isDayType(value: unknown): value is DayType {
+  return value === "rest" || value === "training";
+}
+
+export function roundMacros(macros: Macros): Macros {
+  return {
+    protein: round2(macros.protein),
+    fat: round2(macros.fat),
+    carbs: round2(macros.carbs),
+    kcal: round2(macros.kcal),
+  };
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }

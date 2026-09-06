@@ -3,17 +3,22 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
+import {
+  GramsScreen,
+  saveTemplateItemGrams,
+} from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED } from "@/lib/messages";
-import type { Food } from "@/lib/types";
+import { isDayType } from "@/lib/nutrition";
+import type { MealTemplateItemView } from "@/lib/types";
 
-export default function AddMealItemGramsPage() {
-  const params = useParams<{ mealId: string; foodId: string }>();
-  const backHref = `/today/meals/${params.mealId}/add`;
+export default function EditTemplateItemPage() {
+  const params = useParams<{ dayType: string; itemId: string }>();
+  const dayType = isDayType(params.dayType) ? params.dayType : null;
+  const backHref = dayType ? `/settings/meals/${dayType}` : "/settings/meals";
   const [reloadToken, setReloadToken] = useState(0);
-  const [food, setFood] = useState<Food | null>(null);
+  const [item, setItem] = useState<MealTemplateItemView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,14 +31,16 @@ export default function AddMealItemGramsPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/foods/${params.foodId}`);
+        const response = await fetch(
+          `/api/meal-template-items/${params.itemId}`,
+        );
         if (cancelled) {
           return;
         }
 
         if (response.status === 404) {
-          setError("Продукт не найден.");
-          setFood(null);
+          setError("Запись не найдена.");
+          setItem(null);
           return;
         }
 
@@ -42,11 +49,11 @@ export default function AddMealItemGramsPage() {
         }
 
         const data: unknown = await response.json();
-        setFood(readFood(data));
+        setItem(readItem(data));
       } catch {
         if (!cancelled) {
           setError(LOAD_FAILED);
-          setFood(null);
+          setItem(null);
         }
       } finally {
         if (!cancelled) {
@@ -60,7 +67,7 @@ export default function AddMealItemGramsPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.foodId, reloadToken]);
+  }, [params.itemId, reloadToken]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -79,29 +86,29 @@ export default function AddMealItemGramsPage() {
           </Button>
         </div>
       ) : null}
-      {!loading && food ? (
+      {!loading && item ? (
         <GramsScreen
-          name={food.name}
-          protein={food.protein_per_100}
-          fat={food.fat_per_100}
-          carbs={food.carbs_per_100}
-          kcal={food.kcal_per_100}
-          initialGrams={food.default_portion_g ?? 100}
-          defaultPortionG={food.default_portion_g}
-          defaultPortionLabel={food.default_portion_label}
+          name={item.food.name}
+          protein={item.food.protein_per_100}
+          fat={item.food.fat_per_100}
+          carbs={item.food.carbs_per_100}
+          kcal={item.food.kcal_per_100}
+          initialGrams={item.grams}
+          defaultPortionG={item.food.default_portion_g}
+          defaultPortionLabel={item.food.default_portion_label}
           backHref={backHref}
-          doneHref="/today"
-          save={(grams) => addMealItemGrams(params.mealId, food.id, grams)}
+          doneHref={backHref}
+          save={(grams) => saveTemplateItemGrams(item.id, grams)}
         />
       ) : null}
     </div>
   );
 }
 
-function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
+function readItem(data: unknown): MealTemplateItemView | null {
+  if (!data || typeof data !== "object" || !("item" in data) || !data.item) {
     return null;
   }
 
-  return data.food as Food;
+  return data.item as MealTemplateItemView;
 }

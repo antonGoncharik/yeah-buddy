@@ -2,12 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
@@ -24,7 +23,13 @@ type FormState = {
   is_favorite: boolean;
 };
 
-export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
+export function FoodForm({
+  food,
+  afterCreateHref,
+}: {
+  food?: Food;
+  afterCreateHref?: (foodId: string) => string;
+}) {
   const router = useRouter();
   const confirm = useConfirm();
   const [form, setForm] = useState<FormState>(toFormState(food));
@@ -70,10 +75,10 @@ export function FoodForm({ food, mealId }: { food?: Food; mealId?: string }) {
         return;
       }
 
-      if (!food && mealId) {
+      if (!food && afterCreateHref) {
         const created = readFood(data);
         if (created) {
-          router.push(`/today/meals/${mealId}/add/${created.id}`);
+          router.push(afterCreateHref(created.id));
           router.refresh();
           return;
         }

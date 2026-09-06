@@ -139,6 +139,15 @@ export function SettingsScreen() {
               Справочник для дневника еды
             </span>
           </Link>
+          <Link href="/settings/meals" className="flex flex-col gap-0.5 py-2">
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="text-lg font-medium">Шаблоны еды</span>
+              <span className="text-sm font-medium text-primary">Править</span>
+            </span>
+            <span className="text-sm text-muted-foreground">
+              Состав дня отдыха и тренировки
+            </span>
+          </Link>
           <Link href="/today/history" className="flex flex-col gap-0.5 py-2">
             <span className="flex items-baseline justify-between gap-3">
               <span className="text-lg font-medium">Дни питания</span>

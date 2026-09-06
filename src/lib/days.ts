@@ -1,11 +1,14 @@
 import { mapFood } from "@/lib/foods";
+import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { DAY_EXISTS_REPLACE, YESTERDAY_MISSING } from "@/lib/messages";
 import {
   calcKcalFromMacros,
   calcMacrosFromPer100,
   getMealOrder,
+  isMealType,
   type Macros,
   MEAL_DISPLAY_ORDER,
+  roundMacros,
 } from "@/lib/nutrition";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -193,32 +196,13 @@ export async function createDayFromTemplate(
 
   const dayId = String(created.data.id);
   const mealIds = await insertEmptyMeals(supabase, userId, dayId);
-  const templateItems = await loadTemplateItems(supabase, userId, dayType);
+  const template = await getActiveMealTemplate(userId, dayType);
 
-  if (templateItems.length > 0) {
-    const foodIds = [...new Set(templateItems.map((item) => item.food_id))];
-    const foods = await supabase
-      .from("foods")
-      .select("*")
-      .eq("user_id", userId)
-      .in("id", foodIds);
-
-    if (foods.error) {
-      throw foods.error;
-    }
-
-    const foodById = new Map(
-      (foods.data ?? []).map((row) => {
-        const food = mapFood(row as Record<string, unknown>);
-        return [food.id, food];
-      }),
-    );
-
+  if (template && template.items.length > 0) {
     const rows = [];
-    for (const item of templateItems) {
+    for (const item of template.items) {
       const mealId = mealIds.get(item.meal_type);
-      const food = foodById.get(item.food_id);
-      if (!mealId || !food) {
+      if (!mealId) {
         continue;
       }
 
@@ -226,14 +210,14 @@ export async function createDayFromTemplate(
         buildMealItemRow({
           userId,
           mealId,
-          foodId: food.id,
-          name: food.name,
+          foodId: item.food.id,
+          name: item.food.name,
           grams: item.grams,
           per100: {
-            protein: food.protein_per_100,
-            fat: food.fat_per_100,
-            carbs: food.carbs_per_100,
-            kcal: food.kcal_per_100,
+            protein: item.food.protein_per_100,
+            fat: item.food.fat_per_100,
+            carbs: item.food.carbs_per_100,
+            kcal: item.food.kcal_per_100,
           },
         }),
       );
@@ -572,55 +556,6 @@ async function insertEmptyMeals(
   return mealIds;
 }
 
-async function loadTemplateItems(
-  supabase: ReturnType<typeof createSupabaseServerClient>,
-  userId: string,
-  dayType: DayType,
-): Promise<Array<{ meal_type: MealType; food_id: string; grams: number }>> {
-  const template = await supabase
-    .from("meal_templates")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("day_type", dayType)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (template.error) {
-    throw template.error;
-  }
-
-  if (!template.data) {
-    return [];
-  }
-
-  const items = await supabase
-    .from("meal_template_items")
-    .select("meal_type, food_id, grams, sort_order")
-    .eq("user_id", userId)
-    .eq("template_id", template.data.id)
-    .order("sort_order", { ascending: true });
-
-  if (items.error) {
-    throw items.error;
-  }
-
-  return (items.data ?? []).flatMap((row) => {
-    if (!isMealType(row.meal_type) || typeof row.food_id !== "string") {
-      return [];
-    }
-
-    return [
-      {
-        meal_type: row.meal_type,
-        food_id: row.food_id,
-        grams: toNumber(row.grams),
-      },
-    ];
-  });
-}
-
 async function getTargets(userId: string, dayType: DayType): Promise<Macros> {
   const settings = await getUserSettings(userId);
   const protein =
@@ -787,30 +722,6 @@ function mapPer100(value: unknown): Macros {
     carbs: toNumber(snapshot.carbs),
     kcal: toNumber(snapshot.kcal),
   };
-}
-
-function roundMacros(macros: Macros): Macros {
-  return {
-    protein: round2(macros.protein),
-    fat: round2(macros.fat),
-    carbs: round2(macros.carbs),
-    kcal: round2(macros.kcal),
-  };
-}
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-function isMealType(value: unknown): value is MealType {
-  return (
-    value === "breakfast" ||
-    value === "lunch" ||
-    value === "snack" ||
-    value === "dinner" ||
-    value === "pre_workout" ||
-    value === "post_workout"
-  );
 }
 
 function toNumber(value: unknown): number {

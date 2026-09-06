@@ -5,14 +5,19 @@ import { cn } from "@/lib/utils";
 export function DaySummary({
   day,
   fact,
+  factLabel = "Съел",
 }: {
-  day: Day;
+  day: Pick<
+    Day,
+    "target_protein" | "target_fat" | "target_carbs" | "target_kcal"
+  >;
   fact: {
     protein: number;
     fat: number;
     carbs: number;
     kcal: number;
   };
+  factLabel?: string;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
@@ -39,7 +44,9 @@ export function DaySummary({
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-muted-foreground">Съел</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            {factLabel}
+          </p>
           <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
             {formatKcal(fact.kcal)}
           </p>
