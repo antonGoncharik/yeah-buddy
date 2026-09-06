@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -291,8 +292,8 @@ export function SessionScreen() {
     const ok = await confirm({
       message:
         detail.session.kind === "table"
-          ? "Убрать стол?"
-          : "Убрать тренировку? Очередь останется.",
+          ? "Стол не был? Запись пропадёт."
+          : "Не получилось сегодня? Тренировка пропадёт, очередь останется.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -445,11 +446,12 @@ export function SessionScreen() {
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-11 justify-start px-1 text-base text-muted-foreground"
+                  className="h-11 justify-start gap-2 px-1 text-base text-muted-foreground"
                   disabled={busy}
                   onClick={() => void openPicker()}
                 >
-                  {pickerOpen ? "Скрыть список" : "Ещё упражнение"}
+                  {pickerOpen ? null : <Plus className="size-4" aria-hidden />}
+                  {pickerOpen ? "Скрыть список" : "Добавить упражнение"}
                 </Button>
                 {pickerOpen ? (
                   <ul className="card-surface flex flex-col">
@@ -536,7 +538,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                {isTable ? "Убрать стол" : "Убрать"}
+                {isTable ? "Стол не был" : "Не получилось сегодня"}
               </Button>
             ) : null}
           </>
@@ -551,7 +553,7 @@ export function SessionScreen() {
             disabled={busy || (!isTable && detail.exercises.length === 0)}
             onClick={() => void complete()}
           >
-            {isTable ? "Стол был" : "Сделал"}
+            {isTable ? "Стол был" : "Как в плане"}
           </Button>
         </div>
       ) : null}

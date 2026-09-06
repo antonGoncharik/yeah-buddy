@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -14,16 +15,16 @@ import { cn } from "@/lib/utils";
 type Filter = "favorites" | "recent" | "all";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "favorites", label: "Избранные" },
+  { id: "favorites", label: "Избранное" },
   { id: "recent", label: "Недавние" },
   { id: "all", label: "Все" },
 ];
 
 export function AddMealItemScreen({
-  hrefForFood,
+  foodHrefBase,
   newFoodHref,
 }: {
-  hrefForFood: (food: Food) => string;
+  foodHrefBase: string;
   newFoodHref: string;
 }) {
   const [filter, setFilter] = useState<Filter>("favorites");
@@ -102,15 +103,19 @@ export function AddMealItemScreen({
         <FoodList
           foods={visibleFoods}
           showFavorite={false}
-          hrefForFood={hrefForFood}
+          hrefForFood={(food) => `${foodHrefBase}/${food.id}`}
         />
       ) : null}
 
       <Link
         href={newFoodHref}
-        className={cn(buttonVariants({ variant: "outline" }), "h-12 text-base")}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "h-12 gap-2 text-base",
+        )}
       >
-        Добавить вручную
+        <Plus className="size-4" aria-hidden />
+        Новый продукт
       </Link>
     </div>
   );

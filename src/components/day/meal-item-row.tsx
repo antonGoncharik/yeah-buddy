@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -41,10 +42,12 @@ export function MealItemRow({
       <Button
         type="button"
         variant="ghost"
-        className="h-auto min-w-12 text-sm text-destructive"
+        size="icon-lg"
+        className="size-11 self-center text-destructive"
+        aria-label="Удалить"
         onClick={onDelete}
       >
-        Удалить
+        <Trash2 className="size-5" />
       </Button>
     </div>
   );
@@ -56,10 +59,11 @@ export function MealAddLink({ href }: { href: string }) {
       href={href}
       className={cn(
         buttonVariants({ variant: "outline" }),
-        "h-12 w-full rounded-xl text-base",
+        "h-12 w-full gap-2 rounded-xl text-base",
       )}
     >
-      Добавить
+      <Plus className="size-4" aria-hidden />
+      Добавить продукт
     </Link>
   );
 }

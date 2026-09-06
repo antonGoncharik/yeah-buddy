@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
@@ -27,13 +28,19 @@ export function TodayWorkoutBanner({
   return (
     <Link
       href={href}
-      className="card-surface animate-rise block px-5 py-4 transition-colors hover:bg-muted/40"
+      className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
     >
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>
-      {hint ? (
-        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
-      ) : null}
+      <span className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>
+        {hint ? (
+          <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
+        ) : null}
+      </span>
+      <ChevronRight
+        className="size-5 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
     </Link>
   );
 }

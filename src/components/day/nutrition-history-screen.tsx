@@ -2,14 +2,16 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
 import { LOAD_FAILED, NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
-import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -66,25 +68,13 @@ export function NutritionHistoryScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Дни питания" backHref="/today" />
+      <AppHeader title="История еды" backHref="/today" />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && items.length === 0 ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center text-lg font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
@@ -124,40 +114,48 @@ export function NutritionHistoryScreen() {
                     <li key={item.date}>
                       <Link
                         href={`/today?date=${encodeURIComponent(item.date)}`}
-                        className="card-surface flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                        className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
                       >
-                        <div className="flex items-baseline justify-between gap-3">
-                          <span className="text-base font-medium">
-                            {formatDay(item.date)}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {item.is_training_day ? "зал" : "отдых"}
-                          </span>
-                        </div>
-                        <p className="text-sm">
-                          {formatKcal(item.fact_kcal)}
-                          <span className="text-muted-foreground">
-                            {" "}
-                            / {formatKcal(item.target_kcal)} ккал
-                          </span>
-                        </p>
-                        <div className="flex flex-col gap-1.5">
-                          <MiniBar
-                            fact={item.fact_protein}
-                            plan={item.target_protein}
-                            barClass="bg-[var(--macro-protein)]"
-                          />
-                          <MiniBar
-                            fact={item.fact_fat}
-                            plan={item.target_fat}
-                            barClass="bg-[var(--macro-fat)]"
-                          />
-                          <MiniBar
-                            fact={item.fact_carbs}
-                            plan={item.target_carbs}
-                            barClass="bg-[var(--macro-carbs)]"
-                          />
-                        </div>
+                        <span className="flex min-w-0 flex-1 flex-col gap-3">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <span className="text-base font-medium">
+                              {formatDay(item.date)}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {item.is_training_day
+                                ? DAY_TYPE_LABELS.training
+                                : DAY_TYPE_LABELS.rest}
+                            </span>
+                          </div>
+                          <p className="text-sm">
+                            {formatKcal(item.fact_kcal)}
+                            <span className="text-muted-foreground">
+                              {" "}
+                              / {formatKcal(item.target_kcal)} ккал
+                            </span>
+                          </p>
+                          <div className="flex flex-col gap-1.5">
+                            <MiniBar
+                              fact={item.fact_protein}
+                              plan={item.target_protein}
+                              barClass="bg-[var(--macro-protein)]"
+                            />
+                            <MiniBar
+                              fact={item.fact_fat}
+                              plan={item.target_fat}
+                              barClass="bg-[var(--macro-fat)]"
+                            />
+                            <MiniBar
+                              fact={item.fact_carbs}
+                              plan={item.target_carbs}
+                              barClass="bg-[var(--macro-carbs)]"
+                            />
+                          </div>
+                        </span>
+                        <ChevronRight
+                          className="size-5 shrink-0 text-muted-foreground"
+                          aria-hidden
+                        />
                       </Link>
                     </li>
                   ))}

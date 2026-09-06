@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -32,20 +32,26 @@ export function FoodList({
           <div className="card-surface flex items-stretch overflow-hidden">
             <Link
               href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
-              className="min-w-0 flex-1 px-5 py-4 transition-colors hover:bg-muted/40"
+              className="flex min-w-0 flex-1 items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
             >
-              <p className="truncate text-lg font-medium">{food.name}</p>
-              {food.brand ? (
-                <p className="truncate text-sm text-muted-foreground">
-                  {food.brand}
+              <span className="min-w-0 flex-1">
+                <p className="truncate text-lg font-medium">{food.name}</p>
+                {food.brand ? (
+                  <p className="truncate text-sm text-muted-foreground">
+                    {food.brand}
+                  </p>
+                ) : null}
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Б {formatMacro(food.protein_per_100)} · Ж{" "}
+                  {formatMacro(food.fat_per_100)} · У{" "}
+                  {formatMacro(food.carbs_per_100)} ·{" "}
+                  {formatKcal(food.kcal_per_100)} ккал
                 </p>
-              ) : null}
-              <p className="mt-1 text-sm text-muted-foreground">
-                Б {formatMacro(food.protein_per_100)} · Ж{" "}
-                {formatMacro(food.fat_per_100)} · У{" "}
-                {formatMacro(food.carbs_per_100)} ·{" "}
-                {formatKcal(food.kcal_per_100)} ккал
-              </p>
+              </span>
+              <ChevronRight
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             </Link>
             {favoriteVisible ? (
               <Button

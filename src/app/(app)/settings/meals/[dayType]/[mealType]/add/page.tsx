@@ -24,9 +24,7 @@ export default async function AddTemplateItemPage({
     <div className="flex flex-col gap-4">
       <AppHeader title="Добавить продукт" backHref={backHref} />
       <AddMealItemScreen
-        hrefForFood={(food) =>
-          `/settings/meals/${dayType}/${mealType}/add/${food.id}`
-        }
+        foodHrefBase={`/settings/meals/${dayType}/${mealType}/add`}
         newFoodHref={`/food/new?dayType=${encodeURIComponent(dayType)}&mealType=${encodeURIComponent(mealType)}`}
       />
     </div>

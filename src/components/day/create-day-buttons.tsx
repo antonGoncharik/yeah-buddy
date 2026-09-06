@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DAY_TYPE_LABELS } from "@/lib/nutrition";
 
 export function CreateDayButtons({
   onCreateRest,
@@ -15,50 +16,42 @@ export function CreateDayButtons({
   busy: boolean;
   trainingFirst?: boolean;
 }) {
-  if (trainingFirst) {
-    return (
-      <div className="flex flex-col gap-3">
-        <Button
-          className="h-14 text-lg"
-          disabled={busy}
-          onClick={onCreateTraining}
-        >
-          Как в зале
-        </Button>
-        <Button
-          variant="outline"
-          className="h-14 text-lg"
-          disabled={busy}
-          onClick={onCreateRest}
-        >
-          Отдых
-        </Button>
-        <Button
-          variant="ghost"
-          className="h-14 text-lg"
-          disabled={busy}
-          onClick={onCopyYesterday}
-        >
-          Как вчера
-        </Button>
-      </div>
-    );
-  }
+  const rest = (
+    <Button
+      variant={trainingFirst ? "outline" : "default"}
+      className="h-14 text-lg"
+      disabled={busy}
+      onClick={onCreateRest}
+    >
+      {DAY_TYPE_LABELS.rest}
+    </Button>
+  );
+  const training = (
+    <Button
+      variant={trainingFirst ? "default" : "outline"}
+      className="h-14 text-lg"
+      disabled={busy}
+      onClick={onCreateTraining}
+    >
+      {DAY_TYPE_LABELS.training}
+    </Button>
+  );
 
   return (
     <div className="flex flex-col gap-3">
-      <Button className="h-14 text-lg" disabled={busy} onClick={onCreateRest}>
-        Отдых
-      </Button>
+      {trainingFirst ? (
+        <>
+          {training}
+          {rest}
+        </>
+      ) : (
+        <>
+          {rest}
+          {training}
+        </>
+      )}
       <Button
-        className="h-14 text-lg"
-        disabled={busy}
-        onClick={onCreateTraining}
-      >
-        Как в зале
-      </Button>
-      <Button
-        variant="outline"
+        variant="ghost"
         className="h-14 text-lg"
         disabled={busy}
         onClick={onCopyYesterday}

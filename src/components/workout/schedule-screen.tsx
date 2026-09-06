@@ -114,7 +114,7 @@ export function ScheduleScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Шаблоны" backHref="/workouts" />
+      <AppHeader title="Очередь" backHref="/workouts" />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
@@ -137,13 +137,12 @@ export function ScheduleScreen() {
 
         {!loading && templates.length === 0 ? (
           <p className="animate-fade text-center text-base leading-relaxed text-muted-foreground">
-            Соберите первую тренировку.
+            Собери первую тренировку.
           </p>
         ) : null}
 
         {!loading && active.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">Очередь</h2>
             <SortableList
               items={active}
               disabled={saving}
@@ -216,9 +215,10 @@ export function ScheduleScreen() {
             href="/workouts/templates/new"
             className={cn(
               buttonVariants({ variant: "secondary" }),
-              "h-14 text-lg",
+              "h-14 gap-2 text-lg",
             )}
           >
+            <Plus className="size-5" aria-hidden />
             Новый шаблон
           </Link>
         ) : null}

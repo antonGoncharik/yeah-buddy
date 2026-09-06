@@ -153,7 +153,7 @@ export function FormulasScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Схема"
+        title="Схема подходов"
         subtitle="Откуда берутся веса в зале"
         backHref="/settings"
       />

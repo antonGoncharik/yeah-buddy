@@ -1,10 +1,10 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { NavRow } from "@/components/layout/nav-row";
 import { useTheme } from "@/components/layout/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,46 +129,27 @@ export function SettingsScreen() {
       <AppHeader title="Настройки" />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
-        <section className="card-surface animate-rise flex flex-col gap-1 px-5 py-4">
-          <Link href="/foods" className="flex flex-col gap-0.5 py-2">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="text-lg font-medium">Продукты</span>
-              <span className="text-sm font-medium text-primary">Список</span>
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Справочник для дневника еды
-            </span>
-          </Link>
-          <Link href="/settings/meals" className="flex flex-col gap-0.5 py-2">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="text-lg font-medium">Шаблоны еды</span>
-              <span className="text-sm font-medium text-primary">Править</span>
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Состав дня отдыха и тренировки
-            </span>
-          </Link>
-          <Link href="/today/history" className="flex flex-col gap-0.5 py-2">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="text-lg font-medium">Дни питания</span>
-              <span className="text-sm font-medium text-primary">История</span>
-            </span>
-            <span className="text-sm text-muted-foreground">
-              БЖУ по дням и среднее
-            </span>
-          </Link>
-          <Link
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/foods"
+            title="Продукты"
+            hint="Справочник для дневника еды"
+          />
+          <NavRow
+            href="/settings/meals"
+            title="Шаблоны еды"
+            hint="Состав дня отдыха и тренировки"
+          />
+          <NavRow
+            href="/today/history"
+            title="История еды"
+            hint="БЖУ по дням и среднее"
+          />
+          <NavRow
             href="/settings/formulas"
-            className="flex flex-col gap-0.5 py-2"
-          >
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="text-lg font-medium">Схема подходов</span>
-              <span className="text-sm font-medium text-primary">Править</span>
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Разминка, рабочие по фазам и как растёт максимум на рывке
-            </span>
-          </Link>
+            title="Схема подходов"
+            hint="Разминка, рабочие веса и рост максимума"
+          />
         </section>
 
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">

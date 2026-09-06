@@ -303,7 +303,7 @@ function warmupHint(preset: FormulaPreset): string {
   if (preset === "cable") {
     return "Блок: разминка из Схемы, обычно два подхода. Для блока и статики. Рабочие — отдельно.";
   }
-  return "В план тренировки само не попадёт. Добавить можно уже в зале, кнопкой «Ещё упражнение».";
+  return "В план тренировки само не попадёт. Добавить можно уже в зале, кнопкой «Добавить упражнение».";
 }
 
 function toFormState(exercise?: ExerciseWithMax): FormState {

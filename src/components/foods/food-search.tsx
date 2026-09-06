@@ -13,7 +13,7 @@ export function FoodSearch({
     <Input
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      placeholder="Поиск"
+      placeholder="Поиск продукта"
       className="h-14 rounded-2xl text-base"
       inputMode="search"
       enterKeyHint="search"

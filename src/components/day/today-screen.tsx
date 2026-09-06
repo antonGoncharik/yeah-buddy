@@ -34,7 +34,7 @@ import {
   readApiError,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
-import { isMealVisible, sumMeals } from "@/lib/nutrition";
+import { DAY_TYPE_LABELS, isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { DayType, MealItem } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 
@@ -322,13 +322,12 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={titleDate}
-        subtitle={isToday ? undefined : "Не сегодня"}
         trailing={
           <>
             <Link
               href="/today/history"
               className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
-              aria-label="История питания"
+              aria-label="История еды"
             >
               <History className="size-5" />
             </Link>
@@ -412,12 +411,12 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
                 options={[
                   {
                     id: "rest",
-                    label: "Отдых",
+                    label: DAY_TYPE_LABELS.rest,
                     icon: <Sofa className="size-4" aria-hidden />,
                   },
                   {
                     id: "training",
-                    label: "Тренировка",
+                    label: DAY_TYPE_LABELS.training,
                     icon: <Dumbbell className="size-4" aria-hidden />,
                   },
                 ]}

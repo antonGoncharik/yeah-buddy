@@ -12,6 +12,7 @@ import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import {
   calcKcalFromMacros,
+  DAY_TEMPLATE_TITLES,
   isMealVisible,
   sumMealItems,
   visibleMealTypes,
@@ -23,11 +24,6 @@ import type {
   UserSettings,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-
-const TITLES: Record<DayType, string> = {
-  rest: "День отдыха",
-  training: "День тренировки",
-};
 
 export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
   const confirm = useConfirm();
@@ -175,11 +171,14 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title={TITLES[dayType]} backHref="/settings/meals" />
+      <AppHeader
+        title={DAY_TEMPLATE_TITLES[dayType]}
+        backHref="/settings/meals"
+      />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         <p className="text-base text-muted-foreground">
-          Так подставится новый день этого типа. Уже созданные дни не меняются.
+          Новый день получит этот состав. Уже записанные дни не меняются.
         </p>
 
         {loading ? (

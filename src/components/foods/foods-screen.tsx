@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -153,9 +154,10 @@ export function FoodsScreen() {
       <div className="animate-rise px-4" style={{ animationDelay: "80ms" }}>
         <Link
           href="/food/new"
-          className={cn(buttonVariants(), "h-14 w-full text-lg")}
+          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
         >
-          Добавить продукт
+          <Plus className="size-5" aria-hidden />
+          Новый продукт
         </Link>
       </div>
     </div>

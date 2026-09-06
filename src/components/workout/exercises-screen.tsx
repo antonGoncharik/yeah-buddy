@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -101,17 +102,23 @@ export function ExercisesScreen() {
               >
                 <Link
                   href={`/workouts/exercises/${exercise.id}`}
-                  className="flex items-baseline justify-between gap-3 py-3.5"
+                  className="flex items-center justify-between gap-3 py-3.5"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-base font-medium">
                       {exercise.short_name || exercise.name}
                     </span>
                   </span>
-                  <span className="shrink-0 text-lg tabular-nums font-semibold tracking-tight">
-                    {exercise.current_max
-                      ? formatWeight(exercise.current_max.max_weight)
-                      : "—"}
+                  <span className="flex shrink-0 items-center gap-1">
+                    <span className="text-lg tabular-nums font-semibold tracking-tight">
+                      {exercise.current_max
+                        ? formatWeight(exercise.current_max.max_weight)
+                        : "—"}
+                    </span>
+                    <ChevronRight
+                      className="size-5 text-muted-foreground"
+                      aria-hidden
+                    />
                   </span>
                 </Link>
               </li>
@@ -123,9 +130,10 @@ export function ExercisesScreen() {
       <div className="animate-rise px-4" style={{ animationDelay: "80ms" }}>
         <Link
           href="/workouts/exercises/new"
-          className={cn(buttonVariants(), "h-14 w-full text-lg")}
+          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
         >
-          Добавить упражнение
+          <Plus className="size-5" aria-hidden />
+          Новое упражнение
         </Link>
       </div>
     </div>

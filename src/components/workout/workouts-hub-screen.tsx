@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -297,9 +298,10 @@ export function WorkoutsHubScreen() {
             <p className="text-lg font-medium">{WORKOUTS_NEED_EXERCISES}</p>
             <Link
               href="/workouts/exercises/new"
-              className={cn(buttonVariants(), "h-14 text-lg")}
+              className={cn(buttonVariants(), "h-14 gap-2 text-lg")}
             >
-              Добавить упражнение
+              <Plus className="size-5" aria-hidden />
+              Новое упражнение
             </Link>
           </section>
         ) : null}
@@ -313,9 +315,10 @@ export function WorkoutsHubScreen() {
             <p className="text-lg font-medium">{WORKOUTS_NEED_TEMPLATES}</p>
             <Link
               href="/workouts/schedule"
-              className={cn(buttonVariants(), "h-14 text-lg")}
+              className={cn(buttonVariants(), "h-14 gap-2 text-lg")}
             >
-              Собрать шаблоны
+              <Plus className="size-5" aria-hidden />
+              Собрать очередь
             </Link>
           </section>
         ) : null}
@@ -323,34 +326,40 @@ export function WorkoutsHubScreen() {
         {!loading && !error && session ? (
           <Link
             href={`/workouts/sessions/${session.id}`}
-            className="card-surface animate-rise block px-5 py-6 transition-colors hover:bg-muted/40"
+            className="card-surface animate-rise flex items-center gap-3 px-5 py-6 transition-colors hover:bg-muted/40"
           >
-            <p className="text-sm font-medium text-muted-foreground">
-              {session.status === "planned" ? "Сегодня в зале" : "Сегодня"}
-            </p>
-            <h2 className="mt-1 text-3xl font-semibold tracking-tight">
-              {sessionTemplate?.name ??
-                WORKOUT_KIND_LABELS[session.workout_type]}
-            </h2>
-            <p
-              className={
-                session.status === "planned"
-                  ? "mt-3 text-base font-medium text-primary"
-                  : "mt-3 text-base text-muted-foreground"
-              }
-            >
-              {sessionAction}
-            </p>
-            {session.status === "completed" && nextTemplate ? (
-              <p className="mt-2 text-base text-muted-foreground">
-                Дальше {nextTemplate.name}
+            <span className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-muted-foreground">
+                {session.status === "planned" ? "Сегодня в зале" : "Сегодня"}
               </p>
-            ) : null}
-            {session.status === "planned" && followingTemplate ? (
-              <p className="mt-2 text-base text-muted-foreground">
-                Потом {followingTemplate.name}
+              <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+                {sessionTemplate?.name ??
+                  WORKOUT_KIND_LABELS[session.workout_type]}
+              </h2>
+              <p
+                className={
+                  session.status === "planned"
+                    ? "mt-3 text-base font-medium text-primary"
+                    : "mt-3 text-base text-muted-foreground"
+                }
+              >
+                {sessionAction}
               </p>
-            ) : null}
+              {session.status === "completed" && nextTemplate ? (
+                <p className="mt-2 text-base text-muted-foreground">
+                  Дальше {nextTemplate.name}
+                </p>
+              ) : null}
+              {session.status === "planned" && followingTemplate ? (
+                <p className="mt-2 text-base text-muted-foreground">
+                  Потом {followingTemplate.name}
+                </p>
+              ) : null}
+            </span>
+            <ChevronRight
+              className="size-5 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
           </Link>
         ) : null}
 
@@ -358,7 +367,7 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Сегодня в круге
+                Сегодня в очереди
               </p>
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
@@ -396,7 +405,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void unskipLast()}
               >
-                Вернуть в круг
+                Вернуть в очередь
               </Button>
             ) : null}
           </section>
@@ -405,21 +414,27 @@ export function WorkoutsHubScreen() {
         {!loading && !error && tableSession ? (
           <Link
             href={`/workouts/sessions/${tableSession.id}`}
-            className="card-surface animate-rise block px-5 py-5 transition-colors hover:bg-muted/40"
+            className="card-surface animate-rise flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
           >
-            <p className="text-sm font-medium text-muted-foreground">
-              {SESSION_KIND_LABELS.table}
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-              {tableSession.status === "completed"
-                ? tableSession.note || "Стол"
-                : "Записать"}
-            </h2>
-            <p className="mt-2 text-base text-muted-foreground">
-              {tableSession.status === "planned"
-                ? "Отметить"
-                : SESSION_STATUS_LABELS[tableSession.status]}
-            </p>
+            <span className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-muted-foreground">
+                {SESSION_KIND_LABELS.table}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+                {tableSession.status === "completed"
+                  ? tableSession.note || "Стол"
+                  : "Записать"}
+              </h2>
+              <p className="mt-2 text-base text-muted-foreground">
+                {tableSession.status === "planned"
+                  ? "Отметить"
+                  : SESSION_STATUS_LABELS[tableSession.status]}
+              </p>
+            </span>
+            <ChevronRight
+              className="size-5 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
           </Link>
         ) : null}
 
@@ -443,34 +458,46 @@ export function WorkoutsHubScreen() {
             {phaseHint ? (
               <Link
                 href="/workouts/macro"
-                className="card-surface block px-5 py-5 transition-colors hover:bg-muted/40"
+                className="card-surface flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
               >
-                <p className="text-sm font-medium text-muted-foreground">
-                  {phaseCircle?.phase_type === "deload" ? "Макроцикл" : "Фаза"}
-                </p>
-                <p className="mt-1 text-lg font-medium leading-snug">
-                  {phaseHint}
-                </p>
-                <p className="mt-2 text-base font-medium text-primary">
-                  {phaseCircle?.phase_type === "deload"
-                    ? "Закрыть макроцикл"
-                    : "Завершить фазу"}
-                </p>
+                <span className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {phaseCircle?.phase_type === "deload"
+                      ? "Макроцикл"
+                      : "Фаза"}
+                  </p>
+                  <p className="mt-1 text-lg font-medium leading-snug">
+                    {phaseHint}
+                  </p>
+                  <p className="mt-2 text-base font-medium text-primary">
+                    {phaseCircle?.phase_type === "deload"
+                      ? "Закрыть макроцикл"
+                      : "Завершить фазу"}
+                  </p>
+                </span>
+                <ChevronRight
+                  className="size-5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
               </Link>
             ) : null}
 
             {macro?.macro && macro.phase ? (
               <Link
                 href="/workouts/macro"
-                className="flex items-baseline justify-between gap-3 px-1 text-sm"
+                className="flex items-center justify-between gap-3 px-1 text-sm"
               >
                 <span className="text-muted-foreground">Макроцикл</span>
-                <span>
+                <span className="flex items-center gap-1">
                   {phaseLinkLabel(
                     macro.macro.number,
                     phaseCircle ?? macro.phase_circle,
                     macro.phase.phase_type,
                   )}
+                  <ChevronRight
+                    className="size-4 text-muted-foreground"
+                    aria-hidden
+                  />
                 </span>
               </Link>
             ) : activeTemplates.length > 0 ? (
@@ -486,21 +513,25 @@ export function WorkoutsHubScreen() {
               <div className="flex flex-col gap-2 px-1">
                 <Link
                   href="/workouts/schedule"
-                  className="flex items-baseline justify-between gap-3"
+                  className="flex items-center justify-between gap-3"
                 >
                   <h2 className="text-lg font-semibold">Очередь</h2>
-                  <span className="text-sm font-medium text-primary">
-                    Изменить
-                  </span>
+                  <ChevronRight
+                    className="size-5 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
                 </Link>
                 <Link
                   href="/settings/formulas"
-                  className="flex items-baseline justify-between gap-3 text-sm"
+                  className="flex items-center justify-between gap-3 py-0.5"
                 >
-                  <span className="text-muted-foreground">
-                    Как считаются веса
+                  <span className="text-sm text-muted-foreground">
+                    Схема подходов
                   </span>
-                  <span className="font-medium text-primary">Схема</span>
+                  <ChevronRight
+                    className="size-5 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
                 </Link>
                 <ol className="flex flex-col gap-1">
                   {activeTemplates.map((template, index) => {
@@ -542,8 +573,9 @@ export function WorkoutsHubScreen() {
             ) : (
               <Link
                 href="/workouts/schedule"
-                className="text-sm font-medium text-primary"
+                className="flex items-center gap-1 text-sm font-medium text-primary"
               >
+                <Plus className="size-4" aria-hidden />
                 Собрать очередь
               </Link>
             )}
@@ -584,7 +616,7 @@ export function WorkoutsHubScreen() {
                 <li key={item.session.id}>
                   <Link
                     href={`/workouts/sessions/${item.session.id}`}
-                    className="flex items-start justify-between gap-3 py-1"
+                    className="flex items-center justify-between gap-3 py-1"
                   >
                     <span className="min-w-0">
                       <span className="truncate text-base">
@@ -597,8 +629,9 @@ export function WorkoutsHubScreen() {
                         </span>
                       ) : null}
                     </span>
-                    <span className="shrink-0 text-sm text-muted-foreground">
+                    <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
                       {formatSessionDay(item.session.session_date)}
+                      <ChevronRight className="size-4" aria-hidden />
                     </span>
                   </Link>
                 </li>

@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -67,7 +68,7 @@ export function WorkoutHistoryScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="История" backHref="/workouts" />
+      <AppHeader title="История тренировок" backHref="/workouts" />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? (
@@ -106,9 +107,9 @@ export function WorkoutHistoryScreen() {
                     <li key={item.session.id}>
                       <Link
                         href={`/workouts/sessions/${item.session.id}`}
-                        className="card-surface flex items-baseline justify-between gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                        className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
                       >
-                        <span className="min-w-0">
+                        <span className="min-w-0 flex-1">
                           <span className="block truncate text-base font-medium">
                             {item.template_name ??
                               WORKOUT_KIND_LABELS[item.session.workout_type]}
@@ -123,8 +124,9 @@ export function WorkoutHistoryScreen() {
                             </span>
                           ) : null}
                         </span>
-                        <span className="shrink-0 text-sm text-muted-foreground">
+                        <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
                           {formatDay(item.session.session_date)}
+                          <ChevronRight className="size-4" aria-hidden />
                         </span>
                       </Link>
                     </li>
