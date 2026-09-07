@@ -1,11 +1,13 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
@@ -157,17 +159,10 @@ export function ScheduleScreen() {
                       {template.name}
                     </p>
                   </Link>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-lg"
-                    className="size-11"
+                  <RemoveRowButton
                     disabled={saving}
-                    aria-label="Выключить"
                     onClick={() => setInCircle(template.id, false)}
-                  >
-                    <Minus className="size-5" />
-                  </Button>
+                  />
                 </>
               )}
             />
@@ -193,17 +188,11 @@ export function ScheduleScreen() {
                       {template.name}
                     </p>
                   </Link>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-lg"
-                    className="size-11"
+                  <AddRowButton
+                    label="Вернуть в очередь"
                     disabled={saving}
-                    aria-label="Включить"
                     onClick={() => setInCircle(template.id, true)}
-                  >
-                    <Plus className="size-5" />
-                  </Button>
+                  />
                 </div>
               ))}
             </div>

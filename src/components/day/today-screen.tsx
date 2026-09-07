@@ -276,8 +276,8 @@ export function TodayScreen({
 
   async function deleteItem(item: MealItem) {
     const ok = await confirm({
-      message: "Удалить продукт?",
-      confirmLabel: "Удалить",
+      message: "Убрать продукт?",
+      confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
     });

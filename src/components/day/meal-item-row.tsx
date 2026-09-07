@@ -1,9 +1,10 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -50,16 +51,9 @@ export function MealItemRow({
         <div className="min-w-0 flex-1 px-1 py-3">{body}</div>
       )}
       {onDelete ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-lg"
-          className="size-11 self-center text-destructive"
-          aria-label="Удалить"
-          onClick={onDelete}
-        >
-          <Trash2 className="size-5" />
-        </Button>
+        <div className="self-center">
+          <RemoveRowButton onClick={onDelete} />
+        </div>
       ) : null}
     </div>
   );

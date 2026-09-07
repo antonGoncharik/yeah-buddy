@@ -1,12 +1,13 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
@@ -452,16 +453,11 @@ function SetCard({
               <p className="text-sm font-medium text-muted-foreground">
                 Подход {index + 1}
               </p>
-              <button
-                type="button"
-                className="flex h-10 items-center gap-1 rounded-xl px-2 text-sm text-muted-foreground transition-[background-color,transform] hover:bg-muted active:scale-95 disabled:opacity-30"
-                aria-label={`Убрать подход ${index + 1}`}
+              <RemoveRowButton
+                label={`Убрать подход ${index + 1}`}
                 disabled={!canRemove}
                 onClick={() => removeAt(index)}
-              >
-                <Minus className="size-4" />
-                Убрать
-              </button>
+              />
             </div>
             <div className="flex items-center gap-2">
               <Input

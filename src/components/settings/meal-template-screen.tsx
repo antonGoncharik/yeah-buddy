@@ -132,8 +132,8 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
 
   async function deleteItem(item: MealTemplateItemView) {
     const ok = await confirm({
-      message: "Удалить продукт?",
-      confirmLabel: "Удалить",
+      message: "Убрать продукт?",
+      confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
     });

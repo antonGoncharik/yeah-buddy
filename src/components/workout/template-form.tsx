@@ -1,10 +1,10 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
@@ -186,16 +186,9 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
                     <p className="min-w-0 flex-1 px-1 text-base font-medium leading-snug">
                       {exercise.short_name || exercise.name}
                     </p>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-lg"
-                      className="size-11"
-                      aria-label="Убрать"
+                    <RemoveRowButton
                       onClick={() => toggleExercise(exercise.id)}
-                    >
-                      <X className="size-5" />
-                    </Button>
+                    />
                   </>
                 )}
               />
