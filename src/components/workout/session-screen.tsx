@@ -45,6 +45,7 @@ export function SessionScreen() {
   const [busy, setBusy] = useState(false);
   const [openSetIds, setOpenSetIds] = useState<string[]>([]);
   const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
+  const [workOpen, setWorkOpen] = useState<Record<string, boolean>>({});
   const [nextName, setNextName] = useState<string | null>(null);
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
@@ -412,7 +413,8 @@ export function SessionScreen() {
                     key={item.id}
                     item={item}
                     openSetIds={openSetIds}
-                    warmupOpen={Boolean(warmupOpen[item.id])}
+                    warmupOpen={warmupOpen[item.id] !== false}
+                    workOpen={workOpen[item.id] !== false}
                     disabled={busy || session.status === "skipped"}
                     showActual={session.status === "completed"}
                     drafts={drafts}
@@ -427,7 +429,13 @@ export function SessionScreen() {
                     onToggleWarmup={() =>
                       setWarmupOpen((current) => ({
                         ...current,
-                        [item.id]: !current[item.id],
+                        [item.id]: current[item.id] === false,
+                      }))
+                    }
+                    onToggleWork={() =>
+                      setWorkOpen((current) => ({
+                        ...current,
+                        [item.id]: current[item.id] === false,
                       }))
                     }
                     onDraft={(setId, patch) =>
@@ -583,21 +591,25 @@ function ExerciseRow({
   item,
   openSetIds,
   warmupOpen,
+  workOpen,
   disabled,
   showActual,
   drafts,
   onOpenSets,
   onToggleWarmup,
+  onToggleWork,
   onDraft,
 }: {
   item: SessionExerciseDetail;
   openSetIds: string[];
   warmupOpen: boolean;
+  workOpen: boolean;
   disabled: boolean;
   showActual: boolean;
   drafts: Record<string, SetDraft>;
   onOpenSets: (ids: string[]) => void;
   onToggleWarmup: () => void;
+  onToggleWork: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
@@ -613,6 +625,9 @@ function ExerciseRow({
   const leadNumber = leadSet
     ? leadGroup.findIndex((set) => set.id === leadSet.id) + 1
     : 0;
+  const editorOpen =
+    leadSet != null &&
+    (leadSet.set_type === "warmup" ? warmupOpen : workOpen);
 
   return (
     <div className="border-b border-border/70 last:border-b-0">
@@ -643,17 +658,30 @@ function ExerciseRow({
           </div>
         ) : null}
         {work.length > 0 ? (
-          <SetButtons
-            sets={work}
-            showActual={showActual}
-            disabled={disabled || showActual}
-            tone="work"
-            onPick={onOpenSets}
-          />
+          <div className="flex w-full flex-col items-start gap-1">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground"
+              onClick={onToggleWork}
+            >
+              {workOpen
+                ? "Скрыть рабочие"
+                : `Рабочие · ${work.length} ${setCountWord(work.length)}`}
+            </button>
+            {workOpen ? (
+              <SetButtons
+                sets={work}
+                showActual={showActual}
+                disabled={disabled || showActual}
+                tone="work"
+                onPick={onOpenSets}
+              />
+            ) : null}
+          </div>
         ) : null}
       </div>
 
-      {leadSet ? (
+      {editorOpen && leadSet ? (
         <SetEditor
           set={leadSet}
           draft={drafts[leadSet.id] ?? draftFromSet(leadSet)}
@@ -688,9 +716,6 @@ function SetButtons({
 
   return (
     <div className="flex w-full flex-col gap-1">
-      {tone === "work" ? (
-        <span className="text-sm text-muted-foreground">Рабочие</span>
-      ) : null}
       <ol className="flex flex-col gap-1.5">
         {sets.map((set, index) => (
           <li key={set.id}>
