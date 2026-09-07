@@ -7,7 +7,6 @@ export const BOT_START =
   "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const EXERCISES_EMPTY = "Добавь упражнение и максимум.";
-export const EXERCISES_ARCHIVED_EMPTY = "В архиве пусто.";
 export const WORKOUTS_NEED_EXERCISES = "Добавь упражнения и максимумы.";
 export const WORKOUTS_NEED_TEMPLATES = "Собери очередь тренировок.";
 export const SESSION_HISTORY_EMPTY = "После тренировки появятся здесь.";

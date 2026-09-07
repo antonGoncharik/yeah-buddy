@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input, nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,11 +34,9 @@ type FormState = {
 
 export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const router = useRouter();
-  const confirm = useConfirm();
   const [form, setForm] = useState<FormState>(toFormState(exercise));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [archiving, setArchiving] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,46 +71,6 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       setError(LOAD_FAILED);
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function onArchive(archived: boolean) {
-    if (!exercise) {
-      return;
-    }
-
-    const confirmed = await confirm({
-      message: archived ? "В архив? История останется." : "Вернуть из архива?",
-      confirmLabel: archived ? "В архив" : "Вернуть",
-      cancelLabel: "Оставить",
-      destructive: archived,
-    });
-    if (!confirmed) {
-      return;
-    }
-
-    setError(null);
-    setArchiving(true);
-
-    try {
-      const response = await fetch(`/api/exercises/${exercise.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived }),
-      });
-
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      router.push("/workouts/exercises");
-      router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setArchiving(false);
     }
   }
 
@@ -254,29 +211,9 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <Button
-        type="submit"
-        className="h-12 text-base"
-        disabled={saving || archiving}
-      >
+      <Button type="submit" className="h-12 text-base" disabled={saving}>
         {saving ? "Сохранение…" : "Сохранить"}
       </Button>
-
-      {exercise ? (
-        <Button
-          type="button"
-          variant={exercise.is_active ? "destructive" : "secondary"}
-          className="h-12 text-base"
-          disabled={saving || archiving}
-          onClick={() => void onArchive(exercise.is_active)}
-        >
-          {archiving
-            ? "Сохранение…"
-            : exercise.is_active
-              ? "В архив"
-              : "Вернуть из архива"}
-        </Button>
-      ) : null}
     </form>
   );
 }

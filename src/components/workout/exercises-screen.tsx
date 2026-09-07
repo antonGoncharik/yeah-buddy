@@ -2,41 +2,26 @@
 
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
-import {
-  EXERCISES_ARCHIVED_EMPTY,
-  EXERCISES_EMPTY,
-  LOAD_FAILED,
-} from "@/lib/messages";
+import { EXERCISES_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { formatWeight } from "@/lib/workout/numbers";
 
-type Filter = "active" | "archived";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "active", label: "Активные" },
-  { id: "archived", label: "Архив" },
-];
-
 export function ExercisesScreen() {
-  const [filter, setFilter] = useState<Filter>("active");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (nextFilter: Filter) => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/exercises?filter=${encodeURIComponent(nextFilter)}`,
-      );
+      const response = await fetch("/api/exercises?filter=active");
       if (!response.ok) {
         throw new Error("load failed");
       }
@@ -52,21 +37,12 @@ export function ExercisesScreen() {
   }, []);
 
   useEffect(() => {
-    void load(filter);
-  }, [filter, load]);
-
-  const emptyMessage = useMemo(
-    () => (filter === "archived" ? EXERCISES_ARCHIVED_EMPTY : EXERCISES_EMPTY),
-    [filter],
-  );
+    void load();
+  }, [load]);
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Упражнения" backHref="/workouts" />
-
-      <div className="animate-rise px-4">
-        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
-      </div>
 
       <div className="px-4 pb-4">
         {loading ? (
@@ -80,7 +56,7 @@ export function ExercisesScreen() {
             <p className="text-center text-lg font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
-              onClick={() => void load(filter)}
+              onClick={() => void load()}
             >
               Повторить
             </Button>
@@ -89,7 +65,7 @@ export function ExercisesScreen() {
 
         {!loading && !error && exercises.length === 0 ? (
           <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            {emptyMessage}
+            {EXERCISES_EMPTY}
           </p>
         ) : null}
 
