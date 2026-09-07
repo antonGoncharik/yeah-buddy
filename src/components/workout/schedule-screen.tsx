@@ -139,7 +139,7 @@ export function ScheduleScreen() {
 
         {!loading && templates.length === 0 ? (
           <p className="animate-fade text-center text-base leading-relaxed text-muted-foreground">
-            Собери первую тренировку.
+            Пока пусто. Собери первую тренировку — она станет началом очереди.
           </p>
         ) : null}
 

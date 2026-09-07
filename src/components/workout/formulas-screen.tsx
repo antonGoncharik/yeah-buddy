@@ -171,13 +171,13 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как это работает</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Вес подхода — максимум упражнения × процент, вниз до шага
-                блинов. Разминка общая: штанга или блок, как в карточке
-                упражнения. Рабочие — свои на каждую фазу. Сетка одна на все
-                движения: в зале вес подхода всегда можно поправить.
+                Вес подхода: максимум × процент, округление вниз до шага блинов.
+                Разминка общая — штанга или блок, как в карточке упражнения.
+                Рабочие свои на каждую фазу. В зале цифру всегда можно поправить
+                пальцем.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Плюс добавляет подход, минус убирает.
+                «Подход» добавляет строку, крестик убирает.
               </p>
             </section>
 
@@ -187,8 +187,9 @@ export function FormulasScreen() {
                 <p className="text-sm text-muted-foreground">к максимуму</p>
               </div>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Когда набор заканчивается, максимумы поднимаются на этот
-                процент. Рывок и сброс в примере ниже уже от нового веса.
+                Когда закрываешь набор, программа предложит поднять максимумы
+                на этот процент. Не обязательно всем — поправишь перед
+                подтверждением. В примере ниже рывок и сброс уже от нового веса.
               </p>
               <div className="flex items-center gap-2">
                 <Input

@@ -14,11 +14,11 @@ import { useFirstLoad } from "@/lib/use-first-load";
 const CARDS: Array<{ dayType: DayType; hint: string }> = [
   {
     dayType: "rest",
-    hint: "Состав нового дня без тренировки",
+    hint: "Что ляжет в день, когда зала нет",
   },
   {
     dayType: "training",
-    hint: "Состав нового дня с тренировкой",
+    hint: "Что ляжет в день с залом — обычно больше углеводов",
   },
 ];
 
@@ -62,7 +62,8 @@ export function MealTemplatesHubScreen() {
 
       <div className="flex flex-col gap-4 px-4 pb-4">
         <p className="text-base text-muted-foreground">
-          Новый день получит этот состав. Уже записанные дни не меняются.
+          Новый день скопирует этот состав. То, что уже съедено в дневнике, не
+          перепишется.
         </p>
 
         {loading ? <ScreenLoading /> : null}

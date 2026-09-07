@@ -6,12 +6,14 @@ export const YESTERDAY_MISSING = "Вчера пусто.";
 export const BOT_START =
   "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
 export const BOT_OPEN_DIARY = "Открыть дневник";
-export const EXERCISES_EMPTY = "Добавь упражнение и максимум.";
-export const WORKOUTS_NEED_EXERCISES = "Добавь упражнения и максимумы.";
-export const WORKOUTS_NEED_TEMPLATES = "Собери очередь тренировок.";
-export const SESSION_HISTORY_EMPTY = "После тренировки появятся здесь.";
+export const EXERCISES_EMPTY = "Пока пусто. Добавь упражнение и сколько сейчас жмёшь.";
+export const WORKOUTS_NEED_EXERCISES =
+  "Сначала упражнения и максимумы — без них план весов не из чего считать.";
+export const WORKOUTS_NEED_TEMPLATES =
+  "Собери очередь: в каком порядке идут тренировки.";
+export const SESSION_HISTORY_EMPTY = "Когда сделаешь тренировку, она появится здесь.";
 export const NUTRITION_HISTORY_EMPTY =
-  "Дней ещё нет — появятся после «Сегодня».";
+  "Дней ещё нет. Появятся, когда заведёшь «Сегодня».";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
 
 export function readApiError(data: unknown): string | null {

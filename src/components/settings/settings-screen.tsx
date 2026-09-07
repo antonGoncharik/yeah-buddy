@@ -133,22 +133,22 @@ export function SettingsScreen() {
           <NavRow
             href="/foods"
             title="Продукты"
-            hint="Справочник для дневника еды"
+            hint="Своя база: название, БЖУ на 100 г"
           />
           <NavRow
             href="/settings/meals"
             title="Шаблоны еды"
-            hint="Состав дня отдыха и тренировки"
+            hint="Что подставится в новый день отдыха или тренировки"
           />
           <NavRow
             href="/today/history"
             title="История еды"
-            hint="БЖУ по дням и среднее"
+            hint="Просмотр по дням, без правок"
           />
           <NavRow
             href="/settings/formulas"
             title="Схема подходов"
-            hint="Разминка, рабочие веса и рост максимума"
+            hint="Откуда берутся разминка и рабочие веса"
           />
         </section>
 
@@ -194,6 +194,9 @@ export function SettingsScreen() {
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">День отдыха</h2>
+              <p className="text-sm text-muted-foreground">
+                Цель на день без зала. Новый день возьмёт эти цифры.
+              </p>
               <MacroField
                 label="Белки"
                 value={form.rest_protein}
@@ -224,6 +227,9 @@ export function SettingsScreen() {
               style={{ animationDelay: "50ms" }}
             >
               <h2 className="text-xl font-semibold">День тренировки</h2>
+              <p className="text-sm text-muted-foreground">
+                Цель на день с залом. Обычно больше углеводов.
+              </p>
               <MacroField
                 label="Белки"
                 value={form.training_protein}

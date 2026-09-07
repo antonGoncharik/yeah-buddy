@@ -261,7 +261,8 @@ export function MacroScreen() {
                 {PHASE_TYPE_LABELS[state.phase.phase_type]}
               </h2>
               <p className="text-sm text-muted-foreground">
-                с {state.phase.start_date}. Круг шаблонов сам фазу не меняет.
+                С {state.phase.start_date}. Очередь крутится сама, фазу это не
+                закрывает — переход только кнопкой ниже.
               </p>
               {state.phase_circle && phaseEndHint(state.phase_circle) ? (
                 <p className="text-base leading-snug">
@@ -288,8 +289,9 @@ export function MacroScreen() {
             <section className="flex flex-col gap-3">
               <h2 className="text-xl font-semibold">Максимумы этой фазы</h2>
               <p className="text-sm text-muted-foreground">
-                Рабочий потолок этой фазы, не рекорд. От них план. Если тяжело
-                или после паузы — поставь меньше, рекорд не затрётся.
+                Рабочий потолок этой фазы, не рекорд жизни. От этих цифр
+                считается план. Если тяжело или после паузы — поставь меньше:
+                рекорд на карточке упражнения не затрётся.
               </p>
               {state.maxes.map((row) => (
                 <div
