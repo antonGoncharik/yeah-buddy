@@ -126,9 +126,14 @@ export function NewMacroScreen() {
         {!loading && exercises.length > 0 ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Первый макроцикл начинается с разгона. Максимумы — сколько
-              потянешь сейчас, не рекорд. Фазу закрываешь сам: один круг очереди
-              ещё не конец фазы.
+              Макроцикл — кусок подготовки из четырёх фаз: разгон, набор,
+              рывок, сброс. От фазы считаются рабочие веса. Без макроцикла
+              очередь тоже идёт, просто веса всегда как в разгоне.
+            </p>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Первый макроцикл начинается с разгона. Максимумы ниже — не
+              рекорд, а рабочий потолок: сколько потянешь сейчас. Фазу
+              закрываешь сам: один круг очереди ещё не конец.
             </p>
             <div className="flex flex-col gap-2">
               <Label className="text-base">Дата начала</Label>

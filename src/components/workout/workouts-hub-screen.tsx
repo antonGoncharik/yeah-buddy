@@ -32,6 +32,7 @@ import {
   phaseEndHint,
   phaseLinkLabel,
   readPhaseCircle,
+  todayWeightsHint,
 } from "@/lib/workout/hints";
 import { SESSION_STATUS_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
@@ -244,6 +245,10 @@ export function WorkoutsHubScreen() {
         ? SESSION_STATUS_LABELS.skipped
         : "Открыть";
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
+  const weightsHint = todayWeightsHint(
+    macro?.phase?.phase_type ?? null,
+    macro?.macro?.number ?? null,
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -340,6 +345,9 @@ export function WorkoutsHubScreen() {
                   Потом {followingTemplate.name}
                 </p>
               ) : null}
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {weightsHint}
+              </p>
             </div>
             <Button
               type="button"
@@ -429,7 +437,9 @@ export function WorkoutsHubScreen() {
                 href="/workouts/macro"
                 className="px-1 text-sm leading-relaxed text-muted-foreground"
               >
-                Без макроцикла веса как в разгоне — от максимума упражнения.
+                {session
+                  ? `${weightsHint} Завести макроцикл →`
+                  : "Завести макроцикл"}
               </Link>
             ) : null}
 

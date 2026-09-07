@@ -6,6 +6,17 @@ import type {
 import { nextPhaseType } from "@/lib/workout/formulas";
 import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
 
+export function todayWeightsHint(
+  phaseType: PhaseType | null,
+  macroNumber: number | null,
+): string {
+  if (phaseType == null || macroNumber == null) {
+    return "Макроцикла нет — так тоже можно. Веса сегодня как в разгоне: от максимума упражнения. Макроцикл — четыре фазы подряд: разгон, набор, рывок, сброс. Он нужен, если хочешь менять нагрузку кусками, а не руками каждую тренировку.";
+  }
+
+  return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}. Макроцикл — кусок подготовки: разгон → набор → рывок → сброс. От фазы зависят проценты и повторы. Фаза сама не закроется: когда круг очереди пройден, решишь сам.`;
+}
+
 export function phaseLinkLabel(
   macroNumber: number,
   progress: PhaseCircleProgress | null,
