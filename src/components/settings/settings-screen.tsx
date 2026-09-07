@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { useTheme } from "@/components/layout/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,7 +129,7 @@ export function SettingsScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Настройки" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-24">
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
             href="/foods"
@@ -262,14 +263,11 @@ export function SettingsScreen() {
               </p>
             ) : null}
 
-            <Button
-              type="submit"
-              className="animate-rise h-14 text-lg"
-              style={{ animationDelay: "90ms" }}
-              disabled={saving}
-            >
-              {saving ? "Сохранение…" : "Сохранить"}
-            </Button>
+            <StickyActions>
+              <Button type="submit" className="h-14 text-lg" disabled={saving}>
+                {saving ? "Сохранение…" : "Сохранить"}
+              </Button>
+            </StickyActions>
           </form>
         ) : null}
       </div>

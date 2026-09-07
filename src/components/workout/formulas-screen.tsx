@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -159,7 +160,7 @@ export function FormulasScreen() {
         backHref="/settings"
       />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !formulas ? (
@@ -351,14 +352,6 @@ export function FormulasScreen() {
 
             <Button
               type="button"
-              className="h-14 text-lg"
-              disabled={saving}
-              onClick={() => void onSave()}
-            >
-              {saving ? "Сохранение…" : "Сохранить"}
-            </Button>
-            <Button
-              type="button"
               variant="ghost"
               className="h-12 text-base"
               disabled={saving}
@@ -366,6 +359,16 @@ export function FormulasScreen() {
             >
               Как в дневнике
             </Button>
+            <StickyActions>
+              <Button
+                type="button"
+                className="h-14 text-lg"
+                disabled={saving}
+                onClick={() => void onSave()}
+              >
+                {saving ? "Сохранение…" : "Сохранить"}
+              </Button>
+            </StickyActions>
           </>
         ) : null}
       </div>

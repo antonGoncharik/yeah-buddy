@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
@@ -118,7 +119,7 @@ export function ScheduleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Очередь" backHref="/workouts" />
 
-      <div className="flex flex-col gap-5 px-4 pb-4">
+      <div className="flex flex-col gap-5 px-4 pb-24">
         {loading ? (
           <p className="animate-fade py-12 text-center text-muted-foreground">
             Загрузка…
@@ -200,16 +201,18 @@ export function ScheduleScreen() {
         ) : null}
 
         {!loading ? (
-          <Link
-            href="/workouts/templates/new"
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "h-14 gap-2 text-lg",
-            )}
-          >
-            <Plus className="size-5" aria-hidden />
-            Новый шаблон
-          </Link>
+          <StickyActions>
+            <Link
+              href="/workouts/templates/new"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "h-14 gap-2 text-lg",
+              )}
+            >
+              <Plus className="size-5" aria-hidden />
+              Новый шаблон
+            </Link>
+          </StickyActions>
         ) : null}
       </div>
     </div>

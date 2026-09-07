@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EXERCISES_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
@@ -44,7 +45,7 @@ export function ExercisesScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Упражнения" backHref="/workouts" />
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-24">
         {loading ? (
           <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             Загрузка…
@@ -103,7 +104,7 @@ export function ExercisesScreen() {
         ) : null}
       </div>
 
-      <div className="animate-rise px-4" style={{ animationDelay: "80ms" }}>
+      <StickyActions>
         <Link
           href="/workouts/exercises/new"
           className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
@@ -111,7 +112,7 @@ export function ExercisesScreen() {
           <Plus className="size-5" aria-hidden />
           Новое упражнение
         </Link>
-      </div>
+      </StickyActions>
     </div>
   );
 }

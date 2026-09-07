@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -589,16 +590,16 @@ export function SessionScreen() {
       </div>
 
       {showStickyComplete && detail ? (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+        <StickyActions>
           <Button
             type="button"
-            className="pointer-events-auto h-14 w-full text-lg"
+            className="h-14 w-full text-lg"
             disabled={busy || (!isTable && detail.exercises.length === 0)}
             onClick={() => void complete()}
           >
             {isTable ? "Стол был" : "Готово"}
           </Button>
-        </div>
+        </StickyActions>
       ) : null}
     </div>
   );

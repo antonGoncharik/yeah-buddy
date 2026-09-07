@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -132,7 +133,7 @@ export function FoodForm({
   }
 
   return (
-    <form className="animate-rise flex flex-col gap-4" onSubmit={onSubmit}>
+    <form className="animate-rise flex flex-col gap-4 pb-24" onSubmit={onSubmit}>
       <Field label="Название">
         <Input
           required
@@ -262,14 +263,6 @@ export function FoodForm({
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <Button
-        type="submit"
-        className="h-12 text-base"
-        disabled={saving || deleting}
-      >
-        {saving ? "Сохранение…" : "Сохранить"}
-      </Button>
-
       {food ? (
         <Button
           type="button"
@@ -281,6 +274,16 @@ export function FoodForm({
           {deleting ? "Удаление…" : "Удалить"}
         </Button>
       ) : null}
+
+      <StickyActions>
+        <Button
+          type="submit"
+          className="h-14 text-lg"
+          disabled={saving || deleting}
+        >
+          {saving ? "Сохранение…" : "Сохранить"}
+        </Button>
+      </StickyActions>
     </form>
   );
 }

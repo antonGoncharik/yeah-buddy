@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet } from "@/lib/api-cache";
@@ -118,7 +119,7 @@ export function FoodsScreen() {
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-24">
         {loading ? (
           <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             Загрузка…
@@ -151,7 +152,7 @@ export function FoodsScreen() {
         ) : null}
       </div>
 
-      <div className="animate-rise px-4" style={{ animationDelay: "80ms" }}>
+      <StickyActions>
         <Link
           href="/food/new"
           className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
@@ -159,7 +160,7 @@ export function FoodsScreen() {
           <Plus className="size-5" aria-hidden />
           Новый продукт
         </Link>
-      </div>
+      </StickyActions>
     </div>
   );
 }

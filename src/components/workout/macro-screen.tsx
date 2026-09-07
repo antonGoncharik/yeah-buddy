@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
@@ -194,7 +195,7 @@ export function MacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Макроцикл" backHref="/workouts" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-24">
         {loading ? (
           <p className="py-12 text-center text-muted-foreground">Загрузка…</p>
         ) : null}
@@ -370,14 +371,16 @@ export function MacroScreen() {
                     />
                   </div>
                 ))}
-                <Button
-                  type="button"
-                  className="h-14 text-lg"
-                  disabled={transitioning}
-                  onClick={() => void confirmTransition()}
-                >
-                  {transitioning ? "Сохранение…" : "Подтвердить"}
-                </Button>
+                <StickyActions>
+                  <Button
+                    type="button"
+                    className="h-14 text-lg"
+                    disabled={transitioning}
+                    onClick={() => void confirmTransition()}
+                  >
+                    {transitioning ? "Сохранение…" : "Подтвердить"}
+                  </Button>
+                </StickyActions>
                 <Button
                   type="button"
                   variant="ghost"
@@ -390,19 +393,21 @@ export function MacroScreen() {
               </section>
             ) : (
               <>
-                <Button
-                  type="button"
-                  className="h-14 text-lg"
-                  disabled={transitioning}
-                  onClick={() => void openTransition()}
-                >
-                  {state.phase.phase_type === "deload"
-                    ? "Закрыть макроцикл"
-                    : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
-                </Button>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {completePhaseHint(state.phase.phase_type)}
                 </p>
+                <StickyActions>
+                  <Button
+                    type="button"
+                    className="h-14 text-lg"
+                    disabled={transitioning}
+                    onClick={() => void openTransition()}
+                  >
+                    {state.phase.phase_type === "deload"
+                      ? "Закрыть макроцикл"
+                      : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
+                  </Button>
+                </StickyActions>
               </>
             )}
           </>

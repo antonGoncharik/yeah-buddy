@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -106,7 +107,7 @@ export function NewMacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Новый макроцикл" backHref="/workouts" />
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-24">
         {loading ? (
           <p className="py-12 text-center text-muted-foreground">Загрузка…</p>
         ) : null}
@@ -184,9 +185,11 @@ export function NewMacroScreen() {
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            <Button type="submit" className="h-14 text-lg" disabled={saving}>
-              {saving ? "Создание…" : "Создать макроцикл"}
-            </Button>
+            <StickyActions>
+              <Button type="submit" className="h-14 text-lg" disabled={saving}>
+                {saving ? "Создание…" : "Создать макроцикл"}
+              </Button>
+            </StickyActions>
           </form>
         ) : null}
       </div>

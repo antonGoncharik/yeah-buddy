@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Input } from "@/components/ui/input";
@@ -151,7 +152,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
   );
 
   return (
-    <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-5 pb-24" onSubmit={onSubmit}>
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
       ) : (
@@ -216,9 +217,11 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-          <Button type="submit" className="h-14 text-lg" disabled={saving}>
-            {saving ? "Сохранение…" : "Сохранить"}
-          </Button>
+          <StickyActions>
+            <Button type="submit" className="h-14 text-lg" disabled={saving}>
+              {saving ? "Сохранение…" : "Сохранить"}
+            </Button>
+          </StickyActions>
         </>
       )}
     </form>
