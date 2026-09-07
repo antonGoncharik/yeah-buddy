@@ -23,32 +23,44 @@ export function MealItemRow({
   onDelete,
 }: {
   item: MealLine;
-  href: string;
-  onDelete: () => void;
+  href?: string;
+  onDelete?: () => void;
 }) {
+  const body = (
+    <>
+      <p className="truncate text-lg font-medium">{item.name}</p>
+      <p className="text-sm text-muted-foreground">
+        {formatMacro(item.grams)} г · Б {formatMacro(item.protein)} · Ж{" "}
+        {formatMacro(item.fat)} · У {formatMacro(item.carbs)} ·{" "}
+        {formatKcal(item.kcal)} ккал
+      </p>
+    </>
+  );
+
   return (
     <div className="flex items-stretch gap-1">
-      <Link
-        href={href}
-        className="min-w-0 flex-1 rounded-xl px-1 py-3 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60"
-      >
-        <p className="truncate text-lg font-medium">{item.name}</p>
-        <p className="text-sm text-muted-foreground">
-          {formatMacro(item.grams)} г · Б {formatMacro(item.protein)} · Ж{" "}
-          {formatMacro(item.fat)} · У {formatMacro(item.carbs)} ·{" "}
-          {formatKcal(item.kcal)} ккал
-        </p>
-      </Link>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-lg"
-        className="size-11 self-center text-destructive"
-        aria-label="Удалить"
-        onClick={onDelete}
-      >
-        <Trash2 className="size-5" />
-      </Button>
+      {href ? (
+        <Link
+          href={href}
+          className="min-w-0 flex-1 rounded-xl px-1 py-3 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60"
+        >
+          {body}
+        </Link>
+      ) : (
+        <div className="min-w-0 flex-1 px-1 py-3">{body}</div>
+      )}
+      {onDelete ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-lg"
+          className="size-11 self-center text-destructive"
+          aria-label="Удалить"
+          onClick={onDelete}
+        >
+          <Trash2 className="size-5" />
+        </Button>
+      ) : null}
     </div>
   );
 }

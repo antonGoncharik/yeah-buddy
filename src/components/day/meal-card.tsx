@@ -22,14 +22,16 @@ export function MealCard({
   itemHref,
   addHref,
   onDeleteItem,
+  readOnly = false,
   className,
   style,
 }: {
   mealType: MealType;
   items: MealLine[];
-  itemHref: (item: MealLine) => string;
-  addHref: string;
-  onDeleteItem: (item: MealLine) => void;
+  itemHref?: (item: MealLine) => string;
+  addHref?: string;
+  onDeleteItem?: (item: MealLine) => void;
+  readOnly?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -57,8 +59,12 @@ export function MealCard({
             <MealItemRow
               key={item.id}
               item={item}
-              href={itemHref(item)}
-              onDelete={() => onDeleteItem(item)}
+              href={readOnly || !itemHref ? undefined : itemHref(item)}
+              onDelete={
+                readOnly || !onDeleteItem
+                  ? undefined
+                  : () => onDeleteItem(item)
+              }
             />
           ))}
         </div>
@@ -71,7 +77,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      <MealAddLink href={addHref} />
+      {readOnly || !addHref ? null : <MealAddLink href={addHref} />}
     </section>
   );
 }

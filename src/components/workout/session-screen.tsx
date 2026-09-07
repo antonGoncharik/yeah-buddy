@@ -486,18 +486,30 @@ export function SessionScreen() {
               </div>
             ) : null}
 
-            <div className="flex flex-col gap-2">
-              <Textarea
-                id="session-note"
-                value={note}
-                disabled={busy || session.status === "skipped"}
-                placeholder={isTable ? "Как прошло" : "Как прошло, локоть"}
-                onChange={(event) => setNote(event.target.value)}
-                onBlur={() => void saveNote()}
-                className="min-h-20 text-base"
-                aria-label="Заметка"
-              />
-            </div>
+            {session.status === "planned" || note.trim() !== "" ? (
+              <div className="flex flex-col gap-2">
+                <Textarea
+                  id="session-note"
+                  value={note}
+                  disabled={busy || session.status !== "planned"}
+                  placeholder={isTable ? "Как прошло" : "Как прошло, локоть"}
+                  onChange={(event) => setNote(event.target.value)}
+                  onBlur={() => {
+                    if (session.status === "planned") {
+                      void saveNote();
+                    }
+                  }}
+                  className="min-h-20 text-base"
+                  aria-label="Заметка"
+                />
+              </div>
+            ) : null}
+
+            {session.status === "completed" ? (
+              <p className="text-base leading-relaxed text-muted-foreground">
+                Это запись. Веса и повторы уже не меняются.
+              </p>
+            ) : null}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

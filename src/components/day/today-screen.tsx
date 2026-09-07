@@ -49,7 +49,13 @@ function resolveStartDate(value: string | undefined, today: string): string {
   return today;
 }
 
-export function TodayScreen({ initialDate }: { initialDate?: string }) {
+export function TodayScreen({
+  initialDate,
+  readOnly = false,
+}: {
+  initialDate?: string;
+  readOnly?: boolean;
+}) {
   const today = todayIsoDate();
   const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
   const { setMood } = useDayMood();
@@ -322,15 +328,19 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={titleDate}
+        subtitle={readOnly ? "Только просмотр" : undefined}
+        backHref={readOnly ? "/today/history" : undefined}
         trailing={
           <>
-            <Link
-              href="/today/history"
-              className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
-              aria-label="История еды"
-            >
-              <History className="size-5" />
-            </Link>
+            {readOnly ? null : (
+              <Link
+                href="/today/history"
+                className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+                aria-label="История еды"
+              >
+                <History className="size-5" />
+              </Link>
+            )}
             <button
               type="button"
               className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
@@ -390,7 +400,7 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
           </p>
         ) : null}
 
-        {!loading && !loadError && !day ? (
+        {!loading && !loadError && !day && !readOnly ? (
           <div className="animate-rise flex flex-col gap-5">
             <CreateDayButtons
               busy={busy}
@@ -402,27 +412,42 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
           </div>
         ) : null}
 
+        {!loading && !loadError && !day && readOnly ? (
+          <p className="animate-rise text-center text-base text-muted-foreground">
+            В этот день записей нет.
+          </p>
+        ) : null}
+
         {!loading && !loadError && day ? (
           <div className="flex flex-col gap-5">
-            <div className="animate-rise">
-              <Segmented
-                value={day.is_training_day ? "training" : "rest"}
-                disabled={busy}
-                options={[
-                  {
-                    id: "rest",
-                    label: DAY_TYPE_LABELS.rest,
-                    icon: <Sofa className="size-4" aria-hidden />,
-                  },
-                  {
-                    id: "training",
-                    label: DAY_TYPE_LABELS.training,
-                    icon: <Dumbbell className="size-4" aria-hidden />,
-                  },
-                ]}
-                onChange={(dayType) => void switchType(dayType)}
-              />
-            </div>
+            {readOnly ? (
+              <p className="animate-rise text-base text-muted-foreground">
+                {day.is_training_day
+                  ? DAY_TYPE_LABELS.training
+                  : DAY_TYPE_LABELS.rest}
+                . Это история — граммы и состав уже не меняются.
+              </p>
+            ) : (
+              <div className="animate-rise">
+                <Segmented
+                  value={day.is_training_day ? "training" : "rest"}
+                  disabled={busy}
+                  options={[
+                    {
+                      id: "rest",
+                      label: DAY_TYPE_LABELS.rest,
+                      icon: <Sofa className="size-4" aria-hidden />,
+                    },
+                    {
+                      id: "training",
+                      label: DAY_TYPE_LABELS.training,
+                      icon: <Dumbbell className="size-4" aria-hidden />,
+                    },
+                  ]}
+                  onChange={(dayType) => void switchType(dayType)}
+                />
+              </div>
+            )}
 
             <div className="animate-rise" style={{ animationDelay: "40ms" }}>
               <DaySummary day={day} fact={fact} />
@@ -441,30 +466,41 @@ export function TodayScreen({ initialDate }: { initialDate?: string }) {
                   carbs: item.carbs,
                   kcal: item.kcal,
                 }))}
-                itemHref={(item) => `/today/items/${item.id}`}
-                addHref={`/today/meals/${meal.id}/add`}
+                itemHref={
+                  readOnly ? undefined : (item) => `/today/items/${item.id}`
+                }
+                addHref={readOnly ? undefined : `/today/meals/${meal.id}/add`}
+                readOnly={readOnly}
                 className="animate-rise"
                 style={{ animationDelay: `${80 + index * 50}ms` }}
-                onDeleteItem={(item) => {
-                  const row = meal.items.find((entry) => entry.id === item.id);
-                  if (row) {
-                    void deleteItem(row);
-                  }
-                }}
+                onDeleteItem={
+                  readOnly
+                    ? undefined
+                    : (item) => {
+                        const row = meal.items.find(
+                          (entry) => entry.id === item.id,
+                        );
+                        if (row) {
+                          void deleteItem(row);
+                        }
+                      }
+                }
               />
             ))}
 
-            <div
-              className="animate-rise"
-              style={{
-                animationDelay: `${80 + visibleMeals.length * 50}ms`,
-              }}
-            >
-              <CopyYesterdayButton
-                busy={busy}
-                onCopy={() => void copyYesterday()}
-              />
-            </div>
+            {readOnly ? null : (
+              <div
+                className="animate-rise"
+                style={{
+                  animationDelay: `${80 + visibleMeals.length * 50}ms`,
+                }}
+              >
+                <CopyYesterdayButton
+                  busy={busy}
+                  onCopy={() => void copyYesterday()}
+                />
+              </div>
+            )}
           </div>
         ) : null}
       </div>
