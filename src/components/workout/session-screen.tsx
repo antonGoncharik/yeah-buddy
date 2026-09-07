@@ -405,7 +405,10 @@ export function SessionScreen() {
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
                   <p className="border-b border-border/70 px-5 py-3 text-sm leading-relaxed text-muted-foreground">
-                    Это план. Если в зале было иначе — нажми подход и поправь.
+                    Это шпаргалка на сегодня. Если в зале вышло иначе — нажми
+                    подход и поправь цифры. В конце одна кнопка «Готово»: не
+                    трогал подходы — запишется план, правил — запишутся твои
+                    цифры. Больше ничего жать не нужно.
                   </p>
                 ) : null}
                 {detail.exercises.map((item) => (
@@ -513,41 +516,61 @@ export function SessionScreen() {
               </div>
             ) : null}
 
-            {session.status === "completed" ? (
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Это запись. Веса и повторы уже не меняются.
-              </p>
-            ) : null}
-
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            {session.status === "completed" && abovePlan ? (
-              <Link
-                href="/workouts/macro"
-                className="text-base leading-snug text-primary"
-              >
-                Тяжелее плана. Обновить максимум?
-              </Link>
-            ) : null}
-
-            {session.status === "completed" &&
-            session.kind === "gym" &&
-            nextName ? (
-              <Link
-                href="/workouts"
-                className="text-base font-medium text-primary"
-              >
-                Дальше {nextName}
-              </Link>
-            ) : null}
-
-            {session.status === "completed" && phaseHint ? (
-              <Link
-                href="/workouts/macro"
-                className="text-base leading-snug text-muted-foreground"
-              >
-                {phaseHint}
-              </Link>
+            {session.status === "completed" ? (
+              <section className="card-surface flex flex-col gap-3 px-5 py-5">
+                <h2 className="text-xl font-semibold">Готово</h2>
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  Тренировка записана. Больше ничего делать не нужно — можно
+                  закрыть экран.
+                </p>
+                {abovePlan ? (
+                  <p className="text-base leading-relaxed">
+                    Где-то вышло тяжелее плана. Максимум сам не прыгнет — если
+                    хочешь поднять рабочий потолок, это отдельно, на макроцикле.
+                  </p>
+                ) : null}
+                {nextName ? (
+                  <p className="text-base text-muted-foreground">
+                    В очереди дальше: {nextName}.
+                  </p>
+                ) : null}
+                {phaseHint ? (
+                  <p className="text-base text-muted-foreground">{phaseHint}</p>
+                ) : null}
+                {abovePlan ? (
+                  <Link
+                    href="/workouts/macro"
+                    className="text-base font-medium text-primary"
+                  >
+                    Посмотреть максимумы
+                  </Link>
+                ) : null}
+                {phaseHint && !abovePlan ? (
+                  <Link
+                    href="/workouts/macro"
+                    className="text-base font-medium text-primary"
+                  >
+                    К макроциклу
+                  </Link>
+                ) : null}
+                {nextName ? (
+                  <Link
+                    href="/workouts"
+                    className="text-base font-medium text-primary"
+                  >
+                    К очереди
+                  </Link>
+                ) : (
+                  <Link
+                    href="/workouts"
+                    className="text-base font-medium text-primary"
+                  >
+                    К тренировкам
+                  </Link>
+                )}
+              </section>
             ) : null}
 
             {session.status === "planned" || session.status === "skipped" ? (
@@ -573,7 +596,7 @@ export function SessionScreen() {
             disabled={busy || (!isTable && detail.exercises.length === 0)}
             onClick={() => void complete()}
           >
-            {isTable ? "Стол был" : "Как в плане"}
+            {isTable ? "Стол был" : "Готово"}
           </Button>
         </div>
       ) : null}
