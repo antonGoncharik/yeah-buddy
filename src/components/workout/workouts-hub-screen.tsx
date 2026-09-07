@@ -384,70 +384,61 @@ export function WorkoutsHubScreen() {
 
         {!loading && !error && exercises.length > 0 ? (
           <div
-            className="animate-rise flex flex-col gap-5"
+            className="animate-rise flex flex-col gap-6"
             style={{ animationDelay: "40ms" }}
           >
-            {phaseHint ? (
-              <Link
-                href="/workouts/macro"
-                className="card-surface flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
-              >
-                <span className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {phaseCircle?.phase_type === "deload"
-                      ? "Макроцикл"
-                      : "Фаза"}
+            <section className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between gap-3 px-1">
+                <h2 className="text-lg font-semibold">Макроцикл</h2>
+                <Link
+                  href="/workouts/macro"
+                  className="text-sm font-medium text-primary"
+                >
+                  {macro?.macro && macro.phase
+                    ? "Открыть"
+                    : "Завести"}
+                </Link>
+              </div>
+              {macro?.macro && macro.phase ? (
+                <Link
+                  href="/workouts/macro"
+                  className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
+                >
+                  <p className="text-xl font-semibold tracking-tight">
+                    {phaseLinkLabel(
+                      macro.macro.number,
+                      phaseCircle ?? macro.phase_circle,
+                      macro.phase.phase_type,
+                    )}
                   </p>
-                  <p className="mt-1 text-lg font-medium leading-snug">
-                    {phaseHint}
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {session
+                      ? "От этой фазы считаются веса сегодняшней тренировки."
+                      : "От этой фазы посчитаются рабочие веса, когда начнёшь."}
                   </p>
-                  <p className="mt-2 text-base font-medium text-primary">
-                    {phaseCircle?.phase_type === "deload"
-                      ? "Закрыть макроцикл"
-                      : "Завершить фазу"}
-                  </p>
-                </span>
-                <ChevronRight
-                  className="size-5 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
-              </Link>
-            ) : null}
-
-            {macro?.macro && macro.phase ? (
-              <Link
-                href="/workouts/macro"
-                className="flex items-center justify-between gap-3 px-1 text-sm"
-              >
-                <span className="text-muted-foreground">Макроцикл</span>
-                <span className="flex items-center gap-1">
-                  {phaseLinkLabel(
-                    macro.macro.number,
-                    phaseCircle ?? macro.phase_circle,
-                    macro.phase.phase_type,
-                  )}
-                  <ChevronRight
-                    className="size-4 text-muted-foreground"
-                    aria-hidden
-                  />
-                </span>
-              </Link>
-            ) : activeTemplates.length > 0 ? (
-              <Link
-                href="/workouts/macro"
-                className="px-1 text-sm leading-relaxed text-muted-foreground"
-              >
-                {session
-                  ? `${weightsHint} Завести макроцикл →`
-                  : "Завести макроцикл"}
-              </Link>
-            ) : null}
+                  {phaseHint ? (
+                    <p className="text-base leading-snug">{phaseHint}</p>
+                  ) : null}
+                  {phaseHint ? (
+                    <p className="text-base font-medium text-primary">
+                      {phaseCircle?.phase_type === "deload"
+                        ? "Можно закрыть макроцикл"
+                        : "Можно закрыть фазу"}
+                    </p>
+                  ) : null}
+                </Link>
+              ) : (
+                <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+                  {session ? weightsHint : "Необязателен. Без него очередь всё равно идёт."}
+                </p>
+              )}
+            </section>
 
             {activeTemplates.length > 0 ? (
-              <div className="flex flex-col gap-2 px-1">
+              <section className="flex flex-col gap-2">
                 <Link
                   href="/workouts/schedule"
-                  className="flex items-center justify-between gap-3"
+                  className="flex items-center justify-between gap-3 px-1"
                 >
                   <h2 className="text-lg font-semibold">Очередь</h2>
                   <ChevronRight
@@ -455,19 +446,11 @@ export function WorkoutsHubScreen() {
                     aria-hidden
                   />
                 </Link>
-                <Link
-                  href="/settings/formulas"
-                  className="flex items-center justify-between gap-3 py-0.5"
-                >
-                  <span className="text-sm text-muted-foreground">
-                    Схема подходов
-                  </span>
-                  <ChevronRight
-                    className="size-5 shrink-0 text-muted-foreground"
-                    aria-hidden
-                  />
-                </Link>
-                <ol className="flex flex-col gap-1">
+                <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+                  Порядок тренировок по кругу, не дни недели. Нажми имя — начать
+                  не следующее.
+                </p>
+                <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {
                     const isNext = nextTemplate?.id === template.id;
                     const label = `${index + 1}. ${template.name}`;
@@ -482,6 +465,7 @@ export function WorkoutsHubScreen() {
                           }
                         >
                           {label}
+                          {isNext ? " · сегодня" : ""}
                         </li>
                       );
                     }
@@ -498,12 +482,19 @@ export function WorkoutsHubScreen() {
                           onClick={() => void pickTemplate(template)}
                         >
                           {label}
+                          {isNext ? " · дальше" : ""}
                         </button>
                       </li>
                     );
                   })}
                 </ol>
-              </div>
+                <Link
+                  href="/settings/formulas"
+                  className="px-1 text-sm text-muted-foreground"
+                >
+                  Схема подходов — проценты разминки и рабочих
+                </Link>
+              </section>
             ) : (
               <Link
                 href="/workouts/schedule"
