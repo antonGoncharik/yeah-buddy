@@ -33,11 +33,7 @@ import {
   phaseLinkLabel,
   readPhaseCircle,
 } from "@/lib/workout/hints";
-import {
-  SESSION_KIND_LABELS,
-  SESSION_STATUS_LABELS,
-  WORKOUT_KIND_LABELS,
-} from "@/lib/workout/labels";
+import { SESSION_STATUS_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubScreen() {
   const router = useRouter();
@@ -47,7 +43,6 @@ export function WorkoutsHubScreen() {
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
   const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [tableSession, setTableSession] = useState<WorkoutSession | null>(null);
   const [sessionTemplate, setSessionTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
   const [nextTemplate, setNextTemplate] =
@@ -113,11 +108,12 @@ export function WorkoutsHubScreen() {
         sessionUrl,
         (data) => {
           setSession(readTodaySession(data));
-          setTableSession(readTableSession(data));
           setSessionTemplate(readTemplate(data, "session_template"));
           setNextTemplate(readTemplate(data, "next_template"));
           setFollowingTemplate(readTemplate(data, "following_template"));
-          setRecent(readRecent(data));
+          setRecent(
+            readRecent(data).filter((item) => item.session.kind !== "table"),
+          );
           setPhaseCircle(readPhaseCircle(data));
           setCanUnskip(readCanUnskip(data));
           return true;
@@ -153,39 +149,6 @@ export function WorkoutsHubScreen() {
         body: JSON.stringify({
           session_date: date,
           template_id: templateId,
-        }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      const created = readTodaySession(data);
-      if (created) {
-        router.push(`/workouts/sessions/${created.id}`);
-        return;
-      }
-
-      await load();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function createTable() {
-    setCreating(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_date: date,
-          kind: "table",
         }),
       });
       const data: unknown = await response.json().catch(() => null);
@@ -409,45 +372,6 @@ export function WorkoutsHubScreen() {
               </Button>
             ) : null}
           </section>
-        ) : null}
-
-        {!loading && !error && tableSession ? (
-          <Link
-            href={`/workouts/sessions/${tableSession.id}`}
-            className="card-surface animate-rise flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
-          >
-            <span className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                {SESSION_KIND_LABELS.table}
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-                {tableSession.status === "completed"
-                  ? tableSession.note || "Стол"
-                  : "Записать"}
-              </h2>
-              <p className="mt-2 text-base text-muted-foreground">
-                {tableSession.status === "planned"
-                  ? "Отметить"
-                  : SESSION_STATUS_LABELS[tableSession.status]}
-              </p>
-            </span>
-            <ChevronRight
-              className="size-5 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </Link>
-        ) : null}
-
-        {!loading && !error && !tableSession ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-11 text-base text-muted-foreground"
-            disabled={creating || skipping}
-            onClick={() => void createTable()}
-          >
-            Стол сегодня
-          </Button>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
@@ -698,19 +622,6 @@ function readTodaySession(data: unknown): WorkoutSession | null {
   }
 
   return data.session as WorkoutSession;
-}
-
-function readTableSession(data: unknown): WorkoutSession | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("table_session" in data) ||
-    !data.table_session
-  ) {
-    return null;
-  }
-
-  return data.table_session as WorkoutSession;
 }
 
 function readTemplate(

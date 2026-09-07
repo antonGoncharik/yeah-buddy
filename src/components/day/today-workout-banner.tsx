@@ -58,10 +58,6 @@ export function bannerFromTodayState(
     record.session && typeof record.session === "object"
       ? (record.session as WorkoutSession)
       : null;
-  const tableSession =
-    record.table_session && typeof record.table_session === "object"
-      ? (record.table_session as WorkoutSession)
-      : null;
   const sessionTemplate = readNamed(record.session_template);
   const nextTemplate = readNamed(record.next_template);
 
@@ -71,18 +67,6 @@ export function bannerFromTodayState(
       label: "В зале",
       title: sessionTemplate?.name ?? WORKOUT_KIND_LABELS[session.workout_type],
       hint: SESSION_STATUS_LABELS[session.status],
-    };
-  }
-
-  if (tableSession) {
-    return {
-      href: `/workouts/sessions/${tableSession.id}`,
-      label: "Стол",
-      title:
-        tableSession.status === "completed"
-          ? tableSession.note || "Стол"
-          : "Записать",
-      hint: SESSION_STATUS_LABELS[tableSession.status],
     };
   }
 
