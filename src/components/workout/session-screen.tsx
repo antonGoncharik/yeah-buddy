@@ -580,8 +580,8 @@ export function SessionScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-5">
                 <h2 className="text-xl font-semibold">Готово</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировка записана. Больше ничего делать не нужно — можно
-                  закрыть экран.
+                  Тренировка записана. Если вес вспомнил позже — поправь
+                  записанное, сессия останется сделанной.
                 </p>
                 {abovePlan ? (
                   <p className="text-base leading-relaxed">
@@ -630,12 +630,12 @@ export function SessionScreen() {
                 )}
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="h-11 px-0 text-base text-muted-foreground"
+                  variant="outline"
+                  className="h-12 text-base"
                   disabled={busy}
                   onClick={() => setCorrecting(true)}
                 >
-                  Исправить факт
+                  Поправить записанное
                 </Button>
               </section>
             ) : null}
