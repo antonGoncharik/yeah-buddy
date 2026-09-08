@@ -44,7 +44,7 @@ GEMINI_MODEL=
 
 `TELEGRAM_MINI_APP_URL` или `NEXT_PUBLIC_APP_URL` — HTTPS URL Mini App для кнопки бота. Без HTTPS кнопка не ставится.
 
-`GEMINI_API_KEY` — необязательный. Без него `/settings/review` показывает только посчитанные факты. `GEMINI_MODEL` по умолчанию `gemini-2.5-flash`.
+`GEMINI_API_KEY` — необязательный. Без него `/settings/review` показывает только посчитанные факты. `GEMINI_MODEL` по умолчанию `gemini-3.5-flash`.
 
 На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY`. В клиентский бандл не класть.
 
