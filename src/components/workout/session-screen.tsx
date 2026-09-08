@@ -752,7 +752,7 @@ function ExerciseRow({
               <SetButtons
                 sets={warmup}
                 showActual={showActual}
-                disabled={disabled || showActual}
+                disabled={disabled}
                 tone="warmup"
                 onPick={onOpenSets}
               />
@@ -774,7 +774,7 @@ function ExerciseRow({
               <SetButtons
                 sets={work}
                 showActual={showActual}
-                disabled={disabled || showActual}
+                disabled={disabled}
                 tone="work"
                 onPick={onOpenSets}
               />
