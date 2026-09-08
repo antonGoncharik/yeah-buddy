@@ -6,6 +6,7 @@ import {
   archiveExercise,
   exerciseUpdateSchema,
   getExercise,
+  StartingMaxLockedError,
   updateExercise,
 } from "@/lib/workout/exercises";
 
@@ -101,6 +102,10 @@ export async function PATCH(
 
     return NextResponse.json({ exercise });
   } catch (error) {
+    if (error instanceof StartingMaxLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
   }

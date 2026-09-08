@@ -60,6 +60,12 @@ export const exerciseCreateSchema = z
     achieved_at: value.achieved_at,
   }));
 
+export class StartingMaxLockedError extends Error {
+  constructor() {
+    super("Пока идёт макроцикл, максимум поднимается на переходе фазы.");
+  }
+}
+
 export const exerciseUpdateSchema = z.object({
   name: z.string().trim().min(1, "Название обязательно."),
   short_name: optionalText,
@@ -69,6 +75,7 @@ export const exerciseUpdateSchema = z.object({
   weight_step: z.number().finite().positive().optional(),
   formula_preset: z.enum(FORMULA_PRESETS).optional(),
   slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
+  max_weight: z.number().finite().positive().optional(),
 });
 
 export type ExerciseCreateInput = z.infer<typeof exerciseCreateSchema>;
@@ -206,6 +213,14 @@ export async function updateExercise(
     return null;
   }
 
+  if (input.max_weight != null) {
+    await correctStartingMax({
+      userId,
+      exerciseId: id,
+      maxWeight: input.max_weight,
+    });
+  }
+
   return getExercise(userId, id);
 }
 
@@ -235,6 +250,45 @@ export async function archiveExercise(
   }
 
   return getExercise(userId, id);
+}
+
+export async function correctStartingMax(input: {
+  userId: string;
+  exerciseId: string;
+  maxWeight: number;
+}): Promise<GlobalMax> {
+  if (await hasCurrentPhase(input.userId)) {
+    throw new StartingMaxLockedError();
+  }
+
+  const maxes = await listGlobalMaxes(input.userId, [input.exerciseId]);
+  const current = pickCurrentMax(maxes.get(input.exerciseId) ?? []);
+  if (!current) {
+    return insertGlobalMax(input.userId, {
+      exerciseId: input.exerciseId,
+      maxWeight: input.maxWeight,
+      achievedAt: resolveAchievedAt(undefined),
+    });
+  }
+
+  if (current.max_weight === input.maxWeight) {
+    return current;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const updated = await supabase
+    .from("global_maxes")
+    .update({ max_weight: input.maxWeight })
+    .eq("user_id", input.userId)
+    .eq("id", current.id)
+    .select("*")
+    .single();
+
+  if (updated.error || !updated.data) {
+    throw updated.error ?? new Error("Global max update failed");
+  }
+
+  return mapGlobalMax(updated.data as Record<string, unknown>);
 }
 
 export async function raiseGlobalMax(input: {
@@ -322,6 +376,22 @@ async function listGlobalMaxes(
   }
 
   return byExercise;
+}
+
+async function hasCurrentPhase(userId: string): Promise<boolean> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_phases")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "current")
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return Boolean(result.data);
 }
 
 async function copyMaxToCurrentPhase(

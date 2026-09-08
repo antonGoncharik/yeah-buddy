@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,39 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const [form, setForm] = useState<FormState>(toFormState(exercise));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [canCorrectMax, setCanCorrectMax] = useState(!exercise);
+
+  useEffect(() => {
+    if (!exercise) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadMacro() {
+      try {
+        const response = await fetch("/api/macros");
+        const data: unknown = await response.json().catch(() => null);
+        if (cancelled || !response.ok) {
+          return;
+        }
+
+        const phase =
+          data && typeof data === "object" && "phase" in data
+            ? data.phase
+            : true;
+        setCanCorrectMax(phase == null);
+      } catch {
+        // Keep the field locked until we know there is no current phase.
+      }
+    }
+
+    void loadMacro();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [exercise]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,7 +78,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     setSaving(true);
 
     try {
-      const payload = toPayload(form, Boolean(exercise));
+      const payload = toPayload(form, Boolean(exercise), canCorrectMax);
       if (!payload) {
         setError("Проверьте поля формы.");
         return;
@@ -76,7 +109,10 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   }
 
   return (
-    <form className="animate-rise flex flex-col gap-4 pb-24" onSubmit={onSubmit}>
+    <form
+      className="animate-rise flex flex-col gap-4 pb-24"
+      onSubmit={onSubmit}
+    >
       <Field label="Название">
         <Input
           required
@@ -162,7 +198,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         </p>
       </Field>
 
-      {exercise ? (
+      {exercise && !canCorrectMax ? (
         <div className="card-surface flex flex-col gap-2 px-5 py-4">
           <p className="text-base font-medium">Максимум</p>
           <p className="text-2xl font-semibold tracking-tight">
@@ -175,7 +211,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           </p>
         </div>
       ) : (
-        <Field label="Начальный максимум, кг">
+        <Field label={exercise ? "Максимум, кг" : "Начальный максимум, кг"}>
           <Input
             required
             inputMode="decimal"
@@ -188,6 +224,12 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             }
             className="h-12 text-base"
           />
+          {exercise ? (
+            <p className="text-sm text-muted-foreground">
+              От него считаются веса в зале. Пока нет макроцикла, опечатку можно
+              поправить здесь.
+            </p>
+          ) : null}
         </Field>
       )}
 
@@ -253,11 +295,13 @@ function toFormState(exercise?: ExerciseWithMax): FormState {
     workout_type: exercise?.workout_type ?? "dynamic",
     weight_step: exercise?.weight_step ?? 2.5,
     formula_preset: exercise?.formula_preset ?? "barbell",
-    max_weight: "",
+    max_weight: exercise?.current_max
+      ? formatWeight(exercise.current_max.max_weight)
+      : "",
   };
 }
 
-function toPayload(form: FormState, isEdit: boolean) {
+function toPayload(form: FormState, isEdit: boolean, canCorrectMax: boolean) {
   if (!form.name.trim()) {
     return null;
   }
@@ -275,7 +319,7 @@ function toPayload(form: FormState, isEdit: boolean) {
     formula_preset: form.formula_preset,
   };
 
-  if (isEdit) {
+  if (isEdit && !canCorrectMax) {
     return shared;
   }
 
