@@ -147,6 +147,22 @@ export function WorkoutsHubScreen() {
     setError(null);
 
     try {
+      const dayResponse = await fetch(
+        `/api/days?date=${encodeURIComponent(date)}`,
+      );
+      const dayData: unknown = await dayResponse.json().catch(() => null);
+      if (dayResponse.ok && isRestFoodDay(dayData)) {
+        const ok = await confirm({
+          message:
+            "День уже заведён как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт.",
+          confirmLabel: "Сделать тренировочным",
+          cancelLabel: "Отмена",
+        });
+        if (!ok) {
+          return;
+        }
+      }
+
       const response = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -707,4 +723,13 @@ function formatSessionDay(isoDate: string): string {
   } catch {
     return isoDate;
   }
+}
+
+function isRestFoodDay(data: unknown): boolean {
+  if (!data || typeof data !== "object" || !("day" in data) || !data.day) {
+    return false;
+  }
+
+  const day = data.day as { is_training_day?: unknown };
+  return day.is_training_day === false;
 }

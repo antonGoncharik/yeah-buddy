@@ -174,8 +174,10 @@ export function TodayScreen({
       return [];
     }
 
-    return day.meals.filter((meal) =>
-      isMealVisible(meal.meal_type, day.is_training_day),
+    return day.meals.filter(
+      (meal) =>
+        isMealVisible(meal.meal_type, day.is_training_day) ||
+        meal.items.length > 0,
     );
   }, [day]);
 
