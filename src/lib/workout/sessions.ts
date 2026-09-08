@@ -5,6 +5,7 @@ import {
   markDateAsTrainingIfExists,
   previousIsoDate,
 } from "@/lib/days";
+import { WORKOUTS_NEED_MAXES } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   RecentWorkoutSession,
@@ -14,6 +15,8 @@ import type {
   WorkoutKind,
   WorkoutSession,
 } from "@/lib/types";
+import { listExercises } from "@/lib/workout/exercises";
+import { templateHasPlanMaxes } from "@/lib/workout/hints";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { toNullableString } from "@/lib/workout/numbers";
 import { ensureStarterExercises } from "@/lib/workout/seed";
@@ -36,6 +39,13 @@ export class SessionLockedError extends Error {
 export class SessionConflictError extends Error {
   constructor(message = "На эту дату тренировка уже есть.") {
     super(message);
+  }
+}
+
+export class SessionNeedsMaxesError extends Error {
+  constructor() {
+    super(WORKOUTS_NEED_MAXES);
+    this.name = "SessionNeedsMaxesError";
   }
 }
 
@@ -307,6 +317,11 @@ export async function createSession(
   const template = await getTemplate(userId, input.template_id);
   if (!template) {
     throw new TemplateNotFoundError();
+  }
+
+  const catalog = await listExercises(userId, "active");
+  if (!templateHasPlanMaxes(template, catalog)) {
+    throw new SessionNeedsMaxesError();
   }
 
   const macro = await getCurrentMacroState(userId);

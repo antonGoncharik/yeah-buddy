@@ -1,4 +1,6 @@
 import type {
+  Exercise,
+  ExerciseWithMax,
   PhaseCircleProgress,
   PhaseType,
   TransitionPreview,
@@ -15,6 +17,25 @@ export function todayWeightsHint(
   }
 
   return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}. Макроцикл — кусок подготовки: разгон → набор → рывок → сброс. От фазы зависят проценты и повторы. Фаза сама не закроется: когда круг очереди пройден, решишь сам.`;
+}
+
+export function templateHasPlanMaxes(
+  template: { exercises: Exercise[] },
+  catalog: ExerciseWithMax[],
+): boolean {
+  const maxById = new Map(
+    catalog.map((exercise) => [
+      exercise.id,
+      exercise.current_max?.max_weight ?? 0,
+    ]),
+  );
+
+  return template.exercises.some((exercise) => {
+    if (exercise.formula_preset === "none") {
+      return false;
+    }
+    return (maxById.get(exercise.id) ?? 0) > 0;
+  });
 }
 
 export function phaseLinkLabel(

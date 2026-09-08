@@ -17,6 +17,7 @@ import {
   LOAD_FAILED,
   readApiError,
   WORKOUTS_NEED_EXERCISES,
+  WORKOUTS_NEED_MAXES,
   WORKOUTS_NEED_TEMPLATES,
 } from "@/lib/messages";
 import type {
@@ -33,6 +34,7 @@ import {
   phaseEndHint,
   phaseLinkLabel,
   readPhaseCircle,
+  templateHasPlanMaxes,
   todayWeightsHint,
 } from "@/lib/workout/hints";
 import {
@@ -146,6 +148,12 @@ export function WorkoutsHubScreen() {
   }, [load]);
 
   async function createOnDate(templateId: string, sessionDate: string) {
+    const template = templates.find((item) => item.id === templateId);
+    if (template && !templateHasPlanMaxes(template, exercises)) {
+      router.push("/workouts/exercises");
+      return;
+    }
+
     setCreating(true);
     setError(null);
 
@@ -273,6 +281,8 @@ export function WorkoutsHubScreen() {
     macro?.phase?.phase_type ?? null,
     macro?.macro?.number ?? null,
   );
+  const nextHasPlanMaxes =
+    nextTemplate != null && templateHasPlanMaxes(nextTemplate, exercises);
 
   return (
     <div className="flex flex-col gap-4">
@@ -401,17 +411,26 @@ export function WorkoutsHubScreen() {
                 </p>
               ) : null}
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {weightsHint}
+                {nextHasPlanMaxes ? weightsHint : WORKOUTS_NEED_MAXES}
               </p>
             </div>
-            <Button
-              type="button"
-              className="h-14 text-lg"
-              disabled={creating || skipping}
-              onClick={() => void createOnDate(nextTemplate.id, date)}
-            >
-              Начать
-            </Button>
+            {nextHasPlanMaxes ? (
+              <Button
+                type="button"
+                className="h-14 text-lg"
+                disabled={creating || skipping}
+                onClick={() => void createOnDate(nextTemplate.id, date)}
+              >
+                Начать
+              </Button>
+            ) : (
+              <Link
+                href="/workouts/exercises"
+                className={cn(buttonVariants(), "h-14 text-lg")}
+              >
+                Написать максимумы
+              </Link>
+            )}
             {activeTemplates.length > 1 ? (
               <Button
                 type="button"
@@ -434,7 +453,7 @@ export function WorkoutsHubScreen() {
                 Вернуть в очередь
               </Button>
             ) : null}
-            {canBackfillYesterday ? (
+            {canBackfillYesterday && nextHasPlanMaxes ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -454,7 +473,8 @@ export function WorkoutsHubScreen() {
         !error &&
         session &&
         nextTemplate &&
-        canBackfillYesterday ? (
+        canBackfillYesterday &&
+        nextHasPlanMaxes ? (
           <Button
             type="button"
             variant="ghost"

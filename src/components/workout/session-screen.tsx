@@ -444,23 +444,12 @@ export function SessionScreen() {
                   {SESSION_PLAN_EMPTY}
                 </p>
                 {session.status === "planned" ? (
-                  <div className="flex flex-col gap-2 pt-1">
-                    <Link
-                      href="/workouts/exercises"
-                      className={cn(buttonVariants(), "h-14 text-lg")}
-                    >
-                      Максимумы
-                    </Link>
-                    <Link
-                      href="/workouts/macro"
-                      className={cn(
-                        buttonVariants({ variant: "outline" }),
-                        "h-14 text-lg",
-                      )}
-                    >
-                      Макроцикл
-                    </Link>
-                  </div>
+                  <Link
+                    href="/workouts/exercises"
+                    className={cn(buttonVariants(), "h-14 text-lg")}
+                  >
+                    Написать максимумы
+                  </Link>
                 ) : null}
               </section>
             ) : (

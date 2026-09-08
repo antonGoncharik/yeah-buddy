@@ -8,6 +8,7 @@ import {
   createSessionSchema,
   getTodayWorkoutState,
   SessionConflictError,
+  SessionNeedsMaxesError,
 } from "@/lib/workout/sessions";
 import { TemplateNotFoundError } from "@/lib/workout/templates";
 
@@ -59,6 +60,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     const session = await createSession(auth.session.userId, parsed.data);
     return NextResponse.json({ session });
   } catch (error) {
+    if (error instanceof SessionNeedsMaxesError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     if (
       error instanceof SessionConflictError ||
       error instanceof TemplateNotFoundError
