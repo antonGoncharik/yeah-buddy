@@ -35,31 +35,20 @@ export class SessionConflictError extends Error {
   }
 }
 
-export const createSessionSchema = z
-  .object({
-    session_date: z.string().refine(isIsoDate, "Некорректная дата."),
-    kind: z.enum(["gym", "table"]).optional().default("gym"),
-    template_id: z.string().uuid().optional(),
-    note: z
-      .union([z.string(), z.null()])
-      .optional()
-      .transform((value) => {
-        if (value == null) {
-          return null;
-        }
-        const trimmed = value.trim();
-        return trimmed === "" ? null : trimmed;
-      }),
-  })
-  .superRefine((value, ctx) => {
-    if (value.kind !== "table" && value.template_id == null) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["template_id"],
-        message: "Выберите шаблон.",
-      });
-    }
-  });
+export const createSessionSchema = z.object({
+  session_date: z.string().refine(isIsoDate, "Некорректная дата."),
+  template_id: z.string().uuid(),
+  note: z
+    .union([z.string(), z.null()])
+    .optional()
+    .transform((value) => {
+      if (value == null) {
+        return null;
+      }
+      const trimmed = value.trim();
+      return trimmed === "" ? null : trimmed;
+    }),
+});
 
 export const patchSessionSchema = z.object({
   status: z.enum(["planned", "completed", "skipped"]).optional(),
@@ -130,7 +119,6 @@ export async function getTodayWorkoutState(
   await ensureStarterExercises(createSupabaseServerClient(), userId);
   const onDate = await listSessionsOnDate(userId, date);
   const gym = onDate.find((session) => session.kind === "gym") ?? null;
-  const table = onDate.find((session) => session.kind === "table") ?? null;
   const macro = await getCurrentMacroState(userId);
   const nextTemplate = await getNextTemplate(userId, macro.phase?.id ?? null);
   const active = await listActiveTemplates(userId);
@@ -144,7 +132,6 @@ export async function getTodayWorkoutState(
 
   return {
     session: gym,
-    table_session: table,
     next_template: nextTemplate,
     following_template:
       followingTemplate && followingTemplate.id !== nextTemplate?.id
@@ -175,6 +162,7 @@ export async function listSessionHistory(
     .from("workout_sessions")
     .select("*")
     .eq("user_id", userId)
+    .eq("kind", "gym")
     .in("status", statuses)
     .order("session_date", { ascending: false })
     .order("created_at", { ascending: false })
@@ -207,14 +195,10 @@ export async function listSessionHistory(
       const info = work.get(session.id);
       return {
         session,
-        template_name:
-          session.kind === "table"
-            ? "Стол"
-            : session.template_id
-              ? (names.get(session.template_id) ?? null)
-              : null,
-        summary:
-          session.kind === "table" ? session.note : (info?.summary ?? null),
+        template_name: session.template_id
+          ? (names.get(session.template_id) ?? null)
+          : null,
+        summary: info?.summary ?? null,
         plan_hit: info?.plan_hit ?? 0,
         plan_total: info?.plan_total ?? 0,
       };
@@ -257,30 +241,9 @@ export async function createSession(
   userId: string,
   input: CreateSessionInput,
 ): Promise<WorkoutSession> {
-  const kind: SessionKind = input.kind ?? "gym";
-  const existing = await getSessionOnDate(userId, input.session_date, kind);
+  const existing = await getSessionOnDate(userId, input.session_date, "gym");
   if (existing) {
-    throw new SessionConflictError(
-      kind === "table"
-        ? "Стол на эту дату уже записан."
-        : "На эту дату тренировка уже есть.",
-    );
-  }
-
-  if (kind === "table") {
-    return insertSession(userId, {
-      session_date: input.session_date,
-      workout_type: "dynamic",
-      kind: "table",
-      template_id: null,
-      macro_cycle_id: null,
-      phase_id: null,
-      note: input.note ?? null,
-    });
-  }
-
-  if (!input.template_id) {
-    throw new TemplateNotFoundError();
+    throw new SessionConflictError();
   }
 
   const template = await getTemplate(userId, input.template_id);
@@ -292,7 +255,6 @@ export async function createSession(
   return insertSession(userId, {
     session_date: input.session_date,
     workout_type: template.kind,
-    kind: "gym",
     template_id: template.id,
     macro_cycle_id: macro.macro?.id ?? null,
     phase_id: macro.phase?.id ?? null,
@@ -305,7 +267,6 @@ async function insertSession(
   input: {
     session_date: string;
     workout_type: WorkoutKind;
-    kind: SessionKind;
     template_id: string | null;
     macro_cycle_id: string | null;
     phase_id: string | null;
@@ -324,18 +285,14 @@ async function insertSession(
       template_id: input.template_id,
       status: "planned",
       note: input.note,
-      ...(input.kind === "table" ? { kind: "table" } : {}),
+      kind: "gym",
     })
     .select("*")
     .single();
 
   if (inserted.error || !inserted.data) {
     if (inserted.error?.code === "23505") {
-      throw new SessionConflictError(
-        input.kind === "table"
-          ? "Стол на эту дату уже записан."
-          : "На эту дату тренировка уже есть.",
-      );
+      throw new SessionConflictError();
     }
     throw inserted.error ?? new Error("Session insert failed");
   }

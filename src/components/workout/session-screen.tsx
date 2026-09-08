@@ -23,11 +23,7 @@ import type {
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
-import {
-  PHASE_TYPE_LABELS,
-  SESSION_KIND_LABELS,
-  WORKOUT_KIND_LABELS,
-} from "@/lib/workout/labels";
+import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
   formatSetLine,
@@ -292,10 +288,7 @@ export function SessionScreen() {
     }
 
     const ok = await confirm({
-      message:
-        detail.session.kind === "table"
-          ? "Стол не был? Запись пропадёт."
-          : "Не получилось сегодня? Тренировка пропадёт, очередь останется.",
+      message: "Не получилось сегодня? Тренировка пропадёт, очередь останется.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -326,17 +319,13 @@ export function SessionScreen() {
   }
 
   const session = detail?.session;
-  const isTable = session?.kind === "table";
-  const title = isTable
-    ? SESSION_KIND_LABELS.table
-    : (detail?.template?.name ??
-      (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка"));
+  const title =
+    detail?.template?.name ??
+    (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка");
   const subtitle = session
     ? [
         formatSessionDate(session.session_date),
-        !isTable && detail?.phase
-          ? PHASE_TYPE_LABELS[detail.phase.phase_type]
-          : null,
+        detail?.phase ? PHASE_TYPE_LABELS[detail.phase.phase_type] : null,
       ]
         .filter(Boolean)
         .join(" · ")
@@ -398,7 +387,7 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            {isTable ? null : detail.exercises.length === 0 ? (
+            {detail.exercises.length === 0 ? (
               <p className="text-base text-muted-foreground">
                 Нет упражнений с максимумом.
               </p>
@@ -453,7 +442,7 @@ export function SessionScreen() {
               </section>
             )}
 
-            {session.status === "planned" && !isTable ? (
+            {session.status === "planned" ? (
               <div className="flex flex-col gap-2">
                 <Button
                   type="button"
@@ -504,7 +493,7 @@ export function SessionScreen() {
                   id="session-note"
                   value={note}
                   disabled={busy || session.status !== "planned"}
-                  placeholder={isTable ? "Как прошло" : "Как прошло, локоть"}
+                  placeholder="Как прошло, локоть"
                   onChange={(event) => setNote(event.target.value)}
                   onBlur={() => {
                     if (session.status === "planned") {
@@ -582,7 +571,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                {isTable ? "Стол не был" : "Не получилось сегодня"}
+                Не получилось сегодня
               </Button>
             ) : null}
           </>
@@ -594,10 +583,10 @@ export function SessionScreen() {
           <Button
             type="button"
             className="h-14 w-full text-lg"
-            disabled={busy || (!isTable && detail.exercises.length === 0)}
+            disabled={busy || detail.exercises.length === 0}
             onClick={() => void complete()}
           >
-            {isTable ? "Стол был" : "Готово"}
+            Готово
           </Button>
         </StickyActions>
       ) : null}
@@ -650,8 +639,7 @@ function ExerciseRow({
     ? leadGroup.findIndex((set) => set.id === leadSet.id) + 1
     : 0;
   const editorOpen =
-    leadSet != null &&
-    (leadSet.set_type === "warmup" ? warmupOpen : workOpen);
+    leadSet != null && (leadSet.set_type === "warmup" ? warmupOpen : workOpen);
 
   return (
     <div className="border-b border-border/70 last:border-b-0">

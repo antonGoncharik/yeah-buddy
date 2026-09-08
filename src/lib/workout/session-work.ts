@@ -61,7 +61,7 @@ export async function getSessionDetail(
   sessionId: string,
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (!session) {
+  if (session?.kind !== "gym") {
     return null;
   }
 
@@ -75,17 +75,13 @@ export async function addExerciseToSession(
   exerciseId: string,
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (!session) {
+  if (session?.kind !== "gym") {
     return null;
   }
 
   const exercise = await getOwnedExercise(userId, exerciseId);
   if (!exercise?.is_active) {
     throw new Error("Упражнение не найдено.");
-  }
-
-  if (session.kind === "table") {
-    throw new Error("К столу нельзя добавить упражнение из зала.");
   }
 
   if (
@@ -239,7 +235,7 @@ export async function completeSessionAsPlanned(
   input: CompleteSessionInput = {},
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (!session) {
+  if (session?.kind !== "gym") {
     return null;
   }
 

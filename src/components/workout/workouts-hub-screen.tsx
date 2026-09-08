@@ -34,7 +34,10 @@ import {
   readPhaseCircle,
   todayWeightsHint,
 } from "@/lib/workout/hints";
-import { SESSION_STATUS_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import {
+  SESSION_STATUS_LABELS,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
 
 export function WorkoutsHubScreen() {
   const router = useRouter();
@@ -112,9 +115,7 @@ export function WorkoutsHubScreen() {
           setSessionTemplate(readTemplate(data, "session_template"));
           setNextTemplate(readTemplate(data, "next_template"));
           setFollowingTemplate(readTemplate(data, "following_template"));
-          setRecent(
-            readRecent(data).filter((item) => item.session.kind !== "table"),
-          );
+          setRecent(readRecent(data));
           setPhaseCircle(readPhaseCircle(data));
           setCanUnskip(readCanUnskip(data));
           return true;
@@ -394,9 +395,7 @@ export function WorkoutsHubScreen() {
                   href="/workouts/macro"
                   className="text-sm font-medium text-primary"
                 >
-                  {macro?.macro && macro.phase
-                    ? "Открыть"
-                    : "Завести"}
+                  {macro?.macro && macro.phase ? "Открыть" : "Завести"}
                 </Link>
               </div>
               {macro?.macro && macro.phase ? (
@@ -429,7 +428,9 @@ export function WorkoutsHubScreen() {
                 </Link>
               ) : (
                 <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-                  {session ? weightsHint : "Необязателен. Без него очередь всё равно идёт."}
+                  {session
+                    ? weightsHint
+                    : "Необязателен. Без него очередь всё равно идёт."}
                 </p>
               )}
             </section>

@@ -293,7 +293,6 @@ export interface WorkoutSession {
 
 export interface TodayWorkoutState {
   session: WorkoutSession | null;
-  table_session: WorkoutSession | null;
   next_template: WorkoutTemplateDetail | null;
   following_template: WorkoutTemplateDetail | null;
   session_template: WorkoutTemplateDetail | null;
