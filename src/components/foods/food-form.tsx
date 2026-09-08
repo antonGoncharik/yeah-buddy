@@ -7,7 +7,6 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
@@ -145,15 +144,10 @@ export function FoodForm({
         />
       </Field>
 
-      <Field label="Бренд">
-        <Input
-          value={form.brand}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, brand: event.target.value }))
-          }
-          className="h-12 text-base"
-        />
-      </Field>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Как на пачке: белок, жир, углеводы на 100 г. Пример: творог 5% — 17 / 5
+        / 2, порция 150 г.
+      </p>
 
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">На 100 г</p>
@@ -220,29 +214,6 @@ export function FoodForm({
             }))
           }
           className="h-12 text-base"
-        />
-      </Field>
-
-      <Field label="Название порции">
-        <Input
-          value={form.default_portion_label}
-          onChange={(event) =>
-            setForm((current) => ({
-              ...current,
-              default_portion_label: event.target.value,
-            }))
-          }
-          className="h-12 text-base"
-        />
-      </Field>
-
-      <Field label="Заметки">
-        <Textarea
-          value={form.notes}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, notes: event.target.value }))
-          }
-          className="min-h-24 text-base"
         />
       </Field>
 
