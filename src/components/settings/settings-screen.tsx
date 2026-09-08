@@ -156,6 +156,11 @@ export function SettingsScreen() {
             title="Схема подходов"
             hint="Откуда берутся разминка и рабочие веса"
           />
+          <NavRow
+            href="/onboarding?again=1"
+            title="Ещё раз с начала"
+            hint="Белок и веса. Очередь не трогает"
+          />
         </section>
 
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">

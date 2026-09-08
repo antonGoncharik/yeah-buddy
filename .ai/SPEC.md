@@ -58,6 +58,7 @@ GEMINI_MODEL=
 4. Upsert `users` по `telegram_id`, при первом входе — `user_settings`.
 5. `ensureInitialData`: стартовые продукты, шаблоны еды, упражнения, шаблоны зала.
 6. HTTP-only cookie `session` (JWT jose, 7 дней, `sameSite=lax`, `secure` в production).
+7. Если `user_settings.onboarding_completed_at` пустой — редирект на `/onboarding`. Нижней панели там нет. Повтор из настроек: `/onboarding?again=1`. У кого уже есть дни еды или сессии зала, миграция ставит дату и мастер не показывает.
 
 Вне Telegram: «Открой приложение через Telegram-бота.»
 
@@ -77,7 +78,17 @@ GEMINI_MODEL=
 
 Продукты — не вкладка. Живут под Настройками: `/foods`, `/food/new`, `/food/[id]`. Вкладка «Настройки» подсвечивается и на этих путях.
 
-`/` редиректит на `/today`.
+`/` редиректит на `/today`. Первый вход без пройденного онбординга — `/onboarding`.
+
+Онбординг — короткий мастер, не тур по экранам:
+
+```text
+белок на день
+очередь: ноги / жим / тяга  или  соберу сам
+веса, если выбрана готовая очередь и нет текущей фазы
+```
+
+Пустые веса можно оставить. Повтор из Настроек не меняет очередь. Дату прохождения пишет `user_settings.onboarding_completed_at`.
 
 ### Питание
 
@@ -91,7 +102,8 @@ GEMINI_MODEL=
 /foods                              список продуктов
 /food/new                           новый продукт
 /food/[id]                          правка / удаление
-/settings                           цели БЖУ, тема, продукты, шаблоны еды, история еды, схема подходов
+/settings                           цели БЖУ, тема, продукты, шаблоны еды, история еды, схема подходов, как пользоваться
+/onboarding                         первый вход; `?again=1` — повтор из настроек, очередь не меняет
 /settings/meals                     шаблоны дня отдыха и тренировки
 /settings/meals/[dayType]           состав шаблона: приёмы, граммы
 /settings/meals/[dayType]/[mealType]/add
@@ -263,7 +275,7 @@ none      не в план  упражнение не попадает в авт
 Тяга    динамика   слот c   тяга в наклоне, тяга блока
 ```
 
-Слот упражнения нужен сиду, чтобы собрать эти четыре шаблона. В рантайме состав сессии берётся из шаблона, не из слота.
+Слот упражнения нужен сиду, чтобы собрать эти три шаблона. В рантайме состав сессии берётся из шаблона, не из слота.
 
 Следующий шаблон: после последней не пропущенной сессии текущей фазы (без фазы — после последней сессии с `template_id`). GET хаба сессию не создаёт.
 
@@ -427,6 +439,7 @@ supabase/migrations/0005_sets.sql              session_exercises, workout_sets
 supabase/migrations/0006_templates.sql         workout_templates, template_exercises; template_id на сессии
 supabase/migrations/0007_session_kind.sql      kind gym|table; unique (user_id, session_date, kind)
 supabase/migrations/0008_neutral_defaults.sql  дефолтные цели БЖУ для новых пользователей
+supabase/migrations/0009_onboarding.sql        onboarding_completed_at; дневники с историей помечаются пройденными
 ```
 
 Актуальная схема — сумма этих файлов, не один `0001`.
@@ -435,7 +448,7 @@ supabase/migrations/0008_neutral_defaults.sql  дефолтные цели БЖ�
 
 `users` — `telegram_id` уникален.
 
-`user_settings` — цели отдыха и тренировки.
+`user_settings` — цели отдыха и тренировки, `onboarding_completed_at`.
 
 `foods` — продукты пользователя.
 

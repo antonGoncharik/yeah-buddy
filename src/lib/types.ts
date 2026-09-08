@@ -29,6 +29,7 @@ export interface UserSettings {
   training_protein: number;
   training_fat: number;
   training_carbs: number;
+  onboarding_completed_at: string | null;
   updated_at: string;
 }
 

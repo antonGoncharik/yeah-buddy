@@ -55,7 +55,7 @@ npm run dev
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<домен>/api/telegram/webhook
 ```
 
-Вне Telegram `next dev` логинит через `POST /api/auth/dev` (в production 404). После логина в пустой аккаунт сидятся нейтральные продукты, шаблоны еды и упражнения без максимумов.
+Вне Telegram `next dev` логинит через `POST /api/auth/dev` (в production 404). После логина в пустой аккаунт сидятся нейтральные продукты, шаблоны еды и упражнения без максимумов. Первый вход без истории открывает онбординг.
 
 Скрипты: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format`.
 

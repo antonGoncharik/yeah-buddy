@@ -25,8 +25,16 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     training_protein: toNumber(row.training_protein),
     training_fat: toNumber(row.training_fat),
     training_carbs: toNumber(row.training_carbs),
+    onboarding_completed_at:
+      typeof row.onboarding_completed_at === "string"
+        ? row.onboarding_completed_at
+        : null,
     updated_at: String(row.updated_at),
   };
+}
+
+export function isOnboardingCompleted(settings: UserSettings): boolean {
+  return settings.onboarding_completed_at != null;
 }
 
 export async function getUserSettings(

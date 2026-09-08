@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export function TelegramBackButton({ href }: { href: string }) {
+export function TelegramBackButton({
+  href,
+  onBack,
+}: {
+  href?: string;
+  onBack?: () => void;
+}) {
   const router = useRouter();
 
   useEffect(() => {
@@ -21,7 +27,13 @@ export function TelegramBackButton({ href }: { href: string }) {
       }
 
       const go = () => {
-        router.push(href);
+        if (onBack) {
+          onBack();
+          return;
+        }
+        if (href) {
+          router.push(href);
+        }
       };
       back.onClick(go);
       back.show();
@@ -35,7 +47,7 @@ export function TelegramBackButton({ href }: { href: string }) {
       cancelled = true;
       cleanup?.();
     };
-  }, [href, router]);
+  }, [href, onBack, router]);
 
   return null;
 }

@@ -1,4 +1,4 @@
-import type { DayType, MealType } from "@/lib/types";
+import type { DayType, MealType, UserSettings } from "@/lib/types";
 
 export const DAY_TYPE_LABELS: Record<DayType, string> = {
   rest: "Отдых",
@@ -39,6 +39,35 @@ export function defaultMacroGoals(dayType: DayType): Macros {
     fat: goals.fat,
     carbs: goals.carbs,
     kcal: calcKcalFromMacros(goals.protein, goals.fat, goals.carbs),
+  };
+}
+
+export function macroGoalsFromProtein(
+  protein: number,
+  current?: Pick<
+    UserSettings,
+    "rest_fat" | "rest_carbs" | "training_fat" | "training_carbs"
+  >,
+): { rest: Macros; training: Macros } {
+  const restFat = current?.rest_fat ?? DEFAULT_REST_MACRO_GOALS.fat;
+  const restCarbs = current?.rest_carbs ?? DEFAULT_REST_MACRO_GOALS.carbs;
+  const trainingFat = current?.training_fat ?? DEFAULT_TRAINING_MACRO_GOALS.fat;
+  const trainingCarbs =
+    current?.training_carbs ?? DEFAULT_TRAINING_MACRO_GOALS.carbs;
+
+  return {
+    rest: {
+      protein,
+      fat: restFat,
+      carbs: restCarbs,
+      kcal: calcKcalFromMacros(protein, restFat, restCarbs),
+    },
+    training: {
+      protein,
+      fat: trainingFat,
+      carbs: trainingCarbs,
+      kcal: calcKcalFromMacros(protein, trainingFat, trainingCarbs),
+    },
   };
 }
 
