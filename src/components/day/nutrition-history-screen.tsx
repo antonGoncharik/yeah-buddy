@@ -163,7 +163,7 @@ export function NutritionHistoryScreen() {
                   {group.items.map((item) => (
                     <li key={item.date}>
                       <Link
-                        href={`/today?date=${encodeURIComponent(item.date)}&view=history`}
+                        href={`/today?date=${encodeURIComponent(item.date)}`}
                         className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
                       >
                         <span className="flex min-w-0 flex-1 flex-col gap-3">
