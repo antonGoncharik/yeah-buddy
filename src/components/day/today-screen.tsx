@@ -31,7 +31,10 @@ import type { DayWithMeals } from "@/lib/days";
 import {
   isIsoDate,
   nextIsoDate,
+  nutritionHistoryHref,
   previousIsoDate,
+  todayHistoryDayHref,
+  todayHomeHref,
   withDateQuery,
 } from "@/lib/days";
 import {
@@ -58,9 +61,11 @@ function resolveStartDate(value: string | undefined, today: string): string {
 export function TodayScreen({
   initialDate,
   readOnly = false,
+  fromSettings = false,
 }: {
   initialDate?: string;
   readOnly?: boolean;
+  fromSettings?: boolean;
 }) {
   const today = todayIsoDate();
   const router = useRouter();
@@ -137,13 +142,12 @@ export function TodayScreen({
     (next: string) => {
       const resolved = resolveStartDate(next, todayIsoDate());
       setDate(resolved);
-      const href =
-        resolved === todayIsoDate()
-          ? "/today"
-          : `/today?date=${encodeURIComponent(resolved)}`;
+      const href = readOnly
+        ? todayHistoryDayHref(resolved, fromSettings)
+        : todayHomeHref(resolved);
       router.replace(href, { scroll: false });
     },
-    [router],
+    [fromSettings, readOnly, router],
   );
 
   useEffect(() => {
@@ -355,7 +359,7 @@ export function TodayScreen({
       <AppHeader
         title={titleDate}
         subtitle={readOnly ? "Только просмотр" : undefined}
-        backHref={readOnly ? "/today/history" : undefined}
+        backHref={readOnly ? nutritionHistoryHref(fromSettings) : undefined}
         trailing={
           <>
             {readOnly ? null : (
@@ -447,12 +451,20 @@ export function TodayScreen({
         {!loading && !loadError && day ? (
           <div className="flex flex-col gap-5">
             {readOnly ? (
-              <p className="animate-rise text-base text-muted-foreground">
-                {day.is_training_day
-                  ? DAY_TYPE_LABELS.training
-                  : DAY_TYPE_LABELS.rest}
-                . Это история — граммы и состав уже не меняются.
-              </p>
+              <div className="animate-rise flex flex-col gap-3">
+                <p className="text-base text-muted-foreground">
+                  {day.is_training_day
+                    ? DAY_TYPE_LABELS.training
+                    : DAY_TYPE_LABELS.rest}
+                  . Это история — граммы и состав уже не меняются.
+                </p>
+                <Button
+                  className="h-12 w-full text-base"
+                  onClick={() => router.push(todayHomeHref(date))}
+                >
+                  Исправить
+                </Button>
+              </div>
             ) : (
               <div className="animate-rise">
                 <Segmented

@@ -90,6 +90,25 @@ export function withDateQuery(
   return `${path}${join}date=${encodeURIComponent(date)}`;
 }
 
+export function nutritionHistoryHref(fromSettings = false): string {
+  return fromSettings ? "/today/history?from=settings" : "/today/history";
+}
+
+export function todayHistoryDayHref(
+  date: string,
+  fromSettings = false,
+): string {
+  const params = new URLSearchParams();
+  if (date && isIsoDate(date) && date < calendarToday()) {
+    params.set("date", date);
+  }
+  params.set("view", "history");
+  if (fromSettings) {
+    params.set("from", "settings");
+  }
+  return `/today?${params.toString()}`;
+}
+
 export async function getDayByDate(
   userId: string,
   date: string,

@@ -13,6 +13,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
+import { todayHistoryDayHref } from "@/lib/days";
 import { LOAD_FAILED, NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
@@ -174,7 +175,7 @@ export function NutritionHistoryScreen() {
                   {group.items.map((item) => (
                     <li key={item.date}>
                       <Link
-                        href={`/today?date=${encodeURIComponent(item.date)}`}
+                        href={todayHistoryDayHref(item.date, fromSettings)}
                         className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
                       >
                         <span className="flex min-w-0 flex-1 flex-col gap-3">
