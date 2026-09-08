@@ -1,6 +1,6 @@
 # Yeah Buddy
 
-Telegram Mini App: дневник еды и тренировок для армрестлинга. Один деплой Next.js на Vercel — фронт Mini App (русский мобильный UI), HTTP API и вебхук бота.
+Telegram Mini App: дневник еды и тренировок. Один деплой Next.js на Vercel — фронт Mini App (русский мобильный UI), HTTP API и вебхук бота.
 
 ## Что умеет
 

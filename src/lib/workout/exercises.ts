@@ -511,7 +511,7 @@ function toCategory(value: unknown): ExerciseCategory {
     return value;
   }
 
-  return "armwrestling";
+  return "base";
 }
 
 function toWorkoutType(value: unknown): ExerciseWorkoutType {

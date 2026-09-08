@@ -6,24 +6,25 @@ import type {
 
 export type ProgressMetric = "weight" | "seconds";
 
-export const CATEGORY_SHORT_LABELS: Record<ExerciseCategory, string> = {
+export const CATEGORY_SHORT_LABELS: Record<"base" | "isolation", string> = {
   base: "База",
-  armwrestling: "Арм",
   isolation: "Изол.",
 };
 
-const CATEGORY_ORDER: ExerciseCategory[] = [
-  "base",
-  "armwrestling",
-  "isolation",
-];
+const CATEGORY_ORDER = ["base", "isolation"] as const;
+
+function foldCategory(category: ExerciseCategory): "base" | "isolation" {
+  return category === "isolation" ? "isolation" : "base";
+}
 
 export function categoryAverages(
   exercises: ExerciseProgress[],
-): Array<{ id: ExerciseCategory; avg_percent: number }> {
+): Array<{ id: "base" | "isolation"; avg_percent: number }> {
   return CATEGORY_ORDER.flatMap((id) => {
     const percents = exercises.flatMap((item) =>
-      item.category === id && item.percent != null ? [item.percent] : [],
+      foldCategory(item.category) === id && item.percent != null
+        ? [item.percent]
+        : [],
     );
     if (percents.length === 0) {
       return [];

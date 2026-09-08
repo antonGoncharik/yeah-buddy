@@ -11,11 +11,7 @@ import {
 } from "@/components/workout/progress-chart";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import type {
-  ExerciseCategory,
-  ExerciseProgress,
-  StrengthProgress,
-} from "@/lib/types";
+import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
@@ -31,12 +27,11 @@ import {
   type ProgressMetric,
 } from "@/lib/workout/progress-stats";
 
-type Filter = "all" | ExerciseCategory;
+type Filter = "all" | "base" | "isolation";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "all", label: "Все" },
   { id: "base", label: "База" },
-  { id: "armwrestling", label: "Арм" },
   { id: "isolation", label: "Изол." },
 ];
 
@@ -81,7 +76,10 @@ export function ProgressScreen() {
     if (filter === "all") {
       return list;
     }
-    return list.filter((item) => item.category === filter);
+    if (filter === "isolation") {
+      return list.filter((item) => item.category === "isolation");
+    }
+    return list.filter((item) => item.category !== "isolation");
   }, [filter, progress]);
 
   return (

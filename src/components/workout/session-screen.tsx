@@ -561,7 +561,7 @@ export function SessionScreen() {
                   id="session-note"
                   value={note}
                   disabled={busy || !canEditSets}
-                  placeholder="Как прошло, локоть"
+                  placeholder="Как прошло"
                   onChange={(event) => setNote(event.target.value)}
                   onBlur={() => {
                     if (canEditSets) {

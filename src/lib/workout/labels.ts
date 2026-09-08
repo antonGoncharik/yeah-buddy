@@ -35,7 +35,7 @@ export const PHASE_ORDER: Record<PhaseType, number> = {
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
-  armwrestling: "Армрестлинг",
+  armwrestling: "База",
   isolation: "Изоляция",
 };
 
