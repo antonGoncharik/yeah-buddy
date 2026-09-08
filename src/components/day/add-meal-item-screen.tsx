@@ -103,7 +103,7 @@ export function AddMealItemScreen({
         <FoodList
           foods={visibleFoods}
           showFavorite={false}
-          hrefForFood={(food) => `${foodHrefBase}/${food.id}`}
+          hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
         />
       ) : null}
 
@@ -135,6 +135,15 @@ function emptyMessage(filter: Filter, query: string): string {
   }
 
   return FOODS_EMPTY;
+}
+
+function appendPathSegment(href: string, segment: string): string {
+  const queryAt = href.indexOf("?");
+  if (queryAt < 0) {
+    return `${href}/${segment}`;
+  }
+
+  return `${href.slice(0, queryAt)}/${segment}${href.slice(queryAt)}`;
 }
 
 function readFoods(data: unknown): Food[] {

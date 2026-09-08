@@ -62,6 +62,34 @@ export function nextIsoDate(date: string): string {
   return next.toISOString().slice(0, 10);
 }
 
+export function calendarToday(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function todayHomeHref(date: string | null | undefined): string {
+  if (!date || !isIsoDate(date) || date >= calendarToday()) {
+    return "/today";
+  }
+
+  return `/today?date=${encodeURIComponent(date)}`;
+}
+
+export function withDateQuery(
+  path: string,
+  date: string | null | undefined,
+): string {
+  if (!date || !isIsoDate(date) || date >= calendarToday()) {
+    return path;
+  }
+
+  const join = path.includes("?") ? "&" : "?";
+  return `${path}${join}date=${encodeURIComponent(date)}`;
+}
+
 export async function getDayByDate(
   userId: string,
   date: string,

@@ -1,17 +1,21 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { isIsoDate, todayHomeHref, withDateQuery } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
 export default function AddMealItemGramsPage() {
   const params = useParams<{ mealId: string; foodId: string }>();
-  const backHref = `/today/meals/${params.mealId}/add`;
+  const searchParams = useSearchParams();
+  const date = readDateParam(searchParams.get("date"));
+  const backHref = withDateQuery(`/today/meals/${params.mealId}/add`, date);
+  const doneHref = todayHomeHref(date);
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +94,7 @@ export default function AddMealItemGramsPage() {
           defaultPortionG={food.default_portion_g}
           defaultPortionLabel={food.default_portion_label}
           backHref={backHref}
-          doneHref="/today"
+          doneHref={doneHref}
           save={(grams) => addMealItemGrams(params.mealId, food.id, grams)}
         />
       ) : null}
@@ -104,4 +108,12 @@ function readFood(data: unknown): Food | null {
   }
 
   return data.food as Food;
+}
+
+function readDateParam(value: string | null): string | null {
+  if (!value || !isIsoDate(value)) {
+    return null;
+  }
+
+  return value;
 }

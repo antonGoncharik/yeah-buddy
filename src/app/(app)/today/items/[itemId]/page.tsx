@@ -1,16 +1,19 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { isIsoDate, todayHomeHref } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food, MealItem } from "@/lib/types";
 
 export default function EditMealItemPage() {
   const params = useParams<{ itemId: string }>();
+  const searchParams = useSearchParams();
+  const homeHref = todayHomeHref(readDateParam(searchParams.get("date")));
   const [reloadToken, setReloadToken] = useState(0);
   const [item, setItem] = useState<MealItem | null>(null);
   const [food, setFood] = useState<Food | null>(null);
@@ -77,7 +80,7 @@ export default function EditMealItemPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Порция" backHref="/today" />
+      <AppHeader title="Порция" backHref={homeHref} />
       {loading ? (
         <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
       ) : null}
@@ -102,8 +105,8 @@ export default function EditMealItemPage() {
           initialGrams={item.grams}
           defaultPortionG={food?.default_portion_g ?? null}
           defaultPortionLabel={food?.default_portion_label ?? null}
-          backHref="/today"
-          doneHref="/today"
+          backHref={homeHref}
+          doneHref={homeHref}
           save={(grams) => saveMealItemGrams(item.id, grams)}
         />
       ) : null}
@@ -125,4 +128,12 @@ function readFood(data: unknown): Food | null {
   }
 
   return data.food as Food;
+}
+
+function readDateParam(value: string | null): string | null {
+  if (!value || !isIsoDate(value)) {
+    return null;
+  }
+
+  return value;
 }

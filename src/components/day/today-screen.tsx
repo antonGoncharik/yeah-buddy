@@ -10,6 +10,7 @@ import {
   Sofa,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
@@ -27,7 +28,12 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, peekJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/days";
-import { isIsoDate, nextIsoDate, previousIsoDate } from "@/lib/days";
+import {
+  isIsoDate,
+  nextIsoDate,
+  previousIsoDate,
+  withDateQuery,
+} from "@/lib/days";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
@@ -57,6 +63,7 @@ export function TodayScreen({
   readOnly?: boolean;
 }) {
   const today = todayIsoDate();
+  const router = useRouter();
   const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
   const { setMood } = useDayMood();
   const confirm = useConfirm();
@@ -121,6 +128,23 @@ export function TodayScreen({
 
     done(true);
   }, [begin, date, done]);
+
+  useEffect(() => {
+    setDate(resolveStartDate(initialDate, todayIsoDate()));
+  }, [initialDate]);
+
+  const goToDate = useCallback(
+    (next: string) => {
+      const resolved = resolveStartDate(next, todayIsoDate());
+      setDate(resolved);
+      const href =
+        resolved === todayIsoDate()
+          ? "/today"
+          : `/today?date=${encodeURIComponent(resolved)}`;
+      router.replace(href, { scroll: false });
+    },
+    [router],
+  );
 
   useEffect(() => {
     setDay(null);
@@ -345,7 +369,7 @@ export function TodayScreen({
               type="button"
               className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
               aria-label="Предыдущий день"
-              onClick={() => setDate(previousIsoDate(date))}
+              onClick={() => goToDate(previousIsoDate(date))}
             >
               <ChevronLeft className="size-6" />
             </button>
@@ -358,7 +382,7 @@ export function TodayScreen({
                 if (!canGoForward) {
                   return;
                 }
-                setDate(nextIsoDate(date));
+                goToDate(nextIsoDate(date));
               }}
             >
               <ChevronRight className="size-6" />
@@ -467,9 +491,15 @@ export function TodayScreen({
                   kcal: item.kcal,
                 }))}
                 itemHref={
-                  readOnly ? undefined : (item) => `/today/items/${item.id}`
+                  readOnly
+                    ? undefined
+                    : (item) => withDateQuery(`/today/items/${item.id}`, date)
                 }
-                addHref={readOnly ? undefined : `/today/meals/${meal.id}/add`}
+                addHref={
+                  readOnly
+                    ? undefined
+                    : withDateQuery(`/today/meals/${meal.id}/add`, date)
+                }
                 readOnly={readOnly}
                 className="animate-rise"
                 style={{ animationDelay: `${80 + index * 50}ms` }}
