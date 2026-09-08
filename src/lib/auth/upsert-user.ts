@@ -8,27 +8,6 @@ export type TelegramProfile = {
   language_code?: string | null;
 };
 
-export async function getUserByTelegramId(
-  telegramId: number,
-): Promise<User | null> {
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("users")
-    .select("*")
-    .eq("telegram_id", telegramId)
-    .maybeSingle();
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  if (!result.data) {
-    return null;
-  }
-
-  return mapUser(result.data as Record<string, unknown>);
-}
-
 export async function upsertTelegramUser(
   telegramUser: TelegramProfile,
 ): Promise<User> {

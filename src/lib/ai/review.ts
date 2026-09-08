@@ -3,7 +3,6 @@ import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
 import { buildReviewBrief } from "@/lib/ai/signals";
 import type { ReviewSnapshot, ReviewText } from "@/lib/ai/types";
-import { getUserByTelegramId } from "@/lib/auth/upsert-user";
 import {
   calendarToday,
   listDaysInRange,
@@ -77,13 +76,6 @@ export async function createReview(
     brief,
     review,
   };
-}
-
-export async function getReviewUserIdByTelegram(
-  telegramId: number,
-): Promise<string | null> {
-  const user = await getUserByTelegramId(telegramId);
-  return user?.id ?? null;
 }
 
 async function loadReviewBrief(

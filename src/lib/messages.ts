@@ -4,9 +4,8 @@ export const FOODS_EMPTY = "Продуктов пока нет.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
 export const BOT_START =
-  "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.\n\nРазбор лога: /razbor";
+  "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
 export const BOT_OPEN_DIARY = "Открыть дневник";
-export const BOT_REVIEW_NEED_APP = "Сначала открой дневник в приложении.";
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение и сколько сейчас жмёшь.";
 export const WORKOUTS_NEED_EXERCISES =

@@ -160,9 +160,6 @@ export function ReviewScreen() {
             <p className="text-sm text-muted-foreground">
               Это чтение лога, не план питания и не медсовет.
             </p>
-            <p className="text-sm text-muted-foreground">
-              То же самое в боте: /razbor
-            </p>
           </>
         ) : null}
       </div>
