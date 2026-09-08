@@ -10,12 +10,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cachedGet, writeJson } from "@/lib/api-cache";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { LOAD_FAILED, readApiError, SESSION_PLAN_EMPTY } from "@/lib/messages";
 import type {
   ExerciseWithMax,
   SessionDetail,
@@ -23,6 +23,7 @@ import type {
   WorkoutSet,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { cn } from "@/lib/utils";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
 import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -437,9 +438,31 @@ export function SessionScreen() {
         {!loading && session && detail ? (
           <>
             {detail.exercises.length === 0 ? (
-              <p className="text-base text-muted-foreground">
-                Нет упражнений с максимумом.
-              </p>
+              <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
+                <p className="text-lg font-medium">Нет упражнений в плане</p>
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  {SESSION_PLAN_EMPTY}
+                </p>
+                {session.status === "planned" ? (
+                  <div className="flex flex-col gap-2 pt-1">
+                    <Link
+                      href="/workouts/exercises"
+                      className={cn(buttonVariants(), "h-14 text-lg")}
+                    >
+                      Максимумы
+                    </Link>
+                    <Link
+                      href="/workouts/macro"
+                      className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "h-14 text-lg",
+                      )}
+                    >
+                      Макроцикл
+                    </Link>
+                  </div>
+                ) : null}
+              </section>
             ) : (
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
