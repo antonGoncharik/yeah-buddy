@@ -49,6 +49,7 @@ export function SessionScreen() {
   const [note, setNote] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [catalog, setCatalog] = useState<ExerciseWithMax[] | null>(null);
+  const [correcting, setCorrecting] = useState(false);
 
   const sessionUrl = `/api/sessions/${params.id}`;
 
@@ -185,6 +186,7 @@ export function SessionScreen() {
       if (next) {
         writeJson(sessionUrl, data);
         applyDetail(next);
+        setCorrecting(false);
         if (next.session.kind === "gym") {
           await loadFollowUp(next.session.session_date);
         }
@@ -330,7 +332,12 @@ export function SessionScreen() {
         .filter(Boolean)
         .join(" · ")
     : undefined;
-  const showStickyComplete = session?.status === "planned";
+  const showStickyComplete =
+    session?.status === "planned" ||
+    (session?.status === "completed" && correcting);
+  const canEditSets =
+    session?.status === "planned" ||
+    (session?.status === "completed" && correcting);
   const addable = useMemo(() => {
     if (!detail || !catalog) {
       return [];
@@ -408,7 +415,7 @@ export function SessionScreen() {
                     openSetIds={openSetIds}
                     warmupOpen={warmupOpen[item.id] !== false}
                     workOpen={workOpen[item.id] !== false}
-                    disabled={busy || session.status === "skipped"}
+                    disabled={busy || !canEditSets}
                     showActual={session.status === "completed"}
                     drafts={drafts}
                     onOpenSets={(ids) =>
@@ -487,16 +494,18 @@ export function SessionScreen() {
               </div>
             ) : null}
 
-            {session.status === "planned" || note.trim() !== "" ? (
+            {session.status === "planned" ||
+            (session.status === "completed" && correcting) ||
+            note.trim() !== "" ? (
               <div className="flex flex-col gap-2">
                 <Textarea
                   id="session-note"
                   value={note}
-                  disabled={busy || session.status !== "planned"}
+                  disabled={busy || !canEditSets}
                   placeholder="Как прошло, локоть"
                   onChange={(event) => setNote(event.target.value)}
                   onBlur={() => {
-                    if (session.status === "planned") {
+                    if (canEditSets) {
                       void saveNote();
                     }
                   }}
@@ -508,7 +517,7 @@ export function SessionScreen() {
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            {session.status === "completed" ? (
+            {session.status === "completed" && !correcting ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-5">
                 <h2 className="text-xl font-semibold">Готово</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
@@ -560,7 +569,22 @@ export function SessionScreen() {
                     К тренировкам
                   </Link>
                 )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11 px-0 text-base text-muted-foreground"
+                  disabled={busy}
+                  onClick={() => setCorrecting(true)}
+                >
+                  Исправить факт
+                </Button>
               </section>
+            ) : null}
+
+            {session.status === "completed" && correcting ? (
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Поправь подходы и сохрани. Тренировка останется сделанной.
+              </p>
             ) : null}
 
             {session.status === "planned" || session.status === "skipped" ? (
@@ -586,7 +610,7 @@ export function SessionScreen() {
             disabled={busy || detail.exercises.length === 0}
             onClick={() => void complete()}
           >
-            Готово
+            {session.status === "planned" ? "Готово" : "Сохранить"}
           </Button>
         </StickyActions>
       ) : null}
