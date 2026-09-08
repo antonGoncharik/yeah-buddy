@@ -491,6 +491,26 @@ export function TodayScreen({
               <DaySummary day={day} fact={fact} />
             </div>
 
+            {readOnly ? null : (
+              <Link
+                href={`/settings/meals/${day.is_training_day ? "training" : "rest"}`}
+                className="card-surface animate-rise flex items-center gap-3 px-5 py-4"
+                style={{ animationDelay: "50ms" }}
+              >
+                <span className="min-w-0 flex-1">
+                  <p className="text-base font-medium">Шаблон дня</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    Правки здесь только на сегодня. Завтра снова скопируется
+                    шаблон.
+                  </p>
+                </span>
+                <ChevronRight
+                  className="size-5 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
+              </Link>
+            )}
+
             {visibleMeals.map((meal, index) => (
               <MealCard
                 key={meal.id}
