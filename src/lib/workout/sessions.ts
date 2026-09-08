@@ -13,7 +13,7 @@ import type {
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { toNullableString } from "@/lib/workout/numbers";
 import { ensureStarterExercises } from "@/lib/workout/seed";
-import { listSessionWorkSummaries } from "@/lib/workout/session-log";
+import { listSessionWorkInfo } from "@/lib/workout/session-log";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import {
   getNextTemplate,
@@ -200,22 +200,25 @@ export async function listSessionHistory(
       session.template_id ? [session.template_id] : [],
     ),
   );
-  const summaries = await listSessionWorkSummaries(userId, sessions);
+  const work = await listSessionWorkInfo(userId, sessions);
 
   return {
-    items: sessions.map((session) => ({
-      session,
-      template_name:
-        session.kind === "table"
-          ? "Стол"
-          : session.template_id
-            ? (names.get(session.template_id) ?? null)
-            : null,
-      summary:
-        session.kind === "table"
-          ? session.note
-          : (summaries.get(session.id) ?? null),
-    })),
+    items: sessions.map((session) => {
+      const info = work.get(session.id);
+      return {
+        session,
+        template_name:
+          session.kind === "table"
+            ? "Стол"
+            : session.template_id
+              ? (names.get(session.template_id) ?? null)
+              : null,
+        summary:
+          session.kind === "table" ? session.note : (info?.summary ?? null),
+        plan_hit: info?.plan_hit ?? 0,
+        plan_total: info?.plan_total ?? 0,
+      };
+    }),
     next_before: hasMore ? (sessions.at(-1)?.session_date ?? null) : null,
   };
 }

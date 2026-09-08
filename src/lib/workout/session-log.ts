@@ -4,29 +4,46 @@ import { ru } from "date-fns/locale";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ProgressPoint, WorkoutSession, WorkoutSet } from "@/lib/types";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
-import { formatWorkSummary } from "@/lib/workout/session-format";
+import {
+  firstWorkPlanScore,
+  formatWorkSummary,
+} from "@/lib/workout/session-format";
 
-export async function listSessionWorkSummaries(
+export interface SessionWorkInfo {
+  summary: string | null;
+  plan_hit: number;
+  plan_total: number;
+}
+
+export async function listSessionWorkInfo(
   userId: string,
   sessions: WorkoutSession[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, SessionWorkInfo>> {
   const gymIds = sessions
     .filter((session) => session.kind === "gym")
     .map((session) => session.id);
-  const summaries = new Map<string, string>();
+  const info = new Map<string, SessionWorkInfo>();
   if (gymIds.length === 0) {
-    return summaries;
+    return info;
   }
 
   const grouped = await loadWorkBySession(userId, gymIds);
   for (const [sessionId, exercises] of grouped) {
-    const summary = formatWorkSummary(exercises);
-    if (summary) {
-      summaries.set(sessionId, summary);
+    let plan_hit = 0;
+    let plan_total = 0;
+    for (const item of exercises) {
+      const score = firstWorkPlanScore(item.sets);
+      plan_hit += score.hit;
+      plan_total += score.total;
     }
+    info.set(sessionId, {
+      summary: formatWorkSummary(exercises),
+      plan_hit,
+      plan_total,
+    });
   }
 
-  return summaries;
+  return info;
 }
 
 export async function listExerciseWorkPoints(

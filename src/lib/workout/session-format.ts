@@ -81,6 +81,54 @@ export function workAbovePlan(set: WorkoutSet): boolean {
   );
 }
 
+export function workMeetsPlan(set: WorkoutSet): boolean | null {
+  if (set.set_type !== "work") {
+    return null;
+  }
+
+  let compared = false;
+
+  if (set.planned_weight != null && set.actual_weight != null) {
+    compared = true;
+    if (set.actual_weight < set.planned_weight) {
+      return false;
+    }
+  }
+
+  if (set.planned_reps != null && set.actual_reps != null) {
+    compared = true;
+    if (set.actual_reps < set.planned_reps) {
+      return false;
+    }
+  }
+
+  if (set.planned_seconds != null && set.actual_seconds != null) {
+    compared = true;
+    if (set.actual_seconds < set.planned_seconds) {
+      return false;
+    }
+  }
+
+  return compared ? true : null;
+}
+
+export function firstWorkPlanScore(sets: WorkoutSet[]): {
+  hit: number;
+  total: number;
+} {
+  const work = firstWorkSet(sets);
+  if (!work) {
+    return { hit: 0, total: 0 };
+  }
+
+  const met = workMeetsPlan(work);
+  if (met == null) {
+    return { hit: 0, total: 0 };
+  }
+
+  return { hit: met ? 1 : 0, total: 1 };
+}
+
 export function formatWorkSummary(
   exercises: Array<{ name: string; sets: WorkoutSet[] }>,
   limit = 3,

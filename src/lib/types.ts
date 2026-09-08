@@ -273,6 +273,8 @@ export interface RecentWorkoutSession {
   session: WorkoutSession;
   template_name: string | null;
   summary: string | null;
+  plan_hit: number;
+  plan_total: number;
 }
 
 export interface WorkoutSession {

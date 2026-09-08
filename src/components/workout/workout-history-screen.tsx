@@ -8,20 +8,42 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
 import { LOAD_FAILED, SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import type { RecentWorkoutSession } from "@/lib/types";
+import {
+  hasOlderThanRange,
+  pluralWorkouts,
+  summarizeWorkoutHistory,
+  type WorkoutHistoryRange,
+  type WorkoutHistoryStats,
+  windowGymSessions,
+} from "@/lib/workout/history-stats";
 import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
 
+type RangeId = "14" | "30";
+
+const RANGE_OPTIONS: Array<{ id: RangeId; label: string }> = [
+  { id: "14", label: "14 дней" },
+  { id: "30", label: "30 дней" },
+];
+
+function todayIsoDate(): string {
+  return format(new Date(), "yyyy-MM-dd");
+}
+
 export function WorkoutHistoryScreen() {
+  const today = todayIsoDate();
   const [items, setItems] = useState<RecentWorkoutSession[]>([]);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState<RangeId>("14");
 
   const load = useCallback(async (before?: string) => {
     const appending = Boolean(before);
@@ -64,7 +86,15 @@ export function WorkoutHistoryScreen() {
     void load();
   }, [load]);
 
+  const rangeDays = Number(range) as WorkoutHistoryRange;
+  const windowed = useMemo(
+    () => windowGymSessions(items, rangeDays, today),
+    [items, rangeDays, today],
+  );
+  const stats = useMemo(() => summarizeWorkoutHistory(windowed), [windowed]);
   const groups = useMemo(() => groupByMonth(items), [items]);
+  const showRange = hasOlderThanRange(items, 14, today);
+  const showStats = !loading && stats.count > 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -94,6 +124,18 @@ export function WorkoutHistoryScreen() {
             <p className="text-lg font-medium">{SESSION_HISTORY_EMPTY}</p>
           </section>
         ) : null}
+
+        {showStats && showRange ? (
+          <div className="animate-rise">
+            <Segmented
+              value={range}
+              options={RANGE_OPTIONS}
+              onChange={setRange}
+            />
+          </div>
+        ) : null}
+
+        {showStats ? <StatsCard days={rangeDays} stats={stats} /> : null}
 
         {!loading && groups.length > 0 ? (
           <div className="animate-rise flex flex-col gap-6">
@@ -153,6 +195,78 @@ export function WorkoutHistoryScreen() {
   );
 }
 
+function StatsCard({
+  days,
+  stats,
+}: {
+  days: WorkoutHistoryRange;
+  stats: WorkoutHistoryStats;
+}) {
+  const kinds = [
+    stats.dynamic > 0
+      ? `${WORKOUT_KIND_LABELS.dynamic} · ${stats.dynamic}`
+      : null,
+    stats.static > 0 ? `${WORKOUT_KIND_LABELS.static} · ${stats.static}` : null,
+  ].filter((value): value is string => value != null);
+
+  return (
+    <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          За {days} дней
+        </p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight">
+          {stats.count}
+          <span className="ml-2 text-lg font-medium text-muted-foreground">
+            {pluralWorkouts(stats.count)}
+          </span>
+        </p>
+        {kinds.length > 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {kinds.join(" · ")}
+          </p>
+        ) : null}
+      </div>
+      {stats.planTotal > 0 ? (
+        <HitRow
+          label="Факт ≥ плана"
+          hit={stats.planHit}
+          total={stats.planTotal}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function HitRow({
+  label,
+  hit,
+  total,
+}: {
+  label: string;
+  hit: number;
+  total: number;
+}) {
+  const ratio = hit / total;
+
+  return (
+    <div className="flex flex-col gap-1.5 border-t border-border/70 pt-4">
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <p className="font-medium">{label}</p>
+        <p className="text-muted-foreground">
+          {hit} из {total}
+        </p>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${Math.round(ratio * 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function readPage(data: unknown): {
   items: RecentWorkoutSession[];
   next_before: string | null;
@@ -167,11 +281,20 @@ function readPage(data: unknown): {
   };
 
   return {
-    items: Array.isArray(record.items)
-      ? (record.items as RecentWorkoutSession[])
-      : [],
+    items: Array.isArray(record.items) ? record.items.map(readHistoryItem) : [],
     next_before:
       typeof record.next_before === "string" ? record.next_before : null,
+  };
+}
+
+function readHistoryItem(value: unknown): RecentWorkoutSession {
+  const record = value as RecentWorkoutSession;
+  return {
+    session: record.session,
+    template_name: record.template_name ?? null,
+    summary: record.summary ?? null,
+    plan_hit: Number.isFinite(record.plan_hit) ? record.plan_hit : 0,
+    plan_total: Number.isFinite(record.plan_total) ? record.plan_total : 0,
   };
 }
 
