@@ -1,3 +1,4 @@
+import { chartShape } from "@/lib/chart-shape";
 import type { ProgressPoint } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { formatWeight } from "@/lib/workout/numbers";
@@ -9,7 +10,12 @@ export function ProgressSparkline({
   points: ProgressPoint[];
   className?: string;
 }) {
-  const shape = chartShape(points, 64, 28, 2);
+  const shape = chartShape(
+    points.map((point) => point.weight),
+    64,
+    28,
+    2,
+  );
   if (!shape) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -37,7 +43,12 @@ export function ProgressSparkline({
 export function ProgressChart({ points }: { points: ProgressPoint[] }) {
   const width = 320;
   const height = 168;
-  const shape = chartShape(points, width, height, 16);
+  const shape = chartShape(
+    points.map((point) => point.weight),
+    width,
+    height,
+    16,
+  );
   if (!shape) {
     return (
       <p className="py-6 text-center text-sm text-muted-foreground">
@@ -135,55 +146,4 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
       </ol>
     </div>
   );
-}
-
-function chartShape(
-  points: ProgressPoint[],
-  width: number,
-  height: number,
-  pad: number,
-): {
-  line: string;
-  area: string;
-  dots: Array<{ x: number; y: number }>;
-  min: number;
-  max: number;
-  gridY: number[];
-} | null {
-  if (points.length === 0) {
-    return null;
-  }
-
-  const weights = points.map((point) => point.weight);
-  let min = Math.min(...weights);
-  let max = Math.max(...weights);
-  if (min === max) {
-    min = min * 0.92;
-    max = max * 1.08 || 1;
-  }
-
-  const innerW = width - pad * 2;
-  const innerH = height - pad * 2;
-  const span = max - min;
-  const step = points.length === 1 ? 0 : innerW / (points.length - 1);
-
-  const dots = points.map((point, index) => {
-    const x = pad + (points.length === 1 ? innerW / 2 : step * index);
-    const y = pad + innerH - ((point.weight - min) / span) * innerH;
-    return { x, y };
-  });
-
-  const line = dots
-    .map((dot, index) => `${index === 0 ? "M" : "L"} ${dot.x} ${dot.y}`)
-    .join(" ");
-  const last = dots[dots.length - 1];
-  const first = dots[0];
-  if (!first || !last) {
-    return null;
-  }
-
-  const area = `${line} L ${last.x} ${height - pad} L ${first.x} ${height - pad} Z`;
-  const gridY = [pad, pad + innerH / 2, pad + innerH];
-
-  return { line, area, dots, min, max, gridY };
 }
