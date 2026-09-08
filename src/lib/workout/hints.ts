@@ -13,10 +13,10 @@ export function todayWeightsHint(
   macroNumber: number | null,
 ): string {
   if (phaseType == null || macroNumber == null) {
-    return "Макроцикла нет — так тоже можно. Веса сегодня как в разгоне: от максимума упражнения. Макроцикл — четыре фазы подряд: разгон, набор, рывок, сброс. Он нужен, если хочешь менять нагрузку кусками, а не руками каждую тренировку.";
+    return "Веса от максимума упражнения, как в разгоне.";
   }
 
-  return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}. Макроцикл — кусок подготовки: разгон → набор → рывок → сброс. От фазы зависят проценты и повторы. Фаза сама не закроется: когда круг очереди пройден, решишь сам.`;
+  return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}.`;
 }
 
 export function templateHasPlanMaxes(

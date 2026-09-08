@@ -157,6 +157,11 @@ export function SettingsScreen() {
             hint="Откуда берутся разминка и рабочие веса"
           />
           <NavRow
+            href="/workouts/macro"
+            title="Макроцикл"
+            hint="Необязателен. Фазы, если хочешь менять нагрузку кусками"
+          />
+          <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
             hint="Белок и веса. Очередь не трогает"

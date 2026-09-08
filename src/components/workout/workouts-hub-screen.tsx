@@ -493,17 +493,17 @@ export function WorkoutsHubScreen() {
             className="animate-rise flex flex-col gap-6"
             style={{ animationDelay: "40ms" }}
           >
-            <section className="flex flex-col gap-2">
-              <div className="flex items-baseline justify-between gap-3 px-1">
-                <h2 className="text-lg font-semibold">Макроцикл</h2>
-                <Link
-                  href="/workouts/macro"
-                  className="text-sm font-medium text-primary"
-                >
-                  {macro?.macro && macro.phase ? "Открыть" : "Завести"}
-                </Link>
-              </div>
-              {macro?.macro && macro.phase ? (
+            {macro?.macro && macro.phase ? (
+              <section className="flex flex-col gap-2">
+                <div className="flex items-baseline justify-between gap-3 px-1">
+                  <h2 className="text-lg font-semibold">Макроцикл</h2>
+                  <Link
+                    href="/workouts/macro"
+                    className="text-sm font-medium text-primary"
+                  >
+                    Открыть
+                  </Link>
+                </div>
                 <Link
                   href="/workouts/macro"
                   className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
@@ -531,14 +531,8 @@ export function WorkoutsHubScreen() {
                     </p>
                   ) : null}
                 </Link>
-              ) : (
-                <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-                  {session
-                    ? weightsHint
-                    : "Необязателен. Без него очередь всё равно идёт."}
-                </p>
-              )}
-            </section>
+              </section>
+            ) : null}
 
             {activeTemplates.length > 0 ? (
               <section className="flex flex-col gap-2">
