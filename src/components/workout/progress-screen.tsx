@@ -19,10 +19,17 @@ import type {
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
+  formatSeconds,
   formatSignedPercent,
   formatSignedWeight,
   formatWeight,
 } from "@/lib/workout/numbers";
+import {
+  CATEGORY_SHORT_LABELS,
+  categoryAverages,
+  hasSecondsSeries,
+  type ProgressMetric,
+} from "@/lib/workout/progress-stats";
 
 type Filter = "all" | ExerciseCategory;
 
@@ -127,6 +134,7 @@ export function ProgressScreen() {
                     ? "Рабочие веса из зала."
                     : "После зала — рабочие веса."}
               </p>
+              <CategoryLine exercises={progress.exercises} />
             </section>
 
             <div className="animate-rise">
@@ -167,6 +175,24 @@ export function ProgressScreen() {
   );
 }
 
+function CategoryLine({ exercises }: { exercises: ExerciseProgress[] }) {
+  const rows = categoryAverages(exercises);
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return (
+    <p className="mt-2 text-sm text-muted-foreground">
+      {rows
+        .map(
+          (row) =>
+            `${CATEGORY_SHORT_LABELS[row.id]} ${formatSignedPercent(row.avg_percent)}`,
+        )
+        .join(" · ")}
+    </p>
+  );
+}
+
 function ExerciseProgressCard({
   item,
   open,
@@ -176,6 +202,12 @@ function ExerciseProgressCard({
   open: boolean;
   onToggle: () => void;
 }) {
+  const secondsOk = hasSecondsSeries(item.points);
+  const [metric, setMetric] = useState<ProgressMetric>(
+    secondsOk ? "seconds" : "weight",
+  );
+  const lastSeconds = item.points.at(-1)?.seconds ?? null;
+
   return (
     <article className="card-surface px-5 py-4">
       <button
@@ -190,6 +222,7 @@ function ExerciseProgressCard({
             {item.current_weight == null
               ? "Нет максимума"
               : `${formatWeight(item.current_weight)} кг`}
+            {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
             {item.delta != null && item.percent != null ? (
               <span
                 className={cn(
@@ -207,8 +240,21 @@ function ExerciseProgressCard({
         <ProgressSparkline points={item.points} />
       </button>
       {open ? (
-        <div className="mt-4 border-t border-border/60 pt-4">
-          <ProgressChart points={item.points} />
+        <div className="mt-4 flex flex-col gap-3 border-t border-border/60 pt-4">
+          {secondsOk ? (
+            <Segmented
+              value={metric}
+              options={[
+                { id: "weight", label: "кг" },
+                { id: "seconds", label: "сек" },
+              ]}
+              onChange={setMetric}
+            />
+          ) : null}
+          <ProgressChart
+            points={item.points}
+            metric={secondsOk ? metric : "weight"}
+          />
         </div>
       ) : null}
     </article>
@@ -220,5 +266,20 @@ function readProgress(data: unknown): StrengthProgress | null {
     return null;
   }
 
-  return data as StrengthProgress;
+  const record = data as StrengthProgress;
+  return {
+    ...record,
+    exercises: record.exercises.map((item) => ({
+      ...item,
+      points: item.points.map((point) => ({
+        ...point,
+        seconds:
+          typeof point.seconds === "number" && point.seconds > 0
+            ? point.seconds
+            : null,
+        phase_type: point.phase_type ?? null,
+        macro_number: point.macro_number ?? null,
+      })),
+    })),
+  };
 }

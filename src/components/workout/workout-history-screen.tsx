@@ -226,6 +226,13 @@ function StatsCard({
             {kinds.join(" · ")}
           </p>
         ) : null}
+        {stats.templates.length > 0 ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {stats.templates
+              .map((item) => `${item.name} · ${item.count}`)
+              .join(", ")}
+          </p>
+        ) : null}
       </div>
       {stats.planTotal > 0 ? (
         <HitRow

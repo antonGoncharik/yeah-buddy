@@ -1,6 +1,7 @@
 import { format, parseISO, subDays } from "date-fns";
 
 import type { RecentWorkoutSession } from "@/lib/types";
+import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export type WorkoutHistoryRange = 14 | 30;
 
@@ -10,6 +11,7 @@ export type WorkoutHistoryStats = {
   static: number;
   planHit: number;
   planTotal: number;
+  templates: Array<{ name: string; count: number }>;
 };
 
 export function windowGymSessions(
@@ -38,6 +40,7 @@ export function summarizeWorkoutHistory(
   let staticCount = 0;
   let planHit = 0;
   let planTotal = 0;
+  const templateCounts = new Map<string, number>();
 
   for (const item of items) {
     if (item.session.workout_type === "static") {
@@ -47,7 +50,21 @@ export function summarizeWorkoutHistory(
     }
     planHit += item.plan_hit ?? 0;
     planTotal += item.plan_total ?? 0;
+
+    const name =
+      item.template_name?.trim() ||
+      WORKOUT_KIND_LABELS[item.session.workout_type];
+    templateCounts.set(name, (templateCounts.get(name) ?? 0) + 1);
   }
+
+  const templates = [...templateCounts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((left, right) => {
+      if (right.count !== left.count) {
+        return right.count - left.count;
+      }
+      return left.name.localeCompare(right.name, "ru");
+    });
 
   return {
     count: items.length,
@@ -55,6 +72,7 @@ export function summarizeWorkoutHistory(
     static: staticCount,
     planHit,
     planTotal,
+    templates,
   };
 }
 

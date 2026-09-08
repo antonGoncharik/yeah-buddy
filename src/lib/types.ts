@@ -400,6 +400,7 @@ export interface SessionDetail {
 export interface ProgressPoint {
   date: string;
   weight: number;
+  seconds: number | null;
   phase_type: PhaseType | null;
   macro_number: number | null;
   label: string;

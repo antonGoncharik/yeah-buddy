@@ -82,6 +82,7 @@ export async function getStrengthProgress(
     list.push({
       date: record.achieved_at.slice(0, 10),
       weight: record.max_weight,
+      seconds: null,
       phase_type: null,
       macro_number: null,
       label: record.achieved_at.slice(0, 10),
@@ -103,6 +104,7 @@ export async function getStrengthProgress(
       phasePoints.push({
         date: phase.start_date,
         weight,
+        seconds: null,
         phase_type: phase.phase_type,
         macro_number: number,
         label:

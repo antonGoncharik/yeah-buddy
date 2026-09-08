@@ -1,7 +1,14 @@
 import { chartShape } from "@/lib/chart-shape";
-import type { ProgressPoint } from "@/lib/types";
+import type { PhaseType, ProgressPoint } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { formatWeight } from "@/lib/workout/numbers";
+import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
+import {
+  hasSecondsSeries,
+  metricPoints,
+  metricValues,
+  type ProgressMetric,
+} from "@/lib/workout/progress-stats";
 
 export function ProgressSparkline({
   points,
@@ -10,12 +17,10 @@ export function ProgressSparkline({
   points: ProgressPoint[];
   className?: string;
 }) {
-  const shape = chartShape(
-    points.map((point) => point.weight),
-    64,
-    28,
-    2,
-  );
+  const metric: ProgressMetric = hasSecondsSeries(points)
+    ? "seconds"
+    : "weight";
+  const shape = chartShape(metricValues(points, metric), 64, 28, 2);
   if (!shape) {
     return <span className="text-sm text-muted-foreground">—</span>;
   }
@@ -40,15 +45,17 @@ export function ProgressSparkline({
   );
 }
 
-export function ProgressChart({ points }: { points: ProgressPoint[] }) {
+export function ProgressChart({
+  points,
+  metric = "weight",
+}: {
+  points: ProgressPoint[];
+  metric?: ProgressMetric;
+}) {
+  const series = metricPoints(points, metric);
   const width = 320;
   const height = 168;
-  const shape = chartShape(
-    points.map((point) => point.weight),
-    width,
-    height,
-    16,
-  );
+  const shape = chartShape(metricValues(series, metric), width, height, 16);
   if (!shape) {
     return (
       <p className="py-6 text-center text-sm text-muted-foreground">
@@ -57,22 +64,34 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
     );
   }
 
-  const first = points[0];
-  const last = points[points.length - 1];
-  if (!first || !last) {
+  const last = series[series.length - 1];
+  if (!last) {
     return null;
   }
+
+  const unit = metric === "seconds" ? "с" : "кг";
+  const formatValue = metric === "seconds" ? formatSeconds : formatWeight;
+  const marks = phaseMarks(series, shape.dots, width, 16);
 
   return (
     <div className="flex flex-col gap-3">
       <svg
+        key={metric}
         viewBox={`0 0 ${width} ${height}`}
         className="h-44 w-full overflow-visible"
         role="img"
-        aria-label="Прогресс рабочих весов"
+        aria-label={
+          metric === "seconds" ? "Прогресс удержания" : "Прогресс рабочих весов"
+        }
       >
         <defs>
-          <linearGradient id="progress-fill" x1="0" x2="0" y1="0" y2="1">
+          <linearGradient
+            id={`progress-fill-${metric}`}
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
             <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.28" />
             <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </linearGradient>
@@ -88,9 +107,21 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
             strokeWidth="1"
           />
         ))}
+        {marks.map((mark) => (
+          <line
+            key={`phase-${mark.x}-${mark.label}`}
+            x1={mark.x}
+            x2={mark.x}
+            y1="28"
+            y2={height - 16}
+            className="stroke-muted-foreground/45"
+            strokeWidth="1"
+            strokeDasharray="4 3"
+          />
+        ))}
         <path
           d={shape.area}
-          fill="url(#progress-fill)"
+          fill={`url(#progress-fill-${metric})`}
           className="origin-bottom motion-safe:animate-fade"
         />
         <path
@@ -112,15 +143,26 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
             style={{ animationDelay: `${120 + index * 40}ms` }}
           />
         ))}
+        {marks.map((mark) => (
+          <text
+            key={`label-${mark.x}-${mark.label}`}
+            x={mark.x}
+            y="22"
+            textAnchor={mark.anchor}
+            className="fill-muted-foreground text-[10px]"
+          >
+            {mark.label}
+          </text>
+        ))}
         <text x="16" y="12" className="fill-muted-foreground text-[11px]">
-          {formatWeight(shape.max)} кг
+          {formatValue(shape.max)} {unit}
         </text>
         <text
           x="16"
           y={height - 4}
           className="fill-muted-foreground text-[11px]"
         >
-          {formatWeight(shape.min)} кг
+          {formatValue(shape.min)} {unit}
         </text>
         <text
           x={width - 16}
@@ -132,18 +174,62 @@ export function ProgressChart({ points }: { points: ProgressPoint[] }) {
         </text>
       </svg>
       <ol className="flex flex-col gap-1.5">
-        {points.slice(-6).map((point) => (
+        {series.slice(-6).map((point) => (
           <li
-            key={`${point.date}-${point.label}-${point.weight}`}
+            key={`${point.date}-${point.label}-${point.weight}-${point.seconds}`}
             className="flex items-baseline justify-between gap-3 text-sm"
           >
             <span className="truncate text-muted-foreground">
               {point.label}
             </span>
-            <span className="font-medium">{formatWeight(point.weight)} кг</span>
+            <span className="font-medium">
+              {formatValue(
+                metric === "seconds" ? (point.seconds ?? 0) : point.weight,
+              )}{" "}
+              {unit}
+            </span>
           </li>
         ))}
       </ol>
     </div>
   );
+}
+
+function phaseMarks(
+  points: ProgressPoint[],
+  dots: Array<{ x: number; y: number }>,
+  width: number,
+  pad: number,
+): Array<{ x: number; label: string; anchor: "start" | "middle" | "end" }> {
+  const marks: Array<{
+    x: number;
+    label: string;
+    anchor: "start" | "middle" | "end";
+  }> = [];
+  let previous: PhaseType | null = null;
+
+  for (let index = 0; index < points.length; index += 1) {
+    const point = points[index];
+    const dot = dots[index];
+    if (!point || !dot || point.phase_type == null) {
+      previous = point?.phase_type ?? null;
+      continue;
+    }
+
+    if (point.phase_type !== previous) {
+      marks.push({
+        x: dot.x,
+        label: PHASE_TYPE_LABELS[point.phase_type],
+        anchor:
+          dot.x < pad + 28
+            ? "start"
+            : dot.x > width - pad - 28
+              ? "end"
+              : "middle",
+      });
+    }
+    previous = point.phase_type;
+  }
+
+  return marks;
 }
