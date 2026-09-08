@@ -132,7 +132,10 @@ export function FoodForm({
   }
 
   return (
-    <form className="animate-rise flex flex-col gap-4 pb-24" onSubmit={onSubmit}>
+    <form
+      className="animate-rise flex flex-col gap-4 pb-24"
+      onSubmit={onSubmit}
+    >
       <Field label="Название">
         <Input
           required
