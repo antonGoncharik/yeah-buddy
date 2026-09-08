@@ -1,7 +1,11 @@
+import { format, parseISO, subDays } from "date-fns";
+
 import type { Macros } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
 
 export const KCAL_HIT_RATIO = 0.1;
+
+export type NutritionRange = 14 | 30;
 
 export type NutritionMetric = "protein" | "fat" | "carbs" | "kcal";
 
@@ -20,13 +24,28 @@ export type NutritionHits = {
 
 export function windowDays(
   items: DayHistoryRow[],
-  limit: number,
+  days: NutritionRange,
+  todayIso: string,
 ): DayHistoryRow[] {
-  if (limit < 1) {
+  const start = rangeStart(todayIso, days);
+  if (!start) {
     return [];
   }
 
-  return items.slice(0, limit);
+  return items.filter((item) => item.date >= start && item.date <= todayIso);
+}
+
+export function hasOlderThanRange(
+  items: DayHistoryRow[],
+  days: NutritionRange,
+  todayIso: string,
+): boolean {
+  const start = rangeStart(todayIso, days);
+  if (!start) {
+    return false;
+  }
+
+  return items.some((item) => item.date < start);
 }
 
 export function chronological(items: DayHistoryRow[]): DayHistoryRow[] {
@@ -169,4 +188,12 @@ export function pluralDays(count: number): string {
     return "дня";
   }
   return "дней";
+}
+
+function rangeStart(todayIso: string, days: NutritionRange): string | null {
+  try {
+    return format(subDays(parseISO(todayIso), days - 1), "yyyy-MM-dd");
+  } catch {
+    return null;
+  }
 }

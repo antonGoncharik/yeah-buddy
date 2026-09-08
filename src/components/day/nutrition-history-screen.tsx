@@ -16,9 +16,11 @@ import { LOAD_FAILED, NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   chronological,
+  hasOlderThanRange,
   type MacroAverages,
   type NutritionHits,
   type NutritionMetric,
+  type NutritionRange,
   nutritionHits,
   pluralDays,
   splitAverages,
@@ -42,6 +44,7 @@ const METRIC_OPTIONS: Array<{ id: NutritionMetric; label: string }> = [
 ];
 
 export function NutritionHistoryScreen() {
+  const today = format(new Date(), "yyyy-MM-dd");
   const [items, setItems] = useState<DayHistoryRow[]>([]);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,15 +94,17 @@ export function NutritionHistoryScreen() {
     void load();
   }, [load]);
 
+  const rangeDays = Number(range) as NutritionRange;
   const windowed = useMemo(
-    () => windowDays(items, Number(range)),
-    [items, range],
+    () => windowDays(items, rangeDays, today),
+    [items, rangeDays, today],
   );
   const averages = useMemo(() => splitAverages(windowed), [windowed]);
   const hits = useMemo(() => nutritionHits(windowed), [windowed]);
   const chartDays = useMemo(() => chronological(windowed), [windowed]);
   const groups = useMemo(() => groupByMonth(items), [items]);
   const showStats = !loading && windowed.length > 0;
+  const showRange = hasOlderThanRange(items, 14, today);
 
   return (
     <div className="flex flex-col gap-4">
@@ -118,7 +123,7 @@ export function NutritionHistoryScreen() {
           </section>
         ) : null}
 
-        {showStats && items.length > 14 ? (
+        {showStats && showRange ? (
           <div className="animate-rise">
             <Segmented
               value={range}
@@ -130,6 +135,7 @@ export function NutritionHistoryScreen() {
 
         {showStats ? (
           <StatsCard
+            days={rangeDays}
             count={windowed.length}
             rest={averages.rest}
             training={averages.training}
@@ -232,11 +238,13 @@ export function NutritionHistoryScreen() {
 }
 
 function StatsCard({
+  days,
   count,
   rest,
   training,
   hits,
 }: {
+  days: NutritionRange;
   count: number;
   rest: MacroAverages | null;
   training: MacroAverages | null;
@@ -247,7 +255,13 @@ function StatsCard({
   return (
     <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
       <p className="text-sm font-medium text-muted-foreground">
-        Среднее за {count} {pluralDays(count)}
+        За {days} дней
+      </p>
+      <p className="text-3xl font-semibold tracking-tight">
+        {count}
+        <span className="ml-2 text-lg font-medium text-muted-foreground">
+          {pluralDays(count)}
+        </span>
       </p>
       {rest ? <TypeAverage label={DAY_TYPE_LABELS.rest} stats={rest} /> : null}
       {training ? (
