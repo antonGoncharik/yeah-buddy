@@ -1,7 +1,21 @@
-import { Bot, InlineKeyboard } from "grammy";
+import { Bot, type Context, InlineKeyboard } from "grammy";
 
+import { ReviewError } from "@/lib/ai/errors";
+import {
+  createReview,
+  getReviewSnapshot,
+  getReviewUserIdByTelegram,
+  parseReviewRange,
+} from "@/lib/ai/review";
+import { formatReviewMessage } from "@/lib/ai/text";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
-import { BOT_OPEN_DIARY, BOT_START } from "@/lib/messages";
+import {
+  AI_REVIEW_EMPTY,
+  AI_REVIEW_FAILED,
+  BOT_OPEN_DIARY,
+  BOT_REVIEW_NEED_APP,
+  BOT_START,
+} from "@/lib/messages";
 
 let bot: Bot | null = null;
 
@@ -42,6 +56,63 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
     });
   });
 
+  instance.command("razbor", (ctx) => replyReview(ctx));
+  instance.command("review", (ctx) => replyReview(ctx));
+
   bot = instance;
   return instance;
+}
+
+async function replyReview(ctx: Context): Promise<void> {
+  const telegramId = ctx.from?.id;
+  if (telegramId == null) {
+    await ctx.reply(BOT_REVIEW_NEED_APP);
+    return;
+  }
+
+  const raw = typeof ctx.match === "string" ? ctx.match.trim() : "";
+  const range = parseReviewRange(raw || "14") ?? 14;
+  const userId = await getReviewUserIdByTelegram(telegramId);
+  if (!userId) {
+    await ctx.reply(BOT_REVIEW_NEED_APP);
+    return;
+  }
+
+  await ctx.replyWithChatAction("typing");
+
+  try {
+    const preview = await getReviewSnapshot(userId, range);
+    if (preview.brief.coverage === "empty") {
+      await ctx.reply(AI_REVIEW_EMPTY);
+      return;
+    }
+
+    if (!preview.configured) {
+      const facts = preview.brief.signals.join("\n");
+      await ctx.reply(clipMessage(facts || AI_REVIEW_EMPTY));
+      return;
+    }
+
+    const snapshot = await createReview(userId, range);
+    if (!snapshot.review) {
+      await ctx.reply(clipMessage(preview.brief.signals.join("\n")));
+      return;
+    }
+
+    await ctx.reply(clipMessage(formatReviewMessage(snapshot.review)));
+  } catch (error) {
+    if (error instanceof ReviewError) {
+      await ctx.reply(error.message);
+      return;
+    }
+    console.error(error);
+    await ctx.reply(AI_REVIEW_FAILED);
+  }
+}
+
+function clipMessage(text: string): string {
+  if (text.length <= 4000) {
+    return text;
+  }
+  return `${text.slice(0, 3997)}…`;
 }

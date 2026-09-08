@@ -611,6 +611,12 @@ export function WorkoutsHubScreen() {
                 Упражнения
               </Link>
             </nav>
+            <Link
+              href="/settings/review?from=workouts"
+              className="card-surface px-5 py-4 text-base font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+            >
+              Разбор еды и зала
+            </Link>
           </div>
         ) : null}
 

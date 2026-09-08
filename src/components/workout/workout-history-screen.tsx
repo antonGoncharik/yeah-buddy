@@ -137,6 +137,26 @@ export function WorkoutHistoryScreen() {
 
         {showStats ? <StatsCard days={rangeDays} stats={stats} /> : null}
 
+        {showStats ? (
+          <Link
+            href="/settings/review?from=gym"
+            className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-medium">
+                Разбор еды и зала
+              </span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">
+                Цифры уже на экране — Gemini свяжет БЖУ, фазу и зал
+              </span>
+            </span>
+            <ChevronRight
+              className="size-5 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
+          </Link>
+        ) : null}
+
         {!loading && groups.length > 0 ? (
           <div className="animate-rise flex flex-col gap-6">
             {groups.map((group) => (

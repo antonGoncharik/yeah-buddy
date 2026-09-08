@@ -36,13 +36,17 @@ TELEGRAM_BOT_TOKEN=
 SESSION_SECRET=
 NEXT_PUBLIC_APP_URL=
 TELEGRAM_MINI_APP_URL=
+GEMINI_API_KEY=
+GEMINI_MODEL=
 ```
 
 `SESSION_SECRET` — не короче 32 символов.
 
 `TELEGRAM_MINI_APP_URL` или `NEXT_PUBLIC_APP_URL` — HTTPS URL Mini App для кнопки бота. Без HTTPS кнопка не ставится.
 
-На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`. В клиентский бандл не класть.
+`GEMINI_API_KEY` — необязательный. Без него `/settings/review` показывает только посчитанные факты. `GEMINI_MODEL` по умолчанию `gemini-2.5-flash`.
+
+На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY`. В клиентский бандл не класть.
 
 ---
 
@@ -94,6 +98,7 @@ TELEGRAM_MINI_APP_URL=
 /settings/meals/[dayType]/[mealType]/add/[foodId]
 /settings/meals/[dayType]/items/[itemId]
 /settings/formulas                  проценты, разминки, рабочие подходы
+/settings/review                    разбор еды и зала: факты, затем текст Gemini
 ```
 
 ### Зал
@@ -391,13 +396,26 @@ FLOOR вниз, не к ближайшему. Шаг на упражнении.
 
 ## 9. Бот и Mini App
 
-Бот: только `/start`. Текст — дневник питания и тренировок. Кнопка «Открыть дневник» (webApp).
+Бот: `/start` и `/razbor` (алиас `/review`).
+
+`/start` — дневник питания и тренировок. Кнопка «Открыть дневник» (webApp).
+
+`/razbor` и `/razbor 30` — разбор за 14 или 30 дней. Без ключа Gemini бот отдаёт только посчитанные факты.
 
 Webhook: `POST /api/telegram/webhook`.
 
 Уведомлений, рассылок, Stars нет.
 
 Mini App: `ready` + `expand`, авторизация `initData`, иначе экран «через бота».
+
+Разбор: код считает бриф (средние БЖУ, попадания, топ продуктов, план vs факт, фаза, максимумы). Gemini пишет текст только по брифу. Сырые приёмы и подходы в модель не идут, кроме топа продуктов и коротких заметок сессий.
+
+```text
+GET  /api/ai/review?days=14|30
+POST /api/ai/review            { days: 14 | 30 }
+```
+
+Не медсовет, не новая программа, не смена формул.
 
 ---
 
@@ -507,6 +525,7 @@ work = Рабочий
 10. UI русский, мобильный.
 11. Кэш last-known — показывать сразу; полный offline-first не делать.
 12. Шаблоны еды правит экран `/settings/meals`. Сид не затирает уже существующий шаблон.
+13. Разбор: цифры считает код. Модель не пересчитывает БЖУ и веса и не выдумывает записи.
 
 ---
 

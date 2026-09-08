@@ -147,6 +147,11 @@ export function SettingsScreen() {
             hint="По дням, средние и кривая"
           />
           <NavRow
+            href="/settings/review"
+            title="Разбор"
+            hint="Еда и зал за 14 или 30 дней"
+          />
+          <NavRow
             href="/settings/formulas"
             title="Схема подходов"
             hint="Откуда берутся разминка и рабочие веса"

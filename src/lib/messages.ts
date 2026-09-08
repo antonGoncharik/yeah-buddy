@@ -4,8 +4,9 @@ export const FOODS_EMPTY = "Продуктов пока нет.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
 export const BOT_START =
-  "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.";
+  "Привет! Это дневник питания и тренировок.\n\nПродукты, приёмы пищи, БЖУ за день и зал — в одном месте.\n\nРазбор лога: /razbor";
 export const BOT_OPEN_DIARY = "Открыть дневник";
+export const BOT_REVIEW_NEED_APP = "Сначала открой дневник в приложении.";
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение и сколько сейчас жмёшь.";
 export const WORKOUTS_NEED_EXERCISES =
@@ -19,6 +20,11 @@ export const NUTRITION_HISTORY_EMPTY =
 export const SESSION_PLAN_EMPTY =
   "В план не попало ни одного упражнения: нет максимума или схема «не считается». Задай максимум, потом добавь упражнение сюда.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
+export const AI_REVIEW_EMPTY =
+  "Мало записей. Нужно несколько дней еды или закрытых тренировок.";
+export const AI_REVIEW_NO_KEY =
+  "Текст от Gemini появится, когда в env будет ключ.";
+export const AI_REVIEW_FAILED = "Не получилось написать разбор.";
 
 export function readApiError(data: unknown): string | null {
   if (
