@@ -26,9 +26,7 @@ export async function listSessionWorkInfo(
   userId: string,
   sessions: WorkoutSession[],
 ): Promise<Map<string, SessionWorkInfo>> {
-  const gymIds = sessions
-    .filter((session) => session.kind === "gym")
-    .map((session) => session.id);
+  const gymIds = sessions.map((session) => session.id);
   const info = new Map<string, SessionWorkInfo>();
   if (gymIds.length === 0) {
     return info;
@@ -62,15 +60,11 @@ export async function listExerciseWorkPoints(
     .select("id, session_date, phase_id")
     .eq("user_id", userId)
     .eq("status", "completed")
-    .eq("kind", "gym")
     .not("template_id", "is", null)
     .order("session_date", { ascending: true })
     .order("created_at", { ascending: true });
 
   if (sessionsResult.error) {
-    if (isMissingKindColumn(sessionsResult.error.message)) {
-      return listExerciseWorkPointsWithoutKind(userId);
-    }
     throw sessionsResult.error;
   }
 
@@ -84,33 +78,6 @@ export async function listExerciseWorkPoints(
         typeof row.phase_id === "string" && row.phase_id !== ""
           ? row.phase_id
           : null,
-    })),
-  );
-}
-
-async function listExerciseWorkPointsWithoutKind(
-  userId: string,
-): Promise<Map<string, ProgressPoint[]>> {
-  const supabase = createSupabaseServerClient();
-  const sessionsResult = await supabase
-    .from("workout_sessions")
-    .select("id, session_date")
-    .eq("user_id", userId)
-    .eq("status", "completed")
-    .not("template_id", "is", null)
-    .order("session_date", { ascending: true })
-    .order("created_at", { ascending: true });
-
-  if (sessionsResult.error) {
-    throw sessionsResult.error;
-  }
-
-  return pointsFromSessions(
-    userId,
-    (sessionsResult.data ?? []).map((row) => ({
-      id: String(row.id),
-      session_date: String(row.session_date).slice(0, 10),
-      phase_id: null,
     })),
   );
 }
@@ -398,8 +365,4 @@ function formatWorkDate(isoDate: string): string {
   } catch {
     return isoDate;
   }
-}
-
-function isMissingKindColumn(message: string): boolean {
-  return message.includes("kind") && message.includes("does not exist");
 }

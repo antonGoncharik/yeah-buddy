@@ -70,10 +70,10 @@ export function bannerFromTodayState(
     };
   }
 
-  if (nextTemplate && options.isToday && options.isTrainingDay) {
+  if (nextTemplate && options.isToday) {
     return {
       href: "/workouts",
-      label: "В зале",
+      label: options.isTrainingDay ? "В зале" : "В очереди",
       title: nextTemplate.name,
       hint: "Начать",
     };

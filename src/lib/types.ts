@@ -128,7 +128,7 @@ export interface MealTemplateDetail extends MealTemplate {
   items: MealTemplateItemView[];
 }
 
-export type ExerciseCategory = "base" | "armwrestling" | "isolation";
+export type ExerciseCategory = "base" | "isolation";
 
 export type ExerciseWorkoutType = "dynamic" | "static" | "both";
 
@@ -141,8 +141,6 @@ export type PhaseType = "ramp" | "volume" | "peak" | "deload";
 export type CycleStatus = "current" | "completed";
 
 export type MaxSource = "auto" | "manual";
-
-export type SessionKind = "gym" | "table";
 
 export type SessionStatus = "planned" | "completed" | "skipped";
 
@@ -285,7 +283,6 @@ export interface WorkoutSession {
   macro_cycle_id: string | null;
   phase_id: string | null;
   workout_type: WorkoutKind;
-  kind: SessionKind;
   template_id: string | null;
   status: SessionStatus;
   note: string | null;

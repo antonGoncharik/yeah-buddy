@@ -107,10 +107,7 @@ export function SessionScreen() {
             return false;
           }
           applyDetail(next);
-          if (
-            next.session.status === "completed" &&
-            next.session.kind === "gym"
-          ) {
+          if (next.session.status === "completed") {
             void loadFollowUp(next.session.session_date);
           } else {
             setNextName(null);
@@ -189,9 +186,7 @@ export function SessionScreen() {
         writeJson(sessionUrl, data);
         applyDetail(next);
         setCorrecting(false);
-        if (next.session.kind === "gym") {
-          await loadFollowUp(next.session.session_date);
-        }
+        await loadFollowUp(next.session.session_date);
       }
     } catch {
       setError(LOAD_FAILED);
@@ -455,11 +450,8 @@ export function SessionScreen() {
             ) : (
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
-                  <p className="border-b border-border/70 px-5 py-3 text-sm leading-relaxed text-muted-foreground">
-                    Это шпаргалка на сегодня. Если в зале вышло иначе — нажми
-                    подход и поправь цифры. В конце одна кнопка «Готово»: не
-                    трогал подходы — запишется план, правил — запишутся твои
-                    цифры. Больше ничего жать не нужно.
+                  <p className="border-b border-border/70 px-5 py-3 text-sm text-muted-foreground">
+                    Не так — нажми подход. В конце «Готово».
                   </p>
                 ) : null}
                 {detail.exercises.map((item) => (
@@ -467,7 +459,7 @@ export function SessionScreen() {
                     key={item.id}
                     item={item}
                     openSetIds={openSetIds}
-                    warmupOpen={warmupOpen[item.id] !== false}
+                    warmupOpen={warmupOpen[item.id] === true}
                     workOpen={workOpen[item.id] !== false}
                     disabled={busy || !canEditSets}
                     showActual={session.status === "completed"}
@@ -483,7 +475,7 @@ export function SessionScreen() {
                     onToggleWarmup={() =>
                       setWarmupOpen((current) => ({
                         ...current,
-                        [item.id]: current[item.id] === false,
+                        [item.id]: current[item.id] !== true,
                       }))
                     }
                     onToggleWork={() =>
@@ -885,13 +877,19 @@ function SetEditor({
           onChange={(value) => onDraft({ weight: value })}
         />
         {setUsesSeconds(set) ? (
-          <FieldInput
-            label="сек"
-            value={draft.seconds}
-            disabled={disabled}
-            inputMode="decimal"
-            onChange={(value) => onDraft({ seconds: value })}
-          />
+          <>
+            <FieldInput
+              label="сек"
+              value={draft.seconds}
+              disabled={disabled}
+              inputMode="decimal"
+              onChange={(value) => onDraft({ seconds: value })}
+            />
+            <HoldTimer
+              seconds={parseDecimal(draft.seconds)}
+              disabled={disabled}
+            />
+          </>
         ) : (
           <FieldInput
             label="раз"
@@ -903,6 +901,44 @@ function SetEditor({
         )}
       </div>
     </div>
+  );
+}
+
+function HoldTimer({
+  seconds,
+  disabled,
+}: {
+  seconds: number | null;
+  disabled: boolean;
+}) {
+  const [left, setLeft] = useState<number | null>(null);
+  const total = seconds != null && seconds > 0 ? Math.round(seconds) : 0;
+
+  useEffect(() => {
+    if (left == null || left <= 0) {
+      return;
+    }
+    const id = window.setTimeout(() => setLeft(left - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [left]);
+
+  if (total <= 0) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      className="col-span-2 h-11 rounded-lg bg-background text-base font-medium disabled:opacity-50"
+      disabled={disabled}
+      onClick={() => setLeft(total)}
+    >
+      {left == null
+        ? `Засечь ${total} с`
+        : left === 0
+          ? "Ещё раз"
+          : `${left} с`}
+    </button>
   );
 }
 

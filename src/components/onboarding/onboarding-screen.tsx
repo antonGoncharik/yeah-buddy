@@ -414,7 +414,8 @@ function MaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько поднимаешь сейчас. Пустое — ладно, допишешь в упражнениях.
+        Рабочий вес, от него считаются подходы. Не обязательно на раз. Пустое —
+        допишешь в упражнениях.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

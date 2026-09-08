@@ -61,7 +61,7 @@ export async function getSessionDetail(
   sessionId: string,
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (session?.kind !== "gym") {
+  if (!session) {
     return null;
   }
 
@@ -75,7 +75,7 @@ export async function addExerciseToSession(
   exerciseId: string,
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (session?.kind !== "gym") {
+  if (!session) {
     return null;
   }
 
@@ -235,7 +235,7 @@ export async function completeSessionAsPlanned(
   input: CompleteSessionInput = {},
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
-  if (session?.kind !== "gym") {
+  if (!session) {
     return null;
   }
 
@@ -293,18 +293,12 @@ export async function completeSessionAsPlanned(
     status: "completed",
     note: input.note !== undefined ? input.note : undefined,
   });
-  if (session.kind === "gym") {
-    await clearSkipTemplateIds(userId);
-  }
+  await clearSkipTemplateIds(userId);
   const refreshed = await getSession(userId, sessionId);
   return refreshed ? loadSessionDetail(userId, refreshed) : null;
 }
 
 async function ensureSessionPlan(userId: string, session: WorkoutSession) {
-  if (session.kind === "table") {
-    return;
-  }
-
   const supabase = createSupabaseServerClient();
   const existing = await supabase
     .from("session_exercises")

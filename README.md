@@ -47,7 +47,7 @@ npm run dev
 | `NEXT_PUBLIC_APP_URL` | нет | URL приложения; fallback для Mini App |
 | `TELEGRAM_MINI_APP_URL` | нет | HTTPS URL Mini App (приоритетнее) |
 
-Миграции: `supabase/migrations/0001_init.sql` … `0007_session_kind.sql` — по порядку в SQL Editor или через Supabase CLI.
+Миграции: `supabase/migrations/0001_init.sql` … `0011_drop_session_kind.sql` — по порядку в SQL Editor или через Supabase CLI.
 
 Бот: `/start` и кнопка «Открыть дневник», если задан **https**-URL (`TELEGRAM_MINI_APP_URL` или `NEXT_PUBLIC_APP_URL`). Вебхук: `POST /api/telegram/webhook`.
 

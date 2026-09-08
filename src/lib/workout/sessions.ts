@@ -9,7 +9,6 @@ import { WORKOUTS_NEED_MAXES } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   RecentWorkoutSession,
-  SessionKind,
   SessionStatus,
   TodayWorkoutState,
   WorkoutKind,
@@ -96,10 +95,9 @@ export async function listSessionsOnDate(
 export async function getSessionOnDate(
   userId: string,
   date: string,
-  kind: SessionKind,
 ): Promise<WorkoutSession | null> {
   const sessions = await listSessionsOnDate(userId, date);
-  return sessions.find((session) => session.kind === kind) ?? null;
+  return sessions[0] ?? null;
 }
 
 export async function getSession(
@@ -132,7 +130,7 @@ export async function getTodayWorkoutState(
   const settings = await ensureWorkoutSettings(userId);
   await ensureStarterExercises(createSupabaseServerClient(), userId);
   const onDate = await listSessionsOnDate(userId, date);
-  const gym = onDate.find((session) => session.kind === "gym") ?? null;
+  const gym = onDate[0] ?? null;
   const macro = await getCurrentMacroState(userId);
   const nextTemplate = await getNextTemplate(userId, macro.phase?.id ?? null);
   const active = await listActiveTemplates(userId);
@@ -144,11 +142,7 @@ export async function getTodayWorkoutState(
     ? await getTemplate(userId, gym.template_id)
     : null;
 
-  const yesterdayGym = await getSessionOnDate(
-    userId,
-    previousIsoDate(date),
-    "gym",
-  );
+  const yesterdayGym = await getSessionOnDate(userId, previousIsoDate(date));
 
   return {
     session: gym,
@@ -185,7 +179,6 @@ export async function listSessionHistory(
     .from("workout_sessions")
     .select("*")
     .eq("user_id", userId)
-    .eq("kind", "gym")
     .in("status", statuses)
     .order("session_date", { ascending: false })
     .order("created_at", { ascending: false })
@@ -243,7 +236,6 @@ async function listUnfinishedGym(
     .from("workout_sessions")
     .select("*")
     .eq("user_id", userId)
-    .eq("kind", "gym")
     .eq("status", "planned")
     .neq("session_date", exceptDate)
     .order("session_date", { ascending: false })
@@ -309,7 +301,7 @@ export async function createSession(
   userId: string,
   input: CreateSessionInput,
 ): Promise<WorkoutSession> {
-  const existing = await getSessionOnDate(userId, input.session_date, "gym");
+  const existing = await getSessionOnDate(userId, input.session_date);
   if (existing) {
     throw new SessionConflictError();
   }
@@ -358,7 +350,6 @@ async function insertSession(
       template_id: input.template_id,
       status: "planned",
       note: input.note,
-      kind: "gym",
     })
     .select("*")
     .single();
@@ -446,7 +437,6 @@ export function mapWorkoutSession(
     macro_cycle_id: toNullableString(row.macro_cycle_id),
     phase_id: toNullableString(row.phase_id),
     workout_type: toWorkoutKind(row.workout_type),
-    kind: toSessionKind(row.kind),
     template_id: toNullableString(row.template_id),
     status: toSessionStatus(row.status),
     note: toNullableString(row.note),
@@ -456,10 +446,6 @@ export function mapWorkoutSession(
 
 function toWorkoutKind(value: unknown): WorkoutKind {
   return value === "static" ? "static" : "dynamic";
-}
-
-function toSessionKind(value: unknown): SessionKind {
-  return value === "table" ? "table" : "gym";
 }
 
 function toSessionStatus(value: unknown): SessionStatus {

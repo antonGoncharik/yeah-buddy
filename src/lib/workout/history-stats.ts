@@ -25,7 +25,7 @@ export function windowGymSessions(
   }
 
   return items.filter((item) => {
-    if (item.session.kind !== "gym" || item.session.status !== "completed") {
+    if (item.session.status !== "completed") {
       return false;
     }
     const date = item.session.session_date;
@@ -87,7 +87,7 @@ export function hasOlderThanRange(
   }
 
   return items.some((item) => {
-    if (item.session.kind !== "gym" || item.session.status !== "completed") {
+    if (item.session.status !== "completed") {
       return false;
     }
     return item.session.session_date < start;

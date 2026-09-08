@@ -507,11 +507,7 @@ function resolveAchievedAt(value: string | undefined): string {
 }
 
 function toCategory(value: unknown): ExerciseCategory {
-  if (value === "base" || value === "armwrestling" || value === "isolation") {
-    return value;
-  }
-
-  return "base";
+  return value === "isolation" ? "isolation" : "base";
 }
 
 function toWorkoutType(value: unknown): ExerciseWorkoutType {

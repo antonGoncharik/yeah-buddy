@@ -68,7 +68,6 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const gymStats = summarizeWorkoutHistory(gymWindow);
   const skipped = source.sessions.filter(
     (item) =>
-      item.session.kind === "gym" &&
       item.session.status === "skipped" &&
       item.session.session_date >= source.from &&
       item.session.session_date <= source.to,
@@ -360,9 +359,6 @@ function compactSessions(
   return items.flatMap((item) => {
     const date = item.session.session_date;
     if (date < from || date > to) {
-      return [];
-    }
-    if (item.session.kind !== "gym") {
       return [];
     }
     if (

@@ -21,6 +21,8 @@ export function DaySummary({
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
+  const remainingProtein = day.target_protein - fact.protein;
+  const proteinOverflow = remainingProtein < 0;
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
@@ -41,6 +43,16 @@ export function DaySummary({
             <span className="ml-1.5 text-lg font-medium text-muted-foreground">
               ккал
             </span>
+          </p>
+          <p
+            className={cn(
+              "mt-1 text-base font-medium tabular-nums",
+              proteinOverflow ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
+            {proteinOverflow
+              ? `сверх ${formatMacro(Math.abs(remainingProtein))} г белка`
+              : `ещё ${formatMacro(remainingProtein)} г белка`}
           </p>
         </div>
         <div className="text-right">

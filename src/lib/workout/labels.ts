@@ -10,11 +10,7 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 
-export const EXERCISE_CATEGORIES = [
-  "base",
-  "armwrestling",
-  "isolation",
-] as const;
+export const EXERCISE_CATEGORIES = ["base", "isolation"] as const;
 
 export const EXERCISE_WORKOUT_TYPES = ["dynamic", "static", "both"] as const;
 
@@ -35,7 +31,6 @@ export const PHASE_ORDER: Record<PhaseType, number> = {
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
-  armwrestling: "База",
   isolation: "Изоляция",
 };
 
