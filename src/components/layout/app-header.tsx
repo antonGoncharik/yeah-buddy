@@ -2,6 +2,8 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { TelegramBackButton } from "@/components/layout/telegram-back-button";
+
 export function AppHeader({
   title,
   subtitle,
@@ -16,13 +18,16 @@ export function AppHeader({
   return (
     <header className="flex items-center gap-2 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
       {backHref ? (
-        <Link
-          href={backHref}
-          className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
-          aria-label="Назад"
-        >
-          <ChevronLeft className="size-6" />
-        </Link>
+        <>
+          <TelegramBackButton href={backHref} />
+          <Link
+            href={backHref}
+            className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+            aria-label="Назад"
+          >
+            <ChevronLeft className="size-6" />
+          </Link>
+        </>
       ) : null}
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-2xl font-semibold tracking-tight">
