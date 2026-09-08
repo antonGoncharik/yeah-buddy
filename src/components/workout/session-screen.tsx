@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
@@ -265,6 +266,47 @@ export function SessionScreen() {
     }
   }
 
+  async function removeExercise(sessionExerciseId: string) {
+    if (!detail) {
+      return;
+    }
+
+    const ok = await confirm({
+      message: "Убрать упражнение из тренировки?",
+      confirmLabel: "Убрать",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}`,
+        { method: "DELETE" },
+      );
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+
+      const next = readDetail(data);
+      if (next) {
+        writeJson(sessionUrl, data);
+        applyDetail(next);
+      }
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function openPicker() {
     setPickerOpen((current) => !current);
     if (catalog) {
@@ -443,6 +485,11 @@ export function SessionScreen() {
                         ...current,
                         [setId]: { ...current[setId], ...patch },
                       }))
+                    }
+                    onRemove={
+                      session.status === "planned"
+                        ? () => void removeExercise(item.id)
+                        : undefined
                     }
                   />
                 ))}
@@ -636,6 +683,7 @@ function ExerciseRow({
   onToggleWarmup,
   onToggleWork,
   onDraft,
+  onRemove,
 }: {
   item: SessionExerciseDetail;
   openSetIds: string[];
@@ -648,6 +696,7 @@ function ExerciseRow({
   onToggleWarmup: () => void;
   onToggleWork: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
+  onRemove?: () => void;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
@@ -668,9 +717,14 @@ function ExerciseRow({
   return (
     <div className="border-b border-border/70 last:border-b-0">
       <div className="flex flex-col items-start gap-2.5 px-5 py-4">
-        <h3 className="text-xl font-semibold tracking-tight">
-          {item.exercise.short_name || item.exercise.name}
-        </h3>
+        <div className="flex w-full items-start gap-2">
+          <h3 className="min-w-0 flex-1 text-xl font-semibold tracking-tight">
+            {item.exercise.short_name || item.exercise.name}
+          </h3>
+          {onRemove ? (
+            <RemoveRowButton disabled={disabled} onClick={onRemove} />
+          ) : null}
+        </div>
         {warmup.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1">
             <button
