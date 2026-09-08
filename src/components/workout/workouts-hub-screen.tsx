@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
+import { previousIsoDate } from "@/lib/days";
 import {
   LOAD_FAILED,
   readApiError,
@@ -59,6 +60,7 @@ export function WorkoutsHubScreen() {
     null,
   );
   const [canUnskip, setCanUnskip] = useState(false);
+  const [canBackfillYesterday, setCanBackfillYesterday] = useState(false);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -120,6 +122,7 @@ export function WorkoutsHubScreen() {
           setRecent(readRecent(data));
           setPhaseCircle(readPhaseCircle(data));
           setCanUnskip(readCanUnskip(data));
+          setCanBackfillYesterday(readCanBackfillYesterday(data));
           return true;
         },
         showCached,
@@ -142,19 +145,21 @@ export function WorkoutsHubScreen() {
     void load();
   }, [load]);
 
-  async function createToday(templateId: string) {
+  async function createOnDate(templateId: string, sessionDate: string) {
     setCreating(true);
     setError(null);
 
     try {
       const dayResponse = await fetch(
-        `/api/days?date=${encodeURIComponent(date)}`,
+        `/api/days?date=${encodeURIComponent(sessionDate)}`,
       );
       const dayData: unknown = await dayResponse.json().catch(() => null);
       if (dayResponse.ok && isRestFoodDay(dayData)) {
         const ok = await confirm({
           message:
-            "День уже заведён как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт.",
+            sessionDate === date
+              ? "День уже заведён как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт."
+              : "За этот день еда уже заведена как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт.",
           confirmLabel: "Сделать тренировочным",
           cancelLabel: "Отмена",
         });
@@ -167,7 +172,7 @@ export function WorkoutsHubScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_date: date,
+          session_date: sessionDate,
           template_id: templateId,
         }),
       });
@@ -253,7 +258,7 @@ export function WorkoutsHubScreen() {
       }
     }
 
-    void createToday(template.id);
+    void createOnDate(template.id, date);
   }
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
@@ -403,7 +408,7 @@ export function WorkoutsHubScreen() {
               type="button"
               className="h-14 text-lg"
               disabled={creating || skipping}
-              onClick={() => void createToday(nextTemplate.id)}
+              onClick={() => void createOnDate(nextTemplate.id, date)}
             >
               Начать
             </Button>
@@ -429,7 +434,38 @@ export function WorkoutsHubScreen() {
                 Вернуть в очередь
               </Button>
             ) : null}
+            {canBackfillYesterday ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 text-base text-muted-foreground"
+                disabled={creating || skipping}
+                onClick={() =>
+                  void createOnDate(nextTemplate.id, previousIsoDate(date))
+                }
+              >
+                Записать вчера
+              </Button>
+            ) : null}
           </section>
+        ) : null}
+
+        {!loading &&
+        !error &&
+        session &&
+        nextTemplate &&
+        canBackfillYesterday ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 text-base text-muted-foreground"
+            disabled={creating || skipping}
+            onClick={() =>
+              void createOnDate(nextTemplate.id, previousIsoDate(date))
+            }
+          >
+            Записать вчера
+          </Button>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
@@ -659,6 +695,15 @@ function readCanUnskip(data: unknown): boolean {
       typeof data === "object" &&
       "can_unskip" in data &&
       data.can_unskip === true,
+  );
+}
+
+function readCanBackfillYesterday(data: unknown): boolean {
+  return Boolean(
+    data &&
+      typeof data === "object" &&
+      "can_backfill_yesterday" in data &&
+      data.can_backfill_yesterday === true,
   );
 }
 

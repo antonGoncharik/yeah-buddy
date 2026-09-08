@@ -299,6 +299,7 @@ export interface TodayWorkoutState {
   unfinished: RecentWorkoutSession[];
   recent: RecentWorkoutSession[];
   can_unskip: boolean;
+  can_backfill_yesterday: boolean;
   phase_circle: PhaseCircleProgress | null;
 }
 

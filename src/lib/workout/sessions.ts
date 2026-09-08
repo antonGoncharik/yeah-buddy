@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { isIsoDate, markDateAsTrainingIfExists } from "@/lib/days";
+import {
+  isIsoDate,
+  markDateAsTrainingIfExists,
+  previousIsoDate,
+} from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   RecentWorkoutSession,
@@ -130,6 +134,12 @@ export async function getTodayWorkoutState(
     ? await getTemplate(userId, gym.template_id)
     : null;
 
+  const yesterdayGym = await getSessionOnDate(
+    userId,
+    previousIsoDate(date),
+    "gym",
+  );
+
   return {
     session: gym,
     next_template: nextTemplate,
@@ -144,6 +154,7 @@ export async function getTodayWorkoutState(
       statuses: ["completed"],
     }).then((page) => page.items),
     can_unskip: settings.skip_template_ids.length > 0,
+    can_backfill_yesterday: yesterdayGym == null,
     phase_circle: macro.phase_circle,
   };
 }
