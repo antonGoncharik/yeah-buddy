@@ -28,6 +28,7 @@ type FormState = {
   name: string;
   short_name: string;
   workout_type: ExerciseWorkoutType;
+  category: ExerciseCategory;
   weight_step: number;
   formula_preset: FormulaPreset;
   max_weight: string;
@@ -149,6 +150,12 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             setForm((current) => ({
               ...current,
               workout_type,
+              category:
+                workout_type === "both"
+                  ? "armwrestling"
+                  : current.workout_type === "both"
+                    ? "base"
+                    : current.category,
               ...(workout_type === "both" || workout_type === "static"
                 ? { weight_step: 1, formula_preset: "cable" as const }
                 : current.workout_type === "both" ||
@@ -159,6 +166,24 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           }
         />
       </Field>
+
+      {form.workout_type === "both" ? null : (
+        <Field label="Категория">
+          <Segmented
+            value={form.category === "isolation" ? "isolation" : "base"}
+            options={[
+              { id: "base", label: "База" },
+              { id: "isolation", label: "Изоляция" },
+            ]}
+            onChange={(category) =>
+              setForm((current) => ({
+                ...current,
+                category: category as "base" | "isolation",
+              }))
+            }
+          />
+        </Field>
+      )}
 
       <Field label="Шаг веса">
         <Segmented
@@ -293,6 +318,12 @@ function toFormState(exercise?: ExerciseWithMax): FormState {
     name: exercise?.name ?? "",
     short_name: exercise?.short_name ?? "",
     workout_type: exercise?.workout_type ?? "dynamic",
+    category:
+      exercise?.workout_type === "both"
+        ? "armwrestling"
+        : exercise?.category === "isolation"
+          ? "isolation"
+          : "base",
     weight_step: exercise?.weight_step ?? 2.5,
     formula_preset: exercise?.formula_preset ?? "barbell",
     max_weight: exercise?.current_max
@@ -307,7 +338,11 @@ function toPayload(form: FormState, isEdit: boolean, canCorrectMax: boolean) {
   }
 
   const category: ExerciseCategory =
-    form.workout_type === "both" ? "armwrestling" : "base";
+    form.workout_type === "both"
+      ? "armwrestling"
+      : form.category === "isolation"
+        ? "isolation"
+        : "base";
   const unit = form.workout_type === "static" ? "seconds" : "reps";
   const shared = {
     name: form.name.trim(),
