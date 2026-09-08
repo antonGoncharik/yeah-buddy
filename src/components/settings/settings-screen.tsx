@@ -142,9 +142,9 @@ export function SettingsScreen() {
             hint="Что подставится в новый день отдыха или тренировки"
           />
           <NavRow
-            href="/today/history"
+            href="/today/history?from=settings"
             title="История еды"
-            hint="Просмотр по дням, без правок"
+            hint="По дням, средние и кривая"
           />
           <NavRow
             href="/settings/formulas"

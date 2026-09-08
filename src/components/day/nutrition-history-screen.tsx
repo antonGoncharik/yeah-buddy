@@ -4,6 +4,7 @@ import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
@@ -45,6 +46,7 @@ const METRIC_OPTIONS: Array<{ id: NutritionMetric; label: string }> = [
 
 export function NutritionHistoryScreen() {
   const today = format(new Date(), "yyyy-MM-dd");
+  const fromSettings = useSearchParams().get("from") === "settings";
   const [items, setItems] = useState<DayHistoryRow[]>([]);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,10 @@ export function NutritionHistoryScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="История еды" backHref="/today" />
+      <AppHeader
+        title="История еды"
+        backHref={fromSettings ? "/settings" : "/today"}
+      />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         {loading ? <ScreenLoading /> : null}

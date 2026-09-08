@@ -2,7 +2,7 @@
 
 import { CalendarDays, Dumbbell, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,10 @@ const ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fromSettings =
+    pathname.startsWith("/today/history") &&
+    searchParams.get("from") === "settings";
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-border/70 bg-background/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
@@ -21,10 +25,16 @@ export function BottomNav() {
         {ITEMS.map((item) => {
           const active =
             item.href === "/settings"
-              ? pathname.startsWith("/settings") ||
+              ? fromSettings ||
+                pathname.startsWith("/settings") ||
                 pathname.startsWith("/foods") ||
                 pathname.startsWith("/food/")
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : item.href === "/today"
+                ? !fromSettings &&
+                  (pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`))
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 
           return (
