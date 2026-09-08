@@ -1,3 +1,7 @@
+import {
+  DEFAULT_REST_MACRO_GOALS,
+  DEFAULT_TRAINING_MACRO_GOALS,
+} from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { User } from "@/lib/types";
 
@@ -83,9 +87,15 @@ export async function upsertTelegramUser(
   }
 
   if (!settings.data) {
-    const insertedSettings = await supabase
-      .from("user_settings")
-      .insert({ user_id: updated.data.id });
+    const insertedSettings = await supabase.from("user_settings").insert({
+      user_id: updated.data.id,
+      rest_protein: DEFAULT_REST_MACRO_GOALS.protein,
+      rest_fat: DEFAULT_REST_MACRO_GOALS.fat,
+      rest_carbs: DEFAULT_REST_MACRO_GOALS.carbs,
+      training_protein: DEFAULT_TRAINING_MACRO_GOALS.protein,
+      training_fat: DEFAULT_TRAINING_MACRO_GOALS.fat,
+      training_carbs: DEFAULT_TRAINING_MACRO_GOALS.carbs,
+    });
 
     if (insertedSettings.error && insertedSettings.error.code !== "23505") {
       throw insertedSettings.error;

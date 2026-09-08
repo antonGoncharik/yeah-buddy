@@ -13,6 +13,7 @@ import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import {
   calcKcalFromMacros,
   DAY_TEMPLATE_TITLES,
+  defaultMacroGoals,
   isMealVisible,
   sumMealItems,
   visibleMealTypes,
@@ -112,15 +113,16 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
   const fact = useMemo(() => sumMealItems(visibleItems), [visibleItems]);
 
   const targets = useMemo(() => {
-    const protein = isTrainingDay
-      ? (settings?.training_protein ?? 200)
-      : (settings?.rest_protein ?? 200);
-    const fat = isTrainingDay
-      ? (settings?.training_fat ?? 70)
-      : (settings?.rest_fat ?? 70);
-    const carbs = isTrainingDay
-      ? (settings?.training_carbs ?? 200)
-      : (settings?.rest_carbs ?? 130);
+    const fallback = defaultMacroGoals(isTrainingDay ? "training" : "rest");
+    const protein =
+      (isTrainingDay ? settings?.training_protein : settings?.rest_protein) ??
+      fallback.protein;
+    const fat =
+      (isTrainingDay ? settings?.training_fat : settings?.rest_fat) ??
+      fallback.fat;
+    const carbs =
+      (isTrainingDay ? settings?.training_carbs : settings?.rest_carbs) ??
+      fallback.carbs;
 
     return {
       target_protein: protein,

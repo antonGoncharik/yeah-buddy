@@ -17,6 +17,31 @@ export type Macros = {
   kcal: number;
 };
 
+export const DEFAULT_REST_MACRO_GOALS = {
+  protein: 120,
+  fat: 70,
+  carbs: 200,
+} as const;
+
+export const DEFAULT_TRAINING_MACRO_GOALS = {
+  protein: 120,
+  fat: 70,
+  carbs: 250,
+} as const;
+
+export function defaultMacroGoals(dayType: DayType): Macros {
+  const goals =
+    dayType === "training"
+      ? DEFAULT_TRAINING_MACRO_GOALS
+      : DEFAULT_REST_MACRO_GOALS;
+  return {
+    protein: goals.protein,
+    fat: goals.fat,
+    carbs: goals.carbs,
+    kcal: calcKcalFromMacros(goals.protein, goals.fat, goals.carbs),
+  };
+}
+
 export const MEAL_DISPLAY_ORDER: MealType[] = [
   "breakfast",
   "lunch",

@@ -4,6 +4,7 @@ import { DAY_EXISTS_REPLACE, YESTERDAY_MISSING } from "@/lib/messages";
 import {
   calcKcalFromMacros,
   calcMacrosFromPer100,
+  defaultMacroGoals,
   getMealOrder,
   isMealType,
   type Macros,
@@ -728,18 +729,18 @@ async function insertEmptyMeals(
 
 async function getTargets(userId: string, dayType: DayType): Promise<Macros> {
   const settings = await getUserSettings(userId);
+  const fallback = defaultMacroGoals(dayType);
   const protein =
-    dayType === "training"
-      ? (settings?.training_protein ?? 200)
-      : (settings?.rest_protein ?? 200);
+    (dayType === "training"
+      ? settings?.training_protein
+      : settings?.rest_protein) ?? fallback.protein;
   const fat =
-    dayType === "training"
-      ? (settings?.training_fat ?? 70)
-      : (settings?.rest_fat ?? 70);
+    (dayType === "training" ? settings?.training_fat : settings?.rest_fat) ??
+    fallback.fat;
   const carbs =
-    dayType === "training"
-      ? (settings?.training_carbs ?? 200)
-      : (settings?.rest_carbs ?? 130);
+    (dayType === "training"
+      ? settings?.training_carbs
+      : settings?.rest_carbs) ?? fallback.carbs;
 
   return {
     protein,
