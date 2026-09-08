@@ -53,6 +53,7 @@ export function WorkoutsHubScreen() {
     useState<WorkoutTemplateDetail | null>(null);
   const [followingTemplate, setFollowingTemplate] =
     useState<WorkoutTemplateDetail | null>(null);
+  const [unfinished, setUnfinished] = useState<RecentWorkoutSession[]>([]);
   const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
   const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
     null,
@@ -115,6 +116,7 @@ export function WorkoutsHubScreen() {
           setSessionTemplate(readTemplate(data, "session_template"));
           setNextTemplate(readTemplate(data, "next_template"));
           setFollowingTemplate(readTemplate(data, "following_template"));
+          setUnfinished(readUnfinished(data));
           setRecent(readRecent(data));
           setPhaseCircle(readPhaseCircle(data));
           setCanUnskip(readCanUnskip(data));
@@ -290,6 +292,37 @@ export function WorkoutsHubScreen() {
               Собрать очередь
             </Link>
           </section>
+        ) : null}
+
+        {!loading && !error && unfinished.length > 0 ? (
+          <ul className="animate-rise flex flex-col gap-2">
+            {unfinished.map((item) => (
+              <li key={item.session.id}>
+                <Link
+                  href={`/workouts/sessions/${item.session.id}`}
+                  className="card-surface flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
+                >
+                  <span className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-primary">
+                      Не закончена ·{" "}
+                      {formatSessionDay(item.session.session_date)}
+                    </p>
+                    <h2 className="mt-1 text-xl font-semibold tracking-tight">
+                      {item.template_name ??
+                        WORKOUT_KIND_LABELS[item.session.workout_type]}
+                    </h2>
+                    <p className="mt-2 text-base text-muted-foreground">
+                      Открыть и добить или убрать.
+                    </p>
+                  </span>
+                  <ChevronRight
+                    className="size-5 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
         ) : null}
 
         {!loading && !error && session ? (
@@ -640,6 +673,19 @@ function readTemplate(
   }
 
   return value as WorkoutTemplateDetail;
+}
+
+function readUnfinished(data: unknown): RecentWorkoutSession[] {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("unfinished" in data) ||
+    !Array.isArray(data.unfinished)
+  ) {
+    return [];
+  }
+
+  return data.unfinished as RecentWorkoutSession[];
 }
 
 function readRecent(data: unknown): RecentWorkoutSession[] {

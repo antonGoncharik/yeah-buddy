@@ -296,6 +296,7 @@ export interface TodayWorkoutState {
   next_template: WorkoutTemplateDetail | null;
   following_template: WorkoutTemplateDetail | null;
   session_template: WorkoutTemplateDetail | null;
+  unfinished: RecentWorkoutSession[];
   recent: RecentWorkoutSession[];
   can_unskip: boolean;
   phase_circle: PhaseCircleProgress | null;

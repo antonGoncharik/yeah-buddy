@@ -283,7 +283,7 @@ async function getLastTemplateId(
     .from("workout_sessions")
     .select("template_id")
     .eq("user_id", userId)
-    .neq("status", "skipped")
+    .eq("status", "completed")
     .not("template_id", "is", null)
     .order("session_date", { ascending: false })
     .order("created_at", { ascending: false })

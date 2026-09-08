@@ -288,7 +288,7 @@ export function SessionScreen() {
     }
 
     const ok = await confirm({
-      message: "Не получилось сегодня? Тренировка пропадёт, очередь останется.",
+      message: "Убрать эту тренировку? Очередь останется.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -571,7 +571,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                Не получилось сегодня
+                Не получилось
               </Button>
             ) : null}
           </>

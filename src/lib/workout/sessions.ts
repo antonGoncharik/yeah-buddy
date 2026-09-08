@@ -138,6 +138,7 @@ export async function getTodayWorkoutState(
         ? followingTemplate
         : null,
     session_template: sessionTemplate,
+    unfinished: await listUnfinishedGym(userId, date),
     recent: await listSessionHistory(userId, {
       limit: 5,
       statuses: ["completed"],
@@ -205,6 +206,47 @@ export async function listSessionHistory(
     }),
     next_before: hasMore ? (sessions.at(-1)?.session_date ?? null) : null,
   };
+}
+
+async function listUnfinishedGym(
+  userId: string,
+  exceptDate: string,
+): Promise<RecentWorkoutSession[]> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "gym")
+    .eq("status", "planned")
+    .neq("session_date", exceptDate)
+    .order("session_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  const sessions = (result.data ?? []).map((row) =>
+    mapWorkoutSession(row as Record<string, unknown>),
+  );
+  const names = await templateNamesById(
+    userId,
+    sessions.flatMap((session) =>
+      session.template_id ? [session.template_id] : [],
+    ),
+  );
+
+  return sessions.map((session) => ({
+    session,
+    template_name: session.template_id
+      ? (names.get(session.template_id) ?? null)
+      : null,
+    summary: null,
+    plan_hit: 0,
+    plan_total: 0,
+  }));
 }
 
 async function templateNamesById(
