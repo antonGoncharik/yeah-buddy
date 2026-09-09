@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { OnboardingScreen } from "@/components/onboarding/onboarding-screen";
 
 export default function OnboardingPage() {
@@ -7,9 +7,7 @@ export default function OnboardingPage() {
     <Suspense
       fallback={
         <main className="flex min-h-dvh flex-col justify-center px-4">
-          <p className="animate-fade py-10 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
+          <ScreenLoading />
         </main>
       }
     >

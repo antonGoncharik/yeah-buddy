@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -121,11 +122,7 @@ export function FoodsScreen() {
       </div>
 
       <div className="px-4 pb-24">
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
           <div className="animate-rise flex flex-col items-center gap-3 py-12">

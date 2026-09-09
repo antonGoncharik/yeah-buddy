@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,9 +199,7 @@ export function MacroScreen() {
       <AppHeader title="Макроцикл" backHref="/workouts" />
 
       <div className="flex flex-col gap-4 px-4 pb-24">
-        {loading ? (
-          <p className="py-12 text-center text-muted-foreground">Загрузка…</p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !state ? (
           <div className="flex flex-col items-center gap-3 py-12">

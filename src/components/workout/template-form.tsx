@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,7 +160,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
   return (
     <form className="flex flex-col gap-5 pb-24" onSubmit={onSubmit}>
       {loading ? (
-        <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
+        <ScreenLoading />
       ) : (
         <>
           <Field label="Название">

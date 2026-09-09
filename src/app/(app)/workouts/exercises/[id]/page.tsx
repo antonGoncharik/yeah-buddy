@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { ExerciseForm } from "@/components/workout/exercise-form";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -66,9 +67,7 @@ export default function EditExercisePage() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Упражнение" backHref="/workouts/exercises" />
       <div className="px-4 pb-4">
-        {loading ? (
-          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
         {!loading && error ? (
           <div className="flex flex-col items-center gap-3 py-10">
             <p className="text-center font-medium">{error}</p>

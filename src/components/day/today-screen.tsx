@@ -24,6 +24,7 @@ import {
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, peekJson } from "@/lib/api-cache";
@@ -445,11 +446,7 @@ export function TodayScreen({
             label={banner.label}
           />
         ) : null}
-        {showLoading ? (
-          <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {showLoading ? <ScreenLoading /> : null}
 
         {contentReady && loadError ? (
           <div className="animate-rise flex flex-col items-center gap-3">

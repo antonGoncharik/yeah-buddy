@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EXERCISES_EMPTY, LOAD_FAILED } from "@/lib/messages";
@@ -47,11 +48,7 @@ export function ExercisesScreen() {
       <AppHeader title="Упражнения" backHref="/workouts" />
 
       <div className="px-4 pb-24">
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
           <div className="animate-rise flex flex-col items-center gap-3 py-12">

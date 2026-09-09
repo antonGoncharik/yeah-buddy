@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -417,11 +418,7 @@ export function SessionScreen() {
             : "flex flex-col gap-5 px-4 pb-4"
         }
       >
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !detail ? (
           <div className="animate-rise flex flex-col items-center gap-3 py-12">

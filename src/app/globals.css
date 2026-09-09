@@ -489,6 +489,26 @@ html.dark .native-select {
   background-size: 180px 180px;
 }
 
+@keyframes doodle-orbit {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes doodle-tumble {
+  to {
+    transform: rotate(-1turn);
+  }
+}
+
+@utility animate-doodle-orbit {
+  animation: doodle-orbit 6s linear infinite;
+}
+
+@utility animate-doodle-tumble {
+  animation: doodle-tumble 2.4s linear infinite;
+}
+
 @keyframes draw-line {
   from {
     stroke-dashoffset: 1;
@@ -527,6 +547,8 @@ html.dark .native-select {
 
   .animate-rise,
   .animate-fade,
+  .animate-doodle-orbit,
+  .animate-doodle-tumble,
   .animate-draw-line,
   .animate-recap-glow {
     animation: none;

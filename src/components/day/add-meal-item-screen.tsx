@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -82,9 +83,7 @@ export function AddMealItemScreen({
       </div>
 
       <div className="px-4 pb-24">
-        {loading ? (
-          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
           <div className="flex flex-col items-center gap-3 py-10">

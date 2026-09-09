@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { useTheme } from "@/components/layout/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,11 +151,7 @@ export function SettingsScreen() {
           />
         </section>
 
-        {loading ? (
-          <p className="animate-fade py-10 text-center text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !form ? (
           <div className="animate-rise flex flex-col items-center gap-3 py-10">

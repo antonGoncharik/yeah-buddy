@@ -8,6 +8,7 @@ import {
   saveTemplateItemGrams,
 } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { readMealTemplateItemPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -73,9 +74,7 @@ export default function EditTemplateItemPage() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Порция" backHref={backHref} />
-      {loading ? (
-        <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
-      ) : null}
+      {loading ? <ScreenLoading /> : null}
       {!loading && error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-10">
           <p className="text-center font-medium">{error}</p>

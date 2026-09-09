@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/days";
 import { readFoodPayload } from "@/lib/foods";
@@ -87,9 +88,7 @@ export default function EditMealItemPage() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Порция" backHref={homeHref} />
-      {loading ? (
-        <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
-      ) : null}
+      {loading ? <ScreenLoading /> : null}
       {!loading && error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-10">
           <p className="text-center font-medium">{error}</p>

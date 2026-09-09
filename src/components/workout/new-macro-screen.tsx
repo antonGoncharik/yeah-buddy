@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,9 +110,7 @@ export function NewMacroScreen() {
       <AppHeader title="Новый макроцикл" backHref="/workouts" />
 
       <div className="px-4 pb-24">
-        {loading ? (
-          <p className="py-12 text-center text-muted-foreground">Загрузка…</p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && exercises.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12">

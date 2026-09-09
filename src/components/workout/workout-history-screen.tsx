@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
@@ -109,11 +110,7 @@ export function WorkoutHistoryScreen() {
       <AppHeader title="История тренировок" backHref="/workouts" />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {loading ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && items.length === 0 ? (
           <div className="animate-rise flex flex-col items-center gap-3 py-12">

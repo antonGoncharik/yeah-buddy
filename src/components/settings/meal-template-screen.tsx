@@ -7,6 +7,7 @@ import { MealCard } from "@/components/day/meal-card";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
+import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
 import { readMealTemplatePayload } from "@/lib/meal-map";
@@ -185,11 +186,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
           Новый день получит этот состав. Уже записанные дни не меняются.
         </p>
 
-        {loading ? (
-          <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
-            Загрузка…
-          </p>
-        ) : null}
+        {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !template ? (
           <div className="animate-rise flex flex-col items-center gap-3">
