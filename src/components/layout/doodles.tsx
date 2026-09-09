@@ -40,24 +40,24 @@ export function DumbbellMark({ ink = "currentColor" }: { ink?: string }) {
     strokeWidth: 1.7,
     strokeLinejoin: "miter" as const,
     strokeLinecap: "butt" as const,
-    strokeMiterlimit: 2.4,
+    strokeMiterlimit: 2.2,
   };
 
   return (
     <g>
       <path
         {...head}
-        d="M-14.5 -6.6 H-7.1 L-5.4 -3.5 V3.5 L-7.1 6.6 H-14.5 L-16.4 3.5 V-3.5 Z"
+        d="M-15.4 -7.4 H-8.8 L-4.4 -2.2 V2.2 L-8.8 7.4 H-15.4 L-18 2.2 V-2.2 Z"
       />
       <path
         {...head}
-        d="M7.1 -6.6 H14.5 L16.4 -3.5 V3.5 L14.5 6.6 H7.1 L5.4 3.5 V-3.5 Z"
+        d="M8.8 -7.4 H15.4 L18 -2.2 V2.2 L15.4 7.4 H8.8 L4.4 2.2 V-2.2 Z"
       />
       <path
-        d="M-5.4 0 H5.4"
+        d="M-4.4 0 H4.4"
         fill="none"
         stroke={ink}
-        strokeWidth={2.15}
+        strokeWidth={2.3}
         strokeLinecap="round"
       />
     </g>

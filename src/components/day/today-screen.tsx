@@ -526,7 +526,7 @@ export function TodayScreen({
                       id: "training",
                       label: DAY_TYPE_LABELS.training,
                       icon: (
-                        <Doodle className="size-4" viewBox="-17 -7.2 34 14.4">
+                        <Doodle className="size-6" viewBox="-19 -8.2 38 16.4">
                           <DumbbellMark />
                         </Doodle>
                       ),
