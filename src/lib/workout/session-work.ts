@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { calendarToday } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Exercise,
@@ -24,7 +25,11 @@ import {
   mapWorkoutPhase,
   mapWorkoutSet,
 } from "@/lib/workout/map-rows";
-import { getSession, patchSession } from "@/lib/workout/sessions";
+import {
+  getSession,
+  getSessionOnDate,
+  patchSession,
+} from "@/lib/workout/sessions";
 import {
   clearSkipTemplateIds,
   ensureWorkoutSettings,
@@ -149,6 +154,47 @@ export async function removeSessionExercise(
   }
 
   return loadSessionDetail(userId, session);
+}
+
+export async function rebuildPlannedSession(
+  userId: string,
+  sessionId: string,
+): Promise<SessionDetail | null> {
+  const session = await getSession(userId, sessionId);
+  if (session?.status !== "planned") {
+    return session ? loadSessionDetail(userId, session) : null;
+  }
+
+  const detail = await loadSessionDetail(userId, session);
+  if (
+    detail.exercises.some((item) => item.sets.some((set) => set.is_completed))
+  ) {
+    return detail;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const deleted = await supabase
+    .from("session_exercises")
+    .delete()
+    .eq("user_id", userId)
+    .eq("session_id", sessionId);
+
+  if (deleted.error) {
+    throw deleted.error;
+  }
+
+  await ensureSessionPlan(userId, session);
+  return loadSessionDetail(userId, session);
+}
+
+export async function rebuildTodaysPlannedSession(
+  userId: string,
+): Promise<void> {
+  const session = await getSessionOnDate(userId, calendarToday());
+  if (!session) {
+    return;
+  }
+  await rebuildPlannedSession(userId, session.id);
 }
 
 export async function patchWorkoutSet(

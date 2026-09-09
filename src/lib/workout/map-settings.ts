@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { isRecord } from "@/lib/read";
-import type { WorkoutFormulas, WorkoutSettings } from "@/lib/types";
+import type {
+  KindWarmups,
+  WorkoutFormulas,
+  WorkoutKind,
+  WorkoutSettings,
+} from "@/lib/types";
 import {
   cloneFormulas,
   DEFAULT_WARMUP_PRESETS,
@@ -25,6 +30,11 @@ const warmupPresetsSchema = z.object({
   cable: z.array(formulaSetSchema),
 });
 
+const kindWarmupsSchema = z.object({
+  dynamic: warmupPresetsSchema,
+  static: warmupPresetsSchema,
+});
+
 export const formulasSchema = z.object({
   dynamic: z.object({
     ramp: formulaPhaseSchema,
@@ -38,7 +48,7 @@ export const formulasSchema = z.object({
     peak: formulaPhaseSchema,
     deload: formulaPhaseSchema,
   }),
-  warmups: warmupPresetsSchema.optional(),
+  warmups: z.union([kindWarmupsSchema, warmupPresetsSchema]).optional(),
 });
 
 export function mapWorkoutSettings(
@@ -81,15 +91,25 @@ export function fillFormulas(
 ): WorkoutFormulas {
   return {
     dynamic: value.dynamic,
-    static: {
-      ramp: { warmup: [], work: value.static.ramp.work },
-      volume: { warmup: [], work: value.static.volume.work },
-      peak: { warmup: [], work: value.static.peak.work },
-      deload: { warmup: [], work: value.static.deload.work },
-    },
-    warmups: value.warmups
-      ? structuredClone(value.warmups)
-      : structuredClone(DEFAULT_WARMUP_PRESETS),
+    static: value.static,
+    warmups: normalizeWarmups(value.warmups),
+  };
+}
+
+function normalizeWarmups(
+  value: z.infer<typeof formulasSchema>["warmups"],
+): Record<WorkoutKind, KindWarmups> {
+  if (value == null) {
+    return structuredClone(DEFAULT_WARMUP_PRESETS);
+  }
+
+  if ("dynamic" in value && "static" in value) {
+    return structuredClone(value);
+  }
+
+  return {
+    dynamic: structuredClone(value),
+    static: structuredClone(DEFAULT_WARMUP_PRESETS.static),
   };
 }
 

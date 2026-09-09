@@ -16,16 +16,23 @@ import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
   FormulaSetSpec,
   PhaseType,
+  WarmupPresetId,
   WorkoutFormulas,
   WorkoutKind,
   WorkoutSettings,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { cn } from "@/lib/utils";
 import {
   cloneFormulas,
   DEFAULT_WORKOUT_FORMULAS,
+  FORMULA_SYSTEMS,
 } from "@/lib/workout/default-formulas";
-import { calcPlannedWeight, previewMaxForPhase } from "@/lib/workout/formulas";
+import {
+  calcPlannedWeight,
+  previewMaxForPhase,
+  setUsesHold,
+} from "@/lib/workout/formulas";
 import {
   FORMULA_PRESET_LABELS,
   PHASE_TYPE_LABELS,
@@ -145,6 +152,24 @@ export function FormulasScreen() {
     setError(null);
   }
 
+  async function applySystem(id: (typeof FORMULA_SYSTEMS)[number]["id"]) {
+    const system = FORMULA_SYSTEMS.find((item) => item.id === id);
+    if (!system) {
+      return;
+    }
+    const ok = await confirm({
+      message: `Поставить систему «${system.name}»? Текущая схема заменится.`,
+      confirmLabel: "Поставить",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+    setFormulas(cloneFormulas(system.formulas));
+    setSaved(false);
+    setError(null);
+  }
+
   const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
   const exampleStep = previewStep[kind];
   const increasePercent = parseDecimal(maxIncrease) ?? 0;
@@ -174,12 +199,33 @@ export function FormulasScreen() {
               <h2 className="text-xl font-semibold">Как это работает</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Вес подхода: рабочий вес × процент, округление вниз до шага
-                блинов. Разминка общая — штанга или блок, как в упражнении.
-                Рабочие свои на каждую фазу. В зале цифру всегда можно поменять.
+                блинов. Разминка — своя на динамику и статику, штанга или блок.
+                В каждом подходе можно поставить повторы или секунды. Рабочие —
+                на фазу. В зале цифру всегда можно поменять.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                «Подход» добавляет строку, крестик убирает.
+                «Подход» добавляет строку, крестик убирает. Готовая система
+                подставляет всю схему целиком — потом правишь как хочешь.
               </p>
+            </section>
+
+            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+              <h2 className="text-xl font-semibold">Готовая система</h2>
+              <div className="flex flex-col gap-2">
+                {FORMULA_SYSTEMS.map((system) => (
+                  <button
+                    key={system.id}
+                    type="button"
+                    className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                    onClick={() => applySystem(system.id)}
+                  >
+                    <p className="text-base font-medium">{system.name}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {system.hint}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </section>
 
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
@@ -259,15 +305,16 @@ export function FormulasScreen() {
               <>
                 <p className="px-1 text-base leading-relaxed text-muted-foreground">
                   Разминка берётся из упражнения (штанга или блок). Рабочие
-                  зависят от фазы. В рывке разминка тоже от нового веса.
+                  зависят от фазы. В рывке разминка тоже от нового веса. В
+                  подходе можно сменить повторы на секунды.
                 </p>
                 {WARMUP_PRESET_IDS.map((preset) => (
                   <SetCard
                     key={preset}
                     title={FORMULA_PRESET_LABELS[preset]}
                     hint="Разминка"
-                    kind="dynamic"
-                    sets={formulas.warmups[preset]}
+                    defaultHold={false}
+                    sets={formulas.warmups.dynamic[preset]}
                     exampleMax={exampleMax}
                     exampleStep={exampleStep}
                     allowEmpty
@@ -275,10 +322,7 @@ export function FormulasScreen() {
                       setSaved(false);
                       setFormulas((current) =>
                         current
-                          ? {
-                              ...current,
-                              warmups: { ...current.warmups, [preset]: sets },
-                            }
+                          ? patchWarmup(current, "dynamic", preset, sets)
                           : current,
                       );
                     }}
@@ -289,7 +333,7 @@ export function FormulasScreen() {
                     key={phase}
                     title={PHASE_TYPE_LABELS[phase]}
                     hint={phaseWorkHint(phase, exampleMax, raisedMax)}
-                    kind="dynamic"
+                    defaultHold={false}
                     sets={formulas.dynamic[phase].work}
                     exampleMax={previewMaxForPhase(
                       phase,
@@ -312,15 +356,36 @@ export function FormulasScreen() {
             ) : (
               <>
                 <p className="px-1 text-base leading-relaxed text-muted-foreground">
-                  Здесь рабочие — удержания в секундах. Разминка у упражнения та
-                  же, в повторах. Сброс без разминки.
+                  Статическая разминка своя: обычно повторы, третий подход —
+                  удержание 2 с на 1ПМ. Рабочие — секунды, но любой подход можно
+                  сделать повторами. Сброс без разминки.
                 </p>
+                {WARMUP_PRESET_IDS.map((preset) => (
+                  <SetCard
+                    key={preset}
+                    title={FORMULA_PRESET_LABELS[preset]}
+                    hint="Разминка"
+                    defaultHold={false}
+                    sets={formulas.warmups.static[preset]}
+                    exampleMax={exampleMax}
+                    exampleStep={exampleStep}
+                    allowEmpty
+                    onChange={(sets) => {
+                      setSaved(false);
+                      setFormulas((current) =>
+                        current
+                          ? patchWarmup(current, "static", preset, sets)
+                          : current,
+                      );
+                    }}
+                  />
+                ))}
                 {PHASE_TYPES.map((phase) => (
                   <SetCard
                     key={phase}
                     title={PHASE_TYPE_LABELS[phase]}
                     hint={phaseWorkHint(phase, exampleMax, raisedMax)}
-                    kind="static"
+                    defaultHold
                     sets={formulas.static[phase].work}
                     exampleMax={previewMaxForPhase(
                       phase,
@@ -378,7 +443,7 @@ export function FormulasScreen() {
 function SetCard({
   title,
   hint,
-  kind,
+  defaultHold,
   sets,
   exampleMax,
   exampleStep,
@@ -387,15 +452,13 @@ function SetCard({
 }: {
   title: string;
   hint: string;
-  kind: WorkoutKind;
+  defaultHold: boolean;
   sets: FormulaSetSpec[];
   exampleMax: number;
   exampleStep: number;
   allowEmpty?: boolean;
   onChange: (sets: FormulaSetSpec[]) => void;
 }) {
-  const countLabel = kind === "static" ? "сек" : "повт";
-
   function updateAt(index: number, patch: Partial<FormulaSetSpec>) {
     onChange(
       sets.map((set, setIndex) =>
@@ -413,7 +476,7 @@ function SetCard({
       ...sets,
       last
         ? { ...last }
-        : kind === "static"
+        : defaultHold
           ? { percent: 100, reps: null, seconds: 6 }
           : { percent: 80, reps: 5, seconds: null },
     ]);
@@ -439,7 +502,8 @@ function SetCard({
 
       {/* Sets have no stable id; the list is short and not reordered by drag. */}
       {sets.map((set, index) => {
-        const count = kind === "static" ? set.seconds : set.reps;
+        const hold = setUsesHold(set);
+        const count = hold ? set.seconds : set.reps;
         const weight =
           exampleMax > 0
             ? calcPlannedWeight(exampleMax, set.percent, exampleStep)
@@ -462,7 +526,7 @@ function SetCard({
                 onClick={() => removeAt(index)}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
                 inputMode="decimal"
                 value={String(set.percent)}
@@ -479,14 +543,14 @@ function SetCard({
               <span className="text-base text-muted-foreground">%</span>
               <span className="text-base text-muted-foreground">×</span>
               <Input
-                inputMode={kind === "static" ? "decimal" : "numeric"}
+                inputMode={hold ? "decimal" : "numeric"}
                 value={count == null ? "" : String(count)}
                 onChange={(event) => {
                   const next = parseDecimal(event.target.value);
                   if (next == null || next <= 0) {
                     return;
                   }
-                  if (kind === "static") {
+                  if (hold) {
                     updateAt(index, { seconds: next, reps: null });
                     return;
                   }
@@ -496,11 +560,49 @@ function SetCard({
                   updateAt(index, { reps: next, seconds: null });
                 }}
                 className="h-12 w-20 text-base"
-                aria-label={`${countLabel}, подход ${index + 1}`}
+                aria-label={
+                  hold
+                    ? `Секунды, подход ${index + 1}`
+                    : `Повторы, подход ${index + 1}`
+                }
               />
-              <span className="text-base text-muted-foreground">
-                {countLabel}
-              </span>
+              <div className="flex rounded-xl bg-background p-1">
+                <button
+                  type="button"
+                  className={cn(
+                    "h-10 rounded-lg px-3 text-sm",
+                    hold
+                      ? "text-muted-foreground"
+                      : "bg-muted font-medium text-foreground",
+                  )}
+                  onClick={() => {
+                    const next = set.seconds ?? set.reps ?? 5;
+                    updateAt(index, {
+                      reps: Number.isInteger(next) ? next : Math.round(next),
+                      seconds: null,
+                    });
+                  }}
+                >
+                  повт
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "h-10 rounded-lg px-3 text-sm",
+                    hold
+                      ? "bg-muted font-medium text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                  onClick={() => {
+                    updateAt(index, {
+                      seconds: set.seconds ?? set.reps ?? 2,
+                      reps: null,
+                    });
+                  }}
+                >
+                  сек
+                </button>
+              </div>
               <p className="min-w-0 flex-1 text-right text-base font-medium tabular-nums">
                 {weight == null ? "—" : `${formatWeight(weight)} кг`}
               </p>
@@ -556,6 +658,24 @@ function patchPhaseWork(
   };
 }
 
+function patchWarmup(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+  preset: WarmupPresetId,
+  sets: FormulaSetSpec[],
+): WorkoutFormulas {
+  return {
+    ...formulas,
+    warmups: {
+      ...formulas.warmups,
+      [kind]: {
+        ...formulas.warmups[kind],
+        [preset]: sets,
+      },
+    },
+  };
+}
+
 function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
   const max_increase_percent = parseDecimal(maxIncreaseRaw);
   if (max_increase_percent == null || max_increase_percent < 0) {
@@ -569,43 +689,36 @@ function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
     if (formulas.static[phase].work.length < 1) {
       return null;
     }
-    if (!setsOk(formulas.dynamic[phase].work, "dynamic")) {
+    if (!setsOk(formulas.dynamic[phase].work)) {
       return null;
     }
-    if (!setsOk(formulas.static[phase].work, "static")) {
+    if (!setsOk(formulas.static[phase].work)) {
       return null;
     }
   }
 
-  for (const preset of WARMUP_PRESET_IDS) {
-    if (!setsOk(formulas.warmups[preset], "dynamic")) {
-      return null;
+  for (const kind of ["dynamic", "static"] as const) {
+    for (const preset of WARMUP_PRESET_IDS) {
+      if (!setsOk(formulas.warmups[kind][preset])) {
+        return null;
+      }
     }
   }
 
   return {
     max_increase_percent,
-    formulas: {
-      ...formulas,
-      static: {
-        ramp: { warmup: [], work: formulas.static.ramp.work },
-        volume: { warmup: [], work: formulas.static.volume.work },
-        peak: { warmup: [], work: formulas.static.peak.work },
-        deload: { warmup: [], work: formulas.static.deload.work },
-      },
-    },
+    formulas,
   };
 }
 
-function setsOk(sets: FormulaSetSpec[], kind: WorkoutKind): boolean {
+function setsOk(sets: FormulaSetSpec[]): boolean {
   return sets.every((set) => {
     if (!(set.percent >= 0) || !Number.isFinite(set.percent)) {
       return false;
     }
-    if (kind === "static") {
-      return set.seconds != null && set.seconds > 0;
-    }
-    return set.reps != null && set.reps > 0;
+    const hasReps = set.reps != null && set.reps > 0;
+    const hasSeconds = set.seconds != null && set.seconds > 0;
+    return hasReps !== hasSeconds;
   });
 }
 

@@ -7,6 +7,7 @@ import {
   previewMaxForPhase,
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
+import { fillFormulas, formulasSchema } from "@/lib/workout/map-settings";
 
 function assertEqual(actual: number, expected: number, label: string) {
   if (actual !== expected) {
@@ -61,12 +62,20 @@ const staticBarbell = resolvePhaseSpec(
   "barbell",
 );
 if (staticBarbell.warmup.length !== 3) {
-  throw new Error("static barbell warmup should be 3 rep sets");
+  throw new Error("static barbell warmup should be 3 sets");
 }
 if (
-  staticBarbell.warmup.some((set) => set.reps == null || set.seconds != null)
+  staticBarbell.warmup[0]?.reps == null ||
+  staticBarbell.warmup[1]?.reps == null
 ) {
-  throw new Error("static warmup must be reps, not seconds");
+  throw new Error("static warmup first sets must be reps");
+}
+if (
+  staticBarbell.warmup[2]?.seconds !== 2 ||
+  staticBarbell.warmup[2]?.percent !== 100 ||
+  staticBarbell.warmup[2]?.reps != null
+) {
+  throw new Error("static warmup 3rd set must be 2s at 100%");
 }
 
 const staticHold = plannedSetsFromFormula(staticBarbell, 76, 1, "static");
@@ -76,6 +85,8 @@ assertEqual(
   -1,
   "static warmup no seconds",
 );
+assertEqual(staticHold[2]?.planned_weight ?? 0, 76, "static 1RM hold weight");
+assertEqual(staticHold[2]?.planned_seconds ?? 0, 2, "static 1RM hold seconds");
 assertEqual(staticHold[3]?.planned_weight ?? 0, 87, "static work 76×115");
 assertEqual(staticHold[3]?.planned_seconds ?? 0, 6, "static work seconds");
 assertEqual(staticHold[3]?.planned_reps ?? -1, -1, "static work no reps");
@@ -96,8 +107,11 @@ const customWarmup = resolvePhaseSpec(
   "ramp",
   "barbell",
   {
-    barbell: [{ percent: 40, reps: 10, seconds: null }],
-    cable: DEFAULT_WORKOUT_FORMULAS.warmups.cable,
+    dynamic: {
+      barbell: [{ percent: 40, reps: 10, seconds: null }],
+      cable: DEFAULT_WORKOUT_FORMULAS.warmups.dynamic.cable,
+    },
+    static: DEFAULT_WORKOUT_FORMULAS.warmups.static,
   },
 );
 if (
@@ -105,6 +119,19 @@ if (
   customWarmup.warmup[0]?.percent !== 40
 ) {
   throw new Error("custom warmup preset should replace barbell warmup");
+}
+
+const legacy = formulasSchema.safeParse({
+  dynamic: DEFAULT_WORKOUT_FORMULAS.dynamic,
+  static: DEFAULT_WORKOUT_FORMULAS.static,
+  warmups: DEFAULT_WORKOUT_FORMULAS.warmups.dynamic,
+});
+if (!legacy.success) {
+  throw new Error("legacy warmups should parse");
+}
+const migrated = fillFormulas(legacy.data);
+if (migrated.warmups.static.barbell[2]?.seconds !== 2) {
+  throw new Error("legacy warmups should get static 1RM hold");
 }
 
 console.log("workout formulas ok");

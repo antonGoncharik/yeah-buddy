@@ -3,10 +3,10 @@ import type {
   FormulaPreset,
   FormulaSetSpec,
   PhaseType,
-  WarmupPresetId,
+  WorkoutFormulas,
   WorkoutKind,
 } from "@/lib/types";
-import { DEFAULT_WARMUP_PRESETS } from "@/lib/workout/default-formulas";
+import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 
 export function floorToStep(weight: number, step: number): number {
   if (!(step > 0) || !Number.isFinite(weight)) {
@@ -48,10 +48,10 @@ export function previewMaxForPhase(
 
 export function resolvePhaseSpec(
   base: FormulaPhaseSpec,
-  _kind: WorkoutKind,
+  kind: WorkoutKind,
   phase: PhaseType,
   preset: FormulaPreset,
-  warmups: Record<WarmupPresetId, FormulaSetSpec[]> = DEFAULT_WARMUP_PRESETS,
+  warmups: WorkoutFormulas["warmups"] = DEFAULT_WORKOUT_FORMULAS.warmups,
 ): FormulaPhaseSpec {
   if (preset === "none") {
     return { warmup: [], work: [] };
@@ -61,8 +61,9 @@ export function resolvePhaseSpec(
     return base;
   }
 
+  const pack = warmups[kind] ?? DEFAULT_WORKOUT_FORMULAS.warmups[kind];
   return {
-    warmup: warmups[preset] ?? DEFAULT_WARMUP_PRESETS.barbell,
+    warmup: pack[preset] ?? DEFAULT_WORKOUT_FORMULAS.warmups[kind][preset],
     work: base.work,
   };
 }
@@ -91,6 +92,10 @@ export function plannedSetsFromFormula(
     planned_reps: set.reps,
     planned_seconds: set.seconds,
   }));
+}
+
+export function setUsesHold(set: FormulaSetSpec): boolean {
+  return set.seconds != null && set.reps == null;
 }
 
 export function nextPhaseType(phase: PhaseType): PhaseType | null {

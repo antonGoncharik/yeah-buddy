@@ -226,7 +226,15 @@ export async function setPhaseMax(
     throw inserted.error ?? new Error("Phase max insert failed");
   }
 
-  return mapPhaseMax(inserted.data as Record<string, unknown>);
+  const mapped = mapPhaseMax(inserted.data as Record<string, unknown>);
+  await raiseGlobalMax({
+    userId,
+    exerciseId: input.exercise_id,
+    maxWeight: input.max_weight,
+    achievedAt: new Date().toISOString().slice(0, 10),
+    phaseId,
+  });
+  return mapped;
 }
 
 export async function listCurrentPhaseMaxes(

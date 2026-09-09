@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/require-session";
 import { LOAD_FAILED } from "@/lib/messages";
 import { phaseMaxInputSchema, setPhaseMax } from "@/lib/workout/macros";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 
 type RouteContext = {
   params: Promise<{ phaseId: string }>;
@@ -23,18 +24,12 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = phaseMaxInputSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -43,6 +38,7 @@ export async function POST(
       phaseId,
       parsed.data,
     );
+    await rebuildTodaysPlannedSession(auth.session.userId);
     return NextResponse.json({ phase_max: phaseMax });
   } catch (error) {
     if (error instanceof Error && error.message === "Фаза не найдена.") {
