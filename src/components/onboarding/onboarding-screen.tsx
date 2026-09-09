@@ -498,7 +498,7 @@ function titleForStep(step: Step): string {
   if (step === "circle") {
     return "Очередь";
   }
-  return "Веса";
+  return "Рабочие веса";
 }
 
 function readOnboarding(data: unknown): OnboardingState | null {

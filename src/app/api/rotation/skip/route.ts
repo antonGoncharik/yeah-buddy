@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { skipTemplateInRotation } from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
 
@@ -20,18 +20,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = skipSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -40,7 +34,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.template_id,
     );
     if (!template) {
-      return NextResponse.json({ error: "Шаблон не найден." }, { status: 404 });
+      return NextResponse.json({ error: WORKOUT_NOT_FOUND }, { status: 404 });
     }
 
     await skipTemplateInRotation(auth.session.userId, template.id);

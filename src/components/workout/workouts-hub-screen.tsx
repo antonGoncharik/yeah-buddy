@@ -195,7 +195,7 @@ export function WorkoutsHubScreen() {
                 href="/workouts/exercises"
                 className={cn(buttonVariants(), "h-14 text-lg")}
               >
-                Написать максимумы
+                Написать рабочие веса
               </Link>
             )}
             {activeTemplates.length > 1 ? (

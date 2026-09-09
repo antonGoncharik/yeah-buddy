@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { SortableList } from "@/components/workout/sortable-list";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { LOAD_FAILED, readApiError, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type {
   ExerciseWithMax,
@@ -65,7 +65,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
         const response = await fetch(`/api/templates/${templateId}`);
         if (response.status === 404) {
           if (!cancelled) {
-            setError("Шаблон не найден.");
+            setError(WORKOUT_NOT_FOUND);
           }
           return;
         }
@@ -174,10 +174,14 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
 
           <Field label="Тип">
             <Segmented value={kind} options={KIND_OPTIONS} onChange={setKind} />
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Динамика — повторы. Статика — удержания. От этого берётся схема
+              подходов.
+            </p>
           </Field>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-medium">Состав</h2>
+            <h2 className="text-base font-medium">Упражнения</h2>
             {selected.length === 0 ? (
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Порядок в списке — порядок в зале.

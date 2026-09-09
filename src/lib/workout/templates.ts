@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Exercise, WorkoutTemplateDetail } from "@/lib/types";
 import { archiveExercise, listExercises } from "@/lib/workout/exercises";
@@ -12,7 +13,7 @@ import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export class TemplateNotFoundError extends Error {
   constructor() {
-    super("Шаблон не найден.");
+    super(WORKOUT_NOT_FOUND);
   }
 }
 

@@ -10,7 +10,7 @@ export default function EditTemplatePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Шаблон" backHref="/workouts/schedule" />
+      <AppHeader title="Тренировка" backHref="/workouts/schedule" />
       <div className="px-4 pb-4">
         <TemplateForm templateId={params.id} />
       </div>

@@ -359,7 +359,7 @@ export function SessionScreen() {
                     href="/workouts/exercises"
                     className={cn(buttonVariants(), "h-14 text-lg")}
                   >
-                    Написать максимумы
+                    Написать рабочие веса
                   </Link>
                 ) : null}
               </section>
@@ -468,7 +468,7 @@ export function SessionScreen() {
                     href="/workouts/macro"
                     className="text-base font-medium text-primary"
                   >
-                    Посмотреть максимумы
+                    К макроциклу
                   </Link>
                 ) : null}
                 {phaseHint && !abovePlan ? (

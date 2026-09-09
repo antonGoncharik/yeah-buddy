@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isIsoDate } from "@/lib/day/dates";
+import { NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   CurrentMacroState,
@@ -143,7 +144,7 @@ export async function createFirstMacro(
   );
   for (const exercise of exercises) {
     if (!maxByExercise.has(exercise.id)) {
-      throw new Error("Задайте максимум для каждого упражнения.");
+      throw new Error(NEED_ALL_WORKING_WEIGHTS);
     }
   }
 

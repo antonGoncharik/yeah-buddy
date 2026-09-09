@@ -38,7 +38,7 @@ export const EXERCISE_WORKOUT_TYPE_LABELS: Record<ExerciseWorkoutType, string> =
   {
     dynamic: "Динамика",
     static: "Статика",
-    both: "Оба",
+    both: "И то и то",
   };
 
 export const WORKOUT_KIND_LABELS: Record<WorkoutKind, string> = {
@@ -77,7 +77,7 @@ export const SET_TYPE_LABELS: Record<SetType, string> = {
 export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
   barbell: "Штанга",
   cable: "Блок",
-  none: "Не в план",
+  none: "Не считать",
 };
 
 export const WARMUP_PRESET_IDS = ["barbell", "cable"] as const;

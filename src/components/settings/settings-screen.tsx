@@ -267,17 +267,17 @@ export function SettingsScreen() {
           <NavRow
             href="/settings/formulas"
             title="Схема подходов"
-            hint="Разминка и рабочие веса"
+            hint="Проценты и подходы от рабочего веса"
           />
           <NavRow
             href="/workouts/macro"
             title="Макроцикл"
-            hint="Можно не включать. Чередует нагрузку по фазам"
+            hint="Необязательно. Меняет нагрузку: разгон → набор → рывок → сброс"
           />
           <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
-            hint="Белок и веса. Очередь не меняется"
+            hint="Белок и рабочие веса. Очередь не трогает"
           />
         </section>
       </div>

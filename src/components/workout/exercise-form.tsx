@@ -167,7 +167,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       </Field>
 
       {exercise ? (
-        <Field label="В работе">
+        <Field label="В тренировках">
           <Segmented
             value={active ? "yes" : "no"}
             disabled={toggling}
@@ -200,6 +200,10 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             }))
           }
         />
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Динамика — повторы. Статика — удержания. «И то и то» — оба вида
+          тренировок.
+        </p>
       </Field>
 
       <Field label="Категория">
@@ -262,7 +266,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {exercise && !canCorrectMax ? (
         <div className="card-surface flex scroll-mb-36 flex-col gap-2 px-5 py-4">
-          <p className="text-base font-medium">Максимум</p>
+          <p className="text-base font-medium">Рабочий вес</p>
           <p className="text-2xl font-semibold tracking-tight">
             {exercise.current_max
               ? `${formatWeight(exercise.current_max.max_weight)} кг`
@@ -342,12 +346,12 @@ function Field({
 
 function warmupHint(preset: FormulaPreset): string {
   if (preset === "barbell") {
-    return "Разминка как у штанги — проценты из схемы. На статике третий подход обычно 2 с на 1ПМ.";
+    return "Разминка как у штанги — проценты из схемы. На статике третий подход обычно 2 с на рабочем весе.";
   }
   if (preset === "cable") {
-    return "Разминка как у блока — из схемы. На статике тоже можно поставить удержание на 1ПМ.";
+    return "Разминка как у блока — из схемы. На статике тоже можно поставить удержание на рабочем весе.";
   }
-  return "В план само не попадёт — нет схемы разминки.";
+  return "Даже в составе тренировки в план не попадёт — нет процентов для подходов.";
 }
 
 function toFormState(exercise?: ExerciseWithMax): FormState {

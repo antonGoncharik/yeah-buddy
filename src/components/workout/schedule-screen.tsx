@@ -103,7 +103,7 @@ export function ScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? Активная очередь заменится, свои шаблоны останутся выключенными.`,
+      message: `Поставить «${preset.name}»? Очередь заменится. Свои тренировки не удалятся — выключатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -157,7 +157,11 @@ export function ScheduleScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Очередь" backHref="/workouts" />
+      <AppHeader
+        title="Очередь"
+        subtitle="Какие тренировки и в каком порядке"
+        backHref="/workouts"
+      />
 
       <div className="flex flex-col gap-5 px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
@@ -209,7 +213,7 @@ export function ScheduleScreen() {
         {!loading && inactive.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
             <h2 className="px-1 text-sm font-medium text-muted-foreground">
-              Выключены
+              Не в очереди
             </h2>
             <div className="overflow-hidden">
               {inactive.map((template) => (
@@ -240,8 +244,7 @@ export function ScheduleScreen() {
           <section className="animate-rise flex flex-col gap-2">
             <h2 className="px-1 text-lg font-semibold">Готовые программы</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Поставит очередь целиком. Свои шаблоны не удалятся — просто
-              выключатся.
+              Готовый набор тренировок в очередь. Свои не удалятся — выключатся.
             </p>
             {PROGRAM_PRESETS.map((preset) => (
               <button
@@ -270,7 +273,7 @@ export function ScheduleScreen() {
               )}
             >
               <Plus className="size-5" aria-hidden />
-              Новый шаблон
+              Новая тренировка
             </Link>
           </StickyActions>
         ) : null}

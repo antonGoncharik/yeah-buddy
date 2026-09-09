@@ -10,7 +10,11 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  NEED_ALL_WORKING_WEIGHTS,
+  readApiError,
+} from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 import { readExercises } from "@/lib/workout/hub-payload";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -73,7 +77,7 @@ export function NewMacroScreen() {
     });
 
     if (payloadMaxes.length !== exercises.length) {
-      setError("Задайте максимум для каждого упражнения.");
+      setError(NEED_ALL_WORKING_WEIGHTS);
       return;
     }
 
@@ -134,8 +138,8 @@ export function NewMacroScreen() {
             <p className="text-base leading-relaxed text-muted-foreground">
               Первый макроцикл начинается с разгона. Цифры ниже — сколько
               потянешь сейчас. Фазу закрываешь сам: один круг очереди ещё не
-              конец. Здесь только упражнения, которые делаешь — остальные
-              выключи в списке.
+              конец. Здесь только упражнения, которые делаешь. Остальные — «Не
+              делаю» в списке упражнений.
             </p>
             <div className="flex flex-col gap-2">
               <Label className="text-base">Дата начала</Label>

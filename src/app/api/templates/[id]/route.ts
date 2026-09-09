@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import {
   getTemplate,
   templateWriteSchema,
@@ -26,7 +26,7 @@ export async function GET(
   try {
     const template = await getTemplate(auth.session.userId, id);
     if (!template) {
-      return NextResponse.json({ error: "Шаблон не найден." }, { status: 404 });
+      return NextResponse.json({ error: WORKOUT_NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json({ template });
@@ -51,24 +51,18 @@ export async function PATCH(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = templateWriteSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
     const template = await updateTemplate(auth.session.userId, id, parsed.data);
     if (!template) {
-      return NextResponse.json({ error: "Шаблон не найден." }, { status: 404 });
+      return NextResponse.json({ error: WORKOUT_NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json({ template });

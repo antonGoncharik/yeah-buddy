@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED, NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import {
   createFirstMacro,
   createMacroSchema,
@@ -35,18 +35,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = createMacroSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -60,10 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    if (
-      error instanceof Error &&
-      error.message === "Задайте максимум для каждого упражнения."
-    ) {
+    if (error instanceof Error && error.message === NEED_ALL_WORKING_WEIGHTS) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 

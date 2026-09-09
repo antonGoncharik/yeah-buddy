@@ -278,7 +278,7 @@ export function buildSignals(input: {
   }
   if (input.gym.templates.length > 0) {
     lines.push(
-      `Шаблоны: ${input.gym.templates
+      `Тренировки: ${input.gym.templates
         .map((item) => `${item.name} · ${item.count}`)
         .join(", ")}.`,
     );

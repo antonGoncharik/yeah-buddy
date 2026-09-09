@@ -18,7 +18,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl",
     name: "Ноги / Жим / Тяга",
-    hint: "Три дня по кругу — как в стартовом дневнике.",
+    hint: "Три тренировки по кругу: ноги, жим, тяга.",
     templates: [
       {
         name: "Ноги",
@@ -40,7 +40,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "upper_lower",
     name: "Верх / Низ",
-    hint: "Два дня: жимы и тяги, потом ноги. Быстрее закрыть круг.",
+    hint: "Две тренировки по кругу: верх, потом низ.",
     templates: [
       {
         name: "Верх",

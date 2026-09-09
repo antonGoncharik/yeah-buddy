@@ -109,7 +109,7 @@ export function ProgressScreen() {
               <p className="text-sm font-medium text-muted-foreground">
                 {progress.exercises.some((item) => item.from_work)
                   ? "С первых рабочих"
-                  : "С первых максимумов"}
+                  : "С первых рабочих весов"}
               </p>
               <p className="mt-1 text-3xl font-semibold tracking-tight">
                 {progress.avg_percent == null ? (
@@ -216,7 +216,7 @@ function ExerciseProgressCard({
           <p className="truncate text-base font-medium">{item.name}</p>
           <p className="text-sm text-muted-foreground">
             {item.current_weight == null
-              ? "Нет максимума"
+              ? "Нет рабочего веса"
               : `${formatWeight(item.current_weight)} кг`}
             {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
             {item.delta != null && item.percent != null ? (

@@ -86,7 +86,7 @@ export function MacroScreen() {
 
     const weight = parseDecimal(drafts[exerciseId] ?? "");
     if (weight == null || weight <= 0) {
-      setError("Проверь максимум.");
+      setError("Проверь рабочий вес.");
       return;
     }
 
@@ -161,7 +161,7 @@ export function MacroScreen() {
     });
 
     if (!preview || maxes.length !== preview.maxes.length) {
-      setError("Проверь предложенные максимумы.");
+      setError("Проверь предложенные рабочие веса.");
       return;
     }
 
@@ -196,7 +196,11 @@ export function MacroScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Макроцикл" backHref="/workouts" />
+      <AppHeader
+        title="Макроцикл"
+        subtitle="Необязательно. Меняет нагрузку по фазам"
+        backHref="/workouts"
+      />
 
       <div className="flex flex-col gap-4 px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
@@ -291,7 +295,7 @@ export function MacroScreen() {
               <h2 className="text-xl font-semibold">Рабочие веса этой фазы</h2>
               <p className="text-sm text-muted-foreground">
                 От этих цифр считается план. Только упражнения, которые делаешь.
-                Остальные выключи в списке упражнений.
+                Остальные — «Не делаю» в списке упражнений.
               </p>
               {state.maxes.map((row) => (
                 <div

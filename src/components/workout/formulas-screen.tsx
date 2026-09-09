@@ -139,7 +139,7 @@ export function FormulasScreen() {
 
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть схему как в дневнике?",
+      message: "Вернуть классику? Сейчас всё заменится.",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
@@ -158,7 +158,7 @@ export function FormulasScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить систему «${system.name}»? Текущая схема заменится.`,
+      message: `Поставить схему «${system.name}»? Текущая заменится.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -204,13 +204,13 @@ export function FormulasScreen() {
                 на фазу. В зале цифру всегда можно поменять.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                «Подход» добавляет строку, крестик убирает. Готовая система
-                подставляет всю схему целиком — потом правишь как хочешь.
+                «Подход» добавляет строку, крестик убирает. Готовая схема
+                подставляет всё целиком — потом правишь как хочешь.
               </p>
             </section>
 
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-              <h2 className="text-xl font-semibold">Готовая система</h2>
+              <h2 className="text-xl font-semibold">Готовая схема</h2>
               <div className="flex flex-col gap-2">
                 {FORMULA_SYSTEMS.map((system) => (
                   <button
@@ -231,7 +231,7 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <div className="flex items-baseline justify-between gap-3">
                 <h2 className="text-xl font-semibold">На рывке</h2>
-                <p className="text-sm text-muted-foreground">к максимуму</p>
+                <p className="text-sm text-muted-foreground">к рабочему весу</p>
               </div>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Когда закрываешь набор, можно поднять рабочие веса на этот
@@ -357,8 +357,8 @@ export function FormulasScreen() {
               <>
                 <p className="px-1 text-base leading-relaxed text-muted-foreground">
                   Статическая разминка своя: обычно повторы, третий подход —
-                  удержание 2 с на 1ПМ. Рабочие — секунды, но любой подход можно
-                  сделать повторами. Сброс без разминки.
+                  удержание 2 с на рабочем весе. Рабочие — секунды, но любой
+                  подход можно сделать повторами. Сброс без разминки.
                 </p>
                 {WARMUP_PRESET_IDS.map((preset) => (
                   <SetCard
@@ -421,7 +421,7 @@ export function FormulasScreen() {
               disabled={saving}
               onClick={() => void restoreDefaults()}
             >
-              Как в дневнике
+              Вернуть классику
             </Button>
             <StickyActions>
               <Button
