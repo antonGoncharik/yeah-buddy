@@ -17,6 +17,7 @@ import type {
 import { listExercises } from "@/lib/workout/exercises";
 import { templateHasPlanMaxes } from "@/lib/workout/hints";
 import { getCurrentMacroState } from "@/lib/workout/macros";
+import { mapWorkoutSession } from "@/lib/workout/map-rows";
 import { toNullableString } from "@/lib/workout/numbers";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 import { listSessionWorkInfo } from "@/lib/workout/session-log";
@@ -425,33 +426,4 @@ export async function patchSession(
   }
 
   return mapWorkoutSession(updated.data as Record<string, unknown>);
-}
-
-export function mapWorkoutSession(
-  row: Record<string, unknown>,
-): WorkoutSession {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    session_date: String(row.session_date).slice(0, 10),
-    macro_cycle_id: toNullableString(row.macro_cycle_id),
-    phase_id: toNullableString(row.phase_id),
-    workout_type: toWorkoutKind(row.workout_type),
-    template_id: toNullableString(row.template_id),
-    status: toSessionStatus(row.status),
-    note: toNullableString(row.note),
-    created_at: String(row.created_at),
-  };
-}
-
-function toWorkoutKind(value: unknown): WorkoutKind {
-  return value === "static" ? "static" : "dynamic";
-}
-
-function toSessionStatus(value: unknown): SessionStatus {
-  if (value === "completed" || value === "skipped") {
-    return value;
-  }
-
-  return "planned";
 }

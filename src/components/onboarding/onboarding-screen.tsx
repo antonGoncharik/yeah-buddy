@@ -14,6 +14,7 @@ import { writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
+import { parseOnboardingState } from "@/lib/onboarding-map";
 import { cn } from "@/lib/utils";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
@@ -333,8 +334,8 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько белка в день. Не ведёшь еду — пропусти. Жиры и углеводы потом,
-        в настройках.
+        Сколько белка в день. Не ведёшь еду — пропусти. Жиры и углеводы потом, в
+        настройках.
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -486,14 +487,5 @@ function titleForStep(step: Step): string {
 }
 
 function readOnboarding(data: unknown): OnboardingState | null {
-  if (!data || typeof data !== "object" || !("onboarding" in data)) {
-    return null;
-  }
-
-  const onboarding = data.onboarding;
-  if (!onboarding || typeof onboarding !== "object") {
-    return null;
-  }
-
-  return onboarding as OnboardingState;
+  return parseOnboardingState(data);
 }

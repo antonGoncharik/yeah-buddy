@@ -20,7 +20,9 @@ import {
   phaseLinkLabel,
   transitionExplain,
 } from "@/lib/workout/hints";
+import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
 import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function MacroScreen() {
@@ -417,22 +419,9 @@ export function MacroScreen() {
 }
 
 function readState(data: unknown): CurrentMacroState | null {
-  if (!data || typeof data !== "object" || !("macro" in data)) {
-    return null;
-  }
-
-  return data as CurrentMacroState;
+  return parseCurrentMacroState(data);
 }
 
 function readPreview(data: unknown): TransitionPreview | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("preview" in data) ||
-    !data.preview
-  ) {
-    return null;
-  }
-
-  return data.preview as TransitionPreview;
+  return parseTransitionPreview(data);
 }

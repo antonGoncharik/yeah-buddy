@@ -4,7 +4,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Exercise,
   SessionDetail,
-  SessionExercise,
   WorkoutFormulas,
   WorkoutPhase,
   WorkoutSession,
@@ -20,7 +19,7 @@ import {
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
 import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
-import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
+import { mapSessionExercise, mapWorkoutSet } from "@/lib/workout/map-rows";
 import { getSession, patchSession } from "@/lib/workout/sessions";
 import {
   clearSkipTemplateIds,
@@ -604,34 +603,4 @@ async function getPhase(
   }
 
   return mapWorkoutPhase(result.data as Record<string, unknown>);
-}
-
-function mapSessionExercise(row: Record<string, unknown>): SessionExercise {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    session_id: String(row.session_id),
-    exercise_id: String(row.exercise_id),
-    sort_order: toNumber(row.sort_order),
-    max_weight: toNumber(row.max_weight),
-    created_at: String(row.created_at),
-  };
-}
-
-function mapWorkoutSet(row: Record<string, unknown>): WorkoutSet {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    session_exercise_id: String(row.session_exercise_id),
-    set_type: row.set_type === "work" ? "work" : "warmup",
-    set_number: toNumber(row.set_number),
-    planned_weight: toNullableNumber(row.planned_weight),
-    planned_reps: toNullableNumber(row.planned_reps),
-    planned_seconds: toNullableNumber(row.planned_seconds),
-    actual_weight: toNullableNumber(row.actual_weight),
-    actual_reps: toNullableNumber(row.actual_reps),
-    actual_seconds: toNullableNumber(row.actual_seconds),
-    is_completed: Boolean(row.is_completed),
-    created_at: String(row.created_at),
-  };
 }

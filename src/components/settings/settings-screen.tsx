@@ -13,6 +13,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
+import { readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 
@@ -396,14 +397,5 @@ function kcalFromFields(
 }
 
 function readSettings(data: unknown): UserSettings | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("settings" in data) ||
-    !data.settings
-  ) {
-    return null;
-  }
-
-  return data.settings as UserSettings;
+  return readSettingsPayload(data);
 }

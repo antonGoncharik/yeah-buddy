@@ -9,6 +9,7 @@ import {
 } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isDayType, isMealType } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
@@ -115,9 +116,5 @@ export default function AddTemplateItemGramsPage() {
 }
 
 function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
-    return null;
-  }
-
-  return data.food as Food;
+  return readFoodPayload(data);
 }

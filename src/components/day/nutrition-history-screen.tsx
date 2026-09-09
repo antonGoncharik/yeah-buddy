@@ -23,6 +23,7 @@ import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   chronological,
   hasOlderThanRange,
+  isNutritionRange,
   type MacroAverages,
   type NutritionHits,
   type NutritionMetric,
@@ -32,6 +33,7 @@ import {
   splitAverages,
   windowDays,
 } from "@/lib/nutrition-stats";
+import { isRecord, mapRecordList } from "@/lib/read";
 import type { DayHistoryRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -101,7 +103,8 @@ export function NutritionHistoryScreen() {
     void load();
   }, [load]);
 
-  const rangeDays = Number(range) as NutritionRange;
+  const parsedRange = Number(range);
+  const rangeDays = isNutritionRange(parsedRange) ? parsedRange : 14;
   const windowed = useMemo(
     () => windowDays(items, rangeDays, today),
     [items, rangeDays, today],
@@ -410,15 +413,34 @@ function readPage(data: unknown): {
   items: DayHistoryRow[];
   next_before: string | null;
 } {
-  if (!data || typeof data !== "object") {
+  if (!isRecord(data)) {
     return { items: [], next_before: null };
   }
 
-  const record = data as { items?: unknown; next_before?: unknown };
   return {
-    items: Array.isArray(record.items) ? (record.items as DayHistoryRow[]) : [],
-    next_before:
-      typeof record.next_before === "string" ? record.next_before : null,
+    items: mapRecordList(data.items, parseDayHistoryRow),
+    next_before: typeof data.next_before === "string" ? data.next_before : null,
+  };
+}
+
+function parseDayHistoryRow(
+  row: Record<string, unknown>,
+): DayHistoryRow | null {
+  if (typeof row.date !== "string") {
+    return null;
+  }
+
+  return {
+    date: row.date,
+    is_training_day: Boolean(row.is_training_day),
+    target_protein: Number(row.target_protein) || 0,
+    target_fat: Number(row.target_fat) || 0,
+    target_carbs: Number(row.target_carbs) || 0,
+    target_kcal: Number(row.target_kcal) || 0,
+    fact_protein: Number(row.fact_protein) || 0,
+    fact_fat: Number(row.fact_fat) || 0,
+    fact_carbs: Number(row.fact_carbs) || 0,
+    fact_kcal: Number(row.fact_kcal) || 0,
   };
 }
 

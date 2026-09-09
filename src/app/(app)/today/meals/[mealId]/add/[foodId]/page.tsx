@@ -12,6 +12,7 @@ import {
   todayHomeHref,
   withDateQuery,
 } from "@/lib/days";
+import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
@@ -114,11 +115,7 @@ export default function AddMealItemGramsPage() {
 }
 
 function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
-    return null;
-  }
-
-  return data.food as Food;
+  return readFoodPayload(data);
 }
 
 function readDateParam(value: string | null): string | null {

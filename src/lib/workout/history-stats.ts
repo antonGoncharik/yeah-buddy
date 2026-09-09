@@ -5,6 +5,12 @@ import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export type WorkoutHistoryRange = 14 | 30;
 
+export function isWorkoutHistoryRange(
+  value: number,
+): value is WorkoutHistoryRange {
+  return value === 14 || value === 30;
+}
+
 export type WorkoutHistoryStats = {
   count: number;
   dynamic: number;

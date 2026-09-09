@@ -8,7 +8,11 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   }
 }
 
-assertEqual(bannerFromTodayState(null, { isToday: true, isTrainingDay: false }), null, "empty");
+assertEqual(
+  bannerFromTodayState(null, { isToday: true, isTrainingDay: false }),
+  null,
+  "empty",
+);
 
 assertEqual(
   bannerFromTodayState(

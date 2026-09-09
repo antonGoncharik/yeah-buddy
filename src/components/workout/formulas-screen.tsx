@@ -34,6 +34,7 @@ import {
   WEIGHT_STEP_OPTIONS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
+import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 const MAX_SETS = 8;
@@ -609,24 +610,5 @@ function setsOk(sets: FormulaSetSpec[], kind: WorkoutKind): boolean {
 }
 
 function readSettings(data: unknown): WorkoutSettings | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("settings" in data) ||
-    !data.settings ||
-    typeof data.settings !== "object"
-  ) {
-    return null;
-  }
-
-  const settings = data.settings as Partial<WorkoutSettings>;
-  if (
-    settings.formulas == null ||
-    settings.max_increase_percent == null ||
-    settings.formulas.warmups == null
-  ) {
-    return null;
-  }
-
-  return settings as WorkoutSettings;
+  return readWorkoutSettingsPayload(data);
 }

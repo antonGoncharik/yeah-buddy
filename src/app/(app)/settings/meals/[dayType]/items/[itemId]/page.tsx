@@ -9,6 +9,7 @@ import {
 } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { readMealTemplateItemPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isDayType } from "@/lib/nutrition";
 import type { MealTemplateItemView } from "@/lib/types";
@@ -106,9 +107,5 @@ export default function EditTemplateItemPage() {
 }
 
 function readItem(data: unknown): MealTemplateItemView | null {
-  if (!data || typeof data !== "object" || !("item" in data) || !data.item) {
-    return null;
-  }
-
-  return data.item as MealTemplateItemView;
+  return readMealTemplateItemPayload(data);
 }

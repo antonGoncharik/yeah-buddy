@@ -1,9 +1,10 @@
-import type { DayWithMeals } from "@/lib/days";
+import { type DayWithMeals, mapDayWithMeals } from "@/lib/days";
+import { isRecord } from "@/lib/read";
 
 export function readDay(data: unknown): DayWithMeals | null {
-  if (!data || typeof data !== "object" || !("day" in data) || !data.day) {
+  if (!isRecord(data) || !isRecord(data.day)) {
     return null;
   }
 
-  return data.day as DayWithMeals;
+  return mapDayWithMeals(data.day);
 }

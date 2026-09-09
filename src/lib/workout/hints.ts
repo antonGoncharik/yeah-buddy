@@ -1,3 +1,4 @@
+import { isRecord } from "@/lib/read";
 import type {
   Exercise,
   ExerciseWithMax,
@@ -122,16 +123,15 @@ export function transitionExplain(preview: TransitionPreview): string {
 }
 
 export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
-  if (!data || typeof data !== "object" || !("phase_circle" in data)) {
+  if (!isRecord(data)) {
     return null;
   }
 
-  const value = (data as { phase_circle: unknown }).phase_circle;
-  if (!value || typeof value !== "object") {
+  const row = isRecord(data.phase_circle) ? data.phase_circle : null;
+  if (!row) {
     return null;
   }
 
-  const row = value as Partial<PhaseCircleProgress>;
   if (
     row.phase_type !== "ramp" &&
     row.phase_type !== "volume" &&

@@ -10,6 +10,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { EXERCISES_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { readExercises } from "@/lib/workout/hub-payload";
 import { formatWeight } from "@/lib/workout/numbers";
 
 export function ExercisesScreen() {
@@ -115,17 +116,4 @@ export function ExercisesScreen() {
       </StickyActions>
     </div>
   );
-}
-
-function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
-    return [];
-  }
-
-  return data.exercises as ExerciseWithMax[];
 }

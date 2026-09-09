@@ -7,6 +7,10 @@ export const KCAL_HIT_RATIO = 0.1;
 
 export type NutritionRange = 14 | 30;
 
+export function isNutritionRange(value: number): value is NutritionRange {
+  return value === 14 || value === 30;
+}
+
 export type NutritionMetric = "protein" | "fat" | "carbs" | "kcal";
 
 export type MacroAverages = {

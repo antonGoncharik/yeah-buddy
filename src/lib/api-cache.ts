@@ -1,3 +1,5 @@
+import { isRecord } from "@/lib/read";
+
 const PREFIX = "yb.v1:";
 const MAX_CHARS = 180_000;
 
@@ -18,11 +20,11 @@ export function peekJson(url: string): unknown | null {
     }
 
     const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || !("data" in parsed)) {
+    if (!isRecord(parsed) || !("data" in parsed)) {
       return null;
     }
 
-    return (parsed as CacheEntry).data;
+    return parsed.data;
   } catch {
     return null;
   }

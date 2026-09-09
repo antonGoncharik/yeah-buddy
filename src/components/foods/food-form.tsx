@@ -7,8 +7,10 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { parseFood } from "@/lib/foods";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
+import { isRecord } from "@/lib/read";
 import type { Food } from "@/lib/types";
 
 type FormState = {
@@ -355,9 +357,9 @@ function toPayload(
 }
 
 function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
+  if (!isRecord(data)) {
     return null;
   }
 
-  return data.food as Food;
+  return parseFood(data.food);
 }

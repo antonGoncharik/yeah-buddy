@@ -9,6 +9,7 @@ import { FoodSearch } from "@/components/foods/food-search";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -151,14 +152,5 @@ function appendPathSegment(href: string, segment: string): string {
 }
 
 function readFoods(data: unknown): Food[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("foods" in data) ||
-    !Array.isArray(data.foods)
-  ) {
-    return [];
-  }
-
-  return data.foods as Food[];
+  return parseFoodList(data);
 }

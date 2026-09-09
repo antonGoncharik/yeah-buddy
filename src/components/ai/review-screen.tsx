@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { parseReviewSnapshot } from "@/lib/ai/parse-review";
 import type { ReviewBrief, ReviewSnapshot, ReviewText } from "@/lib/ai/types";
 import {
   AI_REVIEW_EMPTY,
@@ -262,53 +263,5 @@ function backHref(from: string | null): string {
 }
 
 function readSnapshot(data: unknown): ReviewSnapshot | null {
-  if (!data || typeof data !== "object") {
-    return null;
-  }
-  const record = data as {
-    configured?: unknown;
-    brief?: unknown;
-    review?: unknown;
-  };
-  if (typeof record.configured !== "boolean" || !isBrief(record.brief)) {
-    return null;
-  }
-  return {
-    configured: record.configured,
-    brief: record.brief,
-    review: readReview(record.review),
-  };
-}
-
-function isBrief(value: unknown): value is ReviewBrief {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  const record = value as ReviewBrief;
-  return (
-    (record.range === 14 || record.range === 30) &&
-    Array.isArray(record.signals)
-  );
-}
-
-function readReview(value: unknown): ReviewText | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const record = value as ReviewText;
-  if (typeof record.headline !== "string") {
-    return null;
-  }
-  if (!Array.isArray(record.observations) || !Array.isArray(record.watch)) {
-    return null;
-  }
-  return {
-    headline: record.headline,
-    observations: record.observations.filter(
-      (item): item is string => typeof item === "string",
-    ),
-    watch: record.watch.filter(
-      (item): item is string => typeof item === "string",
-    ),
-  };
+  return parseReviewSnapshot(data);
 }

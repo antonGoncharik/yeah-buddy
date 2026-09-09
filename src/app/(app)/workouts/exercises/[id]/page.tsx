@@ -6,7 +6,9 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { ExerciseForm } from "@/components/workout/exercise-form";
 import { LOAD_FAILED } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 import type { ExerciseWithMax } from "@/lib/types";
+import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 
 export default function EditExercisePage() {
   const params = useParams<{ id: string }>();
@@ -85,14 +87,5 @@ export default function EditExercisePage() {
 }
 
 function readExercise(data: unknown): ExerciseWithMax | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercise" in data) ||
-    !data.exercise
-  ) {
-    return null;
-  }
-
-  return data.exercise as ExerciseWithMax;
+  return parseExerciseWithMax(isRecord(data) ? data.exercise : null);
 }

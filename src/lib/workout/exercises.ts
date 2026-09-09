@@ -2,16 +2,7 @@ import { z } from "zod";
 
 import { isIsoDate } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  Exercise,
-  ExerciseCategory,
-  ExerciseSlot,
-  ExerciseUnit,
-  ExerciseWithMax,
-  ExerciseWorkoutType,
-  FormulaPreset,
-  GlobalMax,
-} from "@/lib/types";
+import type { Exercise, ExerciseWithMax, GlobalMax } from "@/lib/types";
 import {
   defaultUnitForWorkoutType,
   EXERCISE_CATEGORIES,
@@ -20,7 +11,9 @@ import {
   EXERCISE_WORKOUT_TYPES,
   FORMULA_PRESETS,
 } from "@/lib/workout/labels";
-import { toNullableString, toNumber } from "@/lib/workout/numbers";
+import { mapExercise, mapGlobalMax } from "@/lib/workout/map-rows";
+
+export { mapExercise, mapGlobalMax };
 
 const optionalText = z
   .union([z.string(), z.null()])
@@ -314,38 +307,6 @@ export async function raiseGlobalMax(input: {
   });
 }
 
-export function mapExercise(row: Record<string, unknown>): Exercise {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    name: String(row.name),
-    short_name: toNullableString(row.short_name),
-    category: toCategory(row.category),
-    workout_type: toWorkoutType(row.workout_type),
-    unit: toUnit(row.unit),
-    weight_step: toNumber(row.weight_step) || 2.5,
-    formula_preset: toPreset(row.formula_preset),
-    slot: toExerciseSlot(row.slot),
-    is_active: Boolean(row.is_active),
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
-    archived_at: toNullableString(row.archived_at),
-  };
-}
-
-export function mapGlobalMax(row: Record<string, unknown>): GlobalMax {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    exercise_id: String(row.exercise_id),
-    max_weight: toNumber(row.max_weight),
-    achieved_at: String(row.achieved_at).slice(0, 10),
-    phase_id: toNullableString(row.phase_id),
-    workout_session_id: toNullableString(row.workout_session_id),
-    created_at: String(row.created_at),
-  };
-}
-
 async function listGlobalMaxes(
   userId: string,
   exerciseIds: string[],
@@ -504,44 +465,4 @@ function resolveAchievedAt(value: string | undefined): string {
   }
 
   return new Date().toISOString().slice(0, 10);
-}
-
-function toCategory(value: unknown): ExerciseCategory {
-  return value === "isolation" ? "isolation" : "base";
-}
-
-function toWorkoutType(value: unknown): ExerciseWorkoutType {
-  if (value === "dynamic" || value === "static" || value === "both") {
-    return value;
-  }
-
-  return "dynamic";
-}
-
-function toUnit(value: unknown): ExerciseUnit {
-  if (value === "reps" || value === "seconds") {
-    return value;
-  }
-
-  return "reps";
-}
-
-function toPreset(value: unknown): FormulaPreset {
-  if (value === "cable_short") {
-    return "cable";
-  }
-
-  if (value === "barbell" || value === "cable" || value === "none") {
-    return value;
-  }
-
-  return "barbell";
-}
-
-function toExerciseSlot(value: unknown): ExerciseSlot | null {
-  if (value === "a" || value === "b" || value === "c") {
-    return value;
-  }
-
-  return null;
 }

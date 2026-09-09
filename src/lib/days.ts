@@ -926,7 +926,7 @@ function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
   };
 }
 
-function mapDayWithMeals(row: Record<string, unknown>): DayWithMeals {
+export function mapDayWithMeals(row: Record<string, unknown>): DayWithMeals {
   const meals = Array.isArray(row.meals)
     ? row.meals
         .map((meal) => mapMeal(meal as Record<string, unknown>))

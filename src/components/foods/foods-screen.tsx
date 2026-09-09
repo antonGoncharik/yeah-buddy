@@ -11,6 +11,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet } from "@/lib/api-cache";
+import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -182,14 +183,5 @@ function emptyMessage(filter: Filter, query: string): string {
 }
 
 function readFoods(data: unknown): Food[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("foods" in data) ||
-    !Array.isArray(data.foods)
-  ) {
-    return [];
-  }
-
-  return data.foods as Food[];
+  return parseFoodList(data);
 }

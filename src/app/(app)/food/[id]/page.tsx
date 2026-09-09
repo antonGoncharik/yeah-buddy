@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { FoodForm } from "@/components/foods/food-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
+import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
@@ -86,9 +87,5 @@ export default function EditFoodPage() {
 }
 
 function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data)) {
-    return null;
-  }
-
-  return data.food as Food;
+  return readFoodPayload(data);
 }

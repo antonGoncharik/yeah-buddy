@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
+import { readExercises } from "@/lib/workout/hub-payload";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 type MaxDraft = Record<string, string>;
@@ -195,17 +196,4 @@ export function NewMacroScreen() {
       </div>
     </div>
   );
-}
-
-function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
-    return [];
-  }
-
-  return data.exercises as ExerciseWithMax[];
 }

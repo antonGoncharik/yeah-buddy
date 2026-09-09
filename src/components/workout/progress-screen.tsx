@@ -14,6 +14,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
+import { parseStrengthProgress } from "@/lib/workout/map-rows";
 import {
   formatSeconds,
   formatSignedPercent,
@@ -260,24 +261,5 @@ function ExerciseProgressCard({
 }
 
 function readProgress(data: unknown): StrengthProgress | null {
-  if (!data || typeof data !== "object" || !("exercises" in data)) {
-    return null;
-  }
-
-  const record = data as StrengthProgress;
-  return {
-    ...record,
-    exercises: record.exercises.map((item) => ({
-      ...item,
-      points: item.points.map((point) => ({
-        ...point,
-        seconds:
-          typeof point.seconds === "number" && point.seconds > 0
-            ? point.seconds
-            : null,
-        phase_type: point.phase_type ?? null,
-        macro_number: point.macro_number ?? null,
-      })),
-    })),
-  };
+  return parseStrengthProgress(data);
 }

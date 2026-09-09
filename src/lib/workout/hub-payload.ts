@@ -1,118 +1,101 @@
+import { isRecord, mapRecordList, readKeyedRecord } from "@/lib/read";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
-  PhaseCircleProgress,
   RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { readPhaseCircle } from "@/lib/workout/hints";
+import {
+  mapExercise,
+  parseExerciseWithMax,
+  parseMacroCycle,
+  parseMacroRecap,
+  parsePhaseMaxRow,
+  parseWorkoutPhase,
+  parseWorkoutSession,
+} from "@/lib/workout/map-rows";
+import { toNumber } from "@/lib/workout/numbers";
 
 export function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
+  if (!isRecord(data)) {
     return [];
   }
 
-  return data.exercises as ExerciseWithMax[];
+  return mapRecordList(data.exercises, (row) => parseExerciseWithMax(row));
 }
 
 export function readTemplates(data: unknown): WorkoutTemplateDetail[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("templates" in data) ||
-    !Array.isArray(data.templates)
-  ) {
+  if (!isRecord(data)) {
     return [];
   }
 
-  return data.templates as WorkoutTemplateDetail[];
+  return mapRecordList(data.templates, parseTemplateDetail);
 }
 
 export function readMacro(data: unknown): CurrentMacroState | null {
-  if (!data || typeof data !== "object" || !("macro" in data)) {
+  return parseCurrentMacroState(data);
+}
+
+export function parseCurrentMacroState(
+  data: unknown,
+): CurrentMacroState | null {
+  if (!isRecord(data) || !("macro" in data)) {
     return null;
   }
 
-  return data as CurrentMacroState;
+  return {
+    macro: parseMacroCycle(data.macro),
+    phase: parseWorkoutPhase(data.phase),
+    phases: mapRecordList(data.phases, (row) => parseWorkoutPhase(row)),
+    maxes: mapRecordList(data.maxes, parsePhaseMaxRow),
+    phase_circle: readPhaseCircle(data),
+    last_recap: parseMacroRecap(data.last_recap),
+  };
 }
 
 export function readCanUnskip(data: unknown): boolean {
-  return Boolean(
-    data &&
-      typeof data === "object" &&
-      "can_unskip" in data &&
-      data.can_unskip === true,
-  );
+  return isRecord(data) && data.can_unskip === true;
 }
 
 export function readCanBackfillYesterday(data: unknown): boolean {
-  return Boolean(
-    data &&
-      typeof data === "object" &&
-      "can_backfill_yesterday" in data &&
-      data.can_backfill_yesterday === true,
-  );
+  return isRecord(data) && data.can_backfill_yesterday === true;
 }
 
 export function readTodaySession(data: unknown): WorkoutSession | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("session" in data) ||
-    !data.session
-  ) {
+  if (!isRecord(data)) {
     return null;
   }
 
-  return data.session as WorkoutSession;
+  return parseWorkoutSession(data.session);
 }
 
 export function readTemplate(
   data: unknown,
   key: "next_template" | "session_template" | "following_template",
 ): WorkoutTemplateDetail | null {
-  if (!data || typeof data !== "object" || !(key in data)) {
+  if (!isRecord(data)) {
     return null;
   }
 
-  const value = (data as Record<string, unknown>)[key];
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  return value as WorkoutTemplateDetail;
+  return parseTemplateDetail(data[key]);
 }
 
 export function readUnfinished(data: unknown): RecentWorkoutSession[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("unfinished" in data) ||
-    !Array.isArray(data.unfinished)
-  ) {
+  if (!isRecord(data)) {
     return [];
   }
 
-  return data.unfinished as RecentWorkoutSession[];
+  return mapRecordList(data.unfinished, parseRecentSession);
 }
 
 export function readRecent(data: unknown): RecentWorkoutSession[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("recent" in data) ||
-    !Array.isArray(data.recent)
-  ) {
+  if (!isRecord(data)) {
     return [];
   }
 
-  return data.recent as RecentWorkoutSession[];
+  return mapRecordList(data.recent, parseRecentSession);
 }
 
 export function readHubSessionState(data: unknown): {
@@ -122,7 +105,7 @@ export function readHubSessionState(data: unknown): {
   followingTemplate: WorkoutTemplateDetail | null;
   unfinished: RecentWorkoutSession[];
   recent: RecentWorkoutSession[];
-  phaseCircle: PhaseCircleProgress | null;
+  phaseCircle: ReturnType<typeof readPhaseCircle>;
   canUnskip: boolean;
   canBackfillYesterday: boolean;
 } {
@@ -140,10 +123,46 @@ export function readHubSessionState(data: unknown): {
 }
 
 export function isRestFoodDay(data: unknown): boolean {
-  if (!data || typeof data !== "object" || !("day" in data) || !data.day) {
-    return false;
+  const day = readKeyedRecord(data, "day");
+  return day?.is_training_day === false;
+}
+
+export function parseTemplateDetail(
+  value: unknown,
+): WorkoutTemplateDetail | null {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
   }
 
-  const day = data.day as { is_training_day?: unknown };
-  return day.is_training_day === false;
+  return {
+    id: value.id,
+    user_id: String(value.user_id ?? ""),
+    name: String(value.name ?? ""),
+    kind: value.kind === "static" ? "static" : "dynamic",
+    sort_order: toNumber(value.sort_order),
+    is_active: Boolean(value.is_active),
+    created_at: String(value.created_at ?? ""),
+    updated_at: String(value.updated_at ?? ""),
+    exercises: mapRecordList(value.exercises, (row) =>
+      typeof row.id === "string" ? mapExercise(row) : null,
+    ),
+  };
+}
+
+function parseRecentSession(
+  row: Record<string, unknown>,
+): RecentWorkoutSession | null {
+  const session = parseWorkoutSession(row.session);
+  if (!session) {
+    return null;
+  }
+
+  return {
+    session,
+    template_name:
+      typeof row.template_name === "string" ? row.template_name : null,
+    summary: typeof row.summary === "string" ? row.summary : null,
+    plan_hit: toNumber(row.plan_hit),
+    plan_total: toNumber(row.plan_total),
+  };
 }

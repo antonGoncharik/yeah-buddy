@@ -5,17 +5,22 @@ import { useEffect, useState } from "react";
 
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 import type {
   ExerciseWithMax,
   WorkoutKind,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import {
+  readExercises as hubReadExercises,
+  parseTemplateDetail,
+} from "@/lib/workout/hub-payload";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 const KIND_OPTIONS: Array<{ id: WorkoutKind; label: string }> = [
@@ -244,27 +249,9 @@ function Field({
 }
 
 function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
-    return [];
-  }
-
-  return data.exercises as ExerciseWithMax[];
+  return hubReadExercises(data);
 }
 
 function readTemplate(data: unknown): WorkoutTemplateDetail | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("template" in data) ||
-    !data.template
-  ) {
-    return null;
-  }
-
-  return data.template as WorkoutTemplateDetail;
+  return parseTemplateDetail(isRecord(data) ? data.template : null);
 }

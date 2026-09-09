@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { cachedGet } from "@/lib/api-cache";
+import { readMealTemplatesPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
 import { DAY_TEMPLATE_TITLES, formatKcal, sumMealItems } from "@/lib/nutrition";
 import type { DayType, MealTemplateDetail } from "@/lib/types";
@@ -104,14 +105,5 @@ export function MealTemplatesHubScreen() {
 }
 
 function readTemplates(data: unknown): MealTemplateDetail[] | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("templates" in data) ||
-    !Array.isArray(data.templates)
-  ) {
-    return null;
-  }
-
-  return data.templates as MealTemplateDetail[];
+  return readMealTemplatesPayload(data);
 }

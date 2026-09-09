@@ -22,6 +22,7 @@ import {
   FORMULA_PRESETS,
   WEIGHT_STEP_OPTIONS,
 } from "@/lib/workout/labels";
+import { isFormulaPreset } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 type FormState = {
@@ -193,12 +194,16 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       <Field label="Разминка">
         <select
           value={form.formula_preset}
-          onChange={(event) =>
+          onChange={(event) => {
+            const preset = event.target.value;
+            if (!isFormulaPreset(preset)) {
+              return;
+            }
             setForm((current) => ({
               ...current,
-              formula_preset: event.target.value as FormulaPreset,
-            }))
-          }
+              formula_preset: preset,
+            }));
+          }}
           className={nativeSelectClassName}
         >
           {FORMULA_PRESETS.map((preset) => (

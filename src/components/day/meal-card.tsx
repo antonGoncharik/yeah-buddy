@@ -61,9 +61,7 @@ export function MealCard({
               item={item}
               href={readOnly || !itemHref ? undefined : itemHref(item)}
               onDelete={
-                readOnly || !onDeleteItem
-                  ? undefined
-                  : () => onDeleteItem(item)
+                readOnly || !onDeleteItem ? undefined : () => onDeleteItem(item)
               }
             />
           ))}

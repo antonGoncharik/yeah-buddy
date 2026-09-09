@@ -168,7 +168,14 @@ export function visibleMealTypes(isTrainingDay: boolean): MealType[] {
 }
 
 export function isMealType(value: unknown): value is MealType {
-  return MEAL_DISPLAY_ORDER.includes(value as MealType);
+  return (
+    value === "breakfast" ||
+    value === "lunch" ||
+    value === "snack" ||
+    value === "pre_workout" ||
+    value === "post_workout" ||
+    value === "dinner"
+  );
 }
 
 export function isDayType(value: unknown): value is DayType {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { calcKcalFromMacros } from "@/lib/nutrition";
+import { isRecord, mapRecordList } from "@/lib/read";
 import type { Food, FoodState } from "@/lib/types";
 
 export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
@@ -71,6 +72,26 @@ export function mapFood(row: Record<string, unknown>): Food {
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
+}
+
+export function parseFood(value: unknown): Food | null {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
+  }
+
+  return mapFood(value);
+}
+
+export function readFoodPayload(data: unknown): Food | null {
+  return isRecord(data) ? parseFood(data.food) : null;
+}
+
+export function parseFoodList(data: unknown, key = "foods"): Food[] {
+  if (!isRecord(data)) {
+    return [];
+  }
+
+  return mapRecordList(data[key], parseFood);
 }
 
 function toFoodState(value: unknown): FoodState {

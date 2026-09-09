@@ -1,11 +1,11 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-
-import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
+import { isRecord } from "@/lib/read";
 import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
+import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
 export type TodayWorkoutBannerState = {
   href: string;
@@ -49,17 +49,11 @@ export function bannerFromTodayState(
   data: unknown,
   options: { isToday: boolean; isTrainingDay: boolean },
 ): TodayWorkoutBannerState | null {
-  if (!data || typeof data !== "object") {
-    return null;
-  }
-
-  const record = data as Record<string, unknown>;
-  const session =
-    record.session && typeof record.session === "object"
-      ? (record.session as WorkoutSession)
-      : null;
-  const sessionTemplate = readNamed(record.session_template);
-  const nextTemplate = readNamed(record.next_template);
+  const session = parseWorkoutSession(isRecord(data) ? data.session : null);
+  const sessionTemplate = readNamed(
+    isRecord(data) ? data.session_template : null,
+  );
+  const nextTemplate = readNamed(isRecord(data) ? data.next_template : null);
 
   if (session) {
     return {
@@ -82,10 +76,10 @@ export function bannerFromTodayState(
   return null;
 }
 
-function readNamed(value: unknown): WorkoutTemplateDetail | null {
-  if (!value || typeof value !== "object" || !("name" in value)) {
+function readNamed(value: unknown): { name: string } | null {
+  if (!isRecord(value) || typeof value.name !== "string" || value.name === "") {
     return null;
   }
 
-  return value as WorkoutTemplateDetail;
+  return { name: value.name };
 }

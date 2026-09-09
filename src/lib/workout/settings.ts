@@ -10,42 +10,15 @@ import type {
 } from "@/lib/types";
 import {
   cloneFormulas,
-  DEFAULT_WARMUP_PRESETS,
   DEFAULT_WORKOUT_FORMULAS,
 } from "@/lib/workout/default-formulas";
-import { toNumber } from "@/lib/workout/numbers";
+import {
+  fillFormulas,
+  formulasSchema,
+  mapWorkoutSettings,
+} from "@/lib/workout/map-settings";
 
-const formulaSetSchema = z.object({
-  percent: z.number().finite().min(0),
-  reps: z.number().int().positive().nullable(),
-  seconds: z.number().finite().positive().nullable(),
-});
-
-const formulaPhaseSchema = z.object({
-  warmup: z.array(formulaSetSchema),
-  work: z.array(formulaSetSchema).min(1),
-});
-
-const warmupPresetsSchema = z.object({
-  barbell: z.array(formulaSetSchema),
-  cable: z.array(formulaSetSchema),
-});
-
-const formulasSchema = z.object({
-  dynamic: z.object({
-    ramp: formulaPhaseSchema,
-    volume: formulaPhaseSchema,
-    peak: formulaPhaseSchema,
-    deload: formulaPhaseSchema,
-  }),
-  static: z.object({
-    ramp: formulaPhaseSchema,
-    volume: formulaPhaseSchema,
-    peak: formulaPhaseSchema,
-    deload: formulaPhaseSchema,
-  }),
-  warmups: warmupPresetsSchema.optional(),
-});
+export { mapWorkoutSettings } from "@/lib/workout/map-settings";
 
 export const workoutSettingsPatchSchema = z.object({
   max_increase_percent: z.number().finite().min(0).optional(),
@@ -76,9 +49,7 @@ export async function ensureWorkoutSettings(
     .from("workout_settings")
     .insert({
       user_id: userId,
-      max_increase_percent: 5,
       formulas: cloneFormulas(DEFAULT_WORKOUT_FORMULAS),
-      skip_template_ids: [],
     })
     .select("*")
     .single();
@@ -90,11 +61,9 @@ export async function ensureWorkoutSettings(
         .select("*")
         .eq("user_id", userId)
         .single();
-
       if (raced.error || !raced.data) {
-        throw raced.error ?? new Error("Workout settings lookup failed");
+        throw raced.error ?? inserted.error;
       }
-
       return mapWorkoutSettings(raced.data as Record<string, unknown>);
     }
 
@@ -128,52 +97,6 @@ export async function saveWorkoutSettings(
   }
 
   return mapWorkoutSettings(saved.data as Record<string, unknown>);
-}
-
-export function mapWorkoutSettings(
-  row: Record<string, unknown>,
-): WorkoutSettings {
-  return {
-    user_id: String(row.user_id),
-    max_increase_percent: toNumber(row.max_increase_percent),
-    formulas: parseFormulas(row.formulas),
-    skip_template_ids: parseSkipTemplateIds(row),
-    updated_at: String(row.updated_at),
-  };
-}
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function parseSkipTemplateIds(row: Record<string, unknown>): string[] {
-  if ("skip_template_ids" in row) {
-    return parseUuidList(row.skip_template_ids);
-  }
-
-  return parseSkipTemplateIdsFromFormulas(row.formulas);
-}
-
-function parseSkipTemplateIdsFromFormulas(value: unknown): string[] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return [];
-  }
-
-  const raw = Reflect.get(value, "_skip_template_ids");
-  return parseUuidList(raw);
-}
-
-function parseUuidList(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return [
-    ...new Set(
-      value.filter(
-        (id): id is string => typeof id === "string" && UUID_PATTERN.test(id),
-      ),
-    ),
-  ];
 }
 
 export async function skipTemplateInRotation(
@@ -224,47 +147,6 @@ async function saveSkipTemplateIds(
   }
 
   return mapWorkoutSettings(saved.data as Record<string, unknown>);
-}
-
-function parseFormulas(value: unknown): WorkoutFormulas {
-  const parsed = formulasSchema.safeParse(stripLegacyCableShort(value));
-  if (parsed.success) {
-    return fillFormulas(parsed.data);
-  }
-
-  return cloneFormulas(DEFAULT_WORKOUT_FORMULAS);
-}
-
-function stripLegacyCableShort(value: unknown): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return value;
-  }
-
-  const row: Record<string, unknown> = { ...value };
-  delete row._skip_template_ids;
-  const warmups = row.warmups;
-  if (!warmups || typeof warmups !== "object" || Array.isArray(warmups)) {
-    return row;
-  }
-
-  const nextWarmups: Record<string, unknown> = { ...warmups };
-  delete nextWarmups.cable_short;
-  return { ...row, warmups: nextWarmups };
-}
-
-function fillFormulas(value: z.infer<typeof formulasSchema>): WorkoutFormulas {
-  return {
-    dynamic: value.dynamic,
-    static: {
-      ramp: { warmup: [], work: value.static.ramp.work },
-      volume: { warmup: [], work: value.static.volume.work },
-      peak: { warmup: [], work: value.static.peak.work },
-      deload: { warmup: [], work: value.static.deload.work },
-    },
-    warmups: value.warmups
-      ? structuredClone(value.warmups)
-      : structuredClone(DEFAULT_WARMUP_PRESETS),
-  };
 }
 
 export function getFormulaPhase(

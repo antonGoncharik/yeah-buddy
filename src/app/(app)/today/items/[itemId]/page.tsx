@@ -7,6 +7,8 @@ import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/days";
+import { readFoodPayload } from "@/lib/foods";
+import { readMealItemPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food, MealItem } from "@/lib/types";
 
@@ -124,19 +126,11 @@ export default function EditMealItemPage() {
 }
 
 function readItem(data: unknown): MealItem | null {
-  if (!data || typeof data !== "object" || !("item" in data) || !data.item) {
-    return null;
-  }
-
-  return data.item as MealItem;
+  return readMealItemPayload(data);
 }
 
 function readFood(data: unknown): Food | null {
-  if (!data || typeof data !== "object" || !("food" in data) || !data.food) {
-    return null;
-  }
-
-  return data.food as Food;
+  return readFoodPayload(data);
 }
 
 function readItemDate(data: unknown): string | null {

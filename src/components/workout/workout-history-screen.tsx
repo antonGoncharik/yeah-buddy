@@ -15,9 +15,11 @@ import {
   REVIEW_CTA_HINT,
   SESSION_HISTORY_EMPTY,
 } from "@/lib/messages";
+import { isRecord, mapRecordList } from "@/lib/read";
 import type { RecentWorkoutSession } from "@/lib/types";
 import {
   hasOlderThanRange,
+  isWorkoutHistoryRange,
   pluralWorkouts,
   summarizeWorkoutHistory,
   type WorkoutHistoryRange,
@@ -28,6 +30,7 @@ import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
+import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
 type RangeId = "14" | "30";
 
@@ -90,7 +93,8 @@ export function WorkoutHistoryScreen() {
     void load();
   }, [load]);
 
-  const rangeDays = Number(range) as WorkoutHistoryRange;
+  const parsedRange = Number(range);
+  const rangeDays = isWorkoutHistoryRange(parsedRange) ? parsedRange : 14;
   const windowed = useMemo(
     () => windowGymSessions(items, rangeDays, today),
     [items, rangeDays, today],
@@ -302,30 +306,31 @@ function readPage(data: unknown): {
   items: RecentWorkoutSession[];
   next_before: string | null;
 } {
-  if (!data || typeof data !== "object") {
+  if (!isRecord(data)) {
     return { items: [], next_before: null };
   }
 
-  const record = data as {
-    items?: unknown;
-    next_before?: unknown;
-  };
-
   return {
-    items: Array.isArray(record.items) ? record.items.map(readHistoryItem) : [],
-    next_before:
-      typeof record.next_before === "string" ? record.next_before : null,
+    items: mapRecordList(data.items, parseHistoryItem),
+    next_before: typeof data.next_before === "string" ? data.next_before : null,
   };
 }
 
-function readHistoryItem(value: unknown): RecentWorkoutSession {
-  const record = value as RecentWorkoutSession;
+function parseHistoryItem(
+  row: Record<string, unknown>,
+): RecentWorkoutSession | null {
+  const session = parseWorkoutSession(row.session);
+  if (!session) {
+    return null;
+  }
+
   return {
-    session: record.session,
-    template_name: record.template_name ?? null,
-    summary: record.summary ?? null,
-    plan_hit: Number.isFinite(record.plan_hit) ? record.plan_hit : 0,
-    plan_total: Number.isFinite(record.plan_total) ? record.plan_total : 0,
+    session,
+    template_name:
+      typeof row.template_name === "string" ? row.template_name : null,
+    summary: typeof row.summary === "string" ? row.summary : null,
+    plan_hit: Number(row.plan_hit) || 0,
+    plan_total: Number(row.plan_total) || 0,
   };
 }
 

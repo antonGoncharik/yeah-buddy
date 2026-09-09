@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { LOAD_FAILED } from "@/lib/messages";
-import { isOnboardingCompleted } from "@/lib/settings";
+import { isOnboardingCompleted, readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
 
 export function OnboardingGate({ children }: { children: React.ReactNode }) {
@@ -60,14 +60,5 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
 }
 
 function readSettings(data: unknown): UserSettings | null {
-  if (!data || typeof data !== "object" || !("settings" in data)) {
-    return null;
-  }
-
-  const settings = data.settings;
-  if (!settings || typeof settings !== "object") {
-    return null;
-  }
-
-  return settings as UserSettings;
+  return readSettingsPayload(data);
 }

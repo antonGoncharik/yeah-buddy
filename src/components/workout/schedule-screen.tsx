@@ -13,6 +13,7 @@ import { SortableList } from "@/components/workout/sortable-list";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { readTemplates } from "@/lib/workout/hub-payload";
 
 export function ScheduleScreen() {
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
@@ -217,17 +218,4 @@ export function ScheduleScreen() {
       </div>
     </div>
   );
-}
-
-function readTemplates(data: unknown): WorkoutTemplateDetail[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("templates" in data) ||
-    !Array.isArray(data.templates)
-  ) {
-    return [];
-  }
-
-  return data.templates as WorkoutTemplateDetail[];
 }

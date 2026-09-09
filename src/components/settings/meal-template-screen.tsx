@@ -9,6 +9,7 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
+import { readMealTemplatePayload } from "@/lib/meal-map";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import {
   calcKcalFromMacros,
@@ -18,6 +19,7 @@ import {
   sumMealItems,
   visibleMealTypes,
 } from "@/lib/nutrition";
+import { readSettingsPayload } from "@/lib/settings-map";
 import type {
   DayType,
   MealTemplateDetail,
@@ -256,27 +258,9 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
 }
 
 function readTemplate(data: unknown): MealTemplateDetail | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("template" in data) ||
-    !data.template
-  ) {
-    return null;
-  }
-
-  return data.template as MealTemplateDetail;
+  return readMealTemplatePayload(data);
 }
 
 function readSettings(data: unknown): UserSettings | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("settings" in data) ||
-    !data.settings
-  ) {
-    return null;
-  }
-
-  return data.settings as UserSettings;
+  return readSettingsPayload(data);
 }
