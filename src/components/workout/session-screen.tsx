@@ -34,6 +34,10 @@ import {
   workAbovePlan,
   workSetDiffers,
 } from "@/lib/workout/session-format";
+import {
+  readExercises,
+  readSessionDetail,
+} from "@/lib/workout/session-payload";
 
 export function SessionScreen() {
   const params = useParams<{ id: string }>();
@@ -103,7 +107,7 @@ export function SessionScreen() {
       await cachedGet(
         sessionUrl,
         (data) => {
-          const next = readDetail(data);
+          const next = readSessionDetail(data);
           if (!next) {
             return false;
           }
@@ -182,7 +186,7 @@ export function SessionScreen() {
         return;
       }
 
-      const next = readDetail(data);
+      const next = readSessionDetail(data);
       if (next) {
         writeJson(sessionUrl, data);
         applyDetail(next);
@@ -250,7 +254,7 @@ export function SessionScreen() {
         return;
       }
 
-      const next = readDetail(data);
+      const next = readSessionDetail(data);
       if (next) {
         writeJson(sessionUrl, data);
         applyDetail(next);
@@ -292,7 +296,7 @@ export function SessionScreen() {
         return;
       }
 
-      const next = readDetail(data);
+      const next = readSessionDetail(data);
       if (next) {
         writeJson(sessionUrl, data);
         applyDetail(next);
@@ -1029,30 +1033,4 @@ function parseInteger(raw: string): number | null {
 
   const rounded = Math.round(value);
   return rounded > 0 ? rounded : null;
-}
-
-function readDetail(data: unknown): SessionDetail | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("session" in data) ||
-    !data.session
-  ) {
-    return null;
-  }
-
-  return data as SessionDetail;
-}
-
-function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
-    return [];
-  }
-
-  return data.exercises as ExerciseWithMax[];
 }

@@ -27,6 +27,7 @@ import { useDayMood } from "@/components/layout/day-mood";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, peekJson } from "@/lib/api-cache";
+import { readDay } from "@/lib/day/today-payload";
 import type { DayWithMeals } from "@/lib/days";
 import {
   isIsoDate,
@@ -592,12 +593,4 @@ export function TodayScreen({
       </div>
     </div>
   );
-}
-
-function readDay(data: unknown): DayWithMeals | null {
-  if (!data || typeof data !== "object" || !("day" in data) || !data.day) {
-    return null;
-  }
-
-  return data.day as DayWithMeals;
 }

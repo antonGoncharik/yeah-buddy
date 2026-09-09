@@ -1,289 +1,55 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
-import { ru } from "date-fns/locale";
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cachedGet } from "@/lib/api-cache";
+import {
+  formatSessionDay,
+  useWorkoutsHub,
+} from "@/components/workout/use-workouts-hub";
 import { previousIsoDate } from "@/lib/days";
 import {
-  LOAD_FAILED,
-  readApiError,
   WORKOUTS_NEED_EXERCISES,
   WORKOUTS_NEED_MAXES,
   WORKOUTS_NEED_TEMPLATES,
 } from "@/lib/messages";
-import type {
-  CurrentMacroState,
-  ExerciseWithMax,
-  PhaseCircleProgress,
-  RecentWorkoutSession,
-  WorkoutSession,
-  WorkoutTemplateDetail,
-} from "@/lib/types";
-import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
-import {
-  phaseEndHint,
-  phaseLinkLabel,
-  queueItemMark,
-  readPhaseCircle,
-  templateHasPlanMaxes,
-  todayWeightsHint,
-} from "@/lib/workout/hints";
-import {
-  SESSION_STATUS_LABELS,
-  WORKOUT_KIND_LABELS,
-} from "@/lib/workout/labels";
+import { phaseLinkLabel, queueItemMark } from "@/lib/workout/hints";
+import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubScreen() {
-  const router = useRouter();
-  const confirm = useConfirm();
-  const date = format(new Date(), "yyyy-MM-dd");
-  const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
-  const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
-  const [macro, setMacro] = useState<CurrentMacroState | null>(null);
-  const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [sessionTemplate, setSessionTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [nextTemplate, setNextTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [followingTemplate, setFollowingTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [unfinished, setUnfinished] = useState<RecentWorkoutSession[]>([]);
-  const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
-  const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
-    null,
-  );
-  const [canUnskip, setCanUnskip] = useState(false);
-  const [canBackfillYesterday, setCanBackfillYesterday] = useState(false);
-  const { loading, begin, done } = useFirstLoad();
-  const [error, setError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [skipping, setSkipping] = useState(false);
-
-  const activeTemplates = useMemo(
-    () => templates.filter((template) => template.is_active),
-    [templates],
-  );
-
-  const load = useCallback(async () => {
-    begin();
-    setError(null);
-    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
-    const showCached = () => done(true);
-
-    const results = await Promise.all([
-      cachedGet(
-        "/api/exercises?filter=active",
-        (data) => {
-          setExercises(readExercises(data));
-          return true;
-        },
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet(
-        "/api/templates",
-        (data) => {
-          setTemplates(readTemplates(data));
-          return true;
-        },
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet(
-        "/api/macros",
-        (data) => {
-          setMacro(readMacro(data));
-          return true;
-        },
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet(
-        sessionUrl,
-        (data) => {
-          setSession(readTodaySession(data));
-          setSessionTemplate(readTemplate(data, "session_template"));
-          setNextTemplate(readTemplate(data, "next_template"));
-          setFollowingTemplate(readTemplate(data, "following_template"));
-          setUnfinished(readUnfinished(data));
-          setRecent(readRecent(data));
-          setPhaseCircle(readPhaseCircle(data));
-          setCanUnskip(readCanUnskip(data));
-          setCanBackfillYesterday(readCanBackfillYesterday(data));
-          return true;
-        },
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-    ]);
-
-    if (!results.some((ok) => ok)) {
-      setError(LOAD_FAILED);
-      done(false);
-      return;
-    }
-
-    done(true);
-  }, [begin, date, done]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function createOnDate(templateId: string, sessionDate: string) {
-    const template = templates.find((item) => item.id === templateId);
-    if (template && !templateHasPlanMaxes(template, exercises)) {
-      router.push("/workouts/exercises");
-      return;
-    }
-
-    setCreating(true);
-    setError(null);
-
-    try {
-      const dayResponse = await fetch(
-        `/api/days?date=${encodeURIComponent(sessionDate)}`,
-      );
-      const dayData: unknown = await dayResponse.json().catch(() => null);
-      if (dayResponse.ok && isRestFoodDay(dayData)) {
-        const ok = await confirm({
-          message:
-            sessionDate === date
-              ? "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется."
-              : "За этот день еда уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
-          confirmLabel: "Сделать тренировочным",
-          cancelLabel: "Отмена",
-        });
-        if (!ok) {
-          return;
-        }
-      }
-
-      const response = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_date: sessionDate,
-          template_id: templateId,
-        }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      const created = readTodaySession(data);
-      if (created) {
-        router.push(`/workouts/sessions/${created.id}`);
-        return;
-      }
-
-      await load();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function skipTemplate(templateId: string) {
-    setSkipping(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/rotation/skip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_id: templateId }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      await load();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setSkipping(false);
-    }
-  }
-
-  async function unskipLast() {
-    setSkipping(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/rotation/unskip", {
-        method: "POST",
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      await load();
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setSkipping(false);
-    }
-  }
-
-  async function pickTemplate(template: WorkoutTemplateDetail) {
-    if (session) {
-      return;
-    }
-
-    if (nextTemplate && template.id !== nextTemplate.id) {
-      const ok = await confirm({
-        message: `Начать «${template.name}» вместо «${nextTemplate.name}»?`,
-        confirmLabel: "Начать",
-        cancelLabel: "Оставить",
-      });
-      if (!ok) {
-        return;
-      }
-    }
-
-    void createOnDate(template.id, date);
-  }
-
-  const todayLabel = format(new Date(), "d MMMM", { locale: ru });
-  const sessionAction =
-    session?.status === "completed"
-      ? "Открыть"
-      : session?.status === "skipped"
-        ? SESSION_STATUS_LABELS.skipped
-        : "Открыть";
-  const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
-  const weightsHint = todayWeightsHint(
-    macro?.phase?.phase_type ?? null,
-    macro?.macro?.number ?? null,
-  );
-  const nextHasPlanMaxes =
-    nextTemplate != null && templateHasPlanMaxes(nextTemplate, exercises);
+  const {
+    date,
+    todayLabel,
+    loading,
+    error,
+    load,
+    exercises,
+    activeTemplates,
+    macro,
+    session,
+    sessionTemplate,
+    nextTemplate,
+    followingTemplate,
+    unfinished,
+    recent,
+    phaseCircle,
+    canUnskip,
+    canBackfillYesterday,
+    creating,
+    skipping,
+    sessionAction,
+    phaseHint,
+    weightsHint,
+    nextHasPlanMaxes,
+    createOnDate,
+    skipTemplate,
+    unskipLast,
+    pickTemplate,
+  } = useWorkoutsHub();
 
   return (
     <div className="flex flex-col gap-4">
@@ -671,128 +437,4 @@ export function WorkoutsHubScreen() {
       </div>
     </div>
   );
-}
-
-function readExercises(data: unknown): ExerciseWithMax[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("exercises" in data) ||
-    !Array.isArray(data.exercises)
-  ) {
-    return [];
-  }
-
-  return data.exercises as ExerciseWithMax[];
-}
-
-function readTemplates(data: unknown): WorkoutTemplateDetail[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("templates" in data) ||
-    !Array.isArray(data.templates)
-  ) {
-    return [];
-  }
-
-  return data.templates as WorkoutTemplateDetail[];
-}
-
-function readMacro(data: unknown): CurrentMacroState | null {
-  if (!data || typeof data !== "object" || !("macro" in data)) {
-    return null;
-  }
-
-  return data as CurrentMacroState;
-}
-
-function readCanUnskip(data: unknown): boolean {
-  return Boolean(
-    data &&
-      typeof data === "object" &&
-      "can_unskip" in data &&
-      data.can_unskip === true,
-  );
-}
-
-function readCanBackfillYesterday(data: unknown): boolean {
-  return Boolean(
-    data &&
-      typeof data === "object" &&
-      "can_backfill_yesterday" in data &&
-      data.can_backfill_yesterday === true,
-  );
-}
-
-function readTodaySession(data: unknown): WorkoutSession | null {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("session" in data) ||
-    !data.session
-  ) {
-    return null;
-  }
-
-  return data.session as WorkoutSession;
-}
-
-function readTemplate(
-  data: unknown,
-  key: "next_template" | "session_template" | "following_template",
-): WorkoutTemplateDetail | null {
-  if (!data || typeof data !== "object" || !(key in data)) {
-    return null;
-  }
-
-  const value = (data as Record<string, unknown>)[key];
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  return value as WorkoutTemplateDetail;
-}
-
-function readUnfinished(data: unknown): RecentWorkoutSession[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("unfinished" in data) ||
-    !Array.isArray(data.unfinished)
-  ) {
-    return [];
-  }
-
-  return data.unfinished as RecentWorkoutSession[];
-}
-
-function readRecent(data: unknown): RecentWorkoutSession[] {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    !("recent" in data) ||
-    !Array.isArray(data.recent)
-  ) {
-    return [];
-  }
-
-  return data.recent as RecentWorkoutSession[];
-}
-
-function formatSessionDay(isoDate: string): string {
-  try {
-    return format(parseISO(isoDate), "d MMM", { locale: ru });
-  } catch {
-    return isoDate;
-  }
-}
-
-function isRestFoodDay(data: unknown): boolean {
-  if (!data || typeof data !== "object" || !("day" in data) || !data.day) {
-    return false;
-  }
-
-  const day = data.day as { is_training_day?: unknown };
-  return day.is_training_day === false;
 }

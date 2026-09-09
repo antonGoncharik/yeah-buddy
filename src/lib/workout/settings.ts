@@ -208,7 +208,7 @@ async function saveSkipTemplateIds(
   userId: string,
   skipTemplateIds: string[],
 ): Promise<WorkoutSettings> {
-  const current = await ensureWorkoutSettings(userId);
+  await ensureWorkoutSettings(userId);
   const supabase = createSupabaseServerClient();
   const saved = await supabase
     .from("workout_settings")
