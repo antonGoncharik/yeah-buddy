@@ -1,19 +1,21 @@
 "use client";
 
 import {
+  BARBELL_VIEWBOX,
   BarbellMark,
   CookieMark,
   Doodle,
+  DUMBBELL_VIEWBOX,
   DumbbellMark,
   MugMark,
 } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
 
 const BEATS = [
-  { key: "cookie", mark: <CookieMark /> },
-  { key: "mug", mark: <MugMark /> },
-  { key: "dumbbell", mark: <DumbbellMark /> },
-  { key: "barbell", mark: <BarbellMark /> },
+  { key: "cookie", mark: <CookieMark />, viewBox: undefined },
+  { key: "mug", mark: <MugMark />, viewBox: undefined },
+  { key: "dumbbell", mark: <DumbbellMark />, viewBox: DUMBBELL_VIEWBOX },
+  { key: "barbell", mark: <BarbellMark />, viewBox: BARBELL_VIEWBOX },
 ] as const;
 
 export function ScreenLoading() {
@@ -30,7 +32,9 @@ export function ScreenLoading() {
             className="animate-loader-beat block"
             style={{ animationDelay: `${index * 0.22}s` }}
           >
-            <Doodle className="size-16">{item.mark}</Doodle>
+            <Doodle className="size-16" viewBox={item.viewBox}>
+              {item.mark}
+            </Doodle>
           </span>
         ))}
       </div>

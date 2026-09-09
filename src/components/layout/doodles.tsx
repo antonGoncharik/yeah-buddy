@@ -33,52 +33,82 @@ export function MugMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
+function hexPath(cx: number, cy: number, rx: number, ry: number): string {
+  const top = 0.62;
+  return [
+    `M${(cx - rx).toFixed(2)} ${cy.toFixed(2)}`,
+    `L${(cx - rx * top).toFixed(2)} ${(cy - ry).toFixed(2)}`,
+    `L${(cx + rx * top).toFixed(2)} ${(cy - ry).toFixed(2)}`,
+    `L${(cx + rx).toFixed(2)} ${cy.toFixed(2)}`,
+    `L${(cx + rx * top).toFixed(2)} ${(cy + ry).toFixed(2)}`,
+    `L${(cx - rx * top).toFixed(2)} ${(cy + ry).toFixed(2)}`,
+    "Z",
+  ].join("");
+}
+
 export function DumbbellMark({ ink = "currentColor" }: { ink?: string }) {
-  const head = {
-    fill: "none",
-    stroke: ink,
-    strokeWidth: 1.7,
-    strokeLinejoin: "miter" as const,
-    strokeLinecap: "butt" as const,
-    strokeMiterlimit: 2.2,
-  };
+  const rx = 8.15;
+  const ry = 6.9;
+  const left = -10.35;
+  const right = 10.35;
 
   return (
-    <g>
-      <path
-        {...head}
-        d="M-15.4 -7.4 H-8.8 L-4.4 -2.2 V2.2 L-8.8 7.4 H-15.4 L-18 2.2 V-2.2 Z"
+    <g fill={ink} stroke="none">
+      <path d={hexPath(left, 0, rx, ry)} />
+      <path d={hexPath(right, 0, rx, ry)} />
+      <rect x="-2.55" y="-1.15" width="5.1" height="2.3" rx="1.15" />
+      <rect x="-3.85" y="-2.05" width="1.45" height="4.1" rx="0.4" />
+      <rect x="2.4" y="-2.05" width="1.45" height="4.1" rx="0.4" />
+    </g>
+  );
+}
+
+function plates(side: 1 | -1, ink: string) {
+  const inner = { x: 10.4, w: 3.9, h: 17.2 };
+  const mid = { x: 15.65, w: 3.15, h: 12.8 };
+  const outer = { x: 20.1, w: 2.45, h: 8.4 };
+  const cap = 24.05;
+
+  return (
+    <g fill={ink} stroke="none">
+      <rect
+        x={side < 0 ? -inner.x - inner.w : inner.x}
+        y={-inner.h / 2}
+        width={inner.w}
+        height={inner.h}
+        rx={0.85}
       />
-      <path
-        {...head}
-        d="M8.8 -7.4 H15.4 L18 -2.2 V2.2 L15.4 7.4 H8.8 L4.4 2.2 V-2.2 Z"
+      <rect
+        x={side < 0 ? -mid.x - mid.w : mid.x}
+        y={-mid.h / 2}
+        width={mid.w}
+        height={mid.h}
+        rx={0.75}
       />
-      <path
-        d="M-4.4 0 H4.4"
-        fill="none"
-        stroke={ink}
-        strokeWidth={2.3}
-        strokeLinecap="round"
+      <rect
+        x={side < 0 ? -outer.x - outer.w : outer.x}
+        y={-outer.h / 2}
+        width={outer.w}
+        height={outer.h}
+        rx={0.65}
       />
+      <circle cx={side * cap} cy={0} r={1.25} />
     </g>
   );
 }
 
 export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
   return (
-    <g {...STROKE} stroke={ink}>
-      <path d="M-19.2 0 H19.2" />
-      <rect x="-18" y="-4.6" width="2" height="9.2" rx="0.85" />
-      <rect x="-16" y="-6.6" width="2.4" height="13.2" rx="0.95" />
-      <rect x="-13.6" y="-8.4" width="2.8" height="16.8" rx="1" />
-      <rect x="10.8" y="-8.4" width="2.8" height="16.8" rx="1" />
-      <rect x="13.6" y="-6.6" width="2.4" height="13.2" rx="0.95" />
-      <rect x="16" y="-4.6" width="2" height="9.2" rx="0.85" />
+    <g fill={ink} stroke="none">
+      <rect x="-24.6" y="-0.75" width="49.2" height="1.5" rx="0.75" />
+      {plates(-1, ink)}
+      {plates(1, ink)}
     </g>
   );
 }
 
-export const DUMBBELL_VIEWBOX = "-19 -8.2 38 16.4";
+export const DUMBBELL_VIEWBOX = "-19.2 -7.6 38.4 15.2";
+export const BARBELL_VIEWBOX = "-25.8 -9.6 51.6 19.2";
 
 export function Doodle({
   children,

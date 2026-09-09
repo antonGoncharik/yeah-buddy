@@ -17,13 +17,13 @@ import {
 } from "@/components/day/today-workout-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
+import { useDayMood } from "@/components/layout/day-mood";
 import {
   CookieMark,
   Doodle,
-  DumbbellMark,
   DUMBBELL_VIEWBOX,
+  DumbbellMark,
 } from "@/components/layout/doodles";
-import { useDayMood } from "@/components/layout/day-mood";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -515,10 +515,7 @@ export function TodayScreen({
                       id: "rest",
                       label: DAY_TYPE_LABELS.rest,
                       icon: (
-                        <Doodle
-                          className="size-4"
-                          viewBox="-12 -12 24 24"
-                        >
+                        <Doodle className="size-4" viewBox="-12 -12 24 24">
                           <CookieMark />
                         </Doodle>
                       ),
@@ -527,7 +524,7 @@ export function TodayScreen({
                       id: "training",
                       label: DAY_TYPE_LABELS.training,
                       icon: (
-                        <Doodle className="size-6" viewBox={DUMBBELL_VIEWBOX}>
+                        <Doodle className="size-7" viewBox={DUMBBELL_VIEWBOX}>
                           <DumbbellMark />
                         </Doodle>
                       ),

@@ -7,8 +7,8 @@ import type { ComponentType } from "react";
 
 import {
   Doodle,
-  DumbbellMark,
   DUMBBELL_VIEWBOX,
+  DumbbellMark,
 } from "@/components/layout/doodles";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +72,7 @@ export function BottomNav() {
                 >
                   <Icon
                     className={cn(
-                      item.href === "/workouts" ? "size-6" : "size-5",
+                      item.href === "/workouts" ? "size-7" : "size-5",
                       "transition-transform duration-300 ease-[var(--ease-out-soft)]",
                       active && "scale-105",
                     )}

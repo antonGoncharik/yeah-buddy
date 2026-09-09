@@ -137,7 +137,7 @@ function TrainingBackdrop() {
       <svg aria-hidden className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
-            id="train-wallpaper-v3"
+            id="train-wallpaper-v4"
             width="280"
             height="360"
             patternUnits="userSpaceOnUse"
@@ -168,7 +168,7 @@ function TrainingBackdrop() {
             </Mark>
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#train-wallpaper-v3)" />
+        <rect width="100%" height="100%" fill="url(#train-wallpaper-v4)" />
       </svg>
     </>
   );
