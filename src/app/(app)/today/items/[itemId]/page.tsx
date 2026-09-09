@@ -7,7 +7,7 @@ import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/days";
+import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/day/dates";
 import { readFoodPayload } from "@/lib/foods";
 import { readMealItemPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";

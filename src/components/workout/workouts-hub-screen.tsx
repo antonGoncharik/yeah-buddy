@@ -10,7 +10,7 @@ import {
   formatSessionDay,
   useWorkoutsHub,
 } from "@/components/workout/use-workouts-hub";
-import { previousIsoDate } from "@/lib/days";
+import { previousIsoDate } from "@/lib/day/dates";
 import {
   WORKOUTS_NEED_EXERCISES,
   WORKOUTS_NEED_MAXES,

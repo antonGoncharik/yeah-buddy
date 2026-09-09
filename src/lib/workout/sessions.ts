@@ -1,10 +1,7 @@
 import { z } from "zod";
 
-import {
-  isIsoDate,
-  markDateAsTrainingIfExists,
-  previousIsoDate,
-} from "@/lib/days";
+import { isIsoDate, previousIsoDate } from "@/lib/day/dates";
+import { markDateAsTrainingIfExists } from "@/lib/days";
 import { WORKOUTS_NEED_MAXES } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {

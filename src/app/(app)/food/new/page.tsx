@@ -1,6 +1,6 @@
 import { FoodForm } from "@/components/foods/food-form";
 import { AppHeader } from "@/components/layout/app-header";
-import { isIsoDate, withDateQuery } from "@/lib/days";
+import { isIsoDate, withDateQuery } from "@/lib/day/dates";
 import { isDayType, isMealType } from "@/lib/nutrition";
 
 export default async function NewFoodPage({

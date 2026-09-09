@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { isIsoDate } from "@/lib/days";
+import { isIsoDate } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   CurrentMacroState,

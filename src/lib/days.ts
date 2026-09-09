@@ -1,10 +1,19 @@
+import {
+  assertWritableDayDate,
+  DayConflictError,
+  isIsoDate,
+  isPastDayDate,
+  previousIsoDate,
+  YesterdayMissingError,
+} from "@/lib/day/dates";
+import {
+  type DayWithMeals,
+  mapDayHistoryRow,
+  mapDayWithMeals,
+  mapMealItem,
+} from "@/lib/day/map";
 import { mapFood } from "@/lib/foods";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
-import {
-  DAY_EXISTS_REPLACE,
-  PAST_DAY_LOCKED,
-  YESTERDAY_MISSING,
-} from "@/lib/messages";
 import {
   calcKcalFromMacros,
   calcMacrosFromPer100,
@@ -15,120 +24,34 @@ import {
   MEAL_DISPLAY_ORDER,
   roundMacros,
 } from "@/lib/nutrition";
+import { toNumber } from "@/lib/read";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  Day,
-  DayHistoryRow,
-  DayType,
-  Meal,
-  MealItem,
-  MealType,
-} from "@/lib/types";
+import type { DayHistoryRow, DayType, MealItem, MealType } from "@/lib/types";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+export {
+  assertWritableDayDate,
+  calendarToday,
+  DayConflictError,
+  isIsoDate,
+  isPastDayDate,
+  nextIsoDate,
+  nutritionHistoryHref,
+  PastDayLockedError,
+  previousIsoDate,
+  todayHistoryDayHref,
+  todayHomeHref,
+  withDateQuery,
+  YesterdayMissingError,
+} from "@/lib/day/dates";
+export { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 
-export class DayConflictError extends Error {
-  readonly code = "DAY_EXISTS";
-
-  constructor() {
-    super(DAY_EXISTS_REPLACE);
-  }
-}
-
-export class YesterdayMissingError extends Error {
-  constructor() {
-    super(YESTERDAY_MISSING);
-  }
-}
-
-export type DayWithMeals = Day & {
-  meals: Array<Meal & { items: MealItem[] }>;
+export type FoodShare = {
+  name: string;
+  protein: number;
+  kcal: number;
+  grams: number;
 };
-
-export function isIsoDate(value: string): boolean {
-  if (!DATE_PATTERN.test(value)) {
-    return false;
-  }
-
-  const parsed = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
-}
-
-export function previousIsoDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number);
-  const previous = new Date(Date.UTC(year, month - 1, day - 1));
-  return previous.toISOString().slice(0, 10);
-}
-
-export function nextIsoDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number);
-  const next = new Date(Date.UTC(year, month - 1, day + 1));
-  return next.toISOString().slice(0, 10);
-}
-
-export function calendarToday(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-export function isPastDayDate(date: string): boolean {
-  return isIsoDate(date) && date < calendarToday();
-}
-
-export class PastDayLockedError extends Error {
-  constructor() {
-    super(PAST_DAY_LOCKED);
-  }
-}
-
-export function assertWritableDayDate(date: string): void {
-  if (isPastDayDate(date)) {
-    throw new PastDayLockedError();
-  }
-}
-
-export function todayHomeHref(date: string | null | undefined): string {
-  if (!date || !isIsoDate(date) || date >= calendarToday()) {
-    return "/today";
-  }
-
-  return `/today?date=${encodeURIComponent(date)}`;
-}
-
-export function withDateQuery(
-  path: string,
-  date: string | null | undefined,
-): string {
-  if (!date || !isIsoDate(date) || date >= calendarToday()) {
-    return path;
-  }
-
-  const join = path.includes("?") ? "&" : "?";
-  return `${path}${join}date=${encodeURIComponent(date)}`;
-}
-
-export function nutritionHistoryHref(fromSettings = false): string {
-  return fromSettings ? "/today/history?from=settings" : "/today/history";
-}
-
-export function todayHistoryDayHref(
-  date: string,
-  fromSettings = false,
-): string {
-  const params = new URLSearchParams();
-  if (date && isIsoDate(date) && date < calendarToday()) {
-    params.set("date", date);
-  }
-  params.set("view", "history");
-  if (fromSettings) {
-    params.set("from", "settings");
-  }
-  return `/today?${params.toString()}`;
-}
 
 export async function getDayByDate(
   userId: string,
@@ -195,13 +118,6 @@ const DAY_HISTORY_SELECT = `
     )
   )
 `;
-
-export type FoodShare = {
-  name: string;
-  protein: number;
-  kcal: number;
-  grams: number;
-};
 
 export async function listDayHistory(
   userId: string,
@@ -883,131 +799,4 @@ function buildMealItemRow({
     kcal: macros.kcal,
     per_100_snapshot: per100,
   };
-}
-
-function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
-  let protein = 0;
-  let fat = 0;
-  let carbs = 0;
-  let kcal = 0;
-  if (Array.isArray(row.meals)) {
-    for (const meal of row.meals) {
-      if (!meal || typeof meal !== "object" || !("meal_items" in meal)) {
-        continue;
-      }
-      const items = (meal as { meal_items: unknown }).meal_items;
-      if (!Array.isArray(items)) {
-        continue;
-      }
-      for (const item of items) {
-        if (!item || typeof item !== "object") {
-          continue;
-        }
-        const macros = item as Record<string, unknown>;
-        protein += toNumber(macros.protein);
-        fat += toNumber(macros.fat);
-        carbs += toNumber(macros.carbs);
-        kcal += toNumber(macros.kcal);
-      }
-    }
-  }
-
-  return {
-    date: String(row.date).slice(0, 10),
-    is_training_day: Boolean(row.is_training_day),
-    target_protein: toNumber(row.target_protein),
-    target_fat: toNumber(row.target_fat),
-    target_carbs: toNumber(row.target_carbs),
-    target_kcal: toNumber(row.target_kcal),
-    fact_protein: protein,
-    fact_fat: fat,
-    fact_carbs: carbs,
-    fact_kcal: kcal,
-  };
-}
-
-export function mapDayWithMeals(row: Record<string, unknown>): DayWithMeals {
-  const meals = Array.isArray(row.meals)
-    ? row.meals
-        .map((meal) => mapMeal(meal as Record<string, unknown>))
-        .sort((left, right) => left.sort_order - right.sort_order)
-    : [];
-
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    date: String(row.date),
-    is_training_day: Boolean(row.is_training_day),
-    target_protein: toNumber(row.target_protein),
-    target_fat: toNumber(row.target_fat),
-    target_carbs: toNumber(row.target_carbs),
-    target_kcal: toNumber(row.target_kcal),
-    notes: toNullableString(row.notes),
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
-    meals,
-  };
-}
-
-function mapMeal(row: Record<string, unknown>): Meal & { items: MealItem[] } {
-  const items = Array.isArray(row.meal_items)
-    ? row.meal_items
-        .map((item) => mapMealItem(item as Record<string, unknown>))
-        .sort((left, right) => left.created_at.localeCompare(right.created_at))
-    : [];
-
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    day_id: String(row.day_id),
-    meal_type: isMealType(row.meal_type) ? row.meal_type : "snack",
-    sort_order: toNumber(row.sort_order),
-    created_at: String(row.created_at),
-    items,
-  };
-}
-
-function mapMealItem(row: Record<string, unknown>): MealItem {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    meal_id: String(row.meal_id),
-    food_id: toNullableString(row.food_id),
-    name_snapshot: String(row.name_snapshot),
-    grams: toNumber(row.grams),
-    protein: toNumber(row.protein),
-    fat: toNumber(row.fat),
-    carbs: toNumber(row.carbs),
-    kcal: toNumber(row.kcal),
-    per_100_snapshot: mapPer100(row.per_100_snapshot),
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
-  };
-}
-
-function mapPer100(value: unknown): Macros {
-  if (!value || typeof value !== "object") {
-    return { protein: 0, fat: 0, carbs: 0, kcal: 0 };
-  }
-
-  const snapshot = value as Record<string, unknown>;
-  return {
-    protein: toNumber(snapshot.protein),
-    fat: toNumber(snapshot.fat),
-    carbs: toNumber(snapshot.carbs),
-    kcal: toNumber(snapshot.kcal),
-  };
-}
-
-function toNumber(value: unknown): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function toNullableString(value: unknown): string | null {
-  if (typeof value !== "string" || value.trim() === "") {
-    return null;
-  }
-
-  return value;
 }

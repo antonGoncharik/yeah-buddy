@@ -28,8 +28,6 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, peekJson } from "@/lib/api-cache";
-import { readDay } from "@/lib/day/today-payload";
-import type { DayWithMeals } from "@/lib/days";
 import {
   isIsoDate,
   nextIsoDate,
@@ -38,7 +36,9 @@ import {
   todayHistoryDayHref,
   todayHomeHref,
   withDateQuery,
-} from "@/lib/days";
+} from "@/lib/day/dates";
+import type { DayWithMeals } from "@/lib/day/map";
+import { readDay } from "@/lib/day/today-payload";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,

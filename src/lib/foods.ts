@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import { calcKcalFromMacros } from "@/lib/nutrition";
-import { isRecord, mapRecordList } from "@/lib/read";
+import {
+  isRecord,
+  mapRecordList,
+  toNullableNumber,
+  toNullableString,
+  toNumber,
+} from "@/lib/read";
 import type { Food, FoodState } from "@/lib/types";
 
 export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
@@ -106,26 +112,4 @@ function toFoodState(value: unknown): FoodState {
   }
 
   return "as_is";
-}
-
-function toNumber(value: unknown): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function toNullableNumber(value: unknown): number | null {
-  if (value == null || value === "") {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function toNullableString(value: unknown): string | null {
-  if (typeof value !== "string" || value.trim() === "") {
-    return null;
-  }
-
-  return value;
 }

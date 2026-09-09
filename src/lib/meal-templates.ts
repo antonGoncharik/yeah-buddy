@@ -10,6 +10,7 @@ import {
   isMealVisible,
   roundMacros,
 } from "@/lib/nutrition";
+import { toNumber } from "@/lib/read";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   DayType,
@@ -417,9 +418,4 @@ function mapTemplateItemRow(row: Record<string, unknown>): {
     sort_order: toNumber(row.sort_order),
     created_at: String(row.created_at),
   };
-}
-
-function toNumber(value: unknown): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
 }

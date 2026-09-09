@@ -7,7 +7,7 @@ import {
   isPastDayDate,
   todayHomeHref,
   withDateQuery,
-} from "@/lib/days";
+} from "@/lib/day/dates";
 
 export default async function AddMealItemPage({
   params,

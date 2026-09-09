@@ -1,6 +1,7 @@
+import { mapMealItem } from "@/lib/day/map";
 import { parseFood } from "@/lib/foods";
 import { isDayType, isMealType } from "@/lib/nutrition";
-import { isRecord, mapRecordList } from "@/lib/read";
+import { isRecord, mapRecordList, toNumber } from "@/lib/read";
 import type {
   MealItem,
   MealTemplateDetail,
@@ -12,21 +13,7 @@ export function parseMealItem(value: unknown): MealItem | null {
     return null;
   }
 
-  return {
-    id: value.id,
-    user_id: String(value.user_id ?? ""),
-    meal_id: String(value.meal_id ?? ""),
-    food_id: typeof value.food_id === "string" ? value.food_id : null,
-    name_snapshot: String(value.name_snapshot ?? ""),
-    grams: toNumber(value.grams),
-    protein: toNumber(value.protein),
-    fat: toNumber(value.fat),
-    carbs: toNumber(value.carbs),
-    kcal: toNumber(value.kcal),
-    per_100_snapshot: parsePer100(value.per_100_snapshot),
-    created_at: String(value.created_at ?? ""),
-    updated_at: String(value.updated_at ?? ""),
-  };
+  return mapMealItem(value);
 }
 
 export function readMealItemPayload(data: unknown): MealItem | null {
@@ -101,27 +88,4 @@ export function readMealTemplatesPayload(
   }
 
   return mapRecordList(data.templates, (row) => parseMealTemplateDetail(row));
-}
-
-function parsePer100(value: unknown): {
-  protein: number;
-  fat: number;
-  carbs: number;
-  kcal: number;
-} {
-  if (!isRecord(value)) {
-    return { protein: 0, fat: 0, carbs: 0, kcal: 0 };
-  }
-
-  return {
-    protein: toNumber(value.protein),
-    fat: toNumber(value.fat),
-    carbs: toNumber(value.carbs),
-    kcal: toNumber(value.kcal),
-  };
-}
-
-function toNumber(value: unknown): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
 }

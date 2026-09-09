@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { isIsoDate } from "@/lib/days";
+import { isIsoDate } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
 import { listSessionHistory } from "@/lib/workout/sessions";
 
@@ -21,10 +21,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   if (!Number.isFinite(limit) || limit < 1) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {

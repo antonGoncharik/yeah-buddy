@@ -12,7 +12,7 @@ import {
   isPastDayDate,
   todayHomeHref,
   withDateQuery,
-} from "@/lib/days";
+} from "@/lib/day/dates";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";

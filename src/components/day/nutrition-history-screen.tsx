@@ -13,7 +13,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
-import { todayHistoryDayHref } from "@/lib/days";
+import { todayHistoryDayHref } from "@/lib/day/dates";
 import {
   LOAD_FAILED,
   NUTRITION_HISTORY_EMPTY,

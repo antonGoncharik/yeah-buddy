@@ -1,4 +1,4 @@
-import { isRecord } from "@/lib/read";
+import { isRecord, toNumber } from "@/lib/read";
 import type { UserSettings } from "@/lib/types";
 
 export function mapSettings(row: Record<string, unknown>): UserSettings {
@@ -32,9 +32,4 @@ export function readSettingsPayload(data: unknown): UserSettings | null {
 
 export function isOnboardingCompleted(settings: UserSettings): boolean {
   return settings.onboarding_completed_at != null;
-}
-
-function toNumber(value: unknown): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
 }

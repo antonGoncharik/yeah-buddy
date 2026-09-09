@@ -3,11 +3,8 @@ import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
 import { buildReviewBrief } from "@/lib/ai/signals";
 import type { ReviewSnapshot, ReviewText } from "@/lib/ai/types";
-import {
-  calendarToday,
-  listDaysInRange,
-  listFoodSharesInRange,
-} from "@/lib/days";
+import { calendarToday } from "@/lib/day/dates";
+import { listDaysInRange, listFoodSharesInRange } from "@/lib/days";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { getStrengthProgress } from "@/lib/workout/progress";
