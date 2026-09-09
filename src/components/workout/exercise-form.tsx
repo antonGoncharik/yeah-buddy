@@ -81,7 +81,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     try {
       const payload = toPayload(form, Boolean(exercise), canCorrectMax);
       if (!payload) {
-        setError("Проверьте поля формы.");
+        setError("Проверь поля.");
         return;
       }
 
@@ -110,10 +110,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   }
 
   return (
-    <form
-      className="animate-rise flex flex-col gap-4 pb-24"
-      onSubmit={onSubmit}
-    >
+    <form className="flex flex-col gap-4 pb-36" onSubmit={onSubmit}>
       <Field label="Название">
         <Input
           required
@@ -216,7 +213,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
       </Field>
 
       {exercise && !canCorrectMax ? (
-        <div className="card-surface flex flex-col gap-2 px-5 py-4">
+        <div className="card-surface flex scroll-mb-36 flex-col gap-2 px-5 py-4">
           <p className="text-base font-medium">Максимум</p>
           <p className="text-2xl font-semibold tracking-tight">
             {exercise.current_max
@@ -224,11 +221,11 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От него считаются все веса в зале. На переходе фазы можно поднять.
+            От него считаются веса в зале. Поднять можно на смене фазы.
           </p>
         </div>
       ) : (
-        <Field label={exercise ? "Максимум, кг" : "Начальный максимум, кг"}>
+        <Field label="Рабочий вес, кг">
           <Input
             required
             inputMode="decimal"
@@ -239,11 +236,11 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
                 max_weight: event.target.value,
               }))
             }
-            className="h-12 text-base"
+            className="h-12 scroll-mb-36 text-base"
           />
           {exercise ? (
             <p className="text-sm text-muted-foreground">
-              От него считаются веса в зале. Пока нет макроцикла, опечатку можно
+              От него считаются веса в зале. Пока нет макроцикла, можно
               поправить здесь.
             </p>
           ) : null}
@@ -297,10 +294,10 @@ function Field({
 
 function warmupHint(preset: FormulaPreset): string {
   if (preset === "barbell") {
-    return "Разминка как у штанги — проценты из Схемы, обычно три подхода. На рабочие веса не влияет.";
+    return "Разминка как у штанги — проценты из схемы, обычно три подхода. На рабочие веса не влияет.";
   }
   if (preset === "cable") {
-    return "Разминка как у блока — из Схемы, обычно два подхода. Так же для статики. Рабочие считаются отдельно.";
+    return "Разминка как у блока — из схемы, обычно два подхода. Так же для статики. Рабочие считаются отдельно.";
   }
   return "В план само не попадёт. Если понадобится сегодня — в зале есть «Добавить упражнение».";
 }

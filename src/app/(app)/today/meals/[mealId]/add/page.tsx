@@ -1,6 +1,13 @@
+import { redirect } from "next/navigation";
+
 import { AddMealItemScreen } from "@/components/day/add-meal-item-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { isIsoDate, todayHomeHref, withDateQuery } from "@/lib/days";
+import {
+  isIsoDate,
+  isPastDayDate,
+  todayHomeHref,
+  withDateQuery,
+} from "@/lib/days";
 
 export default async function AddMealItemPage({
   params,
@@ -13,6 +20,10 @@ export default async function AddMealItemPage({
   const query = await searchParams;
   const date = readDate(query.date);
   const homeHref = todayHomeHref(date);
+
+  if (date && isPastDayDate(date)) {
+    redirect(homeHref);
+  }
 
   return (
     <div className="flex flex-col gap-4">

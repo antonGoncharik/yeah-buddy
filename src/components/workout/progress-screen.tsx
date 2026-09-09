@@ -130,7 +130,7 @@ export function ProgressScreen() {
                   ? `Выросли ${progress.grown_count} из ${progress.exercises.length}`
                   : progress.exercises.some((item) => item.from_work)
                     ? "Рабочие веса из зала."
-                    : "После зала — рабочие веса."}
+                    : "Появятся после зала."}
               </p>
               <CategoryLine exercises={progress.exercises} />
             </section>

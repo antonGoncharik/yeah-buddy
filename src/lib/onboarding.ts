@@ -46,7 +46,7 @@ export async function getOnboardingState(
 ): Promise<OnboardingState> {
   const settings = await getUserSettings(userId);
   if (!settings) {
-    throw new Error("Настройки не найдены.");
+    throw new Error("Настройки не нашлись.");
   }
 
   await ensureStarterExercises(createSupabaseServerClient(), userId);
@@ -77,7 +77,7 @@ export async function completeOnboarding(
 ): Promise<OnboardingState> {
   const current = await getUserSettings(userId);
   if (!current) {
-    throw new Error("Настройки не найдены.");
+    throw new Error("Настройки не нашлись.");
   }
 
   if (input.protein != null) {

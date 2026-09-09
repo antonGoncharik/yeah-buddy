@@ -56,7 +56,7 @@ export function FoodForm({
     try {
       const payload = toPayload(form, autoKcal);
       if (!payload) {
-        setError("Проверьте поля формы.");
+        setError("Проверь поля.");
         return;
       }
 

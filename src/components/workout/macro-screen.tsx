@@ -83,7 +83,7 @@ export function MacroScreen() {
 
     const weight = parseDecimal(drafts[exerciseId] ?? "");
     if (weight == null || weight <= 0) {
-      setError("Проверьте максимум.");
+      setError("Проверь максимум.");
       return;
     }
 
@@ -158,7 +158,7 @@ export function MacroScreen() {
     });
 
     if (!preview || maxes.length !== preview.maxes.length) {
-      setError("Проверьте предложенные максимумы.");
+      setError("Проверь предложенные максимумы.");
       return;
     }
 
@@ -224,11 +224,10 @@ export function MacroScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
               <p className="text-lg font-medium">Макроцикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Очередь идёт и так. Веса считаются как в разгоне — от максимума
-                упражнения. Макроцикл нужен, если хочешь вести нагрузку
-                кусками: разгон → набор → рывок → сброс. Фазу закрываешь сам,
-                не после первого круга. На рывке предложит поднять максимумы —
-                можно поправить или оставить.
+                Очередь и так идёт. Веса считаются от рабочего веса упражнения.
+                Макроцикл нужен, если хочешь менять нагрузку по фазам: разгон,
+                набор, рывок, сброс. Фазу закрываешь сам. На рывке можно поднять
+                рабочие веса — или оставить как есть.
               </p>
               <Link
                 href="/workouts/macro/new"
@@ -262,8 +261,8 @@ export function MacroScreen() {
                 {PHASE_TYPE_LABELS[state.phase.phase_type]}
               </h2>
               <p className="text-sm text-muted-foreground">
-                С {state.phase.start_date}. Очередь крутится сама, фазу это не
-                закрывает — переход только кнопкой ниже.
+                С {state.phase.start_date}. Очередь крутится сама. Чтобы сменить
+                фазу — кнопка ниже.
               </p>
               {state.phase_circle && phaseEndHint(state.phase_circle) ? (
                 <p className="text-base leading-snug">
@@ -288,11 +287,11 @@ export function MacroScreen() {
             </section>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-xl font-semibold">Максимумы этой фазы</h2>
+              <h2 className="text-xl font-semibold">Рабочие веса этой фазы</h2>
               <p className="text-sm text-muted-foreground">
-                Рабочий потолок этой фазы, не рекорд жизни. От этих цифр
-                считается план. Если тяжело или после паузы — поставь меньше:
-                рекорд на карточке упражнения не затрётся.
+                Сколько потянешь сейчас, не рекорд. От этих цифр считается план.
+                Если тяжело — поставь меньше: рекорд на карточке упражнения
+                останется.
               </p>
               {state.maxes.map((row) => (
                 <div

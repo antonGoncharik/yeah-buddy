@@ -6,6 +6,7 @@ import {
   copyYesterday,
   DayConflictError,
   isIsoDate,
+  PastDayLockedError,
   YesterdayMissingError,
 } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -25,18 +26,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success || !isIsoDate(parsed.data.date)) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -47,6 +42,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
     return NextResponse.json({ day });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     if (error instanceof YesterdayMissingError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }

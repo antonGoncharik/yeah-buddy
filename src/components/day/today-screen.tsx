@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { CreateDayButtons } from "@/components/day/create-day-buttons";
@@ -74,28 +74,43 @@ export function TodayScreen({
   const confirm = useConfirm();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
-  const { loading, begin, done, reset } = useFirstLoad();
+  const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loadedDate, setLoadedDate] = useState<string | null>(null);
+  const dateRef = useRef(date);
+  dateRef.current = date;
+
+  const isToday = date === today;
+  const fromHistory = readOnly;
+  const viewOnly = fromHistory || !isToday;
+  const contentReady = loadedDate === date;
+  const shownDay = contentReady && day?.date === date ? day : null;
 
   const banner = useMemo(
     () =>
       bannerFromTodayState(workoutState, {
-        isToday: date === today,
-        isTrainingDay: day?.is_training_day === true,
+        isToday,
+        isTrainingDay: shownDay?.is_training_day === true,
       }),
-    [date, day?.is_training_day, today, workoutState],
+    [isToday, shownDay?.is_training_day, workoutState],
   );
 
   const load = useCallback(async () => {
+    const requestedDate = date;
     setLoadError(false);
     setActionError(null);
-    const dayUrl = `/api/days?date=${encodeURIComponent(date)}`;
-    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
-    const showCached = () => done(true);
+    const dayUrl = `/api/days?date=${encodeURIComponent(requestedDate)}`;
+    const sessionUrl = `/api/sessions?date=${encodeURIComponent(requestedDate)}`;
+    const stillCurrent = () => dateRef.current === requestedDate;
+    const showCached = () => {
+      if (stillCurrent()) {
+        done(true);
+      }
+    };
     if (peekJson(dayUrl) != null || peekJson(sessionUrl) != null) {
-      done(true);
+      showCached();
     } else {
       begin();
     }
@@ -104,7 +119,11 @@ export function TodayScreen({
       cachedGet(
         dayUrl,
         (data) => {
+          if (!stillCurrent()) {
+            return true;
+          }
           setDay(readDay(data));
+          setLoadedDate(requestedDate);
           return true;
         },
         showCached,
@@ -115,6 +134,9 @@ export function TodayScreen({
       cachedGet(
         sessionUrl,
         (data) => {
+          if (!stillCurrent()) {
+            return true;
+          }
           setWorkoutState(data);
           return true;
         },
@@ -125,12 +147,18 @@ export function TodayScreen({
       ),
     ]);
 
+    if (!stillCurrent()) {
+      return;
+    }
+
     if (!results.some((ok) => ok)) {
       setLoadError(true);
+      setLoadedDate(requestedDate);
       done(false);
       return;
     }
 
+    setLoadedDate(requestedDate);
     done(true);
   }, [begin, date, done]);
 
@@ -142,12 +170,12 @@ export function TodayScreen({
     (next: string) => {
       const resolved = resolveStartDate(next, todayIsoDate());
       setDate(resolved);
-      const href = readOnly
+      const href = fromHistory
         ? todayHistoryDayHref(resolved, fromSettings)
         : todayHomeHref(resolved);
       router.replace(href, { scroll: false });
     },
-    [fromSettings, readOnly, router],
+    [fromHistory, fromSettings, router],
   );
 
   useEffect(() => {
@@ -163,31 +191,33 @@ export function TodayScreen({
   }, [load]);
 
   useEffect(() => {
-    if (!day) {
-      if (!loading) {
-        setMood(null);
-      }
+    if (!contentReady || !shownDay) {
+      setMood(null);
       return;
     }
 
-    setMood(day.is_training_day ? "training" : "rest");
-  }, [day, loading, setMood]);
+    setMood(shownDay.is_training_day ? "training" : "rest");
+  }, [contentReady, shownDay, setMood]);
 
   const visibleMeals = useMemo(() => {
-    if (!day) {
+    if (!shownDay) {
       return [];
     }
 
-    return day.meals.filter(
+    return shownDay.meals.filter(
       (meal) =>
-        isMealVisible(meal.meal_type, day.is_training_day) ||
+        isMealVisible(meal.meal_type, shownDay.is_training_day) ||
         meal.items.length > 0,
     );
-  }, [day]);
+  }, [shownDay]);
 
   const fact = useMemo(() => sumMeals(visibleMeals), [visibleMeals]);
 
   async function createDay(dayType: DayType) {
+    if (viewOnly) {
+      return;
+    }
+
     setBusy(true);
     setActionError(null);
 
@@ -212,6 +242,10 @@ export function TodayScreen({
   }
 
   async function copyYesterday() {
+    if (viewOnly) {
+      return;
+    }
+
     let replace = false;
     if (day) {
       const ok = await confirm({
@@ -273,7 +307,7 @@ export function TodayScreen({
   }
 
   async function switchType(dayType: DayType) {
-    if (!day) {
+    if (viewOnly || !day) {
       return;
     }
 
@@ -305,6 +339,10 @@ export function TodayScreen({
   }
 
   async function deleteItem(item: MealItem) {
+    if (viewOnly) {
+      return;
+    }
+
     const ok = await confirm({
       message: "Убрать продукт?",
       confirmLabel: "Убрать",
@@ -351,18 +389,18 @@ export function TodayScreen({
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
   });
-  const isToday = date === today;
   const canGoForward = date < today;
+  const showLoading = !contentReady;
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
         title={titleDate}
-        subtitle={readOnly ? "Только просмотр" : undefined}
-        backHref={readOnly ? nutritionHistoryHref(fromSettings) : undefined}
+        subtitle={viewOnly ? "Только просмотр" : undefined}
+        backHref={fromHistory ? nutritionHistoryHref(fromSettings) : undefined}
         trailing={
           <>
-            {readOnly ? null : (
+            {fromHistory ? null : (
               <Link
                 href="/today/history"
                 className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
@@ -398,7 +436,7 @@ export function TodayScreen({
       />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {!loading && !loadError && banner ? (
+        {contentReady && !loadError && banner ? (
           <TodayWorkoutBanner
             href={banner.href}
             title={banner.title}
@@ -406,13 +444,13 @@ export function TodayScreen({
             label={banner.label}
           />
         ) : null}
-        {loading ? (
+        {showLoading ? (
           <p className="animate-rise py-12 text-center text-lg text-muted-foreground">
             Загрузка…
           </p>
         ) : null}
 
-        {!loading && loadError ? (
+        {contentReady && loadError ? (
           <div className="animate-rise flex flex-col items-center gap-3">
             <p className="text-center text-lg font-medium">{LOAD_FAILED}</p>
             <Button
@@ -424,13 +462,13 @@ export function TodayScreen({
           </div>
         ) : null}
 
-        {!loading && !loadError && actionError ? (
+        {contentReady && !loadError && actionError ? (
           <p className="animate-rise text-center text-lg font-medium">
             {actionError}
           </p>
         ) : null}
 
-        {!loading && !loadError && !day && !readOnly ? (
+        {contentReady && !loadError && !shownDay && !viewOnly ? (
           <div className="animate-rise flex flex-col gap-5">
             <CreateDayButtons
               busy={busy}
@@ -442,33 +480,37 @@ export function TodayScreen({
           </div>
         ) : null}
 
-        {!loading && !loadError && !day && readOnly ? (
+        {contentReady && !loadError && !shownDay && viewOnly ? (
           <p className="animate-rise text-center text-base text-muted-foreground">
             В этот день записей нет.
           </p>
         ) : null}
 
-        {!loading && !loadError && day ? (
+        {contentReady && !loadError && shownDay ? (
           <div className="flex flex-col gap-5">
-            {readOnly ? (
+            {viewOnly ? (
               <div className="animate-rise flex flex-col gap-3">
                 <p className="text-base text-muted-foreground">
-                  {day.is_training_day
+                  {shownDay.is_training_day
                     ? DAY_TYPE_LABELS.training
                     : DAY_TYPE_LABELS.rest}
-                  . Это история — граммы и состав уже не меняются.
+                  {isToday
+                    ? null
+                    : ". Это старый день — граммы уже не меняются."}
                 </p>
-                <Button
-                  className="h-12 w-full text-base"
-                  onClick={() => router.push(todayHomeHref(date))}
-                >
-                  Исправить
-                </Button>
+                {fromHistory && isToday ? (
+                  <Button
+                    className="h-12 w-full text-base"
+                    onClick={() => router.push(todayHomeHref(date))}
+                  >
+                    Исправить
+                  </Button>
+                ) : null}
               </div>
             ) : (
               <div className="animate-rise">
                 <Segmented
-                  value={day.is_training_day ? "training" : "rest"}
+                  value={shownDay.is_training_day ? "training" : "rest"}
                   disabled={busy}
                   options={[
                     {
@@ -488,20 +530,19 @@ export function TodayScreen({
             )}
 
             <div className="animate-rise" style={{ animationDelay: "40ms" }}>
-              <DaySummary day={day} fact={fact} />
+              <DaySummary day={shownDay} fact={fact} />
             </div>
 
-            {readOnly ? null : (
+            {viewOnly ? null : (
               <Link
-                href={`/settings/meals/${day.is_training_day ? "training" : "rest"}`}
+                href={`/settings/meals/${shownDay.is_training_day ? "training" : "rest"}`}
                 className="card-surface animate-rise flex items-center gap-3 px-5 py-4"
                 style={{ animationDelay: "50ms" }}
               >
                 <span className="min-w-0 flex-1">
                   <p className="text-base font-medium">Шаблон дня</p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    Правки здесь только на сегодня. Завтра снова скопируется
-                    шаблон.
+                    Откроется шаблон, с которого копируются новые дни.
                   </p>
                 </span>
                 <ChevronRight
@@ -525,20 +566,20 @@ export function TodayScreen({
                   kcal: item.kcal,
                 }))}
                 itemHref={
-                  readOnly
+                  viewOnly
                     ? undefined
                     : (item) => withDateQuery(`/today/items/${item.id}`, date)
                 }
                 addHref={
-                  readOnly
+                  viewOnly
                     ? undefined
                     : withDateQuery(`/today/meals/${meal.id}/add`, date)
                 }
-                readOnly={readOnly}
+                readOnly={viewOnly}
                 className="animate-rise"
                 style={{ animationDelay: `${80 + index * 50}ms` }}
                 onDeleteItem={
-                  readOnly
+                  viewOnly
                     ? undefined
                     : (item) => {
                         const row = meal.items.find(
@@ -552,7 +593,7 @@ export function TodayScreen({
               />
             ))}
 
-            {readOnly ? null : (
+            {viewOnly ? null : (
               <div
                 className="animate-rise"
                 style={{

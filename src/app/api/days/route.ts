@@ -8,6 +8,7 @@ import {
   dateHasDay,
   getDayByDate,
   isIsoDate,
+  PastDayLockedError,
   previousIsoDate,
 } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -25,10 +26,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const date = new URL(request.url).searchParams.get("date") ?? "";
   if (!isIsoDate(date)) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -54,18 +52,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = createSchema.safeParse(body);
   if (!parsed.success || !isIsoDate(parsed.data.date)) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -76,6 +68,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
     return NextResponse.json({ day });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     if (error instanceof DayConflictError) {
       return NextResponse.json(
         { error: error.message, code: error.code },

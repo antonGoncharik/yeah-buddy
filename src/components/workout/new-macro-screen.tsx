@@ -127,14 +127,14 @@ export function NewMacroScreen() {
         {!loading && exercises.length > 0 ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Макроцикл — кусок подготовки из четырёх фаз: разгон, набор,
-              рывок, сброс. От фазы считаются рабочие веса. Без макроцикла
-              очередь тоже идёт, просто веса всегда как в разгоне.
+              Четыре фазы: разгон, набор, рывок, сброс. От фазы считаются
+              рабочие веса. Без макроцикла очередь тоже идёт, веса всегда как в
+              разгоне.
             </p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Первый макроцикл начинается с разгона. Максимумы ниже — не
-              рекорд, а рабочий потолок: сколько потянешь сейчас. Фазу
-              закрываешь сам: один круг очереди ещё не конец.
+              Первый макроцикл начинается с разгона. Цифры ниже — сколько
+              потянешь сейчас, не рекорд. Фазу закрываешь сам: один круг очереди
+              ещё не конец.
             </p>
             <div className="flex flex-col gap-2">
               <Label className="text-base">Дата начала</Label>
@@ -157,9 +157,9 @@ export function NewMacroScreen() {
             </div>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-xl font-semibold">Максимумы</h2>
+              <h2 className="text-xl font-semibold">Рабочие веса</h2>
               <p className="text-sm text-muted-foreground">
-                Подставлены рекорды. Если давно не жалось — поставь меньше: план
+                Подставлены рекорды. Если давно не жалось — поставь меньше. План
                 пойдёт от этих цифр, рекорд на карточке останется.
               </p>
               {exercises.map((exercise) => (

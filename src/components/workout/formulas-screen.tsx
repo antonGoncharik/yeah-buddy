@@ -4,12 +4,12 @@ import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { StickyActions } from "@/components/layout/sticky-actions";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Input } from "@/components/ui/input";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
@@ -94,7 +94,7 @@ export function FormulasScreen() {
 
     const payload = toPayload(maxIncrease, formulas);
     if (!payload) {
-      setError("Проверьте проценты, подходы и повторы.");
+      setError("Проверь проценты, подходы и повторы.");
       setSaved(false);
       return;
     }
@@ -156,7 +156,7 @@ export function FormulasScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Схема подходов"
-        subtitle="Откуда берутся веса в зале"
+        subtitle="Как считаются веса в зале"
         backHref="/settings"
       />
 
@@ -172,10 +172,9 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как это работает</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Вес подхода: максимум × процент, округление вниз до шага блинов.
-                Разминка общая — штанга или блок, как в карточке упражнения.
-                Рабочие свои на каждую фазу. В зале цифру всегда можно поправить
-                пальцем.
+                Вес подхода: рабочий вес × процент, округление вниз до шага
+                блинов. Разминка общая — штанга или блок, как в упражнении.
+                Рабочие свои на каждую фазу. В зале цифру всегда можно поменять.
               </p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 «Подход» добавляет строку, крестик убирает.
@@ -188,9 +187,9 @@ export function FormulasScreen() {
                 <p className="text-sm text-muted-foreground">к максимуму</p>
               </div>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Когда закрываешь набор, программа предложит поднять максимумы
-                на этот процент. Не обязательно всем — поправишь перед
-                подтверждением. В примере ниже рывок и сброс уже от нового веса.
+                Когда закрываешь набор, можно поднять рабочие веса на этот
+                процент. Не обязательно всем — поправишь перед подтверждением. В
+                примере ниже рывок и сброс уже от нового веса.
               </p>
               <div className="flex items-center gap-2">
                 <Input
@@ -201,7 +200,7 @@ export function FormulasScreen() {
                     setSaved(false);
                   }}
                   className="h-12 w-24 text-base"
-                  aria-label="Прирост максимума на рывке"
+                  aria-label="Прирост рабочего веса на рывке"
                 />
                 <span className="text-lg text-muted-foreground">%</span>
               </div>
@@ -219,8 +218,8 @@ export function FormulasScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-4">
               <h2 className="text-lg font-semibold">Пример веса</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Подставь максимум разгона — справа в подходах появятся
-                килограммы. Это черновик, в дневник не пишется.
+                Подставь рабочий вес — справа в подходах появятся килограммы.
+                Это пример, в дневник не пишется.
                 {raisedMax > 0 && raisedMax !== exampleMax
                   ? ` Рывок и сброс от ${formatWeight(raisedMax)} кг.`
                   : ""}
@@ -236,9 +235,9 @@ export function FormulasScreen() {
                     }))
                   }
                   className="h-12 flex-1 text-base"
-                  aria-label="Пример максимума"
+                  aria-label="Пример рабочего веса"
                 />
-                <span className="text-base text-muted-foreground">кг макс</span>
+                <span className="text-base text-muted-foreground">кг</span>
               </div>
               <Segmented
                 value={String(exampleStep)}
@@ -258,9 +257,8 @@ export function FormulasScreen() {
             {kind === "dynamic" ? (
               <>
                 <p className="px-1 text-base leading-relaxed text-muted-foreground">
-                  Разминка подставляется из упражнения (штанга или блок).
-                  Рабочие зависят от фазы. В рывке разминка тоже от уже нового
-                  максимума.
+                  Разминка берётся из упражнения (штанга или блок). Рабочие
+                  зависят от фазы. В рывке разминка тоже от нового веса.
                 </p>
                 {WARMUP_PRESET_IDS.map((preset) => (
                   <SetCard
@@ -313,8 +311,8 @@ export function FormulasScreen() {
             ) : (
               <>
                 <p className="px-1 text-base leading-relaxed text-muted-foreground">
-                  Здесь рабочие удержания в секундах. Разминка у упражнения та
-                  же, в повторах. Сброс — без разминки.
+                  Здесь рабочие — удержания в секундах. Разминка у упражнения та
+                  же, в повторах. Сброс без разминки.
                 </p>
                 {PHASE_TYPES.map((phase) => (
                   <SetCard
@@ -346,7 +344,7 @@ export function FormulasScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено. Следующая тренировка пойдёт уже по этой схеме.
+                Сохранено. Следующая тренировка пойдёт по этой схеме.
               </p>
             ) : null}
 

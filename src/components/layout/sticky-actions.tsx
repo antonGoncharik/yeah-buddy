@@ -16,8 +16,8 @@ export function StickyActions({
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8",
         withNav
-          ? "pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
-          : "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+          ? "pb-[calc(4.5rem+var(--app-safe-bottom))]"
+          : "pb-[max(1.25rem,var(--app-safe-bottom))]",
         className,
       )}
     >

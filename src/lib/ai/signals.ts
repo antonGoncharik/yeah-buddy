@@ -184,12 +184,12 @@ export function buildSignals(input: {
 
   if (input.proteinTotal >= 3) {
     lines.push(
-      `Белок ≥ цели: ${input.proteinHit} из ${input.proteinTotal} дней.`,
+      `Белок дотянули: ${input.proteinHit} из ${input.proteinTotal} дней.`,
     );
   }
   if (input.kcalTotal >= 3) {
     lines.push(
-      `Ккал ±${Math.round(KCAL_HIT_RATIO * 100)}%: ${input.kcalHit} из ${input.kcalTotal} дней.`,
+      `Калории около цели (±${Math.round(KCAL_HIT_RATIO * 100)}%): ${input.kcalHit} из ${input.kcalTotal} дней.`,
     );
   }
 
@@ -201,7 +201,7 @@ export function buildSignals(input: {
   ) {
     const miss = trainingCarbs.target.carbs - trainingCarbs.fact.carbs;
     lines.push(
-      `На тренировочных днях углеводы в среднем −${formatG(miss)} г от цели.`,
+      `В дни тренировок углеводов не хватало в среднем на ${formatG(miss)} г.`,
     );
   }
 
@@ -210,8 +210,8 @@ export function buildSignals(input: {
     if (Math.abs(delta) >= 10) {
       lines.push(
         delta > 0
-          ? `На тренировочных днях белка больше, чем на отдыхе, на ${formatG(delta)} г.`
-          : `На тренировочных днях белка меньше, чем на отдыхе, на ${formatG(-delta)} г.`,
+          ? `В дни тренировок белка больше, чем на отдыхе, на ${formatG(delta)} г.`
+          : `В дни тренировок белка меньше, чем на отдыхе, на ${formatG(-delta)} г.`,
       );
     }
   }
@@ -239,14 +239,14 @@ export function buildSignals(input: {
       const parts = [kcalPart, proteinPart].filter(
         (item): item is string => item != null,
       );
-      lines.push(`Вторая половина окна к первой: ${parts.join(", ")}.`);
+      lines.push(`Во второй половине периода: ${parts.join(", ")}.`);
     }
   }
 
   const worst = worstProteinDays(input.days);
   if (worst.length > 0) {
     lines.push(
-      `Дыры по белку: ${worst
+      `Мало белка: ${worst
         .map(
           (item) =>
             `${item.date} (−${formatG(item.miss)} г${item.training ? ", зал" : ""})`,
@@ -267,14 +267,14 @@ export function buildSignals(input: {
   if (input.gym.completed > 0) {
     const plan =
       input.gym.planTotal > 0
-        ? `, факт ≥ плана ${input.gym.planHit} из ${input.gym.planTotal}`
+        ? `, не слабее плана ${input.gym.planHit} из ${input.gym.planTotal}`
         : "";
     lines.push(
       `Зал: ${input.gym.completed} ${pluralWorkouts(input.gym.completed)}${plan}.`,
     );
   }
   if (input.gym.skipped > 0) {
-    lines.push(`Пропусков в окне: ${input.gym.skipped}.`);
+    lines.push(`Пропусков: ${input.gym.skipped}.`);
   }
   if (input.gym.templates.length > 0) {
     lines.push(

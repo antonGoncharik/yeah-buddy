@@ -20,7 +20,7 @@ export async function GET(
   const { dayType } = await context.params;
   if (!isDayType(dayType)) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

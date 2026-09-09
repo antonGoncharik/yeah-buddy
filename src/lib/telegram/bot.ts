@@ -38,6 +38,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
     }
 
     await ctx.reply(BOT_START, {
+      // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).
       reply_markup: new InlineKeyboard().webApp(BOT_OPEN_DIARY, miniAppUrl),
     });
   });

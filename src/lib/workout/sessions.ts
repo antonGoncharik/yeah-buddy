@@ -49,7 +49,7 @@ export class SessionNeedsMaxesError extends Error {
 }
 
 export const createSessionSchema = z.object({
-  session_date: z.string().refine(isIsoDate, "Некорректная дата."),
+  session_date: z.string().refine(isIsoDate, "Проверь дату."),
   template_id: z.string().uuid(),
   note: z
     .union([z.string(), z.null()])

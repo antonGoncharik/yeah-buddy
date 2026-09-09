@@ -204,7 +204,7 @@ export function OnboardingScreen() {
   return (
     <div className="flex flex-col gap-4 pb-36">
       {stepIndex > 0 ? <TelegramBackButton onBack={goBack} /> : null}
-      <header className="flex items-center gap-2 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <header className="flex items-center gap-2 px-4 py-4">
         {stepIndex > 0 ? (
           <button
             type="button"
@@ -305,7 +305,7 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько в день. Жиры и углеводы потом, в настройках.
+        Сколько белка в день. Жиры и углеводы потом, в настройках.
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -363,7 +363,7 @@ function CircleStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Не пн/ср/пт. Сегодня одно, завтра следующее.
+        Не по дням недели. Сегодня одно, завтра следующее.
       </p>
       <button
         type="button"
@@ -414,8 +414,8 @@ function MaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Рабочий вес, от него считаются подходы. Не обязательно на раз. Пустое —
-        допишешь в упражнениях.
+        Рабочий вес, от него считаются подходы. Не обязательно на раз. Пустое
+        можно дописать в упражнениях.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

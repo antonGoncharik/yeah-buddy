@@ -451,7 +451,7 @@ export function SessionScreen() {
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
                   <p className="border-b border-border/70 px-5 py-3 text-sm text-muted-foreground">
-                    Не так — нажми подход. В конце «Готово».
+                    Не так вышло — нажми подход. В конце «Готово».
                   </p>
                 ) : null}
                 {detail.exercises.map((item) => (
@@ -572,13 +572,13 @@ export function SessionScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-5">
                 <h2 className="text-xl font-semibold">Готово</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировка записана. Если вес вспомнил позже — поправь
-                  записанное, сессия останется сделанной.
+                  Записано. Если вспомнил другой вес — поправь, тренировка
+                  останется сделанной.
                 </p>
                 {abovePlan ? (
                   <p className="text-base leading-relaxed">
-                    Где-то вышло тяжелее плана. Максимум сам не прыгнет — если
-                    хочешь поднять рабочий потолок, это отдельно, на макроцикле.
+                    Где-то взял больше плана. Рабочий вес сам не вырастет — это
+                    в макроцикле.
                   </p>
                 ) : null}
                 {nextName ? (
@@ -634,7 +634,7 @@ export function SessionScreen() {
 
             {session.status === "completed" && correcting ? (
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Поправь подходы и сохрани. Тренировка останется сделанной.
+                Поправь подходы и сохрани. Тренировка уже сделана.
               </p>
             ) : null}
 

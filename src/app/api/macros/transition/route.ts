@@ -38,7 +38,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -46,7 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = confirmTransitionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

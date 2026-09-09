@@ -16,7 +16,7 @@ export function AppHeader({
   trailing?: ReactNode;
 }) {
   return (
-    <header className="flex items-center gap-2 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
+    <header className="flex items-center gap-2 px-4 py-4">
       {backHref ? (
         <>
           <TelegramBackButton href={backHref} />

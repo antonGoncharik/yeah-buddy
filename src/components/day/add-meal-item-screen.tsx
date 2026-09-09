@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
@@ -72,52 +73,55 @@ export function AddMealItemScreen({
   }, [foods, query]);
 
   return (
-    <div className="animate-rise flex flex-col gap-3 px-4 pb-4">
-      <FoodSearch value={query} onChange={setQuery} />
+    <>
+      <div className="animate-rise flex flex-col gap-3 px-4">
+        <FoodSearch value={query} onChange={setQuery} />
 
-      <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+      </div>
 
-      {loading ? (
-        <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
-      ) : null}
+      <div className="px-4 pb-24">
+        {loading ? (
+          <p className="py-10 text-center text-muted-foreground">Загрузка…</p>
+        ) : null}
 
-      {!loading && error ? (
-        <div className="flex flex-col items-center gap-3 py-10">
-          <p className="text-center font-medium">{error}</p>
-          <Button
-            className="h-12 min-w-40 text-base"
-            onClick={() => void load(filter)}
-          >
-            Повторить
-          </Button>
-        </div>
-      ) : null}
+        {!loading && error ? (
+          <div className="flex flex-col items-center gap-3 py-10">
+            <p className="text-center font-medium">{error}</p>
+            <Button
+              className="h-12 min-w-40 text-base"
+              onClick={() => void load(filter)}
+            >
+              Повторить
+            </Button>
+          </div>
+        ) : null}
 
-      {!loading && !error && visibleFoods.length === 0 ? (
-        <p className="py-10 text-center text-muted-foreground">
-          {emptyMessage(filter, query)}
-        </p>
-      ) : null}
+        {!loading && !error && visibleFoods.length === 0 ? (
+          <p className="py-10 text-center text-muted-foreground">
+            {emptyMessage(filter, query)}
+          </p>
+        ) : null}
 
-      {!loading && !error && visibleFoods.length > 0 ? (
-        <FoodList
-          foods={visibleFoods}
-          showFavorite={false}
-          hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
-        />
-      ) : null}
+        {!loading && !error && visibleFoods.length > 0 ? (
+          <FoodList
+            foods={visibleFoods}
+            showFavorite={false}
+            hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
+          />
+        ) : null}
+      </div>
 
-      <Link
-        href={newFoodHref}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "h-12 gap-2 text-base",
-        )}
-      >
-        <Plus className="size-4" aria-hidden />
-        Новый продукт
-      </Link>
-    </div>
+      <StickyActions>
+        <Link
+          href={newFoodHref}
+          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
+        >
+          <Plus className="size-5" aria-hidden />
+          Новый продукт
+        </Link>
+      </StickyActions>
+    </>
   );
 }
 

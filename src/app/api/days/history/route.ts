@@ -16,12 +16,12 @@ export async function GET(request: Request): Promise<NextResponse> {
   const limit = limitRaw ? Number(limitRaw) : 30;
 
   if (before && !isIsoDate(before)) {
-    return NextResponse.json({ error: "Некорректная дата." }, { status: 400 });
+    return NextResponse.json({ error: "Проверь дату." }, { status: 400 });
   }
 
   if (!Number.isFinite(limit) || limit < 1) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

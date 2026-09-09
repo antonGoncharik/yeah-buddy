@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
-
-import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
+import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import {
   DARK_THEME_COLOR,
@@ -33,6 +32,7 @@ export async function generateViewport(): Promise<Viewport> {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
+    viewportFit: "cover",
     themeColor: theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR,
   };
 }

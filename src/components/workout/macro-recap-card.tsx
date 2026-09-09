@@ -55,7 +55,7 @@ export function MacroRecapCard({
         <h2 className="text-2xl font-semibold tracking-tight">{headline}</h2>
         <p className="text-base">
           {avg == null ? (
-            "Нет сравнения максимумов"
+            "Не с чем сравнить"
           ) : (
             <>
               <span

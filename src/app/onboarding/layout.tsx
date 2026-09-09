@@ -7,7 +7,9 @@ export default function OnboardingLayout({
 }) {
   return (
     <TelegramGate>
-      <div className="mx-auto min-h-dvh w-full max-w-lg">{children}</div>
+      <div className="app-safe-pad mx-auto min-h-dvh w-full max-w-lg">
+        {children}
+      </div>
     </TelegramGate>
   );
 }

@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { deleteMealItem, getMealItem, updateMealItemGrams } from "@/lib/days";
+import {
+  deleteMealItem,
+  getDateForMeal,
+  getMealItem,
+  PastDayLockedError,
+  updateMealItemGrams,
+} from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
@@ -33,7 +39,9 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ item });
+    const date = await getDateForMeal(auth.session.userId, item.meal_id);
+
+    return NextResponse.json({ item, date });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
@@ -55,18 +63,12 @@ export async function PATCH(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -77,6 +79,10 @@ export async function PATCH(
     );
     return NextResponse.json({ item });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     if (error instanceof Error && error.message === "Meal item not found") {
       return NextResponse.json(
         { error: "Запись не найдена." },
@@ -111,6 +117,10 @@ export async function DELETE(
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
   }

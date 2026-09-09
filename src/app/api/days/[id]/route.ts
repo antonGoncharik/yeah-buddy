@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { setDayType } from "@/lib/days";
+import { PastDayLockedError, setDayType } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
@@ -28,24 +28,22 @@ export async function PATCH(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
     const day = await setDayType(auth.session.userId, id, parsed.data.dayType);
     return NextResponse.json({ day });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     if (error instanceof Error && error.message === "Day not found") {
       return NextResponse.json({ error: "День не найден." }, { status: 404 });
     }

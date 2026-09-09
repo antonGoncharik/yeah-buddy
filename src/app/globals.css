@@ -28,6 +28,18 @@
   initial-value: oklch(0.24 0.03 48);
 }
 
+@property --popover {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.995 0.006 85);
+}
+
+@property --popover-foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.24 0.03 48);
+}
+
 @property --muted {
   syntax: "<color>";
   inherits: true;
@@ -98,6 +110,12 @@
   syntax: "<color>";
   inherits: true;
   initial-value: oklch(0.5 0.16 28);
+}
+
+@property --ring {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.5 0.13 42);
 }
 
 @property --macro-protein {
@@ -200,6 +218,26 @@
   --macro-fat: oklch(0.64 0.13 75);
   --macro-carbs: oklch(0.52 0.09 150);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --theme-duration: 0.4s;
+  --app-safe-top: calc(
+    max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) +
+    var(--tg-content-safe-area-inset-top, 0px)
+  );
+  --app-safe-bottom: calc(
+    max(
+      env(safe-area-inset-bottom, 0px),
+      var(--tg-safe-area-inset-bottom, 0px)
+    ) +
+    var(--tg-content-safe-area-inset-bottom, 0px)
+  );
+  --app-safe-left: calc(
+    max(env(safe-area-inset-left, 0px), var(--tg-safe-area-inset-left, 0px)) +
+    var(--tg-content-safe-area-inset-left, 0px)
+  );
+  --app-safe-right: calc(
+    max(env(safe-area-inset-right, 0px), var(--tg-safe-area-inset-right, 0px)) +
+    var(--tg-content-safe-area-inset-right, 0px)
+  );
 }
 
 .dark {
@@ -327,45 +365,39 @@ html.dark[data-day="training"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     transition:
-      --background 0.28s var(--ease-out-soft),
-      --foreground 0.28s var(--ease-out-soft),
-      --card 0.28s var(--ease-out-soft),
-      --card-foreground 0.28s var(--ease-out-soft),
-      --popover 0.28s var(--ease-out-soft),
-      --popover-foreground 0.28s var(--ease-out-soft),
-      --muted 0.28s var(--ease-out-soft),
-      --muted-foreground 0.28s var(--ease-out-soft),
-      --border 0.28s var(--ease-out-soft),
-      --input 0.28s var(--ease-out-soft),
-      --input-bg 0.28s var(--ease-out-soft),
-      --primary 0.28s var(--ease-out-soft),
-      --primary-foreground 0.28s var(--ease-out-soft),
-      --secondary 0.28s var(--ease-out-soft),
-      --secondary-foreground 0.28s var(--ease-out-soft),
-      --accent 0.28s var(--ease-out-soft),
-      --accent-foreground 0.28s var(--ease-out-soft),
-      --destructive 0.28s var(--ease-out-soft),
-      --macro-protein 0.28s var(--ease-out-soft),
-      --macro-fat 0.28s var(--ease-out-soft),
-      --macro-carbs 0.28s var(--ease-out-soft),
-      background-color 0.28s var(--ease-out-soft),
-      color 0.28s var(--ease-out-soft);
+      --background var(--theme-duration) var(--ease-out-soft),
+      --foreground var(--theme-duration) var(--ease-out-soft),
+      --card var(--theme-duration) var(--ease-out-soft),
+      --card-foreground var(--theme-duration) var(--ease-out-soft),
+      --popover var(--theme-duration) var(--ease-out-soft),
+      --popover-foreground var(--theme-duration) var(--ease-out-soft),
+      --muted var(--theme-duration) var(--ease-out-soft),
+      --muted-foreground var(--theme-duration) var(--ease-out-soft),
+      --border var(--theme-duration) var(--ease-out-soft),
+      --input var(--theme-duration) var(--ease-out-soft),
+      --input-bg var(--theme-duration) var(--ease-out-soft),
+      --primary var(--theme-duration) var(--ease-out-soft),
+      --primary-foreground var(--theme-duration) var(--ease-out-soft),
+      --secondary var(--theme-duration) var(--ease-out-soft),
+      --secondary-foreground var(--theme-duration) var(--ease-out-soft),
+      --accent var(--theme-duration) var(--ease-out-soft),
+      --accent-foreground var(--theme-duration) var(--ease-out-soft),
+      --destructive var(--theme-duration) var(--ease-out-soft),
+      --ring var(--theme-duration) var(--ease-out-soft),
+      --macro-protein var(--theme-duration) var(--ease-out-soft),
+      --macro-fat var(--theme-duration) var(--ease-out-soft),
+      --macro-carbs var(--theme-duration) var(--ease-out-soft);
   }
   html.dark {
     color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground;
-    transition:
-      background-color 0.28s var(--ease-out-soft),
-      color 0.28s var(--ease-out-soft);
   }
-  header,
-  nav {
+  svg :is(path, circle, rect, line, polyline, polygon) {
     transition:
-      background-color 0.28s var(--ease-out-soft),
-      border-color 0.28s var(--ease-out-soft),
-      color 0.28s var(--ease-out-soft);
+      fill var(--theme-duration) var(--ease-out-soft),
+      stroke var(--theme-duration) var(--ease-out-soft);
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -383,18 +415,20 @@ html.dark[data-day="training"] {
   }
 }
 
+@utility app-safe-pad {
+  padding-top: var(--app-safe-top);
+  padding-left: var(--app-safe-left);
+  padding-right: var(--app-safe-right);
+}
+
 @utility card-surface {
   border-radius: var(--radius-2xl);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
-  background: var(--card);
+  background-color: var(--card);
   box-shadow:
     0 1px 2px oklch(0.3 0.04 50 / 4%),
     0 10px 28px oklch(0.32 0.04 50 / 4%);
-  transition:
-    background-color 0.28s var(--ease-out-soft),
-    border-color 0.28s var(--ease-out-soft),
-    box-shadow 0.35s var(--ease-out-soft),
-    color 0.28s var(--ease-out-soft);
+  transition: box-shadow var(--theme-duration) var(--ease-out-soft);
 }
 
 @utility field-control {
@@ -509,6 +543,10 @@ html.dark .native-select {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --theme-duration: 0s;
+  }
+
   .animate-rise,
   .animate-fade,
   .animate-rest-drift,
@@ -519,9 +557,7 @@ html.dark .native-select {
   }
 
   html,
-  body,
-  header,
-  nav,
+  svg :is(path, circle, rect, line, polyline, polygon),
   .card-surface {
     transition: none;
   }

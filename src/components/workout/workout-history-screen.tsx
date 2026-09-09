@@ -10,7 +10,11 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
-import { LOAD_FAILED, SESSION_HISTORY_EMPTY } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  REVIEW_CTA_HINT,
+  SESSION_HISTORY_EMPTY,
+} from "@/lib/messages";
 import type { RecentWorkoutSession } from "@/lib/types";
 import {
   hasOlderThanRange,
@@ -147,7 +151,7 @@ export function WorkoutHistoryScreen() {
                 Разбор еды и зала
               </span>
               <span className="mt-0.5 block text-sm text-muted-foreground">
-                Цифры уже на экране — Gemini свяжет БЖУ, фазу и зал
+                {REVIEW_CTA_HINT}
               </span>
             </span>
             <ChevronRight
@@ -256,7 +260,7 @@ function StatsCard({
       </div>
       {stats.planTotal > 0 ? (
         <HitRow
-          label="Факт ≥ плана"
+          label="Не слабее плана"
           hit={stats.planHit}
           total={stats.planTotal}
         />

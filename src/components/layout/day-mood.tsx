@@ -57,7 +57,8 @@ export function DayBackdrop() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
-      <div className="atmosphere-grain absolute inset-0 opacity-[0.22] mix-blend-multiply dark:opacity-[0.28] dark:mix-blend-overlay" />
+      <div className="atmosphere-grain absolute inset-0 opacity-[0.22] mix-blend-multiply transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-0" />
+      <div className="atmosphere-grain absolute inset-0 opacity-0 mix-blend-overlay transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-[0.28]" />
       <div
         className={cn(
           "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
@@ -81,8 +82,11 @@ export function DayBackdrop() {
 function RestBackdrop() {
   return (
     <>
-      <div className="absolute inset-0 mix-blend-multiply motion-safe:animate-rest-drift bg-[linear-gradient(168deg,oklch(0.62_0.05_132_/_0.28)_0%,transparent_36%)] dark:bg-[linear-gradient(168deg,oklch(0.42_0.05_140_/_0.42)_0%,transparent_40%)] dark:mix-blend-soft-light" />
-      <div className="absolute inset-y-0 left-2 w-px bg-[oklch(0.42_0.06_132_/_0.32)] dark:bg-[oklch(0.82_0.04_140_/_0.28)]" />
+      <div className="absolute inset-0 motion-safe:animate-rest-drift">
+        <div className="absolute inset-0 bg-[linear-gradient(168deg,oklch(0.62_0.05_132_/_0.28)_0%,transparent_36%)] mix-blend-multiply transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-0" />
+        <div className="absolute inset-0 bg-[linear-gradient(168deg,oklch(0.42_0.05_140_/_0.42)_0%,transparent_40%)] mix-blend-soft-light opacity-0 transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-100" />
+      </div>
+      <div className="absolute inset-y-0 left-2 w-px bg-[oklch(0.42_0.06_132_/_0.32)] transition-colors duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[oklch(0.82_0.04_140_/_0.28)]" />
       <svg
         aria-hidden
         className="absolute inset-0 h-full w-full"
@@ -102,9 +106,11 @@ function TrainingBackdrop() {
   return (
     <>
       <div className="absolute inset-0 motion-safe:animate-train-heat">
-        <div className="absolute -top-[18%] left-[10%] h-[145%] w-[54%] origin-top rotate-[19deg] bg-[oklch(0.52_0.08_42_/_0.16)] mix-blend-multiply dark:bg-[oklch(0.62_0.07_42_/_0.28)] dark:mix-blend-soft-light" />
-        <div className="absolute -top-[18%] left-[40%] h-[145%] w-[9%] origin-top rotate-[19deg] bg-[oklch(0.58_0.11_38_/_0.2)] mix-blend-multiply dark:bg-[oklch(0.74_0.09_48_/_0.22)] dark:mix-blend-soft-light" />
-        <div className="absolute -top-[20%] left-[49%] h-[148%] w-px origin-top rotate-[19deg] bg-[oklch(0.48_0.13_38_/_0.5)] dark:bg-[oklch(0.82_0.1_48_/_0.4)]" />
+        <div className="absolute -top-[18%] left-[10%] h-[145%] w-[54%] origin-top rotate-[19deg] bg-[oklch(0.52_0.08_42_/_0.16)] mix-blend-multiply transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-0" />
+        <div className="absolute -top-[18%] left-[10%] h-[145%] w-[54%] origin-top rotate-[19deg] bg-[oklch(0.62_0.07_42_/_0.28)] mix-blend-soft-light opacity-0 transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-100" />
+        <div className="absolute -top-[18%] left-[40%] h-[145%] w-[9%] origin-top rotate-[19deg] bg-[oklch(0.58_0.11_38_/_0.2)] mix-blend-multiply transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-0" />
+        <div className="absolute -top-[18%] left-[40%] h-[145%] w-[9%] origin-top rotate-[19deg] bg-[oklch(0.74_0.09_48_/_0.22)] mix-blend-soft-light opacity-0 transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-100" />
+        <div className="absolute -top-[20%] left-[49%] h-[148%] w-px origin-top rotate-[19deg] bg-[oklch(0.48_0.13_38_/_0.5)] transition-colors duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[oklch(0.82_0.1_48_/_0.4)]" />
       </div>
       <svg
         aria-hidden

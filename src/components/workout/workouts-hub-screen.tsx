@@ -166,8 +166,8 @@ export function WorkoutsHubScreen() {
         const ok = await confirm({
           message:
             sessionDate === date
-              ? "День уже заведён как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт."
-              : "За этот день еда уже заведена как отдых. Сделать тренировочным и сменить цели БЖУ? Полдник не пропадёт.",
+              ? "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется."
+              : "За этот день еда уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
           confirmLabel: "Сделать тренировочным",
           cancelLabel: "Отмена",
         });
@@ -343,7 +343,7 @@ export function WorkoutsHubScreen() {
                         WORKOUT_KIND_LABELS[item.session.workout_type]}
                     </h2>
                     <p className="mt-2 text-base text-muted-foreground">
-                      Открыть и добить или убрать.
+                      Открыть: доделать или убрать.
                     </p>
                   </span>
                   <ChevronRight
@@ -517,8 +517,8 @@ export function WorkoutsHubScreen() {
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {session
-                      ? "От этой фазы считаются веса сегодняшней тренировки."
-                      : "От этой фазы посчитаются рабочие веса, когда начнёшь."}
+                      ? "От этой фазы считаются веса сегодня."
+                      : "От этой фазы посчитаются веса, когда начнёшь."}
                   </p>
                   {phaseHint ? (
                     <p className="text-base leading-snug">{phaseHint}</p>
@@ -547,8 +547,8 @@ export function WorkoutsHubScreen() {
                   />
                 </Link>
                 <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-                  Порядок тренировок по кругу, не дни недели. Нажми имя — начать
-                  не следующее.
+                  Тренировки идут по кругу, не по дням недели. Нажми имя, если
+                  хочешь начать не следующее.
                 </p>
                 <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {

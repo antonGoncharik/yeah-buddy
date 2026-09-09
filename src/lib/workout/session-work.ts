@@ -193,7 +193,7 @@ export async function patchWorkoutSet(
     next.actual_seconds = next.actual_seconds ?? current.planned_seconds;
 
     if (next.actual_weight == null || next.actual_weight <= 0) {
-      throw new Error("Укажите фактический вес.");
+      throw new Error("Напиши фактический вес.");
     }
   }
 
@@ -269,7 +269,7 @@ export async function completeSessionAsPlanned(
         (actual_weight == null || actual_weight <= 0) &&
         set.planned_weight != null
       ) {
-        throw new Error("Укажите фактический вес.");
+        throw new Error("Напиши фактический вес.");
       }
 
       const updated = await supabase

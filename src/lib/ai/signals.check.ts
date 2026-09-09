@@ -101,12 +101,14 @@ const lines = buildSignals({
 });
 
 assertEqual(
-  lines.some((line) => line === "Белок ≥ цели: 1 из 3 дней."),
+  lines.some((line) => line === "Белок дотянули: 1 из 3 дней."),
   true,
   "protein hit",
 );
 assertEqual(
-  lines.some((line) => line.includes("углеводы в среднем −110 г от цели")),
+  lines.some((line) =>
+    line.includes("углеводов не хватало в среднем на 110 г"),
+  ),
   true,
   "training carbs",
 );
@@ -127,7 +129,7 @@ assertEqual(
 );
 assertEqual(
   lines.some(
-    (line) => line.includes(`Дыры по белку`) && line.includes(formatG(80)),
+    (line) => line.includes(`Мало белка`) && line.includes(formatG(80)),
   ),
   true,
   "protein holes",

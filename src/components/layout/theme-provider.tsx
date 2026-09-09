@@ -31,6 +31,7 @@ export function ThemeProvider({
 
   const setTheme = useCallback((next: Theme) => {
     persistTheme(next);
+    applyTheme(next);
     setThemeState(next);
   }, []);
 

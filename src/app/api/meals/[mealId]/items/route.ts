@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { addMealItem } from "@/lib/days";
+import { addMealItem, PastDayLockedError } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
@@ -29,18 +29,12 @@ export async function POST(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверьте поля формы." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -52,6 +46,10 @@ export async function POST(
     );
     return NextResponse.json({ item });
   } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     if (error instanceof Error && error.message === "Meal not found") {
       return NextResponse.json(
         { error: "Приём пищи не найден." },

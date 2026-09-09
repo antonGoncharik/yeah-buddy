@@ -23,6 +23,7 @@ export function GramsScreen({
   save,
   backHref,
   doneHref,
+  readOnly = false,
 }: {
   name: string;
   protein: number;
@@ -32,9 +33,10 @@ export function GramsScreen({
   initialGrams: number;
   defaultPortionG: number | null;
   defaultPortionLabel: string | null;
-  save: (grams: number) => Promise<void>;
+  save?: (grams: number) => Promise<void>;
   backHref: string;
   doneHref: string;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [gramsInput, setGramsInput] = useState(String(initialGrams));
@@ -51,8 +53,12 @@ export function GramsScreen({
   }, [carbs, fat, grams, kcal, protein]);
 
   async function onSave() {
+    if (readOnly || !save) {
+      return;
+    }
+
     if (!Number.isFinite(grams) || grams <= 0) {
-      setError("Укажите граммы больше 0.");
+      setError("Нужны граммы больше 0.");
       return;
     }
 
@@ -82,12 +88,16 @@ export function GramsScreen({
 
       <div className="flex flex-col gap-2">
         <Label className="text-base">Граммы</Label>
-        <Input
-          inputMode="decimal"
-          value={gramsInput}
-          onChange={(event) => setGramsInput(event.target.value)}
-          className="h-14 text-lg"
-        />
+        {readOnly ? (
+          <p className="text-2xl font-semibold tabular-nums">{gramsInput}</p>
+        ) : (
+          <Input
+            inputMode="decimal"
+            value={gramsInput}
+            onChange={(event) => setGramsInput(event.target.value)}
+            className="h-14 text-lg"
+          />
+        )}
       </div>
 
       {totals ? (
@@ -97,21 +107,23 @@ export function GramsScreen({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-4 gap-2">
-        {QUICK_GRAMS.map((value) => (
-          <Button
-            key={value}
-            type="button"
-            variant="outline"
-            className="h-12 text-base"
-            onClick={() => setGramsInput(String(value))}
-          >
-            {value}
-          </Button>
-        ))}
-      </div>
+      {readOnly ? null : (
+        <div className="grid grid-cols-4 gap-2">
+          {QUICK_GRAMS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              variant="outline"
+              className="h-12 text-base"
+              onClick={() => setGramsInput(String(value))}
+            >
+              {value}
+            </Button>
+          ))}
+        </div>
+      )}
 
-      {defaultPortionG ? (
+      {readOnly || !defaultPortionG ? null : (
         <Button
           type="button"
           variant="secondary"
@@ -122,25 +134,27 @@ export function GramsScreen({
             ? `Стандартная порция · ${defaultPortionLabel}`
             : "Стандартная порция"}
         </Button>
-      ) : null}
+      )}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <Button
-        className="h-14 text-lg"
-        disabled={saving}
-        onClick={() => void onSave()}
-      >
-        {saving ? "Сохранение…" : "Сохранить"}
-      </Button>
+      {readOnly ? null : (
+        <Button
+          className="h-14 text-lg"
+          disabled={saving}
+          onClick={() => void onSave()}
+        >
+          {saving ? "Сохранение…" : "Сохранить"}
+        </Button>
+      )}
 
       <Button
         type="button"
         variant="ghost"
         className="h-12 text-base"
-        onClick={() => router.push(backHref)}
+        onClick={() => router.push(readOnly ? doneHref : backHref)}
       >
-        Отмена
+        {readOnly ? "Назад" : "Отмена"}
       </Button>
     </div>
   );

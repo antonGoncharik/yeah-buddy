@@ -8,6 +8,31 @@ import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
 
 type GateState = "loading" | "ready" | "outside" | "error";
 
+const TELEGRAM_FULLSCREEN_API = "8.0";
+
+function enterTelegramFullscreen(webApp: {
+  isVersionAtLeast?: (version: string) => boolean;
+  isFullscreen?: boolean;
+  requestFullscreen?: () => void;
+}) {
+  // Bot API 8.0+; expand() only fills height — the Mini App header still takes space.
+  if (typeof webApp.requestFullscreen !== "function") {
+    return;
+  }
+  if (!webApp.isVersionAtLeast?.(TELEGRAM_FULLSCREEN_API)) {
+    return;
+  }
+  if (webApp.isFullscreen) {
+    return;
+  }
+
+  try {
+    webApp.requestFullscreen();
+  } catch {
+    // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
+  }
+}
+
 export function TelegramGate({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GateState>("loading");
 
@@ -19,6 +44,7 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
       const webApp = sdk.default;
       webApp.ready();
       webApp.expand();
+      enterTelegramFullscreen(webApp);
 
       const initData = webApp.initData;
       if (initData) {
@@ -62,7 +88,7 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
       <span
         className="flex h-16 items-center justify-center gap-1.5 rounded-full bg-primary/12 px-5 text-primary"
         aria-hidden

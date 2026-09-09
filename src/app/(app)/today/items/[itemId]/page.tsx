@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
-import { isIsoDate, todayHomeHref } from "@/lib/days";
+import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food, MealItem } from "@/lib/types";
 
@@ -17,6 +17,7 @@ export default function EditMealItemPage() {
   const [reloadToken, setReloadToken] = useState(0);
   const [item, setItem] = useState<MealItem | null>(null);
   const [food, setFood] = useState<Food | null>(null);
+  const [dayDate, setDayDate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +39,7 @@ export default function EditMealItemPage() {
         if (response.status === 404) {
           setError("Запись не найдена.");
           setItem(null);
+          setDayDate(null);
           return;
         }
 
@@ -48,6 +50,7 @@ export default function EditMealItemPage() {
         const data: unknown = await response.json();
         const loaded = readItem(data);
         setItem(loaded);
+        setDayDate(readItemDate(data));
 
         if (loaded?.food_id) {
           const foodResponse = await fetch(`/api/foods/${loaded.food_id}`);
@@ -63,6 +66,7 @@ export default function EditMealItemPage() {
         if (!cancelled) {
           setError(LOAD_FAILED);
           setItem(null);
+          setDayDate(null);
         }
       } finally {
         if (!cancelled) {
@@ -107,7 +111,12 @@ export default function EditMealItemPage() {
           defaultPortionLabel={food?.default_portion_label ?? null}
           backHref={homeHref}
           doneHref={homeHref}
-          save={(grams) => saveMealItemGrams(item.id, grams)}
+          readOnly={dayDate != null && isPastDayDate(dayDate)}
+          save={
+            dayDate != null && isPastDayDate(dayDate)
+              ? undefined
+              : (grams) => saveMealItemGrams(item.id, grams)
+          }
         />
       ) : null}
     </div>
@@ -128,6 +137,19 @@ function readFood(data: unknown): Food | null {
   }
 
   return data.food as Food;
+}
+
+function readItemDate(data: unknown): string | null {
+  if (!data || typeof data !== "object" || !("date" in data)) {
+    return null;
+  }
+
+  const value = data.date;
+  if (typeof value !== "string" || !isIsoDate(value)) {
+    return null;
+  }
+
+  return value;
 }
 
 function readDateParam(value: string | null): string | null {

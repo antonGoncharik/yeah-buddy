@@ -14,7 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, fetchJson } from "@/lib/api-cache";
 import { todayHistoryDayHref } from "@/lib/days";
-import { LOAD_FAILED, NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  NUTRITION_HISTORY_EMPTY,
+  REVIEW_CTA_HINT,
+} from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   chronological,
@@ -159,7 +163,7 @@ export function NutritionHistoryScreen() {
                 Разбор еды и зала
               </span>
               <span className="mt-0.5 block text-sm text-muted-foreground">
-                Цифры уже на экране — Gemini свяжет БЖУ, фазу и зал
+                {REVIEW_CTA_HINT}
               </span>
             </span>
             <ChevronRight
@@ -296,13 +300,13 @@ function StatsCard({
       {showHits ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
           <HitRow
-            label="Белок ≥ цели"
+            label="Белок дотянули"
             hit={hits.proteinHit}
             total={hits.proteinTotal}
             barClass="bg-[var(--macro-protein)]"
           />
           <HitRow
-            label="Ккал ±10%"
+            label="Калории около цели"
             hit={hits.kcalHit}
             total={hits.kcalTotal}
             barClass="bg-primary"

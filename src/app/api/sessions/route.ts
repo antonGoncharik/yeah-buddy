@@ -20,7 +20,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const date = new URL(request.url).searchParams.get("date");
   if (!date || !isIsoDate(date)) {
-    return NextResponse.json({ error: "Некорректная дата." }, { status: 400 });
+    return NextResponse.json({ error: "Проверь дату." }, { status: 400 });
   }
 
   try {
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -51,7 +51,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = createSessionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

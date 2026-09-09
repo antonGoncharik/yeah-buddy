@@ -117,7 +117,7 @@ function ConfirmSheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="card-surface animate-rise relative z-10 mx-auto w-full max-w-lg rounded-t-[1.75rem] px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] outline-none sm:mb-10 sm:rounded-[1.75rem] sm:pt-6"
+        className="card-surface animate-rise relative z-10 mx-auto w-full max-w-lg rounded-t-[1.75rem] px-5 pt-3 pb-[calc(1.25rem+var(--app-safe-bottom))] outline-none sm:mb-10 sm:rounded-[1.75rem] sm:pt-6"
       >
         <div
           aria-hidden

@@ -24,7 +24,7 @@ export async function PATCH(
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -32,7 +32,7 @@ export async function PATCH(
   const parsed = patchSetSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -47,7 +47,7 @@ export async function PATCH(
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message === "Укажите фактический вес."
+      error.message === "Напиши фактический вес."
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

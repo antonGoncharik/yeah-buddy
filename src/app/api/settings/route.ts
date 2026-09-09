@@ -18,7 +18,7 @@ export async function GET(): Promise<NextResponse> {
     const settings = await getUserSettings(auth.session.userId);
     if (!settings) {
       return NextResponse.json(
-        { error: "Настройки не найдены." },
+        { error: "Настройки не нашлись." },
         { status: 404 },
       );
     }
@@ -41,7 +41,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -49,7 +49,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
   const parsed = settingsInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

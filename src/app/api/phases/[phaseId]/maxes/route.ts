@@ -24,7 +24,7 @@ export async function POST(
     body = await request.json();
   } catch {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }
@@ -32,7 +32,7 @@ export async function POST(
   const parsed = phaseMaxInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Проверьте поля формы." },
+      { error: "Проверь поля." },
       { status: 400 },
     );
   }

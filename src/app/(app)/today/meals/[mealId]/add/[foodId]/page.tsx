@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
-import { isIsoDate, todayHomeHref, withDateQuery } from "@/lib/days";
+import {
+  isIsoDate,
+  isPastDayDate,
+  todayHomeHref,
+  withDateQuery,
+} from "@/lib/days";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
@@ -16,6 +21,7 @@ export default function AddMealItemGramsPage() {
   const date = readDateParam(searchParams.get("date"));
   const backHref = withDateQuery(`/today/meals/${params.mealId}/add`, date);
   const doneHref = todayHomeHref(date);
+  const viewOnly = date != null && isPastDayDate(date);
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +101,12 @@ export default function AddMealItemGramsPage() {
           defaultPortionLabel={food.default_portion_label}
           backHref={backHref}
           doneHref={doneHref}
-          save={(grams) => addMealItemGrams(params.mealId, food.id, grams)}
+          readOnly={viewOnly}
+          save={
+            viewOnly
+              ? undefined
+              : (grams) => addMealItemGrams(params.mealId, food.id, grams)
+          }
         />
       ) : null}
     </div>

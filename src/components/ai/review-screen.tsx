@@ -153,12 +153,12 @@ export function ReviewScreen() {
 
             {brief.coverage === "thin" && !empty ? (
               <p className="text-sm text-muted-foreground">
-                Записей мало, картина неполная.
+                Записей пока мало.
               </p>
             ) : null}
 
             <p className="text-sm text-muted-foreground">
-              Это чтение лога, не план питания и не медсовет.
+              Это разбор записей, не план питания и не совет врача.
             </p>
           </>
         ) : null}
@@ -207,7 +207,7 @@ function FactsCard({ brief }: { brief: ReviewBrief }) {
 function SignalsCard({ signals }: { signals: string[] }) {
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-      <h2 className="text-sm font-medium text-muted-foreground">Посчитано</h2>
+      <h2 className="text-sm font-medium text-muted-foreground">Цифры</h2>
       <ul className="flex flex-col gap-2.5">
         {signals.map((signal) => (
           <li key={signal} className="text-base leading-snug">

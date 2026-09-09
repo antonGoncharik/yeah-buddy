@@ -107,7 +107,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Проверьте поля формы.");
+      setError("Проверь поля.");
       return;
     }
 

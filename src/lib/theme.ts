@@ -4,6 +4,18 @@ export const DARK_THEME_COLOR = "#2a241f";
 
 export type Theme = "light" | "dark";
 
+type TelegramWebApp = {
+  isVersionAtLeast?: (version: string) => boolean;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
+};
+
+const TELEGRAM_COLOR_API = "6.1";
+
+let telegramWebApp: TelegramWebApp | null | undefined;
+let telegramLoad: Promise<TelegramWebApp | null> | undefined;
+let pendingTelegramTheme: Theme | null = null;
+
 export function parseTheme(value: string | undefined | null): Theme {
   return value === "dark" ? "dark" : "light";
 }
@@ -27,20 +39,49 @@ export function applyTheme(theme: Theme) {
     );
   }
 
-  void syncTelegramColors(theme);
+  syncTelegramColors(theme);
 }
 
-async function syncTelegramColors(theme: Theme) {
-  try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as {
-      setHeaderColor?: (color: string) => void;
-      setBackgroundColor?: (color: string) => void;
-    };
-    const color = theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR;
-    webApp.setHeaderColor?.(color);
-    webApp.setBackgroundColor?.(color);
-  } catch {
-    // Outside Telegram the SDK is optional.
+function getTelegramWebApp(): Promise<TelegramWebApp | null> {
+  if (!telegramLoad) {
+    telegramLoad = import("@twa-dev/sdk")
+      .then((sdk) => {
+        telegramWebApp = sdk.default as TelegramWebApp;
+        return telegramWebApp;
+      })
+      .catch(() => {
+        telegramWebApp = null;
+        return null;
+      });
   }
+  return telegramLoad;
+}
+
+function paintTelegram(theme: Theme, webApp: TelegramWebApp) {
+  // setHeaderColor / setBackgroundColor warn on Telegram WebApp 6.0.
+  // In fullscreen (8.0+) header color still tints status-bar / dismiss-handle contrast.
+  if (!webApp.isVersionAtLeast?.(TELEGRAM_COLOR_API)) {
+    return;
+  }
+
+  const color = theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR;
+  webApp.setHeaderColor?.(color);
+  webApp.setBackgroundColor?.(color);
+}
+
+function syncTelegramColors(theme: Theme) {
+  pendingTelegramTheme = theme;
+
+  if (telegramWebApp !== undefined) {
+    if (telegramWebApp) {
+      paintTelegram(theme, telegramWebApp);
+    }
+    return;
+  }
+
+  void getTelegramWebApp().then((webApp) => {
+    if (webApp && pendingTelegramTheme) {
+      paintTelegram(pendingTelegramTheme, webApp);
+    }
+  });
 }

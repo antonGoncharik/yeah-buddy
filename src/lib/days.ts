@@ -1,6 +1,10 @@
 import { mapFood } from "@/lib/foods";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
-import { DAY_EXISTS_REPLACE, YESTERDAY_MISSING } from "@/lib/messages";
+import {
+  DAY_EXISTS_REPLACE,
+  PAST_DAY_LOCKED,
+  YESTERDAY_MISSING,
+} from "@/lib/messages";
 import {
   calcKcalFromMacros,
   calcMacrosFromPer100,
@@ -69,6 +73,22 @@ export function calendarToday(): string {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+export function isPastDayDate(date: string): boolean {
+  return isIsoDate(date) && date < calendarToday();
+}
+
+export class PastDayLockedError extends Error {
+  constructor() {
+    super(PAST_DAY_LOCKED);
+  }
+}
+
+export function assertWritableDayDate(date: string): void {
+  if (isPastDayDate(date)) {
+    throw new PastDayLockedError();
+  }
 }
 
 export function todayHomeHref(date: string | null | undefined): string {
@@ -338,6 +358,7 @@ export async function createDayFromTemplate(
   date: string,
   dayType: DayType,
 ): Promise<DayWithMeals> {
+  assertWritableDayDate(date);
   const existing = await getDayByDate(userId, date);
   if (existing) {
     throw new DayConflictError();
@@ -415,6 +436,7 @@ export async function copyYesterday(
   date: string,
   replace: boolean,
 ): Promise<DayWithMeals> {
+  assertWritableDayDate(date);
   const yesterday = await getDayByDate(userId, previousIsoDate(date));
   if (!yesterday) {
     throw new YesterdayMissingError();
@@ -507,6 +529,23 @@ export async function setDayType(
   dayType: DayType,
 ): Promise<DayWithMeals> {
   const supabase = createSupabaseServerClient();
+  const existing = await supabase
+    .from("days")
+    .select("date")
+    .eq("id", dayId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existing.error) {
+    throw existing.error;
+  }
+
+  if (!existing.data) {
+    throw new Error("Day not found");
+  }
+
+  assertWritableDayDate(String(existing.data.date).slice(0, 10));
+
   const targets = await getTargets(userId, dayType);
   const updated = await supabase
     .from("days")
@@ -541,6 +580,10 @@ export async function markDateAsTrainingIfExists(
   userId: string,
   date: string,
 ): Promise<void> {
+  if (isPastDayDate(date)) {
+    return;
+  }
+
   const day = await getDayByDate(userId, date);
   if (!day || day.is_training_day) {
     return;
@@ -549,12 +592,56 @@ export async function markDateAsTrainingIfExists(
   await setDayType(userId, day.id, "training");
 }
 
+export async function getDateForMeal(
+  userId: string,
+  mealId: string,
+): Promise<string | null> {
+  const supabase = createSupabaseServerClient();
+  const meal = await supabase
+    .from("meals")
+    .select("day_id")
+    .eq("id", mealId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (meal.error) {
+    throw meal.error;
+  }
+
+  if (!meal.data) {
+    return null;
+  }
+
+  const day = await supabase
+    .from("days")
+    .select("date")
+    .eq("id", meal.data.day_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (day.error) {
+    throw day.error;
+  }
+
+  if (!day.data) {
+    return null;
+  }
+
+  return String(day.data.date).slice(0, 10);
+}
+
 export async function addMealItem(
   userId: string,
   mealId: string,
   foodId: string,
   grams: number,
 ): Promise<MealItem> {
+  const date = await getDateForMeal(userId, mealId);
+  if (!date) {
+    throw new Error("Meal not found");
+  }
+  assertWritableDayDate(date);
+
   const supabase = createSupabaseServerClient();
   const meal = await supabase
     .from("meals")
@@ -647,6 +734,12 @@ export async function updateMealItemGrams(
     throw new Error("Meal item not found");
   }
 
+  const date = await getDateForMeal(userId, item.meal_id);
+  if (!date) {
+    throw new Error("Meal item not found");
+  }
+  assertWritableDayDate(date);
+
   const macros = roundMacros(
     calcMacrosFromPer100(item.per_100_snapshot, grams),
   );
@@ -680,6 +773,17 @@ export async function deleteMealItem(
   userId: string,
   itemId: string,
 ): Promise<boolean> {
+  const item = await getMealItem(userId, itemId);
+  if (!item) {
+    return false;
+  }
+
+  const date = await getDateForMeal(userId, item.meal_id);
+  if (!date) {
+    return false;
+  }
+  assertWritableDayDate(date);
+
   const supabase = createSupabaseServerClient();
   const deleted = await supabase
     .from("meal_items")

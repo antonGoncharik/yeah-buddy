@@ -54,7 +54,7 @@ const maxInputSchema = z.object({
 });
 
 export const createMacroSchema = z.object({
-  start_date: z.string().refine(isIsoDate, "Некорректная дата."),
+  start_date: z.string().refine(isIsoDate, "Проверь дату."),
   note: z
     .union([z.string(), z.null()])
     .optional()
@@ -71,7 +71,7 @@ export const createMacroSchema = z.object({
 export const phaseMaxInputSchema = maxInputSchema;
 
 export const confirmTransitionSchema = z.object({
-  end_date: z.string().refine(isIsoDate, "Некорректная дата."),
+  end_date: z.string().refine(isIsoDate, "Проверь дату."),
   maxes: z.array(maxInputSchema).min(1),
 });
 

@@ -1,15 +1,16 @@
 export const OPEN_VIA_BOT = "Открой приложение через Telegram-бота.";
-export const LOAD_FAILED = "Не удалось загрузить данные.";
+export const LOAD_FAILED = "Не загрузилось.";
 export const FOODS_EMPTY = "Продуктов пока нет.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
+export const PAST_DAY_LOCKED = "Это старый день — уже не меняется.";
 export const BOT_START =
-  "Привет. Это твой дневник еды и зала, не программа тренера.\n\nПишешь, что съел и что поднял. Веса считаются от твоих максимумов.";
+  "Привет. Это дневник еды и зала, не программа тренера.\n\nПишешь, что съел и что поднял. Веса считаются от твоих рабочих весов.";
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const EXERCISES_EMPTY =
-  "Пока пусто. Добавь упражнение и сколько сейчас жмёшь.";
+  "Пока пусто. Добавь упражнение и сколько сейчас поднимаешь.";
 export const WORKOUTS_NEED_EXERCISES =
-  "Сначала упражнения и максимумы — без них план весов не из чего считать.";
+  "Сначала упражнения и рабочие веса — без них не из чего считать план.";
 export const WORKOUTS_NEED_TEMPLATES =
   "Собери очередь: в каком порядке идут тренировки.";
 export const WORKOUTS_NEED_MAXES =
@@ -19,13 +20,13 @@ export const SESSION_HISTORY_EMPTY =
 export const NUTRITION_HISTORY_EMPTY =
   "Дней ещё нет. Появятся, когда заведёшь «Сегодня».";
 export const SESSION_PLAN_EMPTY =
-  "В план никто не попал: нет максимума. Напиши, сколько жмёшь, и открой тренировку снова.";
+  "В план никто не попал: нет рабочего веса. Напиши, сколько поднимаешь, и открой тренировку снова.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
 export const AI_REVIEW_EMPTY =
-  "Мало записей. Нужно несколько дней еды или закрытых тренировок.";
-export const AI_REVIEW_NO_KEY =
-  "Текст от Gemini появится, когда в env будет ключ.";
+  "Пока мало записей. Нужно несколько дней еды или сделанных тренировок.";
+export const AI_REVIEW_NO_KEY = "Разбор пока недоступен.";
 export const AI_REVIEW_FAILED = "Не получилось написать разбор.";
+export const REVIEW_CTA_HINT = "Коротко по еде и залу за эти дни";
 
 export function readApiError(data: unknown): string | null {
   if (
