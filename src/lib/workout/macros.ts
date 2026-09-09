@@ -4,7 +4,6 @@ import { isIsoDate } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   CurrentMacroState,
-  CycleStatus,
   MacroCycle,
   MacroGain,
   MacroRecap,
@@ -15,11 +14,7 @@ import type {
   TransitionPreview,
   WorkoutPhase,
 } from "@/lib/types";
-import {
-  listExercises,
-  mapExercise,
-  raiseGlobalMax,
-} from "@/lib/workout/exercises";
+import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
 import {
   increaseMax,
   nextPhaseType,
@@ -27,10 +22,12 @@ import {
 } from "@/lib/workout/formulas";
 import { PHASE_ORDER } from "@/lib/workout/labels";
 import {
-  percentChange,
-  toNullableString,
-  toNumber,
-} from "@/lib/workout/numbers";
+  mapExercise,
+  mapMacroCycle,
+  mapPhaseMax,
+  mapWorkoutPhase,
+} from "@/lib/workout/map-rows";
+import { percentChange } from "@/lib/workout/numbers";
 import { getPhaseCircleProgress } from "@/lib/workout/phase-progress";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
@@ -595,46 +592,6 @@ async function exerciseNamesById(
   return names;
 }
 
-export function mapMacroCycle(row: Record<string, unknown>): MacroCycle {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    number: toNumber(row.number),
-    start_date: String(row.start_date).slice(0, 10),
-    end_date: toNullableString(row.end_date)?.slice(0, 10) ?? null,
-    status: toCycleStatus(row.status),
-    note: toNullableString(row.note),
-    created_at: String(row.created_at),
-  };
-}
-
-export function mapWorkoutPhase(row: Record<string, unknown>): WorkoutPhase {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    macro_cycle_id: String(row.macro_cycle_id),
-    phase_type: toPhaseType(row.phase_type),
-    start_date: String(row.start_date).slice(0, 10),
-    end_date: toNullableString(row.end_date)?.slice(0, 10) ?? null,
-    status: toCycleStatus(row.status),
-    sort_order: toNumber(row.sort_order),
-    created_at: String(row.created_at),
-  };
-}
-
-export function mapPhaseMax(row: Record<string, unknown>): PhaseMax {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    phase_id: String(row.phase_id),
-    exercise_id: String(row.exercise_id),
-    max_weight: toNumber(row.max_weight),
-    source: toMaxSource(row.source),
-    set_at: String(row.set_at),
-    created_at: String(row.created_at),
-  };
-}
-
 async function createPhase(
   userId: string,
   input: {
@@ -750,25 +707,4 @@ async function getOwnedPhase(
   }
 
   return mapWorkoutPhase(result.data as Record<string, unknown>);
-}
-
-function toCycleStatus(value: unknown): CycleStatus {
-  return value === "completed" ? "completed" : "current";
-}
-
-function toPhaseType(value: unknown): PhaseType {
-  if (
-    value === "ramp" ||
-    value === "volume" ||
-    value === "peak" ||
-    value === "deload"
-  ) {
-    return value;
-  }
-
-  return "ramp";
-}
-
-function toMaxSource(value: unknown): MaxSource {
-  return value === "auto" ? "auto" : "manual";
 }

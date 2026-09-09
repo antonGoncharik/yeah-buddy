@@ -18,8 +18,12 @@ import {
   plannedSetsFromFormula,
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
-import { listCurrentPhaseMaxes, mapWorkoutPhase } from "@/lib/workout/macros";
-import { mapSessionExercise, mapWorkoutSet } from "@/lib/workout/map-rows";
+import { listCurrentPhaseMaxes } from "@/lib/workout/macros";
+import {
+  mapSessionExercise,
+  mapWorkoutPhase,
+  mapWorkoutSet,
+} from "@/lib/workout/map-rows";
 import { getSession, patchSession } from "@/lib/workout/sessions";
 import {
   clearSkipTemplateIds,

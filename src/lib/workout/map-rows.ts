@@ -16,6 +16,7 @@ import type {
   MaxSource,
   PhaseMax,
   PhaseMaxRow,
+  PhaseType,
   ProgressPoint,
   SessionExercise,
   SessionStatus,
@@ -26,6 +27,7 @@ import type {
   WorkoutPhase,
   WorkoutSession,
   WorkoutSet,
+  WorkoutTemplate,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
 import {
@@ -198,20 +200,38 @@ function toSessionStatus(value: unknown): SessionStatus {
   return "planned";
 }
 
+export function mapMacroCycle(row: Record<string, unknown>): MacroCycle {
+  return {
+    id: String(row.id),
+    user_id: String(row.user_id),
+    number: toNumber(row.number),
+    start_date: String(row.start_date).slice(0, 10),
+    end_date: toNullableString(row.end_date)?.slice(0, 10) ?? null,
+    status: toCycleStatus(row.status),
+    note: toNullableString(row.note),
+    created_at: String(row.created_at),
+  };
+}
+
 export function parseMacroCycle(value: unknown): MacroCycle | null {
   if (!isRecord(value) || typeof value.id !== "string") {
     return null;
   }
 
+  return mapMacroCycle(value);
+}
+
+export function mapWorkoutPhase(row: Record<string, unknown>): WorkoutPhase {
   return {
-    id: value.id,
-    user_id: String(value.user_id ?? ""),
-    number: toNumber(value.number),
-    start_date: String(value.start_date ?? ""),
-    end_date: typeof value.end_date === "string" ? value.end_date : null,
-    status: toCycleStatus(value.status),
-    note: typeof value.note === "string" ? value.note : null,
-    created_at: String(value.created_at ?? ""),
+    id: String(row.id),
+    user_id: String(row.user_id),
+    macro_cycle_id: String(row.macro_cycle_id),
+    phase_type: toPhaseType(row.phase_type),
+    start_date: String(row.start_date).slice(0, 10),
+    end_date: toNullableString(row.end_date)?.slice(0, 10) ?? null,
+    status: toCycleStatus(row.status),
+    sort_order: toNumber(row.sort_order),
+    created_at: String(row.created_at),
   };
 }
 
@@ -224,16 +244,19 @@ export function parseWorkoutPhase(value: unknown): WorkoutPhase | null {
     return null;
   }
 
+  return mapWorkoutPhase(value);
+}
+
+export function mapPhaseMax(row: Record<string, unknown>): PhaseMax {
   return {
-    id: value.id,
-    user_id: String(value.user_id ?? ""),
-    macro_cycle_id: String(value.macro_cycle_id ?? ""),
-    phase_type: value.phase_type,
-    start_date: String(value.start_date ?? ""),
-    end_date: typeof value.end_date === "string" ? value.end_date : null,
-    status: toCycleStatus(value.status),
-    sort_order: toNumber(value.sort_order),
-    created_at: String(value.created_at ?? ""),
+    id: String(row.id),
+    user_id: String(row.user_id),
+    phase_id: String(row.phase_id),
+    exercise_id: String(row.exercise_id),
+    max_weight: toNumber(row.max_weight),
+    source: toMaxSource(row.source),
+    set_at: String(row.set_at),
+    created_at: String(row.created_at),
   };
 }
 
@@ -242,16 +265,30 @@ export function parsePhaseMax(value: unknown): PhaseMax | null {
     return null;
   }
 
+  return mapPhaseMax(value);
+}
+
+export function mapWorkoutTemplate(
+  row: Record<string, unknown>,
+): WorkoutTemplate {
   return {
-    id: value.id,
-    user_id: String(value.user_id ?? ""),
-    phase_id: String(value.phase_id ?? ""),
-    exercise_id: String(value.exercise_id ?? ""),
-    max_weight: toNumber(value.max_weight),
-    source: toMaxSource(value.source),
-    set_at: String(value.set_at ?? ""),
-    created_at: String(value.created_at ?? ""),
+    id: String(row.id),
+    user_id: String(row.user_id),
+    name: String(row.name),
+    kind: toWorkoutKind(row.kind),
+    sort_order: toNumber(row.sort_order),
+    is_active: Boolean(row.is_active),
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
   };
+}
+
+export function parseWorkoutTemplate(value: unknown): WorkoutTemplate | null {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
+  }
+
+  return mapWorkoutTemplate(value);
 }
 
 export function parsePhaseMaxRow(
@@ -399,6 +436,10 @@ function parseProgressPoint(
 
 function toCycleStatus(value: unknown): CycleStatus {
   return value === "completed" ? "completed" : "current";
+}
+
+function toPhaseType(value: unknown): PhaseType {
+  return isPhaseType(value) ? value : "ramp";
 }
 
 function toMaxSource(value: unknown): MaxSource {

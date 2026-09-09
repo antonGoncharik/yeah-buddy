@@ -8,6 +8,7 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
+import { isPhaseType } from "@/lib/workout/default-formulas";
 import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import {
@@ -198,7 +199,7 @@ async function loadPhaseMeta(
   }
 
   for (const row of phasesResult.data ?? []) {
-    const phaseType = toPhaseType(row.phase_type);
+    const phaseType = isPhaseType(row.phase_type) ? row.phase_type : null;
     if (typeof row.id !== "string" || !phaseType) {
       continue;
     }
@@ -212,18 +213,6 @@ async function loadPhaseMeta(
   }
 
   return meta;
-}
-
-function toPhaseType(value: unknown): PhaseType | null {
-  if (
-    value === "ramp" ||
-    value === "volume" ||
-    value === "peak" ||
-    value === "deload"
-  ) {
-    return value;
-  }
-  return null;
 }
 
 async function loadWorkBySession(

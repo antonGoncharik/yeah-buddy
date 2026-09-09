@@ -1,14 +1,8 @@
 import { z } from "zod";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  Exercise,
-  WorkoutKind,
-  WorkoutTemplate,
-  WorkoutTemplateDetail,
-} from "@/lib/types";
-import { mapExercise } from "@/lib/workout/exercises";
-import { toNumber } from "@/lib/workout/numbers";
+import type { Exercise, WorkoutTemplateDetail } from "@/lib/types";
+import { mapExercise, mapWorkoutTemplate } from "@/lib/workout/map-rows";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export class TemplateNotFoundError extends Error {
@@ -259,21 +253,6 @@ export function templateAfter(
   return templates[(index + 1) % templates.length] ?? null;
 }
 
-export function mapWorkoutTemplate(
-  row: Record<string, unknown>,
-): WorkoutTemplate {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    name: String(row.name),
-    kind: toKind(row.kind),
-    sort_order: toNumber(row.sort_order),
-    is_active: Boolean(row.is_active),
-    created_at: String(row.created_at),
-    updated_at: String(row.updated_at),
-  };
-}
-
 async function getLastTemplateId(
   userId: string,
   phaseId: string | null,
@@ -396,8 +375,4 @@ async function listTemplateExerciseMap(
   }
 
   return map;
-}
-
-function toKind(value: unknown): WorkoutKind {
-  return value === "static" ? "static" : "dynamic";
 }

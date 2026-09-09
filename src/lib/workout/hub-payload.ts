@@ -9,6 +9,7 @@ import type {
 import { readPhaseCircle } from "@/lib/workout/hints";
 import {
   mapExercise,
+  mapWorkoutTemplate,
   parseExerciseWithMax,
   parseMacroCycle,
   parseMacroRecap,
@@ -135,14 +136,7 @@ export function parseTemplateDetail(
   }
 
   return {
-    id: value.id,
-    user_id: String(value.user_id ?? ""),
-    name: String(value.name ?? ""),
-    kind: value.kind === "static" ? "static" : "dynamic",
-    sort_order: toNumber(value.sort_order),
-    is_active: Boolean(value.is_active),
-    created_at: String(value.created_at ?? ""),
-    updated_at: String(value.updated_at ?? ""),
+    ...mapWorkoutTemplate(value),
     exercises: mapRecordList(value.exercises, (row) =>
       typeof row.id === "string" ? mapExercise(row) : null,
     ),

@@ -10,7 +10,7 @@ import {
   mapMacroCycle,
   mapPhaseMax,
   mapWorkoutPhase,
-} from "@/lib/workout/macros";
+} from "@/lib/workout/map-rows";
 import { percentChange } from "@/lib/workout/numbers";
 import { listExerciseWorkPoints } from "@/lib/workout/session-log";
 
