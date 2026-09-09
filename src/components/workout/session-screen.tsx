@@ -16,6 +16,7 @@ import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Textarea } from "@/components/ui/textarea";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError, SESSION_PLAN_EMPTY } from "@/lib/messages";
+import { gymQuote } from "@/lib/quotes";
 import type {
   ExerciseWithMax,
   SessionDetail,
@@ -571,6 +572,9 @@ export function SessionScreen() {
             {session.status === "completed" && !correcting ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-5">
                 <h2 className="text-xl font-semibold">Готово</h2>
+                <p className="text-sm text-muted-foreground">
+                  {gymQuote(session.id)}
+                </p>
                 <p className="text-base leading-relaxed text-muted-foreground">
                   Записано. Если вспомнил другой вес — поправь, тренировка
                   останется сделанной.
