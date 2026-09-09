@@ -21,16 +21,16 @@ export function ScreenLoading() {
     <div
       role="status"
       aria-label="Загрузка"
-      className="flex justify-center py-12"
+      className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center"
     >
-      <div className="flex items-center gap-2.5 text-muted-foreground">
+      <div className="flex items-center gap-3.5 text-muted-foreground">
         {BEATS.map((item, index) => (
           <span
             key={item.key}
             className="animate-loader-beat block"
             style={{ animationDelay: `${index * 0.22}s` }}
           >
-            <Doodle className="size-9">{item.mark}</Doodle>
+            <Doodle className="size-16">{item.mark}</Doodle>
           </span>
         ))}
       </div>
