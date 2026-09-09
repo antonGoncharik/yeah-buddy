@@ -4,19 +4,10 @@ import {
   mapExercise,
   mapSessionExercise,
   mapWorkoutSet,
-  parseExerciseWithMax,
   parseWorkoutPhase,
   parseWorkoutSession,
   parseWorkoutTemplate,
 } from "@/lib/workout/map-rows";
-
-export function readExercises(data: unknown) {
-  if (!isRecord(data)) {
-    return [];
-  }
-
-  return mapRecordList(data.exercises, (row) => parseExerciseWithMax(row));
-}
 
 export function readSessionDetail(data: unknown): SessionDetail | null {
   if (!isRecord(data)) {

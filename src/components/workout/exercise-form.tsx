@@ -347,7 +347,7 @@ function warmupHint(preset: FormulaPreset): string {
   if (preset === "cable") {
     return "Разминка как у блока — из схемы. На статике тоже можно поставить удержание на 1ПМ.";
   }
-  return "В план само не попадёт. Если понадобится сегодня — в зале есть «Добавить упражнение».";
+  return "В план само не попадёт — нет схемы разминки.";
 }
 
 function toFormState(exercise?: ExerciseWithMax): FormState {

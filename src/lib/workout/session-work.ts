@@ -10,11 +10,7 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
-import {
-  getExercise,
-  listExercises,
-  mapExercise,
-} from "@/lib/workout/exercises";
+import { listExercises, mapExercise } from "@/lib/workout/exercises";
 import {
   plannedSetsFromFormula,
   resolvePhaseSpec,
@@ -35,10 +31,6 @@ import {
   ensureWorkoutSettings,
 } from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
-
-export const addSessionExerciseSchema = z.object({
-  exercise_id: z.string().uuid(),
-});
 
 export const patchSetSchema = z.object({
   actual_weight: z.number().finite().positive().nullable().optional(),
@@ -74,50 +66,6 @@ export async function getSessionDetail(
   }
 
   await ensureSessionPlan(userId, session);
-  return loadSessionDetail(userId, session);
-}
-
-export async function addExerciseToSession(
-  userId: string,
-  sessionId: string,
-  exerciseId: string,
-): Promise<SessionDetail | null> {
-  const session = await getSession(userId, sessionId);
-  if (!session) {
-    return null;
-  }
-
-  const exercise = await getOwnedExercise(userId, exerciseId);
-  if (!exercise?.is_active) {
-    throw new Error("Упражнение не найдено.");
-  }
-
-  if (
-    exercise.workout_type !== "both" &&
-    exercise.workout_type !== session.workout_type
-  ) {
-    throw new Error("Это упражнение не подходит к типу тренировки.");
-  }
-
-  const detail = await loadSessionDetail(userId, session);
-  if (detail.exercises.some((item) => item.exercise_id === exerciseId)) {
-    return detail;
-  }
-
-  const maxWeight = await resolveExerciseMax(userId, session, exerciseId);
-  const sortOrder =
-    detail.exercises.reduce((max, item) => Math.max(max, item.sort_order), 0) +
-    10;
-  const settings = await ensureWorkoutSettings(userId);
-
-  await insertSessionExercise(
-    userId,
-    session,
-    exercise,
-    maxWeight,
-    sortOrder,
-    settings.formulas,
-  );
   return loadSessionDetail(userId, session);
 }
 
@@ -584,48 +532,6 @@ async function listSetsBySessionExercises(userId: string, ids: string[]) {
   }
 
   return map;
-}
-
-async function getOwnedExercise(userId: string, id: string) {
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("exercises")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  if (!result.data) {
-    return null;
-  }
-
-  return mapExercise(result.data as Record<string, unknown>);
-}
-
-async function resolveExerciseMax(
-  userId: string,
-  session: WorkoutSession,
-  exerciseId: string,
-): Promise<number> {
-  if (session.phase_id) {
-    const maxes = await listCurrentPhaseMaxes(userId, session.phase_id);
-    const phaseMax = maxes.get(exerciseId)?.max_weight;
-    if (phaseMax != null && phaseMax > 0) {
-      return phaseMax;
-    }
-  }
-
-  const exercise = await getExercise(userId, exerciseId);
-  const globalMax = exercise?.current_max?.max_weight;
-  if (globalMax != null && globalMax > 0) {
-    return globalMax;
-  }
-
-  throw new Error("Для упражнения нет максимума.");
 }
 
 async function getPhase(

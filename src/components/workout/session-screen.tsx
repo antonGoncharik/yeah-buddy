@@ -2,7 +2,6 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -19,7 +18,6 @@ import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError, SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { gymQuote } from "@/lib/quotes";
 import type {
-  ExerciseWithMax,
   SessionDetail,
   SessionExerciseDetail,
   WorkoutSet,
@@ -35,10 +33,7 @@ import {
   workAbovePlan,
   workSetDiffers,
 } from "@/lib/workout/session-format";
-import {
-  readExercises,
-  readSessionDetail,
-} from "@/lib/workout/session-payload";
+import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function SessionScreen() {
   const params = useParams<{ id: string }>();
@@ -55,8 +50,6 @@ export function SessionScreen() {
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [catalog, setCatalog] = useState<ExerciseWithMax[] | null>(null);
   const [correcting, setCorrecting] = useState(false);
 
   const sessionUrl = `/api/sessions/${params.id}`;
@@ -232,42 +225,6 @@ export function SessionScreen() {
     }
   }
 
-  async function addExercise(exerciseId: string) {
-    if (!detail) {
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/sessions/${detail.session.id}/exercises`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exercise_id: exerciseId }),
-        },
-      );
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
-      const next = readSessionDetail(data);
-      if (next) {
-        writeJson(sessionUrl, data);
-        applyDetail(next);
-        setPickerOpen(false);
-      }
-    } catch {
-      setError(LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function removeExercise(sessionExerciseId: string) {
     if (!detail) {
       return;
@@ -306,25 +263,6 @@ export function SessionScreen() {
       setError(LOAD_FAILED);
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function openPicker() {
-    setPickerOpen((current) => !current);
-    if (catalog) {
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/exercises?filter=active");
-      if (!response.ok) {
-        setError(LOAD_FAILED);
-        return;
-      }
-      const data: unknown = await response.json();
-      setCatalog(readExercises(data));
-    } catch {
-      setError(LOAD_FAILED);
     }
   }
 
@@ -382,30 +320,6 @@ export function SessionScreen() {
   const canEditSets =
     session?.status === "planned" ||
     (session?.status === "completed" && correcting);
-  const addable = useMemo(() => {
-    if (!detail || !catalog) {
-      return [];
-    }
-    const taken = new Set(detail.exercises.map((item) => item.exercise_id));
-    return catalog.filter((exercise) => {
-      if (taken.has(exercise.id) || !exercise.is_active) {
-        return false;
-      }
-      if (exercise.formula_preset === "none") {
-        return false;
-      }
-      if (
-        (exercise.current_max?.max_weight ?? 0) <= 0 &&
-        detail.session.phase_id == null
-      ) {
-        return false;
-      }
-      return (
-        exercise.workout_type === "both" ||
-        exercise.workout_type === detail.session.workout_type
-      );
-    });
-  }, [catalog, detail]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -501,51 +415,6 @@ export function SessionScreen() {
                 ))}
               </section>
             )}
-
-            {session.status === "planned" ? (
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-11 justify-start gap-2 px-1 text-base text-muted-foreground"
-                  disabled={busy}
-                  onClick={() => void openPicker()}
-                >
-                  {pickerOpen ? null : <Plus className="size-4" aria-hidden />}
-                  {pickerOpen ? "Скрыть список" : "Добавить упражнение"}
-                </Button>
-                {pickerOpen ? (
-                  <ul className="card-surface flex flex-col">
-                    {addable.length === 0 ? (
-                      <li className="px-5 py-4 text-sm text-muted-foreground">
-                        Нечего добавить.
-                      </li>
-                    ) : (
-                      addable.map((exercise) => (
-                        <li key={exercise.id}>
-                          <button
-                            type="button"
-                            className="flex w-full items-baseline justify-between gap-3 px-5 py-3 text-left disabled:opacity-50"
-                            disabled={busy}
-                            onClick={() => void addExercise(exercise.id)}
-                          >
-                            <span className="text-base">
-                              {exercise.short_name || exercise.name}
-                            </span>
-                            {exercise.current_max ? (
-                              <span className="text-sm text-muted-foreground">
-                                {formatWeight(exercise.current_max.max_weight)}{" "}
-                                кг
-                              </span>
-                            ) : null}
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                ) : null}
-              </div>
-            ) : null}
 
             {session.status === "planned" ||
             (session.status === "completed" && correcting) ||
