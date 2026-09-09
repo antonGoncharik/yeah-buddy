@@ -16,7 +16,7 @@ export function mapDayWithMeals(row: Record<string, unknown>): DayWithMeals {
   return {
     id: String(row.id),
     user_id: String(row.user_id),
-    date: String(row.date),
+    date: isoDate(row.date),
     is_training_day: Boolean(row.is_training_day),
     target_protein: toNumber(row.target_protein),
     target_fat: toNumber(row.target_fat),
@@ -36,28 +36,20 @@ export function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
   let kcal = 0;
   if (Array.isArray(row.meals)) {
     for (const meal of row.meals) {
-      if (!meal || typeof meal !== "object" || !("meal_items" in meal)) {
+      if (!isRecord(meal)) {
         continue;
       }
-      const items = (meal as { meal_items: unknown }).meal_items;
-      if (!Array.isArray(items)) {
-        continue;
-      }
-      for (const item of items) {
-        if (!item || typeof item !== "object") {
-          continue;
-        }
-        const macros = item as Record<string, unknown>;
-        protein += toNumber(macros.protein);
-        fat += toNumber(macros.fat);
-        carbs += toNumber(macros.carbs);
-        kcal += toNumber(macros.kcal);
+      for (const item of mealItemRows(meal)) {
+        protein += toNumber(item.protein);
+        fat += toNumber(item.fat);
+        carbs += toNumber(item.carbs);
+        kcal += toNumber(item.kcal);
       }
     }
   }
 
   return {
-    date: String(row.date).slice(0, 10),
+    date: isoDate(row.date),
     is_training_day: Boolean(row.is_training_day),
     target_protein: toNumber(row.target_protein),
     target_fat: toNumber(row.target_fat),
@@ -89,11 +81,9 @@ export function mapMealItem(row: Record<string, unknown>): MealItem {
 }
 
 function mapMeal(row: Record<string, unknown>): Meal & { items: MealItem[] } {
-  const items = Array.isArray(row.meal_items)
-    ? row.meal_items
-        .map((item) => mapMealItem(item as Record<string, unknown>))
-        .sort((left, right) => left.created_at.localeCompare(right.created_at))
-    : [];
+  const items = mealItemRows(row)
+    .map((item) => mapMealItem(item))
+    .sort((left, right) => left.created_at.localeCompare(right.created_at));
 
   return {
     id: String(row.id),
@@ -104,6 +94,20 @@ function mapMeal(row: Record<string, unknown>): Meal & { items: MealItem[] } {
     created_at: String(row.created_at),
     items,
   };
+}
+
+function mealItemRows(row: Record<string, unknown>): Record<string, unknown>[] {
+  const raw = Array.isArray(row.meal_items)
+    ? row.meal_items
+    : Array.isArray(row.items)
+      ? row.items
+      : [];
+
+  return raw.filter((item): item is Record<string, unknown> => isRecord(item));
+}
+
+function isoDate(value: unknown): string {
+  return String(value).slice(0, 10);
 }
 
 function mapPer100(value: unknown): Macros {
