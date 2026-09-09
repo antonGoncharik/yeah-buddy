@@ -97,7 +97,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "base",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -151,7 +151,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "base",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -160,7 +160,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "base",
     workout_type: "dynamic",
     slot: "c",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -178,7 +178,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "base",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -187,7 +187,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "base",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -196,7 +196,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "none",
   },
   {
@@ -214,7 +214,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
     workout_type: "dynamic",
     slot: "b",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -241,7 +241,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
     workout_type: "dynamic",
     slot: "c",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
   {
@@ -250,7 +250,7 @@ const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
     workout_type: "dynamic",
     slot: "c",
-    weight_step: 1,
+    weight_step: 2.5,
     formula_preset: "barbell",
   },
 ];
