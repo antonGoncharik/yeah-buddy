@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
-import { StickyActions } from "@/components/layout/sticky-actions";
 import { useTheme } from "@/components/layout/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,45 +128,7 @@ export function SettingsScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Настройки" />
 
-      <div className="flex flex-col gap-4 px-4 pb-24">
-        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow
-            href="/foods"
-            title="Продукты"
-            hint="Название и белки, жиры, углеводы на 100 г"
-          />
-          <NavRow
-            href="/settings/meals"
-            title="Шаблоны еды"
-            hint="Что подставится в новый день"
-          />
-          <NavRow
-            href="/today/history?from=settings"
-            title="История еды"
-            hint="По дням"
-          />
-          <NavRow
-            href="/settings/review"
-            title="Разбор"
-            hint="Еда и зал за 14 или 30 дней"
-          />
-          <NavRow
-            href="/settings/formulas"
-            title="Схема подходов"
-            hint="Разминка и рабочие веса"
-          />
-          <NavRow
-            href="/workouts/macro"
-            title="Макроцикл"
-            hint="Можно не включать. Чередует нагрузку по фазам"
-          />
-          <NavRow
-            href="/onboarding?again=1"
-            title="Ещё раз с начала"
-            hint="Белок и веса. Очередь не меняется"
-          />
-        </section>
-
+      <div className="flex flex-col gap-4 px-4 pb-4">
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
           <h2 className="text-xl font-semibold">Тема</h2>
           <Segmented
@@ -278,13 +239,49 @@ export function SettingsScreen() {
               </p>
             ) : null}
 
-            <StickyActions>
-              <Button type="submit" className="h-14 text-lg" disabled={saving}>
-                {saving ? "Сохранение…" : "Сохранить"}
-              </Button>
-            </StickyActions>
+            <Button type="submit" className="h-14 text-lg" disabled={saving}>
+              {saving ? "Сохранение…" : "Сохранить"}
+            </Button>
           </form>
         ) : null}
+
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/foods"
+            title="Продукты"
+            hint="Название и белки, жиры, углеводы на 100 г"
+          />
+          <NavRow
+            href="/settings/meals"
+            title="Шаблоны еды"
+            hint="Что подставится в новый день"
+          />
+          <NavRow
+            href="/today/history?from=settings"
+            title="История еды"
+            hint="По дням"
+          />
+          <NavRow
+            href="/settings/review"
+            title="Разбор"
+            hint="Еда и зал за 14 или 30 дней"
+          />
+          <NavRow
+            href="/settings/formulas"
+            title="Схема подходов"
+            hint="Разминка и рабочие веса"
+          />
+          <NavRow
+            href="/workouts/macro"
+            title="Макроцикл"
+            hint="Можно не включать. Чередует нагрузку по фазам"
+          />
+          <NavRow
+            href="/onboarding?again=1"
+            title="Ещё раз с начала"
+            hint="Белок и веса. Очередь не меняется"
+          />
+        </section>
       </div>
     </div>
   );
