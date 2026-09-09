@@ -461,7 +461,7 @@ export function SessionScreen() {
                     key={item.id}
                     item={item}
                     openSetIds={openSetIds}
-                    warmupOpen={warmupOpen[item.id] === true}
+                    warmupOpen={warmupOpen[item.id] !== false}
                     workOpen={workOpen[item.id] !== false}
                     disabled={busy || !canEditSets}
                     showActual={session.status === "completed"}
@@ -477,7 +477,7 @@ export function SessionScreen() {
                     onToggleWarmup={() =>
                       setWarmupOpen((current) => ({
                         ...current,
-                        [item.id]: current[item.id] !== true,
+                        [item.id]: current[item.id] === false,
                       }))
                     }
                     onToggleWork={() =>
