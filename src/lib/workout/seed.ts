@@ -127,6 +127,42 @@ const STARTER_EXERCISES: StarterExercise[] = [
     weight_step: 1,
     formula_preset: "cable",
   },
+  {
+    name: "Жим ногами",
+    short_name: "жим ногами",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Отжимания от пола",
+    short_name: "отжимания",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Жим гантелей стоя",
+    short_name: "жим гантелей стоя",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 1,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Тяга гантели в наклоне",
+    short_name: "тяга гантели",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "barbell",
+  },
 ];
 
 const STARTER_TEMPLATES: Array<{
