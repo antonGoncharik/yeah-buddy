@@ -15,7 +15,11 @@ export function parseOnboardingState(data: unknown): OnboardingState | null {
   }
 
   const circle =
-    row.circle === "empty" || row.circle === "starter" ? row.circle : null;
+    row.circle === "empty" ||
+    row.circle === "starter" ||
+    row.circle === "upper_lower"
+      ? row.circle
+      : null;
   if (!circle) {
     return null;
   }

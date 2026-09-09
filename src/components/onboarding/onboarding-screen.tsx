@@ -91,7 +91,7 @@ export function OnboardingScreen() {
       next.push("circle");
     }
     if (
-      circle === "starter" &&
+      (circle === "starter" || circle === "upper_lower") &&
       state &&
       !state.maxesLocked &&
       state.exercises.length > 0
@@ -408,6 +408,21 @@ function CircleStep({
         <p className="text-lg font-medium">Ноги, жим, тяга</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Три тренировки по кругу.
+        </p>
+      </button>
+      <button
+        type="button"
+        aria-pressed={value === "upper_lower"}
+        className={cn(
+          "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
+          value === "upper_lower" && "ring-2 ring-primary",
+        )}
+        style={{ animationDelay: "100ms" }}
+        onClick={() => onChange("upper_lower")}
+      >
+        <p className="text-lg font-medium">Верх / низ</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Два дня: жимы с тягами, потом ноги.
         </p>
       </button>
       <button

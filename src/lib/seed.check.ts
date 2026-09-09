@@ -3,6 +3,7 @@ import {
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
 } from "@/lib/starter-foods";
+import { unknownProgramExercises } from "@/lib/workout/program-presets";
 import {
   STARTER_EXERCISES,
   STARTER_WORKOUT_TEMPLATES,
@@ -61,5 +62,11 @@ const workoutSlots = new Set(STARTER_WORKOUT_TEMPLATES.map((row) => row.slot));
 assert(workoutSlots.has("a"), "workout templates missing slot a");
 assert(workoutSlots.has("b"), "workout templates missing slot b");
 assert(workoutSlots.has("c"), "workout templates missing slot c");
+
+const unknownProgram = unknownProgramExercises();
+assert(
+  unknownProgram.length === 0,
+  `program preset unknown lifts: ${unknownProgram.join(", ")}`,
+);
 
 console.log("starter catalog ok");

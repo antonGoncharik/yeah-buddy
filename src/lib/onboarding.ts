@@ -15,11 +15,15 @@ import {
 } from "@/lib/workout/exercises";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { ensureStarterExercises } from "@/lib/workout/seed";
-import { listTemplates, saveRotation } from "@/lib/workout/templates";
+import {
+  applyProgramPreset,
+  listTemplates,
+  saveRotation,
+} from "@/lib/workout/templates";
 
 export const onboardingCompleteSchema = z.object({
   protein: z.number().finite().positive().max(400).optional(),
-  circle: z.enum(["starter", "empty", "keep"]),
+  circle: z.enum(["starter", "upper_lower", "empty", "keep"]),
   maxes: z
     .array(
       z.object({
@@ -31,7 +35,7 @@ export const onboardingCompleteSchema = z.object({
 });
 
 export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;
-export type OnboardingCircle = "starter" | "empty";
+export type OnboardingCircle = "starter" | "upper_lower" | "empty";
 
 export type OnboardingState = {
   completed: boolean;
@@ -56,11 +60,13 @@ export async function getOnboardingState(
     getCurrentMacroState(userId),
   ]);
 
-  const circle: OnboardingCircle = templates.some(
-    (template) => template.is_active,
-  )
-    ? "starter"
-    : "empty";
+  const active = templates.filter((template) => template.is_active);
+  const circle: OnboardingCircle =
+    active.length === 0
+      ? "empty"
+      : active.some((template) => template.name === "Верх")
+        ? "upper_lower"
+        : "starter";
 
   return {
     completed: isOnboardingCompleted(settings),
@@ -92,14 +98,18 @@ export async function completeOnboarding(
     });
   }
 
-  if (input.circle !== "keep") {
+  if (input.circle === "starter") {
+    await applyProgramPreset(userId, "ppl");
+  } else if (input.circle === "upper_lower") {
+    await applyProgramPreset(userId, "upper_lower");
+  } else if (input.circle === "empty") {
     const templates = await listTemplates(userId);
     if (templates.length > 0) {
       await saveRotation(userId, {
         rotation: templates.map((template) => ({
           id: template.id,
           sort_order: template.sort_order,
-          is_active: input.circle === "starter",
+          is_active: false,
         })),
       });
     }

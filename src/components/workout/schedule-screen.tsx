@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { AddRowButton } from "@/components/ui/add-row-button";
@@ -15,8 +16,10 @@ import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
+import { PROGRAM_PRESETS } from "@/lib/workout/program-presets";
 
 export function ScheduleScreen() {
+  const confirm = useConfirm();
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +95,41 @@ export function ScheduleScreen() {
     const next = [...nextActive, ...nextInactive];
     setTemplates(next);
     void save(next);
+  }
+
+  async function applyPreset(presetId: (typeof PROGRAM_PRESETS)[number]["id"]) {
+    const preset = PROGRAM_PRESETS.find((item) => item.id === presetId);
+    if (!preset) {
+      return;
+    }
+    const ok = await confirm({
+      message: `Поставить «${preset.name}»? Активная очередь заменится, свои шаблоны останутся выключенными.`,
+      confirmLabel: "Поставить",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/templates/presets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preset: presetId }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+      setTemplates(readTemplates(data));
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setSaving(false);
+    }
   }
 
   function setInCircle(id: string, inCircle: boolean) {
@@ -195,6 +233,30 @@ export function ScheduleScreen() {
                 </div>
               ))}
             </div>
+          </section>
+        ) : null}
+
+        {!loading ? (
+          <section className="animate-rise flex flex-col gap-2">
+            <h2 className="px-1 text-lg font-semibold">Готовые программы</h2>
+            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+              Поставит очередь целиком. Свои шаблоны не удалятся — просто
+              выключатся.
+            </p>
+            {PROGRAM_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                disabled={saving}
+                className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+                onClick={() => void applyPreset(preset.id)}
+              >
+                <p className="text-base font-medium">{preset.name}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  {preset.hint}
+                </p>
+              </button>
+            ))}
           </section>
         ) : null}
 
