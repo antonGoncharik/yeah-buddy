@@ -47,7 +47,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `NEXT_PUBLIC_APP_URL` | no | app URL; fallback for the Mini App button |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0011_drop_session_kind.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0012_skip_template_ids.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
 Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 

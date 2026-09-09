@@ -279,7 +279,7 @@ none      не в план  упражнение не попадает в авт
 
 Следующий шаблон: после последней не пропущенной сессии текущей фазы (без фазы — после последней сессии с `template_id`). GET хаба сессию не создаёт.
 
-Пропуск в круге: «Не это — взять следующую» пишет id в `skip_template_ids` (лежит внутри jsonb `workout_settings.formulas`). Дату не занимает. «Вернуть в круг» снимает последний пропуск. После выполненной сессии список пропусков очищается.
+Пропуск в круге: «Не это — взять следующую» пишет id в `workout_settings.skip_template_ids`. Дату не занимает. «Вернуть в круг» снимает последний пропуск. После выполненной сессии список пропусков очищается.
 
 Пользователь может начать не следующий шаблон — с подтверждением.
 
@@ -346,7 +346,7 @@ none      не в план  упражнение не попадает в авт
 
 FLOOR вниз, не к ближайшему. Шаг на упражнении.
 
-План сессии считается от схемы в `workout_settings.formulas`. Её правит экран `/settings/formulas`. В jsonb также лежат служебные `_skip_template_ids`. Для перехода рывка — `max_increase_percent` (дефолт 5). Шаг веса — на упражнении, не глобальный.
+План сессии считается от схемы в `workout_settings.formulas`. Её правит экран `/settings/formulas`. Для перехода рывка — `max_increase_percent` (дефолт 5). Шаг веса — на упражнении, не глобальный.
 
 Дефолт как в дневнике (`default-formulas.ts`):
 
@@ -444,6 +444,7 @@ supabase/migrations/0008_neutral_defaults.sql  дефолтные цели БЖ�
 supabase/migrations/0009_onboarding.sql        onboarding_completed_at; дневники с историей помечаются пройденными
 supabase/migrations/0010_exercise_categories.sql  категория только base|isolation; armwrestling → base
 supabase/migrations/0011_drop_session_kind.sql kind убран; одна сессия на дату
+supabase/migrations/0012_skip_template_ids.sql skip_template_ids колонка, не jsonb формул
 ```
 
 Актуальная схема — сумма этих файлов, не один `0001`.
@@ -482,7 +483,7 @@ supabase/migrations/0011_drop_session_kind.sql kind убран; одна сес�
 
 `session_exercises` / `workout_sets` — план и факт отдельно (`planned_*` / `actual_*`).
 
-`workout_settings` — `max_increase_percent`, jsonb `formulas` (дефолтная схема + `_skip_template_ids`).
+`workout_settings` — `max_increase_percent`, jsonb `formulas`, `skip_template_ids`.
 
 `exercises.slot` (`a`/`b`/`c`) — только группировка сида стартовых шаблонов. Форма упражнения слот не показывает.
 

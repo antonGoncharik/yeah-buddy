@@ -78,6 +78,7 @@ export async function ensureWorkoutSettings(
       user_id: userId,
       max_increase_percent: 5,
       formulas: cloneFormulas(DEFAULT_WORKOUT_FORMULAS),
+      skip_template_ids: [],
     })
     .select("*")
     .single();
@@ -114,10 +115,9 @@ export async function saveWorkoutSettings(
     .update({
       max_increase_percent:
         patch.max_increase_percent ?? current.max_increase_percent,
-      formulas: withSkipTemplateIds(
-        patch.formulas ? fillFormulas(patch.formulas) : current.formulas,
-        current.skip_template_ids,
-      ),
+      formulas: patch.formulas
+        ? fillFormulas(patch.formulas)
+        : current.formulas,
     })
     .eq("user_id", userId)
     .select("*")
@@ -137,7 +137,7 @@ export function mapWorkoutSettings(
     user_id: String(row.user_id),
     max_increase_percent: toNumber(row.max_increase_percent),
     formulas: parseFormulas(row.formulas),
-    skip_template_ids: parseSkipTemplateIds(row.formulas),
+    skip_template_ids: parseSkipTemplateIds(row),
     updated_at: String(row.updated_at),
   };
 }
@@ -145,33 +145,35 @@ export function mapWorkoutSettings(
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function parseSkipTemplateIds(value: unknown): string[] {
+function parseSkipTemplateIds(row: Record<string, unknown>): string[] {
+  if ("skip_template_ids" in row) {
+    return parseUuidList(row.skip_template_ids);
+  }
+
+  return parseSkipTemplateIdsFromFormulas(row.formulas);
+}
+
+function parseSkipTemplateIdsFromFormulas(value: unknown): string[] {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return [];
   }
 
-  const raw = (value as { _skip_template_ids?: unknown })._skip_template_ids;
-  if (!Array.isArray(raw)) {
+  const raw = Reflect.get(value, "_skip_template_ids");
+  return parseUuidList(raw);
+}
+
+function parseUuidList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
     return [];
   }
 
   return [
     ...new Set(
-      raw.filter(
+      value.filter(
         (id): id is string => typeof id === "string" && UUID_PATTERN.test(id),
       ),
     ),
   ];
-}
-
-function withSkipTemplateIds(
-  formulas: WorkoutFormulas,
-  skipTemplateIds: string[],
-): WorkoutFormulas & { _skip_template_ids: string[] } {
-  return {
-    ...formulas,
-    _skip_template_ids: skipTemplateIds,
-  };
 }
 
 export async function skipTemplateInRotation(
@@ -211,7 +213,7 @@ async function saveSkipTemplateIds(
   const saved = await supabase
     .from("workout_settings")
     .update({
-      formulas: withSkipTemplateIds(current.formulas, skipTemplateIds),
+      skip_template_ids: skipTemplateIds,
     })
     .eq("user_id", userId)
     .select("*")
@@ -238,13 +240,14 @@ function stripLegacyCableShort(value: unknown): unknown {
     return value;
   }
 
-  const row = value as Record<string, unknown>;
+  const row: Record<string, unknown> = { ...value };
+  delete row._skip_template_ids;
   const warmups = row.warmups;
   if (!warmups || typeof warmups !== "object" || Array.isArray(warmups)) {
-    return value;
+    return row;
   }
 
-  const nextWarmups = { ...(warmups as Record<string, unknown>) };
+  const nextWarmups: Record<string, unknown> = { ...warmups };
   delete nextWarmups.cable_short;
   return { ...row, warmups: nextWarmups };
 }
