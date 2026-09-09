@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/auth/require-session";
-import { foodInputSchema, mapFood } from "@/lib/foods";
+import { deleteFood, getFood, updateFood } from "@/lib/food/store";
+import { foodInputSchema } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+const FOOD_NOT_FOUND = "Продукт не найден.";
 
 export async function GET(
   _request: Request,
@@ -21,12 +23,9 @@ export async function GET(
   const { id } = await context.params;
 
   try {
-    const food = await getOwnedFood(auth.session.userId, id);
+    const food = await getFood(auth.session.userId, id);
     if (!food) {
-      return NextResponse.json(
-        { error: "Продукт не найден." },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json({ food });
@@ -51,44 +50,21 @@ export async function PATCH(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = foodInputSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
-    const supabase = createSupabaseServerClient();
-    const updated = await supabase
-      .from("foods")
-      .update(parsed.data)
-      .eq("id", id)
-      .eq("user_id", auth.session.userId)
-      .select("*")
-      .maybeSingle();
-
-    if (updated.error) {
-      throw updated.error;
+    const food = await updateFood(auth.session.userId, id, parsed.data);
+    if (!food) {
+      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
     }
 
-    if (!updated.data) {
-      return NextResponse.json(
-        { error: "Продукт не найден." },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({
-      food: mapFood(updated.data as Record<string, unknown>),
-    });
+    return NextResponse.json({ food });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
@@ -107,24 +83,9 @@ export async function DELETE(
   const { id } = await context.params;
 
   try {
-    const supabase = createSupabaseServerClient();
-    const deleted = await supabase
-      .from("foods")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", auth.session.userId)
-      .select("id")
-      .maybeSingle();
-
-    if (deleted.error) {
-      throw deleted.error;
-    }
-
-    if (!deleted.data) {
-      return NextResponse.json(
-        { error: "Продукт не найден." },
-        { status: 404 },
-      );
+    const deleted = await deleteFood(auth.session.userId, id);
+    if (!deleted) {
+      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json({ ok: true });
@@ -132,24 +93,4 @@ export async function DELETE(
     console.error(error);
     return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
   }
-}
-
-async function getOwnedFood(userId: string, id: string) {
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("foods")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  if (!result.data) {
-    return null;
-  }
-
-  return mapFood(result.data as Record<string, unknown>);
 }

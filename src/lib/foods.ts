@@ -60,6 +60,20 @@ export const foodInputSchema = z
 
 export type FoodInput = z.infer<typeof foodInputSchema>;
 
+export const foodFavoriteSchema = z.object({
+  is_favorite: z.boolean(),
+});
+
+export type FoodListFilter = "all" | "favorites" | "recent";
+
+export function parseFoodListFilter(value: string | null): FoodListFilter {
+  if (value === "favorites" || value === "recent") {
+    return value;
+  }
+
+  return "all";
+}
+
 export function mapFood(row: Record<string, unknown>): Food {
   return {
     id: String(row.id),

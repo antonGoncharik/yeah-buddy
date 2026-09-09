@@ -12,7 +12,7 @@ import {
   mapDayWithMeals,
   mapMealItem,
 } from "@/lib/day/map";
-import { mapFood } from "@/lib/foods";
+import { getFood } from "@/lib/food/store";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import {
   calcKcalFromMacros,
@@ -574,22 +574,11 @@ export async function addMealItem(
     throw new Error("Meal not found");
   }
 
-  const foodRow = await supabase
-    .from("foods")
-    .select("*")
-    .eq("id", foodId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (foodRow.error) {
-    throw foodRow.error;
-  }
-
-  if (!foodRow.data) {
+  const food = await getFood(userId, foodId);
+  if (!food) {
     throw new Error("Food not found");
   }
 
-  const food = mapFood(foodRow.data as Record<string, unknown>);
   const inserted = await supabase
     .from("meal_items")
     .insert(
