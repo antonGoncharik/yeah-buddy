@@ -30,6 +30,7 @@ export function OnboardingScreen() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("food");
   const [protein, setProtein] = useState("120");
+  const [skipFood, setSkipFood] = useState(false);
   const [circle, setCircle] = useState<OnboardingCircle>("starter");
   const [maxInputs, setMaxInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -122,6 +123,7 @@ export function OnboardingScreen() {
         setError("Нужно число в граммах.");
         return;
       }
+      setSkipFood(false);
       setError(null);
     }
 
@@ -134,11 +136,25 @@ export function OnboardingScreen() {
     void finish();
   }
 
-  async function finish() {
-    if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
-      setError("Нужно число в граммах.");
-      setStep("food");
+  function skipFoodStep() {
+    setError(null);
+    setSkipFood(true);
+    const following = steps[stepIndex + 1];
+    if (following) {
+      setStep(following);
       return;
+    }
+    void finish({ omitProtein: true });
+  }
+
+  async function finish(options?: { omitProtein?: boolean }) {
+    const omitProtein = Boolean(options?.omitProtein || skipFood);
+    if (!omitProtein) {
+      if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
+        setError("Нужно число в граммах.");
+        setStep("food");
+        return;
+      }
     }
 
     setSaving(true);
@@ -156,7 +172,7 @@ export function OnboardingScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          protein: proteinValue,
+          ...(omitProtein ? {} : { protein: proteinValue }),
           circle: replay ? "keep" : circle,
           maxes: state?.maxesLocked ? [] : maxes,
         }),
@@ -202,7 +218,7 @@ export function OnboardingScreen() {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-36">
+    <div className="flex flex-col gap-4 pb-44">
       {stepIndex > 0 ? <TelegramBackButton onBack={goBack} /> : null}
       <header className="flex items-center gap-2 px-4 py-4">
         {stepIndex > 0 ? (
@@ -233,6 +249,7 @@ export function OnboardingScreen() {
             preview={preview}
             onProteinChange={(value) => {
               setError(null);
+              setSkipFood(false);
               setProtein(value);
             }}
           />
@@ -260,6 +277,17 @@ export function OnboardingScreen() {
       </div>
 
       <StickyActions withNav={false}>
+        {step === "food" ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-12 w-full text-base"
+            disabled={saving}
+            onClick={() => skipFoodStep()}
+          >
+            Пока без еды
+          </Button>
+        ) : null}
         <Button
           className="h-14 w-full text-lg"
           disabled={saving}
@@ -305,7 +333,8 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько белка в день. Жиры и углеводы потом, в настройках.
+        Сколько белка в день. Не ведёшь еду — пропусти. Жиры и углеводы потом,
+        в настройках.
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -392,7 +421,7 @@ function CircleStep({
       >
         <p className="text-lg font-medium">Соберу сам</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Очередь выключу. Упражнения останутся.
+          Очередь выключу. Если зал не ведёшь — так и сделай.
         </p>
       </button>
     </>
