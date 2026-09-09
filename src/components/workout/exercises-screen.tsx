@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EXERCISES_EMPTY, LOAD_FAILED, readApiError } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type { ExerciseWithMax } from "@/lib/types";
@@ -21,6 +22,7 @@ export function ExercisesScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,13 +48,25 @@ export function ExercisesScreen() {
     void load();
   }, [load]);
 
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (needle === "") {
+      return exercises;
+    }
+    return exercises.filter((exercise) => {
+      const name = exercise.name.toLowerCase();
+      const short = (exercise.short_name ?? "").toLowerCase();
+      return name.includes(needle) || short.includes(needle);
+    });
+  }, [exercises, query]);
+
   const active = useMemo(
-    () => exercises.filter((exercise) => exercise.is_active),
-    [exercises],
+    () => filtered.filter((exercise) => exercise.is_active),
+    [filtered],
   );
   const idle = useMemo(
-    () => exercises.filter((exercise) => !exercise.is_active),
-    [exercises],
+    () => filtered.filter((exercise) => !exercise.is_active),
+    [filtered],
   );
 
   async function toggleActive(exercise: ExerciseWithMax) {
@@ -116,27 +130,43 @@ export function ExercisesScreen() {
 
         {!loading && exercises.length > 0 ? (
           <div className="animate-rise flex flex-col gap-8">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Поиск упражнения"
+              className="h-14 rounded-2xl text-base"
+              inputMode="search"
+              enterKeyHint="search"
+            />
             {error ? (
               <p className="text-center text-base text-destructive">{error}</p>
             ) : null}
-            <ExerciseGroup
-              title="Делаю"
-              hint="Только эти попадают в макроцикл и очередь."
-              empty="Пока ничего не выбрано — включи из списка ниже."
-              exercises={active}
-              busyId={busyId}
-              actionLabel="Не делаю"
-              onToggle={(exercise) => void toggleActive(exercise)}
-            />
-            <ExerciseGroup
-              title="Не делаю"
-              hint="Справочник остаётся, в план сами не попадают."
-              empty="Все упражнения в работе."
-              exercises={idle}
-              busyId={busyId}
-              actionLabel="Делаю"
-              onToggle={(exercise) => void toggleActive(exercise)}
-            />
+            {filtered.length === 0 ? (
+              <p className="px-1 text-base text-muted-foreground">
+                Ничего не нашлось.
+              </p>
+            ) : (
+              <>
+                <ExerciseGroup
+                  title="Делаю"
+                  hint="Только эти попадают в макроцикл и очередь."
+                  empty="Пока ничего не выбрано — включи из списка ниже."
+                  exercises={active}
+                  busyId={busyId}
+                  actionLabel="Не делаю"
+                  onToggle={(exercise) => void toggleActive(exercise)}
+                />
+                <ExerciseGroup
+                  title="Не делаю"
+                  hint="Справочник остаётся, в план сами не попадают."
+                  empty="Все упражнения в работе."
+                  exercises={idle}
+                  busyId={busyId}
+                  actionLabel="Делаю"
+                  onToggle={(exercise) => void toggleActive(exercise)}
+                />
+              </>
+            )}
           </div>
         ) : null}
       </div>
