@@ -21,6 +21,7 @@ import {
   CookieMark,
   Doodle,
   DumbbellMark,
+  DUMBBELL_VIEWBOX,
 } from "@/components/layout/doodles";
 import { useDayMood } from "@/components/layout/day-mood";
 import { ScreenLoading } from "@/components/layout/screen-status";
@@ -526,7 +527,7 @@ export function TodayScreen({
                       id: "training",
                       label: DAY_TYPE_LABELS.training,
                       icon: (
-                        <Doodle className="size-6" viewBox="-19 -8.2 38 16.4">
+                        <Doodle className="size-6" viewBox={DUMBBELL_VIEWBOX}>
                           <DumbbellMark />
                         </Doodle>
                       ),

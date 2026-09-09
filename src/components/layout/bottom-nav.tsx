@@ -1,16 +1,34 @@
 "use client";
 
-import { CalendarDays, Dumbbell, Settings } from "lucide-react";
+import { CalendarDays, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import type { ComponentType } from "react";
 
+import {
+  Doodle,
+  DumbbellMark,
+  DUMBBELL_VIEWBOX,
+} from "@/components/layout/doodles";
 import { cn } from "@/lib/utils";
 
-const ITEMS = [
+function DumbbellNavIcon({ className }: { className?: string }) {
+  return (
+    <Doodle className={className} viewBox={DUMBBELL_VIEWBOX}>
+      <DumbbellMark />
+    </Doodle>
+  );
+}
+
+const ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+}> = [
   { href: "/today", label: "Сегодня", icon: CalendarDays },
-  { href: "/workouts", label: "Тренировки", icon: Dumbbell },
+  { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon },
   { href: "/settings", label: "Настройки", icon: Settings },
-] as const;
+];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -54,7 +72,8 @@ export function BottomNav() {
                 >
                   <Icon
                     className={cn(
-                      "size-5 transition-transform duration-300 ease-[var(--ease-out-soft)]",
+                      item.href === "/workouts" ? "size-6" : "size-5",
+                      "transition-transform duration-300 ease-[var(--ease-out-soft)]",
                       active && "scale-105",
                     )}
                   />

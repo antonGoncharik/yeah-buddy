@@ -78,6 +78,8 @@ export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
+export const DUMBBELL_VIEWBOX = "-19 -8.2 38 16.4";
+
 export function Doodle({
   children,
   className,
