@@ -8,9 +8,11 @@ type TelegramWebApp = {
   isVersionAtLeast?: (version: string) => boolean;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
+  setBottomBarColor?: (color: string) => void;
 };
 
 const TELEGRAM_COLOR_API = "6.1";
+const TELEGRAM_BOTTOM_BAR_API = "7.10";
 
 let telegramWebApp: TelegramWebApp | null | undefined;
 let telegramLoad: Promise<TelegramWebApp | null> | undefined;
@@ -67,6 +69,9 @@ function paintTelegram(theme: Theme, webApp: TelegramWebApp) {
   const color = theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR;
   webApp.setHeaderColor?.(color);
   webApp.setBackgroundColor?.(color);
+  if (webApp.isVersionAtLeast?.(TELEGRAM_BOTTOM_BAR_API)) {
+    webApp.setBottomBarColor?.(color);
+  }
 }
 
 function syncTelegramColors(theme: Theme) {

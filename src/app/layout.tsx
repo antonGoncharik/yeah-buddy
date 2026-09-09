@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("font-sans", manrope.variable, theme === "dark" && "dark")}
       style={{ colorScheme: theme }}
     >
-      <body className="min-h-dvh bg-background text-foreground antialiased">
+      <body className="app-viewport-min bg-background text-foreground antialiased">
         <ThemeProvider initialTheme={theme}>
           <ConfirmProvider>
             <DayMoodProvider>

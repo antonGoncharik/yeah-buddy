@@ -104,7 +104,7 @@ function ConfirmSheet({
   }, [onCancel]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center pb-[var(--app-chrome-bottom)] sm:items-center sm:pb-0">
       <button
         type="button"
         className="absolute inset-0 animate-fade bg-black/45"

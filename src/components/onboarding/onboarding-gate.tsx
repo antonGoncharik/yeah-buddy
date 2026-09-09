@@ -46,14 +46,14 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
 
   if (state === "error") {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center px-6">
+      <main className="app-viewport-min flex flex-col items-center justify-center px-6">
         <ScreenError message={LOAD_FAILED} onRetry={() => void check()} />
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-6">
+    <main className="app-viewport-min flex flex-col items-center justify-center px-6">
       <ScreenLoading />
     </main>
   );

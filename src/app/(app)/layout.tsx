@@ -6,7 +6,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <TelegramGate>
       <OnboardingGate>
-        <div className="app-safe-pad mx-auto min-h-dvh w-full max-w-lg pb-28">
+        <div className="app-safe-pad app-viewport-min mx-auto w-full max-w-lg pb-[var(--app-nav-clearance)]">
           {children}
         </div>
         <BottomNav />

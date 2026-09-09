@@ -201,7 +201,7 @@ export function OnboardingScreen() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh flex-col justify-center px-4">
+      <main className="app-viewport-min flex flex-col justify-center px-4">
         <ScreenLoading />
       </main>
     );
@@ -209,7 +209,7 @@ export function OnboardingScreen() {
 
   if (!state) {
     return (
-      <main className="flex min-h-dvh flex-col justify-center px-4">
+      <main className="app-viewport-min flex flex-col justify-center px-4">
         <ScreenError
           message={error ?? LOAD_FAILED}
           onRetry={() => void load()}

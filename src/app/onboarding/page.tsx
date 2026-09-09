@@ -6,7 +6,7 @@ export default function OnboardingPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-dvh flex-col justify-center px-4">
+        <main className="app-viewport-min flex flex-col justify-center px-4">
           <ScreenLoading />
         </main>
       }
