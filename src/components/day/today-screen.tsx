@@ -533,25 +533,6 @@ export function TodayScreen({
               <DaySummary day={shownDay} fact={fact} />
             </div>
 
-            {viewOnly ? null : (
-              <Link
-                href={`/settings/meals/${shownDay.is_training_day ? "training" : "rest"}`}
-                className="card-surface animate-rise flex items-center gap-3 px-5 py-4"
-                style={{ animationDelay: "50ms" }}
-              >
-                <span className="min-w-0 flex-1">
-                  <p className="text-base font-medium">Шаблон дня</p>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    Откроется шаблон, с которого копируются новые дни.
-                  </p>
-                </span>
-                <ChevronRight
-                  className="size-5 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
-              </Link>
-            )}
-
             {visibleMeals.map((meal, index) => (
               <MealCard
                 key={meal.id}

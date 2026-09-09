@@ -31,9 +31,7 @@ export function MealItemRow({
     <>
       <p className="truncate text-lg font-medium">{item.name}</p>
       <p className="text-sm text-muted-foreground">
-        {formatMacro(item.grams)} г · Б {formatMacro(item.protein)} · Ж{" "}
-        {formatMacro(item.fat)} · У {formatMacro(item.carbs)} ·{" "}
-        {formatKcal(item.kcal)} ккал
+        {formatMacro(item.grams)} г · {formatKcal(item.kcal)} ккал
       </p>
     </>
   );
