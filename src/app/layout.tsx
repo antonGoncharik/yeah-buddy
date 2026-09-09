@@ -22,6 +22,12 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Дневник",
   description: "Питание и тренировки",
+  applicationName: "Дневник",
+  appleWebApp: {
+    capable: true,
+    title: "Дневник",
+    statusBarStyle: "default",
+  },
 };
 
 export async function generateViewport(): Promise<Viewport> {
