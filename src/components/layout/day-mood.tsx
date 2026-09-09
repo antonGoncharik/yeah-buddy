@@ -64,8 +64,6 @@ export function DayBackdrop() {
       aria-hidden
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
-      <div className="atmosphere-grain absolute inset-0 opacity-[0.16] mix-blend-multiply transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-0" />
-      <div className="atmosphere-grain absolute inset-0 opacity-0 mix-blend-overlay transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:opacity-[0.2]" />
       <div
         className={cn(
           "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
@@ -89,38 +87,30 @@ export function DayBackdrop() {
 function RestBackdrop() {
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(90%_55%_at_50%_-8%,oklch(0.78_0.04_132_/_0.22),transparent_58%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(90%_55%_at_50%_-8%,oklch(0.38_0.04_140_/_0.38),transparent_58%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.03_132_/_0.42),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.42_0.035_140_/_0.38),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.84_0.03_145_/_0.16),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.32_0.03_145_/_0.28),transparent_62%)]" />
       <svg aria-hidden className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
             id="rest-wallpaper"
-            width="280"
-            height="360"
+            width="360"
+            height="460"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={38} y={46} rotate={-8} scale={1.48}>
-              <CookieMark ink="var(--wallpaper-ink)" />
+            <Mark x={52} y={64} rotate={-8} scale={1.72}>
+              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={168} y={36} rotate={6} scale={1.48}>
+            <Mark x={228} y={48} rotate={6} scale={1.68}>
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={248} y={118} rotate={10} scale={1.24}>
-              <CookieMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={68} y={168} rotate={-6} scale={1.42}>
+            <Mark x={86} y={236} rotate={-6} scale={1.62}>
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={196} y={214} rotate={5} scale={1.4}>
-              <CookieMark ink="var(--wallpaper-ink)" />
+            <Mark x={268} y={268} rotate={8} scale={1.55}>
+              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={34} y={268} rotate={8} scale={1.16}>
-              <CookieMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={242} y={286} rotate={-5} scale={1.55}>
-              <MugMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={142} y={328} rotate={-10} scale={1.22}>
-              <CookieMark ink="var(--wallpaper-ink)" />
+            <Mark x={176} y={412} rotate={-10} scale={1.48}>
+              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
         </defs>
@@ -133,37 +123,29 @@ function RestBackdrop() {
 function TrainingBackdrop() {
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(90%_55%_at_50%_-8%,oklch(0.72_0.06_48_/_0.2),transparent_58%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(90%_55%_at_50%_-8%,oklch(0.36_0.06_36_/_0.42),transparent_58%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.04_48_/_0.38),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.4_0.05_36_/_0.4),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.82_0.05_42_/_0.14),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.3_0.05_32_/_0.3),transparent_62%)]" />
       <svg aria-hidden className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
             id="train-wallpaper-v4"
-            width="280"
-            height="360"
+            width="360"
+            height="460"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={46} y={48} rotate={-8} scale={1.58}>
+            <Mark x={56} y={62} rotate={-8} scale={1.78}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={176} y={36} rotate={5} scale={1.48}>
+            <Mark x={232} y={48} rotate={5} scale={1.62}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={244} y={124} rotate={8} scale={1.5}>
-              <DumbbellMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={60} y={174} rotate={-4} scale={1.42}>
+            <Mark x={78} y={248} rotate={-4} scale={1.55}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={196} y={220} rotate={-9} scale={1.65}>
+            <Mark x={254} y={276} rotate={-9} scale={1.82}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={38} y={278} rotate={6} scale={1.38}>
-              <DumbbellMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={232} y={294} rotate={3} scale={1.5}>
-              <BarbellMark ink="var(--wallpaper-ink)" />
-            </Mark>
-            <Mark x={126} y={330} rotate={-6} scale={1.38}>
+            <Mark x={168} y={416} rotate={-6} scale={1.52}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>

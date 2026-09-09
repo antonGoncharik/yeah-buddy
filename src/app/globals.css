@@ -301,7 +301,7 @@ html[data-day="rest"] {
   --border: oklch(0.88 0.02 128);
   --input: oklch(0.42 0.05 140);
   --input-bg: oklch(0.996 0.004 128);
-  --wallpaper-ink: oklch(0.38 0.045 138 / 0.26);
+  --wallpaper-ink: oklch(0.38 0.045 138 / 0.12);
 }
 
 html[data-day="training"] {
@@ -320,7 +320,7 @@ html[data-day="training"] {
   --border: oklch(0.88 0.022 50);
   --input: oklch(0.42 0.055 42);
   --input-bg: oklch(0.996 0.005 52);
-  --wallpaper-ink: oklch(0.4 0.06 42 / 0.26);
+  --wallpaper-ink: oklch(0.4 0.06 42 / 0.12);
 }
 
 html.dark[data-day="rest"] {
@@ -339,7 +339,7 @@ html.dark[data-day="rest"] {
   --border: oklch(0.92 0.016 140 / 16%);
   --input: oklch(0.76 0.03 140);
   --input-bg: oklch(0.34 0.022 140);
-  --wallpaper-ink: oklch(0.86 0.03 140 / 0.26);
+  --wallpaper-ink: oklch(0.86 0.03 140 / 0.14);
 }
 
 html.dark[data-day="training"] {
@@ -358,7 +358,7 @@ html.dark[data-day="training"] {
   --border: oklch(0.9 0.03 36 / 16%);
   --input: oklch(0.76 0.04 40);
   --input-bg: oklch(0.34 0.028 36);
-  --wallpaper-ink: oklch(0.84 0.05 48 / 0.26);
+  --wallpaper-ink: oklch(0.84 0.05 48 / 0.14);
 }
 
 @layer base {
@@ -496,11 +496,6 @@ html.dark .native-select {
 
 @utility animate-fade {
   animation: fade 0.35s var(--ease-out-soft) both;
-}
-
-@utility atmosphere-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
 }
 
 @keyframes loader-beat {
