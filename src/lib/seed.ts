@@ -179,6 +179,126 @@ const STARTER_FOODS: StarterFood[] = [
     default_portion_g: 200,
     default_portion_label: "200 мл",
   },
+  {
+    name: "Индейка филе сырое",
+    state: "raw",
+    protein_per_100: 24,
+    fat_per_100: 1,
+    carbs_per_100: 0,
+    kcal_per_100: 105,
+    default_portion_g: 150,
+    default_portion_label: "150 г",
+  },
+  {
+    name: "Говядина постная сырая",
+    state: "raw",
+    protein_per_100: 20,
+    fat_per_100: 8,
+    carbs_per_100: 0,
+    kcal_per_100: 152,
+    default_portion_g: 150,
+    default_portion_label: "150 г",
+  },
+  {
+    name: "Треска сырая",
+    state: "raw",
+    protein_per_100: 18,
+    fat_per_100: 1,
+    carbs_per_100: 0,
+    kcal_per_100: 81,
+    default_portion_g: 150,
+    default_portion_label: "150 г",
+  },
+  {
+    name: "Йогурт натуральный",
+    state: "as_is",
+    protein_per_100: 4,
+    fat_per_100: 3,
+    carbs_per_100: 4,
+    kcal_per_100: 59,
+    default_portion_g: 150,
+    default_portion_label: "150 г",
+  },
+  {
+    name: "Кефир 1%",
+    state: "liquid",
+    protein_per_100: 3,
+    fat_per_100: 1,
+    carbs_per_100: 4,
+    kcal_per_100: 37,
+    default_portion_g: 200,
+    default_portion_label: "200 мл",
+  },
+  {
+    name: "Чечевица сухая",
+    state: "dry",
+    protein_per_100: 25,
+    fat_per_100: 1,
+    carbs_per_100: 53,
+    kcal_per_100: 321,
+    default_portion_g: 70,
+    default_portion_label: "70 г",
+  },
+  {
+    name: "Хлеб ржаной",
+    state: "as_is",
+    protein_per_100: 7,
+    fat_per_100: 1,
+    carbs_per_100: 40,
+    kcal_per_100: 201,
+    default_portion_g: 40,
+    default_portion_label: "40 г = 1 ломтик",
+  },
+  {
+    name: "Сливочное масло",
+    state: "as_is",
+    protein_per_100: 1,
+    fat_per_100: 83,
+    carbs_per_100: 1,
+    kcal_per_100: 755,
+    default_portion_g: 10,
+    default_portion_label: "10 г",
+  },
+  {
+    name: "Огурец",
+    state: "as_is",
+    protein_per_100: 1,
+    fat_per_100: 0,
+    carbs_per_100: 4,
+    kcal_per_100: 20,
+    default_portion_g: 100,
+    default_portion_label: "100 г",
+  },
+  {
+    name: "Помидор",
+    state: "as_is",
+    protein_per_100: 1,
+    fat_per_100: 0,
+    carbs_per_100: 4,
+    kcal_per_100: 20,
+    default_portion_g: 120,
+    default_portion_label: "120 г",
+  },
+  {
+    name: "Морковь",
+    state: "as_is",
+    protein_per_100: 1,
+    fat_per_100: 0,
+    carbs_per_100: 7,
+    kcal_per_100: 32,
+    default_portion_g: 80,
+    default_portion_label: "80 г",
+  },
+  {
+    name: "Апельсин",
+    state: "as_is",
+    protein_per_100: 1,
+    fat_per_100: 0,
+    carbs_per_100: 12,
+    kcal_per_100: 52,
+    default_portion_g: 150,
+    default_portion_label: "150 г = 1 шт",
+  },
 ];
 
 const STARTER_TEMPLATES: StarterTemplate[] = [
@@ -230,19 +350,25 @@ async function ensureStarterFoods(
 ): Promise<void> {
   const existing = await supabase
     .from("foods")
-    .select("id", { count: "exact", head: true })
+    .select("name")
     .eq("user_id", userId);
 
   if (existing.error) {
     throw existing.error;
   }
 
-  if ((existing.count ?? 0) > 0) {
+  const have = new Set(
+    (existing.data ?? [])
+      .map((row) => row.name)
+      .filter((name): name is string => typeof name === "string"),
+  );
+  const missing = STARTER_FOODS.filter((food) => !have.has(food.name));
+  if (missing.length === 0) {
     return;
   }
 
   const inserted = await supabase.from("foods").insert(
-    STARTER_FOODS.map((food) => ({
+    missing.map((food) => ({
       user_id: userId,
       name: food.name,
       state: food.state,

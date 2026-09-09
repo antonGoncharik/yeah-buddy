@@ -73,6 +73,60 @@ const STARTER_EXERCISES: StarterExercise[] = [
     weight_step: 1,
     formula_preset: "cable",
   },
+  {
+    name: "Становая тяга",
+    short_name: "становая",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Выпады",
+    short_name: "выпады",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "a",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Жим гантелей лёжа",
+    short_name: "жим гантелей",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 1,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Отжимания на брусьях",
+    short_name: "брусья",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "b",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Подтягивания",
+    short_name: "подтягивания",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "c",
+    weight_step: 2.5,
+    formula_preset: "barbell",
+  },
+  {
+    name: "Тяга горизонтального блока",
+    short_name: "тяга гориз.",
+    category: "base",
+    workout_type: "dynamic",
+    slot: "c",
+    weight_step: 1,
+    formula_preset: "cable",
+  },
 ];
 
 const STARTER_TEMPLATES: Array<{
@@ -89,29 +143,37 @@ export async function ensureStarterExercises(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
-  await seedExercisesIfEmpty(supabase, userId);
+  await seedMissingExercises(supabase, userId);
   await seedTemplatesIfEmpty(supabase, userId);
 }
 
-async function seedExercisesIfEmpty(
+async function seedMissingExercises(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
   const existing = await supabase
     .from("exercises")
-    .select("id", { count: "exact", head: true })
+    .select("name")
     .eq("user_id", userId);
 
   if (existing.error) {
     throw existing.error;
   }
 
-  if ((existing.count ?? 0) > 0) {
+  const have = new Set(
+    (existing.data ?? [])
+      .map((row) => row.name)
+      .filter((name): name is string => typeof name === "string"),
+  );
+  const missing = STARTER_EXERCISES.filter(
+    (exercise) => !have.has(exercise.name),
+  );
+  if (missing.length === 0) {
     return;
   }
 
   const inserted = await supabase.from("exercises").insert(
-    STARTER_EXERCISES.map((exercise) => ({
+    missing.map((exercise) => ({
       user_id: userId,
       name: exercise.name,
       short_name: exercise.short_name,
