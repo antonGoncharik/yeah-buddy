@@ -1,269 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type {
-  ExerciseCategory,
-  ExerciseSlot,
-  ExerciseWorkoutType,
-  FormulaPreset,
-  WorkoutKind,
-} from "@/lib/types";
-
-type StarterExercise = {
-  name: string;
-  short_name: string;
-  category: ExerciseCategory;
-  workout_type: ExerciseWorkoutType;
-  slot: ExerciseSlot;
-  weight_step: number;
-  formula_preset: FormulaPreset;
-};
-
-const STARTER_EXERCISES: StarterExercise[] = [
-  {
-    name: "Приседания со штангой",
-    short_name: "присед",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "a",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Румынская тяга",
-    short_name: "RDL",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "a",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим лёжа",
-    short_name: "жим лёжа",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим стоя",
-    short_name: "жим стоя",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Тяга штанги в наклоне",
-    short_name: "тяга в наклоне",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Тяга верхнего блока",
-    short_name: "тяга блока",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 1,
-    formula_preset: "cable",
-  },
-  {
-    name: "Становая тяга",
-    short_name: "становая",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "a",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Выпады",
-    short_name: "выпады",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "a",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим гантелей лёжа",
-    short_name: "жим гантелей",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Отжимания на брусьях",
-    short_name: "брусья",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Подтягивания",
-    short_name: "подтягивания",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Тяга горизонтального блока",
-    short_name: "тяга гориз.",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 1,
-    formula_preset: "cable",
-  },
-  {
-    name: "Жим ногами",
-    short_name: "жим ногами",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "a",
-    weight_step: 5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Отжимания от пола",
-    short_name: "отжимания",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим гантелей стоя",
-    short_name: "жим гантелей стоя",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Тяга гантели в наклоне",
-    short_name: "тяга гантели",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим лёжа под наклоном",
-    short_name: "жим наклон",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим гантелей под наклоном",
-    short_name: "жим гантелей наклон",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Жим гантелей сидя",
-    short_name: "жим сидя",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Разведение гантелей в стороны",
-    short_name: "махи в стороны",
-    category: "isolation",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "none",
-  },
-  {
-    name: "Жим узким хватом",
-    short_name: "жим узкий",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Французский жим",
-    short_name: "французский",
-    category: "isolation",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Разгибание на блоке",
-    short_name: "трицепс блок",
-    category: "isolation",
-    workout_type: "dynamic",
-    slot: "b",
-    weight_step: 1,
-    formula_preset: "cable",
-  },
-  {
-    name: "Подъём штанги на бицепс",
-    short_name: "бицепс штанга",
-    category: "base",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Подъём гантелей на бицепс",
-    short_name: "бицепс гантели",
-    category: "isolation",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-  {
-    name: "Молотковый подъём",
-    short_name: "молотки",
-    category: "isolation",
-    workout_type: "dynamic",
-    slot: "c",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-  },
-];
-
-const STARTER_TEMPLATES: Array<{
-  name: string;
-  kind: WorkoutKind;
-  slot: ExerciseSlot;
-}> = [
-  { name: "Ноги", kind: "dynamic", slot: "a" },
-  { name: "Жим", kind: "dynamic", slot: "b" },
-  { name: "Тяга", kind: "dynamic", slot: "c" },
-];
+import {
+  seededNames,
+  throwUnlessUniqueViolation,
+  UNIQUE_VIOLATION,
+} from "@/lib/seed-missing";
+import type { ExerciseSlot } from "@/lib/types";
+import {
+  STARTER_EXERCISES,
+  STARTER_WORKOUT_TEMPLATES,
+} from "@/lib/workout/starter-exercises";
 
 export async function ensureStarterExercises(
   supabase: SupabaseClient,
@@ -277,20 +23,7 @@ async function seedMissingExercises(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
-  const existing = await supabase
-    .from("exercises")
-    .select("name")
-    .eq("user_id", userId);
-
-  if (existing.error) {
-    throw existing.error;
-  }
-
-  const have = new Set(
-    (existing.data ?? [])
-      .map((row) => row.name)
-      .filter((name): name is string => typeof name === "string"),
-  );
+  const have = await seededNames(supabase, "exercises", userId);
   const missing = STARTER_EXERCISES.filter(
     (exercise) => !have.has(exercise.name),
   );
@@ -312,9 +45,7 @@ async function seedMissingExercises(
     })),
   );
 
-  if (inserted.error && inserted.error.code !== "23505") {
-    throw inserted.error;
-  }
+  throwUnlessUniqueViolation(inserted.error);
 }
 
 async function seedTemplatesIfEmpty(
@@ -353,7 +84,7 @@ async function seedTemplatesIfEmpty(
     }
   }
 
-  for (const [index, template] of STARTER_TEMPLATES.entries()) {
+  for (const [index, template] of STARTER_WORKOUT_TEMPLATES.entries()) {
     const created = await supabase
       .from("workout_templates")
       .insert({
@@ -367,7 +98,7 @@ async function seedTemplatesIfEmpty(
       .single();
 
     if (created.error) {
-      if (created.error.code === "23505") {
+      if (created.error.code === UNIQUE_VIOLATION) {
         continue;
       }
       throw created.error;
@@ -391,8 +122,6 @@ async function seedTemplatesIfEmpty(
       })),
     );
 
-    if (items.error && items.error.code !== "23505") {
-      throw items.error;
-    }
+    throwUnlessUniqueViolation(items.error);
   }
 }

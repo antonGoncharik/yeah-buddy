@@ -1,437 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getMealOrder } from "@/lib/nutrition";
+import {
+  seededNames,
+  throwUnlessUniqueViolation,
+  UNIQUE_VIOLATION,
+} from "@/lib/seed-missing";
+import {
+  FAVORITE_FOODS,
+  STARTER_FOODS,
+  STARTER_MEAL_TEMPLATES,
+  type StarterMealTemplate,
+  type StarterTemplateItem,
+} from "@/lib/starter-foods";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { DayType, FoodState, MealType } from "@/lib/types";
+import type { MealType } from "@/lib/types";
 import { ensureStarterExercises } from "@/lib/workout/seed";
-
-const MEAL_SORT: Record<MealType, number> = {
-  breakfast: 10,
-  lunch: 20,
-  snack: 30,
-  pre_workout: 40,
-  post_workout: 50,
-  dinner: 60,
-};
-
-type StarterFood = {
-  name: string;
-  state: FoodState;
-  protein_per_100: number;
-  fat_per_100: number;
-  carbs_per_100: number;
-  kcal_per_100: number;
-  default_portion_g: number;
-  default_portion_label: string;
-};
-
-type StarterTemplateItem = {
-  mealType: MealType;
-  foodName: string;
-  grams: number;
-};
-
-type StarterTemplate = {
-  name: string;
-  dayType: DayType;
-  items: StarterTemplateItem[];
-};
-
-const FAVORITE_FOODS = new Set([
-  "Куриное филе сырое",
-  "Яйца куриные",
-  "Овсянка сухая",
-  "Рис сухой",
-  "Творог 5%",
-  "Банан",
-  "Яблоко",
-  "Оливковое масло",
-  "Молоко 2.5%",
-]);
-
-const STARTER_FOODS: StarterFood[] = [
-  {
-    name: "Куриное филе сырое",
-    state: "raw",
-    protein_per_100: 23,
-    fat_per_100: 2,
-    carbs_per_100: 0,
-    kcal_per_100: 110,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Яйца куриные",
-    state: "as_is",
-    protein_per_100: 13,
-    fat_per_100: 11,
-    carbs_per_100: 1,
-    kcal_per_100: 155,
-    default_portion_g: 50,
-    default_portion_label: "50 г = 1 шт",
-  },
-  {
-    name: "Творог 5%",
-    state: "as_is",
-    protein_per_100: 17,
-    fat_per_100: 5,
-    carbs_per_100: 2,
-    kcal_per_100: 121,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Овсянка сухая",
-    state: "dry",
-    protein_per_100: 13,
-    fat_per_100: 6,
-    carbs_per_100: 62,
-    kcal_per_100: 370,
-    default_portion_g: 50,
-    default_portion_label: "50 г",
-  },
-  {
-    name: "Рис сухой",
-    state: "dry",
-    protein_per_100: 7,
-    fat_per_100: 1,
-    carbs_per_100: 78,
-    kcal_per_100: 350,
-    default_portion_g: 70,
-    default_portion_label: "70 г",
-  },
-  {
-    name: "Гречка сухая",
-    state: "dry",
-    protein_per_100: 13,
-    fat_per_100: 3,
-    carbs_per_100: 62,
-    kcal_per_100: 330,
-    default_portion_g: 70,
-    default_portion_label: "70 г",
-  },
-  {
-    name: "Макароны сухие",
-    state: "dry",
-    protein_per_100: 13,
-    fat_per_100: 2,
-    carbs_per_100: 71,
-    kcal_per_100: 350,
-    default_portion_g: 80,
-    default_portion_label: "80 г",
-  },
-  {
-    name: "Картофель варёный",
-    state: "cooked",
-    protein_per_100: 2,
-    fat_per_100: 0,
-    carbs_per_100: 16,
-    kcal_per_100: 80,
-    default_portion_g: 200,
-    default_portion_label: "200 г",
-  },
-  {
-    name: "Банан",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 0,
-    carbs_per_100: 23,
-    kcal_per_100: 96,
-    default_portion_g: 120,
-    default_portion_label: "120 г = 1 шт",
-  },
-  {
-    name: "Яблоко",
-    state: "as_is",
-    protein_per_100: 0,
-    fat_per_100: 0,
-    carbs_per_100: 14,
-    kcal_per_100: 52,
-    default_portion_g: 150,
-    default_portion_label: "150 г = 1 шт",
-  },
-  {
-    name: "Хлеб пшеничный",
-    state: "as_is",
-    protein_per_100: 8,
-    fat_per_100: 3,
-    carbs_per_100: 50,
-    kcal_per_100: 260,
-    default_portion_g: 40,
-    default_portion_label: "40 г = 1 ломтик",
-  },
-  {
-    name: "Оливковое масло",
-    state: "liquid",
-    protein_per_100: 0,
-    fat_per_100: 100,
-    carbs_per_100: 0,
-    kcal_per_100: 900,
-    default_portion_g: 10,
-    default_portion_label: "10 мл",
-  },
-  {
-    name: "Молоко 2.5%",
-    state: "liquid",
-    protein_per_100: 3,
-    fat_per_100: 3,
-    carbs_per_100: 5,
-    kcal_per_100: 52,
-    default_portion_g: 200,
-    default_portion_label: "200 мл",
-  },
-  {
-    name: "Индейка филе сырое",
-    state: "raw",
-    protein_per_100: 24,
-    fat_per_100: 1,
-    carbs_per_100: 0,
-    kcal_per_100: 105,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Говядина постная сырая",
-    state: "raw",
-    protein_per_100: 20,
-    fat_per_100: 8,
-    carbs_per_100: 0,
-    kcal_per_100: 152,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Треска сырая",
-    state: "raw",
-    protein_per_100: 18,
-    fat_per_100: 1,
-    carbs_per_100: 0,
-    kcal_per_100: 81,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Йогурт натуральный",
-    state: "as_is",
-    protein_per_100: 4,
-    fat_per_100: 3,
-    carbs_per_100: 4,
-    kcal_per_100: 59,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Кефир 1%",
-    state: "liquid",
-    protein_per_100: 3,
-    fat_per_100: 1,
-    carbs_per_100: 4,
-    kcal_per_100: 37,
-    default_portion_g: 200,
-    default_portion_label: "200 мл",
-  },
-  {
-    name: "Чечевица сухая",
-    state: "dry",
-    protein_per_100: 25,
-    fat_per_100: 1,
-    carbs_per_100: 53,
-    kcal_per_100: 321,
-    default_portion_g: 70,
-    default_portion_label: "70 г",
-  },
-  {
-    name: "Хлеб ржаной",
-    state: "as_is",
-    protein_per_100: 7,
-    fat_per_100: 1,
-    carbs_per_100: 40,
-    kcal_per_100: 201,
-    default_portion_g: 40,
-    default_portion_label: "40 г = 1 ломтик",
-  },
-  {
-    name: "Сливочное масло",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 83,
-    carbs_per_100: 1,
-    kcal_per_100: 755,
-    default_portion_g: 10,
-    default_portion_label: "10 г",
-  },
-  {
-    name: "Огурец",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 0,
-    carbs_per_100: 4,
-    kcal_per_100: 20,
-    default_portion_g: 100,
-    default_portion_label: "100 г",
-  },
-  {
-    name: "Помидор",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 0,
-    carbs_per_100: 4,
-    kcal_per_100: 20,
-    default_portion_g: 120,
-    default_portion_label: "120 г",
-  },
-  {
-    name: "Морковь",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 0,
-    carbs_per_100: 7,
-    kcal_per_100: 32,
-    default_portion_g: 80,
-    default_portion_label: "80 г",
-  },
-  {
-    name: "Апельсин",
-    state: "as_is",
-    protein_per_100: 1,
-    fat_per_100: 0,
-    carbs_per_100: 12,
-    kcal_per_100: 52,
-    default_portion_g: 150,
-    default_portion_label: "150 г = 1 шт",
-  },
-  {
-    name: "Куриное бедро сырое",
-    state: "raw",
-    protein_per_100: 18,
-    fat_per_100: 9,
-    carbs_per_100: 0,
-    kcal_per_100: 153,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Тунец в собственном соку",
-    state: "as_is",
-    protein_per_100: 26,
-    fat_per_100: 1,
-    carbs_per_100: 0,
-    kcal_per_100: 113,
-    default_portion_g: 120,
-    default_portion_label: "120 г",
-  },
-  {
-    name: "Творог 0%",
-    state: "as_is",
-    protein_per_100: 18,
-    fat_per_100: 0,
-    carbs_per_100: 2,
-    kcal_per_100: 80,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Перловка сухая",
-    state: "dry",
-    protein_per_100: 10,
-    fat_per_100: 1,
-    carbs_per_100: 66,
-    kcal_per_100: 313,
-    default_portion_g: 70,
-    default_portion_label: "70 г",
-  },
-  {
-    name: "Рис варёный",
-    state: "cooked",
-    protein_per_100: 3,
-    fat_per_100: 0,
-    carbs_per_100: 28,
-    kcal_per_100: 124,
-    default_portion_g: 200,
-    default_portion_label: "200 г",
-  },
-  {
-    name: "Брокколи",
-    state: "as_is",
-    protein_per_100: 3,
-    fat_per_100: 0,
-    carbs_per_100: 7,
-    kcal_per_100: 40,
-    default_portion_g: 150,
-    default_portion_label: "150 г",
-  },
-  {
-    name: "Капуста белокочанная",
-    state: "as_is",
-    protein_per_100: 2,
-    fat_per_100: 0,
-    carbs_per_100: 5,
-    kcal_per_100: 28,
-    default_portion_g: 100,
-    default_portion_label: "100 г",
-  },
-  {
-    name: "Груша",
-    state: "as_is",
-    protein_per_100: 0,
-    fat_per_100: 0,
-    carbs_per_100: 15,
-    kcal_per_100: 60,
-    default_portion_g: 160,
-    default_portion_label: "160 г = 1 шт",
-  },
-  {
-    name: "Грецкий орех",
-    state: "as_is",
-    protein_per_100: 15,
-    fat_per_100: 65,
-    carbs_per_100: 14,
-    kcal_per_100: 701,
-    default_portion_g: 30,
-    default_portion_label: "30 г",
-  },
-  {
-    name: "Мёд",
-    state: "as_is",
-    protein_per_100: 0,
-    fat_per_100: 0,
-    carbs_per_100: 82,
-    kcal_per_100: 328,
-    default_portion_g: 20,
-    default_portion_label: "20 г",
-  },
-];
-
-const STARTER_TEMPLATES: StarterTemplate[] = [
-  {
-    name: "День отдыха",
-    dayType: "rest",
-    items: [
-      { mealType: "breakfast", foodName: "Овсянка сухая", grams: 80 },
-      { mealType: "breakfast", foodName: "Яйца куриные", grams: 150 },
-      { mealType: "lunch", foodName: "Рис сухой", grams: 70 },
-      { mealType: "lunch", foodName: "Куриное филе сырое", grams: 200 },
-      { mealType: "lunch", foodName: "Оливковое масло", grams: 10 },
-      { mealType: "snack", foodName: "Яблоко", grams: 150 },
-      { mealType: "dinner", foodName: "Творог 5%", grams: 200 },
-      { mealType: "dinner", foodName: "Банан", grams: 120 },
-    ],
-  },
-  {
-    name: "День тренировки",
-    dayType: "training",
-    items: [
-      { mealType: "breakfast", foodName: "Овсянка сухая", grams: 80 },
-      { mealType: "breakfast", foodName: "Яйца куриные", grams: 150 },
-      { mealType: "lunch", foodName: "Рис сухой", grams: 90 },
-      { mealType: "lunch", foodName: "Куриное филе сырое", grams: 200 },
-      { mealType: "lunch", foodName: "Оливковое масло", grams: 10 },
-      { mealType: "pre_workout", foodName: "Банан", grams: 120 },
-      { mealType: "post_workout", foodName: "Молоко 2.5%", grams: 200 },
-      { mealType: "dinner", foodName: "Творог 5%", grams: 200 },
-      { mealType: "dinner", foodName: "Яблоко", grams: 150 },
-    ],
-  },
-];
 
 export async function ensureInitialData(userId: string): Promise<void> {
   if (!userId) {
@@ -448,20 +32,7 @@ async function ensureStarterFoods(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
-  const existing = await supabase
-    .from("foods")
-    .select("name")
-    .eq("user_id", userId);
-
-  if (existing.error) {
-    throw existing.error;
-  }
-
-  const have = new Set(
-    (existing.data ?? [])
-      .map((row) => row.name)
-      .filter((name): name is string => typeof name === "string"),
-  );
+  const have = await seededNames(supabase, "foods", userId);
   const missing = STARTER_FOODS.filter((food) => !have.has(food.name));
   if (missing.length === 0) {
     return;
@@ -482,9 +53,7 @@ async function ensureStarterFoods(
     })),
   );
 
-  if (inserted.error && inserted.error.code !== "23505") {
-    throw inserted.error;
-  }
+  throwUnlessUniqueViolation(inserted.error);
 }
 
 async function ensureStarterTemplates(
@@ -507,7 +76,7 @@ async function ensureStarterTemplates(
     }
   }
 
-  for (const template of STARTER_TEMPLATES) {
+  for (const template of STARTER_MEAL_TEMPLATES) {
     const created = await getOrCreateTemplate(supabase, userId, template);
     if (!created.created) {
       continue;
@@ -526,7 +95,7 @@ async function ensureStarterTemplates(
 async function getOrCreateTemplate(
   supabase: SupabaseClient,
   userId: string,
-  template: StarterTemplate,
+  template: StarterMealTemplate,
 ): Promise<{ id: string; created: boolean }> {
   const existing = await supabase
     .from("meal_templates")
@@ -557,7 +126,7 @@ async function getOrCreateTemplate(
     .single();
 
   if (created.error) {
-    if (created.error.code === "23505") {
+    if (created.error.code === UNIQUE_VIOLATION) {
       const raced = await supabase
         .from("meal_templates")
         .select("id")
@@ -622,7 +191,7 @@ async function ensureTemplateItems(
       meal_type: item.mealType,
       food_id: foodId,
       grams: item.grams,
-      sort_order: MEAL_SORT[item.mealType] + index,
+      sort_order: getMealOrder(item.mealType) + index,
     });
   }
 
@@ -631,7 +200,5 @@ async function ensureTemplateItems(
   }
 
   const inserted = await supabase.from("meal_template_items").insert(rows);
-  if (inserted.error && inserted.error.code !== "23505") {
-    throw inserted.error;
-  }
+  throwUnlessUniqueViolation(inserted.error);
 }
