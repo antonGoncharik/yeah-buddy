@@ -7,25 +7,15 @@ const STROKE = {
   strokeWidth: 1.7,
 } as const;
 
-export function CookieMark({
-  ink = "currentColor",
-  chips = true,
-}: {
-  ink?: string;
-  chips?: boolean;
-}) {
+export function CookieMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
       <path d="M0 -11 A 11 11 0 1 0 11 0 A 4.4 4.4 0 0 1 5.5 -5.5 A 4.4 4.4 0 0 1 0 -11 Z" />
-      {chips ? (
-        <>
-          <circle cx="-3.6" cy="-2.6" r="1.15" fill={ink} stroke="none" />
-          <circle cx="1.6" cy="1.4" r="1.05" fill={ink} stroke="none" />
-          <circle cx="-4.4" cy="3.8" r="1.2" fill={ink} stroke="none" />
-          <circle cx="4.4" cy="5.2" r="1.05" fill={ink} stroke="none" />
-          <circle cx="-0.4" cy="7" r="0.9" fill={ink} stroke="none" />
-        </>
-      ) : null}
+      <circle cx="-3.6" cy="-2.6" r="1.15" fill={ink} stroke="none" />
+      <circle cx="1.6" cy="1.4" r="1.05" fill={ink} stroke="none" />
+      <circle cx="-4.4" cy="3.8" r="1.2" fill={ink} stroke="none" />
+      <circle cx="4.4" cy="5.2" r="1.05" fill={ink} stroke="none" />
+      <circle cx="-0.4" cy="7" r="0.9" fill={ink} stroke="none" />
     </g>
   );
 }

@@ -98,7 +98,7 @@ function RestBackdrop() {
             patternUnits="userSpaceOnUse"
           >
             <Mark x={52} y={64} rotate={-8} scale={1.72}>
-              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
+              <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
             <Mark x={228} y={48} rotate={6} scale={1.68}>
               <MugMark ink="var(--wallpaper-ink)" />
@@ -107,10 +107,10 @@ function RestBackdrop() {
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
             <Mark x={268} y={268} rotate={8} scale={1.55}>
-              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
+              <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
             <Mark x={176} y={412} rotate={-10} scale={1.48}>
-              <CookieMark chips={false} ink="var(--wallpaper-ink)" />
+              <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
         </defs>
