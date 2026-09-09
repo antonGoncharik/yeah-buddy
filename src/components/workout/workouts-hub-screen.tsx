@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   phaseEndHint,
   phaseLinkLabel,
+  queueItemMark,
   readPhaseCircle,
   templateHasPlanMaxes,
   todayWeightsHint,
@@ -547,25 +548,32 @@ export function WorkoutsHubScreen() {
                   />
                 </Link>
                 <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-                  Тренировки идут по кругу, не по дням недели. Нажми имя, если
-                  хочешь начать не следующее.
+                  Тренировки идут по кругу, не по дням недели.
+                  {session
+                    ? null
+                    : " Нажми имя, если хочешь начать не следующее."}
                 </p>
                 <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {
-                    const isNext = nextTemplate?.id === template.id;
+                    const mark = queueItemMark({
+                      templateId: template.id,
+                      sessionTemplateId: sessionTemplate?.id ?? null,
+                      nextTemplateId: nextTemplate?.id ?? null,
+                    });
                     const label = `${index + 1}. ${template.name}`;
+                    const emphasized = mark !== "";
                     if (session) {
                       return (
                         <li
                           key={template.id}
                           className={
-                            isNext
+                            emphasized
                               ? "text-base font-medium"
                               : "text-base text-muted-foreground"
                           }
                         >
                           {label}
-                          {isNext ? " · сегодня" : ""}
+                          {mark}
                         </li>
                       );
                     }
@@ -576,13 +584,15 @@ export function WorkoutsHubScreen() {
                           type="button"
                           className={cn(
                             "w-full py-1 text-left text-base disabled:opacity-50",
-                            isNext ? "font-medium" : "text-muted-foreground",
+                            emphasized
+                              ? "font-medium"
+                              : "text-muted-foreground",
                           )}
                           disabled={creating || skipping}
                           onClick={() => void pickTemplate(template)}
                         >
                           {label}
-                          {isNext ? " · дальше" : ""}
+                          {mark}
                         </button>
                       </li>
                     );

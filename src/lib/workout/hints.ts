@@ -19,6 +19,20 @@ export function todayWeightsHint(
   return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}.`;
 }
 
+export function queueItemMark(options: {
+  templateId: string;
+  sessionTemplateId: string | null;
+  nextTemplateId: string | null;
+}): string {
+  if (options.sessionTemplateId === options.templateId) {
+    return " · сегодня";
+  }
+  if (options.nextTemplateId === options.templateId) {
+    return " · дальше";
+  }
+  return "";
+}
+
 export function templateHasPlanMaxes(
   template: { exercises: Exercise[] },
   catalog: ExerciseWithMax[],
