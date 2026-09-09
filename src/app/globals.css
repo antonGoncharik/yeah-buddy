@@ -503,24 +503,24 @@ html.dark .native-select {
   background-size: 180px 180px;
 }
 
-@keyframes doodle-orbit {
-  to {
-    transform: rotate(1turn);
+@keyframes loader-beat {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translateY(2px);
+  }
+  28% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  52% {
+    opacity: 0.28;
+    transform: translateY(1px);
   }
 }
 
-@keyframes doodle-tumble {
-  to {
-    transform: rotate(-1turn);
-  }
-}
-
-@utility animate-doodle-orbit {
-  animation: doodle-orbit 6s linear infinite;
-}
-
-@utility animate-doodle-tumble {
-  animation: doodle-tumble 2.4s linear infinite;
+@utility animate-loader-beat {
+  animation: loader-beat 1.8s var(--ease-out-soft) infinite;
 }
 
 @keyframes draw-line {
@@ -561,8 +561,7 @@ html.dark .native-select {
 
   .animate-rise,
   .animate-fade,
-  .animate-doodle-orbit,
-  .animate-doodle-tumble,
+  .animate-loader-beat,
   .animate-draw-line,
   .animate-recap-glow {
     animation: none;

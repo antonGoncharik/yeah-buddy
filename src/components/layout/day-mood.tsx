@@ -14,7 +14,7 @@ import {
   BarbellMark,
   CookieMark,
   DumbbellMark,
-  ShakerMark,
+  MugMark,
 } from "@/components/layout/doodles";
 import { cn } from "@/lib/utils";
 
@@ -98,28 +98,28 @@ function RestBackdrop() {
             height="360"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={38} y={46} rotate={-14} scale={1.05}>
+            <Mark x={38} y={46} rotate={-8} scale={1.05}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={168} y={28} rotate={11} scale={0.92}>
-              <ShakerMark ink="var(--wallpaper-ink)" />
+            <Mark x={168} y={36} rotate={6} scale={1.05}>
+              <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={248} y={118} rotate={18} scale={0.84}>
+            <Mark x={248} y={118} rotate={10} scale={0.88}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={72} y={168} rotate={-22} scale={0.9}>
-              <ShakerMark ink="var(--wallpaper-ink)" />
+            <Mark x={68} y={168} rotate={-6} scale={1.02}>
+              <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={196} y={214} rotate={8} scale={1}>
+            <Mark x={196} y={214} rotate={5} scale={1}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={34} y={268} rotate={16} scale={0.78}>
+            <Mark x={34} y={268} rotate={8} scale={0.82}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={250} y={288} rotate={-10} scale={1.08}>
-              <ShakerMark ink="var(--wallpaper-ink)" />
+            <Mark x={242} y={286} rotate={-5} scale={1.12}>
+              <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={142} y={328} rotate={-18} scale={0.86}>
+            <Mark x={142} y={328} rotate={-10} scale={0.86}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
@@ -137,38 +137,38 @@ function TrainingBackdrop() {
       <svg aria-hidden className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
-            id="train-wallpaper"
+            id="train-wallpaper-v3"
             width="280"
             height="360"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={42} y={44} rotate={-12} scale={1}>
+            <Mark x={46} y={48} rotate={-8} scale={1.12}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={176} y={36} rotate={16} scale={0.9}>
+            <Mark x={176} y={36} rotate={5} scale={1.06}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={246} y={124} rotate={-8} scale={0.86}>
+            <Mark x={244} y={124} rotate={8} scale={1.04}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={64} y={172} rotate={20} scale={0.94}>
+            <Mark x={60} y={174} rotate={-4} scale={1.02}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={198} y={218} rotate={-18} scale={1.08}>
+            <Mark x={196} y={220} rotate={-9} scale={1.16}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={36} y={276} rotate={10} scale={0.8}>
+            <Mark x={38} y={278} rotate={6} scale={0.96}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={238} y={292} rotate={8} scale={1}>
+            <Mark x={232} y={294} rotate={3} scale={1.08}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={132} y={328} rotate={-14} scale={0.88}>
+            <Mark x={126} y={330} rotate={-6} scale={0.98}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#train-wallpaper)" />
+        <rect width="100%" height="100%" fill="url(#train-wallpaper-v3)" />
       </svg>
     </>
   );

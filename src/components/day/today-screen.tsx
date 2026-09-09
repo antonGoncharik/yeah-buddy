@@ -2,13 +2,7 @@
 
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Dumbbell,
-  History,
-  Sofa,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, History } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,6 +17,11 @@ import {
 } from "@/components/day/today-workout-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
+import {
+  CookieMark,
+  Doodle,
+  DumbbellMark,
+} from "@/components/layout/doodles";
 import { useDayMood } from "@/components/layout/day-mood";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -514,12 +513,23 @@ export function TodayScreen({
                     {
                       id: "rest",
                       label: DAY_TYPE_LABELS.rest,
-                      icon: <Sofa className="size-4" aria-hidden />,
+                      icon: (
+                        <Doodle
+                          className="size-4"
+                          viewBox="-12 -12 24 24"
+                        >
+                          <CookieMark />
+                        </Doodle>
+                      ),
                     },
                     {
                       id: "training",
                       label: DAY_TYPE_LABELS.training,
-                      icon: <Dumbbell className="size-4" aria-hidden />,
+                      icon: (
+                        <Doodle className="size-4" viewBox="-17 -7.2 34 14.4">
+                          <DumbbellMark />
+                        </Doodle>
+                      ),
                     },
                   ]}
                   onChange={(dayType) => void switchType(dayType)}

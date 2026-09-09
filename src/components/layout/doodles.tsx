@@ -4,56 +4,76 @@ const STROKE = {
   fill: "none",
   strokeLinecap: "round",
   strokeLinejoin: "round",
-  strokeWidth: 1.6,
+  strokeWidth: 1.7,
 } as const;
 
 export function CookieMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
-      <circle cx="0" cy="0" r="11" />
-      <circle cx="-3.6" cy="-3.2" r="1.15" fill={ink} stroke="none" />
-      <circle cx="3.4" cy="-4.1" r="1.05" fill={ink} stroke="none" />
-      <circle cx="4.2" cy="2.4" r="1.2" fill={ink} stroke="none" />
-      <circle cx="-2.2" cy="4.4" r="0.95" fill={ink} stroke="none" />
-      <circle cx="1.1" cy="0.2" r="0.85" fill={ink} stroke="none" />
+      <path d="M0 -11 A 11 11 0 1 0 11 0 A 4.4 4.4 0 0 1 5.5 -5.5 A 4.4 4.4 0 0 1 0 -11 Z" />
+      <circle cx="-3.6" cy="-2.6" r="1.15" fill={ink} stroke="none" />
+      <circle cx="1.6" cy="1.4" r="1.05" fill={ink} stroke="none" />
+      <circle cx="-4.4" cy="3.8" r="1.2" fill={ink} stroke="none" />
+      <circle cx="4.4" cy="5.2" r="1.05" fill={ink} stroke="none" />
+      <circle cx="-0.4" cy="7" r="0.9" fill={ink} stroke="none" />
     </g>
   );
 }
 
-export function ShakerMark({ ink = "currentColor" }: { ink?: string }) {
+export function MugMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
-      <path d="M-4.2 -12.2 h8.4 v2.4 h-8.4 z" />
-      <path d="M-5.4 -9.8 h10.8 v2.2 h-10.8 z" />
-      <path d="M-5.4 -7.6 h10.8 v12.4 a4.2 4.2 0 0 1 -4.2 4.2 h-2.4 a4.2 4.2 0 0 1 -4.2 -4.2 z" />
-      <path d="M-3.2 -0.6 h6.4" />
-      <path d="M-2.2 3.2 h4.4" />
+      <path d="M-4.4 -8.2 C-5 -10.6 -3.4 -11.4 -4 -14" />
+      <path d="M-0.2 -8.4 C-1 -11 0.8 -11.6 0.2 -14.4" />
+      <path d="M3.8 -8 C3 -10.4 4.6 -11.2 4 -13.6" />
+      <path d="M-8.6 -6.4 H6.6 V4 C6.6 10.2 -8.6 10.2 -8.6 4 Z" />
+      <path d="M6.6 -3.2 C14.8 -3.6 15.2 7 6.6 6.4" />
+      <path d="M-11.2 12.2 C-3.6 15.2 5.2 15.2 12.8 12.2" />
     </g>
   );
 }
 
 export function DumbbellMark({ ink = "currentColor" }: { ink?: string }) {
+  const head = {
+    fill: "none",
+    stroke: ink,
+    strokeWidth: 1.7,
+    strokeLinejoin: "miter" as const,
+    strokeLinecap: "butt" as const,
+    strokeMiterlimit: 2.4,
+  };
+
   return (
-    <g {...STROKE} stroke={ink}>
-      <path d="M-6.5 0 h13" />
-      <rect x="-14.5" y="-5.2" width="4.4" height="10.4" rx="1.4" />
-      <rect x="-11.2" y="-3.6" width="3.2" height="7.2" rx="1.1" />
-      <rect x="8" y="-3.6" width="3.2" height="7.2" rx="1.1" />
-      <rect x="10.1" y="-5.2" width="4.4" height="10.4" rx="1.4" />
+    <g>
+      <path
+        {...head}
+        d="M-14.5 -6.6 H-7.1 L-5.4 -3.5 V3.5 L-7.1 6.6 H-14.5 L-16.4 3.5 V-3.5 Z"
+      />
+      <path
+        {...head}
+        d="M7.1 -6.6 H14.5 L16.4 -3.5 V3.5 L14.5 6.6 H7.1 L5.4 3.5 V-3.5 Z"
+      />
+      <path
+        d="M-5.4 0 H5.4"
+        fill="none"
+        stroke={ink}
+        strokeWidth={2.15}
+        strokeLinecap="round"
+      />
     </g>
   );
 }
 
 export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
   return (
-    <g {...STROKE} stroke={ink} strokeWidth={1.55}>
-      <path d="M-16.5 0 h33" />
-      <rect x="-16.6" y="-7.2" width="3.1" height="14.4" rx="1.1" />
-      <rect x="-13.4" y="-5.4" width="2.6" height="10.8" rx="1" />
-      <rect x="-10.7" y="-3.6" width="2.1" height="7.2" rx="0.9" />
-      <rect x="8.6" y="-3.6" width="2.1" height="7.2" rx="0.9" />
-      <rect x="10.8" y="-5.4" width="2.6" height="10.8" rx="1" />
-      <rect x="13.5" y="-7.2" width="3.1" height="14.4" rx="1.1" />
+    <g {...STROKE} stroke={ink}>
+      <path d="M-19.2 0 H19.2" />
+      <rect x="-18" y="-4.6" width="2" height="9.2" rx="0.85" />
+      <rect x="-16" y="-6.6" width="2.4" height="13.2" rx="0.95" />
+      <rect x="-13.6" y="-8.4" width="2.8" height="16.8" rx="1" />
+      <rect x="10.8" y="-8.4" width="2.8" height="16.8" rx="1" />
+      <rect x="13.6" y="-6.6" width="2.4" height="13.2" rx="0.95" />
+      <rect x="16" y="-4.6" width="2" height="9.2" rx="0.85" />
     </g>
   );
 }
@@ -61,12 +81,14 @@ export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
 export function Doodle({
   children,
   className,
+  viewBox = "-22 -18 44 38",
 }: {
   children: ReactNode;
   className?: string;
+  viewBox?: string;
 }) {
   return (
-    <svg aria-hidden viewBox="-20 -16 40 32" className={className}>
+    <svg aria-hidden viewBox={viewBox} className={className}>
       {children}
     </svg>
   );

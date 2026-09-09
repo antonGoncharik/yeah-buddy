@@ -1,6 +1,5 @@
 "use client";
 
-import { Dumbbell, Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
@@ -91,13 +90,6 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
         children
       ) : (
         <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
-          <span
-            className="flex h-16 items-center justify-center gap-1.5 rounded-full bg-primary/12 px-5 text-primary"
-            aria-hidden
-          >
-            <Dumbbell className="size-7" strokeWidth={2.25} />
-            <Utensils className="size-7" strokeWidth={2.25} />
-          </span>
           {state === "loading" ? <ScreenLoading /> : null}
           {state === "outside" ? (
             <p className="animate-rise max-w-xs text-xl font-semibold leading-snug">
