@@ -41,6 +41,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [canCorrectMax, setCanCorrectMax] = useState(!exercise);
+  const [active, setActive] = useState(exercise?.is_active !== false);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     if (!exercise) {
@@ -110,6 +112,33 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     }
   }
 
+  async function toggleActive(nextActive: boolean) {
+    if (!exercise || nextActive === active) {
+      return;
+    }
+
+    setToggling(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/exercises/${exercise.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: !nextActive }),
+      });
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setError(readApiError(data) ?? LOAD_FAILED);
+        return;
+      }
+      setActive(nextActive);
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setToggling(false);
+    }
+  }
+
   return (
     <form className="flex flex-col gap-4 pb-36" onSubmit={onSubmit}>
       <Field label="Название">
@@ -136,6 +165,20 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           className="h-12 text-base"
         />
       </Field>
+
+      {exercise ? (
+        <Field label="В работе">
+          <Segmented
+            value={active ? "yes" : "no"}
+            disabled={toggling}
+            options={[
+              { id: "yes", label: "Делаю" },
+              { id: "no", label: "Не делаю" },
+            ]}
+            onChange={(value) => void toggleActive(value === "yes")}
+          />
+        </Field>
+      ) : null}
 
       <Field label="Тип">
         <Segmented

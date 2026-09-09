@@ -290,9 +290,8 @@ export function MacroScreen() {
             <section className="flex flex-col gap-3">
               <h2 className="text-xl font-semibold">Рабочие веса этой фазы</h2>
               <p className="text-sm text-muted-foreground">
-                Сколько потянешь сейчас, не рекорд. От этих цифр считается план.
-                Если тяжело — поставь меньше: рекорд на карточке упражнения
-                останется.
+                От этих цифр считается план. Только упражнения, которые делаешь.
+                Остальные выключи в списке упражнений.
               </p>
               {state.maxes.map((row) => (
                 <div

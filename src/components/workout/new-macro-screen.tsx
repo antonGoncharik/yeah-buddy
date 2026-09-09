@@ -133,8 +133,9 @@ export function NewMacroScreen() {
             </p>
             <p className="text-base leading-relaxed text-muted-foreground">
               Первый макроцикл начинается с разгона. Цифры ниже — сколько
-              потянешь сейчас, не рекорд. Фазу закрываешь сам: один круг очереди
-              ещё не конец.
+              потянешь сейчас. Фазу закрываешь сам: один круг очереди ещё не
+              конец. Здесь только упражнения, которые делаешь — остальные
+              выключи в списке.
             </p>
             <div className="flex flex-col gap-2">
               <Label className="text-base">Дата начала</Label>
