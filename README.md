@@ -57,7 +57,7 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram
 
 Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. First visit with no history opens onboarding.
 
-Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format`.
+Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format` · `test` (`*.check.ts`).
 
 ## Repo map
 
