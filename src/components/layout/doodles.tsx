@@ -7,15 +7,25 @@ const STROKE = {
   strokeWidth: 1.7,
 } as const;
 
-export function CookieMark({ ink = "currentColor" }: { ink?: string }) {
+export function CookieMark({
+  ink = "currentColor",
+  chips = true,
+}: {
+  ink?: string;
+  chips?: boolean;
+}) {
   return (
     <g {...STROKE} stroke={ink}>
       <path d="M0 -11 A 11 11 0 1 0 11 0 A 4.4 4.4 0 0 1 5.5 -5.5 A 4.4 4.4 0 0 1 0 -11 Z" />
-      <circle cx="-3.6" cy="-2.6" r="1.15" fill={ink} stroke="none" />
-      <circle cx="1.6" cy="1.4" r="1.05" fill={ink} stroke="none" />
-      <circle cx="-4.4" cy="3.8" r="1.2" fill={ink} stroke="none" />
-      <circle cx="4.4" cy="5.2" r="1.05" fill={ink} stroke="none" />
-      <circle cx="-0.4" cy="7" r="0.9" fill={ink} stroke="none" />
+      {chips ? (
+        <>
+          <circle cx="-3.6" cy="-2.6" r="1.15" fill={ink} stroke="none" />
+          <circle cx="1.6" cy="1.4" r="1.05" fill={ink} stroke="none" />
+          <circle cx="-4.4" cy="3.8" r="1.2" fill={ink} stroke="none" />
+          <circle cx="4.4" cy="5.2" r="1.05" fill={ink} stroke="none" />
+          <circle cx="-0.4" cy="7" r="0.9" fill={ink} stroke="none" />
+        </>
+      ) : null}
     </g>
   );
 }
@@ -107,6 +117,8 @@ export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
+export const COOKIE_VIEWBOX = "-12.8 -12.8 25.6 25.6";
+export const MUG_VIEWBOX = "-12.9 -16.2 29.8 33.2";
 export const DUMBBELL_VIEWBOX = "-19.2 -7.6 38.4 15.2";
 export const BARBELL_VIEWBOX = "-25.8 -9.6 51.6 19.2";
 

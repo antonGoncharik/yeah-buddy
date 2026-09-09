@@ -3,17 +3,20 @@
 import {
   BARBELL_VIEWBOX,
   BarbellMark,
+  COOKIE_VIEWBOX,
   CookieMark,
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
+  MUG_VIEWBOX,
   MugMark,
 } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const BEATS = [
-  { key: "cookie", mark: <CookieMark />, viewBox: undefined },
-  { key: "mug", mark: <MugMark />, viewBox: undefined },
+  { key: "cookie", mark: <CookieMark />, viewBox: COOKIE_VIEWBOX },
+  { key: "mug", mark: <MugMark />, viewBox: MUG_VIEWBOX },
   { key: "dumbbell", mark: <DumbbellMark />, viewBox: DUMBBELL_VIEWBOX },
   { key: "barbell", mark: <BarbellMark />, viewBox: BARBELL_VIEWBOX },
 ] as const;
@@ -29,7 +32,11 @@ export function ScreenLoading() {
         {BEATS.map((item, index) => (
           <span
             key={item.key}
-            className="animate-loader-beat block"
+            className={cn(
+              "animate-loader-beat block",
+              item.key === "mug" && "-ml-2",
+              item.key === "dumbbell" && "-ml-2.5",
+            )}
             style={{ animationDelay: `${index * 0.22}s` }}
           >
             <Doodle className="size-16" viewBox={item.viewBox}>
