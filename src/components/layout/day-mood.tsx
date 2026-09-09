@@ -98,28 +98,28 @@ function RestBackdrop() {
             height="360"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={38} y={46} rotate={-8} scale={1.05}>
+            <Mark x={38} y={46} rotate={-8} scale={1.48}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={168} y={36} rotate={6} scale={1.05}>
+            <Mark x={168} y={36} rotate={6} scale={1.48}>
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={248} y={118} rotate={10} scale={0.88}>
+            <Mark x={248} y={118} rotate={10} scale={1.24}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={68} y={168} rotate={-6} scale={1.02}>
+            <Mark x={68} y={168} rotate={-6} scale={1.42}>
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={196} y={214} rotate={5} scale={1}>
+            <Mark x={196} y={214} rotate={5} scale={1.4}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={34} y={268} rotate={8} scale={0.82}>
+            <Mark x={34} y={268} rotate={8} scale={1.16}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={242} y={286} rotate={-5} scale={1.12}>
+            <Mark x={242} y={286} rotate={-5} scale={1.55}>
               <MugMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={142} y={328} rotate={-10} scale={0.86}>
+            <Mark x={142} y={328} rotate={-10} scale={1.22}>
               <CookieMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
@@ -142,28 +142,28 @@ function TrainingBackdrop() {
             height="360"
             patternUnits="userSpaceOnUse"
           >
-            <Mark x={46} y={48} rotate={-8} scale={1.12}>
+            <Mark x={46} y={48} rotate={-8} scale={1.58}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={176} y={36} rotate={5} scale={1.06}>
+            <Mark x={176} y={36} rotate={5} scale={1.48}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={244} y={124} rotate={8} scale={1.04}>
+            <Mark x={244} y={124} rotate={8} scale={1.5}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={60} y={174} rotate={-4} scale={1.02}>
+            <Mark x={60} y={174} rotate={-4} scale={1.42}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={196} y={220} rotate={-9} scale={1.16}>
+            <Mark x={196} y={220} rotate={-9} scale={1.65}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={38} y={278} rotate={6} scale={0.96}>
+            <Mark x={38} y={278} rotate={6} scale={1.38}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={232} y={294} rotate={3} scale={1.08}>
+            <Mark x={232} y={294} rotate={3} scale={1.5}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
-            <Mark x={126} y={330} rotate={-6} scale={0.98}>
+            <Mark x={126} y={330} rotate={-6} scale={1.38}>
               <BarbellMark ink="var(--wallpaper-ink)" />
             </Mark>
           </pattern>
