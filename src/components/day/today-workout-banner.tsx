@@ -35,7 +35,6 @@ export function TodayWorkoutBanner({
   busy?: boolean;
   onStart?: (templateId: string) => void;
 }) {
-  const canStart = Boolean(templateId && onStart);
   const body = (
     <>
       <span className="min-w-0 flex-1">
@@ -52,7 +51,7 @@ export function TodayWorkoutBanner({
     </>
   );
 
-  if (canStart && templateId) {
+  if (templateId && onStart) {
     return (
       <button
         type="button"
