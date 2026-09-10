@@ -45,7 +45,7 @@ assert(
   "circle keeps program order",
 );
 const maxes = onboardingWeightExercises("ppl", [squat, curls, bench]);
-assert(maxes.length === 2, "two base lifts");
+assert(maxes.length === 2, "two primary lifts");
 assert(
   maxes.every((item) => item.category === "base"),
   "onboarding maxes skip isolation",
@@ -53,6 +53,19 @@ assert(
 assert(
   !maxes.some((item) => item.name === curls.name),
   "curls stay off the max list",
+);
+const fullBody = onboardingWeightExercises("full_body", [
+  squat,
+  bench,
+  curls,
+  exercise("Румынская тяга", "base"),
+  exercise("Подтягивания", "base"),
+  exercise("Жим ногами", "base"),
+]);
+assert(fullBody.length === 2, "full body asks squat and bench");
+assert(
+  !fullBody.some((item) => item.name === "Подтягивания"),
+  "pull-ups stay off the max list",
 );
 assert(
   onboardingWeightExercises("empty", [squat]).length === 0,

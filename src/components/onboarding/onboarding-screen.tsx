@@ -21,9 +21,12 @@ import {
   isExtraProgram,
   onboardingWeightExercises,
 } from "@/lib/onboarding-setup";
+import { readSharePackPayload } from "@/lib/share/map";
+import type { SharePackKind } from "@/lib/share/payload";
 import { packPath, peekPendingPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
 import { cn } from "@/lib/utils";
+import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
   isProgramPresetId,
@@ -49,6 +52,7 @@ export function OnboardingScreen() {
   );
   const [maxInputs, setMaxInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [pendingKind, setPendingKind] = useState<SharePackKind | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,8 +67,11 @@ export function OnboardingScreen() {
         router.replace("/today");
         return;
       }
+      const incoming = replay ? null : await loadPendingPackKind();
+      setPendingKind(incoming);
       setState(onboarding);
       setProtein(String(onboarding.settings.rest_protein));
+      setSkipFood(incoming === "meals");
       setCircle(defaultOnboardingCircle(onboarding.circle, replay));
       setMaxInputs(
         Object.fromEntries(
@@ -99,17 +106,27 @@ export function OnboardingScreen() {
     : [];
 
   const steps = useMemo((): Step[] => {
-    const next: Step[] = ["food"];
-    if (!replay) {
+    const next: Step[] = [];
+    if (pendingKind !== "meals") {
+      next.push("food");
+    }
+    if (!replay && pendingKind !== "workouts") {
       next.push("circle");
     }
-    if (isProgramPresetId(circle) && state && !state.maxesLocked) {
-      if (weightExercises.length > 0) {
-        next.push("maxes");
-      }
+    if (
+      pendingKind !== "workouts" &&
+      isProgramPresetId(circle) &&
+      state &&
+      !state.maxesLocked &&
+      weightExercises.length > 0
+    ) {
+      next.push("maxes");
+    }
+    if (next.length === 0) {
+      next.push("food");
     }
     return next;
-  }, [circle, replay, state, weightExercises.length]);
+  }, [circle, pendingKind, replay, state, weightExercises.length]);
 
   useEffect(() => {
     if (!steps.includes(step)) {
@@ -162,7 +179,9 @@ export function OnboardingScreen() {
     omitProtein?: boolean;
     omitMaxes?: boolean;
   }) {
-    const omitProtein = Boolean(options?.omitProtein || skipFood);
+    const omitProtein = Boolean(
+      options?.omitProtein || skipFood || pendingKind === "meals",
+    );
     if (!omitProtein) {
       if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
         setError("Нужно число в граммах.");
@@ -185,9 +204,11 @@ export function OnboardingScreen() {
           });
 
       const data = await postJson("/api/onboarding", {
-        ...(omitProtein ? {} : { protein: proteinValue }),
-        circle: replay ? "keep" : circle,
-        maxes: state?.maxesLocked ? [] : maxes,
+        ...(omitProtein || pendingKind === "meals"
+          ? {}
+          : { protein: proteinValue }),
+        circle: replay || pendingKind === "workouts" ? "keep" : circle,
+        maxes: state?.maxesLocked || pendingKind === "workouts" ? [] : maxes,
       });
 
       const onboarding = parseOnboardingState(data);
@@ -257,6 +278,7 @@ export function OnboardingScreen() {
           <FoodStep
             protein={protein}
             preview={preview}
+            fromWorkoutPack={pendingKind === "workouts"}
             onProteinChange={(value) => {
               setError(null);
               setSkipFood(false);
@@ -266,7 +288,11 @@ export function OnboardingScreen() {
         ) : null}
 
         {step === "circle" ? (
-          <CircleStep value={circle} onChange={setCircle} />
+          <CircleStep
+            value={circle}
+            fromMealPack={pendingKind === "meals"}
+            onChange={setCircle}
+          />
         ) : null}
 
         {step === "maxes" ? (
@@ -295,7 +321,7 @@ export function OnboardingScreen() {
             disabled={saving}
             onClick={() => skipFoodStep()}
           >
-            Пока без еды
+            Пропустить
           </Button>
         ) : null}
         {step === "maxes" ? (
@@ -340,10 +366,12 @@ function StepDots({ steps, current }: { steps: Step[]; current: Step }) {
 function FoodStep({
   protein,
   preview,
+  fromWorkoutPack,
   onProteinChange,
 }: {
   protein: string;
   preview: ReturnType<typeof macroGoalsFromProtein> | null;
+  fromWorkoutPack: boolean;
   onProteinChange: (value: string) => void;
 }) {
   const selected = parseDecimal(protein);
@@ -354,7 +382,9 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько белка в день. 120 хватает большинству. Потом поправишь.
+        {fromWorkoutPack
+          ? "Зал возьмём из ссылки. Сначала белок на день — от него шаблон еды. 120 хватает большинству."
+          : "Дневник еды и зала. Сначала белок на день — от него шаблон. 120 хватает большинству. Потом поправишь."}
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -390,7 +420,8 @@ function FoodStep({
         />
         {preview ? (
           <p className="text-sm text-muted-foreground">
-            Отдых {formatKcal(preview.rest.kcal)} ккал · тренировка{" "}
+            Жир и углеводы пока как обычно. Отдых{" "}
+            {formatKcal(preview.rest.kcal)} ккал · зал{" "}
             {formatKcal(preview.training.kcal)} ккал
           </p>
         ) : null}
@@ -401,9 +432,11 @@ function FoodStep({
 
 function CircleStep({
   value,
+  fromMealPack,
   onChange,
 }: {
   value: OnboardingCircle;
+  fromMealPack: boolean;
   onChange: (value: OnboardingCircle) => void;
 }) {
   const extraSelected = isExtraProgram(value);
@@ -418,7 +451,9 @@ function CircleStep({
   return (
     <>
       <p className="animate-rise text-base text-muted-foreground">
-        Поставь программу — и можно в зал. Потом поменяешь.
+        {fromMealPack
+          ? "Еду возьмём из ссылки. Поставь программу — и можно в зал."
+          : "Поставь программу — и можно в зал. Потом поменяешь."}
       </p>
       <ProgramPresetList
         value={isProgramPresetId(value) ? value : null}
@@ -489,7 +524,7 @@ function MaxesStep({
               htmlFor={`max-${exercise.id}`}
               className="min-w-0 flex-1 text-base font-medium"
             >
-              {exercise.short_name ?? exercise.name}
+              {exerciseShortLabel(exercise.short_name, exercise.name)}
             </Label>
             <Input
               id={`max-${exercise.id}`}
@@ -516,4 +551,18 @@ function titleForStep(step: Step): string {
     return "Зал";
   }
   return "Веса";
+}
+
+async function loadPendingPackKind(): Promise<SharePackKind | null> {
+  const token = peekPendingPackToken();
+  if (!token || !isPackToken(token)) {
+    return null;
+  }
+
+  try {
+    const data = await mutateJson(`/api/packs/${token}`);
+    return readSharePackPayload(data)?.kind ?? null;
+  } catch {
+    return null;
+  }
 }

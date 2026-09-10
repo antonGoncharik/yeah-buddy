@@ -43,13 +43,31 @@ export function exercisesForCircle(
   });
 }
 
+export const ONBOARDING_WEIGHT_NAMES = [
+  "Приседания со штангой",
+  "Жим лёжа",
+  "Тяга штанги в наклоне",
+  "Становая тяга",
+] as const;
+
 export function onboardingWeightExercises(
   circle: OnboardingCircleChoice,
   catalog: ExerciseWithMax[],
 ): ExerciseWithMax[] {
-  return exercisesForCircle(circle, catalog).filter(
+  const inCircle = exercisesForCircle(circle, catalog).filter(
     (exercise) => exercise.category === "base",
   );
+  const byName = new Map(
+    inCircle.map((exercise) => [exercise.name, exercise] as const),
+  );
+  const primary = ONBOARDING_WEIGHT_NAMES.flatMap((name) => {
+    const exercise = byName.get(name);
+    return exercise ? [exercise] : [];
+  });
+  if (primary.length > 0) {
+    return primary;
+  }
+  return inCircle.slice(0, 4);
 }
 
 export function scaledTemplateGrams(
