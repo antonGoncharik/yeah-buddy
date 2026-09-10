@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
 import { applyProgramPreset } from "@/lib/workout/templates";
 
@@ -16,16 +22,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, bodySchema, (data) =>
+    isProgramPresetId(data.preset),
+  );
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success || !isProgramPresetId(parsed.data.preset)) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  if (!isProgramPresetId(parsed.data.preset)) {
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
@@ -33,9 +38,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       auth.session.userId,
       parsed.data.preset,
     );
-    return NextResponse.json({ templates });
+    return jsonOk({ templates });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

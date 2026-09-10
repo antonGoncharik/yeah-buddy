@@ -11,7 +11,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, patchJson } from "@/lib/api-cache";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -87,15 +87,9 @@ export function FoodsScreen() {
     );
 
     try {
-      const response = await fetch(`/api/foods/${food.id}/favorite`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_favorite: nextValue }),
+      await patchJson(`/api/foods/${food.id}/favorite`, {
+        is_favorite: nextValue,
       });
-
-      if (!response.ok) {
-        throw new Error("favorite failed");
-      }
 
       if (filter === "favorites" && !nextValue) {
         setFoods((current) => current.filter((item) => item.id !== food.id));

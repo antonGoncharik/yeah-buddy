@@ -1,5 +1,12 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   addTemplateItem,
@@ -8,7 +15,7 @@ import {
   TemplateMealHiddenError,
   templateItemWriteSchema,
 } from "@/lib/meal-templates";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ dayType: string }>;
@@ -25,28 +32,12 @@ export async function POST(
 
   const { dayType } = await context.params;
   if (!isDayType(dayType)) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return jsonError(CHECK_FIELDS, 400);
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = templateItemWriteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, templateItemWriteSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -55,17 +46,11 @@ export async function POST(
       dayType,
       parsed.data,
     );
-    return NextResponse.json({ item });
+    return jsonOk({ item });
   } catch (error) {
-    if (error instanceof TemplateMealHiddenError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (error instanceof FoodNotFoundError) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(TemplateMealHiddenError, 400),
+      whenError(FoodNotFoundError, 404),
+    ]);
   }
 }

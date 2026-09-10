@@ -1,6 +1,13 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   createDayFromTemplate,
@@ -11,7 +18,7 @@ import {
   PastDayLockedError,
   previousIsoDate,
 } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 
 const createSchema = z.object({
   date: z.string(),
@@ -26,7 +33,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const date = new URL(request.url).searchParams.get("date") ?? "";
   if (!isIsoDate(date)) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
@@ -35,10 +42,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       dateHasDay(auth.session.userId, previousIsoDate(date)),
     ]);
 
-    return NextResponse.json({ day, yesterdayExists });
+    return jsonOk({ day, yesterdayExists });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -48,16 +54,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = createSchema.safeParse(body);
-  if (!parsed.success || !isIsoDate(parsed.data.date)) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, createSchema, (data) =>
+    isIsoDate(data.date),
+  );
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -66,20 +67,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.date,
       parsed.data.dayType,
     );
-    return NextResponse.json({ day });
+    return jsonOk({ day });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof DayConflictError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: 409 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PastDayLockedError, 409),
+      (err) =>
+        err instanceof DayConflictError
+          ? jsonError(err.message, 409, { code: err.code })
+          : null,
+    ]);
   }
 }

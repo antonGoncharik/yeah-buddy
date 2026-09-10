@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { postJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
 import { packPath } from "@/lib/share/pending";
@@ -25,24 +26,15 @@ export function PublishPackButton({
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/packs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
+      const data = await postJson("/api/packs", { kind });
       const pack = readSharePackPayload(data);
       if (!pack) {
         setError(LOAD_FAILED);
         return;
       }
       router.push(packPath(pack.token));
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
     }

@@ -1,6 +1,13 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   copyYesterday,
@@ -9,7 +16,6 @@ import {
   PastDayLockedError,
   YesterdayMissingError,
 } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
 
 const bodySchema = z.object({
   date: z.string(),
@@ -22,16 +28,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success || !isIsoDate(parsed.data.date)) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, bodySchema, (data) =>
+    isIsoDate(data.date),
+  );
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -40,24 +41,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.date,
       parsed.data.replace ?? false,
     );
-    return NextResponse.json({ day });
+    return jsonOk({ day });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof YesterdayMissingError) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    if (error instanceof DayConflictError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: 409 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PastDayLockedError, 409),
+      whenError(YesterdayMissingError, 404),
+      (err) =>
+        err instanceof DayConflictError
+          ? jsonError(err.message, 409, { code: err.code })
+          : null,
+    ]);
   }
 }

@@ -1,7 +1,13 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { getSessionDetail } from "@/lib/workout/session-work";
 import {
   cancelSession,
@@ -28,16 +34,12 @@ export async function GET(
   try {
     const detail = await getSessionDetail(auth.session.userId, id);
     if (!detail) {
-      return NextResponse.json(
-        { error: "Тренировка не найдена." },
-        { status: 404 },
-      );
+      return jsonError("Тренировка не найдена.", 404);
     }
 
-    return NextResponse.json(detail);
+    return jsonOk(detail);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -52,37 +54,20 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = patchSessionSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, patchSessionSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const session = await patchSession(auth.session.userId, id, parsed.data);
     if (!session) {
-      return NextResponse.json(
-        { error: "Тренировка не найдена." },
-        { status: 404 },
-      );
+      return jsonError("Тренировка не найдена.", 404);
     }
 
-    return NextResponse.json({ session });
+    return jsonOk({ session });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -100,19 +85,11 @@ export async function DELETE(
   try {
     const deleted = await cancelSession(auth.session.userId, id);
     if (!deleted) {
-      return NextResponse.json(
-        { error: "Тренировка не найдена." },
-        { status: 404 },
-      );
+      return jsonError("Тренировка не найдена.", 404);
     }
 
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    if (error instanceof SessionLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [whenError(SessionLockedError, 409)]);
   }
 }

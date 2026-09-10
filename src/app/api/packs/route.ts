@@ -1,8 +1,15 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 import {
   listOwnedPacks,
   PackEmptyError,
@@ -24,10 +31,9 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const packs = await listOwnedPacks(auth.session.userId);
-    return NextResponse.json({ packs });
+    return jsonOk({ packs });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -37,16 +43,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, bodySchema, (data) =>
+    isSharePackKind(data.kind),
+  );
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success || !isSharePackKind(parsed.data.kind)) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  if (!isSharePackKind(parsed.data.kind)) {
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
@@ -55,12 +60,11 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.kind,
       parsed.data.title,
     );
-    return NextResponse.json({ pack });
+    return jsonOk({ pack });
   } catch (error) {
-    if (error instanceof PackEmptyError || error instanceof PackLimitError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PackEmptyError, 400),
+      whenError(PackLimitError, 400),
+    ]);
   }
 }

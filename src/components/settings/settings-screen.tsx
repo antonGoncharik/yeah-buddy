@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet, writeJson } from "@/lib/api-cache";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { cachedGet, patchJson, writeJson } from "@/lib/api-cache";
+import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
@@ -95,7 +95,7 @@ export function SettingsScreen() {
 
     const payload = toPayload(form);
     if (!payload) {
-      setError("Проверь поля.");
+      setError(CHECK_FIELDS);
       setSaved(false);
       return;
     }
@@ -105,25 +105,15 @@ export function SettingsScreen() {
     setSaving(true);
 
     try {
-      const response = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      const data = await patchJson("/api/settings", payload);
       const settings = readSettings(data);
       if (settings) {
         setForm(toFormState(settings));
         writeJson("/api/settings", data);
       }
       setSaved(true);
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }

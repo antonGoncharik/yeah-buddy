@@ -143,7 +143,7 @@ export function parseTemplateDetail(
   };
 }
 
-function parseRecentSession(
+export function parseRecentSession(
   row: Record<string, unknown>,
 ): RecentWorkoutSession | null {
   const session = parseWorkoutSession(row.session);

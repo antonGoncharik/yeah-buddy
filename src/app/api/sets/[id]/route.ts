@@ -1,7 +1,13 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { patchSetSchema, patchWorkoutSet } from "@/lib/workout/session-work";
 
 type RouteContext = {
@@ -19,40 +25,19 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = patchSetSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, patchSetSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const detail = await patchWorkoutSet(auth.session.userId, id, parsed.data);
     if (!detail) {
-      return NextResponse.json({ error: "Подход не найден." }, { status: 404 });
+      return jsonError("Подход не найден.", 404);
     }
 
-    return NextResponse.json(detail);
+    return jsonOk(detail);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === "Напиши фактический вес."
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [whenMessage("Напиши фактический вес.", 400)]);
   }
 }

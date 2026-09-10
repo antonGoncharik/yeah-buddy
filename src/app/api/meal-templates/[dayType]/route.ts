@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { ensureMealTemplate, isDayType } from "@/lib/meal-templates";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ dayType: string }>;
@@ -19,17 +20,13 @@ export async function GET(
 
   const { dayType } = await context.params;
   if (!isDayType(dayType)) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
     const template = await ensureMealTemplate(auth.session.userId, dayType);
-    return NextResponse.json({ template });
+    return jsonOk({ template });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

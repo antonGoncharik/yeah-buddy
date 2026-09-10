@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { cachedGet } from "@/lib/api-cache";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
@@ -149,11 +149,15 @@ export function useWorkoutsHub() {
     setError(null);
 
     try {
-      const dayResponse = await fetch(
-        `/api/days?date=${encodeURIComponent(sessionDate)}`,
-      );
-      const dayData: unknown = await dayResponse.json().catch(() => null);
-      if (dayResponse.ok && isRestFoodDay(dayData)) {
+      let dayData: unknown = null;
+      try {
+        dayData = await mutateJson(
+          `/api/days?date=${encodeURIComponent(sessionDate)}`,
+        );
+      } catch {
+        dayData = null;
+      }
+      if (dayData && isRestFoodDay(dayData)) {
         const ok = await confirm({
           message:
             sessionDate === date
@@ -167,19 +171,10 @@ export function useWorkoutsHub() {
         }
       }
 
-      const response = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_date: sessionDate,
-          template_id: templateId,
-        }),
+      const data = await postJson("/api/sessions", {
+        session_date: sessionDate,
+        template_id: templateId,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
 
       const created = readTodaySession(data);
       if (created) {
@@ -188,8 +183,8 @@ export function useWorkoutsHub() {
       }
 
       await load();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setCreating(false);
     }
@@ -200,20 +195,10 @@ export function useWorkoutsHub() {
     setError(null);
 
     try {
-      const response = await fetch("/api/rotation/skip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_id: templateId }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      await postJson("/api/rotation/skip", { template_id: templateId });
       await load();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSkipping(false);
     }
@@ -224,18 +209,10 @@ export function useWorkoutsHub() {
     setError(null);
 
     try {
-      const response = await fetch("/api/rotation/unskip", {
-        method: "POST",
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      await mutateJson("/api/rotation/unskip", { method: "POST" });
       await load();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSkipping(false);
     }

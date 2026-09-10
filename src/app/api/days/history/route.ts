@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk, readHistoryQuery } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { isIsoDate } from "@/lib/day/dates";
 import { listDayHistory } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
 
 export async function GET(request: Request): Promise<NextResponse> {
   const auth = await requireSession();
@@ -11,27 +10,18 @@ export async function GET(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  const params = new URL(request.url).searchParams;
-  const before = params.get("before");
-  const limitRaw = params.get("limit");
-  const limit = limitRaw ? Number(limitRaw) : 30;
-
-  if (before && !isIsoDate(before)) {
-    return NextResponse.json({ error: "Проверь дату." }, { status: 400 });
-  }
-
-  if (!Number.isFinite(limit) || limit < 1) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const query = readHistoryQuery(request);
+  if (!query.ok) {
+    return query.response;
   }
 
   try {
     const page = await listDayHistory(auth.session.userId, {
-      before: before ?? undefined,
-      limit,
+      before: query.before,
+      limit: query.limit,
     });
-    return NextResponse.json(page);
+    return jsonOk(page);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

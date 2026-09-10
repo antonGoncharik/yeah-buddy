@@ -1,4 +1,17 @@
+import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly data: unknown;
+
+  constructor(message: string, status: number, data: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.data = data;
+  }
+}
 
 const PREFIX = "yb.v1:";
 const MAX_CHARS = 180_000;
@@ -46,13 +59,44 @@ export function writeJson(url: string, data: unknown): void {
   }
 }
 
-export async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url, { cache: "no-store" });
+export async function mutateJson(
+  url: string,
+  init: RequestInit = {},
+): Promise<unknown> {
+  const response = await fetch(url, { cache: "no-store", ...init });
+  const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error("load failed");
+    throw new ApiError(
+      readApiError(data) ?? LOAD_FAILED,
+      response.status,
+      data,
+    );
   }
+  return data;
+}
 
-  const data: unknown = await response.json();
+export async function postJson(url: string, body: unknown): Promise<unknown> {
+  return mutateJson(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchJson(url: string, body: unknown): Promise<unknown> {
+  return mutateJson(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteJson(url: string): Promise<unknown> {
+  return mutateJson(url, { method: "DELETE" });
+}
+
+export async function fetchJson(url: string): Promise<unknown> {
+  const data = await mutateJson(url);
   writeJson(url, data);
   return data;
 }

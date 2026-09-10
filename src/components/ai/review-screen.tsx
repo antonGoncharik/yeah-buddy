@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { parseReviewSnapshot } from "@/lib/ai/parse-review";
 import type { ReviewBrief, ReviewSnapshot, ReviewText } from "@/lib/ai/types";
+import { mutateJson, postJson } from "@/lib/api-cache";
 import {
   AI_REVIEW_EMPTY,
   AI_REVIEW_FAILED,
   AI_REVIEW_NO_KEY,
   LOAD_FAILED,
-  readApiError,
 } from "@/lib/messages";
 import { pluralDays } from "@/lib/nutrition-stats";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
@@ -39,15 +39,7 @@ export function ReviewScreen() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/ai/review?days=${days}`, {
-        cache: "no-store",
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        setSnapshot(null);
-        return;
-      }
+      const data = await mutateJson(`/api/ai/review?days=${days}`);
       const next = readSnapshot(data);
       if (!next) {
         setError(LOAD_FAILED);
@@ -55,8 +47,8 @@ export function ReviewScreen() {
         return;
       }
       setSnapshot(next);
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setSnapshot(null);
     } finally {
       setLoading(false);
@@ -71,24 +63,15 @@ export function ReviewScreen() {
     setWriting(true);
     setError(null);
     try {
-      const response = await fetch("/api/ai/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ days: Number(range) }),
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? AI_REVIEW_FAILED);
-        return;
-      }
+      const data = await postJson("/api/ai/review", { days: Number(range) });
       const next = readSnapshot(data);
       if (!next) {
         setError(AI_REVIEW_FAILED);
         return;
       }
       setSnapshot(next);
-    } catch {
-      setError(AI_REVIEW_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : AI_REVIEW_FAILED);
     } finally {
       setWriting(false);
     }

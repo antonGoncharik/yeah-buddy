@@ -62,6 +62,27 @@ export function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
   };
 }
 
+export function parseDayHistoryPayload(
+  row: Record<string, unknown>,
+): DayHistoryRow | null {
+  if (typeof row.date !== "string") {
+    return null;
+  }
+
+  return {
+    date: row.date,
+    is_training_day: Boolean(row.is_training_day),
+    target_protein: toNumber(row.target_protein),
+    target_fat: toNumber(row.target_fat),
+    target_carbs: toNumber(row.target_carbs),
+    target_kcal: toNumber(row.target_kcal),
+    fact_protein: toNumber(row.fact_protein),
+    fact_fat: toNumber(row.fact_fat),
+    fact_carbs: toNumber(row.fact_carbs),
+    fact_kcal: toNumber(row.fact_kcal),
+  };
+}
+
 export function mapMealItem(row: Record<string, unknown>): MealItem {
   return {
     id: String(row.id),

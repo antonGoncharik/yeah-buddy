@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { SortableList } from "@/components/workout/sortable-list";
-import { LOAD_FAILED, readApiError, WORKOUT_NOT_FOUND } from "@/lib/messages";
+import { patchJson, postJson } from "@/lib/api-cache";
+import { CHECK_FIELDS, LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type {
   ExerciseWithMax,
@@ -113,7 +114,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Проверь поля.");
+      setError(CHECK_FIELDS);
       return;
     }
 
@@ -121,29 +122,22 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     setError(null);
 
     try {
-      const response = await fetch(
-        templateId ? `/api/templates/${templateId}` : "/api/templates",
-        {
-          method: templateId ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: trimmed,
-            kind,
-            is_active: isActive,
-            exercise_ids: exerciseIds,
-          }),
-        },
-      );
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
+      const payload = {
+        name: trimmed,
+        kind,
+        is_active: isActive,
+        exercise_ids: exerciseIds,
+      };
+      if (templateId) {
+        await patchJson(`/api/templates/${templateId}`, payload);
+      } else {
+        await postJson("/api/templates", payload);
       }
 
       router.push("/workouts/schedule");
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }

@@ -6,7 +6,8 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { patchJson, postJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
 
 const QUICK_GRAMS = [10, 50, 100, 150, 200, 250, 300, 400];
@@ -161,15 +162,7 @@ export function GramsScreen({
 }
 
 export async function saveMealItemGrams(itemId: string, grams: number) {
-  const response = await fetch(`/api/meal-items/${itemId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grams }),
-  });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(readApiError(data) ?? LOAD_FAILED);
-  }
+  await patchJson(`/api/meal-items/${itemId}`, { grams });
 }
 
 export async function addMealItemGrams(
@@ -177,15 +170,7 @@ export async function addMealItemGrams(
   foodId: string,
   grams: number,
 ) {
-  const response = await fetch(`/api/meals/${mealId}/items`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ foodId, grams }),
-  });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(readApiError(data) ?? LOAD_FAILED);
-  }
+  await postJson(`/api/meals/${mealId}/items`, { foodId, grams });
 }
 
 export async function addTemplateItemGrams(
@@ -194,25 +179,13 @@ export async function addTemplateItemGrams(
   foodId: string,
   grams: number,
 ) {
-  const response = await fetch(`/api/meal-templates/${dayType}/items`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mealType, foodId, grams }),
+  await postJson(`/api/meal-templates/${dayType}/items`, {
+    mealType,
+    foodId,
+    grams,
   });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(readApiError(data) ?? LOAD_FAILED);
-  }
 }
 
 export async function saveTemplateItemGrams(itemId: string, grams: number) {
-  const response = await fetch(`/api/meal-template-items/${itemId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ grams }),
-  });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(readApiError(data) ?? LOAD_FAILED);
-  }
+  await patchJson(`/api/meal-template-items/${itemId}`, { grams });
 }

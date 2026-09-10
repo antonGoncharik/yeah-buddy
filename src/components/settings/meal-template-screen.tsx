@@ -9,9 +9,9 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, deleteJson } from "@/lib/api-cache";
 import { readMealTemplatePayload } from "@/lib/meal-map";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { LOAD_FAILED } from "@/lib/messages";
 import {
   calcKcalFromMacros,
   DAY_TEMPLATE_TITLES,
@@ -150,15 +150,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/meal-template-items/${item.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const data: unknown = await response.json().catch(() => null);
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      await deleteJson(`/api/meal-template-items/${item.id}`);
       setTemplate((current) =>
         current
           ? {
@@ -167,8 +159,8 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
             }
           : current,
       );
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
     }

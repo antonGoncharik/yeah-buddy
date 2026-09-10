@@ -1,5 +1,11 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   deleteTemplateItem,
@@ -9,7 +15,7 @@ import {
   templateItemGramsSchema,
   updateTemplateItemGrams,
 } from "@/lib/meal-templates";
-import { LOAD_FAILED } from "@/lib/messages";
+import { NOT_FOUND } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -29,23 +35,15 @@ export async function GET(
   try {
     const item = await getTemplateItem(auth.session.userId, id);
     if (!item) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
+      return jsonError(NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ item });
+    return jsonOk({ item });
   } catch (error) {
-    if (error instanceof FoodNotFoundError) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      (err) =>
+        err instanceof FoodNotFoundError ? jsonError(NOT_FOUND, 404) : null,
+    ]);
   }
 }
 
@@ -60,22 +58,9 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = templateItemGramsSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, templateItemGramsSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -84,20 +69,15 @@ export async function PATCH(
       id,
       parsed.data.grams,
     );
-    return NextResponse.json({ item });
+    return jsonOk({ item });
   } catch (error) {
-    if (
-      error instanceof MealTemplateItemNotFoundError ||
-      error instanceof FoodNotFoundError
-    ) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      (err) =>
+        err instanceof MealTemplateItemNotFoundError ||
+        err instanceof FoodNotFoundError
+          ? jsonError(NOT_FOUND, 404)
+          : null,
+    ]);
   }
 }
 
@@ -115,15 +95,11 @@ export async function DELETE(
   try {
     const deleted = await deleteTemplateItem(auth.session.userId, id);
     if (!deleted) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
+      return jsonError(NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

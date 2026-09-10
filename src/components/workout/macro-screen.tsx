@@ -10,8 +10,8 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
-import { cachedGet } from "@/lib/api-cache";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
@@ -94,23 +94,13 @@ export function MacroScreen() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/phases/${state.phase.id}/maxes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          exercise_id: exerciseId,
-          max_weight: weight,
-        }),
+      await postJson(`/api/phases/${state.phase.id}/maxes`, {
+        exercise_id: exerciseId,
+        max_weight: weight,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
       await load();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSavingId(null);
     }
@@ -121,13 +111,7 @@ export function MacroScreen() {
     setTransitioning(true);
 
     try {
-      const response = await fetch("/api/macros/transition");
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      const data = await mutateJson("/api/macros/transition");
       const next = readPreview(data);
       if (!next) {
         setError(LOAD_FAILED);
@@ -144,8 +128,8 @@ export function MacroScreen() {
           ]),
         ),
       );
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setTransitioning(false);
     }
@@ -170,25 +154,15 @@ export function MacroScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/macros/transition", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          end_date: transitionDate,
-          maxes,
-        }),
+      await postJson("/api/macros/transition", {
+        end_date: transitionDate,
+        maxes,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
       setPreview(null);
       setJustClosed(closingMacro);
       await load();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setTransitioning(false);
     }

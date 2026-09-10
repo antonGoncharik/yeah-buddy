@@ -1,9 +1,15 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { addMealItem, PastDayLockedError } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ mealId: string }>;
@@ -25,16 +31,9 @@ export async function POST(
 
   const { mealId } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, bodySchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -44,27 +43,12 @@ export async function POST(
       parsed.data.foodId,
       parsed.data.grams,
     );
-    return NextResponse.json({ item });
+    return jsonOk({ item });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof Error && error.message === "Meal not found") {
-      return NextResponse.json(
-        { error: "Приём пищи не найден." },
-        { status: 404 },
-      );
-    }
-
-    if (error instanceof Error && error.message === "Food not found") {
-      return NextResponse.json(
-        { error: "Продукт не найден." },
-        { status: 404 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PastDayLockedError, 409),
+      whenMessage("Meal not found", 404, "Приём пищи не найден."),
+      whenMessage("Food not found", 404, "Продукт не найден."),
+    ]);
   }
 }

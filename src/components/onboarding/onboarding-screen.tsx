@@ -10,8 +10,8 @@ import { TelegramBackButton } from "@/components/layout/telegram-back-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { writeJson } from "@/lib/api-cache";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { mutateJson, postJson, writeJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding-map";
@@ -50,11 +50,7 @@ export function OnboardingScreen() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/onboarding", { cache: "no-store" });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(readApiError(data) ?? LOAD_FAILED);
-      }
+      const data = await mutateJson("/api/onboarding");
       const onboarding = readOnboarding(data);
       if (!onboarding) {
         throw new Error(LOAD_FAILED);
@@ -77,8 +73,8 @@ export function OnboardingScreen() {
         ),
       );
       setStep("food");
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
     } finally {
       setLoading(false);
@@ -179,20 +175,11 @@ export function OnboardingScreen() {
         return [{ exerciseId, maxWeight }];
       });
 
-      const response = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...(omitProtein ? {} : { protein: proteinValue }),
-          circle: replay ? "keep" : circle,
-          maxes: state?.maxesLocked ? [] : maxes,
-        }),
+      const data = await postJson("/api/onboarding", {
+        ...(omitProtein ? {} : { protein: proteinValue }),
+        circle: replay ? "keep" : circle,
+        maxes: state?.maxesLocked ? [] : maxes,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
 
       const onboarding = readOnboarding(data);
       if (onboarding) {
@@ -205,8 +192,8 @@ export function OnboardingScreen() {
         pending && isPackToken(pending) ? packPath(pending) : "/today",
       );
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }

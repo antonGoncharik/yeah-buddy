@@ -1,8 +1,15 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { isIsoDate } from "@/lib/day/dates";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_DATE } from "@/lib/messages";
 import {
   createSession,
   createSessionSchema,
@@ -20,15 +27,14 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const date = new URL(request.url).searchParams.get("date");
   if (!date || !isIsoDate(date)) {
-    return NextResponse.json({ error: "Проверь дату." }, { status: 400 });
+    return jsonError(CHECK_DATE, 400);
   }
 
   try {
     const today = await getTodayWorkoutState(auth.session.userId, date);
-    return NextResponse.json(today);
+    return jsonOk(today);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -38,34 +44,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = createSessionSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, createSessionSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const session = await createSession(auth.session.userId, parsed.data);
-    return NextResponse.json({ session });
+    return jsonOk({ session });
   } catch (error) {
-    if (error instanceof SessionNeedsMaxesError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    if (
-      error instanceof SessionConflictError ||
-      error instanceof TemplateNotFoundError
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(SessionNeedsMaxesError, 400),
+      whenError(SessionConflictError, 409),
+      whenError(TemplateNotFoundError, 409),
+    ]);
   }
 }

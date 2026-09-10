@@ -11,12 +11,11 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { writeJson } from "@/lib/api-cache";
+import { patchJson, postJson, writeJson } from "@/lib/api-cache";
 import {
   LOAD_FAILED,
   NEED_ALL_WORKING_WEIGHTS,
   NEED_CYCLE_PHASES,
-  readApiError,
 } from "@/lib/messages";
 import type {
   CyclePhaseDef,
@@ -95,19 +94,10 @@ export function NewMacroScreen() {
     setError(null);
     const next = withCycle(formulas, cycle);
     try {
-      const response = await fetch("/api/workout-settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          max_increase_percent: maxIncrease,
-          formulas: next,
-        }),
+      const data = await patchJson("/api/workout-settings", {
+        max_increase_percent: maxIncrease,
+        formulas: next,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
       const settings = readWorkoutSettingsPayload(data);
       if (settings) {
         setFormulas(settings.formulas);
@@ -115,8 +105,8 @@ export function NewMacroScreen() {
       } else {
         setFormulas(next);
       }
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setApplying(false);
     }
@@ -146,25 +136,15 @@ export function NewMacroScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/macros", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          start_date: startDate,
-          note: note.trim() === "" ? null : note.trim(),
-          maxes: payloadMaxes,
-        }),
+      await postJson("/api/macros", {
+        start_date: startDate,
+        note: note.trim() === "" ? null : note.trim(),
+        maxes: payloadMaxes,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
       router.push("/workouts/macro");
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }

@@ -1,7 +1,13 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
+import { WORKOUT_NOT_FOUND } from "@/lib/messages";
 import {
   getTemplate,
   templateWriteSchema,
@@ -26,13 +32,12 @@ export async function GET(
   try {
     const template = await getTemplate(auth.session.userId, id);
     if (!template) {
-      return NextResponse.json({ error: WORKOUT_NOT_FOUND }, { status: 404 });
+      return jsonError(WORKOUT_NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ template });
+    return jsonOk({ template });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -47,27 +52,19 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = templateWriteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, templateWriteSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const template = await updateTemplate(auth.session.userId, id, parsed.data);
     if (!template) {
-      return NextResponse.json({ error: WORKOUT_NOT_FOUND }, { status: 404 });
+      return jsonError(WORKOUT_NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ template });
+    return jsonOk({ template });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

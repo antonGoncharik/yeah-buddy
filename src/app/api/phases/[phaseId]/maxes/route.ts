@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { phaseMaxInputSchema, setPhaseMax } from "@/lib/workout/macros";
 import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 
@@ -20,16 +25,9 @@ export async function POST(
 
   const { phaseId } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = phaseMaxInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, phaseMaxInputSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -39,13 +37,8 @@ export async function POST(
       parsed.data,
     );
     await rebuildTodaysPlannedSession(auth.session.userId);
-    return NextResponse.json({ phase_max: phaseMax });
+    return jsonOk({ phase_max: phaseMax });
   } catch (error) {
-    if (error instanceof Error && error.message === "Этап не найден.") {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [whenMessage("Этап не найден.", 404)]);
   }
 }

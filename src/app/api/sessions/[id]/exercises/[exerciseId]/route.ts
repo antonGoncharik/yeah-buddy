@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonError, jsonOk, whenMessage } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { removeSessionExercise } from "@/lib/workout/session-work";
 
 type RouteContext = {
@@ -26,23 +26,14 @@ export async function DELETE(
       exerciseId,
     );
     if (!detail) {
-      return NextResponse.json(
-        { error: "Тренировка не найдена." },
-        { status: 404 },
-      );
+      return jsonError("Тренировка не найдена.", 404);
     }
 
-    return NextResponse.json(detail);
+    return jsonOk(detail);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message === "Упражнение не найдено в тренировке." ||
-        error.message === "Нельзя убрать упражнение с выполненными подходами.")
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenMessage("Упражнение не найдено в тренировке.", 400),
+      whenMessage("Нельзя убрать упражнение с выполненными подходами.", 400),
+    ]);
   }
 }

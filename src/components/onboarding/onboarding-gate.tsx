@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isOnboardingCompleted, readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
@@ -15,12 +16,7 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const check = useCallback(async () => {
     setState("loading");
     try {
-      const response = await fetch("/api/settings", { cache: "no-store" });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error("settings failed");
-      }
-
+      const data = await mutateJson("/api/settings");
       const settings = readSettings(data);
       if (!settings) {
         throw new Error("settings failed");

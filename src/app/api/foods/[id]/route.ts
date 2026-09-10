@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { deleteFood, getFood, updateFood } from "@/lib/food/store";
 import { foodInputSchema } from "@/lib/foods";
-import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -25,13 +30,12 @@ export async function GET(
   try {
     const food = await getFood(auth.session.userId, id);
     if (!food) {
-      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
+      return jsonError(FOOD_NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ food });
+    return jsonOk({ food });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -46,28 +50,20 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = foodInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, foodInputSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const food = await updateFood(auth.session.userId, id, parsed.data);
     if (!food) {
-      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
+      return jsonError(FOOD_NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ food });
+    return jsonOk({ food });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -85,12 +81,11 @@ export async function DELETE(
   try {
     const deleted = await deleteFood(auth.session.userId, id);
     if (!deleted) {
-      return NextResponse.json({ error: FOOD_NOT_FOUND }, { status: 404 });
+      return jsonError(FOOD_NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

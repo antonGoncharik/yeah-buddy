@@ -8,7 +8,8 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { LOAD_FAILED, PACK_NOT_FOUND, readApiError } from "@/lib/messages";
+import { ApiError, mutateJson } from "@/lib/api-cache";
+import { LOAD_FAILED, PACK_NOT_FOUND } from "@/lib/messages";
 import {
   DAY_TEMPLATE_TITLES,
   formatKcal,
@@ -33,26 +34,19 @@ export function PackDetailScreen({ token }: { token: string }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/packs/${token}`, {
-        cache: "no-store",
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (response.status === 404) {
-        setPack(null);
-        setError(PACK_NOT_FOUND);
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(readApiError(data) ?? LOAD_FAILED);
-      }
+      const data = await mutateJson(`/api/packs/${token}`);
       const loaded = readSharePackPayload(data);
       if (!loaded) {
         throw new Error(LOAD_FAILED);
       }
       setPack(loaded);
-    } catch {
+    } catch (caught) {
       setPack(null);
-      setError(LOAD_FAILED);
+      if (caught instanceof ApiError && caught.status === 404) {
+        setError(PACK_NOT_FOUND);
+        return;
+      }
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setLoading(false);
     }
@@ -69,20 +63,15 @@ export function PackDetailScreen({ token }: { token: string }) {
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(`/api/packs/${pack.token}/save`, {
+      const data = await mutateJson(`/api/packs/${pack.token}/save`, {
         method: "POST",
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
       const loaded = readSharePackPayload(data);
       if (loaded) {
         setPack(loaded);
       }
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
     }
@@ -107,19 +96,12 @@ export function PackDetailScreen({ token }: { token: string }) {
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(`/api/packs/${pack.token}/apply`, {
-        method: "POST",
-      });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
+      await mutateJson(`/api/packs/${pack.token}/apply`, { method: "POST" });
       router.replace(
         pack.kind === "meals" ? "/settings/meals" : "/workouts/schedule",
       );
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
     }
@@ -155,20 +137,15 @@ export function PackDetailScreen({ token }: { token: string }) {
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(`/api/packs/${pack.token}/revoke`, {
+      const data = await mutateJson(`/api/packs/${pack.token}/revoke`, {
         method: "POST",
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
       const loaded = readSharePackPayload(data);
       if (loaded) {
         setPack(loaded);
       }
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
     }

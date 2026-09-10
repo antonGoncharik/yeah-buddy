@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import {
   getUserSettings,
   saveUserSettings,
@@ -17,16 +22,12 @@ export async function GET(): Promise<NextResponse> {
   try {
     const settings = await getUserSettings(auth.session.userId);
     if (!settings) {
-      return NextResponse.json(
-        { error: "Настройки не нашлись." },
-        { status: 404 },
-      );
+      return jsonError("Настройки не нашлись.", 404);
     }
 
-    return NextResponse.json({ settings });
+    return jsonOk({ settings });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -36,29 +37,15 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = settingsInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, settingsInputSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const settings = await saveUserSettings(auth.session.userId, parsed.data);
-    return NextResponse.json({ settings });
+    return jsonOk({ settings });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

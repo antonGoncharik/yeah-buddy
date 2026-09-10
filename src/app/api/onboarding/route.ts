@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import {
   completeOnboarding,
   getOnboardingState,
@@ -16,10 +16,9 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const onboarding = await getOnboardingState(auth.session.userId);
-    return NextResponse.json({ onboarding });
+    return jsonOk({ onboarding });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -29,22 +28,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = onboardingCompleteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, onboardingCompleteSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -52,9 +38,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       auth.session.userId,
       parsed.data,
     );
-    return NextResponse.json({ onboarding });
+    return jsonOk({ onboarding });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

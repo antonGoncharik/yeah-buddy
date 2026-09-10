@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import {
@@ -6,8 +6,14 @@ import {
   getReviewSnapshot,
   parseReviewRange,
 } from "@/lib/ai/review";
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,18 +33,14 @@ export async function GET(request: Request): Promise<NextResponse> {
     new URL(request.url).searchParams.get("days") ?? "14",
   );
   if (!days) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
     const snapshot = await getReviewSnapshot(auth.session.userId, days);
-    return NextResponse.json(snapshot);
+    return jsonOk(snapshot);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -48,36 +50,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, bodySchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const snapshot = await createReview(auth.session.userId, parsed.data.days);
-    return NextResponse.json(snapshot);
+    return jsonOk(snapshot);
   } catch (error) {
-    if (error instanceof ReviewError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: reviewStatus(error.code) },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      (err) =>
+        err instanceof ReviewError
+          ? jsonError(err.message, reviewStatus(err.code))
+          : null,
+    ]);
   }
 }

@@ -1,6 +1,14 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   deleteMealItem,
@@ -9,7 +17,7 @@ import {
   PastDayLockedError,
   updateMealItemGrams,
 } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
+import { NOT_FOUND } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -33,18 +41,14 @@ export async function GET(
   try {
     const item = await getMealItem(auth.session.userId, id);
     if (!item) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
+      return jsonError(NOT_FOUND, 404);
     }
 
     const date = await getDateForMeal(auth.session.userId, item.meal_id);
 
-    return NextResponse.json({ item, date });
+    return jsonOk({ item, date });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -59,16 +63,9 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, patchSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -77,21 +74,12 @@ export async function PATCH(
       id,
       parsed.data.grams,
     );
-    return NextResponse.json({ item });
+    return jsonOk({ item });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof Error && error.message === "Meal item not found") {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PastDayLockedError, 409),
+      whenMessage("Meal item not found", 404, NOT_FOUND),
+    ]);
   }
 }
 
@@ -109,19 +97,11 @@ export async function DELETE(
   try {
     const deleted = await deleteMealItem(auth.session.userId, id);
     if (!deleted) {
-      return NextResponse.json(
-        { error: "Запись не найдена." },
-        { status: 404 },
-      );
+      return jsonError(NOT_FOUND, 404);
     }
 
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [whenError(PastDayLockedError, 409)]);
   }
 }

@@ -1,23 +1,20 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
-import { ru } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet, fetchJson } from "@/lib/api-cache";
+import { calendarToday } from "@/lib/day/dates";
+import { formatIsoDate, groupByMonth } from "@/lib/day/format";
+import { REVIEW_CTA_HINT, SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import {
-  LOAD_FAILED,
-  REVIEW_CTA_HINT,
-  SESSION_HISTORY_EMPTY,
-} from "@/lib/messages";
-import { isRecord, mapRecordList } from "@/lib/read";
-import type { RecentWorkoutSession } from "@/lib/types";
+  HISTORY_RANGE_OPTIONS,
+  useCursorHistory,
+} from "@/lib/use-cursor-history";
 import {
   hasOlderThanRange,
   isWorkoutHistoryRange,
@@ -27,72 +24,19 @@ import {
   type WorkoutHistoryStats,
   windowGymSessions,
 } from "@/lib/workout/history-stats";
+import { parseRecentSession } from "@/lib/workout/hub-payload";
 import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
-import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
 type RangeId = "14" | "30";
 
-const RANGE_OPTIONS: Array<{ id: RangeId; label: string }> = [
-  { id: "14", label: "14 дней" },
-  { id: "30", label: "30 дней" },
-];
-
-function todayIsoDate(): string {
-  return format(new Date(), "yyyy-MM-dd");
-}
-
 export function WorkoutHistoryScreen() {
-  const today = todayIsoDate();
-  const [items, setItems] = useState<RecentWorkoutSession[]>([]);
-  const [nextBefore, setNextBefore] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const today = calendarToday();
+  const { items, nextBefore, loading, loadingMore, error, load } =
+    useCursorHistory("/api/sessions/history", parseRecentSession);
   const [range, setRange] = useState<RangeId>("14");
-
-  const load = useCallback(async (before?: string) => {
-    const appending = Boolean(before);
-    if (appending) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-    }
-    setError(null);
-
-    try {
-      const query = before ? `?before=${encodeURIComponent(before)}` : "";
-      const url = `/api/sessions/history${query}`;
-      if (appending) {
-        const data = await fetchJson(url);
-        const page = readPage(data);
-        setItems((current) => [...current, ...page.items]);
-        setNextBefore(page.next_before);
-      } else {
-        await cachedGet(url, (data) => {
-          const page = readPage(data);
-          setItems(page.items);
-          setNextBefore(page.next_before);
-          return true;
-        });
-      }
-    } catch {
-      setError(LOAD_FAILED);
-      if (!appending) {
-        setItems([]);
-        setNextBefore(null);
-      }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const parsedRange = Number(range);
   const rangeDays = isWorkoutHistoryRange(parsedRange) ? parsedRange : 14;
@@ -101,7 +45,10 @@ export function WorkoutHistoryScreen() {
     [items, rangeDays, today],
   );
   const stats = useMemo(() => summarizeWorkoutHistory(windowed), [windowed]);
-  const groups = useMemo(() => groupByMonth(items), [items]);
+  const groups = useMemo(
+    () => groupByMonth(items, (item) => item.session.session_date),
+    [items],
+  );
   const showRange = hasOlderThanRange(items, 14, today);
   const showStats = !loading && stats.count > 0;
 
@@ -113,15 +60,7 @@ export function WorkoutHistoryScreen() {
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && items.length === 0 ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center text-lg font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
@@ -134,7 +73,7 @@ export function WorkoutHistoryScreen() {
           <div className="animate-rise">
             <Segmented
               value={range}
-              options={RANGE_OPTIONS}
+              options={HISTORY_RANGE_OPTIONS}
               onChange={setRange}
             />
           </div>
@@ -190,7 +129,7 @@ export function WorkoutHistoryScreen() {
                           ) : null}
                         </span>
                         <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
-                          {formatDay(item.session.session_date)}
+                          {formatIsoDate(item.session.session_date, "d MMMM")}
                           <ChevronRight className="size-4" aria-hidden />
                         </span>
                       </Link>
@@ -295,81 +234,4 @@ function HitRow({
       </div>
     </div>
   );
-}
-
-function readPage(data: unknown): {
-  items: RecentWorkoutSession[];
-  next_before: string | null;
-} {
-  if (!isRecord(data)) {
-    return { items: [], next_before: null };
-  }
-
-  return {
-    items: mapRecordList(data.items, parseHistoryItem),
-    next_before: typeof data.next_before === "string" ? data.next_before : null,
-  };
-}
-
-function parseHistoryItem(
-  row: Record<string, unknown>,
-): RecentWorkoutSession | null {
-  const session = parseWorkoutSession(row.session);
-  if (!session) {
-    return null;
-  }
-
-  return {
-    session,
-    template_name:
-      typeof row.template_name === "string" ? row.template_name : null,
-    summary: typeof row.summary === "string" ? row.summary : null,
-    plan_hit: Number(row.plan_hit) || 0,
-    plan_total: Number(row.plan_total) || 0,
-  };
-}
-
-function groupByMonth(items: RecentWorkoutSession[]): Array<{
-  key: string;
-  label: string;
-  items: RecentWorkoutSession[];
-}> {
-  const groups: Array<{
-    key: string;
-    label: string;
-    items: RecentWorkoutSession[];
-  }> = [];
-
-  for (const item of items) {
-    const key = item.session.session_date.slice(0, 7);
-    const last = groups.at(-1);
-    if (last?.key === key) {
-      last.items.push(item);
-      continue;
-    }
-
-    groups.push({
-      key,
-      label: formatMonth(key),
-      items: [item],
-    });
-  }
-
-  return groups;
-}
-
-function formatMonth(yearMonth: string): string {
-  try {
-    return format(parseISO(`${yearMonth}-01`), "LLLL yyyy", { locale: ru });
-  } catch {
-    return yearMonth;
-  }
-}
-
-function formatDay(isoDate: string): string {
-  try {
-    return format(parseISO(isoDate), "d MMMM", { locale: ru });
-  } catch {
-    return isoDate;
-  }
 }

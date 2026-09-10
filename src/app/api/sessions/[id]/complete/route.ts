@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import {
   completeSessionAsPlanned,
   completeSessionSchema,
@@ -31,10 +32,7 @@ export async function POST(
 
   const parsed = completeSessionSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
@@ -44,16 +42,13 @@ export async function POST(
       parsed.data,
     );
     if (!detail) {
-      return NextResponse.json(
-        { error: "Тренировка не найдена." },
-        { status: 404 },
-      );
+      return jsonError("Тренировка не найдена.", 404);
     }
 
-    return NextResponse.json(detail);
+    return jsonOk(detail);
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : LOAD_FAILED;
-    return NextResponse.json({ error: message }, { status: 400 });
+    return jsonError(message, 400);
   }
 }

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { getStrengthProgress } from "@/lib/workout/progress";
 
 export async function GET(): Promise<NextResponse> {
@@ -12,9 +12,8 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const progress = await getStrengthProgress(auth.session.userId);
-    return NextResponse.json(progress);
+    return jsonOk(progress);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

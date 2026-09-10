@@ -1,24 +1,19 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
-import { ru } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet, fetchJson } from "@/lib/api-cache";
-import { todayHistoryDayHref } from "@/lib/day/dates";
-import {
-  LOAD_FAILED,
-  NUTRITION_HISTORY_EMPTY,
-  REVIEW_CTA_HINT,
-} from "@/lib/messages";
+import { calendarToday, todayHistoryDayHref } from "@/lib/day/dates";
+import { formatIsoDate, groupByMonth } from "@/lib/day/format";
+import { parseDayHistoryPayload } from "@/lib/day/map";
+import { NUTRITION_HISTORY_EMPTY, REVIEW_CTA_HINT } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   chronological,
@@ -33,16 +28,13 @@ import {
   splitAverages,
   windowDays,
 } from "@/lib/nutrition-stats";
-import { isRecord, mapRecordList } from "@/lib/read";
-import type { DayHistoryRow } from "@/lib/types";
+import {
+  HISTORY_RANGE_OPTIONS,
+  useCursorHistory,
+} from "@/lib/use-cursor-history";
 import { cn } from "@/lib/utils";
 
 type RangeId = "14" | "30";
-
-const RANGE_OPTIONS: Array<{ id: RangeId; label: string }> = [
-  { id: "14", label: "14 дней" },
-  { id: "30", label: "30 дней" },
-];
 
 const METRIC_OPTIONS: Array<{ id: NutritionMetric; label: string }> = [
   { id: "protein", label: "Б" },
@@ -52,56 +44,12 @@ const METRIC_OPTIONS: Array<{ id: NutritionMetric; label: string }> = [
 ];
 
 export function NutritionHistoryScreen() {
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = calendarToday();
   const fromSettings = useSearchParams().get("from") === "settings";
-  const [items, setItems] = useState<DayHistoryRow[]>([]);
-  const [nextBefore, setNextBefore] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { items, nextBefore, loading, loadingMore, error, load } =
+    useCursorHistory("/api/days/history", parseDayHistoryPayload);
   const [range, setRange] = useState<RangeId>("14");
   const [metric, setMetric] = useState<NutritionMetric>("protein");
-
-  const load = useCallback(async (before?: string) => {
-    const appending = Boolean(before);
-    if (appending) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-    }
-    setError(null);
-
-    try {
-      const query = before ? `?before=${encodeURIComponent(before)}` : "";
-      const url = `/api/days/history${query}`;
-      if (appending) {
-        const data = await fetchJson(url);
-        const page = readPage(data);
-        setItems((current) => [...current, ...page.items]);
-        setNextBefore(page.next_before);
-      } else {
-        await cachedGet(url, (data) => {
-          const page = readPage(data);
-          setItems(page.items);
-          setNextBefore(page.next_before);
-          return true;
-        });
-      }
-    } catch {
-      setError(LOAD_FAILED);
-      if (!appending) {
-        setItems([]);
-        setNextBefore(null);
-      }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const parsedRange = Number(range);
   const rangeDays = isNutritionRange(parsedRange) ? parsedRange : 14;
@@ -112,7 +60,10 @@ export function NutritionHistoryScreen() {
   const averages = useMemo(() => splitAverages(windowed), [windowed]);
   const hits = useMemo(() => nutritionHits(windowed), [windowed]);
   const chartDays = useMemo(() => chronological(windowed), [windowed]);
-  const groups = useMemo(() => groupByMonth(items), [items]);
+  const groups = useMemo(
+    () => groupByMonth(items, (item) => item.date),
+    [items],
+  );
   const showStats = !loading && windowed.length > 0;
   const showRange = hasOlderThanRange(items, 14, today);
 
@@ -140,7 +91,7 @@ export function NutritionHistoryScreen() {
           <div className="animate-rise">
             <Segmented
               value={range}
-              options={RANGE_OPTIONS}
+              options={HISTORY_RANGE_OPTIONS}
               onChange={setRange}
             />
           </div>
@@ -206,7 +157,7 @@ export function NutritionHistoryScreen() {
                         <span className="flex min-w-0 flex-1 flex-col gap-3">
                           <div className="flex items-baseline justify-between gap-3">
                             <span className="text-base font-medium">
-                              {formatDay(item.date)}
+                              {formatIsoDate(item.date, "EEEE, d MMMM")}
                             </span>
                             <span className="text-sm text-muted-foreground">
                               {item.is_training_day
@@ -405,83 +356,4 @@ function MiniBar({
       />
     </div>
   );
-}
-
-function readPage(data: unknown): {
-  items: DayHistoryRow[];
-  next_before: string | null;
-} {
-  if (!isRecord(data)) {
-    return { items: [], next_before: null };
-  }
-
-  return {
-    items: mapRecordList(data.items, parseDayHistoryRow),
-    next_before: typeof data.next_before === "string" ? data.next_before : null,
-  };
-}
-
-function parseDayHistoryRow(
-  row: Record<string, unknown>,
-): DayHistoryRow | null {
-  if (typeof row.date !== "string") {
-    return null;
-  }
-
-  return {
-    date: row.date,
-    is_training_day: Boolean(row.is_training_day),
-    target_protein: Number(row.target_protein) || 0,
-    target_fat: Number(row.target_fat) || 0,
-    target_carbs: Number(row.target_carbs) || 0,
-    target_kcal: Number(row.target_kcal) || 0,
-    fact_protein: Number(row.fact_protein) || 0,
-    fact_fat: Number(row.fact_fat) || 0,
-    fact_carbs: Number(row.fact_carbs) || 0,
-    fact_kcal: Number(row.fact_kcal) || 0,
-  };
-}
-
-function groupByMonth(items: DayHistoryRow[]): Array<{
-  key: string;
-  label: string;
-  items: DayHistoryRow[];
-}> {
-  const groups: Array<{
-    key: string;
-    label: string;
-    items: DayHistoryRow[];
-  }> = [];
-
-  for (const item of items) {
-    const key = item.date.slice(0, 7);
-    const last = groups.at(-1);
-    if (last?.key === key) {
-      last.items.push(item);
-      continue;
-    }
-    groups.push({
-      key,
-      label: formatMonth(key),
-      items: [item],
-    });
-  }
-
-  return groups;
-}
-
-function formatMonth(yearMonth: string): string {
-  try {
-    return format(parseISO(`${yearMonth}-01`), "LLLL yyyy", { locale: ru });
-  } catch {
-    return yearMonth;
-  }
-}
-
-function formatDay(isoDate: string): string {
-  try {
-    return format(parseISO(isoDate), "EEEE, d MMMM", { locale: ru });
-  } catch {
-    return isoDate;
-  }
 }

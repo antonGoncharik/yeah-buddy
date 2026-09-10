@@ -1,9 +1,15 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { PastDayLockedError, setDayType } from "@/lib/days";
-import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -24,31 +30,18 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, bodySchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const day = await setDayType(auth.session.userId, id, parsed.data.dayType);
-    return NextResponse.json({ day });
+    return jsonOk({ day });
   } catch (error) {
-    if (error instanceof PastDayLockedError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof Error && error.message === "Day not found") {
-      return NextResponse.json({ error: "День не найден." }, { status: 404 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(PastDayLockedError, 409),
+      whenMessage("Day not found", 404, "День не найден."),
+    ]);
   }
 }

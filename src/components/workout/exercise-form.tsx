@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input, nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { mutateJson, patchJson, postJson } from "@/lib/api-cache";
+import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import type {
   ExerciseCategory,
   ExerciseWithMax,
@@ -54,9 +55,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
     async function loadMacro() {
       try {
-        const response = await fetch("/api/macros");
-        const data: unknown = await response.json().catch(() => null);
-        if (cancelled || !response.ok) {
+        const data = await mutateJson("/api/macros");
+        if (cancelled) {
           return;
         }
 
@@ -85,29 +85,20 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     try {
       const payload = toPayload(form, Boolean(exercise), canCorrectMax);
       if (!payload) {
-        setError("Проверь поля.");
+        setError(CHECK_FIELDS);
         return;
       }
 
-      const response = await fetch(
-        exercise ? `/api/exercises/${exercise.id}` : "/api/exercises",
-        {
-          method: exercise ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
+      if (exercise) {
+        await patchJson(`/api/exercises/${exercise.id}`, payload);
+      } else {
+        await postJson("/api/exercises", payload);
       }
 
       router.push("/workouts/exercises");
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }
@@ -122,19 +113,12 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/exercises/${exercise.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: !nextActive }),
+      await patchJson(`/api/exercises/${exercise.id}`, {
+        archived: !nextActive,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
       setActive(nextActive);
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setToggling(false);
     }

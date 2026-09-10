@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import {
   confirmTransition,
   confirmTransitionSchema,
@@ -16,14 +21,9 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const preview = await previewTransition(auth.session.userId);
-    return NextResponse.json({ preview });
+    return jsonOk({ preview });
   } catch (error) {
-    if (error instanceof Error && error.message === "Нет текущего этапа.") {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [whenMessage("Нет текущего этапа.", 409)]);
   }
 }
 
@@ -33,33 +33,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = confirmTransitionSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, confirmTransitionSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const state = await confirmTransition(auth.session.userId, parsed.data);
-    return NextResponse.json(state);
+    return jsonOk(state);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message === "Нет текущего этапа." ||
-        error.message === "Нет текущего цикла." ||
-        error.message === "Новый цикл начинается после последнего этапа." ||
-        error.message === "Сначала упражнения.")
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenMessage("Нет текущего этапа.", 409),
+      whenMessage("Нет текущего цикла.", 409),
+      whenMessage("Новый цикл начинается после последнего этапа.", 409),
+      whenMessage("Сначала упражнения.", 409),
+    ]);
   }
 }

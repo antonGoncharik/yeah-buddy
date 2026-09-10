@@ -13,7 +13,8 @@ import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SortableList } from "@/components/workout/sortable-list";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { patchJson, postJson } from "@/lib/api-cache";
+import { LOAD_FAILED } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
@@ -67,26 +68,16 @@ export function ScheduleScreen() {
     setError(null);
 
     try {
-      const response = await fetch("/api/templates", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rotation: next.map((template, index) => ({
-            id: template.id,
-            sort_order: (index + 1) * 10,
-            is_active: template.is_active,
-          })),
-        }),
+      const data = await patchJson("/api/templates", {
+        rotation: next.map((template, index) => ({
+          id: template.id,
+          sort_order: (index + 1) * 10,
+          is_active: template.is_active,
+        })),
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
       setTemplates(readTemplates(data));
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }
@@ -118,19 +109,12 @@ export function ScheduleScreen() {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch("/api/templates/presets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preset: presetId }),
+      const data = await postJson("/api/templates/presets", {
+        preset: presetId,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
       setTemplates(readTemplates(data));
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }

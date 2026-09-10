@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { unskipLastTemplate } from "@/lib/workout/settings";
 
 export async function POST(): Promise<NextResponse> {
@@ -12,9 +12,8 @@ export async function POST(): Promise<NextResponse> {
 
   try {
     await unskipLastTemplate(auth.session.userId);
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

@@ -9,7 +9,8 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EXERCISES_EMPTY, LOAD_FAILED, readApiError } from "@/lib/messages";
+import { patchJson } from "@/lib/api-cache";
+import { EXERCISES_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -74,17 +75,9 @@ export function ExercisesScreen() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/exercises/${exercise.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ archived: exercise.is_active }),
+      const data = await patchJson(`/api/exercises/${exercise.id}`, {
+        archived: exercise.is_active,
       });
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
       const updated = parseExerciseWithMax(
         isRecord(data) ? data.exercise : null,
       );
@@ -96,8 +89,8 @@ export function ExercisesScreen() {
       setExercises((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusyId(null);
     }

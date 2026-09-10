@@ -1,7 +1,14 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+  whenMessage,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED, NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
+import { NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import {
   CycleEmptyError,
   createFirstMacro,
@@ -19,10 +26,9 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const state = await getCurrentMacroState(auth.session.userId);
-    return NextResponse.json(state);
+    return jsonOk(state);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -32,35 +38,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = createMacroSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, createMacroSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const state = await createFirstMacro(auth.session.userId, parsed.data);
-    return NextResponse.json(state);
+    return jsonOk(state);
   } catch (error) {
-    if (
-      error instanceof MacroConflictError ||
-      error instanceof NoExercisesError ||
-      error instanceof CycleEmptyError
-    ) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
-    if (error instanceof Error && error.message === NEED_ALL_WORKING_WEIGHTS) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error, [
+      whenError(MacroConflictError, 409),
+      whenError(NoExercisesError, 409),
+      whenError(CycleEmptyError, 409),
+      whenMessage(NEED_ALL_WORKING_WEIGHTS, 400),
+    ]);
   }
 }

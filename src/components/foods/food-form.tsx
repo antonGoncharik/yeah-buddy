@@ -6,8 +6,9 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
 import { parseFood } from "@/lib/foods";
-import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { isRecord } from "@/lib/read";
 import type { Food } from "@/lib/types";
@@ -57,24 +58,13 @@ export function FoodForm({
     try {
       const payload = toPayload(form, autoKcal);
       if (!payload) {
-        setError("Проверь поля.");
+        setError(CHECK_FIELDS);
         return;
       }
 
-      const response = await fetch(
-        food ? `/api/foods/${food.id}` : "/api/foods",
-        {
-          method: food ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const data: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
+      const data = food
+        ? await patchJson(`/api/foods/${food.id}`, payload)
+        : await postJson("/api/foods", payload);
 
       if (!food && afterCreateHref) {
         const created = readFood(data);
@@ -87,8 +77,8 @@ export function FoodForm({
 
       router.push("/foods");
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
     }
@@ -113,20 +103,11 @@ export function FoodForm({
     setDeleting(true);
 
     try {
-      const response = await fetch(`/api/foods/${food.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data: unknown = await response.json().catch(() => null);
-        setError(readApiError(data) ?? LOAD_FAILED);
-        return;
-      }
-
+      await deleteJson(`/api/foods/${food.id}`);
       router.push("/foods");
       router.refresh();
-    } catch {
-      setError(LOAD_FAILED);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setDeleting(false);
     }

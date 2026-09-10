@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import {
   ensureWorkoutSettings,
   saveWorkoutSettings,
@@ -16,15 +16,14 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const settings = await ensureWorkoutSettings(auth.session.userId);
-    return NextResponse.json({
+    return jsonOk({
       settings: {
         max_increase_percent: settings.max_increase_percent,
         formulas: settings.formulas,
       },
     });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -34,22 +33,9 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = workoutSettingsPatchSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, workoutSettingsPatchSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -57,14 +43,13 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       auth.session.userId,
       parsed.data,
     );
-    return NextResponse.json({
+    return jsonOk({
       settings: {
         max_increase_percent: settings.max_increase_percent,
         formulas: settings.formulas,
       },
     });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

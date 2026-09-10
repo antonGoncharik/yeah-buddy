@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { setSessionCookie } from "@/lib/auth/session";
 import { upsertTelegramUser } from "@/lib/auth/upsert-user";
-import { LOAD_FAILED } from "@/lib/messages";
 import { ensureInitialData } from "@/lib/seed";
 
 const DEV_TELEGRAM_ID = -1;
 
 export async function POST(): Promise<NextResponse> {
   if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return jsonError("Not found", 404);
   }
 
   try {
@@ -25,9 +25,8 @@ export async function POST(): Promise<NextResponse> {
       telegramId: user.telegram_id,
     });
 
-    return NextResponse.json({ user, dev: true });
+    return jsonOk({ user, dev: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { LOAD_FAILED } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
@@ -26,10 +26,9 @@ export async function GET(): Promise<NextResponse> {
       auth.session.userId,
     );
     const templates = await listTemplates(auth.session.userId);
-    return NextResponse.json({ templates });
+    return jsonOk({ templates });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -39,30 +38,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = templateWriteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, templateWriteSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const template = await createTemplate(auth.session.userId, parsed.data);
-    return NextResponse.json({ template });
+    return jsonOk({ template });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -72,29 +57,15 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = rotationPatchSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+  const parsed = await parseJsonSchema(request, rotationPatchSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const templates = await saveRotation(auth.session.userId, parsed.data);
-    return NextResponse.json({ templates });
+    return jsonOk({ templates });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

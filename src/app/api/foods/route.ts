@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { createFood, listFoods } from "@/lib/food/store";
 import { foodInputSchema, parseFoodListFilter } from "@/lib/foods";
-import { LOAD_FAILED } from "@/lib/messages";
 
 export async function GET(request: Request): Promise<NextResponse> {
   const auth = await requireSession();
@@ -17,10 +17,9 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const foods = await listFoods(auth.session.userId, filter);
-    return NextResponse.json({ foods });
+    return jsonOk({ foods });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
 
@@ -30,23 +29,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = foodInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, foodInputSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
     const food = await createFood(auth.session.userId, parsed.data);
-    return NextResponse.json({ food });
+    return jsonOk({ food });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

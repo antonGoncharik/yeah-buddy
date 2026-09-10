@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { setSessionCookie } from "@/lib/auth/session";
 import { upsertTelegramUser } from "@/lib/auth/upsert-user";
 import { getServerEnv } from "@/lib/env";
-import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { OPEN_VIA_BOT } from "@/lib/messages";
 import { ensureInitialData } from "@/lib/seed";
 import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
 
@@ -29,8 +30,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     env = getServerEnv();
   } catch (error) {
-    console.error(error);
-    return jsonError(LOAD_FAILED, 500);
+    return failRoute(error);
   }
 
   const telegramUser = verifyTelegramInitData(
@@ -49,13 +49,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       telegramId: user.telegram_id,
     });
 
-    return NextResponse.json({ user });
+    return jsonOk({ user });
   } catch (error) {
-    console.error(error);
-    return jsonError(LOAD_FAILED, 500);
+    return failRoute(error);
   }
-}
-
-function jsonError(error: string, status: number): NextResponse {
-  return NextResponse.json({ error }, { status });
 }

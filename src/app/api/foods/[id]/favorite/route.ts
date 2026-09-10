@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import {
+  failRoute,
+  jsonError,
+  jsonOk,
+  parseJsonSchema,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { setFoodFavorite } from "@/lib/food/store";
 import { foodFavoriteSchema } from "@/lib/foods";
-import { LOAD_FAILED } from "@/lib/messages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -20,16 +25,9 @@ export async function PATCH(
 
   const { id } = await context.params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
-  }
-
-  const parsed = foodFavoriteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
+  const parsed = await parseJsonSchema(request, foodFavoriteSchema);
+  if (!parsed.ok) {
+    return parsed.response;
   }
 
   try {
@@ -39,15 +37,11 @@ export async function PATCH(
       parsed.data.is_favorite,
     );
     if (!food) {
-      return NextResponse.json(
-        { error: "Продукт не найден." },
-        { status: 404 },
-      );
+      return jsonError("Продукт не найден.", 404);
     }
 
-    return NextResponse.json({ food });
+    return jsonOk({ food });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }

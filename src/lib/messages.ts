@@ -1,5 +1,8 @@
 export const OPEN_VIA_BOT = "Зайди через бота.";
 export const LOAD_FAILED = "Не загрузилось.";
+export const CHECK_FIELDS = "Проверь поля.";
+export const CHECK_DATE = "Проверь дату.";
+export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY = "Продуктов пока нет.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const YESTERDAY_MISSING = "Вчера пусто.";

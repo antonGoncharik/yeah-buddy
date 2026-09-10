@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 
+import { failRoute, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { listMealTemplates } from "@/lib/meal-templates";
-import { LOAD_FAILED } from "@/lib/messages";
 
 export async function GET(): Promise<NextResponse> {
   const auth = await requireSession();
@@ -12,9 +12,8 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     const templates = await listMealTemplates(auth.session.userId);
-    return NextResponse.json({ templates });
+    return jsonOk({ templates });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: LOAD_FAILED }, { status: 500 });
+    return failRoute(error);
   }
 }
