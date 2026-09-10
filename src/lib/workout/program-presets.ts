@@ -7,7 +7,13 @@ export interface ProgramDay {
   exercises: string[];
 }
 
-export const PROGRAM_PRESET_IDS = ["full_body", "upper_lower", "ppl"] as const;
+export const PROGRAM_PRESET_IDS = [
+  "one_day",
+  "strength",
+  "full_body",
+  "upper_lower",
+  "ppl",
+] as const;
 
 export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 
@@ -20,9 +26,48 @@ export interface ProgramPreset {
 
 export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
+    id: "one_day",
+    name: "Один день",
+    hint: "Одна тренировка по кругу. Самый простой старт.",
+    templates: [
+      {
+        name: "Зал",
+        kind: "dynamic",
+        exercises: [
+          "Приседания со штангой",
+          "Жим лёжа",
+          "Тяга штанги в наклоне",
+          "Жим стоя",
+          "Румынская тяга",
+        ],
+      },
+    ],
+  },
+  {
+    id: "strength",
+    name: "Сила",
+    hint: "Два дня, присед каждый раз. Классика новичка со штангой.",
+    templates: [
+      {
+        name: "Сила A",
+        kind: "dynamic",
+        exercises: [
+          "Приседания со штангой",
+          "Жим лёжа",
+          "Тяга штанги в наклоне",
+        ],
+      },
+      {
+        name: "Сила B",
+        kind: "dynamic",
+        exercises: ["Приседания со штангой", "Жим стоя", "Становая тяга"],
+      },
+    ],
+  },
+  {
     id: "full_body",
     name: "Всё тело",
-    hint: "Два дня по кругу. База на всё тело — проще всего начать.",
+    hint: "Два разных дня на всё тело. Можно чередовать чаще.",
     templates: [
       {
         name: "Тело A",
