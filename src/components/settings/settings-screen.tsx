@@ -18,11 +18,8 @@ import { readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import {
-  CYCLE_LABEL,
-  FORMULAS_LABEL,
   MEAL_TEMPLATES_LABEL,
   PACKS_LABEL,
-  QUEUE_LABEL,
   REVIEW_LABEL,
 } from "@/lib/workout/labels";
 
@@ -266,7 +263,11 @@ export function SettingsScreen() {
 
         <h2 className="px-1 text-lg font-semibold">Еда</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow href="/foods" title="Продукты" hint="Свои, на 100 г" />
+          <NavRow
+            href="/foods"
+            title="Продукты"
+            hint="Свои, из них собирается день"
+          />
           <NavRow
             href="/settings/meals"
             title={MEAL_TEMPLATES_LABEL}
@@ -279,23 +280,8 @@ export function SettingsScreen() {
           />
         </section>
 
-        <h2 className="px-1 text-lg font-semibold">Зал</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow
-            href="/workouts/schedule"
-            title={QUEUE_LABEL}
-            hint="Какие тренировки"
-          />
-          <NavRow
-            href="/settings/formulas"
-            title={FORMULAS_LABEL}
-            hint="Сколько жать и сколько раз"
-          />
-          <NavRow
-            href="/workouts/macro"
-            title={CYCLE_LABEL}
-            hint="То легче, то тяжелее"
-          />
+          <NavRow href="/workouts" title="Зал" hint="Очередь, схема и цикл" />
         </section>
 
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">

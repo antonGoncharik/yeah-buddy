@@ -180,9 +180,8 @@ export function ScheduleScreen() {
 
         {!loading && active.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">{QUEUE_LABEL}</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Сегодня одно, завтра следующее. Нажми имя — упражнения.
+              Нажми имя — упражнения.
             </p>
             <SortableList
               items={active}

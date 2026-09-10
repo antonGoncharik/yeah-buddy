@@ -390,32 +390,34 @@ export function WorkoutsHubScreen() {
               </Link>
             ) : null}
 
-            <nav className="grid grid-cols-2 gap-2">
-              <Link
-                href="/workouts/progress"
-                className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-              >
-                Прогресс
-              </Link>
-              <Link
-                href="/workouts/history"
-                className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-              >
-                История
-              </Link>
-              <Link
-                href="/workouts/exercises"
-                className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-              >
-                Упражнения
-              </Link>
+            <div className="flex flex-col gap-2">
+              <nav className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/workouts/progress"
+                  className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+                >
+                  Прогресс
+                </Link>
+                <Link
+                  href="/workouts/history"
+                  className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+                >
+                  История
+                </Link>
+                <Link
+                  href="/workouts/exercises"
+                  className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+                >
+                  Упражнения
+                </Link>
+              </nav>
               <Link
                 href="/settings/formulas"
-                className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+                className="px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 {FORMULAS_LABEL}
               </Link>
-            </nav>
+            </div>
           </div>
         ) : null}
 
