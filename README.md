@@ -16,10 +16,10 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 **Gym**
 
-- A queue of templates (dynamic / static), not a weekday calendar.
+- A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Optional macrocycle uses the same queue.
 - Skip moves the circle without taking the date; you can put a template back.
 - Optional macrocycle: ramp → volume → peak → deload. Finishing a queue loop does not close the phase by itself.
-- A session is a cheatsheet and a log: planned weights from the scheme, actuals in history and on charts. Edit the scheme in Settings.
+- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), actuals in history and on charts. Edit the scheme in Settings.
 - Progress (working weights), session history, exercise list.
 
 Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Offline, the last known data stays.
@@ -55,7 +55,7 @@ Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELE
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
 ```
 
-Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. First visit with no history opens onboarding.
+Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding.
 
 Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format` · `test` (`*.check.ts`).
 

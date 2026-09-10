@@ -17,6 +17,12 @@ import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding-map";
 import { cn } from "@/lib/utils";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import {
+  isProgramPresetId,
+  PROGRAM_PRESETS,
+  presetExerciseLine,
+  programPresetExerciseNames,
+} from "@/lib/workout/program-presets";
 
 const PROTEIN_PRESETS = [100, 120, 150] as const;
 
@@ -32,7 +38,9 @@ export function OnboardingScreen() {
   const [step, setStep] = useState<Step>("food");
   const [protein, setProtein] = useState("120");
   const [skipFood, setSkipFood] = useState(false);
-  const [circle, setCircle] = useState<OnboardingCircle>("starter");
+  const [circle, setCircle] = useState<OnboardingCircle>(
+    PROGRAM_PRESETS[0]?.id ?? "empty",
+  );
   const [maxInputs, setMaxInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -91,7 +99,7 @@ export function OnboardingScreen() {
       next.push("circle");
     }
     if (
-      (circle === "starter" || circle === "upper_lower") &&
+      isProgramPresetId(circle) &&
       state &&
       !state.maxesLocked &&
       state.exercises.length > 0
@@ -262,7 +270,7 @@ export function OnboardingScreen() {
 
         {step === "maxes" ? (
           <MaxesStep
-            exercises={state.exercises}
+            exercises={exercisesForCircle(circle, state.exercises)}
             values={maxInputs}
             onChange={(id, value) =>
               setMaxInputs((current) => ({ ...current, [id]: value }))
@@ -395,36 +403,33 @@ function CircleStep({
       >
         Не по дням недели. Сегодня одно, завтра следующее.
       </p>
-      <button
-        type="button"
-        aria-pressed={value === "starter"}
-        className={cn(
-          "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
-          value === "starter" && "ring-2 ring-primary",
-        )}
-        style={{ animationDelay: "80ms" }}
-        onClick={() => onChange("starter")}
-      >
-        <p className="text-lg font-medium">Ноги, жим, тяга</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Три тренировки по кругу.
-        </p>
-      </button>
-      <button
-        type="button"
-        aria-pressed={value === "upper_lower"}
-        className={cn(
-          "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
-          value === "upper_lower" && "ring-2 ring-primary",
-        )}
-        style={{ animationDelay: "100ms" }}
-        onClick={() => onChange("upper_lower")}
-      >
-        <p className="text-lg font-medium">Верх / низ</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Два дня: жимы с тягами, потом ноги.
-        </p>
-      </button>
+      {PROGRAM_PRESETS.map((preset, index) => (
+        <button
+          key={preset.id}
+          type="button"
+          aria-pressed={value === preset.id}
+          className={cn(
+            "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
+            value === preset.id && "ring-2 ring-primary",
+          )}
+          style={{ animationDelay: `${80 + index * 20}ms` }}
+          onClick={() => onChange(preset.id)}
+        >
+          <p className="text-lg font-medium">{preset.name}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{preset.hint}</p>
+          <div className="mt-3 flex flex-col gap-1.5">
+            {preset.templates.map((day) => (
+              <p key={day.name} className="text-sm leading-snug">
+                <span className="font-medium">{day.name}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {presetExerciseLine(day.exercises)}
+                </span>
+              </p>
+            ))}
+          </div>
+        </button>
+      ))}
       <button
         type="button"
         aria-pressed={value === "empty"}
@@ -432,12 +437,12 @@ function CircleStep({
           "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
           value === "empty" && "ring-2 ring-primary",
         )}
-        style={{ animationDelay: "120ms" }}
+        style={{ animationDelay: `${80 + PROGRAM_PRESETS.length * 20}ms` }}
         onClick={() => onChange("empty")}
       >
         <p className="text-lg font-medium">Соберу сам</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Очередь выключу. Если зал не ведёшь — так и сделай.
+          Очередь пустая. Если зал не ведёшь — так и сделай.
         </p>
       </button>
     </>
@@ -499,6 +504,23 @@ function titleForStep(step: Step): string {
     return "Очередь";
   }
   return "Рабочие веса";
+}
+
+function exercisesForCircle(
+  circle: OnboardingCircle,
+  catalog: OnboardingState["exercises"],
+): OnboardingState["exercises"] {
+  if (!isProgramPresetId(circle)) {
+    return [];
+  }
+
+  const byName = new Map(
+    catalog.map((exercise) => [exercise.name, exercise] as const),
+  );
+  return programPresetExerciseNames(circle).flatMap((name) => {
+    const exercise = byName.get(name);
+    return exercise ? [exercise] : [];
+  });
 }
 
 function readOnboarding(data: unknown): OnboardingState | null {

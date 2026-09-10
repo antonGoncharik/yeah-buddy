@@ -11,7 +11,7 @@ export const EXERCISES_EMPTY = "Пока пусто. Добавь упражне
 export const WORKOUTS_NEED_EXERCISES =
   "Сначала упражнения и рабочие веса — без них не из чего считать план.";
 export const WORKOUTS_NEED_TEMPLATES =
-  "Собери очередь: какие тренировки и в каком порядке.";
+  "Собери очередь: готовая программа или свой день.";
 export const WORKOUTS_NEED_MAXES =
   "Сначала напиши рабочие веса — без них в зале нечего считать.";
 export const NEED_ALL_WORKING_WEIGHTS =

@@ -3,11 +3,12 @@ import {
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
 } from "@/lib/starter-foods";
-import { unknownProgramExercises } from "@/lib/workout/program-presets";
+import { FORMULA_SYSTEMS } from "@/lib/workout/default-formulas";
 import {
-  STARTER_EXERCISES,
-  STARTER_WORKOUT_TEMPLATES,
-} from "@/lib/workout/starter-exercises";
+  PROGRAM_PRESETS,
+  unknownProgramExercises,
+} from "@/lib/workout/program-presets";
+import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -58,15 +59,43 @@ uniqueNames(
   "starter exercise",
 );
 
-const workoutSlots = new Set(STARTER_WORKOUT_TEMPLATES.map((row) => row.slot));
-assert(workoutSlots.has("a"), "workout templates missing slot a");
-assert(workoutSlots.has("b"), "workout templates missing slot b");
-assert(workoutSlots.has("c"), "workout templates missing slot c");
+uniqueNames(
+  PROGRAM_PRESETS.map((preset) => preset.id),
+  "program preset id",
+);
+uniqueNames(
+  PROGRAM_PRESETS.map((preset) => preset.name),
+  "program preset name",
+);
+
+for (const preset of PROGRAM_PRESETS) {
+  assert(preset.templates.length > 0, `empty program: ${preset.id}`);
+  uniqueNames(
+    preset.templates.map((day) => day.name),
+    `${preset.id} day`,
+  );
+  for (const day of preset.templates) {
+    assert(day.exercises.length > 0, `empty day: ${preset.id} ${day.name}`);
+  }
+}
 
 const unknownProgram = unknownProgramExercises();
 assert(
   unknownProgram.length === 0,
   `program preset unknown lifts: ${unknownProgram.join(", ")}`,
 );
+
+uniqueNames(
+  FORMULA_SYSTEMS.map((system) => system.id),
+  "formula system id",
+);
+for (const system of FORMULA_SYSTEMS) {
+  for (const phase of ["ramp", "volume", "peak", "deload"] as const) {
+    assert(
+      system.formulas.dynamic[phase].work.length > 0,
+      `${system.id} ${phase} has no work sets`,
+    );
+  }
+}
 
 console.log("starter catalog ok");

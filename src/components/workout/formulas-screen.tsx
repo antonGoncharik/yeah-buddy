@@ -139,7 +139,7 @@ export function FormulasScreen() {
 
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть классику? Сейчас всё заменится.",
+      message: "Вернуть схему 3×5? Сейчас всё заменится.",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
@@ -198,14 +198,10 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как это работает</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Вес подхода: рабочий вес × процент, округление вниз до шага
-                блинов. Разминка — своя на динамику и статику, штанга или блок.
-                В каждом подходе можно поставить повторы или секунды. Рабочие —
-                на фазу. В зале цифру всегда можно поменять.
-              </p>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                «Подход» добавляет строку, крестик убирает. Готовая схема
-                подставляет всё целиком — потом правишь как хочешь.
+                Это не очередь и не макроцикл. Только как считать подходы от
+                рабочего веса: процент, округление вниз до шага блинов. Разминка
+                — своя на динамику и статику, штанга или блок. Готовая схема
+                ставится целиком — потом правишь как хочешь.
               </p>
             </section>
 
@@ -421,7 +417,7 @@ export function FormulasScreen() {
               disabled={saving}
               onClick={() => void restoreDefaults()}
             >
-              Вернуть классику
+              Вернуть 3×5
             </Button>
             <StickyActions>
               <Button

@@ -265,14 +265,19 @@ export function SettingsScreen() {
             hint="Еда и зал за 14 или 30 дней"
           />
           <NavRow
+            href="/workouts/schedule"
+            title="Очередь"
+            hint="Какие дни по кругу. Состав и готовые программы"
+          />
+          <NavRow
             href="/settings/formulas"
             title="Схема подходов"
-            hint="Проценты и подходы от рабочего веса"
+            hint="Как считаются веса. Готовые схемы можно поставить"
           />
           <NavRow
             href="/workouts/macro"
             title="Макроцикл"
-            hint="Необязательно. Меняет нагрузку: разгон → набор → рывок → сброс"
+            hint="Необязательно. Та же очередь, нагрузка по фазам"
           />
           <NavRow
             href="/onboarding?again=1"

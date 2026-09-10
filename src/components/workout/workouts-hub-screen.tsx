@@ -317,7 +317,8 @@ export function WorkoutsHubScreen() {
                   Тренировки идут по кругу, не по дням недели.
                   {session
                     ? null
-                    : " Нажми имя, если хочешь начать не следующее."}
+                    : " Нажми имя, если хочешь начать не следующее."}{" "}
+                  Состав дня и готовые программы — в очереди.
                 </p>
                 <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {

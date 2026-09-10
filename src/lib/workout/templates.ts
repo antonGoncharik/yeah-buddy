@@ -6,8 +6,8 @@ import type { Exercise, WorkoutTemplateDetail } from "@/lib/types";
 import { archiveExercise, listExercises } from "@/lib/workout/exercises";
 import { mapExercise, mapWorkoutTemplate } from "@/lib/workout/map-rows";
 import {
-  PROGRAM_PRESETS,
-  type ProgramPreset,
+  type ProgramPresetId,
+  programPresetById,
 } from "@/lib/workout/program-presets";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
@@ -214,9 +214,9 @@ export async function saveRotation(
 
 export async function applyProgramPreset(
   userId: string,
-  presetId: ProgramPreset["id"],
+  presetId: ProgramPresetId,
 ): Promise<WorkoutTemplateDetail[]> {
-  const preset = PROGRAM_PRESETS.find((item) => item.id === presetId);
+  const preset = programPresetById(presetId);
   if (!preset) {
     throw new Error("Нет такой программы.");
   }

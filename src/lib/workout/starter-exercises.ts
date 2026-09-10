@@ -3,7 +3,6 @@ import type {
   ExerciseSlot,
   ExerciseWorkoutType,
   FormulaPreset,
-  WorkoutKind,
 } from "@/lib/types";
 
 export interface StarterExercise {
@@ -14,12 +13,6 @@ export interface StarterExercise {
   slot: ExerciseSlot;
   weight_step: number;
   formula_preset: FormulaPreset;
-}
-
-export interface StarterWorkoutTemplate {
-  name: string;
-  kind: WorkoutKind;
-  slot: ExerciseSlot;
 }
 
 interface LiftOptions {
@@ -70,12 +63,6 @@ export const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
   }),
   lift("Молотковый подъём", "молотки", "c", { category: "isolation" }),
-];
-
-export const STARTER_WORKOUT_TEMPLATES: StarterWorkoutTemplate[] = [
-  { name: "Ноги", kind: "dynamic", slot: "a" },
-  { name: "Жим", kind: "dynamic", slot: "b" },
-  { name: "Тяга", kind: "dynamic", slot: "c" },
 ];
 
 function lift(

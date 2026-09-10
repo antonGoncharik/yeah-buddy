@@ -14,6 +14,12 @@ import {
   StartingMaxLockedError,
 } from "@/lib/workout/exercises";
 import { getCurrentMacroState } from "@/lib/workout/macros";
+import {
+  isProgramPresetId,
+  matchProgramPresetId,
+  PROGRAM_PRESET_IDS,
+  type ProgramPresetId,
+} from "@/lib/workout/program-presets";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 import {
   applyProgramPreset,
@@ -23,7 +29,7 @@ import {
 
 export const onboardingCompleteSchema = z.object({
   protein: z.number().finite().positive().max(400).optional(),
-  circle: z.enum(["starter", "upper_lower", "empty", "keep"]),
+  circle: z.enum([...PROGRAM_PRESET_IDS, "empty", "keep"]),
   maxes: z
     .array(
       z.object({
@@ -35,7 +41,7 @@ export const onboardingCompleteSchema = z.object({
 });
 
 export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;
-export type OnboardingCircle = "starter" | "upper_lower" | "empty";
+export type OnboardingCircle = ProgramPresetId | "empty";
 
 export type OnboardingState = {
   completed: boolean;
@@ -60,19 +66,11 @@ export async function getOnboardingState(
     getCurrentMacroState(userId),
   ]);
 
-  const active = templates.filter((template) => template.is_active);
-  const circle: OnboardingCircle =
-    active.length === 0
-      ? "empty"
-      : active.some((template) => template.name === "Верх")
-        ? "upper_lower"
-        : "starter";
-
   return {
     completed: isOnboardingCompleted(settings),
     settings,
-    exercises: sortOnboardingExercises(exercises),
-    circle,
+    exercises,
+    circle: matchProgramPresetId(templates) ?? "empty",
     maxesLocked: macro.phase != null,
   };
 }
@@ -98,10 +96,8 @@ export async function completeOnboarding(
     });
   }
 
-  if (input.circle === "starter") {
-    await applyProgramPreset(userId, "ppl");
-  } else if (input.circle === "upper_lower") {
-    await applyProgramPreset(userId, "upper_lower");
+  if (isProgramPresetId(input.circle)) {
+    await applyProgramPreset(userId, input.circle);
   } else if (input.circle === "empty") {
     const templates = await listTemplates(userId);
     if (templates.length > 0) {
@@ -153,18 +149,4 @@ export async function completeOnboarding(
   }
 
   return getOnboardingState(userId);
-}
-
-function sortOnboardingExercises(
-  exercises: ExerciseWithMax[],
-): ExerciseWithMax[] {
-  const slotRank: Record<string, number> = { a: 0, b: 1, c: 2 };
-  return [...exercises].sort((left, right) => {
-    const leftSlot = left.slot == null ? 9 : (slotRank[left.slot] ?? 8);
-    const rightSlot = right.slot == null ? 9 : (slotRank[right.slot] ?? 8);
-    if (leftSlot !== rightSlot) {
-      return leftSlot - rightSlot;
-    }
-    return left.created_at.localeCompare(right.created_at);
-  });
 }

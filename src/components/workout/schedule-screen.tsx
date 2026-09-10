@@ -16,7 +16,10 @@ import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
-import { PROGRAM_PRESETS } from "@/lib/workout/program-presets";
+import {
+  PROGRAM_PRESETS,
+  presetExerciseLine,
+} from "@/lib/workout/program-presets";
 
 export function ScheduleScreen() {
   const confirm = useConfirm();
@@ -159,11 +162,11 @@ export function ScheduleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Очередь"
-        subtitle="Какие тренировки и в каком порядке"
+        subtitle="Состав дней отдельно. Макроцикл крутит ту же очередь"
         backHref="/workouts"
       />
 
-      <div className="flex flex-col gap-5 px-4 pb-24">
+      <div className="flex flex-col gap-5 px-4 pb-36">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -180,12 +183,16 @@ export function ScheduleScreen() {
 
         {!loading && templates.length === 0 ? (
           <p className="animate-fade text-center text-base leading-relaxed text-muted-foreground">
-            Пока пусто. Собери первую тренировку — она станет началом очереди.
+            Пока пусто. Поставь готовую программу или собери день сам.
           </p>
         ) : null}
 
         {!loading && active.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
+            <h2 className="px-1 text-lg font-semibold">В очереди</h2>
+            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+              Идут по кругу, не по дням недели. Нажми имя — состав дня.
+            </p>
             <SortableList
               items={active}
               disabled={saving}
@@ -198,6 +205,9 @@ export function ScheduleScreen() {
                   >
                     <p className="text-base font-medium leading-snug">
                       {template.name}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                      {templateExerciseLine(template)}
                     </p>
                   </Link>
                   <RemoveRowButton
@@ -212,9 +222,10 @@ export function ScheduleScreen() {
 
         {!loading && inactive.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-sm font-medium text-muted-foreground">
-              Не в очереди
-            </h2>
+            <h2 className="px-1 text-lg font-semibold">Не в очереди</h2>
+            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+              Свои дни. Можно вернуть в круг или поправить состав.
+            </p>
             <div className="overflow-hidden">
               {inactive.map((template) => (
                 <div
@@ -227,6 +238,9 @@ export function ScheduleScreen() {
                   >
                     <p className="text-base font-medium leading-snug">
                       {template.name}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                      {templateExerciseLine(template)}
                     </p>
                   </Link>
                   <AddRowButton
@@ -242,9 +256,10 @@ export function ScheduleScreen() {
 
         {!loading ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">Готовые программы</h2>
+            <h2 className="px-1 text-lg font-semibold">Готовая программа</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Готовый набор тренировок в очередь. Свои не удалятся — выключатся.
+              Поставит дни в очередь с упражнениями. Потом меняй как хочешь.
+              Свои дни не удалятся — выключатся.
             </p>
             {PROGRAM_PRESETS.map((preset) => (
               <button
@@ -258,6 +273,17 @@ export function ScheduleScreen() {
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {preset.hint}
                 </p>
+                <div className="mt-3 flex flex-col gap-1.5">
+                  {preset.templates.map((day) => (
+                    <p key={day.name} className="text-sm leading-snug">
+                      <span className="font-medium">{day.name}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · {presetExerciseLine(day.exercises)}
+                      </span>
+                    </p>
+                  ))}
+                </div>
               </button>
             ))}
           </section>
@@ -280,4 +306,14 @@ export function ScheduleScreen() {
       </div>
     </div>
   );
+}
+
+function templateExerciseLine(template: WorkoutTemplateDetail): string {
+  if (template.exercises.length === 0) {
+    return "Упражнений пока нет";
+  }
+
+  return template.exercises
+    .map((exercise) => exercise.short_name || exercise.name)
+    .join(" · ");
 }

@@ -35,6 +35,14 @@ assertEqual(calcPlannedWeight(220, 88, 2.5), 192.5, "220×88 рабочий");
 assertEqual(calcPlannedWeight(220, 82, 2.5), 180, "220×82 рабочий");
 assertEqual(calcPlannedWeight(220, 76, 2.5), 165, "220×76 рабочий");
 
+if (
+  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work.length !== 3 ||
+  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work[0]?.percent !== 80 ||
+  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work[0]?.reps !== 5
+) {
+  throw new Error("default scheme should be 3×5 at 80%");
+}
+
 const cableRamp = resolvePhaseSpec(
   DEFAULT_WORKOUT_FORMULAS.dynamic.ramp,
   "dynamic",

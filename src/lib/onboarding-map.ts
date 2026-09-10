@@ -1,7 +1,8 @@
-import type { OnboardingState } from "@/lib/onboarding";
+import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { isRecord, mapRecordList } from "@/lib/read";
 import { parseUserSettings } from "@/lib/settings-map";
 import { parseExerciseWithMax } from "@/lib/workout/map-rows";
+import { isProgramPresetId } from "@/lib/workout/program-presets";
 
 export function parseOnboardingState(data: unknown): OnboardingState | null {
   const row = isRecord(data) ? data.onboarding : null;
@@ -14,12 +15,7 @@ export function parseOnboardingState(data: unknown): OnboardingState | null {
     return null;
   }
 
-  const circle =
-    row.circle === "empty" ||
-    row.circle === "starter" ||
-    row.circle === "upper_lower"
-      ? row.circle
-      : null;
+  const circle = parseOnboardingCircle(row.circle);
   if (!circle) {
     return null;
   }
@@ -33,4 +29,11 @@ export function parseOnboardingState(data: unknown): OnboardingState | null {
     circle,
     maxesLocked: row.maxesLocked === true,
   };
+}
+
+function parseOnboardingCircle(value: unknown): OnboardingCircle | null {
+  if (value === "empty" || isProgramPresetId(value)) {
+    return value;
+  }
+  return null;
 }

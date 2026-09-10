@@ -15,6 +15,22 @@ function seconds(percent: number, count: number): FormulaSetSpec {
   return { percent, reps: null, seconds: count };
 }
 
+function times(spec: FormulaSetSpec, count: number): FormulaSetSpec[] {
+  return Array.from({ length: count }, () => ({ ...spec }));
+}
+
+function phasePack(
+  work: FormulaSetSpec[],
+  volumeWork: FormulaSetSpec[] = work,
+): Record<PhaseType, FormulaPhaseSpec> {
+  return {
+    ramp: { warmup: [], work },
+    volume: { warmup: [], work: volumeWork },
+    peak: { warmup: [], work },
+    deload: { warmup: [], work: DYNAMIC_DELOAD },
+  };
+}
+
 export const BARBELL_WARMUP: FormulaSetSpec[] = [
   reps(50, 5),
   reps(70, 3),
@@ -35,26 +51,16 @@ export const STATIC_CABLE_WARMUP: FormulaSetSpec[] = [
   seconds(100, 2),
 ];
 
-const DYNAMIC_WORK_RAMP = [reps(88, 3), reps(82, 5), reps(76, 7)];
-const DYNAMIC_WORK_VOLUME = [reps(88, 5), reps(82, 5), reps(76, 7)];
-const DYNAMIC_DELOAD = [reps(60, 5), reps(60, 5), reps(60, 5)];
-
-const STATIC_WORK_RAMP = [seconds(115, 6), seconds(115, 6), seconds(115, 6)];
-const STATIC_WORK_VOLUME = [seconds(115, 8), seconds(115, 6), seconds(115, 6)];
-const STATIC_DELOAD = [seconds(50, 3), seconds(50, 3)];
-
-const DYNAMIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
-  ramp: { warmup: [], work: DYNAMIC_WORK_RAMP },
-  volume: { warmup: [], work: DYNAMIC_WORK_VOLUME },
-  peak: { warmup: [], work: DYNAMIC_WORK_RAMP },
-  deload: { warmup: [], work: DYNAMIC_DELOAD },
-};
+const DYNAMIC_DELOAD = times(reps(60, 5), 3);
 
 const STATIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
-  ramp: { warmup: [], work: STATIC_WORK_RAMP },
-  volume: { warmup: [], work: STATIC_WORK_VOLUME },
-  peak: { warmup: [], work: STATIC_WORK_RAMP },
-  deload: { warmup: [], work: STATIC_DELOAD },
+  ramp: { warmup: [], work: times(seconds(115, 6), 3) },
+  volume: {
+    warmup: [],
+    work: [seconds(115, 8), seconds(115, 6), seconds(115, 6)],
+  },
+  peak: { warmup: [], work: times(seconds(115, 6), 3) },
+  deload: { warmup: [], work: times(seconds(50, 3), 2) },
 };
 
 const DYNAMIC_WARMUPS: KindWarmups = {
@@ -72,42 +78,77 @@ export const DEFAULT_WARMUP_PRESETS: Record<WorkoutKind, KindWarmups> = {
   static: STATIC_WARMUPS,
 };
 
-export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas = {
-  dynamic: DYNAMIC_PHASES,
-  static: STATIC_PHASES,
-  warmups: DEFAULT_WARMUP_PRESETS,
-};
+function pack(
+  work: FormulaSetSpec[],
+  volumeWork?: FormulaSetSpec[],
+): WorkoutFormulas {
+  return {
+    dynamic: phasePack(work, volumeWork ?? work),
+    static: STATIC_PHASES,
+    warmups: DEFAULT_WARMUP_PRESETS,
+  };
+}
 
-const SIMPLE_DYNAMIC_WORK = [reps(80, 5), reps(80, 5), reps(80, 5)];
+const SIMPLE_WORK = times(reps(80, 5), 3);
 
-export const SIMPLE_WORKOUT_FORMULAS: WorkoutFormulas = {
-  dynamic: {
-    ramp: { warmup: [], work: SIMPLE_DYNAMIC_WORK },
-    volume: { warmup: [], work: SIMPLE_DYNAMIC_WORK },
-    peak: { warmup: [], work: SIMPLE_DYNAMIC_WORK },
-    deload: { warmup: [], work: DYNAMIC_DELOAD },
-  },
-  static: STATIC_PHASES,
-  warmups: DEFAULT_WARMUP_PRESETS,
-};
+export const SIMPLE_WORKOUT_FORMULAS: WorkoutFormulas = pack(SIMPLE_WORK);
+
+export const FIVE_BY_FIVE_FORMULAS: WorkoutFormulas = pack(
+  times(reps(80, 5), 5),
+);
+
+export const VOLUME_WORKOUT_FORMULAS: WorkoutFormulas = pack(
+  times(reps(70, 8), 3),
+  times(reps(70, 10), 3),
+);
+
+export const PYRAMID_WORKOUT_FORMULAS: WorkoutFormulas = pack(
+  [reps(80, 5), reps(75, 6), reps(70, 8)],
+  [reps(75, 8), reps(70, 10), reps(65, 12)],
+);
+
+/** Default for new users. Already saved settings are not overwritten. */
+export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas =
+  SIMPLE_WORKOUT_FORMULAS;
+
+export const FORMULA_SYSTEM_IDS = [
+  "simple",
+  "five_by_five",
+  "volume",
+  "pyramid",
+] as const;
+
+export type FormulaSystemId = (typeof FORMULA_SYSTEM_IDS)[number];
 
 export const FORMULA_SYSTEMS: Array<{
-  id: "classic" | "simple";
+  id: FormulaSystemId;
   name: string;
   hint: string;
   formulas: WorkoutFormulas;
 }> = [
   {
-    id: "classic",
-    name: "Классика",
-    hint: "Разгон и рывок 3–5–7, набор чуть больше объёма. Статика — удержания, в разминке 2 с на рабочем весе.",
-    formulas: DEFAULT_WORKOUT_FORMULAS,
-  },
-  {
     id: "simple",
     name: "3×5",
-    hint: "Три рабочих по 5 на 80%. Сброс лёгкий. Статика как в классике.",
+    hint: "Три рабочих по 5 на 80%. Сброс лёгкий. Удержания — как обычно.",
     formulas: SIMPLE_WORKOUT_FORMULAS,
+  },
+  {
+    id: "five_by_five",
+    name: "5×5",
+    hint: "Пять рабочих по 5 на 80%. Сброс лёгкий.",
+    formulas: FIVE_BY_FIVE_FORMULAS,
+  },
+  {
+    id: "volume",
+    name: "3×8",
+    hint: "Три рабочих по 8 на 70%. В наборе — по 10.",
+    formulas: VOLUME_WORKOUT_FORMULAS,
+  },
+  {
+    id: "pyramid",
+    name: "Пирамида",
+    hint: "80×5 / 75×6 / 70×8. В наборе чуть легче и больше повторов.",
+    formulas: PYRAMID_WORKOUT_FORMULAS,
   },
 ];
 
