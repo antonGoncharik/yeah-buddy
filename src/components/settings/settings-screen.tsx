@@ -42,6 +42,7 @@ export function SettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
 
   const load = useCallback(async () => {
     begin();
@@ -164,84 +165,108 @@ export function SettingsScreen() {
         ) : null}
 
         {!loading && form ? (
-          <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-              <h2 className="text-xl font-semibold">День отдыха</h2>
-              <p className="text-sm text-muted-foreground">На день без зала.</p>
-              <MacroField
-                label="Белки"
-                value={form.rest_protein}
-                kcalPerGram={4}
-                onChange={(value) => updateField("rest_protein", value)}
-              />
-              <MacroField
-                label="Жиры"
-                value={form.rest_fat}
-                kcalPerGram={9}
-                onChange={(value) => updateField("rest_fat", value)}
-              />
-              <MacroField
-                label="Углеводы"
-                value={form.rest_carbs}
-                kcalPerGram={4}
-                onChange={(value) => updateField("rest_carbs", value)}
-              />
-              {restKcal != null ? (
-                <p className="text-sm text-muted-foreground">
-                  {formatKcal(restKcal)} ккал
-                </p>
-              ) : null}
-            </section>
-
-            <section
-              className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
-              style={{ animationDelay: "50ms" }}
+          <>
+            <button
+              type="button"
+              className="card-surface animate-rise flex flex-col gap-1 px-5 py-4 text-left transition-colors hover:bg-muted/30"
+              onClick={() => setShowGoals((open) => !open)}
             >
-              <h2 className="text-xl font-semibold">День тренировки</h2>
+              <h2 className="text-xl font-semibold">Цели на день</h2>
               <p className="text-sm text-muted-foreground">
-                На день с залом. Обычно больше углеводов.
+                {restKcal != null && trainingKcal != null
+                  ? `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`
+                  : "Белок, жир и углеводы"}
               </p>
-              <MacroField
-                label="Белки"
-                value={form.training_protein}
-                kcalPerGram={4}
-                onChange={(value) => updateField("training_protein", value)}
-              />
-              <MacroField
-                label="Жиры"
-                value={form.training_fat}
-                kcalPerGram={9}
-                onChange={(value) => updateField("training_fat", value)}
-              />
-              <MacroField
-                label="Углеводы"
-                value={form.training_carbs}
-                kcalPerGram={4}
-                onChange={(value) => updateField("training_carbs", value)}
-              />
-              {trainingKcal != null ? (
-                <p className="text-sm text-muted-foreground">
-                  {formatKcal(trainingKcal)} ккал
-                </p>
-              ) : null}
-            </section>
+            </button>
+            {showGoals ? (
+              <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+                <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+                  <h2 className="text-xl font-semibold">День отдыха</h2>
+                  <p className="text-sm text-muted-foreground">
+                    На день без зала.
+                  </p>
+                  <MacroField
+                    label="Белки"
+                    value={form.rest_protein}
+                    kcalPerGram={4}
+                    onChange={(value) => updateField("rest_protein", value)}
+                  />
+                  <MacroField
+                    label="Жиры"
+                    value={form.rest_fat}
+                    kcalPerGram={9}
+                    onChange={(value) => updateField("rest_fat", value)}
+                  />
+                  <MacroField
+                    label="Углеводы"
+                    value={form.rest_carbs}
+                    kcalPerGram={4}
+                    onChange={(value) => updateField("rest_carbs", value)}
+                  />
+                  {restKcal != null ? (
+                    <p className="text-sm text-muted-foreground">
+                      {formatKcal(restKcal)} ккал
+                    </p>
+                  ) : null}
+                </section>
 
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            {saved ? (
-              <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено.
-              </p>
+                <section
+                  className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
+                  style={{ animationDelay: "50ms" }}
+                >
+                  <h2 className="text-xl font-semibold">День тренировки</h2>
+                  <p className="text-sm text-muted-foreground">
+                    На день с залом. Обычно больше углеводов.
+                  </p>
+                  <MacroField
+                    label="Белки"
+                    value={form.training_protein}
+                    kcalPerGram={4}
+                    onChange={(value) => updateField("training_protein", value)}
+                  />
+                  <MacroField
+                    label="Жиры"
+                    value={form.training_fat}
+                    kcalPerGram={9}
+                    onChange={(value) => updateField("training_fat", value)}
+                  />
+                  <MacroField
+                    label="Углеводы"
+                    value={form.training_carbs}
+                    kcalPerGram={4}
+                    onChange={(value) => updateField("training_carbs", value)}
+                  />
+                  {trainingKcal != null ? (
+                    <p className="text-sm text-muted-foreground">
+                      {formatKcal(trainingKcal)} ккал
+                    </p>
+                  ) : null}
+                </section>
+
+                {error ? (
+                  <p className="text-sm text-destructive">{error}</p>
+                ) : null}
+                {saved ? (
+                  <p className="animate-fade text-sm text-muted-foreground">
+                    Сохранено.
+                  </p>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  className="h-14 text-lg"
+                  disabled={saving}
+                >
+                  {saving ? "Сохранение…" : "Сохранить"}
+                </Button>
+              </form>
             ) : null}
-
-            <Button type="submit" className="h-14 text-lg" disabled={saving}>
-              {saving ? "Сохранение…" : "Сохранить"}
-            </Button>
-          </form>
+          </>
         ) : null}
 
         <h2 className="px-1 text-lg font-semibold">Еда</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow href="/foods" title="Продукты" hint="На 100 г" />
+          <NavRow href="/foods" title="Продукты" hint="Свои, на 100 г" />
           <NavRow
             href="/settings/meals"
             title={MEAL_TEMPLATES_LABEL}
@@ -277,7 +302,7 @@ export function SettingsScreen() {
           <NavRow
             href="/settings/packs"
             title={PACKS_LABEL}
-            hint="Еда и зал для друзей"
+            hint="Поделиться едой и залом"
           />
           <NavRow
             href="/settings/review"
@@ -287,7 +312,7 @@ export function SettingsScreen() {
           <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
-            hint="Белок и веса. Круг и еду на день не трогает"
+            hint="Белок и веса. Очередь и еду на день не трогает"
           />
         </section>
       </div>

@@ -19,6 +19,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
+import { exerciseShortLabel, QUEUE_LABEL } from "@/lib/workout/labels";
 import {
   type ProgramPresetId,
   programPresetById,
@@ -30,6 +31,7 @@ export function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showPrograms, setShowPrograms] = useState(false);
 
   const active = useMemo(
     () => templates.filter((template) => template.is_active),
@@ -99,7 +101,7 @@ export function ScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? По кругу станет этой программой. Свои тренировки не удалятся — отложатся.`,
+      message: `Поставить «${preset.name}»? Очередь станет этой программой. Свои тренировки не удалятся — отложатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -146,7 +148,11 @@ export function ScheduleScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="По кругу" backHref="/workouts" />
+      <AppHeader
+        title={QUEUE_LABEL}
+        subtitle="Сегодня одно, завтра следующее"
+        backHref="/workouts"
+      />
 
       <div className="flex flex-col gap-5 px-4 pb-48">
         {loading ? <ScreenLoading /> : null}
@@ -174,7 +180,7 @@ export function ScheduleScreen() {
 
         {!loading && active.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">По кругу</h2>
+            <h2 className="px-1 text-lg font-semibold">{QUEUE_LABEL}</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
               Сегодня одно, завтра следующее. Нажми имя — упражнения.
             </p>
@@ -209,7 +215,7 @@ export function ScheduleScreen() {
           <section className="animate-rise flex flex-col gap-2">
             <h2 className="px-1 text-lg font-semibold">Отложены</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Не идут по кругу. Можно вернуть или поправить.
+              Сейчас не в очереди. Можно вернуть или поправить.
             </p>
             <div className="overflow-hidden">
               {inactive.map((template) => (
@@ -229,7 +235,7 @@ export function ScheduleScreen() {
                     </p>
                   </Link>
                   <AddRowButton
-                    label="В круг"
+                    label="В очередь"
                     disabled={saving}
                     onClick={() => setInCircle(template.id, true)}
                   />
@@ -240,7 +246,17 @@ export function ScheduleScreen() {
         ) : null}
 
         {!loading && (active.length > 0 || inactive.length > 0) ? (
-          <ProgramsSection saving={saving} onPick={applyPreset} />
+          showPrograms ? (
+            <ProgramsSection saving={saving} onPick={applyPreset} />
+          ) : (
+            <button
+              type="button"
+              className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => setShowPrograms(true)}
+            >
+              Другие программы
+            </button>
+          )
         ) : null}
 
         {!loading ? (
@@ -276,7 +292,7 @@ function ProgramsSection({
     <section className="animate-rise flex flex-col gap-2">
       <h2 className="px-1 text-lg font-semibold">Программы</h2>
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-        Поставь по кругу. Свои отложатся.
+        Поставь в очередь. Свои отложатся.
       </p>
       <ProgramPresetList disabled={saving} onPick={onPick} />
     </section>
@@ -289,6 +305,6 @@ function templateExerciseLine(template: WorkoutTemplateDetail): string {
   }
 
   return template.exercises
-    .map((exercise) => exercise.short_name || exercise.name)
+    .map((exercise) => exerciseShortLabel(exercise.short_name, exercise.name))
     .join(" · ");
 }

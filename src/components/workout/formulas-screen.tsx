@@ -60,6 +60,7 @@ export function FormulasScreen() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
 
   const load = useCallback(async () => {
     begin();
@@ -287,115 +288,128 @@ export function FormulasScreen() {
               </section>
             ) : null}
 
-            <Segmented
-              value={kind}
-              options={[
-                { id: "dynamic", label: WORKOUT_KIND_LABELS.dynamic },
-                { id: "static", label: WORKOUT_KIND_LABELS.static },
-              ]}
-              onChange={setKind}
-            />
-
-            <section className="card-surface flex flex-col gap-3 px-5 py-4">
-              <h2 className="text-lg font-semibold">Пример веса</h2>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Справа килограммы, если подставить вес. В дневник не пишется.
-                {raisedExample > 0 &&
-                raisedExample !== exampleMax &&
-                showsIncrease
-                  ? ` После плюса — от ${formatWeight(raisedExample)} кг.`
-                  : ""}
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  inputMode="decimal"
-                  value={previewMax[kind]}
-                  onChange={(event) =>
-                    setPreviewMax((current) => ({
-                      ...current,
-                      [kind]: event.target.value,
-                    }))
-                  }
-                  className="h-12 flex-1 text-base"
-                  aria-label="Пример рабочего веса"
+            {advanced ? (
+              <>
+                <Segmented
+                  value={kind}
+                  options={[
+                    { id: "dynamic", label: WORKOUT_KIND_LABELS.dynamic },
+                    { id: "static", label: WORKOUT_KIND_LABELS.static },
+                  ]}
+                  onChange={setKind}
                 />
-                <span className="text-base text-muted-foreground">кг</span>
-              </div>
-              <Segmented
-                value={String(exampleStep)}
-                options={WEIGHT_STEP_OPTIONS.map((step) => ({
-                  id: String(step),
-                  label: `${step}`,
-                }))}
-                onChange={(step) =>
-                  setPreviewStep((current) => ({
-                    ...current,
-                    [kind]: Number(step),
-                  }))
-                }
-              />
-            </section>
 
-            <p className="px-1 text-base leading-relaxed text-muted-foreground">
-              {kind === "dynamic"
-                ? "Разминка — штанга или блок, как в упражнении. Повторы можно сменить на секунды."
-                : "Разминка обычно в повторах, рабочие — в секундах. Можно наоборот."}
-            </p>
-            {WARMUP_PRESET_IDS.map((preset) => (
-              <SetCard
-                key={preset}
-                title={FORMULA_PRESET_LABELS[preset]}
-                hint="Разминка"
-                defaultHold={false}
-                sets={formulas.warmups[kind][preset]}
-                exampleMax={exampleMax}
-                exampleStep={exampleStep}
-                allowEmpty
-                onChange={(sets) => {
-                  setSaved(false);
-                  setFormulas((current) =>
-                    current
-                      ? patchWarmup(current, kind, preset, sets)
-                      : current,
-                  );
-                }}
-              />
-            ))}
-            <SetCard
-              title="Рабочие"
-              hint={
-                formulas.cycle.length > 0 ? "Без цикла" : "От рабочего веса"
-              }
-              defaultHold={kind === "static"}
-              sets={formulas[kind].base.work}
-              exampleMax={exampleMax}
-              exampleStep={exampleStep}
-              onChange={(work) => {
-                setSaved(false);
-                setFormulas((current) =>
-                  current ? patchBaseWork(current, kind, work) : current,
-                );
-              }}
-            />
+                <section className="card-surface flex flex-col gap-3 px-5 py-4">
+                  <h2 className="text-lg font-semibold">Пример веса</h2>
+                  <p className="text-base leading-relaxed text-muted-foreground">
+                    Справа килограммы, если подставить вес. В дневник не
+                    пишется.
+                    {raisedExample > 0 &&
+                    raisedExample !== exampleMax &&
+                    showsIncrease
+                      ? ` После плюса — от ${formatWeight(raisedExample)} кг.`
+                      : ""}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      inputMode="decimal"
+                      value={previewMax[kind]}
+                      onChange={(event) =>
+                        setPreviewMax((current) => ({
+                          ...current,
+                          [kind]: event.target.value,
+                        }))
+                      }
+                      className="h-12 flex-1 text-base"
+                      aria-label="Пример рабочего веса"
+                    />
+                    <span className="text-base text-muted-foreground">кг</span>
+                  </div>
+                  <Segmented
+                    value={String(exampleStep)}
+                    options={WEIGHT_STEP_OPTIONS.map((step) => ({
+                      id: String(step),
+                      label: `${step}`,
+                    }))}
+                    onChange={(step) =>
+                      setPreviewStep((current) => ({
+                        ...current,
+                        [kind]: Number(step),
+                      }))
+                    }
+                  />
+                </section>
 
-            <FormulaCycleEditor
-              formulas={formulas}
-              kind={kind}
-              exampleMax={exampleMax}
-              exampleStep={exampleStep}
-              increasePercent={increasePercent}
-              cycleOpen={cycleOpen}
-              setCycleOpen={setCycleOpen}
-              setFormulas={setFormulas}
-              setSaved={setSaved}
-              applyCycleTemplate={applyCycleTemplate}
-              clearCycle={clearCycle}
-            />
+                <p className="px-1 text-base leading-relaxed text-muted-foreground">
+                  {kind === "dynamic"
+                    ? "Разминка — штанга или блок, как в упражнении. Повторы можно сменить на секунды."
+                    : "Разминка обычно в повторах, рабочие — в секундах. Можно наоборот."}
+                </p>
+                {WARMUP_PRESET_IDS.map((preset) => (
+                  <SetCard
+                    key={preset}
+                    title={FORMULA_PRESET_LABELS[preset]}
+                    hint="Разминка"
+                    defaultHold={false}
+                    sets={formulas.warmups[kind][preset]}
+                    exampleMax={exampleMax}
+                    exampleStep={exampleStep}
+                    allowEmpty
+                    onChange={(sets) => {
+                      setSaved(false);
+                      setFormulas((current) =>
+                        current
+                          ? patchWarmup(current, kind, preset, sets)
+                          : current,
+                      );
+                    }}
+                  />
+                ))}
+                <SetCard
+                  title="Рабочие"
+                  hint={
+                    formulas.cycle.length > 0 ? "Без цикла" : "От рабочего веса"
+                  }
+                  defaultHold={kind === "static"}
+                  sets={formulas[kind].base.work}
+                  exampleMax={exampleMax}
+                  exampleStep={exampleStep}
+                  onChange={(work) => {
+                    setSaved(false);
+                    setFormulas((current) =>
+                      current ? patchBaseWork(current, kind, work) : current,
+                    );
+                  }}
+                />
+
+                <FormulaCycleEditor
+                  formulas={formulas}
+                  kind={kind}
+                  exampleMax={exampleMax}
+                  exampleStep={exampleStep}
+                  increasePercent={increasePercent}
+                  cycleOpen={cycleOpen}
+                  setCycleOpen={setCycleOpen}
+                  setFormulas={setFormulas}
+                  setSaved={setSaved}
+                  applyCycleTemplate={applyCycleTemplate}
+                  clearCycle={clearCycle}
+                />
+              </>
+            ) : (
+              <button
+                type="button"
+                className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+                onClick={() => setAdvanced(true)}
+              >
+                Настроить самому
+              </button>
+            )}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено. Следующая тренировка — по этим подходам.
+                Сохранено. Следующая тренировка — по этой схеме.
               </p>
             ) : null}
 
