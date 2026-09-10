@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
@@ -18,17 +18,26 @@ import {
 } from "@/lib/nutrition";
 import { packShareText, shareOrCopyLink } from "@/lib/share/client";
 import { readSharePackPayload } from "@/lib/share/map";
+import {
+  dismissPendingPackToken,
+  packBackHref,
+  packPath,
+  parsePackBackFrom,
+} from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function PackDetailScreen({ token }: { token: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const confirm = useConfirm();
+  const from = parsePackBackFrom(searchParams.get("from"));
   const [pack, setPack] = useState<SharePackDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const savingCopy = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,9 +49,13 @@ export function PackDetailScreen({ token }: { token: string }) {
         throw new Error(LOAD_FAILED);
       }
       setPack(loaded);
+      if (loaded.mine || loaded.saved) {
+        dismissPendingPackToken(token);
+      }
     } catch (caught) {
       setPack(null);
       if (caught instanceof ApiError && caught.status === 404) {
+        dismissPendingPackToken(token);
         setError(PACK_NOT_FOUND);
         return;
       }
@@ -56,26 +69,32 @@ export function PackDetailScreen({ token }: { token: string }) {
     void load();
   }, [load]);
 
-  async function onSave() {
-    if (!pack) {
+  useEffect(() => {
+    if (!pack || pack.mine || pack.saved || savingCopy.current) {
       return;
     }
-    setBusy(true);
-    setError(null);
-    try {
-      const data = await mutateJson(`/api/packs/${pack.token}/save`, {
-        method: "POST",
-      });
-      const loaded = readSharePackPayload(data);
-      if (loaded) {
+
+    savingCopy.current = true;
+    void (async () => {
+      try {
+        const data = await mutateJson(`/api/packs/${pack.token}/save`, {
+          method: "POST",
+        });
+        const loaded = readSharePackPayload(data);
+        if (!loaded) {
+          savingCopy.current = false;
+          return;
+        }
+        dismissPendingPackToken(token);
         setPack(loaded);
+        if (loaded.token !== token) {
+          router.replace(packPath(loaded.token, from ?? undefined));
+        }
+      } catch {
+        savingCopy.current = false;
       }
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
+    })();
+  }, [from, pack, router, token]);
 
   async function onApply() {
     if (!pack) {
@@ -84,8 +103,8 @@ export function PackDetailScreen({ token }: { token: string }) {
     const ok = await confirm({
       message:
         pack.kind === "meals"
-          ? "Еда на день станет как в ссылке. Уже записанные дни не изменятся. Цели БЖУ тоже."
-          : "По кругу станет этой программой. Свои тренировки не удалятся — отложатся. Схема подходов тоже. Веса твои.",
+          ? "Шаблоны еды и цели белка, жира и углеводов станут как в ссылке. Уже записанные дни не тронем."
+          : "Очередь станет этой программой. Свои тренировки не удалятся — отложатся. Схема весов тоже. Рабочие веса твои.",
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -97,6 +116,7 @@ export function PackDetailScreen({ token }: { token: string }) {
     setError(null);
     try {
       await mutateJson(`/api/packs/${pack.token}/apply`, { method: "POST" });
+      dismissPendingPackToken(token);
       router.replace(
         pack.kind === "meals" ? "/settings/meals" : "/workouts/schedule",
       );
@@ -125,7 +145,7 @@ export function PackDetailScreen({ token }: { token: string }) {
       return;
     }
     const ok = await confirm({
-      message: "Убрать ссылку? У тебя пакет останется, у друзей — нет.",
+      message: "Убрать ссылку? У тебя копия останется, у друзей — нет.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -151,11 +171,16 @@ export function PackDetailScreen({ token }: { token: string }) {
     }
   }
 
+  const ownLive = Boolean(pack?.mine && !pack.revoked);
+
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title={pack?.title ?? "Ссылка"} backHref="/settings/packs" />
+      <AppHeader
+        title={pack?.title ?? "Ссылка"}
+        backHref={packBackHref(from)}
+      />
 
-      <div className="flex flex-col gap-4 px-4 pb-40">
+      <div className="flex flex-col gap-4 px-4 pb-44">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !pack ? (
@@ -188,26 +213,8 @@ export function PackDetailScreen({ token }: { token: string }) {
 
       {!loading && pack ? (
         <StickyActions>
-          <Button
-            className="h-14 text-lg"
-            disabled={busy}
-            onClick={() => void onApply()}
-          >
-            {busy ? "Сохранение…" : "Поставить себе"}
-          </Button>
-          {!pack.mine && !pack.saved ? (
+          {ownLive ? (
             <Button
-              variant="secondary"
-              className="h-14 text-lg"
-              disabled={busy}
-              onClick={() => void onSave()}
-            >
-              Сохранить на потом
-            </Button>
-          ) : null}
-          {pack.mine && !pack.revoked ? (
-            <Button
-              variant="secondary"
               className="h-14 text-lg"
               disabled={busy}
               onClick={() => void onShare()}
@@ -215,7 +222,15 @@ export function PackDetailScreen({ token }: { token: string }) {
               Поделиться
             </Button>
           ) : null}
-          {pack.mine && !pack.revoked ? (
+          <Button
+            className="h-14 text-lg"
+            variant={ownLive ? "secondary" : "default"}
+            disabled={busy}
+            onClick={() => void onApply()}
+          >
+            {busy ? "Сохранение…" : "Поставить себе"}
+          </Button>
+          {ownLive ? (
             <Button
               variant="ghost"
               className="h-12 text-base"
@@ -237,15 +252,18 @@ function packSubtitle(pack: SharePackDetail): string {
   }
   if (pack.mine) {
     return pack.kind === "meals"
-      ? "Снимок еды на день и целей БЖУ. Дневник не отдаём."
-      : "Снимок круга и схемы. Веса не отдаём.";
+      ? "Снимок еды на день и целей белка, жира и углеводов. Дневник не отдаём."
+      : "Снимок очереди и схемы весов. Рабочие веса не отдаём.";
   }
-  if (pack.owner_name) {
-    return `От ${pack.owner_name}`;
+  const fromOwner = pack.owner_name ? `От ${pack.owner_name}. ` : "";
+  if (pack.saved) {
+    return pack.kind === "meals"
+      ? `${fromOwner}Сохранено. Можно поставить — шаблоны и цели станут как в ссылке.`
+      : `${fromOwner}Сохранено. Можно поставить — очередь станет как в ссылке.`;
   }
   return pack.kind === "meals"
-    ? "Еда на день. Можно сохранить и поставить себе."
-    : "Тренировки по кругу. Можно сохранить и поставить себе.";
+    ? `${fromOwner}Еда на день. Можно поставить себе.`
+    : `${fromOwner}Тренировки по очереди. Можно поставить себе.`;
 }
 
 function MealsPreview({ pack }: { pack: SharePackDetail }) {
@@ -259,13 +277,13 @@ function MealsPreview({ pack }: { pack: SharePackDetail }) {
       <section className="card-surface animate-rise flex flex-col gap-2 px-5 py-4">
         <h2 className="text-lg font-semibold">Цели</h2>
         <p className="text-sm text-muted-foreground">
-          Отдых {formatMacro(meals.goals.rest_protein)} /{" "}
-          {formatMacro(meals.goals.rest_fat)} /{" "}
+          Отдых: белок {formatMacro(meals.goals.rest_protein)} · жир{" "}
+          {formatMacro(meals.goals.rest_fat)} · углеводы{" "}
           {formatMacro(meals.goals.rest_carbs)}
         </p>
         <p className="text-sm text-muted-foreground">
-          Зал {formatMacro(meals.goals.training_protein)} /{" "}
-          {formatMacro(meals.goals.training_fat)} /{" "}
+          Зал: белок {formatMacro(meals.goals.training_protein)} · жир{" "}
+          {formatMacro(meals.goals.training_fat)} · углеводы{" "}
           {formatMacro(meals.goals.training_carbs)}
         </p>
       </section>
@@ -280,8 +298,8 @@ function MealsPreview({ pack }: { pack: SharePackDetail }) {
               {DAY_TEMPLATE_TITLES[day.day_type]}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {formatKcal(day.kcal)} ккал · {formatMacro(day.protein)} /{" "}
-              {formatMacro(day.fat)} / {formatMacro(day.carbs)}
+              {formatKcal(day.kcal)} ккал · белок {formatMacro(day.protein)} ·
+              жир {formatMacro(day.fat)} · углеводы {formatMacro(day.carbs)}
             </p>
           </div>
           {day.meals.map((meal) => (
@@ -314,7 +332,7 @@ function WorkoutsPreview({ pack }: { pack: SharePackDetail }) {
   return (
     <>
       <p className="px-1 text-sm text-muted-foreground">
-        Подходы {workouts.formula_hint}
+        Схема весов {workouts.formula_hint}
       </p>
       {workouts.days.map((day) => (
         <section

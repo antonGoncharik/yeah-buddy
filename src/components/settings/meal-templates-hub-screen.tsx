@@ -106,7 +106,7 @@ export function MealTemplatesHubScreen() {
 
       {!loading && templates.length > 0 ? (
         <StickyActions>
-          <PublishPackButton kind="meals" />
+          <PublishPackButton kind="meals" from="meals" />
         </StickyActions>
       ) : null}
     </div>

@@ -245,7 +245,9 @@ export function ScheduleScreen() {
 
         {!loading ? (
           <StickyActions>
-            {active.length > 0 ? <PublishPackButton kind="workouts" /> : null}
+            {active.length > 0 ? (
+              <PublishPackButton kind="workouts" from="schedule" />
+            ) : null}
             <Link
               href="/workouts/templates/new"
               className={cn(

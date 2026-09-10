@@ -3,11 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import {
-  packPath,
-  peekPendingPackToken,
-  takePendingPackToken,
-} from "@/lib/share/pending";
+import { packPath, peekPendingPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
 
 export function PackCatcher({ children }: { children: React.ReactNode }) {
@@ -21,8 +17,7 @@ export function PackCatcher({ children }: { children: React.ReactNode }) {
     }
 
     const target = packPath(token);
-    if (pathname === target) {
-      takePendingPackToken();
+    if (pathname === target || pathname.startsWith(`${target}/`)) {
       return;
     }
 

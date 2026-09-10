@@ -6,16 +6,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { packShareText, shareOrCopyLink } from "@/lib/share/client";
 import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
-import { packPath } from "@/lib/share/pending";
+import { type PackBackFrom, packPath } from "@/lib/share/pending";
 import { cn } from "@/lib/utils";
 
 export function PublishPackButton({
   kind,
+  from,
   className,
 }: {
   kind: SharePackKind;
+  from: PackBackFrom;
   className?: string;
 }) {
   const router = useRouter();
@@ -32,7 +35,15 @@ export function PublishPackButton({
         setError(LOAD_FAILED);
         return;
       }
-      router.push(packPath(pack.token));
+      const url = pack.share_url;
+      if (url) {
+        try {
+          await shareOrCopyLink(url, packShareText(pack.kind));
+        } catch {
+          // still open the preview
+        }
+      }
+      router.push(packPath(pack.token, from));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

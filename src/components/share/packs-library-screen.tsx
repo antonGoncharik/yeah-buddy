@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { StickyActions } from "@/components/layout/sticky-actions";
+import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { readSharePacksPayload } from "@/lib/share/map";
@@ -46,10 +48,10 @@ export function PacksLibraryScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title={PACKS_LABEL} backHref="/settings" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-36">
         <p className="text-base text-muted-foreground">
-          Еда и зал отдельно. Сохрани себе и поставь, когда захочешь. Ссылкой
-          можно поделиться с другом.
+          Еда и зал — отдельные ссылки. Свои шаблоны, не дневник и не веса.
+          Чужое сохраняется сюда, поставить можно когда удобно.
         </p>
 
         {loading ? <ScreenLoading /> : null}
@@ -60,8 +62,8 @@ export function PacksLibraryScreen() {
 
         {!loading && !error && packs.length === 0 ? (
           <p className="animate-rise px-1 text-base leading-relaxed text-muted-foreground">
-            Пока пусто. Поделись едой на день или кругом зала — ссылка останется
-            здесь.
+            Пока пусто. Поделись едой на день или очередью зала — ссылка
+            останется здесь.
           </p>
         ) : null}
 
@@ -70,7 +72,7 @@ export function PacksLibraryScreen() {
             {packs.map((pack) => (
               <NavRow
                 key={pack.id}
-                href={packPath(pack.token)}
+                href={packPath(pack.token, "packs")}
                 title={pack.title}
                 hint={packHint(pack)}
               />
@@ -78,6 +80,13 @@ export function PacksLibraryScreen() {
           </section>
         ) : null}
       </div>
+
+      {!loading ? (
+        <StickyActions>
+          <PublishPackButton kind="meals" from="packs" />
+          <PublishPackButton kind="workouts" from="packs" />
+        </StickyActions>
+      ) : null}
     </div>
   );
 }
