@@ -1,4 +1,8 @@
-import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import { nextPhaseType, withCycle } from "@/lib/workout/cycle";
+import {
+  DEFAULT_WORKOUT_FORMULAS,
+  FOUR_PHASE_CYCLE,
+} from "@/lib/workout/default-formulas";
 import {
   calcPlannedWeight,
   floorToStep,
@@ -7,11 +11,21 @@ import {
   previewMaxForPhase,
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
-import { fillFormulas, formulasSchema } from "@/lib/workout/map-settings";
+import {
+  fillFormulas,
+  formulasSchema,
+  mapWorkoutSettings,
+} from "@/lib/workout/map-settings";
 
 function assertEqual(actual: number, expected: number, label: string) {
   if (actual !== expected) {
     throw new Error(`${label}: got ${actual}, expected ${expected}`);
+  }
+}
+
+function assert(condition: boolean, label: string) {
+  if (!condition) {
+    throw new Error(label);
   }
 }
 
@@ -24,10 +38,31 @@ assertEqual(calcPlannedWeight(76, 115, 1), 87, "calc 76 115");
 assertEqual(calcPlannedWeight(80, 115, 1), 92, "calc 80 115");
 assertEqual(increaseMax(220, 5, 2.5), 230, "220 +5% шаг 2.5");
 assertEqual(increaseMax(70, 5, 1), 73, "70 +5% шаг 1");
-assertEqual(previewMaxForPhase("ramp", 220, 5, 2.5), 220, "пример разгона");
-assertEqual(previewMaxForPhase("volume", 220, 5, 2.5), 220, "пример набора");
-assertEqual(previewMaxForPhase("peak", 220, 5, 2.5), 230, "пример рывка");
-assertEqual(previewMaxForPhase("deload", 220, 5, 2.5), 230, "пример сброса");
+assertEqual(
+  previewMaxForPhase([], "ramp", 220, 5, 2.5),
+  220,
+  "пример без цикла",
+);
+assertEqual(
+  previewMaxForPhase(FOUR_PHASE_CYCLE, "ramp", 220, 5, 2.5),
+  220,
+  "пример разгона",
+);
+assertEqual(
+  previewMaxForPhase(FOUR_PHASE_CYCLE, "volume", 220, 5, 2.5),
+  220,
+  "пример набора",
+);
+assertEqual(
+  previewMaxForPhase(FOUR_PHASE_CYCLE, "peak", 220, 5, 2.5),
+  230,
+  "пример рывка",
+);
+assertEqual(
+  previewMaxForPhase(FOUR_PHASE_CYCLE, "deload", 220, 5, 2.5),
+  230,
+  "пример сброса",
+);
 assertEqual(calcPlannedWeight(220, 50, 2.5), 110, "220×50 разминка");
 assertEqual(calcPlannedWeight(220, 70, 2.5), 152.5, "220×70 разминка");
 assertEqual(calcPlannedWeight(220, 80, 2.5), 175, "220×80 разминка");
@@ -36,27 +71,29 @@ assertEqual(calcPlannedWeight(220, 82, 2.5), 180, "220×82 рабочий");
 assertEqual(calcPlannedWeight(220, 76, 2.5), 165, "220×76 рабочий");
 
 if (
-  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work.length !== 3 ||
-  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work[0]?.percent !== 80 ||
-  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp.work[0]?.reps !== 5
+  DEFAULT_WORKOUT_FORMULAS.dynamic.base.work.length !== 3 ||
+  DEFAULT_WORKOUT_FORMULAS.dynamic.base.work[0]?.percent !== 80 ||
+  DEFAULT_WORKOUT_FORMULAS.dynamic.base.work[0]?.reps !== 5 ||
+  DEFAULT_WORKOUT_FORMULAS.cycle.length !== 0
 ) {
-  throw new Error("default scheme should be 3×5 at 80%");
+  throw new Error("default scheme should be 3×5 at 80% without a cycle");
 }
 
 const cableRamp = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp,
+  DEFAULT_WORKOUT_FORMULAS.dynamic.base,
   "dynamic",
-  "ramp",
+  false,
   "cable",
 );
 if (cableRamp.warmup.length !== 2) {
   throw new Error("cable warmup should be 2 sets");
 }
 
+const four = withCycle(DEFAULT_WORKOUT_FORMULAS, FOUR_PHASE_CYCLE);
 const deload = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.dynamic.deload,
+  four.dynamic.phases.deload ?? four.dynamic.base,
   "dynamic",
-  "deload",
+  true,
   "barbell",
 );
 if (deload.warmup.length !== 0 || deload.work.length !== 3) {
@@ -64,9 +101,9 @@ if (deload.warmup.length !== 0 || deload.work.length !== 3) {
 }
 
 const staticBarbell = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.static.ramp,
+  DEFAULT_WORKOUT_FORMULAS.static.base,
   "static",
-  "ramp",
+  false,
   "barbell",
 );
 if (staticBarbell.warmup.length !== 3) {
@@ -100,9 +137,9 @@ assertEqual(staticHold[3]?.planned_seconds ?? 0, 6, "static work seconds");
 assertEqual(staticHold[3]?.planned_reps ?? -1, -1, "static work no reps");
 
 const staticDeload = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.static.deload,
+  four.static.phases.deload ?? four.static.base,
   "static",
-  "deload",
+  true,
   "barbell",
 );
 if (staticDeload.warmup.length !== 0) {
@@ -110,9 +147,9 @@ if (staticDeload.warmup.length !== 0) {
 }
 
 const customWarmup = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.dynamic.ramp,
+  DEFAULT_WORKOUT_FORMULAS.dynamic.base,
   "dynamic",
-  "ramp",
+  false,
   "barbell",
   {
     dynamic: {
@@ -129,17 +166,109 @@ if (
   throw new Error("custom warmup preset should replace barbell warmup");
 }
 
-const legacy = formulasSchema.safeParse({
+const parsed = formulasSchema.safeParse({
   dynamic: DEFAULT_WORKOUT_FORMULAS.dynamic,
   static: DEFAULT_WORKOUT_FORMULAS.static,
   warmups: DEFAULT_WORKOUT_FORMULAS.warmups.dynamic,
+  cycle: [],
 });
-if (!legacy.success) {
+if (!parsed.success) {
   throw new Error("legacy warmups should parse");
 }
-const migrated = fillFormulas(legacy.data);
+const migrated = fillFormulas(parsed.data);
 if (migrated.warmups.static.barbell[2]?.seconds !== 2) {
   throw new Error("legacy warmups should get static 1RM hold");
 }
+
+function phase(work: Array<{ percent: number; reps: number | null }>) {
+  return {
+    warmup: [],
+    work: work.map((set) => ({
+      percent: set.percent,
+      reps: set.reps,
+      seconds: null,
+    })),
+  };
+}
+
+const classicKind = {
+  ramp: phase([
+    { percent: 88, reps: 3 },
+    { percent: 82, reps: 5 },
+    { percent: 76, reps: 7 },
+  ]),
+  volume: phase([
+    { percent: 88, reps: 5 },
+    { percent: 82, reps: 5 },
+    { percent: 76, reps: 7 },
+  ]),
+  peak: phase([
+    { percent: 88, reps: 3 },
+    { percent: 82, reps: 5 },
+    { percent: 76, reps: 7 },
+  ]),
+  deload: phase([
+    { percent: 60, reps: 5 },
+    { percent: 60, reps: 5 },
+    { percent: 60, reps: 5 },
+  ]),
+};
+
+const classic = mapWorkoutSettings({
+  user_id: "u",
+  max_increase_percent: 5,
+  formulas: {
+    dynamic: classicKind,
+    static: {
+      ramp: DEFAULT_WORKOUT_FORMULAS.static.base,
+      volume: DEFAULT_WORKOUT_FORMULAS.static.base,
+      peak: DEFAULT_WORKOUT_FORMULAS.static.base,
+      deload: four.static.phases.deload,
+    },
+    warmups: DEFAULT_WORKOUT_FORMULAS.warmups,
+  },
+  updated_at: "2026-09-01",
+});
+
+assert(classic.formulas.cycle.length === 4, "classic cycle kept");
+assert(classic.formulas.cycle[0]?.key === "ramp", "classic starts with ramp");
+assert(
+  classic.formulas.dynamic.phases.volume?.work[0]?.reps === 5,
+  "classic volume work kept",
+);
+assert(
+  nextPhaseType("volume", classic.formulas.cycle) === "peak",
+  "classic volume → peak",
+);
+assert(
+  nextPhaseType("deload", classic.formulas.cycle) == null,
+  "classic deload ends the macro",
+);
+
+const simpleLegacy = mapWorkoutSettings({
+  user_id: "u",
+  max_increase_percent: 5,
+  formulas: {
+    dynamic: {
+      ramp: DEFAULT_WORKOUT_FORMULAS.dynamic.base,
+      volume: DEFAULT_WORKOUT_FORMULAS.dynamic.base,
+      peak: DEFAULT_WORKOUT_FORMULAS.dynamic.base,
+      deload: four.dynamic.phases.deload,
+    },
+    static: {
+      ramp: DEFAULT_WORKOUT_FORMULAS.static.base,
+      volume: DEFAULT_WORKOUT_FORMULAS.static.base,
+      peak: DEFAULT_WORKOUT_FORMULAS.static.base,
+      deload: four.static.phases.deload,
+    },
+    warmups: DEFAULT_WORKOUT_FORMULAS.warmups,
+  },
+  updated_at: "2026-09-01",
+});
+assert(simpleLegacy.formulas.cycle.length === 0, "matching work drops cycle");
+assert(
+  simpleLegacy.formulas.dynamic.base.work[0]?.percent === 80,
+  "simple legacy keeps 3×5 base",
+);
 
 console.log("workout formulas ok");

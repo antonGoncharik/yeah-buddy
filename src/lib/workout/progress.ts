@@ -5,7 +5,7 @@ import type {
   StrengthProgress,
 } from "@/lib/types";
 import { listExercises, mapGlobalMax } from "@/lib/workout/exercises";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import {
   mapMacroCycle,
   mapPhaseMax,
@@ -109,8 +109,8 @@ export async function getStrengthProgress(
         macro_number: number,
         label:
           number == null
-            ? PHASE_TYPE_LABELS[phase.phase_type]
-            : `№${number} · ${PHASE_TYPE_LABELS[phase.phase_type]}`,
+            ? phaseLabel(phase.phase_type, phase.name)
+            : `№${number} · ${phaseLabel(phase.phase_type, phase.name)}`,
       });
     }
 

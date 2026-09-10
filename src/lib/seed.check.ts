@@ -90,12 +90,14 @@ uniqueNames(
   "formula system id",
 );
 for (const system of FORMULA_SYSTEMS) {
-  for (const phase of ["ramp", "volume", "peak", "deload"] as const) {
-    assert(
-      system.formulas.dynamic[phase].work.length > 0,
-      `${system.id} ${phase} has no work sets`,
-    );
-  }
+  assert(
+    system.formulas.dynamic.base.work.length > 0,
+    `${system.id} has no work sets`,
+  );
+  assert(
+    system.formulas.cycle.length === 0,
+    `${system.id} must not seed a cycle`,
+  );
 }
 
 console.log("starter catalog ok");

@@ -136,7 +136,7 @@ export type ExerciseUnit = "reps" | "seconds";
 
 export type WorkoutKind = "dynamic" | "static";
 
-export type PhaseType = "ramp" | "volume" | "peak" | "deload";
+export type PhaseType = string;
 
 export type CycleStatus = "current" | "completed";
 
@@ -165,10 +165,23 @@ export type WarmupPresetId = Exclude<FormulaPreset, "none">;
 
 export type KindWarmups = Record<WarmupPresetId, FormulaSetSpec[]>;
 
+export interface KindFormulas {
+  base: FormulaPhaseSpec;
+  phases: Record<string, FormulaPhaseSpec>;
+}
+
+export interface CyclePhaseDef {
+  key: string;
+  name: string;
+  skip_warmup: boolean;
+  increase_on_end: boolean;
+}
+
 export interface WorkoutFormulas {
-  dynamic: Record<PhaseType, FormulaPhaseSpec>;
-  static: Record<PhaseType, FormulaPhaseSpec>;
+  dynamic: KindFormulas;
+  static: KindFormulas;
   warmups: Record<WorkoutKind, KindWarmups>;
+  cycle: CyclePhaseDef[];
 }
 
 export interface WorkoutSettings {
@@ -228,6 +241,7 @@ export interface WorkoutPhase {
   user_id: string;
   macro_cycle_id: string;
   phase_type: PhaseType;
+  name: string | null;
   start_date: string;
   end_date: string | null;
   status: CycleStatus;
@@ -351,6 +365,8 @@ export interface MacroRecap {
   end_date: string | null;
   from_phase: PhaseType;
   to_phase: PhaseType;
+  from_name: string;
+  to_name: string;
   gains: MacroGain[];
   grown_count: number;
   avg_percent: number | null;
@@ -367,6 +383,11 @@ export interface CurrentMacroState {
 
 export interface PhaseCircleProgress {
   phase_type: PhaseType;
+  phase_name: string;
+  next_phase_type: PhaseType | null;
+  next_phase_name: string | null;
+  last_in_cycle: boolean;
+  increases_on_end: boolean;
   completed_count: number;
   circle_size: number;
   suggest_end: boolean;
@@ -382,6 +403,8 @@ export interface TransitionMaxRow {
 export interface TransitionPreview {
   from_phase: PhaseType;
   to_phase: PhaseType | null;
+  from_name: string;
+  to_name: string | null;
   new_macro: boolean;
   increased: boolean;
   maxes: TransitionMaxRow[];

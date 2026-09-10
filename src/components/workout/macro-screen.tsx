@@ -22,7 +22,7 @@ import {
   transitionExplain,
 } from "@/lib/workout/hints";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
@@ -230,8 +230,8 @@ export function MacroScreen() {
               <p className="text-lg font-medium">Макроцикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 Очередь не меняется — те же тренировки по кругу. Макроцикл
-                только грузит легче или тяжелее: разгон, набор, рывок, сброс.
-                Фазу закрываешь сам.
+                только грузит легче или тяжелее по твоим фазам из схемы. Фазу
+                закрываешь сам.
               </p>
               <Link
                 href="/workouts/macro/new"
@@ -259,10 +259,11 @@ export function MacroScreen() {
                   state.macro.number,
                   state.phase_circle,
                   state.phase.phase_type,
+                  state.phase.name,
                 )}
               </p>
               <h2 className="text-2xl font-semibold">
-                {PHASE_TYPE_LABELS[state.phase.phase_type]}
+                {phaseLabel(state.phase.phase_type, state.phase.name)}
               </h2>
               <p className="text-sm text-muted-foreground">
                 С {state.phase.start_date}. Очередь крутится сама. Чтобы сменить
@@ -284,7 +285,7 @@ export function MacroScreen() {
                         : "bg-muted text-muted-foreground",
                     )}
                   >
-                    {PHASE_TYPE_LABELS[phase.phase_type]}
+                    {phaseLabel(phase.phase_type, phase.name)}
                   </li>
                 ))}
               </ol>
@@ -342,7 +343,7 @@ export function MacroScreen() {
                 <h2 className="text-xl font-semibold">
                   {preview.new_macro
                     ? "Новый макроцикл"
-                    : `Дальше: ${preview.to_phase ? PHASE_TYPE_LABELS[preview.to_phase] : ""}`}
+                    : `Дальше: ${preview.to_name ?? (preview.to_phase ? phaseLabel(preview.to_phase) : "")}`}
                 </h2>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {transitionExplain(preview)}
@@ -396,7 +397,7 @@ export function MacroScreen() {
             ) : (
               <>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  {completePhaseHint(state.phase.phase_type)}
+                  {completePhaseHint(state.phase_circle)}
                 </p>
                 <StickyActions>
                   <Button
@@ -405,9 +406,9 @@ export function MacroScreen() {
                     disabled={transitioning}
                     onClick={() => void openTransition()}
                   >
-                    {state.phase.phase_type === "deload"
+                    {state.phase_circle?.last_in_cycle
                       ? "Закрыть макроцикл"
-                      : `Завершить: ${PHASE_TYPE_LABELS[state.phase.phase_type]}`}
+                      : `Завершить: ${phaseLabel(state.phase.phase_type, state.phase.name)}`}
                   </Button>
                 </StickyActions>
               </>

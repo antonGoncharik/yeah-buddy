@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/require-session";
 import { LOAD_FAILED, NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import {
+  CycleEmptyError,
   createFirstMacro,
   createMacroSchema,
   getCurrentMacroState,
@@ -49,7 +50,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     if (
       error instanceof MacroConflictError ||
-      error instanceof NoExercisesError
+      error instanceof NoExercisesError ||
+      error instanceof CycleEmptyError
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }

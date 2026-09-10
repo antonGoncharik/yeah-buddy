@@ -9,7 +9,7 @@ import type {
   WorkoutSet,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 import {
   firstWorkPlanScore,
@@ -121,7 +121,7 @@ async function pointsFromSessions(
     const meta = phaseId ? (phaseMeta.get(phaseId) ?? null) : null;
     const dateLabel = formatWorkDate(date);
     const label = meta
-      ? `${dateLabel} · ${PHASE_TYPE_LABELS[meta.phase_type]}`
+      ? `${dateLabel} · ${phaseLabel(meta.phase_type, meta.name)}`
       : dateLabel;
 
     for (const item of exercises) {
@@ -152,12 +152,15 @@ async function loadPhaseMeta(
   userId: string,
   phaseIds: string[],
 ): Promise<
-  Map<string, { phase_type: PhaseType; macro_number: number | null }>
+  Map<
+    string,
+    { phase_type: PhaseType; name: string | null; macro_number: number | null }
+  >
 > {
   const unique = [...new Set(phaseIds)];
   const meta = new Map<
     string,
-    { phase_type: PhaseType; macro_number: number | null }
+    { phase_type: PhaseType; name: string | null; macro_number: number | null }
   >();
   if (unique.length === 0) {
     return meta;
@@ -166,7 +169,7 @@ async function loadPhaseMeta(
   const supabase = createSupabaseServerClient();
   const phasesResult = await supabase
     .from("workout_phases")
-    .select("id, phase_type, macro_cycle_id")
+    .select("id, phase_type, name, macro_cycle_id")
     .eq("user_id", userId)
     .in("id", unique);
 
@@ -205,6 +208,7 @@ async function loadPhaseMeta(
     }
     meta.set(row.id, {
       phase_type: phaseType,
+      name: typeof row.name === "string" ? row.name : null,
       macro_number:
         typeof row.macro_cycle_id === "string"
           ? (numbers.get(row.macro_cycle_id) ?? null)

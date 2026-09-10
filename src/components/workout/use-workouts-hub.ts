@@ -271,6 +271,7 @@ export function useWorkoutsHub() {
   const weightsHint = todayWeightsHint(
     macro?.phase?.phase_type ?? null,
     macro?.macro?.number ?? null,
+    macro?.phase?.name,
   );
   const nextHasPlanMaxes =
     nextTemplate != null && templateHasPlanMaxes(nextTemplate, exercises);

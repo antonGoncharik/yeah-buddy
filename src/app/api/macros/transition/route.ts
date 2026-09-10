@@ -37,18 +37,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   const parsed = confirmTransitionSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Проверь поля." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Проверь поля." }, { status: 400 });
   }
 
   try {
@@ -59,7 +53,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       error instanceof Error &&
       (error.message === "Нет текущей фазы." ||
         error.message === "Нет текущего макроцикла." ||
-        error.message === "Новый макроцикл начинается после сброса." ||
+        error.message === "Новый макроцикл начинается после последней фазы." ||
         error.message === "Сначала добавьте упражнения.")
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });

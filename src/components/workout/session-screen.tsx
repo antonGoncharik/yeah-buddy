@@ -25,7 +25,7 @@ import type {
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
-import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
   formatSetLine,
@@ -309,7 +309,9 @@ export function SessionScreen() {
   const subtitle = session
     ? [
         formatSessionDate(session.session_date),
-        detail?.phase ? PHASE_TYPE_LABELS[detail.phase.phase_type] : null,
+        detail?.phase
+          ? phaseLabel(detail.phase.phase_type, detail.phase.name)
+          : null,
       ]
         .filter(Boolean)
         .join(" · ")

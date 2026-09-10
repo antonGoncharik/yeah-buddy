@@ -30,6 +30,7 @@ import type {
   WorkoutTemplate,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
+import { phaseLabel } from "@/lib/workout/labels";
 import {
   toNullableNumber,
   toNullableString,
@@ -227,6 +228,7 @@ export function mapWorkoutPhase(row: Record<string, unknown>): WorkoutPhase {
     user_id: String(row.user_id),
     macro_cycle_id: String(row.macro_cycle_id),
     phase_type: toPhaseType(row.phase_type),
+    name: toNullableString(row.name),
     start_date: String(row.start_date).slice(0, 10),
     end_date: toNullableString(row.end_date)?.slice(0, 10) ?? null,
     status: toCycleStatus(row.status),
@@ -322,6 +324,14 @@ export function parseMacroRecap(value: unknown): MacroRecap | null {
     end_date: typeof value.end_date === "string" ? value.end_date : null,
     from_phase: value.from_phase,
     to_phase: value.to_phase,
+    from_name:
+      typeof value.from_name === "string"
+        ? value.from_name
+        : phaseLabel(value.from_phase),
+    to_name:
+      typeof value.to_name === "string"
+        ? value.to_name
+        : phaseLabel(value.to_phase),
     gains: mapRecordList(value.gains, parseMacroGain),
     grown_count: toNumber(value.grown_count),
     avg_percent: toNullableNumber(value.avg_percent),
@@ -344,6 +354,16 @@ export function parseTransitionPreview(
   return {
     from_phase: preview.from_phase,
     to_phase: toPhase ?? null,
+    from_name:
+      typeof preview.from_name === "string"
+        ? preview.from_name
+        : phaseLabel(preview.from_phase),
+    to_name:
+      toPhase == null
+        ? null
+        : typeof preview.to_name === "string"
+          ? preview.to_name
+          : phaseLabel(toPhase),
     new_macro: preview.new_macro === true,
     increased: preview.increased === true,
     maxes: mapRecordList(preview.maxes, parseTransitionMaxRow),

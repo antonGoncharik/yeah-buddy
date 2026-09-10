@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { MacroRecap } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import {
   formatSignedPercent,
   formatSignedWeight,
@@ -49,8 +49,9 @@ export function MacroRecapCard({
         aria-expanded={open}
       >
         <p className="text-sm font-medium text-muted-foreground">
-          Макроцикл №{recap.number} · {PHASE_TYPE_LABELS[recap.from_phase]} →{" "}
-          {PHASE_TYPE_LABELS[recap.to_phase]}
+          Макроцикл №{recap.number} ·{" "}
+          {recap.from_name || phaseLabel(recap.from_phase)} →{" "}
+          {recap.to_name || phaseLabel(recap.to_phase)}
         </p>
         <h2 className="text-2xl font-semibold tracking-tight">{headline}</h2>
         <p className="text-base">

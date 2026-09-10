@@ -1,6 +1,7 @@
 import type {
-  FormulaPhaseSpec,
+  CyclePhaseDef,
   FormulaSetSpec,
+  KindFormulas,
   KindWarmups,
   PhaseType,
   WorkoutFormulas,
@@ -17,18 +18,6 @@ function seconds(percent: number, count: number): FormulaSetSpec {
 
 function times(spec: FormulaSetSpec, count: number): FormulaSetSpec[] {
   return Array.from({ length: count }, () => ({ ...spec }));
-}
-
-function phasePack(
-  work: FormulaSetSpec[],
-  volumeWork: FormulaSetSpec[] = work,
-): Record<PhaseType, FormulaPhaseSpec> {
-  return {
-    ramp: { warmup: [], work },
-    volume: { warmup: [], work: volumeWork },
-    peak: { warmup: [], work },
-    deload: { warmup: [], work: DYNAMIC_DELOAD },
-  };
 }
 
 export const BARBELL_WARMUP: FormulaSetSpec[] = [
@@ -51,17 +40,11 @@ export const STATIC_CABLE_WARMUP: FormulaSetSpec[] = [
   seconds(100, 2),
 ];
 
-const DYNAMIC_DELOAD = times(reps(60, 5), 3);
+export const DYNAMIC_DELOAD: FormulaSetSpec[] = times(reps(60, 5), 3);
 
-const STATIC_PHASES: Record<PhaseType, FormulaPhaseSpec> = {
-  ramp: { warmup: [], work: times(seconds(115, 6), 3) },
-  volume: {
-    warmup: [],
-    work: [seconds(115, 8), seconds(115, 6), seconds(115, 6)],
-  },
-  peak: { warmup: [], work: times(seconds(115, 6), 3) },
-  deload: { warmup: [], work: times(seconds(50, 3), 2) },
-};
+export const STATIC_BASE_WORK: FormulaSetSpec[] = times(seconds(115, 6), 3);
+
+export const STATIC_DELOAD: FormulaSetSpec[] = times(seconds(50, 3), 2);
 
 const DYNAMIC_WARMUPS: KindWarmups = {
   barbell: BARBELL_WARMUP,
@@ -78,14 +61,19 @@ export const DEFAULT_WARMUP_PRESETS: Record<WorkoutKind, KindWarmups> = {
   static: STATIC_WARMUPS,
 };
 
-function pack(
-  work: FormulaSetSpec[],
-  volumeWork?: FormulaSetSpec[],
-): WorkoutFormulas {
+function kindFromWork(work: FormulaSetSpec[]): KindFormulas {
   return {
-    dynamic: phasePack(work, volumeWork ?? work),
-    static: STATIC_PHASES,
+    base: { warmup: [], work },
+    phases: {},
+  };
+}
+
+function pack(work: FormulaSetSpec[]): WorkoutFormulas {
+  return {
+    dynamic: kindFromWork(work),
+    static: kindFromWork(STATIC_BASE_WORK),
     warmups: DEFAULT_WARMUP_PRESETS,
+    cycle: [],
   };
 }
 
@@ -99,13 +87,13 @@ export const FIVE_BY_FIVE_FORMULAS: WorkoutFormulas = pack(
 
 export const VOLUME_WORKOUT_FORMULAS: WorkoutFormulas = pack(
   times(reps(70, 8), 3),
-  times(reps(70, 10), 3),
 );
 
-export const PYRAMID_WORKOUT_FORMULAS: WorkoutFormulas = pack(
-  [reps(80, 5), reps(75, 6), reps(70, 8)],
-  [reps(75, 8), reps(70, 10), reps(65, 12)],
-);
+export const PYRAMID_WORKOUT_FORMULAS: WorkoutFormulas = pack([
+  reps(80, 5),
+  reps(75, 6),
+  reps(70, 8),
+]);
 
 /** Default for new users. Already saved settings are not overwritten. */
 export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas =
@@ -129,26 +117,68 @@ export const FORMULA_SYSTEMS: Array<{
   {
     id: "simple",
     name: "3×5",
-    hint: "Три рабочих по 5 на 80%. Сброс лёгкий. Удержания — как обычно.",
+    hint: "Три рабочих по 5 на 80%. Без макроцикла — всегда эти подходы.",
     formulas: SIMPLE_WORKOUT_FORMULAS,
   },
   {
     id: "five_by_five",
     name: "5×5",
-    hint: "Пять рабочих по 5 на 80%. Сброс лёгкий.",
+    hint: "Пять рабочих по 5 на 80%.",
     formulas: FIVE_BY_FIVE_FORMULAS,
   },
   {
     id: "volume",
     name: "3×8",
-    hint: "Три рабочих по 8 на 70%. В наборе — по 10.",
+    hint: "Три рабочих по 8 на 70%.",
     formulas: VOLUME_WORKOUT_FORMULAS,
   },
   {
     id: "pyramid",
     name: "Пирамида",
-    hint: "80×5 / 75×6 / 70×8. В наборе чуть легче и больше повторов.",
+    hint: "80×5 / 75×6 / 70×8.",
     formulas: PYRAMID_WORKOUT_FORMULAS,
+  },
+];
+
+export const FOUR_PHASE_CYCLE: CyclePhaseDef[] = [
+  { key: "ramp", name: "Разгон", skip_warmup: false, increase_on_end: false },
+  { key: "volume", name: "Набор", skip_warmup: false, increase_on_end: true },
+  { key: "peak", name: "Рывок", skip_warmup: false, increase_on_end: false },
+  { key: "deload", name: "Сброс", skip_warmup: true, increase_on_end: false },
+];
+
+export const LOAD_DELOAD_CYCLE: CyclePhaseDef[] = [
+  {
+    key: "work",
+    name: "Нагрузка",
+    skip_warmup: false,
+    increase_on_end: true,
+  },
+  {
+    key: "deload",
+    name: "Разгрузка",
+    skip_warmup: true,
+    increase_on_end: false,
+  },
+];
+
+export const CYCLE_TEMPLATES: Array<{
+  id: "four_phase" | "load_deload";
+  name: string;
+  hint: string;
+  cycle: CyclePhaseDef[];
+}> = [
+  {
+    id: "four_phase",
+    name: "Разгон → сброс",
+    hint: "Четыре фазы: разгон, набор, рывок, сброс. После набора можно поднять рабочие веса. Сброс без разминки.",
+    cycle: FOUR_PHASE_CYCLE,
+  },
+  {
+    id: "load_deload",
+    name: "Нагрузка / разгрузка",
+    hint: "Две фазы. После нагрузки можно поднять веса, разгрузка лёгкая и без разминки.",
+    cycle: LOAD_DELOAD_CYCLE,
   },
 ];
 
@@ -162,9 +192,6 @@ export function isWorkoutKind(value: unknown): value is WorkoutKind {
 
 export function isPhaseType(value: unknown): value is PhaseType {
   return (
-    value === "ramp" ||
-    value === "volume" ||
-    value === "peak" ||
-    value === "deload"
+    typeof value === "string" && value.trim().length > 0 && value.length <= 40
   );
 }

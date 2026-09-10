@@ -6,18 +6,19 @@ import type {
   PhaseType,
   TransitionPreview,
 } from "@/lib/types";
-import { nextPhaseType } from "@/lib/workout/formulas";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { isPhaseType } from "@/lib/workout/default-formulas";
+import { phaseLabel } from "@/lib/workout/labels";
 
 export function todayWeightsHint(
   phaseType: PhaseType | null,
   macroNumber: number | null,
+  phaseName?: string | null,
 ): string {
   if (phaseType == null || macroNumber == null) {
-    return "Веса от рабочего веса упражнения, как в разгоне.";
+    return "Веса от рабочего веса упражнения, как в рабочей схеме.";
   }
 
-  return `Веса сегодня от фазы «${PHASE_TYPE_LABELS[phaseType]}» макроцикла №${macroNumber}.`;
+  return `Веса сегодня от фазы «${phaseLabel(phaseType, phaseName)}» макроцикла №${macroNumber}.`;
 }
 
 export function queueItemMark(options: {
@@ -57,8 +58,10 @@ export function phaseLinkLabel(
   macroNumber: number,
   progress: PhaseCircleProgress | null,
   phaseType: PhaseType,
+  phaseName?: string | null,
 ): string {
-  const head = `№${macroNumber} · ${PHASE_TYPE_LABELS[phaseType]}`;
+  const name = progress?.phase_name ?? phaseLabel(phaseType, phaseName);
+  const head = `№${macroNumber} · ${name}`;
   if (!progress || progress.completed_count === 0) {
     return head;
   }
@@ -75,15 +78,14 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
     1,
     Math.floor(progress.completed_count / progress.circle_size),
   );
-  const phase = PHASE_TYPE_LABELS[progress.phase_type];
-  const next = nextPhaseType(progress.phase_type);
-  const nextLabel = next ? PHASE_TYPE_LABELS[next] : null;
+  const phase = progress.phase_name;
+  const nextLabel = progress.next_phase_name;
 
-  if (progress.phase_type === "deload") {
+  if (progress.last_in_cycle) {
     if (rounds >= 2) {
-      return `Сброс уже ${rounds} ${circleWord(rounds)}. Можно закрыть макроцикл, когда восстановился.`;
+      return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно закрыть макроцикл, когда восстановился.`;
     }
-    return "Круг сброса пройден. Можно закрыть макроцикл, когда восстановился.";
+    return `Круг «${phase}» пройден. Можно закрыть макроцикл, когда восстановился.`;
   }
 
   if (rounds >= 2) {
@@ -93,31 +95,33 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
   return `Круг «${phase}» пройден. Фазу оставляешь или закрываешь сам${nextLabel ? `. Дальше — «${nextLabel}»` : ""}.`;
 }
 
-export function completePhaseHint(phaseType: PhaseType): string {
-  if (phaseType === "ramp") {
-    return "Дальше набор: рабочие веса те же, в рабочих больше повторов. Килограммы сами не вырастут.";
+export function completePhaseHint(
+  progress: PhaseCircleProgress | null,
+): string {
+  if (!progress) {
+    return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
   }
-  if (phaseType === "volume") {
-    return "Дальше рывок. Можно поднять рабочие веса — не всем упражнениям нужно, цифры поправишь до подтверждения.";
+  if (progress.last_in_cycle) {
+    return "Этот макроцикл закроется, следующий начнётся с первой фазы. Рабочие веса возьмутся с последней тяжёлой фазы.";
   }
-  if (phaseType === "peak") {
-    return "Дальше сброс: легче, чтобы восстановиться. Рабочие веса останутся как в рывке.";
+  if (progress.increases_on_end) {
+    return `Дальше «${progress.next_phase_name}». Можно поднять рабочие веса — не всем упражнениям нужно, цифры поправишь до подтверждения.`;
   }
-  return "Этот макроцикл закроется, следующий начнётся с разгона. Рабочие веса возьмутся с рывка.";
+  if (progress.next_phase_name) {
+    return `Дальше «${progress.next_phase_name}». Рабочие веса скопируются, цифры ещё можно поправить.`;
+  }
+  return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.new_macro) {
-    return "Сброс закроется, начнётся следующий макроцикл с разгона. Рабочие веса — с рывка, их ещё можно поправить.";
+    return "Текущий макроцикл закроется, начнётся следующий с первой фазы. Рабочие веса — с последней тяжёлой фазы, их ещё можно поправить.";
   }
   if (preview.increased) {
-    return "На рывке можно поднять рабочие веса. Можно оставить как есть или поднять не все.";
+    return `На фазе «${preview.to_name}» можно поднять рабочие веса. Можно оставить как есть или поднять не все.`;
   }
-  if (preview.to_phase === "volume") {
-    return "Набор: рабочие веса те же, другие проценты и повторы. Цифры ещё можно поправить.";
-  }
-  if (preview.to_phase === "deload") {
-    return "Сброс: легче, рабочие веса как в рывке. Цифры ещё можно поправить.";
+  if (preview.to_name) {
+    return `Дальше «${preview.to_name}». Рабочие веса скопируются. Цифры ещё можно поправить.`;
   }
   return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
 }
@@ -132,12 +136,7 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     return null;
   }
 
-  if (
-    row.phase_type !== "ramp" &&
-    row.phase_type !== "volume" &&
-    row.phase_type !== "peak" &&
-    row.phase_type !== "deload"
-  ) {
+  if (!isPhaseType(row.phase_type)) {
     return null;
   }
 
@@ -149,8 +148,33 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     return null;
   }
 
+  const nextType =
+    row.next_phase_type == null
+      ? null
+      : isPhaseType(row.next_phase_type)
+        ? row.next_phase_type
+        : null;
+  const last =
+    row.last_in_cycle === true ||
+    (row.last_in_cycle !== false && row.phase_type === "deload");
+
   return {
     phase_type: row.phase_type,
+    phase_name:
+      typeof row.phase_name === "string"
+        ? row.phase_name
+        : phaseLabel(row.phase_type),
+    next_phase_type: nextType,
+    next_phase_name:
+      typeof row.next_phase_name === "string"
+        ? row.next_phase_name
+        : nextType
+          ? phaseLabel(nextType)
+          : null,
+    last_in_cycle: last,
+    increases_on_end:
+      row.increases_on_end === true ||
+      (row.increases_on_end !== false && row.phase_type === "volume"),
     completed_count: row.completed_count,
     circle_size: row.circle_size,
     suggest_end: row.suggest_end,

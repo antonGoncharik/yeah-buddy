@@ -10,6 +10,7 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
+import { specForPhase } from "@/lib/workout/cycle";
 import { listExercises, mapExercise } from "@/lib/workout/exercises";
 import {
   plannedSetsFromFormula,
@@ -360,11 +361,15 @@ async function insertSessionExercise(
   formulas: WorkoutFormulas,
 ) {
   const phase = await getPhase(userId, session.phase_id);
-  const phaseType = phase?.phase_type ?? "ramp";
+  const phaseKey = phase?.phase_type ?? null;
+  const skipWarmup = Boolean(
+    phaseKey &&
+      formulas.cycle.find((item) => item.key === phaseKey)?.skip_warmup,
+  );
   const formula = resolvePhaseSpec(
-    formulas[session.workout_type][phaseType],
+    specForPhase(formulas, session.workout_type, phaseKey),
     session.workout_type,
-    phaseType,
+    skipWarmup,
     exercise.formula_preset,
     formulas.warmups,
   );

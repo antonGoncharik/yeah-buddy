@@ -1,27 +1,34 @@
 import { z } from "zod";
 
 import { isIsoDate } from "@/lib/day/dates";
-import { NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
+import { NEED_ALL_WORKING_WEIGHTS, NEED_CYCLE_PHASES } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   CurrentMacroState,
+  CyclePhaseDef,
   MacroCycle,
   MacroGain,
   MacroRecap,
   MaxSource,
   PhaseMax,
   PhaseMaxRow,
-  PhaseType,
   TransitionPreview,
   WorkoutPhase,
 } from "@/lib/types";
+import {
+  cycleDef,
+  firstCyclePhase,
+  isLastCyclePhase,
+  recapEndPhaseKey,
+  sortOrderForPhase,
+} from "@/lib/workout/cycle";
 import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
 import {
   increaseMax,
   nextPhaseType,
   shouldIncreaseMax,
 } from "@/lib/workout/formulas";
-import { PHASE_ORDER } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import {
   mapExercise,
   mapMacroCycle,
@@ -43,6 +50,12 @@ export class MacroConflictError extends Error {
 export class NoExercisesError extends Error {
   constructor() {
     super("Сначала добавьте упражнения.");
+  }
+}
+
+export class CycleEmptyError extends Error {
+  constructor() {
+    super(NEED_CYCLE_PHASES);
   }
 }
 
@@ -139,6 +152,12 @@ export async function createFirstMacro(
     throw new NoExercisesError();
   }
 
+  const settings = await ensureWorkoutSettings(userId);
+  const first = firstCyclePhase(settings.formulas.cycle);
+  if (!first) {
+    throw new CycleEmptyError();
+  }
+
   const maxByExercise = new Map(
     input.maxes.map((item) => [item.exercise_id, item.max_weight]),
   );
@@ -188,7 +207,9 @@ export async function createFirstMacro(
   const macro = mapMacroCycle(createdMacro.data as Record<string, unknown>);
   await createPhase(userId, {
     macroId: macro.id,
-    phaseType: "ramp",
+    phaseType: first.key,
+    name: first.name,
+    sortOrder: 1,
     startDate: input.start_date,
     maxes: exercises.map((exercise) => ({
       exercise_id: exercise.id,
@@ -259,24 +280,30 @@ export async function previewTransition(
   }
 
   const settings = await ensureWorkoutSettings(userId);
-  const nextType = nextPhaseType(state.phase.phase_type);
+  const cycle = settings.formulas.cycle;
+  const nextType = nextPhaseType(state.phase.phase_type, cycle);
+  const fromName = phaseLabel(state.phase.phase_type, state.phase.name);
 
   if (!nextType) {
-    const peak = await getPeakPhaseMaxes(userId, state.macro.id);
+    const peak = await getRecapEndMaxes(userId, state.macro.id, cycle);
     const source = peak.some((row) => row.phase_max) ? peak : state.maxes;
     return {
       from_phase: state.phase.phase_type,
       to_phase: null,
+      from_name: fromName,
+      to_name: null,
       new_macro: true,
       increased: false,
       maxes: toTransitionMaxes(source, (weight) => weight),
     };
   }
 
-  const increased = shouldIncreaseMax(state.phase.phase_type, nextType);
+  const increased = shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
   return {
     from_phase: state.phase.phase_type,
     to_phase: nextType,
+    from_name: fromName,
+    to_name: phaseLabel(nextType, cycleDef(cycle, nextType)?.name),
     new_macro: false,
     increased,
     maxes: toTransitionMaxes(state.maxes, (weight, step) =>
@@ -320,9 +347,19 @@ export async function confirmTransition(
     throw closed.error;
   }
 
+  const settings = await ensureWorkoutSettings(userId);
+  const nextName =
+    cycleDef(settings.formulas.cycle, preview.to_phase)?.name ?? null;
+
   await createPhase(userId, {
     macroId: state.macro.id,
     phaseType: preview.to_phase,
+    name: nextName,
+    sortOrder: sortOrderForPhase(
+      preview.to_phase,
+      settings.formulas.cycle,
+      state.phases.length + 1,
+    ),
     startDate: input.end_date,
     maxes: input.maxes.map((item) => ({
       exercise_id: item.exercise_id,
@@ -357,28 +394,37 @@ function toTransitionMaxes(
   });
 }
 
-export async function getPeakPhaseMaxes(
+async function getRecapEndMaxes(
   userId: string,
   macroId: string,
+  cycle: CyclePhaseDef[],
 ): Promise<PhaseMaxRow[]> {
   const supabase = createSupabaseServerClient();
-  const peak = await supabase
+  const result = await supabase
     .from("workout_phases")
     .select("*")
     .eq("user_id", userId)
     .eq("macro_cycle_id", macroId)
-    .eq("phase_type", "peak")
-    .maybeSingle();
+    .order("sort_order", { ascending: true });
 
-  if (peak.error) {
-    throw peak.error;
+  if (result.error) {
+    throw result.error;
   }
 
-  if (!peak.data) {
+  const phases = (result.data ?? []).map((row) =>
+    mapWorkoutPhase(row as Record<string, unknown>),
+  );
+  const endKey = recapEndPhaseKey(
+    cycle,
+    phases.map((phase) => phase.phase_type),
+  );
+  const end =
+    phases.find((phase) => phase.phase_type === endKey) ?? phases.at(-1);
+  if (!end) {
     return [];
   }
 
-  return listPhaseMaxRows(userId, String(peak.data.id));
+  return listPhaseMaxRows(userId, end.id);
 }
 
 export async function completeMacroAndStartNext(
@@ -390,8 +436,9 @@ export async function completeMacroAndStartNext(
     throw new Error("Нет текущего макроцикла.");
   }
 
-  if (current.phase.phase_type !== "deload") {
-    throw new Error("Новый макроцикл начинается после сброса.");
+  const settings = await ensureWorkoutSettings(userId);
+  if (!isLastCyclePhase(current.phase.phase_type, settings.formulas.cycle)) {
+    throw new Error("Новый макроцикл начинается после последней фазы.");
   }
 
   const supabase = createSupabaseServerClient();
@@ -472,9 +519,15 @@ export async function getMacroRecap(
   const phases = (phasesResult.data ?? []).map((row) =>
     mapWorkoutPhase(row as Record<string, unknown>),
   );
+  const settings = await ensureWorkoutSettings(userId);
   const startPhase =
-    phases.find((phase) => phase.phase_type === "ramp") ?? phases[0] ?? null;
+    phases.find((phase) => phase.sort_order === 1) ?? phases[0] ?? null;
+  const endKey = recapEndPhaseKey(
+    settings.formulas.cycle,
+    phases.map((phase) => phase.phase_type),
+  );
   const endPhase =
+    phases.find((phase) => phase.phase_type === endKey) ??
     phases.find((phase) => phase.phase_type === "peak") ??
     phases.find((phase) => phase.phase_type === "volume") ??
     startPhase;
@@ -539,6 +592,8 @@ export async function getMacroRecap(
     end_date: macro.end_date,
     from_phase: startPhase.phase_type,
     to_phase: endPhase.phase_type,
+    from_name: phaseLabel(startPhase.phase_type, startPhase.name),
+    to_name: phaseLabel(endPhase.phase_type, endPhase.name),
     gains,
     grown_count: gains.filter((gain) => gain.delta > 0).length,
     avg_percent,
@@ -605,7 +660,9 @@ async function createPhase(
   userId: string,
   input: {
     macroId: string;
-    phaseType: PhaseType;
+    phaseType: string;
+    name: string | null;
+    sortOrder: number;
     startDate: string;
     maxes: Array<{
       exercise_id: string;
@@ -621,9 +678,10 @@ async function createPhase(
       user_id: userId,
       macro_cycle_id: input.macroId,
       phase_type: input.phaseType,
+      name: input.name,
       start_date: input.startDate,
       status: "current",
-      sort_order: PHASE_ORDER[input.phaseType],
+      sort_order: input.sortOrder,
     })
     .select("*")
     .single();

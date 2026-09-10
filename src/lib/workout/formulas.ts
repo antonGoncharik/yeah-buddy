@@ -1,11 +1,16 @@
 import type {
+  CyclePhaseDef,
   FormulaPhaseSpec,
   FormulaPreset,
   FormulaSetSpec,
-  PhaseType,
   WorkoutFormulas,
   WorkoutKind,
 } from "@/lib/types";
+import {
+  nextPhaseType as nextCyclePhase,
+  previewMaxForPhase as previewMaxFromCycle,
+  shouldIncreaseMax as shouldIncreaseFromCycle,
+} from "@/lib/workout/cycle";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 
 export function floorToStep(weight: number, step: number): number {
@@ -33,23 +38,28 @@ export function increaseMax(
   return floorToStep(maxWeight * (1 + percent / 100), step);
 }
 
-/** Example kg on the formulas screen: peak/deload already use the raised max. */
+/** Example kg on the formulas screen: later phases may already use the raised max. */
 export function previewMaxForPhase(
-  phase: PhaseType,
+  cycle: CyclePhaseDef[],
+  key: string,
   maxWeight: number,
   increasePercent: number,
   step: number,
 ): number {
-  if (phase === "peak" || phase === "deload") {
-    return increaseMax(maxWeight, increasePercent, step);
-  }
-  return maxWeight;
+  return previewMaxFromCycle(
+    cycle,
+    key,
+    maxWeight,
+    increasePercent,
+    step,
+    increaseMax,
+  );
 }
 
 export function resolvePhaseSpec(
   base: FormulaPhaseSpec,
   kind: WorkoutKind,
-  phase: PhaseType,
+  skipWarmup: boolean,
   preset: FormulaPreset,
   warmups: WorkoutFormulas["warmups"] = DEFAULT_WORKOUT_FORMULAS.warmups,
 ): FormulaPhaseSpec {
@@ -57,8 +67,8 @@ export function resolvePhaseSpec(
     return { warmup: [], work: [] };
   }
 
-  if (phase === "deload") {
-    return base;
+  if (skipWarmup) {
+    return { warmup: [], work: base.work };
   }
 
   const pack = warmups[kind] ?? DEFAULT_WORKOUT_FORMULAS.warmups[kind];
@@ -98,19 +108,17 @@ export function setUsesHold(set: FormulaSetSpec): boolean {
   return set.seconds != null && set.reps == null;
 }
 
-export function nextPhaseType(phase: PhaseType): PhaseType | null {
-  if (phase === "ramp") {
-    return "volume";
-  }
-  if (phase === "volume") {
-    return "peak";
-  }
-  if (phase === "peak") {
-    return "deload";
-  }
-  return null;
+export function nextPhaseType(
+  phase: string,
+  cycle: CyclePhaseDef[] = [],
+): string | null {
+  return nextCyclePhase(phase, cycle);
 }
 
-export function shouldIncreaseMax(from: PhaseType, to: PhaseType): boolean {
-  return from === "volume" && to === "peak";
+export function shouldIncreaseMax(
+  from: string,
+  to: string,
+  cycle: CyclePhaseDef[] = [],
+): boolean {
+  return shouldIncreaseFromCycle(from, to, cycle);
 }

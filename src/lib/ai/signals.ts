@@ -27,7 +27,7 @@ import {
   summarizeWorkoutHistory,
   windowGymSessions,
 } from "@/lib/workout/history-stats";
-import { PHASE_TYPE_LABELS, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 const PROTEIN_MISS_G = 20;
 const CARBS_MISS_RATIO = 0.9;
@@ -129,7 +129,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     },
     phase: {
       type: source.macro.phase
-        ? PHASE_TYPE_LABELS[source.macro.phase.phase_type]
+        ? phaseLabel(source.macro.phase.phase_type, source.macro.phase.name)
         : null,
       completed: source.macro.phase_circle?.completed_count ?? null,
       circle: source.macro.phase_circle?.circle_size ?? null,
@@ -146,8 +146,12 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       stalled: maxes.stalled,
       last_recap: source.macro.last_recap
         ? {
-            from: PHASE_TYPE_LABELS[source.macro.last_recap.from_phase],
-            to: PHASE_TYPE_LABELS[source.macro.last_recap.to_phase],
+            from:
+              source.macro.last_recap.from_name ||
+              phaseLabel(source.macro.last_recap.from_phase),
+            to:
+              source.macro.last_recap.to_name ||
+              phaseLabel(source.macro.last_recap.to_phase),
             avg_percent:
               source.macro.last_recap.avg_percent == null
                 ? null
@@ -291,7 +295,7 @@ export function buildSignals(input: {
   if (input.phase.phase && circle) {
     const extra = circle.suggest_end ? ", круг можно закрывать" : "";
     lines.push(
-      `Фаза «${PHASE_TYPE_LABELS[input.phase.phase.phase_type]}» · ${circle.completed_count} из ${circle.circle_size}${extra}.`,
+      `Фаза «${phaseLabel(input.phase.phase.phase_type, input.phase.phase.name)}» · ${circle.completed_count} из ${circle.circle_size}${extra}.`,
     );
   }
 

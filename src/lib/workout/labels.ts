@@ -4,7 +4,6 @@ import type {
   ExerciseUnit,
   ExerciseWorkoutType,
   FormulaPreset,
-  PhaseType,
   SessionStatus,
   SetType,
   WorkoutKind,
@@ -22,12 +21,7 @@ export const EXERCISE_SLOTS = ["a", "b", "c"] as const;
 
 export const PHASE_TYPES = ["ramp", "volume", "peak", "deload"] as const;
 
-export const PHASE_ORDER: Record<PhaseType, number> = {
-  ramp: 1,
-  volume: 2,
-  peak: 3,
-  deload: 4,
-};
+export type LegacyPhaseKey = (typeof PHASE_TYPES)[number];
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
@@ -51,12 +45,32 @@ export const EXERCISE_UNIT_LABELS: Record<ExerciseUnit, string> = {
   seconds: "секунды",
 };
 
-export const PHASE_TYPE_LABELS: Record<PhaseType, string> = {
+export const PHASE_TYPE_LABELS: Record<LegacyPhaseKey, string> = {
   ramp: "Разгон",
   volume: "Набор",
   peak: "Рывок",
   deload: "Сброс",
 };
+
+export function isLegacyPhaseKey(value: string): value is LegacyPhaseKey {
+  return (
+    value === "ramp" ||
+    value === "volume" ||
+    value === "peak" ||
+    value === "deload"
+  );
+}
+
+export function phaseLabel(key: string, name?: string | null): string {
+  const trimmed = name?.trim();
+  if (trimmed) {
+    return trimmed;
+  }
+  if (isLegacyPhaseKey(key)) {
+    return PHASE_TYPE_LABELS[key];
+  }
+  return key;
+}
 
 export const CYCLE_STATUS_LABELS: Record<CycleStatus, string> = {
   current: "текущий",

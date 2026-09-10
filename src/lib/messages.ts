@@ -16,6 +16,7 @@ export const WORKOUTS_NEED_MAXES =
   "Сначала напиши рабочие веса — без них в зале нечего считать.";
 export const NEED_ALL_WORKING_WEIGHTS =
   "Нужен рабочий вес у каждого упражнения.";
+export const NEED_CYCLE_PHASES = "Сначала поставь фазы макроцикла в схеме.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
 export const SESSION_HISTORY_EMPTY =
   "Когда сделаешь тренировку, она появится здесь.";

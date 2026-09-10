@@ -3,11 +3,11 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   FormulaPhaseSpec,
-  PhaseType,
   WorkoutFormulas,
   WorkoutKind,
   WorkoutSettings,
 } from "@/lib/types";
+import { specForPhase } from "@/lib/workout/cycle";
 import {
   cloneFormulas,
   DEFAULT_WORKOUT_FORMULAS,
@@ -152,7 +152,7 @@ async function saveSkipTemplateIds(
 export function getFormulaPhase(
   formulas: WorkoutFormulas,
   kind: WorkoutKind,
-  phase: PhaseType,
+  phase: string | null,
 ): FormulaPhaseSpec {
-  return formulas[kind][phase];
+  return specForPhase(formulas, kind, phase);
 }

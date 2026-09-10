@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -14,8 +14,8 @@ import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import type {
+  CyclePhaseDef,
   FormulaSetSpec,
-  PhaseType,
   WarmupPresetId,
   WorkoutFormulas,
   WorkoutKind,
@@ -24,6 +24,16 @@ import type {
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 import {
+  addCyclePhase,
+  applyWorkPattern,
+  moveCyclePhase,
+  patchCyclePhase,
+  raisedMaxForPhase,
+  removeCyclePhase,
+  withCycle,
+} from "@/lib/workout/cycle";
+import {
+  CYCLE_TEMPLATES,
   cloneFormulas,
   DEFAULT_WORKOUT_FORMULAS,
   FORMULA_SYSTEMS,
@@ -35,8 +45,6 @@ import {
 } from "@/lib/workout/formulas";
 import {
   FORMULA_PRESET_LABELS,
-  PHASE_TYPE_LABELS,
-  PHASE_TYPES,
   WARMUP_PRESET_IDS,
   WEIGHT_STEP_OPTIONS,
   WORKOUT_KIND_LABELS,
@@ -45,6 +53,7 @@ import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 const MAX_SETS = 8;
+const MAX_PHASES = 8;
 const SETTINGS_URL = "/api/workout-settings";
 
 type KindTab = WorkoutKind;
@@ -54,6 +63,7 @@ export function FormulasScreen() {
   const [kind, setKind] = useState<KindTab>("dynamic");
   const [maxIncrease, setMaxIncrease] = useState("5");
   const [formulas, setFormulas] = useState<WorkoutFormulas | null>(null);
+  const [cycleOpen, setCycleOpen] = useState(false);
   const [previewMax, setPreviewMax] = useState({
     dynamic: "220",
     static: "76",
@@ -79,6 +89,7 @@ export function FormulasScreen() {
           }
           setFormulas(cloneFormulas(settings.formulas));
           setMaxIncrease(String(settings.max_increase_percent));
+          setCycleOpen(settings.formulas.cycle.length > 0);
           return true;
         },
         () => done(true),
@@ -139,7 +150,7 @@ export function FormulasScreen() {
 
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть схему 3×5? Сейчас всё заменится.",
+      message: "Вернуть схему 3×5 без фаз? Сейчас всё заменится.",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
@@ -148,24 +159,62 @@ export function FormulasScreen() {
     }
     setFormulas(cloneFormulas(DEFAULT_WORKOUT_FORMULAS));
     setMaxIncrease("5");
+    setCycleOpen(false);
     setSaved(false);
     setError(null);
   }
 
   async function applySystem(id: (typeof FORMULA_SYSTEMS)[number]["id"]) {
     const system = FORMULA_SYSTEMS.find((item) => item.id === id);
-    if (!system) {
+    if (!system || !formulas) {
       return;
     }
     const ok = await confirm({
-      message: `Поставить схему «${system.name}»? Текущая заменится.`,
+      message: formulas.cycle.length
+        ? `Поставить «${system.name}»? Рабочие в фазах тоже сменятся, сами фазы останутся.`
+        : `Поставить схему «${system.name}»? Текущая заменится.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
     if (!ok) {
       return;
     }
-    setFormulas(cloneFormulas(system.formulas));
+    setFormulas(applyWorkPattern(formulas, system.formulas));
+    setSaved(false);
+    setError(null);
+  }
+
+  async function applyCycleTemplate(cycle: CyclePhaseDef[], name: string) {
+    if (!formulas) {
+      return;
+    }
+    const ok = await confirm({
+      message: `Поставить цикл «${name}»? Рабочие в фазах возьмутся из схемы ниже, лёгкая фаза — без разминки.`,
+      confirmLabel: "Поставить",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+    setFormulas(withCycle(formulas, cycle));
+    setCycleOpen(true);
+    setSaved(false);
+    setError(null);
+  }
+
+  async function clearCycle() {
+    if (!formulas) {
+      return;
+    }
+    const ok = await confirm({
+      message: "Убрать фазы? Без макроцикла веса всегда как в рабочих ниже.",
+      confirmLabel: "Убрать",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+    setFormulas(withCycle(formulas, []));
     setSaved(false);
     setError(null);
   }
@@ -173,10 +222,21 @@ export function FormulasScreen() {
   const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
   const exampleStep = previewStep[kind];
   const increasePercent = parseDecimal(maxIncrease) ?? 0;
-  const raisedMax =
-    exampleMax > 0
-      ? previewMaxForPhase("peak", exampleMax, increasePercent, exampleStep)
-      : 0;
+  const showsIncrease = Boolean(
+    formulas?.cycle.some((phase) => phase.increase_on_end),
+  );
+  const raisedExample =
+    exampleMax > 0 && showsIncrease
+      ? previewMaxForPhase(
+          formulas?.cycle ?? [],
+          formulas?.cycle.find((phase) =>
+            raisedMaxForPhase(formulas.cycle, phase.key),
+          )?.key ?? "peak",
+          exampleMax,
+          increasePercent,
+          exampleStep,
+        )
+      : exampleMax;
 
   return (
     <div className="flex flex-col gap-4">
@@ -198,9 +258,9 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Рабочий вес × процент, вниз до шага блинов. Поставь 3×5 или
-                другую — потом правишь строки. Это не очередь и не программа:
-                упражнения там, веса здесь.
+                Рабочий вес × процент, вниз до шага блинов. Без макроцикла —
+                рабочие ниже. С макроциклом каждая фаза может считать по-своему.
+                Это не очередь и не программа: упражнения там, веса здесь.
               </p>
             </section>
 
@@ -212,7 +272,7 @@ export function FormulasScreen() {
                     key={system.id}
                     type="button"
                     className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40"
-                    onClick={() => applySystem(system.id)}
+                    onClick={() => void applySystem(system.id)}
                   >
                     <p className="text-base font-medium">{system.name}</p>
                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
@@ -223,30 +283,34 @@ export function FormulasScreen() {
               </div>
             </section>
 
-            <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-xl font-semibold">На рывке</h2>
-                <p className="text-sm text-muted-foreground">к рабочему весу</p>
-              </div>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Когда закрываешь набор, можно поднять рабочие веса на этот
-                процент. Не обязательно всем — поправишь перед подтверждением. В
-                примере ниже рывок и сброс уже от нового веса.
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  inputMode="decimal"
-                  value={maxIncrease}
-                  onChange={(event) => {
-                    setMaxIncrease(event.target.value);
-                    setSaved(false);
-                  }}
-                  className="h-12 w-24 text-base"
-                  aria-label="Прирост рабочего веса на рывке"
-                />
-                <span className="text-lg text-muted-foreground">%</span>
-              </div>
-            </section>
+            {showsIncrease ? (
+              <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className="text-xl font-semibold">Прирост</h2>
+                  <p className="text-sm text-muted-foreground">
+                    к рабочему весу
+                  </p>
+                </div>
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  Если у фазы включено «поднять веса», при переходе можно
+                  увеличить рабочие на этот процент. Не обязательно всем —
+                  поправишь перед подтверждением.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    inputMode="decimal"
+                    value={maxIncrease}
+                    onChange={(event) => {
+                      setMaxIncrease(event.target.value);
+                      setSaved(false);
+                    }}
+                    className="h-12 w-24 text-base"
+                    aria-label="Прирост рабочего веса"
+                  />
+                  <span className="text-lg text-muted-foreground">%</span>
+                </div>
+              </section>
+            ) : null}
 
             <Segmented
               value={kind}
@@ -262,8 +326,10 @@ export function FormulasScreen() {
               <p className="text-base leading-relaxed text-muted-foreground">
                 Подставь рабочий вес — справа в подходах появятся килограммы.
                 Это пример, в дневник не пишется.
-                {raisedMax > 0 && raisedMax !== exampleMax
-                  ? ` Рывок и сброс от ${formatWeight(raisedMax)} кг.`
+                {raisedExample > 0 &&
+                raisedExample !== exampleMax &&
+                showsIncrease
+                  ? ` После прироста — от ${formatWeight(raisedExample)} кг.`
                   : ""}
               </p>
               <div className="flex items-center gap-2">
@@ -296,111 +362,280 @@ export function FormulasScreen() {
               />
             </section>
 
-            {kind === "dynamic" ? (
-              <>
-                <p className="px-1 text-base leading-relaxed text-muted-foreground">
-                  Разминка берётся из упражнения (штанга или блок). Рабочие
-                  зависят от фазы. В рывке разминка тоже от нового веса. В
-                  подходе можно сменить повторы на секунды.
-                </p>
-                {WARMUP_PRESET_IDS.map((preset) => (
-                  <SetCard
-                    key={preset}
-                    title={FORMULA_PRESET_LABELS[preset]}
-                    hint="Разминка"
-                    defaultHold={false}
-                    sets={formulas.warmups.dynamic[preset]}
-                    exampleMax={exampleMax}
-                    exampleStep={exampleStep}
-                    allowEmpty
-                    onChange={(sets) => {
-                      setSaved(false);
-                      setFormulas((current) =>
-                        current
-                          ? patchWarmup(current, "dynamic", preset, sets)
-                          : current,
-                      );
-                    }}
-                  />
-                ))}
-                {PHASE_TYPES.map((phase) => (
-                  <SetCard
-                    key={phase}
-                    title={PHASE_TYPE_LABELS[phase]}
-                    hint={phaseWorkHint(phase, exampleMax, raisedMax)}
-                    defaultHold={false}
-                    sets={formulas.dynamic[phase].work}
-                    exampleMax={previewMaxForPhase(
-                      phase,
-                      exampleMax,
-                      increasePercent,
-                      exampleStep,
-                    )}
-                    exampleStep={exampleStep}
-                    onChange={(work) => {
-                      setSaved(false);
-                      setFormulas((current) =>
-                        current
-                          ? patchPhaseWork(current, "dynamic", phase, work)
-                          : current,
-                      );
-                    }}
-                  />
-                ))}
-              </>
-            ) : (
-              <>
-                <p className="px-1 text-base leading-relaxed text-muted-foreground">
-                  Статическая разминка своя: обычно повторы, третий подход —
-                  удержание 2 с на рабочем весе. Рабочие — секунды, но любой
-                  подход можно сделать повторами. Сброс без разминки.
-                </p>
-                {WARMUP_PRESET_IDS.map((preset) => (
-                  <SetCard
-                    key={preset}
-                    title={FORMULA_PRESET_LABELS[preset]}
-                    hint="Разминка"
-                    defaultHold={false}
-                    sets={formulas.warmups.static[preset]}
-                    exampleMax={exampleMax}
-                    exampleStep={exampleStep}
-                    allowEmpty
-                    onChange={(sets) => {
-                      setSaved(false);
-                      setFormulas((current) =>
-                        current
-                          ? patchWarmup(current, "static", preset, sets)
-                          : current,
-                      );
-                    }}
-                  />
-                ))}
-                {PHASE_TYPES.map((phase) => (
-                  <SetCard
-                    key={phase}
-                    title={PHASE_TYPE_LABELS[phase]}
-                    hint={phaseWorkHint(phase, exampleMax, raisedMax)}
-                    defaultHold
-                    sets={formulas.static[phase].work}
-                    exampleMax={previewMaxForPhase(
-                      phase,
-                      exampleMax,
-                      increasePercent,
-                      exampleStep,
-                    )}
-                    exampleStep={exampleStep}
-                    onChange={(work) => {
-                      setSaved(false);
-                      setFormulas((current) =>
-                        current
-                          ? patchPhaseWork(current, "static", phase, work)
-                          : current,
-                      );
-                    }}
-                  />
-                ))}
-              </>
-            )}
+            <p className="px-1 text-base leading-relaxed text-muted-foreground">
+              {kind === "dynamic"
+                ? "Разминка берётся из упражнения (штанга или блок). Рабочие без макроцикла — карточка ниже. В подходе можно сменить повторы на секунды."
+                : "Статическая разминка своя: обычно повторы, третий подход — удержание 2 с на рабочем весе. Рабочие — секунды, но любой подход можно сделать повторами."}
+            </p>
+            {WARMUP_PRESET_IDS.map((preset) => (
+              <SetCard
+                key={preset}
+                title={FORMULA_PRESET_LABELS[preset]}
+                hint="Разминка"
+                defaultHold={false}
+                sets={formulas.warmups[kind][preset]}
+                exampleMax={exampleMax}
+                exampleStep={exampleStep}
+                allowEmpty
+                onChange={(sets) => {
+                  setSaved(false);
+                  setFormulas((current) =>
+                    current
+                      ? patchWarmup(current, kind, preset, sets)
+                      : current,
+                  );
+                }}
+              />
+            ))}
+            <SetCard
+              title="Рабочие"
+              hint={
+                formulas.cycle.length > 0
+                  ? "Без макроцикла"
+                  : "От рабочего веса"
+              }
+              defaultHold={kind === "static"}
+              sets={formulas[kind].base.work}
+              exampleMax={exampleMax}
+              exampleStep={exampleStep}
+              onChange={(work) => {
+                setSaved(false);
+                setFormulas((current) =>
+                  current ? patchBaseWork(current, kind, work) : current,
+                );
+              }}
+            />
+
+            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 text-left"
+                onClick={() => setCycleOpen((open) => !open)}
+              >
+                <div>
+                  <h2 className="text-xl font-semibold">Фазы макроцикла</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {formulas.cycle.length > 0
+                      ? formulas.cycle.map((phase) => phase.name).join(" → ")
+                      : "Необязательно. Для продвинутых: свой порядок фаз и рабочие в каждой."}
+                  </p>
+                </div>
+                {cycleOpen ? (
+                  <ChevronUp className="size-5 shrink-0 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
+                )}
+              </button>
+
+              {cycleOpen ? (
+                <div className="flex flex-col gap-3">
+                  <p className="text-base leading-relaxed text-muted-foreground">
+                    Идущий макроцикл отсюда не переписывается — только следующие
+                    переходы. Свои проценты в фазах не трогаем, пока не
+                    поставишь другой цикл.
+                  </p>
+                  {formulas.cycle.length === 0 ? (
+                    <>
+                      {CYCLE_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                          onClick={() =>
+                            void applyCycleTemplate(
+                              template.cycle,
+                              template.name,
+                            )
+                          }
+                        >
+                          <p className="text-base font-medium">
+                            {template.name}
+                          </p>
+                          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                            {template.hint}
+                          </p>
+                        </button>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="h-12 text-base"
+                        onClick={() => {
+                          setFormulas((current) =>
+                            current
+                              ? addCyclePhase(current, "Фаза 1")
+                              : current,
+                          );
+                          setSaved(false);
+                        }}
+                      >
+                        Свой цикл
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {formulas.cycle.map((phase, index) => {
+                        const spec = formulas[kind].phases[phase.key];
+                        const work = spec?.work ?? formulas[kind].base.work;
+                        const phaseMax = previewMaxForPhase(
+                          formulas.cycle,
+                          phase.key,
+                          exampleMax,
+                          increasePercent,
+                          exampleStep,
+                        );
+                        return (
+                          <div key={phase.key} className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={phase.name}
+                                onChange={(event) => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? patchCyclePhase(current, phase.key, {
+                                          name: event.target.value.slice(0, 40),
+                                        })
+                                      : current,
+                                  );
+                                }}
+                                className="h-12 flex-1 text-base"
+                                aria-label="Название фазы"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="h-12 w-12 p-0"
+                                disabled={index === 0}
+                                aria-label="Выше"
+                                onClick={() => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? moveCyclePhase(current, phase.key, -1)
+                                      : current,
+                                  );
+                                }}
+                              >
+                                <ChevronUp className="size-5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="h-12 w-12 p-0"
+                                disabled={index === formulas.cycle.length - 1}
+                                aria-label="Ниже"
+                                onClick={() => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? moveCyclePhase(current, phase.key, 1)
+                                      : current,
+                                  );
+                                }}
+                              >
+                                <ChevronDown className="size-5" />
+                              </Button>
+                              <RemoveRowButton
+                                label={`Убрать фазу ${phase.name}`}
+                                onClick={() => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? removeCyclePhase(current, phase.key)
+                                      : current,
+                                  );
+                                }}
+                              />
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <ToggleChip
+                                on={phase.skip_warmup}
+                                label="Без разминки"
+                                onClick={() => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? patchCyclePhase(current, phase.key, {
+                                          skip_warmup: !phase.skip_warmup,
+                                        })
+                                      : current,
+                                  );
+                                }}
+                              />
+                              <ToggleChip
+                                on={phase.increase_on_end}
+                                label="Поднять веса в конце"
+                                onClick={() => {
+                                  setSaved(false);
+                                  setFormulas((current) =>
+                                    current
+                                      ? patchCyclePhase(current, phase.key, {
+                                          increase_on_end:
+                                            !phase.increase_on_end,
+                                        })
+                                      : current,
+                                  );
+                                }}
+                              />
+                            </div>
+                            <SetCard
+                              title={phase.name}
+                              hint={phaseWorkHint(phase, exampleMax, phaseMax)}
+                              defaultHold={kind === "static"}
+                              sets={work}
+                              exampleMax={phaseMax}
+                              exampleStep={exampleStep}
+                              onChange={(nextWork) => {
+                                setSaved(false);
+                                setFormulas((current) =>
+                                  current
+                                    ? patchPhaseWork(
+                                        current,
+                                        kind,
+                                        phase.key,
+                                        nextWork,
+                                      )
+                                    : current,
+                                );
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="h-12 text-base"
+                        disabled={formulas.cycle.length >= MAX_PHASES}
+                        onClick={() => {
+                          setSaved(false);
+                          setFormulas((current) =>
+                            current
+                              ? addCyclePhase(
+                                  current,
+                                  `Фаза ${current.cycle.length + 1}`,
+                                )
+                              : current,
+                          );
+                        }}
+                      >
+                        <Plus className="size-4" />
+                        Фаза
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-12 text-base"
+                        onClick={() => void clearCycle()}
+                      >
+                        Убрать фазы
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </section>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
@@ -432,6 +667,31 @@ export function FormulasScreen() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+function ToggleChip({
+  on,
+  label,
+  onClick,
+}: {
+  on: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "rounded-full px-3 py-2 text-sm",
+        on
+          ? "bg-primary/12 font-medium text-primary"
+          : "bg-muted text-muted-foreground",
+      )}
+      onClick={onClick}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -621,34 +881,49 @@ function SetCard({
 }
 
 function phaseWorkHint(
-  phase: PhaseType,
+  phase: CyclePhaseDef,
   exampleMax: number,
-  raisedMax: number,
+  phaseMax: number,
 ): string {
   const raised =
-    exampleMax > 0 && raisedMax > 0 && raisedMax !== exampleMax
-      ? ` · от ${formatWeight(raisedMax)} кг`
+    exampleMax > 0 && phaseMax > 0 && phaseMax !== exampleMax
+      ? ` · от ${formatWeight(phaseMax)} кг`
       : "";
-  if (phase === "deload") {
+  if (phase.skip_warmup) {
     return `Рабочие, без разминки${raised}`;
   }
-  if (phase === "peak") {
-    return `Рабочие${raised}`;
-  }
-  return "Рабочие";
+  return `Рабочие${raised}`;
 }
 
-function patchPhaseWork(
+function patchBaseWork(
   formulas: WorkoutFormulas,
   kind: WorkoutKind,
-  phase: PhaseType,
   work: FormulaSetSpec[],
 ): WorkoutFormulas {
   return {
     ...formulas,
     [kind]: {
       ...formulas[kind],
-      [phase]: { ...formulas[kind][phase], work },
+      base: { ...formulas[kind].base, work },
+    },
+  };
+}
+
+function patchPhaseWork(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+  key: string,
+  work: FormulaSetSpec[],
+): WorkoutFormulas {
+  const current = formulas[kind].phases[key] ?? formulas[kind].base;
+  return {
+    ...formulas,
+    [kind]: {
+      ...formulas[kind],
+      phases: {
+        ...formulas[kind].phases,
+        [key]: { ...current, work },
+      },
     },
   };
 }
@@ -677,17 +952,29 @@ function toPayload(maxIncreaseRaw: string, formulas: WorkoutFormulas) {
     return null;
   }
 
-  for (const phase of PHASE_TYPES) {
-    if (formulas.dynamic[phase].work.length < 1) {
+  if (
+    formulas.dynamic.base.work.length < 1 ||
+    formulas.static.base.work.length < 1 ||
+    !setsOk(formulas.dynamic.base.work) ||
+    !setsOk(formulas.static.base.work)
+  ) {
+    return null;
+  }
+
+  for (const phase of formulas.cycle) {
+    const dynamic = formulas.dynamic.phases[phase.key];
+    const staticKind = formulas.static.phases[phase.key];
+    if (
+      !dynamic ||
+      !staticKind ||
+      dynamic.work.length < 1 ||
+      staticKind.work.length < 1 ||
+      !setsOk(dynamic.work) ||
+      !setsOk(staticKind.work)
+    ) {
       return null;
     }
-    if (formulas.static[phase].work.length < 1) {
-      return null;
-    }
-    if (!setsOk(formulas.dynamic[phase].work)) {
-      return null;
-    }
-    if (!setsOk(formulas.static[phase].work)) {
+    if (!phase.name.trim()) {
       return null;
     }
   }

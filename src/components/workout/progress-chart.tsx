@@ -1,7 +1,7 @@
 import { chartShape } from "@/lib/chart-shape";
 import type { PhaseType, ProgressPoint } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { PHASE_TYPE_LABELS } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
 import {
   hasSecondsSeries,
@@ -219,7 +219,7 @@ function phaseMarks(
     if (point.phase_type !== previous) {
       marks.push({
         x: dot.x,
-        label: PHASE_TYPE_LABELS[point.phase_type],
+        label: phaseLabel(point.phase_type),
         anchor:
           dot.x < pad + 28
             ? "start"

@@ -280,6 +280,7 @@ export function WorkoutsHubScreen() {
                       macro.macro.number,
                       phaseCircle ?? macro.phase_circle,
                       macro.phase.phase_type,
+                      macro.phase.name,
                     )}
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
@@ -292,7 +293,7 @@ export function WorkoutsHubScreen() {
                   ) : null}
                   {phaseHint ? (
                     <p className="text-base font-medium text-primary">
-                      {phaseCircle?.phase_type === "deload"
+                      {phaseCircle?.last_in_cycle
                         ? "Можно закрыть макроцикл"
                         : "Можно закрыть фазу"}
                     </p>

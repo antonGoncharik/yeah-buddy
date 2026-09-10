@@ -8,6 +8,12 @@ import type {
   WorkoutSettings,
 } from "@/lib/types";
 import {
+  convertLegacyKind,
+  hydrateCyclePhases,
+  legacyCycle,
+  legacyKeepsFourPhase,
+} from "@/lib/workout/cycle";
+import {
   cloneFormulas,
   DEFAULT_WARMUP_PRESETS,
   DEFAULT_WORKOUT_FORMULAS,
@@ -25,6 +31,23 @@ const formulaPhaseSchema = z.object({
   work: z.array(formulaSetSchema).min(1),
 });
 
+const kindFormulasSchema = z.object({
+  base: formulaPhaseSchema,
+  phases: z.record(z.string(), formulaPhaseSchema).default({}),
+});
+
+const cyclePhaseSchema = z.object({
+  key: z
+    .string()
+    .trim()
+    .min(1)
+    .max(40)
+    .regex(/^[a-z][a-z0-9_]*$/),
+  name: z.string().trim().min(1).max(40),
+  skip_warmup: z.boolean(),
+  increase_on_end: z.boolean(),
+});
+
 const warmupPresetsSchema = z.object({
   barbell: z.array(formulaSetSchema),
   cable: z.array(formulaSetSchema),
@@ -36,18 +59,22 @@ const kindWarmupsSchema = z.object({
 });
 
 export const formulasSchema = z.object({
-  dynamic: z.object({
-    ramp: formulaPhaseSchema,
-    volume: formulaPhaseSchema,
-    peak: formulaPhaseSchema,
-    deload: formulaPhaseSchema,
-  }),
-  static: z.object({
-    ramp: formulaPhaseSchema,
-    volume: formulaPhaseSchema,
-    peak: formulaPhaseSchema,
-    deload: formulaPhaseSchema,
-  }),
+  dynamic: kindFormulasSchema,
+  static: kindFormulasSchema,
+  warmups: z.union([kindWarmupsSchema, warmupPresetsSchema]).optional(),
+  cycle: z.array(cyclePhaseSchema).max(8),
+});
+
+const legacyKindSchema = z.object({
+  ramp: formulaPhaseSchema,
+  volume: formulaPhaseSchema,
+  peak: formulaPhaseSchema,
+  deload: formulaPhaseSchema,
+});
+
+const legacyFormulasSchema = z.object({
+  dynamic: legacyKindSchema,
+  static: legacyKindSchema,
   warmups: z.union([kindWarmupsSchema, warmupPresetsSchema]).optional(),
 });
 
@@ -89,11 +116,18 @@ export function readWorkoutSettingsPayload(
 export function fillFormulas(
   value: z.infer<typeof formulasSchema>,
 ): WorkoutFormulas {
-  return {
-    dynamic: value.dynamic,
-    static: value.static,
+  return hydrateCyclePhases({
+    dynamic: {
+      base: value.dynamic.base,
+      phases: value.dynamic.phases ?? {},
+    },
+    static: {
+      base: value.static.base,
+      phases: value.static.phases ?? {},
+    },
     warmups: normalizeWarmups(value.warmups),
-  };
+    cycle: value.cycle ?? [],
+  });
 }
 
 function normalizeWarmups(
@@ -114,9 +148,21 @@ function normalizeWarmups(
 }
 
 function parseFormulas(value: unknown): WorkoutFormulas {
-  const parsed = formulasSchema.safeParse(stripLegacyCableShort(value));
+  const stripped = stripLegacyCableShort(value);
+  const parsed = formulasSchema.safeParse(stripped);
   if (parsed.success) {
     return fillFormulas(parsed.data);
+  }
+
+  const legacy = legacyFormulasSchema.safeParse(stripped);
+  if (legacy.success) {
+    const keep = legacyKeepsFourPhase(legacy.data.dynamic);
+    return hydrateCyclePhases({
+      dynamic: convertLegacyKind(legacy.data.dynamic, keep),
+      static: convertLegacyKind(legacy.data.static, keep),
+      warmups: normalizeWarmups(legacy.data.warmups),
+      cycle: legacyCycle(keep),
+    });
   }
 
   return cloneFormulas(DEFAULT_WORKOUT_FORMULAS);
