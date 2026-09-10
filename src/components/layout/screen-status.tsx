@@ -16,23 +16,23 @@ import { cn } from "@/lib/utils";
 
 const BEATS = [
   {
-    key: "cookie",
-    mark: <CookieMark />,
-    viewBox: COOKIE_VIEWBOX,
-    box: "size-12",
-  },
-  {
     key: "mug",
     mark: <MugMark />,
     viewBox: MUG_VIEWBOX,
     box: "size-12",
-    pull: "-ml-1.5",
   },
   {
     key: "dumbbell",
     mark: <DumbbellMark />,
     viewBox: DUMBBELL_VIEWBOX,
     box: "h-9 w-auto",
+    pull: "-ml-1.5",
+  },
+  {
+    key: "cookie",
+    mark: <CookieMark />,
+    viewBox: COOKIE_VIEWBOX,
+    box: "size-12",
     pull: "-ml-1.5",
   },
   {
@@ -43,7 +43,7 @@ const BEATS = [
   },
 ] as const;
 
-export function ScreenLoading() {
+export function ScreenLoading({ title }: { title?: string }) {
   return (
     <div
       role="status"
@@ -51,6 +51,11 @@ export function ScreenLoading() {
       className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center"
     >
       <div className="flex flex-col items-center gap-4 text-muted-foreground">
+        {title ? (
+          <p className="animate-fade text-3xl font-semibold tracking-tight text-foreground">
+            {title}
+          </p>
+        ) : null}
         <div className="flex items-center gap-2">
           {BEATS.map((item, index) => (
             <span
