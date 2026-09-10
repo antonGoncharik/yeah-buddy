@@ -63,6 +63,72 @@ export const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
   }),
   lift("Молотковый подъём", "молотки", "c", { category: "isolation" }),
+  lift("Сгибание ног", "сгибание ног", "a", {
+    category: "isolation",
+    weight_step: 2.5,
+    formula_preset: "none",
+  }),
+  lift("Махи в наклоне", "махи в наклоне", "b", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Гак-приседания", "гак", "a", { weight_step: 5 }),
+  lift("Разгибание ног", "разгибание ног", "a", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Гиперэкстензия", "гиперэкстензия", "a", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Подъём на носки стоя", "икры стоя", "a", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Подъём на носки сидя", "икры сидя", "a", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Наклоны со штангой", "гудмонинг", "a"),
+  lift("Тяга Т-штанги", "Т-тяга", "c"),
+  lift("Шраги со штангой", "шраги", "c"),
+  lift("Тяга штанги к подбородку", "протяжка", "b"),
+  lift("Подъём гантелей перед собой", "махи вперёд", "b", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Обратные разведения в тренажёре", "задние дельты", "b", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Жим от груди в тренажёре", "жим в тренажёре", "b", {
+    formula_preset: "none",
+  }),
+  lift("Разведение гантелей лёжа", "разводка", "b", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Сведение в кроссовере", "кроссовер", "b", {
+    category: "isolation",
+    weight_step: 1,
+    formula_preset: "cable",
+  }),
+  lift("Пуловер", "пуловер", "c", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
+  lift("Скручивания на блоке", "скручивания", "c", {
+    category: "isolation",
+    weight_step: 1,
+    formula_preset: "cable",
+  }),
+  lift("Подъём на скамье Скотта", "скамья Скотта", "c", {
+    category: "isolation",
+  }),
+  lift("Концентрированный подъём", "концентрированный", "c", {
+    category: "isolation",
+    formula_preset: "none",
+  }),
 ];
 
 function lift(

@@ -4,6 +4,9 @@ import {
   FOUR_PHASE_CYCLE,
   LIGHT_HEAVY_CYCLE,
   LIGHT_MEDIUM_HEAVY_CYCLE,
+  LINEAR_CYCLE,
+  TEN_WORKOUT_FORMULAS,
+  VOLUME_STRENGTH_CYCLE,
 } from "@/lib/workout/default-formulas";
 import {
   calcPlannedWeight,
@@ -302,6 +305,40 @@ assertEqual(
   lh.dynamic.phases.heavy?.work[0]?.percent ?? 0,
   88,
   "light-heavy heavy is 88%",
+);
+
+assert(
+  TEN_WORKOUT_FORMULAS.dynamic.base.work.length === 3 &&
+    TEN_WORKOUT_FORMULAS.dynamic.base.work[0]?.percent === 70 &&
+    TEN_WORKOUT_FORMULAS.dynamic.base.work[0]?.reps === 10,
+  "3×10 is 70% for 10",
+);
+
+const linear = withCycle(DEFAULT_WORKOUT_FORMULAS, LINEAR_CYCLE);
+assertEqual(linear.dynamic.phases.w70?.work[0]?.percent ?? 0, 70, "linear 70%");
+assertEqual(linear.dynamic.phases.w75?.work[0]?.percent ?? 0, 75, "linear 75%");
+assertEqual(linear.dynamic.phases.w80?.work[0]?.percent ?? 0, 80, "linear 80%");
+assertEqual(linear.dynamic.phases.w85?.work[0]?.percent ?? 0, 85, "linear 85%");
+assert(linear.cycle[3]?.increase_on_end === true, "linear 85% raises max");
+assert(linear.cycle[4]?.skip_warmup === true, "linear ends with deload");
+
+const volumeStrength = withCycle(
+  DEFAULT_WORKOUT_FORMULAS,
+  VOLUME_STRENGTH_CYCLE,
+);
+assertEqual(
+  volumeStrength.dynamic.phases.volume?.work[0]?.percent ?? 0,
+  70,
+  "volume week is 70%",
+);
+assertEqual(
+  volumeStrength.dynamic.phases.strength?.work[0]?.percent ?? 0,
+  88,
+  "strength week is 88%",
+);
+assert(
+  volumeStrength.cycle[1]?.increase_on_end === true,
+  "strength week raises max",
 );
 
 console.log("workout formulas ok");

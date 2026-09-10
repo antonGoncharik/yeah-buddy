@@ -8,6 +8,7 @@ import {
   FORMULA_SYSTEMS,
 } from "@/lib/workout/default-formulas";
 import {
+  PROGRAM_LEVELS,
   PROGRAM_PRESETS,
   unknownProgramExercises,
 } from "@/lib/workout/program-presets";
@@ -80,6 +81,13 @@ for (const preset of PROGRAM_PRESETS) {
   for (const day of preset.templates) {
     assert(day.exercises.length > 0, `empty day: ${preset.id} ${day.name}`);
   }
+}
+
+for (const level of PROGRAM_LEVELS) {
+  assert(
+    PROGRAM_PRESETS.some((preset) => preset.level === level),
+    `no program for ${level}`,
+  );
 }
 
 const unknownProgram = unknownProgramExercises();

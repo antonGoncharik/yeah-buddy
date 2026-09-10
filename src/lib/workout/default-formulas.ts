@@ -95,6 +95,10 @@ export const PYRAMID_WORKOUT_FORMULAS: WorkoutFormulas = pack([
   reps(70, 8),
 ]);
 
+export const TEN_WORKOUT_FORMULAS: WorkoutFormulas = pack(
+  times(reps(70, 10), 3),
+);
+
 /** Default for new users. Already saved settings are not overwritten. */
 export const DEFAULT_WORKOUT_FORMULAS: WorkoutFormulas =
   SIMPLE_WORKOUT_FORMULAS;
@@ -103,6 +107,7 @@ export const FORMULA_SYSTEM_IDS = [
   "simple",
   "five_by_five",
   "volume",
+  "ten",
   "pyramid",
 ] as const;
 
@@ -129,13 +134,19 @@ export const FORMULA_SYSTEMS: Array<{
   {
     id: "volume",
     name: "3×8",
-    hint: "3 подхода по 8 раз · 70%.",
+    hint: "На массу. 3 подхода по 8 раз · 70%.",
     formulas: VOLUME_WORKOUT_FORMULAS,
+  },
+  {
+    id: "ten",
+    name: "3×10",
+    hint: "На массу. 3 подхода по 10 раз · 70%.",
+    formulas: TEN_WORKOUT_FORMULAS,
   },
   {
     id: "pyramid",
     name: "Пирамида",
-    hint: "80×5 / 75×6 / 70×8.",
+    hint: "Сила. 80×5 / 75×6 / 70×8.",
     formulas: PYRAMID_WORKOUT_FORMULAS,
   },
 ];
@@ -203,8 +214,74 @@ export const LIGHT_HEAVY_CYCLE: CyclePhaseDef[] = [
   },
 ];
 
+export const LINEAR_CYCLE: CyclePhaseDef[] = [
+  {
+    key: "w70",
+    name: "70%",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 0.875,
+  },
+  {
+    key: "w75",
+    name: "75%",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 0.9375,
+  },
+  {
+    key: "w80",
+    name: "80%",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 1,
+  },
+  {
+    key: "w85",
+    name: "85%",
+    skip_warmup: false,
+    increase_on_end: true,
+    percent_scale: 1.0625,
+  },
+  {
+    key: "deload",
+    name: "Сброс",
+    skip_warmup: true,
+    increase_on_end: false,
+  },
+];
+
+export const VOLUME_STRENGTH_CYCLE: CyclePhaseDef[] = [
+  {
+    key: "volume",
+    name: "Объём",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 0.875,
+  },
+  {
+    key: "strength",
+    name: "Сила",
+    skip_warmup: false,
+    increase_on_end: true,
+    percent_scale: 1.1,
+  },
+  {
+    key: "deload",
+    name: "Сброс",
+    skip_warmup: true,
+    increase_on_end: false,
+  },
+];
+
 export const CYCLE_TEMPLATES: Array<{
-  id: "four_phase" | "load_deload" | "light_medium_heavy" | "light_heavy";
+  id:
+    | "four_phase"
+    | "load_deload"
+    | "light_medium_heavy"
+    | "light_heavy"
+    | "linear"
+    | "volume_strength";
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
@@ -232,6 +309,18 @@ export const CYCLE_TEMPLATES: Array<{
     name: "Лёгкая → тяжёлая",
     hint: "Лёгкая и тяжёлая. После тяжёлой можно поднять веса.",
     cycle: LIGHT_HEAVY_CYCLE,
+  },
+  {
+    id: "linear",
+    name: "Линейный",
+    hint: "70 → 75 → 80 → 85, потом сброс. После 85% можно поднять веса.",
+    cycle: LINEAR_CYCLE,
+  },
+  {
+    id: "volume_strength",
+    name: "Объём → сила",
+    hint: "Неделя объёма, неделя силы, сброс. После силы можно поднять веса.",
+    cycle: VOLUME_STRENGTH_CYCLE,
   },
 ];
 

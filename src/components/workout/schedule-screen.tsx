@@ -21,6 +21,7 @@ import { readTemplates } from "@/lib/workout/hub-payload";
 import {
   PROGRAM_PRESETS,
   presetExerciseLine,
+  programPresetsByLevel,
 } from "@/lib/workout/program-presets";
 
 export function ScheduleScreen() {
@@ -275,30 +276,37 @@ function ProgramsSection({
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">
         Поставь по кругу. Свои отложатся.
       </p>
-      {PROGRAM_PRESETS.map((preset) => (
-        <button
-          key={preset.id}
-          type="button"
-          disabled={saving}
-          className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
-          onClick={() => void onPick(preset.id)}
-        >
-          <p className="text-base font-medium">{preset.name}</p>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            {preset.hint}
-          </p>
-          <div className="mt-3 flex flex-col gap-1.5">
-            {preset.templates.map((day) => (
-              <p key={day.name} className="text-sm leading-snug">
-                <span className="font-medium">{day.name}</span>
-                <span className="text-muted-foreground">
-                  {" "}
-                  · {presetExerciseLine(day.exercises)}
-                </span>
+      {programPresetsByLevel().map((group) => (
+        <div key={group.level} className="flex flex-col gap-2">
+          <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
+            {group.label}
+          </h3>
+          {group.presets.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              disabled={saving}
+              className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+              onClick={() => void onPick(preset.id)}
+            >
+              <p className="text-base font-medium">{preset.name}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {preset.hint}
               </p>
-            ))}
-          </div>
-        </button>
+              <div className="mt-3 flex flex-col gap-1.5">
+                {preset.templates.map((day) => (
+                  <p key={day.name} className="text-sm leading-snug">
+                    <span className="font-medium">{day.name}</span>
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {presetExerciseLine(day.exercises)}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
       ))}
     </section>
   );
