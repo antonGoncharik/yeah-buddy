@@ -198,7 +198,7 @@ export function MacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Макроцикл"
-        subtitle="Необязательно. Меняет нагрузку по фазам"
+        subtitle="Необязательно. Та же очередь, другая нагрузка"
         backHref="/workouts"
       />
 
@@ -229,11 +229,9 @@ export function MacroScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
               <p className="text-lg font-medium">Макроцикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Очередь и так идёт — те же дни по кругу. Веса считаются от
-                рабочего веса упражнения. Макроцикл нужен, если хочешь менять
-                нагрузку по фазам: разгон, набор, рывок, сброс. Фазу закрываешь
-                сам. На рывке можно поднять рабочие веса — или оставить как
-                есть.
+                Очередь не меняется — те же тренировки по кругу. Макроцикл
+                только грузит легче или тяжелее: разгон, набор, рывок, сброс.
+                Фазу закрываешь сам.
               </p>
               <Link
                 href="/workouts/macro/new"

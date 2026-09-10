@@ -243,6 +243,7 @@ export function SettingsScreen() {
           </form>
         ) : null}
 
+        <h2 className="px-1 text-lg font-semibold">Еда</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
             href="/foods"
@@ -259,25 +260,32 @@ export function SettingsScreen() {
             title="История еды"
             hint="По дням"
           />
-          <NavRow
-            href="/settings/review"
-            title="Разбор"
-            hint="Еда и зал за 14 или 30 дней"
-          />
+        </section>
+
+        <h2 className="px-1 text-lg font-semibold">Зал</h2>
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
             href="/workouts/schedule"
             title="Очередь"
-            hint="Какие дни по кругу. Состав и готовые программы"
+            hint="Какие тренировки по кругу"
           />
           <NavRow
             href="/settings/formulas"
-            title="Схема подходов"
-            hint="Как считаются веса. Готовые схемы можно поставить"
+            title="Схема"
+            hint="Как считать подходы от рабочего веса"
           />
           <NavRow
             href="/workouts/macro"
             title="Макроцикл"
-            hint="Необязательно. Та же очередь, нагрузка по фазам"
+            hint="Необязательно. Та же очередь, другая нагрузка"
+          />
+        </section>
+
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/settings/review"
+            title="Разбор"
+            hint="Еда и зал за 14 или 30 дней"
           />
           <NavRow
             href="/onboarding?again=1"

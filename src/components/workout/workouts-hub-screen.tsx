@@ -87,7 +87,7 @@ export function WorkoutsHubScreen() {
               className={cn(buttonVariants(), "h-14 gap-2 text-lg")}
             >
               <Plus className="size-5" aria-hidden />
-              Собрать очередь
+              Поставить программу
             </Link>
           </section>
         ) : null}
@@ -317,8 +317,7 @@ export function WorkoutsHubScreen() {
                   Тренировки идут по кругу, не по дням недели.
                   {session
                     ? null
-                    : " Нажми имя, если хочешь начать не следующее."}{" "}
-                  Состав дня и готовые программы — в очереди.
+                    : " Нажми имя, если хочешь начать не следующее."}
                 </p>
                 <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {
@@ -366,17 +365,17 @@ export function WorkoutsHubScreen() {
                   })}
                 </ol>
               </section>
-            ) : (
+            ) : session ? (
               <Link
                 href="/workouts/schedule"
                 className="flex items-center gap-1 text-sm font-medium text-primary"
               >
                 <Plus className="size-4" aria-hidden />
-                Собрать очередь
+                Поставить программу
               </Link>
-            )}
+            ) : null}
 
-            <nav className="grid grid-cols-3 gap-2">
+            <nav className="grid grid-cols-2 gap-2">
               <Link
                 href="/workouts/progress"
                 className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
@@ -394,6 +393,12 @@ export function WorkoutsHubScreen() {
                 className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
               >
                 Упражнения
+              </Link>
+              <Link
+                href="/settings/formulas"
+                className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+              >
+                Схема
               </Link>
             </nav>
           </div>

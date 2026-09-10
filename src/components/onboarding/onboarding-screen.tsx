@@ -401,7 +401,7 @@ function CircleStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Не по дням недели. Сегодня одно, завтра следующее.
+        Не по дням недели. Сегодня одно, завтра следующее. Потом можно поменять.
       </p>
       {PROGRAM_PRESETS.map((preset, index) => (
         <button
@@ -442,7 +442,7 @@ function CircleStep({
       >
         <p className="text-lg font-medium">Соберу сам</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Очередь пустая. Если зал не ведёшь — так и сделай.
+          Без очереди. Если зал не ведёшь — так и сделай.
         </p>
       </button>
     </>
@@ -501,7 +501,7 @@ function titleForStep(step: Step): string {
     return "Белок";
   }
   if (step === "circle") {
-    return "Очередь";
+    return "Программа";
   }
   return "Рабочие веса";
 }

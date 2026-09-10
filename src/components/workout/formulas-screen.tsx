@@ -181,9 +181,9 @@ export function FormulasScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Схема подходов"
-        subtitle="Как считаются веса в зале"
-        backHref="/settings"
+        title="Схема"
+        subtitle="Как считать подходы от рабочего веса"
+        backHref="/workouts"
       />
 
       <div className="flex flex-col gap-4 px-4 pb-24">
@@ -196,17 +196,16 @@ export function FormulasScreen() {
         {!loading && formulas ? (
           <>
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-              <h2 className="text-xl font-semibold">Как это работает</h2>
+              <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Это не очередь и не макроцикл. Только как считать подходы от
-                рабочего веса: процент, округление вниз до шага блинов. Разминка
-                — своя на динамику и статику, штанга или блок. Готовая схема
-                ставится целиком — потом правишь как хочешь.
+                Рабочий вес × процент, вниз до шага блинов. Поставь 3×5 или
+                другую — потом правишь строки. Это не очередь и не программа:
+                упражнения там, веса здесь.
               </p>
             </section>
 
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-              <h2 className="text-xl font-semibold">Готовая схема</h2>
+              <h2 className="text-xl font-semibold">Поставить</h2>
               <div className="flex flex-col gap-2">
                 {FORMULA_SYSTEMS.map((system) => (
                   <button

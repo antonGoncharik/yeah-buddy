@@ -106,7 +106,7 @@ export function ScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? Очередь заменится. Свои тренировки не удалятся — выключатся.`,
+      message: `Поставить «${preset.name}»? Очередь станет этой программой. Свои тренировки не удалятся — отложатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -162,7 +162,7 @@ export function ScheduleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Очередь"
-        subtitle="Состав дней отдельно. Макроцикл крутит ту же очередь"
+        subtitle="Тренировки по кругу, не по дням недели"
         backHref="/workouts"
       />
 
@@ -181,17 +181,20 @@ export function ScheduleScreen() {
           </div>
         ) : null}
 
-        {!loading && templates.length === 0 ? (
-          <p className="animate-fade text-center text-base leading-relaxed text-muted-foreground">
-            Пока пусто. Поставь готовую программу или собери день сам.
-          </p>
+        {!loading && active.length === 0 && inactive.length === 0 ? (
+          <>
+            <p className="animate-fade px-1 text-base leading-relaxed text-muted-foreground">
+              Поставь программу — или собери тренировку сам.
+            </p>
+            <ProgramsSection saving={saving} onPick={applyPreset} />
+          </>
         ) : null}
 
         {!loading && active.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">В очереди</h2>
+            <h2 className="px-1 text-lg font-semibold">По кругу</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Идут по кругу, не по дням недели. Нажми имя — состав дня.
+              Сегодня одно, завтра следующее. Нажми имя — упражнения.
             </p>
             <SortableList
               items={active}
@@ -222,9 +225,9 @@ export function ScheduleScreen() {
 
         {!loading && inactive.length > 0 ? (
           <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">Не в очереди</h2>
+            <h2 className="px-1 text-lg font-semibold">Отложены</h2>
             <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Свои дни. Можно вернуть в круг или поправить состав.
+              Не идут по кругу. Можно вернуть или поправить.
             </p>
             <div className="overflow-hidden">
               {inactive.map((template) => (
@@ -244,7 +247,7 @@ export function ScheduleScreen() {
                     </p>
                   </Link>
                   <AddRowButton
-                    label="Вернуть в очередь"
+                    label="В очередь"
                     disabled={saving}
                     onClick={() => setInCircle(template.id, true)}
                   />
@@ -254,39 +257,8 @@ export function ScheduleScreen() {
           </section>
         ) : null}
 
-        {!loading ? (
-          <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">Готовая программа</h2>
-            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Поставит дни в очередь с упражнениями. Потом меняй как хочешь.
-              Свои дни не удалятся — выключатся.
-            </p>
-            {PROGRAM_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                disabled={saving}
-                className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
-                onClick={() => void applyPreset(preset.id)}
-              >
-                <p className="text-base font-medium">{preset.name}</p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {preset.hint}
-                </p>
-                <div className="mt-3 flex flex-col gap-1.5">
-                  {preset.templates.map((day) => (
-                    <p key={day.name} className="text-sm leading-snug">
-                      <span className="font-medium">{day.name}</span>
-                      <span className="text-muted-foreground">
-                        {" "}
-                        · {presetExerciseLine(day.exercises)}
-                      </span>
-                    </p>
-                  ))}
-                </div>
-              </button>
-            ))}
-          </section>
+        {!loading && (active.length > 0 || inactive.length > 0) ? (
+          <ProgramsSection saving={saving} onPick={applyPreset} />
         ) : null}
 
         {!loading ? (
@@ -305,6 +277,49 @@ export function ScheduleScreen() {
         ) : null}
       </div>
     </div>
+  );
+}
+
+function ProgramsSection({
+  saving,
+  onPick,
+}: {
+  saving: boolean;
+  onPick: (presetId: (typeof PROGRAM_PRESETS)[number]["id"]) => void;
+}) {
+  return (
+    <section className="animate-rise flex flex-col gap-2">
+      <h2 className="px-1 text-lg font-semibold">Программы</h2>
+      <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+        Набор тренировок в очередь. Потом можно убрать лишнее. Свои не удалятся
+        — отложатся.
+      </p>
+      {PROGRAM_PRESETS.map((preset) => (
+        <button
+          key={preset.id}
+          type="button"
+          disabled={saving}
+          className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+          onClick={() => void onPick(preset.id)}
+        >
+          <p className="text-base font-medium">{preset.name}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {preset.hint}
+          </p>
+          <div className="mt-3 flex flex-col gap-1.5">
+            {preset.templates.map((day) => (
+              <p key={day.name} className="text-sm leading-snug">
+                <span className="font-medium">{day.name}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {presetExerciseLine(day.exercises)}
+                </span>
+              </p>
+            ))}
+          </div>
+        </button>
+      ))}
+    </section>
   );
 }
 

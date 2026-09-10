@@ -176,13 +176,14 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             <Segmented
               value={isActive ? "on" : "off"}
               options={[
-                { id: "on", label: "В очереди" },
-                { id: "off", label: "Не в очереди" },
+                { id: "on", label: "В круге" },
+                { id: "off", label: "Отложить" },
               ]}
               onChange={(id) => setIsActive(id === "on")}
             />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Это состав одного дня. Порядок дней — в очереди.
+              Какие упражнения в этой тренировке. Порядок тренировок — в
+              очереди.
             </p>
           </Field>
 
