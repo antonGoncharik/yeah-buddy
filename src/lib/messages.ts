@@ -32,6 +32,10 @@ export const AI_REVIEW_EMPTY = "Пока мало записей.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";
 export const AI_REVIEW_FAILED = "Не получилось написать.";
 export const REVIEW_CTA_HINT = "Как прошло за эти дни";
+export const PACK_NOT_FOUND = "Ссылка уже не работает.";
+export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
+export const PACK_EMPTY_MEALS = "Сначала собери еду на день.";
+export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки по кругу.";
 
 export function readApiError(data: unknown): string | null {
   if (

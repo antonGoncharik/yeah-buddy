@@ -2,8 +2,10 @@ import { Bot, InlineKeyboard } from "grammy";
 
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import { BOT_OPEN_DIARY, BOT_START } from "@/lib/messages";
+import { isPackToken } from "@/lib/share/token";
 
 let bot: Bot | null = null;
+let botUsername: string | null | undefined;
 
 export function getMiniAppUrl(env: ServerEnv = getServerEnv()): string | null {
   const candidate = env.TELEGRAM_MINI_APP_URL || env.NEXT_PUBLIC_APP_URL;
@@ -23,6 +25,37 @@ export function getMiniAppUrl(env: ServerEnv = getServerEnv()): string | null {
   }
 }
 
+export function withStartApp(url: string, token: string): string {
+  const parsed = new URL(url);
+  parsed.searchParams.set("startapp", token);
+  return parsed.toString();
+}
+
+export async function getPackShareUrl(token: string): Promise<string | null> {
+  if (!isPackToken(token)) {
+    return null;
+  }
+
+  const mini = getMiniAppUrl();
+  if (mini) {
+    try {
+      const parsed = new URL(mini);
+      if (parsed.hostname === "t.me") {
+        return withStartApp(mini, token);
+      }
+    } catch {
+      // fall through to bot username
+    }
+  }
+
+  const username = await getBotUsername();
+  if (username) {
+    return `https://t.me/${username}?startapp=${encodeURIComponent(token)}`;
+  }
+
+  return mini ? withStartApp(mini, token) : null;
+}
+
 export function createBot(env: ServerEnv = getServerEnv()): Bot {
   if (bot) {
     return bot;
@@ -37,12 +70,31 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
       return;
     }
 
+    const payload = typeof ctx.match === "string" ? ctx.match.trim() : "";
+    const token = isPackToken(payload) ? payload : null;
+    const buttonUrl = token ? withStartApp(miniAppUrl, token) : miniAppUrl;
+
     await ctx.reply(BOT_START, {
       // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).
-      reply_markup: new InlineKeyboard().webApp(BOT_OPEN_DIARY, miniAppUrl),
+      reply_markup: new InlineKeyboard().webApp(BOT_OPEN_DIARY, buttonUrl),
     });
   });
 
   bot = instance;
   return instance;
+}
+
+async function getBotUsername(): Promise<string | null> {
+  if (botUsername !== undefined) {
+    return botUsername;
+  }
+
+  try {
+    const me = await createBot().api.getMe();
+    botUsername = me.username ?? null;
+  } catch {
+    botUsername = null;
+  }
+
+  return botUsername;
 }

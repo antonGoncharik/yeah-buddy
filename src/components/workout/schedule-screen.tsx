@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
+import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
@@ -162,7 +163,7 @@ export function ScheduleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="По кругу" backHref="/workouts" />
 
-      <div className="flex flex-col gap-5 px-4 pb-36">
+      <div className="flex flex-col gap-5 px-4 pb-48">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -259,6 +260,7 @@ export function ScheduleScreen() {
 
         {!loading ? (
           <StickyActions>
+            {active.length > 0 ? <PublishPackButton kind="workouts" /> : null}
             <Link
               href="/workouts/templates/new"
               className={cn(

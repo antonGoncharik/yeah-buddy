@@ -243,6 +243,53 @@ export async function deleteTemplateItem(
   return Boolean(deleted.data);
 }
 
+export async function replaceMealTemplateItems(
+  userId: string,
+  dayType: DayType,
+  items: Array<{
+    mealType: MealType;
+    foodId: string;
+    grams: number;
+  }>,
+): Promise<MealTemplateDetail> {
+  const template = await ensureMealTemplate(userId, dayType);
+  const supabase = createSupabaseServerClient();
+  const visible = items.filter((item) =>
+    isMealVisible(item.mealType, dayType === "training"),
+  );
+
+  const deleted = await supabase
+    .from("meal_template_items")
+    .delete()
+    .eq("user_id", userId)
+    .eq("template_id", template.id);
+
+  if (deleted.error) {
+    throw deleted.error;
+  }
+
+  if (visible.length === 0) {
+    return loadTemplateDetail(supabase, userId, template);
+  }
+
+  const inserted = await supabase.from("meal_template_items").insert(
+    visible.map((item, index) => ({
+      user_id: userId,
+      template_id: template.id,
+      meal_type: item.mealType,
+      food_id: item.foodId,
+      grams: item.grams,
+      sort_order: (index + 1) * 10,
+    })),
+  );
+
+  if (inserted.error) {
+    throw inserted.error;
+  }
+
+  return loadTemplateDetail(supabase, userId, template);
+}
+
 async function findActiveTemplate(
   supabase: ReturnType<typeof createSupabaseServerClient>,
   userId: string,

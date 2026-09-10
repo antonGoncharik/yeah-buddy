@@ -5,6 +5,8 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { rememberPackToken } from "@/lib/share/pending";
+import { isPackToken } from "@/lib/share/token";
 
 type GateState = "loading" | "ready" | "outside" | "error";
 
@@ -45,6 +47,7 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
       webApp.ready();
       webApp.expand();
       enterTelegramFullscreen(webApp);
+      rememberPackToken(readStartParam(webApp));
 
       const initData = webApp.initData;
       if (initData) {
@@ -90,7 +93,7 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
         children
       ) : (
         <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
-          {state === "loading" ? <ScreenLoading /> : null}
+          {state === "loading" ? <ScreenLoading title="Yeah Buddy" /> : null}
           {state === "outside" ? (
             <p className="animate-rise max-w-xs text-xl font-semibold leading-snug">
               {OPEN_VIA_BOT}
@@ -111,4 +114,36 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
       )}
     </>
   );
+}
+
+function readStartParam(webApp: {
+  initDataUnsafe?: { start_param?: string };
+}): string | null {
+  const fromTelegram = webApp.initDataUnsafe?.start_param;
+  if (fromTelegram && isPackToken(fromTelegram)) {
+    return fromTelegram;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const search = new URLSearchParams(window.location.search);
+  for (const key of ["startapp", "pack"]) {
+    const value = search.get(key);
+    if (value && isPackToken(value)) {
+      return value;
+    }
+  }
+
+  const hash = window.location.hash.replace(/^#/, "");
+  if (hash) {
+    const hashed = new URLSearchParams(hash);
+    const value = hashed.get("tgWebAppStartParam") ?? hashed.get("startapp");
+    if (value && isPackToken(value)) {
+      return value;
+    }
+  }
+
+  return null;
 }

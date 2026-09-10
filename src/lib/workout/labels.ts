@@ -28,6 +28,7 @@ export const FORMULAS_LABEL = "Подходы";
 export const CYCLE_LABEL = "Цикл";
 export const REVIEW_LABEL = "Как прошло";
 export const MEAL_TEMPLATES_LABEL = "Еда на день";
+export const PACKS_LABEL = "Ссылки";
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",

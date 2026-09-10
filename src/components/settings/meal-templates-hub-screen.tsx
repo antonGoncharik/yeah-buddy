@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { StickyActions } from "@/components/layout/sticky-actions";
+import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { cachedGet } from "@/lib/api-cache";
 import { readMealTemplatesPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -62,7 +64,7 @@ export function MealTemplatesHubScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title={MEAL_TEMPLATES_LABEL} backHref="/settings" />
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-28">
         <p className="text-base text-muted-foreground">
           Новый день скопирует этот состав. Уже записанное в дневнике не
           изменится.
@@ -101,6 +103,12 @@ export function MealTemplatesHubScreen() {
             })
           : null}
       </div>
+
+      {!loading && templates.length > 0 ? (
+        <StickyActions>
+          <PublishPackButton kind="meals" />
+        </StickyActions>
+      ) : null}
     </div>
   );
 }

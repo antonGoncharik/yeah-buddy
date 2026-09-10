@@ -15,6 +15,8 @@ import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding-map";
+import { packPath, peekPendingPackToken } from "@/lib/share/pending";
+import { isPackToken } from "@/lib/share/token";
 import { cn } from "@/lib/utils";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
@@ -198,7 +200,10 @@ export function OnboardingScreen() {
         writeJson("/api/onboarding", data);
       }
 
-      router.replace("/today");
+      const pending = peekPendingPackToken();
+      router.replace(
+        pending && isPackToken(pending) ? packPath(pending) : "/today",
+      );
       router.refresh();
     } catch {
       setError(LOAD_FAILED);

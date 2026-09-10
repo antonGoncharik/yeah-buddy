@@ -21,6 +21,7 @@ import {
   CYCLE_LABEL,
   FORMULAS_LABEL,
   MEAL_TEMPLATES_LABEL,
+  PACKS_LABEL,
   QUEUE_LABEL,
   REVIEW_LABEL,
 } from "@/lib/workout/labels";
@@ -283,6 +284,11 @@ export function SettingsScreen() {
         </section>
 
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/settings/packs"
+            title={PACKS_LABEL}
+            hint="Еда и зал для друзей"
+          />
           <NavRow
             href="/settings/review"
             title={REVIEW_LABEL}

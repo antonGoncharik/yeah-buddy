@@ -132,6 +132,53 @@ export async function getExercise(
   return attachMaxes(exercise, maxes);
 }
 
+export async function ensureNamedExercise(
+  userId: string,
+  input: {
+    name: string;
+    short_name: string | null;
+    category: Exercise["category"];
+    workout_type: Exercise["workout_type"];
+    unit: Exercise["unit"];
+    weight_step: number;
+    formula_preset: Exercise["formula_preset"];
+  },
+): Promise<Exercise> {
+  const catalog = await listExercises(userId, "all");
+  const needle = input.name.trim().toLowerCase();
+  const found = catalog.find(
+    (exercise) => exercise.name.trim().toLowerCase() === needle,
+  );
+  if (found) {
+    if (!found.is_active) {
+      await archiveExercise(userId, found.id, false);
+    }
+    return found;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const inserted = await supabase
+    .from("exercises")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      short_name: input.short_name,
+      category: input.category,
+      workout_type: input.workout_type,
+      unit: input.unit,
+      weight_step: input.weight_step,
+      formula_preset: input.formula_preset,
+    })
+    .select("*")
+    .single();
+
+  if (inserted.error || !inserted.data) {
+    throw inserted.error ?? new Error("Exercise insert failed");
+  }
+
+  return mapExercise(inserted.data as Record<string, unknown>);
+}
+
 export async function createExercise(
   userId: string,
   input: ExerciseCreateInput,

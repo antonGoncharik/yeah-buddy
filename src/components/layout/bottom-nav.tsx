@@ -46,7 +46,8 @@ export function BottomNav() {
               ? fromSettings ||
                 pathname.startsWith("/settings") ||
                 pathname.startsWith("/foods") ||
-                pathname.startsWith("/food/")
+                pathname.startsWith("/food/") ||
+                pathname.startsWith("/packs/")
               : item.href === "/today"
                 ? !fromSettings &&
                   (pathname === item.href ||

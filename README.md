@@ -22,6 +22,10 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 - A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), actuals in history and on charts. Edit the scheme in Settings.
 - Progress (working weights), session history, exercise list.
 
+**Share**
+
+- Meal templates and the gym queue share separately as snapshots. A friend saves the pack and applies it later. Logged days and working weights stay private.
+
 Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Offline, the last known data stays.
 
 ## Stack
@@ -47,7 +51,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `NEXT_PUBLIC_APP_URL` | no | app URL; fallback for the Mini App button |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0012_skip_template_ids.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0014_share_packs.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
 Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 
@@ -72,6 +76,8 @@ supabase/migrations/
 
 ## Limits
 
-- Own food list only. No external APIs, barcodes, or parsers.
+- Own food list only. No external APIs, barcodes, or parsers. A friend pack copies foods into your list.
 - The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
 - UI is built for Telegram Mini App, Russian, narrow screen.
+
+Share links: meal templates and gym queue are separate snapshots (`share_packs`). Open via Mini App `startapp`. Apply replaces templates (and food/gym settings), not logged days or working weights.
