@@ -12,6 +12,8 @@ import {
   PROGRAM_PRESET_IDS,
   PROGRAM_PRESETS,
   programPresetExerciseNames,
+  programPresetSummary,
+  RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
@@ -88,6 +90,26 @@ for (const preset of PROGRAM_PRESETS) {
     assert(day.exercises.length > 0, `empty day: ${preset.id} ${day.name}`);
   }
 }
+
+const recommended = PROGRAM_PRESETS[0];
+assert(
+  recommended != null && recommended.id === RECOMMENDED_PROGRAM_PRESET_ID,
+  "first program is the recommended start",
+);
+assert(
+  recommended != null && programPresetSummary(recommended).startsWith("2 дня"),
+  "full body summary",
+);
+const oneDay = PROGRAM_PRESETS.find((preset) => preset.id === "one_day");
+assert(
+  oneDay != null && programPresetSummary(oneDay).startsWith("1 день"),
+  "one day summary",
+);
+const fourDay = PROGRAM_PRESETS.find((preset) => preset.id === "four_day");
+assert(
+  fourDay != null && programPresetSummary(fourDay).endsWith("…"),
+  "long program summary truncates",
+);
 
 for (const level of PROGRAM_LEVELS) {
   assert(

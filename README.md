@@ -59,7 +59,7 @@ Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELE
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
 ```
 
-Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding.
+Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding; the recommended start is the full-body program.
 
 Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format` · `test` (`*.check.ts`).
 

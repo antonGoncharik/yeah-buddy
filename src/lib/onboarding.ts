@@ -1,6 +1,11 @@
 import { z } from "zod";
 
+import {
+  listMealTemplates,
+  updateTemplateItemGrams,
+} from "@/lib/meal-templates";
 import { macroGoalsFromProtein } from "@/lib/nutrition";
+import { scaledTemplateGrams } from "@/lib/onboarding-setup";
 import {
   getUserSettings,
   isOnboardingCompleted,
@@ -84,6 +89,8 @@ export async function completeOnboarding(
     throw new Error("Настройки не нашлись.");
   }
 
+  const firstRun = !isOnboardingCompleted(current);
+
   if (input.protein != null) {
     const goals = macroGoalsFromProtein(input.protein, current);
     await saveUserSettings(userId, {
@@ -94,6 +101,9 @@ export async function completeOnboarding(
       training_fat: goals.training.fat,
       training_carbs: goals.training.carbs,
     });
+    if (firstRun) {
+      await scaleMealTemplatesToProtein(userId, input.protein);
+    }
   }
 
   if (isProgramPresetId(input.circle)) {
@@ -149,4 +159,17 @@ export async function completeOnboarding(
   }
 
   return getOnboardingState(userId);
+}
+
+async function scaleMealTemplatesToProtein(
+  userId: string,
+  protein: number,
+): Promise<void> {
+  const templates = await listMealTemplates(userId);
+  for (const template of templates) {
+    const updates = scaledTemplateGrams(template.items, protein);
+    for (const update of updates) {
+      await updateTemplateItemGrams(userId, update.id, update.grams);
+    }
+  }
 }

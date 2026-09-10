@@ -287,7 +287,7 @@ export function SettingsScreen() {
           <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
-            hint="Белок и веса. Тренировки не трогает"
+            hint="Белок и веса. Круг и еду на день не трогает"
           />
         </section>
       </div>

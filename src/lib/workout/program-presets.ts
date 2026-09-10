@@ -8,14 +8,16 @@ export interface ProgramDay {
 }
 
 export const PROGRAM_PRESET_IDS = [
+  "full_body",
   "one_day",
   "strength",
-  "full_body",
   "upper_lower",
   "ppl",
   "three_day",
   "four_day",
 ] as const;
+
+export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
 
 export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 
@@ -38,6 +40,26 @@ export interface ProgramPreset {
 }
 
 export const PROGRAM_PRESETS: ProgramPreset[] = [
+  {
+    id: "full_body",
+    name: "Всё тело",
+    hint: "Два разных дня на всё тело.",
+    level: "beginner",
+    templates: [
+      day("Тело A", [
+        "Приседания со штангой",
+        "Жим лёжа",
+        "Тяга штанги в наклоне",
+        "Жим гантелей сидя",
+      ]),
+      day("Тело B", [
+        "Румынская тяга",
+        "Жим стоя",
+        "Подтягивания",
+        "Жим ногами",
+      ]),
+    ],
+  },
   {
     id: "one_day",
     name: "Один день",
@@ -65,26 +87,6 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
         "Тяга штанги в наклоне",
       ]),
       day("Сила B", ["Приседания со штангой", "Жим стоя", "Становая тяга"]),
-    ],
-  },
-  {
-    id: "full_body",
-    name: "Всё тело",
-    hint: "Два разных дня на всё тело.",
-    level: "beginner",
-    templates: [
-      day("Тело A", [
-        "Приседания со штангой",
-        "Жим лёжа",
-        "Тяга штанги в наклоне",
-        "Жим гантелей сидя",
-      ]),
-      day("Тело B", [
-        "Румынская тяга",
-        "Жим стоя",
-        "Подтягивания",
-        "Жим ногами",
-      ]),
     ],
   },
   {
@@ -271,6 +273,28 @@ export function presetExerciseLine(names: string[]): string {
       return exercise?.short_name || name;
     })
     .join(" · ");
+}
+
+const SUMMARY_LIFT_LIMIT = 5;
+
+export function programPresetSummary(preset: ProgramPreset): string {
+  const names = [...new Set(preset.templates.flatMap((day) => day.exercises))];
+  const shown = names.slice(0, SUMMARY_LIFT_LIMIT);
+  const line = presetExerciseLine(shown);
+  const suffix = names.length > SUMMARY_LIFT_LIMIT ? "…" : "";
+  return `${dayCountLabel(preset.templates.length)} · ${line}${suffix}`;
+}
+
+function dayCountLabel(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return `${count} день`;
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return `${count} дня`;
+  }
+  return `${count} дней`;
 }
 
 function day(name: string, exercises: string[]): ProgramDay {

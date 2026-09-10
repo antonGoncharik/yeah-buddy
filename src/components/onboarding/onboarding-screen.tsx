@@ -16,14 +16,18 @@ import { LOAD_FAILED } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding-map";
+import {
+  defaultOnboardingCircle,
+  isExtraProgram,
+  onboardingWeightExercises,
+} from "@/lib/onboarding-setup";
 import { packPath, peekPendingPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
 import { cn } from "@/lib/utils";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
   isProgramPresetId,
-  PROGRAM_PRESETS,
-  programPresetExerciseNames,
+  RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
 
 const PROTEIN_PRESETS = [100, 120, 150] as const;
@@ -41,7 +45,7 @@ export function OnboardingScreen() {
   const [protein, setProtein] = useState("120");
   const [skipFood, setSkipFood] = useState(false);
   const [circle, setCircle] = useState<OnboardingCircle>(
-    PROGRAM_PRESETS[0]?.id ?? "empty",
+    RECOMMENDED_PROGRAM_PRESET_ID,
   );
   const [maxInputs, setMaxInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -61,7 +65,7 @@ export function OnboardingScreen() {
       }
       setState(onboarding);
       setProtein(String(onboarding.settings.rest_protein));
-      setCircle(onboarding.circle);
+      setCircle(defaultOnboardingCircle(onboarding.circle, replay));
       setMaxInputs(
         Object.fromEntries(
           onboarding.exercises.map((exercise) => [
@@ -90,22 +94,22 @@ export function OnboardingScreen() {
     proteinValue != null && proteinValue > 0 && state
       ? macroGoalsFromProtein(proteinValue, state.settings)
       : null;
+  const weightExercises = state
+    ? onboardingWeightExercises(circle, state.exercises)
+    : [];
 
   const steps = useMemo((): Step[] => {
     const next: Step[] = ["food"];
     if (!replay) {
       next.push("circle");
     }
-    if (
-      isProgramPresetId(circle) &&
-      state &&
-      !state.maxesLocked &&
-      state.exercises.length > 0
-    ) {
-      next.push("maxes");
+    if (isProgramPresetId(circle) && state && !state.maxesLocked) {
+      if (weightExercises.length > 0) {
+        next.push("maxes");
+      }
     }
     return next;
-  }, [circle, replay, state]);
+  }, [circle, replay, state, weightExercises.length]);
 
   useEffect(() => {
     if (!steps.includes(step)) {
@@ -154,7 +158,10 @@ export function OnboardingScreen() {
     void finish({ omitProtein: true });
   }
 
-  async function finish(options?: { omitProtein?: boolean }) {
+  async function finish(options?: {
+    omitProtein?: boolean;
+    omitMaxes?: boolean;
+  }) {
     const omitProtein = Boolean(options?.omitProtein || skipFood);
     if (!omitProtein) {
       if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
@@ -167,13 +174,15 @@ export function OnboardingScreen() {
     setSaving(true);
     setError(null);
     try {
-      const maxes = Object.entries(maxInputs).flatMap(([exerciseId, raw]) => {
-        const maxWeight = parseDecimal(raw);
-        if (maxWeight == null || maxWeight <= 0) {
-          return [];
-        }
-        return [{ exerciseId, maxWeight }];
-      });
+      const maxes = options?.omitMaxes
+        ? []
+        : Object.entries(maxInputs).flatMap(([exerciseId, raw]) => {
+            const maxWeight = parseDecimal(raw);
+            if (maxWeight == null || maxWeight <= 0) {
+              return [];
+            }
+            return [{ exerciseId, maxWeight }];
+          });
 
       const data = await postJson("/api/onboarding", {
         ...(omitProtein ? {} : { protein: proteinValue }),
@@ -262,7 +271,7 @@ export function OnboardingScreen() {
 
         {step === "maxes" ? (
           <MaxesStep
-            exercises={exercisesForCircle(circle, state.exercises)}
+            exercises={weightExercises}
             values={maxInputs}
             onChange={(id, value) =>
               setMaxInputs((current) => ({ ...current, [id]: value }))
@@ -287,6 +296,17 @@ export function OnboardingScreen() {
             onClick={() => skipFoodStep()}
           >
             Пока без еды
+          </Button>
+        ) : null}
+        {step === "maxes" ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-12 w-full text-base"
+            disabled={saving}
+            onClick={() => void finish({ omitMaxes: true })}
+          >
+            Пока без весов
           </Button>
         ) : null}
         <Button
@@ -334,7 +354,7 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько белка в день. Еду не ведёшь — пропусти.
+        Сколько белка в день. 120 хватает большинству. Потом поправишь.
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -386,15 +406,44 @@ function CircleStep({
   value: OnboardingCircle;
   onChange: (value: OnboardingCircle) => void;
 }) {
+  const extraSelected = isExtraProgram(value);
+  const [showMore, setShowMore] = useState(extraSelected);
+
+  useEffect(() => {
+    if (extraSelected) {
+      setShowMore(true);
+    }
+  }, [extraSelected]);
+
   return (
     <>
       <p className="animate-rise text-base text-muted-foreground">
-        Сегодня одно, завтра следующее. Потом поменяешь.
+        Поставь программу — и можно в зал. Потом поменяешь.
       </p>
       <ProgramPresetList
         value={isProgramPresetId(value) ? value : null}
+        compact
+        recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
+        levels={["beginner"]}
+        showLevelLabels={false}
         onPick={onChange}
       />
+      {showMore ? (
+        <ProgramPresetList
+          value={isProgramPresetId(value) ? value : null}
+          compact
+          levels={["intermediate", "advanced"]}
+          onPick={onChange}
+        />
+      ) : (
+        <button
+          type="button"
+          className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+          onClick={() => setShowMore(true)}
+        >
+          Ещё программы
+        </button>
+      )}
       <button
         type="button"
         aria-pressed={value === "empty"}
@@ -428,7 +477,7 @@ function MaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько потянешь. Не на раз. Пустое допишешь потом.
+        Рабочий вес, не на раз. Пустое допишешь в зале.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"
@@ -461,27 +510,10 @@ function MaxesStep({
 
 function titleForStep(step: Step): string {
   if (step === "food") {
-    return "Белок";
+    return "Еда";
   }
   if (step === "circle") {
-    return "Программа";
+    return "Зал";
   }
-  return "Твои веса";
-}
-
-function exercisesForCircle(
-  circle: OnboardingCircle,
-  catalog: OnboardingState["exercises"],
-): OnboardingState["exercises"] {
-  if (!isProgramPresetId(circle)) {
-    return [];
-  }
-
-  const byName = new Map(
-    catalog.map((exercise) => [exercise.name, exercise] as const),
-  );
-  return programPresetExerciseNames(circle).flatMap((name) => {
-    const exercise = byName.get(name);
-    return exercise ? [exercise] : [];
-  });
+  return "Веса";
 }

@@ -1,8 +1,10 @@
 import { cn } from "@/lib/utils";
 import {
+  type ProgramLevel,
   type ProgramPreset,
   type ProgramPresetId,
   presetExerciseLine,
+  programPresetSummary,
   programPresetsByLevel,
 } from "@/lib/workout/program-presets";
 
@@ -10,24 +12,40 @@ export function ProgramPresetList({
   value,
   disabled,
   onPick,
+  compact,
+  recommendedId,
+  levels,
+  showLevelLabels = true,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
   onPick: (id: ProgramPresetId) => void;
+  compact?: boolean;
+  recommendedId?: ProgramPresetId;
+  levels?: readonly ProgramLevel[];
+  showLevelLabels?: boolean;
 }) {
+  const groups = programPresetsByLevel().filter(
+    (group) => !levels || levels.includes(group.level),
+  );
+
   return (
     <>
-      {programPresetsByLevel().map((group) => (
+      {groups.map((group) => (
         <div key={group.level} className="flex flex-col gap-2">
-          <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-            {group.label}
-          </h3>
+          {showLevelLabels ? (
+            <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
+              {group.label}
+            </h3>
+          ) : null}
           {group.presets.map((preset) => (
             <ProgramPresetCard
               key={preset.id}
               preset={preset}
               pressed={value === preset.id}
               disabled={disabled}
+              compact={compact}
+              recommended={recommendedId === preset.id}
               onPick={() => onPick(preset.id)}
             />
           ))}
@@ -41,11 +59,15 @@ function ProgramPresetCard({
   preset,
   pressed,
   disabled,
+  compact,
+  recommended,
   onPick,
 }: {
   preset: ProgramPreset;
   pressed: boolean;
   disabled?: boolean;
+  compact?: boolean;
+  recommended?: boolean;
   onPick: () => void;
 }) {
   return (
@@ -59,19 +81,32 @@ function ProgramPresetCard({
       )}
       onClick={onPick}
     >
-      <p className="text-lg font-medium">{preset.name}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{preset.hint}</p>
-      <div className="mt-3 flex flex-col gap-1.5">
-        {preset.templates.map((day) => (
-          <p key={day.name} className="text-sm leading-snug">
-            <span className="font-medium">{day.name}</span>
-            <span className="text-muted-foreground">
-              {" "}
-              · {presetExerciseLine(day.exercises)}
-            </span>
-          </p>
-        ))}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="text-lg font-medium">{preset.name}</p>
+        {recommended ? (
+          <span className="rounded-full bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary">
+            для старта
+          </span>
+        ) : null}
       </div>
+      <p className="mt-1 text-sm text-muted-foreground">{preset.hint}</p>
+      {compact ? (
+        <p className="mt-2 text-sm leading-snug text-muted-foreground">
+          {programPresetSummary(preset)}
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {preset.templates.map((day) => (
+            <p key={day.name} className="text-sm leading-snug">
+              <span className="font-medium">{day.name}</span>
+              <span className="text-muted-foreground">
+                {" "}
+                · {presetExerciseLine(day.exercises)}
+              </span>
+            </p>
+          ))}
+        </div>
+      )}
     </button>
   );
 }
