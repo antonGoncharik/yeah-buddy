@@ -15,7 +15,7 @@ export function todayWeightsHint(
   phaseName?: string | null,
 ): string {
   if (phaseType == null || macroNumber == null) {
-    return "Веса как всегда.";
+    return "План от рабочего веса.";
   }
 
   return `Сегодня «${phaseLabel(phaseType, phaseName)}», цикл №${macroNumber}.`;

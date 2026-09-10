@@ -73,7 +73,7 @@ export function ScreenLoading({ title }: { title?: string }) {
           ))}
         </div>
         <p aria-hidden className="animate-fade text-base">
-          Загрузка углеводами…
+          {title ? "Загрузка углеводами…" : "Загрузка…"}
         </p>
       </div>
     </div>

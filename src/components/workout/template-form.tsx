@@ -166,17 +166,17 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             />
           </Field>
 
-          <Field label="По кругу">
+          <Field label="Очередь">
             <Segmented
               value={isActive ? "on" : "off"}
               options={[
-                { id: "on", label: "В круге" },
+                { id: "on", label: "В очереди" },
                 { id: "off", label: "Отложить" },
               ]}
               onChange={(id) => setIsActive(id === "on")}
             />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              В круге или отложить.
+              В очереди или отложить.
             </p>
           </Field>
 

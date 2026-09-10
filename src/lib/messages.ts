@@ -1,4 +1,4 @@
-export const OPEN_VIA_BOT = "Зайди через бота.";
+export const OPEN_VIA_BOT = "Открой приложение в Telegram.";
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";
@@ -38,7 +38,7 @@ export const REVIEW_CTA_HINT = "Как прошло за эти дни";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
 export const PACK_EMPTY_MEALS = "Сначала собери еду на день.";
-export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки по кругу.";
+export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в очередь.";
 
 export function readApiError(data: unknown): string | null {
   if (

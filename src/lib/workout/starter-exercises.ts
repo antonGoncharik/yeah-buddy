@@ -23,7 +23,7 @@ interface LiftOptions {
 
 export const STARTER_EXERCISES: StarterExercise[] = [
   lift("Приседания со штангой", "присед", "a"),
-  lift("Румынская тяга", "RDL", "a"),
+  lift("Румынская тяга", "румынская", "a"),
   lift("Жим лёжа", "жим лёжа", "b"),
   lift("Жим стоя", "жим стоя", "b"),
   lift("Тяга штанги в наклоне", "тяга в наклоне", "c"),

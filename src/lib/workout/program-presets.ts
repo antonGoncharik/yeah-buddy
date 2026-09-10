@@ -1,4 +1,5 @@
 import type { WorkoutKind } from "@/lib/types";
+import { exerciseShortLabel } from "@/lib/workout/labels";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
 export interface ProgramDay {
@@ -114,7 +115,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl",
     name: "Жим / Тяга / Ноги",
-    hint: "Три тренировки по кругу.",
+    hint: "Три тренировки подряд.",
     level: "intermediate",
     templates: [
       day("Жим", [
@@ -270,7 +271,7 @@ export function presetExerciseLine(names: string[]): string {
   return names
     .map((name) => {
       const exercise = STARTER_EXERCISES.find((item) => item.name === name);
-      return exercise?.short_name || name;
+      return exercise ? exerciseShortLabel(exercise.short_name, name) : name;
     })
     .join(" · ");
 }

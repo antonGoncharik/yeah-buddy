@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { phaseLinkLabel, queueItemMark } from "@/lib/workout/hints";
 import {
   CYCLE_LABEL,
+  exerciseShortLabel,
   FORMULAS_LABEL,
   QUEUE_LABEL,
   WORKOUT_KIND_LABELS,
@@ -172,11 +173,20 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Сегодня по кругу
+                Сегодня в очереди
               </p>
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
               </h2>
+              {nextTemplate.exercises.length > 0 ? (
+                <p className="mt-2 text-sm leading-snug text-muted-foreground">
+                  {nextTemplate.exercises
+                    .map((exercise) =>
+                      exerciseShortLabel(exercise.short_name, exercise.name),
+                    )
+                    .join(" · ")}
+                </p>
+              ) : null}
               {followingTemplate ? (
                 <p className="mt-2 text-base text-muted-foreground">
                   Потом {followingTemplate.name}
@@ -211,7 +221,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void skipTemplate(nextTemplate.id)}
               >
-                Не это
+                Другая тренировка
               </Button>
             ) : null}
             {canUnskip ? (
@@ -222,7 +232,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void unskipLast()}
               >
-                Вернуть в круг
+                Вернуть в очередь
               </Button>
             ) : null}
             {canBackfillYesterday && nextHasPlanMaxes ? (

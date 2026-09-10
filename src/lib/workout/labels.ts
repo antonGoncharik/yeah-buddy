@@ -23,12 +23,23 @@ export const PHASE_TYPES = ["ramp", "volume", "peak", "deload"] as const;
 
 export type LegacyPhaseKey = (typeof PHASE_TYPES)[number];
 
-export const QUEUE_LABEL = "По кругу";
-export const FORMULAS_LABEL = "Подходы";
+export const QUEUE_LABEL = "Очередь";
+export const FORMULAS_LABEL = "Схема весов";
 export const CYCLE_LABEL = "Цикл";
 export const REVIEW_LABEL = "Как прошло";
 export const MEAL_TEMPLATES_LABEL = "Еда на день";
-export const PACKS_LABEL = "Ссылки";
+export const PACKS_LABEL = "Для друзей";
+
+export function exerciseShortLabel(
+  shortName: string | null | undefined,
+  name: string,
+): string {
+  const short = shortName?.trim();
+  if (short === "RDL") {
+    return "румынская";
+  }
+  return short || name;
+}
 
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",

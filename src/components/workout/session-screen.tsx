@@ -12,6 +12,7 @@ import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { gymQuote } from "@/lib/quotes";
 import { cn } from "@/lib/utils";
+import { QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function SessionScreen() {
   const {
@@ -92,7 +93,7 @@ export function SessionScreen() {
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
                   <p className="border-b border-border/70 px-5 py-3 text-sm text-muted-foreground">
-                    Не то — жми подход. Потом «Готово».
+                    Вес не тот — нажми подход. Потом «Готово».
                   </p>
                 ) : null}
                 {detail.exercises.map((item) => (
@@ -181,7 +182,7 @@ export function SessionScreen() {
                 ) : null}
                 {nextName ? (
                   <p className="text-base text-muted-foreground">
-                    Дальше по кругу: {nextName}.
+                    Дальше в очереди: {nextName}.
                   </p>
                 ) : null}
                 {phaseHint ? (
@@ -208,7 +209,7 @@ export function SessionScreen() {
                     href="/workouts"
                     className="text-base font-medium text-primary"
                   >
-                    По кругу
+                    {QUEUE_LABEL}
                   </Link>
                 ) : (
                   <Link
