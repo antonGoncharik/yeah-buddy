@@ -23,7 +23,8 @@ assertEqual(
     href: "/workouts",
     label: "Следующая",
     title: "Жим",
-    hint: "Начать",
+    hint: "Открыть",
+    templateId: null,
   },
   "queue on empty today",
 );
@@ -37,7 +38,8 @@ assertEqual(
     href: "/workouts",
     label: "В зале",
     title: "Жим",
-    hint: "Начать",
+    hint: "Открыть",
+    templateId: null,
   },
   "queue on training today",
 );
@@ -65,8 +67,29 @@ assertEqual(
     label: "В зале",
     title: "Тяга",
     hint: "В плане",
+    templateId: null,
   },
   "open session wins",
+);
+
+assertEqual(
+  bannerFromTodayState(
+    {
+      next_template: {
+        id: "11111111-1111-1111-1111-111111111111",
+        name: "Жим",
+      },
+    },
+    { isToday: true, isTrainingDay: true },
+  ),
+  {
+    href: "/workouts",
+    label: "В зале",
+    title: "Жим",
+    hint: "Начать",
+    templateId: "11111111-1111-1111-1111-111111111111",
+  },
+  "queue with id can start",
 );
 
 console.log("today banner ok");

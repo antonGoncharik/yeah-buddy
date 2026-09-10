@@ -1,5 +1,8 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+
 import { isRecord } from "@/lib/read";
 import {
   SESSION_STATUS_LABELS,
@@ -12,6 +15,7 @@ export type TodayWorkoutBannerState = {
   label: string;
   title: string;
   hint: string | null;
+  templateId: string | null;
 };
 
 export function TodayWorkoutBanner({
@@ -19,17 +23,21 @@ export function TodayWorkoutBanner({
   title,
   hint,
   label = "В зале",
+  templateId,
+  busy = false,
+  onStart,
 }: {
   href: string;
   title: string;
   hint?: string | null;
   label?: string;
+  templateId?: string | null;
+  busy?: boolean;
+  onStart?: (templateId: string) => void;
 }) {
-  return (
-    <Link
-      href={href}
-      className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-    >
+  const canStart = Boolean(templateId && onStart);
+  const body = (
+    <>
       <span className="min-w-0 flex-1">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>
@@ -41,6 +49,28 @@ export function TodayWorkoutBanner({
         className="size-5 shrink-0 text-muted-foreground"
         aria-hidden
       />
+    </>
+  );
+
+  if (canStart && templateId) {
+    return (
+      <button
+        type="button"
+        disabled={busy}
+        className="card-surface animate-rise flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-60"
+        onClick={() => onStart(templateId)}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+    >
+      {body}
     </Link>
   );
 }
@@ -61,6 +91,7 @@ export function bannerFromTodayState(
       label: "В зале",
       title: sessionTemplate?.name ?? WORKOUT_KIND_LABELS[session.workout_type],
       hint: SESSION_STATUS_LABELS[session.status],
+      templateId: null,
     };
   }
 
@@ -69,17 +100,21 @@ export function bannerFromTodayState(
       href: "/workouts",
       label: options.isTrainingDay ? "В зале" : "Следующая",
       title: nextTemplate.name,
-      hint: "Начать",
+      hint: nextTemplate.id ? "Начать" : "Открыть",
+      templateId: nextTemplate.id,
     };
   }
 
   return null;
 }
 
-function readNamed(value: unknown): { name: string } | null {
+function readNamed(value: unknown): { id: string | null; name: string } | null {
   if (!isRecord(value) || typeof value.name !== "string" || value.name === "") {
     return null;
   }
 
-  return { name: value.name };
+  return {
+    id: typeof value.id === "string" ? value.id : null,
+    name: value.name,
+  };
 }

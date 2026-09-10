@@ -30,6 +30,7 @@ import {
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { DayType, MealItem } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { readTodaySession } from "@/lib/workout/hub-payload";
 
 function resolveStartDate(value: string | undefined, today: string): string {
   if (value && isIsoDate(value) && value <= today) {
@@ -184,14 +185,30 @@ export function useTodayScreen({
       return [];
     }
 
-    return shownDay.meals.filter(
-      (meal) =>
-        isMealVisible(meal.meal_type, shownDay.is_training_day) ||
-        meal.items.length > 0,
+    return shownDay.meals.filter((meal) =>
+      isMealVisible(meal.meal_type, shownDay.is_training_day),
     );
   }, [shownDay]);
 
-  const fact = useMemo(() => sumMeals(visibleMeals), [visibleMeals]);
+  const fact = useMemo(() => {
+    if (!shownDay) {
+      return { protein: 0, fat: 0, carbs: 0, kcal: 0 };
+    }
+    return sumMeals(shownDay.meals);
+  }, [shownDay]);
+
+  const hiddenMealKcal = useMemo(() => {
+    if (!shownDay) {
+      return 0;
+    }
+    return sumMeals(
+      shownDay.meals.filter(
+        (meal) =>
+          !isMealVisible(meal.meal_type, shownDay.is_training_day) &&
+          meal.items.length > 0,
+      ),
+    ).kcal;
+  }, [shownDay]);
 
   async function createDay(dayType: DayType) {
     if (viewOnly) {
@@ -336,6 +353,51 @@ export function useTodayScreen({
     }
   }
 
+  async function startQueuedWorkout(templateId: string) {
+    if (viewOnly) {
+      return;
+    }
+
+    if (shownDay && !shownDay.is_training_day) {
+      const ok = await confirm({
+        message:
+          "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
+        confirmLabel: "Сделать тренировочным",
+        cancelLabel: "Отмена",
+      });
+      if (!ok) {
+        return;
+      }
+    }
+
+    setBusy(true);
+    setActionError(null);
+    try {
+      const data = await postJson("/api/sessions", {
+        session_date: date,
+        template_id: templateId,
+      });
+      const created = readTodaySession(data);
+      if (created) {
+        router.push(`/workouts/sessions/${created.id}`);
+        return;
+      }
+      await load();
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 400) {
+        router.push("/workouts/exercises");
+        return;
+      }
+      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const dayHasItems = Boolean(
+    shownDay?.meals.some((meal) => meal.items.length > 0),
+  );
+
   return {
     date,
     today,
@@ -345,7 +407,9 @@ export function useTodayScreen({
     shownDay,
     banner,
     visibleMeals,
+    hiddenMealKcal,
     fact,
+    dayHasItems,
     busy,
     loadError,
     actionError,
@@ -355,5 +419,6 @@ export function useTodayScreen({
     copyYesterday,
     switchType,
     deleteItem,
+    startQueuedWorkout,
   };
 }

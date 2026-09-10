@@ -30,7 +30,7 @@ import {
   withDateQuery,
 } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
-import { DAY_TYPE_LABELS } from "@/lib/nutrition";
+import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
 
 export function TodayScreen({
   initialDate,
@@ -51,7 +51,9 @@ export function TodayScreen({
     shownDay,
     banner,
     visibleMeals,
+    hiddenMealKcal,
     fact,
+    dayHasItems,
     busy,
     loadError,
     actionError,
@@ -61,6 +63,7 @@ export function TodayScreen({
     copyYesterday,
     switchType,
     deleteItem,
+    startQueuedWorkout,
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
@@ -120,6 +123,9 @@ export function TodayScreen({
             title={banner.title}
             hint={banner.hint}
             label={banner.label}
+            templateId={banner.templateId}
+            busy={busy}
+            onStart={startQueuedWorkout}
           />
         ) : null}
         {showLoading ? <ScreenLoading /> : null}
@@ -215,6 +221,13 @@ export function TodayScreen({
               <DaySummary day={shownDay} fact={fact} />
             </div>
 
+            {hiddenMealKcal > 0 ? (
+              <p className="px-1 text-sm text-muted-foreground">
+                Ещё {formatKcal(hiddenMealKcal)} ккал в приёмах не для этого
+                типа дня.
+              </p>
+            ) : null}
+
             {visibleMeals.map((meal, index) => (
               <MealCard
                 key={meal.id}
@@ -256,7 +269,7 @@ export function TodayScreen({
               />
             ))}
 
-            {viewOnly ? null : (
+            {viewOnly || dayHasItems ? null : (
               <div
                 className="animate-rise"
                 style={{
