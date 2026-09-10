@@ -34,11 +34,7 @@ export const STATIC_BARBELL_WARMUP: FormulaSetSpec[] = [
   seconds(100, 2),
 ];
 
-export const STATIC_CABLE_WARMUP: FormulaSetSpec[] = [
-  reps(50, 5),
-  reps(70, 3),
-  seconds(100, 2),
-];
+export const STATIC_CABLE_WARMUP: FormulaSetSpec[] = STATIC_BARBELL_WARMUP;
 
 export const DYNAMIC_DELOAD: FormulaSetSpec[] = times(reps(60, 5), 3);
 
@@ -151,127 +147,59 @@ export const FORMULA_SYSTEMS: Array<{
   },
 ];
 
+function phase(
+  key: string,
+  name: string,
+  extra: {
+    skip_warmup?: boolean;
+    increase_on_end?: boolean;
+    percent_scale?: number;
+  } = {},
+): CyclePhaseDef {
+  return {
+    key,
+    name,
+    skip_warmup: extra.skip_warmup ?? false,
+    increase_on_end: extra.increase_on_end ?? false,
+    percent_scale: extra.percent_scale,
+  };
+}
+
 export const FOUR_PHASE_CYCLE: CyclePhaseDef[] = [
-  { key: "ramp", name: "Разгон", skip_warmup: false, increase_on_end: false },
-  { key: "volume", name: "Набор", skip_warmup: false, increase_on_end: true },
-  { key: "peak", name: "Рывок", skip_warmup: false, increase_on_end: false },
-  { key: "deload", name: "Сброс", skip_warmup: true, increase_on_end: false },
+  phase("ramp", "Разгон"),
+  phase("volume", "Набор", { increase_on_end: true }),
+  phase("peak", "Рывок"),
+  phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
 export const LOAD_DELOAD_CYCLE: CyclePhaseDef[] = [
-  {
-    key: "work",
-    name: "Нагрузка",
-    skip_warmup: false,
-    increase_on_end: true,
-  },
-  {
-    key: "deload",
-    name: "Разгрузка",
-    skip_warmup: true,
-    increase_on_end: false,
-  },
+  phase("work", "Нагрузка", { increase_on_end: true }),
+  phase("deload", "Разгрузка", { skip_warmup: true }),
 ];
 
 export const LIGHT_MEDIUM_HEAVY_CYCLE: CyclePhaseDef[] = [
-  {
-    key: "light",
-    name: "Лёгкая",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 0.875,
-  },
-  {
-    key: "medium",
-    name: "Средняя",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 1,
-  },
-  {
-    key: "heavy",
-    name: "Тяжёлая",
-    skip_warmup: false,
-    increase_on_end: true,
-    percent_scale: 1.1,
-  },
+  phase("light", "Лёгкая", { percent_scale: 0.875 }),
+  phase("medium", "Средняя", { percent_scale: 1 }),
+  phase("heavy", "Тяжёлая", { increase_on_end: true, percent_scale: 1.1 }),
 ];
 
 export const LIGHT_HEAVY_CYCLE: CyclePhaseDef[] = [
-  {
-    key: "light",
-    name: "Лёгкая",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 0.875,
-  },
-  {
-    key: "heavy",
-    name: "Тяжёлая",
-    skip_warmup: false,
-    increase_on_end: true,
-    percent_scale: 1.1,
-  },
+  phase("light", "Лёгкая", { percent_scale: 0.875 }),
+  phase("heavy", "Тяжёлая", { increase_on_end: true, percent_scale: 1.1 }),
 ];
 
 export const LINEAR_CYCLE: CyclePhaseDef[] = [
-  {
-    key: "w70",
-    name: "70%",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 0.875,
-  },
-  {
-    key: "w75",
-    name: "75%",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 0.9375,
-  },
-  {
-    key: "w80",
-    name: "80%",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 1,
-  },
-  {
-    key: "w85",
-    name: "85%",
-    skip_warmup: false,
-    increase_on_end: true,
-    percent_scale: 1.0625,
-  },
-  {
-    key: "deload",
-    name: "Сброс",
-    skip_warmup: true,
-    increase_on_end: false,
-  },
+  phase("w70", "70%", { percent_scale: 0.875 }),
+  phase("w75", "75%", { percent_scale: 0.9375 }),
+  phase("w80", "80%", { percent_scale: 1 }),
+  phase("w85", "85%", { increase_on_end: true, percent_scale: 1.0625 }),
+  phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
 export const VOLUME_STRENGTH_CYCLE: CyclePhaseDef[] = [
-  {
-    key: "volume",
-    name: "Объём",
-    skip_warmup: false,
-    increase_on_end: false,
-    percent_scale: 0.875,
-  },
-  {
-    key: "strength",
-    name: "Сила",
-    skip_warmup: false,
-    increase_on_end: true,
-    percent_scale: 1.1,
-  },
-  {
-    key: "deload",
-    name: "Сброс",
-    skip_warmup: true,
-    increase_on_end: false,
-  },
+  phase("volume", "Объём", { percent_scale: 0.875 }),
+  phase("strength", "Сила", { increase_on_end: true, percent_scale: 1.1 }),
+  phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
 export const CYCLE_TEMPLATES: Array<{

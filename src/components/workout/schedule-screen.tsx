@@ -12,6 +12,7 @@ import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import { ProgramPresetList } from "@/components/workout/program-preset-list";
 import { SortableList } from "@/components/workout/sortable-list";
 import { patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -19,9 +20,8 @@ import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
 import {
-  PROGRAM_PRESETS,
-  presetExerciseLine,
-  programPresetsByLevel,
+  type ProgramPresetId,
+  programPresetById,
 } from "@/lib/workout/program-presets";
 
 export function ScheduleScreen() {
@@ -93,8 +93,8 @@ export function ScheduleScreen() {
     void save(next);
   }
 
-  async function applyPreset(presetId: (typeof PROGRAM_PRESETS)[number]["id"]) {
-    const preset = PROGRAM_PRESETS.find((item) => item.id === presetId);
+  async function applyPreset(presetId: ProgramPresetId) {
+    const preset = programPresetById(presetId);
     if (!preset) {
       return;
     }
@@ -268,7 +268,7 @@ function ProgramsSection({
   onPick,
 }: {
   saving: boolean;
-  onPick: (presetId: (typeof PROGRAM_PRESETS)[number]["id"]) => void;
+  onPick: (presetId: ProgramPresetId) => void;
 }) {
   return (
     <section className="animate-rise flex flex-col gap-2">
@@ -276,38 +276,7 @@ function ProgramsSection({
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">
         Поставь по кругу. Свои отложатся.
       </p>
-      {programPresetsByLevel().map((group) => (
-        <div key={group.level} className="flex flex-col gap-2">
-          <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-            {group.label}
-          </h3>
-          {group.presets.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              disabled={saving}
-              className="card-surface px-5 py-4 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
-              onClick={() => void onPick(preset.id)}
-            >
-              <p className="text-base font-medium">{preset.name}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                {preset.hint}
-              </p>
-              <div className="mt-3 flex flex-col gap-1.5">
-                {preset.templates.map((day) => (
-                  <p key={day.name} className="text-sm leading-snug">
-                    <span className="font-medium">{day.name}</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {presetExerciseLine(day.exercises)}
-                    </span>
-                  </p>
-                ))}
-              </div>
-            </button>
-          ))}
-        </div>
-      ))}
+      <ProgramPresetList disabled={saving} onPick={onPick} />
     </section>
   );
 }

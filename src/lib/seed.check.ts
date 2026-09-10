@@ -9,8 +9,9 @@ import {
 } from "@/lib/workout/default-formulas";
 import {
   PROGRAM_LEVELS,
+  PROGRAM_PRESET_IDS,
   PROGRAM_PRESETS,
-  unknownProgramExercises,
+  programPresetExerciseNames,
 } from "@/lib/workout/program-presets";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
@@ -63,6 +64,11 @@ uniqueNames(
   "starter exercise",
 );
 
+assert(
+  PROGRAM_PRESET_IDS.join() ===
+    PROGRAM_PRESETS.map((preset) => preset.id).join(),
+  "program preset ids must match PROGRAM_PRESETS",
+);
 uniqueNames(
   PROGRAM_PRESETS.map((preset) => preset.id),
   "program preset id",
@@ -90,7 +96,12 @@ for (const level of PROGRAM_LEVELS) {
   );
 }
 
-const unknownProgram = unknownProgramExercises();
+const starterNames = new Set(
+  STARTER_EXERCISES.map((exercise) => exercise.name),
+);
+const unknownProgram = programPresetExerciseNames().filter(
+  (name) => !starterNames.has(name),
+);
 assert(
   unknownProgram.length === 0,
   `program preset unknown lifts: ${unknownProgram.join(", ")}`,

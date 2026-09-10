@@ -10,6 +10,7 @@ import { TelegramBackButton } from "@/components/layout/telegram-back-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ProgramPresetList } from "@/components/workout/program-preset-list";
 import { mutateJson, postJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
@@ -22,9 +23,7 @@ import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import {
   isProgramPresetId,
   PROGRAM_PRESETS,
-  presetExerciseLine,
   programPresetExerciseNames,
-  programPresetsByLevel,
 } from "@/lib/workout/program-presets";
 
 const PROTEIN_PRESETS = [100, 120, 150] as const;
@@ -52,7 +51,7 @@ export function OnboardingScreen() {
     setError(null);
     try {
       const data = await mutateJson("/api/onboarding");
-      const onboarding = readOnboarding(data);
+      const onboarding = parseOnboardingState(data);
       if (!onboarding) {
         throw new Error(LOAD_FAILED);
       }
@@ -182,7 +181,7 @@ export function OnboardingScreen() {
         maxes: state?.maxesLocked ? [] : maxes,
       });
 
-      const onboarding = readOnboarding(data);
+      const onboarding = parseOnboardingState(data);
       if (onboarding) {
         writeJson("/api/settings", { settings: onboarding.settings });
         writeJson("/api/onboarding", data);
@@ -387,66 +386,22 @@ function CircleStep({
   value: OnboardingCircle;
   onChange: (value: OnboardingCircle) => void;
 }) {
-  const groups = programPresetsByLevel();
   return (
     <>
-      <p
-        className="animate-rise text-base text-muted-foreground"
-        style={{ animationDelay: "40ms" }}
-      >
+      <p className="animate-rise text-base text-muted-foreground">
         Сегодня одно, завтра следующее. Потом поменяешь.
       </p>
-      {groups.flatMap((group, groupIndex) => {
-        const before = groups
-          .slice(0, groupIndex)
-          .reduce((count, item) => count + item.presets.length, 0);
-        return [
-          <h3
-            key={group.level}
-            className="animate-rise pt-1 text-sm font-medium text-muted-foreground"
-            style={{ animationDelay: `${80 + before * 20}ms` }}
-          >
-            {group.label}
-          </h3>,
-          ...group.presets.map((preset, index) => (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={value === preset.id}
-              className={cn(
-                "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
-                value === preset.id && "ring-2 ring-primary",
-              )}
-              style={{ animationDelay: `${80 + (before + index) * 20}ms` }}
-              onClick={() => onChange(preset.id)}
-            >
-              <p className="text-lg font-medium">{preset.name}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {preset.hint}
-              </p>
-              <div className="mt-3 flex flex-col gap-1.5">
-                {preset.templates.map((day) => (
-                  <p key={day.name} className="text-sm leading-snug">
-                    <span className="font-medium">{day.name}</span>
-                    <span className="text-muted-foreground">
-                      {" "}
-                      · {presetExerciseLine(day.exercises)}
-                    </span>
-                  </p>
-                ))}
-              </div>
-            </button>
-          )),
-        ];
-      })}
+      <ProgramPresetList
+        value={isProgramPresetId(value) ? value : null}
+        onPick={onChange}
+      />
       <button
         type="button"
         aria-pressed={value === "empty"}
         className={cn(
-          "card-surface animate-rise w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
+          "card-surface w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
           value === "empty" && "ring-2 ring-primary",
         )}
-        style={{ animationDelay: `${80 + PROGRAM_PRESETS.length * 20}ms` }}
         onClick={() => onChange("empty")}
       >
         <p className="text-lg font-medium">Соберу сам</p>
@@ -529,8 +484,4 @@ function exercisesForCircle(
     const exercise = byName.get(name);
     return exercise ? [exercise] : [];
   });
-}
-
-function readOnboarding(data: unknown): OnboardingState | null {
-  return parseOnboardingState(data);
 }
