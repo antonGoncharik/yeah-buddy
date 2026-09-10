@@ -8,3 +8,7 @@ export function readDay(data: unknown): DayWithMeals | null {
 
   return mapDayWithMeals(data.day);
 }
+
+export function readYesterdayExists(data: unknown): boolean {
+  return isRecord(data) && data.yesterdayExists === true;
+}

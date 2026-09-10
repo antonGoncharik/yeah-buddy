@@ -9,12 +9,14 @@ export function CreateDayButtons({
   onCopyYesterday,
   busy,
   trainingFirst = false,
+  showCopy = true,
 }: {
   onCreateRest: () => void;
   onCreateTraining: () => void;
   onCopyYesterday: () => void;
   busy: boolean;
   trainingFirst?: boolean;
+  showCopy?: boolean;
 }) {
   const rest = (
     <Button
@@ -50,14 +52,16 @@ export function CreateDayButtons({
           {training}
         </>
       )}
-      <Button
-        variant="ghost"
-        className="h-14 text-lg"
-        disabled={busy}
-        onClick={onCopyYesterday}
-      >
-        Как вчера
-      </Button>
+      {showCopy ? (
+        <Button
+          variant="ghost"
+          className="h-14 text-lg"
+          disabled={busy}
+          onClick={onCopyYesterday}
+        >
+          Как вчера
+        </Button>
+      ) : null}
     </div>
   );
 }

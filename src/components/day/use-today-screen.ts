@@ -21,7 +21,7 @@ import {
   todayHomeHref,
 } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { readDay } from "@/lib/day/today-payload";
+import { readDay, readYesterdayExists } from "@/lib/day/today-payload";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
@@ -54,6 +54,7 @@ export function useTodayScreen({
   const { setMood } = useDayMood();
   const confirm = useConfirm();
   const [day, setDay] = useState<DayWithMeals | null>(null);
+  const [yesterdayExists, setYesterdayExists] = useState(false);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -104,6 +105,7 @@ export function useTodayScreen({
             return true;
           }
           setDay(readDay(data));
+          setYesterdayExists(readYesterdayExists(data));
           setLoadedDate(requestedDate);
           return true;
         },
@@ -161,6 +163,7 @@ export function useTodayScreen({
 
   useEffect(() => {
     setDay(null);
+    setYesterdayExists(false);
     setWorkoutState(null);
     if (date.length > 0) {
       reset();
@@ -208,6 +211,19 @@ export function useTodayScreen({
           meal.items.length > 0,
       ),
     ).kcal;
+  }, [shownDay]);
+
+  const hiddenMealTypes = useMemo(() => {
+    if (!shownDay) {
+      return [];
+    }
+    return shownDay.meals
+      .filter(
+        (meal) =>
+          !isMealVisible(meal.meal_type, shownDay.is_training_day) &&
+          meal.items.length > 0,
+      )
+      .map((meal) => meal.meal_type);
   }, [shownDay]);
 
   async function createDay(dayType: DayType) {
@@ -408,8 +424,10 @@ export function useTodayScreen({
     banner,
     visibleMeals,
     hiddenMealKcal,
+    hiddenMealTypes,
     fact,
     dayHasItems,
+    yesterdayExists,
     busy,
     loadError,
     actionError,

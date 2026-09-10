@@ -30,7 +30,7 @@ import {
   withDateQuery,
 } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
-import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
+import { DAY_TYPE_LABELS, hiddenMealSlotsNote } from "@/lib/nutrition";
 
 export function TodayScreen({
   initialDate,
@@ -52,8 +52,10 @@ export function TodayScreen({
     banner,
     visibleMeals,
     hiddenMealKcal,
+    hiddenMealTypes,
     fact,
     dayHasItems,
+    yesterdayExists,
     busy,
     loadError,
     actionError,
@@ -72,6 +74,13 @@ export function TodayScreen({
   });
   const canGoForward = date < today;
   const showLoading = !contentReady;
+  const hiddenNote = shownDay
+    ? hiddenMealSlotsNote(
+        hiddenMealKcal,
+        hiddenMealTypes,
+        shownDay.is_training_day,
+      )
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -150,9 +159,13 @@ export function TodayScreen({
 
         {contentReady && !loadError && !shownDay && !viewOnly ? (
           <div className="animate-rise flex flex-col gap-5">
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Скопируется еда на день. Отдых или зал — от этого цели.
+            </p>
             <CreateDayButtons
               busy={busy}
               trainingFirst={isToday}
+              showCopy={yesterdayExists}
               onCreateRest={() => void createDay("rest")}
               onCreateTraining={() => void createDay("training")}
               onCopyYesterday={() => void copyYesterday()}
@@ -221,11 +234,8 @@ export function TodayScreen({
               <DaySummary day={shownDay} fact={fact} />
             </div>
 
-            {hiddenMealKcal > 0 ? (
-              <p className="px-1 text-sm text-muted-foreground">
-                Ещё {formatKcal(hiddenMealKcal)} ккал в приёмах не для этого
-                типа дня.
-              </p>
+            {hiddenNote ? (
+              <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
             ) : null}
 
             {visibleMeals.map((meal, index) => (

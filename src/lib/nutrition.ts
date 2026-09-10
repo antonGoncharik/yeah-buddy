@@ -161,6 +161,29 @@ export function isMealVisible(
   return mealType !== "pre_workout" && mealType !== "post_workout";
 }
 
+export function hiddenMealSlotsNote(
+  kcal: number,
+  mealTypes: MealType[],
+  isTrainingDay: boolean,
+): string | null {
+  if (!(kcal > 0) || mealTypes.length === 0) {
+    return null;
+  }
+
+  const kcalText = formatKcal(kcal);
+  if (mealTypes.length === 1 && mealTypes[0] === "snack") {
+    return `Ещё ${kcalText} ккал в полднике — его на тренировке не показываем.`;
+  }
+
+  const names = mealTypes.map((type) => getMealLabel(type).toLowerCase());
+  const where = isTrainingDay ? "на тренировке" : "на отдыхе";
+  if (names.length === 1) {
+    return `Ещё ${kcalText} ккал (${names[0]}) — ${where} не показываем.`;
+  }
+
+  return `Ещё ${kcalText} ккал (${names.join(", ")}) — на этом дне не показываем.`;
+}
+
 export function visibleMealTypes(isTrainingDay: boolean): MealType[] {
   return MEAL_DISPLAY_ORDER.filter((mealType) =>
     isMealVisible(mealType, isTrainingDay),
