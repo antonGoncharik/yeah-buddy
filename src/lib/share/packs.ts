@@ -667,7 +667,7 @@ function resolveTitle(
   }
 
   if (kind === "meals") {
-    return defaultMealsTitle().slice(0, TITLE_MAX);
+    return defaultMealsTitle(payload as MealsPackPayload).slice(0, TITLE_MAX);
   }
 
   return defaultWorkoutsTitle(payload as WorkoutsPackPayload).slice(

@@ -2,6 +2,7 @@ import { PACK_EMPTY_MEALS, PACK_EMPTY_WORKOUTS } from "@/lib/messages";
 import {
   buildMealsPayload,
   buildWorkoutsPayload,
+  defaultMealsTitle,
   foodMatchKey,
   formulaHint,
   PackEmptyError,
@@ -149,6 +150,7 @@ assert(meals.foods.length === 1, "meals foods");
 assert(meals.templates[0]?.items.length === 1, "rest item kept");
 assert(meals.templates[1]?.items.length === 0, "training may be empty");
 assert(parseSharePayload("meals", meals) != null, "meals payload parses");
+assert(defaultMealsTitle(meals).includes("ккал"), "meals title has kcal");
 
 const emptyWorkouts = buildWorkoutsPayloadFail();
 assert(emptyWorkouts === PACK_EMPTY_WORKOUTS, "empty workouts text");

@@ -6,7 +6,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import { packShareText, shareOrCopyLink } from "@/lib/share/client";
 import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
 import { type PackBackFrom, packPath } from "@/lib/share/pending";
@@ -34,14 +33,6 @@ export function PublishPackButton({
       if (!pack) {
         setError(LOAD_FAILED);
         return;
-      }
-      const url = pack.share_url;
-      if (url) {
-        try {
-          await shareOrCopyLink(url, packShareText(pack.kind));
-        } catch {
-          // still open the preview
-        }
       }
       router.push(packPath(pack.token, from));
     } catch (caught) {

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProgramPresetList } from "@/components/workout/program-preset-list";
 import { mutateJson, postJson, writeJson } from "@/lib/api-cache";
+import { ensureTodayDay } from "@/lib/day/ensure-today";
 import { LOAD_FAILED } from "@/lib/messages";
 import { formatKcal, macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
@@ -218,6 +219,13 @@ export function OnboardingScreen() {
       }
 
       const pending = peekPendingPackToken();
+      if (!replay && pendingKind !== "meals") {
+        try {
+          await ensureTodayDay("rest");
+        } catch {
+          // still leave the master
+        }
+      }
       router.replace(
         pending && isPackToken(pending) ? packPath(pending) : "/today",
       );
@@ -383,8 +391,8 @@ function FoodStep({
         style={{ animationDelay: "40ms" }}
       >
         {fromWorkoutPack
-          ? "Зал возьмём из ссылки. Сначала белок на день — от него шаблон еды. 120 хватает большинству."
-          : "Дневник еды и зала. Сначала белок на день — от него шаблон. 120 хватает большинству. Потом поправишь."}
+          ? "Это дневник еды и зала. Зал возьмём из ссылки. Сначала белок на день — от него шаблон еды. 120 хватает большинству."
+          : "Это дневник еды и зала. Сначала белок на день — от него шаблон. 120 хватает большинству. Потом поправишь."}
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -452,7 +460,7 @@ function CircleStep({
     <>
       <p className="animate-rise text-base text-muted-foreground">
         {fromMealPack
-          ? "Еду возьмём из ссылки. Поставь программу — и можно в зал."
+          ? "Это дневник еды и зала. Еду возьмём из ссылки. Поставь программу — и можно в зал."
           : "Поставь программу — и можно в зал. Потом поменяешь."}
       </p>
       <ProgramPresetList

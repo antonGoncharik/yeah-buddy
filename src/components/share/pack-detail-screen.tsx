@@ -9,6 +9,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { ApiError, mutateJson } from "@/lib/api-cache";
+import { ensureTodayDay } from "@/lib/day/ensure-today";
 import { LOAD_FAILED, PACK_NOT_FOUND } from "@/lib/messages";
 import {
   DAY_TEMPLATE_TITLES,
@@ -104,7 +105,7 @@ export function PackDetailScreen({ token }: { token: string }) {
       message:
         pack.kind === "meals"
           ? "Шаблоны еды и цели белка, жира и углеводов станут как в ссылке. Уже записанные дни не тронем."
-          : "Очередь станет этой программой. Свои тренировки не удалятся — отложатся. Схема весов тоже. Рабочие веса твои.",
+          : "Очередь и схема весов станут как в ссылке. Рабочие веса твои. Свои тренировки отложатся.",
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -117,9 +118,16 @@ export function PackDetailScreen({ token }: { token: string }) {
     try {
       await mutateJson(`/api/packs/${pack.token}/apply`, { method: "POST" });
       dismissPendingPackToken(token);
-      router.replace(
-        pack.kind === "meals" ? "/settings/meals" : "/workouts/schedule",
-      );
+      if (pack.kind === "meals") {
+        try {
+          await ensureTodayDay("rest");
+        } catch {
+          // still open today
+        }
+        router.replace("/today");
+        return;
+      }
+      router.replace("/workouts");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

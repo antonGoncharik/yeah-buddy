@@ -240,8 +240,12 @@ export function workoutsPackHint(payload: WorkoutsPackPayload): string {
   return `${names.slice(0, 2).join(" · ")} и ещё ${names.length - 2}`;
 }
 
-export function defaultMealsTitle(): string {
-  return "Еда на день";
+export function defaultMealsTitle(payload: MealsPackPayload): string {
+  const rest = payload.templates.find((row) => row.day_type === "rest");
+  const training = payload.templates.find((row) => row.day_type === "training");
+  const restKcal = rest ? dayKcal(rest.items) : 0;
+  const trainingKcal = training ? dayKcal(training.items) : 0;
+  return `Еда · ${formatKcal(restKcal)} / ${formatKcal(trainingKcal)} ккал`;
 }
 
 export function defaultWorkoutsTitle(payload: WorkoutsPackPayload): string {
