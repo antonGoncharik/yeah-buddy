@@ -55,7 +55,7 @@ export const exerciseCreateSchema = z
 
 export class StartingMaxLockedError extends Error {
   constructor() {
-    super("Пока идёт макроцикл, рабочий вес поднимается на смене фазы.");
+    super("Пока идёт цикл, вес поднимается на смене этапа.");
   }
 }
 

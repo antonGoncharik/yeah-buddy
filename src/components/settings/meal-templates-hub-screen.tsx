@@ -11,15 +11,16 @@ import { LOAD_FAILED } from "@/lib/messages";
 import { DAY_TEMPLATE_TITLES, formatKcal, sumMealItems } from "@/lib/nutrition";
 import type { DayType, MealTemplateDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { MEAL_TEMPLATES_LABEL } from "@/lib/workout/labels";
 
 const CARDS: Array<{ dayType: DayType; hint: string }> = [
   {
     dayType: "rest",
-    hint: "Что ляжет в день без зала",
+    hint: "На день без зала",
   },
   {
     dayType: "training",
-    hint: "Что ляжет в день с залом",
+    hint: "На день с залом",
   },
 ];
 
@@ -59,7 +60,7 @@ export function MealTemplatesHubScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Шаблоны еды" backHref="/settings" />
+      <AppHeader title={MEAL_TEMPLATES_LABEL} backHref="/settings" />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
         <p className="text-base text-muted-foreground">

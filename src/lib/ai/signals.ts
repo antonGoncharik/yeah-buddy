@@ -205,7 +205,7 @@ export function buildSignals(input: {
   ) {
     const miss = trainingCarbs.target.carbs - trainingCarbs.fact.carbs;
     lines.push(
-      `В дни тренировок углеводов не хватало в среднем на ${formatG(miss)} г.`,
+      `В тренировочные дни углеводов не хватало на ${formatG(miss)} г.`,
     );
   }
 
@@ -214,8 +214,8 @@ export function buildSignals(input: {
     if (Math.abs(delta) >= 10) {
       lines.push(
         delta > 0
-          ? `В дни тренировок белка больше, чем на отдыхе, на ${formatG(delta)} г.`
-          : `В дни тренировок белка меньше, чем на отдыхе, на ${formatG(-delta)} г.`,
+          ? `В тренировочные дни белка больше, чем на отдыхе, на ${formatG(delta)} г.`
+          : `В тренировочные дни белка меньше, чем на отдыхе, на ${formatG(-delta)} г.`,
       );
     }
   }
@@ -243,7 +243,7 @@ export function buildSignals(input: {
       const parts = [kcalPart, proteinPart].filter(
         (item): item is string => item != null,
       );
-      lines.push(`Во второй половине периода: ${parts.join(", ")}.`);
+      lines.push(`Во второй половине: ${parts.join(", ")}.`);
     }
   }
 
@@ -293,9 +293,9 @@ export function buildSignals(input: {
 
   const circle = input.phase.phase_circle;
   if (input.phase.phase && circle) {
-    const extra = circle.suggest_end ? ", круг можно закрывать" : "";
+    const extra = circle.suggest_end ? ", круг можно закрыть" : "";
     lines.push(
-      `Фаза «${phaseLabel(input.phase.phase.phase_type, input.phase.phase.name)}» · ${circle.completed_count} из ${circle.circle_size}${extra}.`,
+      `Этап «${phaseLabel(input.phase.phase.phase_type, input.phase.phase.name)}» · ${circle.completed_count} из ${circle.circle_size}${extra}.`,
     );
   }
 
@@ -312,7 +312,7 @@ export function buildSignals(input: {
   }
   if (input.maxes.stalled.length > 0) {
     lines.push(
-      `Без прироста: ${input.maxes.stalled.map((item) => item.name).join(", ")}.`,
+      `Без роста: ${input.maxes.stalled.map((item) => item.name).join(", ")}.`,
     );
   }
 

@@ -17,6 +17,13 @@ import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings-map";
 import type { UserSettings } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import {
+  CYCLE_LABEL,
+  FORMULAS_LABEL,
+  MEAL_TEMPLATES_LABEL,
+  QUEUE_LABEL,
+  REVIEW_LABEL,
+} from "@/lib/workout/labels";
 
 type FormState = {
   rest_protein: string;
@@ -169,9 +176,7 @@ export function SettingsScreen() {
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">День отдыха</h2>
-              <p className="text-sm text-muted-foreground">
-                На день без зала. Новый день возьмёт эти цифры.
-              </p>
+              <p className="text-sm text-muted-foreground">На день без зала.</p>
               <MacroField
                 label="Белки"
                 value={form.rest_protein}
@@ -245,15 +250,11 @@ export function SettingsScreen() {
 
         <h2 className="px-1 text-lg font-semibold">Еда</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow
-            href="/foods"
-            title="Продукты"
-            hint="Название и белки, жиры, углеводы на 100 г"
-          />
+          <NavRow href="/foods" title="Продукты" hint="На 100 г" />
           <NavRow
             href="/settings/meals"
-            title="Шаблоны еды"
-            hint="Что подставится в новый день"
+            title={MEAL_TEMPLATES_LABEL}
+            hint="На новый день"
           />
           <NavRow
             href="/today/history?from=settings"
@@ -266,31 +267,31 @@ export function SettingsScreen() {
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
             href="/workouts/schedule"
-            title="Очередь"
-            hint="Какие тренировки по кругу"
+            title={QUEUE_LABEL}
+            hint="Какие тренировки"
           />
           <NavRow
             href="/settings/formulas"
-            title="Схема"
-            hint="Как считать подходы от рабочего веса"
+            title={FORMULAS_LABEL}
+            hint="Сколько жать и сколько раз"
           />
           <NavRow
             href="/workouts/macro"
-            title="Макроцикл"
-            hint="Необязательно. Та же очередь, другая нагрузка"
+            title={CYCLE_LABEL}
+            hint="То легче, то тяжелее"
           />
         </section>
 
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
             href="/settings/review"
-            title="Разбор"
+            title={REVIEW_LABEL}
             hint="Еда и зал за 14 или 30 дней"
           />
           <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
-            hint="Белок и рабочие веса. Очередь не трогает"
+            hint="Белок и веса. Тренировки не трогает"
           />
         </section>
       </div>

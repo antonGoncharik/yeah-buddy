@@ -22,7 +22,7 @@ import {
   transitionExplain,
 } from "@/lib/workout/hints";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
-import { phaseLabel } from "@/lib/workout/labels";
+import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
 import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
@@ -197,8 +197,8 @@ export function MacroScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Макроцикл"
-        subtitle="Необязательно. Та же очередь, другая нагрузка"
+        title={CYCLE_LABEL}
+        subtitle="То легче, то тяжелее"
         backHref="/workouts"
       />
 
@@ -227,17 +227,15 @@ export function MacroScreen() {
               />
             ) : null}
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
-              <p className="text-lg font-medium">Макроцикла ещё нет</p>
+              <p className="text-lg font-medium">Цикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Очередь не меняется — те же тренировки по кругу. Макроцикл
-                только грузит легче или тяжелее по твоим фазам из схемы. Фазу
-                закрываешь сам.
+                Тренировки те же, просто легче или тяжелее. Этап закрываешь сам.
               </p>
               <Link
                 href="/workouts/macro/new"
                 className={cn(buttonVariants(), "h-14 text-lg")}
               >
-                Создать макроцикл
+                Создать цикл
               </Link>
             </section>
           </>
@@ -254,7 +252,7 @@ export function MacroScreen() {
             ) : null}
             <section className="card-surface flex flex-col gap-2 px-5 py-5">
               <p className="text-sm text-muted-foreground">
-                Макроцикл{" "}
+                Цикл{" "}
                 {phaseLinkLabel(
                   state.macro.number,
                   state.phase_circle,
@@ -266,8 +264,7 @@ export function MacroScreen() {
                 {phaseLabel(state.phase.phase_type, state.phase.name)}
               </h2>
               <p className="text-sm text-muted-foreground">
-                С {state.phase.start_date}. Очередь крутится сама. Чтобы сменить
-                фазу — кнопка ниже.
+                С {state.phase.start_date}. Этап закрываешь кнопкой ниже.
               </p>
               {state.phase_circle && phaseEndHint(state.phase_circle) ? (
                 <p className="text-base leading-snug">
@@ -292,7 +289,7 @@ export function MacroScreen() {
             </section>
 
             <section className="flex flex-col gap-3">
-              <h2 className="text-xl font-semibold">Рабочие веса этой фазы</h2>
+              <h2 className="text-xl font-semibold">Веса этого этапа</h2>
               <p className="text-sm text-muted-foreground">
                 От этих цифр считается план. Только упражнения, которые делаешь.
                 Остальные — «Не делаю» в списке упражнений.
@@ -342,7 +339,7 @@ export function MacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-5">
                 <h2 className="text-xl font-semibold">
                   {preview.new_macro
-                    ? "Новый макроцикл"
+                    ? "Новый цикл"
                     : `Дальше: ${preview.to_name ?? (preview.to_phase ? phaseLabel(preview.to_phase) : "")}`}
                 </h2>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -407,7 +404,7 @@ export function MacroScreen() {
                     onClick={() => void openTransition()}
                   >
                     {state.phase_circle?.last_in_cycle
-                      ? "Закрыть макроцикл"
+                      ? "Закрыть цикл"
                       : `Завершить: ${phaseLabel(state.phase.phase_type, state.phase.name)}`}
                   </Button>
                 </StickyActions>

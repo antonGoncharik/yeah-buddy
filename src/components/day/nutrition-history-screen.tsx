@@ -162,9 +162,7 @@ export function NutritionHistoryScreen() {
             className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-base font-medium">
-                Разбор еды и зала
-              </span>
+              <span className="block text-base font-medium">Как прошло</span>
               <span className="mt-0.5 block text-sm text-muted-foreground">
                 {REVIEW_CTA_HINT}
               </span>

@@ -21,7 +21,7 @@ assertEqual(
   ),
   {
     href: "/workouts",
-    label: "В очереди",
+    label: "Следующая",
     title: "Жим",
     hint: "Начать",
   },

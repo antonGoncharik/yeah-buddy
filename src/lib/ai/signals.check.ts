@@ -112,9 +112,7 @@ assertEqual(
   "protein hit",
 );
 assertEqual(
-  lines.some((line) =>
-    line.includes("углеводов не хватало в среднем на 110 г"),
-  ),
+  lines.some((line) => line.includes("углеводов не хватало на 110 г")),
   true,
   "training carbs",
 );
@@ -129,7 +127,7 @@ assertEqual(
   "weak template",
 );
 assertEqual(
-  lines.some((line) => line.includes("круг можно закрывать")),
+  lines.some((line) => line.includes("круг можно закрыть")),
   true,
   "phase end",
 );

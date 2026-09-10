@@ -183,7 +183,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         <p className="text-base text-muted-foreground">
-          Новый день получит этот состав. Уже записанные дни не меняются.
+          Новый день возьмёт этот состав. Старые не трогает.
         </p>
 
         {loading ? <ScreenLoading /> : null}
@@ -209,7 +209,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
             ) : null}
 
             <div className="animate-rise">
-              <DaySummary day={targets} fact={fact} factLabel="В шаблоне" />
+              <DaySummary day={targets} fact={fact} factLabel="Как будет" />
             </div>
 
             {mealTypes.map((mealType, index) => {

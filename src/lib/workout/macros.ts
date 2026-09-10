@@ -43,13 +43,13 @@ export class MacroConflictError extends Error {
   readonly code = "MACRO_EXISTS";
 
   constructor() {
-    super("Текущий макроцикл уже есть.");
+    super("Текущий цикл уже есть.");
   }
 }
 
 export class NoExercisesError extends Error {
   constructor() {
-    super("Сначала добавьте упражнения.");
+    super("Сначала упражнения.");
   }
 }
 
@@ -228,7 +228,7 @@ export async function setPhaseMax(
 ): Promise<PhaseMax> {
   const phase = await getOwnedPhase(userId, phaseId);
   if (!phase) {
-    throw new Error("Фаза не найдена.");
+    throw new Error("Этап не найден.");
   }
 
   const supabase = createSupabaseServerClient();
@@ -276,7 +276,7 @@ export async function previewTransition(
 ): Promise<TransitionPreview> {
   const state = await getCurrentMacroState(userId);
   if (!state.macro || !state.phase) {
-    throw new Error("Нет текущей фазы.");
+    throw new Error("Нет текущего этапа.");
   }
 
   const settings = await ensureWorkoutSettings(userId);
@@ -329,7 +329,7 @@ export async function confirmTransition(
 
   const state = await getCurrentMacroState(userId);
   if (!state.macro || !state.phase || !preview.to_phase) {
-    throw new Error("Нет текущей фазы.");
+    throw new Error("Нет текущего этапа.");
   }
 
   const supabase = createSupabaseServerClient();
@@ -433,12 +433,12 @@ export async function completeMacroAndStartNext(
 ): Promise<CurrentMacroState> {
   const current = await getCurrentMacroState(userId);
   if (!current.macro || !current.phase) {
-    throw new Error("Нет текущего макроцикла.");
+    throw new Error("Нет текущего цикла.");
   }
 
   const settings = await ensureWorkoutSettings(userId);
   if (!isLastCyclePhase(current.phase.phase_type, settings.formulas.cycle)) {
-    throw new Error("Новый макроцикл начинается после последней фазы.");
+    throw new Error("Новый цикл начинается после последнего этапа.");
   }
 
   const supabase = createSupabaseServerClient();

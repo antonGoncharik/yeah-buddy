@@ -16,6 +16,7 @@ import type {
   FormulaPreset,
 } from "@/lib/types";
 import {
+  EXERCISE_CATEGORY_LABELS,
   EXERCISE_WORKOUT_TYPE_LABELS,
   EXERCISE_WORKOUT_TYPES,
   FORMULA_PRESET_LABELS,
@@ -201,8 +202,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           }
         />
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Динамика — повторы. Статика — удержания. «И то и то» — оба вида
-          тренировок.
+          Сколько раз или сколько секунд. «И то и то» — оба.
         </p>
       </Field>
 
@@ -210,8 +210,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         <Segmented
           value={form.category === "isolation" ? "isolation" : "base"}
           options={[
-            { id: "base", label: "База" },
-            { id: "isolation", label: "Изоляция" },
+            { id: "base", label: EXERCISE_CATEGORY_LABELS.base },
+            { id: "isolation", label: EXERCISE_CATEGORY_LABELS.isolation },
           ]}
           onChange={(category) =>
             setForm((current) => ({
@@ -273,7 +273,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От него считаются веса в зале. Поднять можно на смене фазы.
+            От него веса в зале. Поднять — на смене этапа.
           </p>
         </div>
       ) : (
@@ -292,8 +292,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           />
           {exercise ? (
             <p className="text-sm text-muted-foreground">
-              От него считаются веса в зале. Пока нет макроцикла, можно
-              поправить здесь.
+              От него веса в зале. Без цикла правишь здесь.
             </p>
           ) : null}
         </Field>
@@ -346,12 +345,12 @@ function Field({
 
 function warmupHint(preset: FormulaPreset): string {
   if (preset === "barbell") {
-    return "Разминка как у штанги — проценты из схемы. На статике третий подход обычно 2 с на рабочем весе.";
+    return "Как у штанги.";
   }
   if (preset === "cable") {
-    return "Разминка как у блока — из схемы. На статике тоже можно поставить удержание на рабочем весе.";
+    return "Как у блока.";
   }
-  return "Даже в составе тренировки в план не попадёт — нет процентов для подходов.";
+  return "В план не попадёт — нет процентов.";
 }
 
 function toFormState(exercise?: ExerciseWithMax): FormState {

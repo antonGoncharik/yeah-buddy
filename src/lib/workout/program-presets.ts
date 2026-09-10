@@ -28,7 +28,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "one_day",
     name: "Один день",
-    hint: "Одна тренировка по кругу. Самый простой старт.",
+    hint: "Одна тренировка, её и повторяешь.",
     templates: [
       {
         name: "Зал",
@@ -46,7 +46,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "strength",
     name: "Сила",
-    hint: "Два дня, присед каждый раз. Классика новичка со штангой.",
+    hint: "Два дня, присед каждый раз.",
     templates: [
       {
         name: "Сила A",
@@ -67,7 +67,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "full_body",
     name: "Всё тело",
-    hint: "Два разных дня на всё тело. Можно чередовать чаще.",
+    hint: "Два разных дня на всё тело.",
     templates: [
       {
         name: "Тело A",
@@ -118,7 +118,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl",
     name: "Жим / Тяга / Ноги",
-    hint: "Три тренировки по кругу. После можно убрать лишнее.",
+    hint: "Три тренировки по кругу.",
     templates: [
       {
         name: "Жим",

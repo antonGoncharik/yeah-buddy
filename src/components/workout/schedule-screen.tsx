@@ -106,7 +106,7 @@ export function ScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? Очередь станет этой программой. Свои тренировки не удалятся — отложатся.`,
+      message: `Поставить «${preset.name}»? По кругу станет этой программой. Свои тренировки не удалятся — отложатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -160,11 +160,7 @@ export function ScheduleScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader
-        title="Очередь"
-        subtitle="Тренировки по кругу, не по дням недели"
-        backHref="/workouts"
-      />
+      <AppHeader title="По кругу" backHref="/workouts" />
 
       <div className="flex flex-col gap-5 px-4 pb-36">
         {loading ? <ScreenLoading /> : null}
@@ -247,7 +243,7 @@ export function ScheduleScreen() {
                     </p>
                   </Link>
                   <AddRowButton
-                    label="В очередь"
+                    label="В круг"
                     disabled={saving}
                     onClick={() => setInCircle(template.id, true)}
                   />
@@ -291,8 +287,7 @@ function ProgramsSection({
     <section className="animate-rise flex flex-col gap-2">
       <h2 className="px-1 text-lg font-semibold">Программы</h2>
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-        Набор тренировок в очередь. Потом можно убрать лишнее. Свои не удалятся
-        — отложатся.
+        Поставь по кругу. Свои отложатся.
       </p>
       {PROGRAM_PRESETS.map((preset) => (
         <button

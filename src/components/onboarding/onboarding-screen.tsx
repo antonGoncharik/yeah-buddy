@@ -342,8 +342,7 @@ function FoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Сколько белка в день. Не ведёшь еду — пропусти. Жиры и углеводы потом, в
-        настройках.
+        Сколько белка в день. Еду не ведёшь — пропусти.
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -401,7 +400,7 @@ function CircleStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Не по дням недели. Сегодня одно, завтра следующее. Потом можно поменять.
+        Сегодня одно, завтра следующее. Потом поменяешь.
       </p>
       {PROGRAM_PRESETS.map((preset, index) => (
         <button
@@ -442,7 +441,7 @@ function CircleStep({
       >
         <p className="text-lg font-medium">Соберу сам</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Без очереди. Если зал не ведёшь — так и сделай.
+          Без тренировок. Если зал не ведёшь — так и сделай.
         </p>
       </button>
     </>
@@ -464,8 +463,7 @@ function MaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Рабочий вес, от него считаются подходы. Не обязательно на раз. Пустое
-        можно дописать в упражнениях.
+        Сколько потянешь. Не на раз. Пустое допишешь потом.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"
@@ -503,7 +501,7 @@ function titleForStep(step: Step): string {
   if (step === "circle") {
     return "Программа";
   }
-  return "Рабочие веса";
+  return "Твои веса";
 }
 
 function exercisesForCircle(

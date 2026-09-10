@@ -107,7 +107,7 @@ export function ExercisesScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Упражнения"
-        subtitle="Что делаешь и рабочие веса"
+        subtitle="Что делаешь и веса"
         backHref="/workouts"
       />
 
@@ -153,8 +153,8 @@ export function ExercisesScreen() {
               <>
                 <ExerciseGroup
                   title="Делаю"
-                  hint="Только эти идут в тренировки и макроцикл."
-                  empty="Пока ничего не выбрано — включи из списка ниже."
+                  hint="Эти в зале."
+                  empty="Включи из списка ниже."
                   exercises={active}
                   busyId={busyId}
                   actionLabel="Не делаю"
@@ -162,7 +162,7 @@ export function ExercisesScreen() {
                 />
                 <ExerciseGroup
                   title="Не делаю"
-                  hint="В справочнике остаются, в план сами не попадают."
+                  hint="В плане не будет."
                   empty="Все, что есть, в работе."
                   exercises={idle}
                   busyId={busyId}

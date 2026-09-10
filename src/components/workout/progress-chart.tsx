@@ -81,7 +81,7 @@ export function ProgressChart({
         className="h-44 w-full overflow-visible"
         role="img"
         aria-label={
-          metric === "seconds" ? "Прогресс удержания" : "Прогресс рабочих весов"
+          metric === "seconds" ? "Прогресс удержания" : "Прогресс весов"
         }
       >
         <defs>

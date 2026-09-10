@@ -15,6 +15,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
+import { EXERCISE_CATEGORY_LABELS } from "@/lib/workout/labels";
 import { parseStrengthProgress } from "@/lib/workout/map-rows";
 import {
   formatSeconds,
@@ -33,7 +34,7 @@ type Filter = "all" | "base" | "isolation";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "all", label: "Все" },
-  { id: "base", label: "База" },
+  { id: "base", label: EXERCISE_CATEGORY_LABELS.base },
   { id: "isolation", label: "Изол." },
 ];
 

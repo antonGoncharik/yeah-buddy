@@ -67,7 +67,7 @@ export function bannerFromTodayState(
   if (nextTemplate && options.isToday) {
     return {
       href: "/workouts",
-      label: options.isTrainingDay ? "В зале" : "В очереди",
+      label: options.isTrainingDay ? "В зале" : "Следующая",
       title: nextTemplate.name,
       hint: "Начать",
     };

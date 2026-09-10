@@ -15,10 +15,10 @@ export function todayWeightsHint(
   phaseName?: string | null,
 ): string {
   if (phaseType == null || macroNumber == null) {
-    return "Веса от рабочего веса упражнения, как в рабочей схеме.";
+    return "Веса как всегда.";
   }
 
-  return `Веса сегодня от фазы «${phaseLabel(phaseType, phaseName)}» макроцикла №${macroNumber}.`;
+  return `Сегодня «${phaseLabel(phaseType, phaseName)}», цикл №${macroNumber}.`;
 }
 
 export function queueItemMark(options: {
@@ -83,47 +83,47 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
 
   if (progress.last_in_cycle) {
     if (rounds >= 2) {
-      return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно закрыть макроцикл, когда восстановился.`;
+      return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Когда отошёл — закрывай цикл.`;
     }
-    return `Круг «${phase}» пройден. Можно закрыть макроцикл, когда восстановился.`;
+    return `Круг «${phase}» пройден. Когда отошёл — закрывай цикл.`;
   }
 
   if (rounds >= 2) {
-    return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно ещё покрутить или закрыть${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
+    return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно ещё или закрыть${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
   }
 
-  return `Круг «${phase}» пройден. Фазу оставляешь или закрываешь сам${nextLabel ? `. Дальше — «${nextLabel}»` : ""}.`;
+  return `Круг «${phase}» пройден. Закрывать — сам${nextLabel ? `. Дальше «${nextLabel}»` : ""}.`;
 }
 
 export function completePhaseHint(
   progress: PhaseCircleProgress | null,
 ): string {
   if (!progress) {
-    return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
+    return "Веса перейдут как есть. Перед подтверждением можно поправить.";
   }
   if (progress.last_in_cycle) {
-    return "Этот макроцикл закроется, следующий начнётся с первой фазы. Рабочие веса возьмутся с последней тяжёлой фазы.";
+    return "Закроется и начнётся новый. Веса — с последней тяжёлой.";
   }
   if (progress.increases_on_end) {
-    return `Дальше «${progress.next_phase_name}». Можно поднять рабочие веса — не всем упражнениям нужно, цифры поправишь до подтверждения.`;
+    return `Дальше «${progress.next_phase_name}». Можно поднять веса, не всем сразу.`;
   }
   if (progress.next_phase_name) {
-    return `Дальше «${progress.next_phase_name}». Рабочие веса скопируются, цифры ещё можно поправить.`;
+    return `Дальше «${progress.next_phase_name}». Веса те же, можно поправить.`;
   }
-  return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
+  return "Веса перейдут как есть. Перед подтверждением можно поправить.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.new_macro) {
-    return "Текущий макроцикл закроется, начнётся следующий с первой фазы. Рабочие веса — с последней тяжёлой фазы, их ещё можно поправить.";
+    return "Закроется и начнётся новый. Веса — с последней тяжёлой, можно поправить.";
   }
   if (preview.increased) {
-    return `На фазе «${preview.to_name}» можно поднять рабочие веса. Можно оставить как есть или поднять не все.`;
+    return `На «${preview.to_name}» можно поднять веса. Не всем сразу.`;
   }
   if (preview.to_name) {
-    return `Дальше «${preview.to_name}». Рабочие веса скопируются. Цифры ещё можно поправить.`;
+    return `Дальше «${preview.to_name}». Веса те же, можно поправить.`;
   }
-  return "Рабочие веса скопируются в новую фазу. Цифры ещё можно поправить.";
+  return "Веса перейдут как есть. Перед подтверждением можно поправить.";
 }
 
 export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {

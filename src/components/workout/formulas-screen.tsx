@@ -45,6 +45,7 @@ import {
 } from "@/lib/workout/formulas";
 import {
   FORMULA_PRESET_LABELS,
+  FORMULAS_LABEL,
   WARMUP_PRESET_IDS,
   WEIGHT_STEP_OPTIONS,
   WORKOUT_KIND_LABELS,
@@ -150,7 +151,7 @@ export function FormulasScreen() {
 
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть схему 3×5 без фаз? Сейчас всё заменится.",
+      message: "Вернуть 3×5 без этапов? Сейчас всё заменится.",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
@@ -171,8 +172,8 @@ export function FormulasScreen() {
     }
     const ok = await confirm({
       message: formulas.cycle.length
-        ? `Поставить «${system.name}»? Рабочие в фазах тоже сменятся, сами фазы останутся.`
-        : `Поставить схему «${system.name}»? Текущая заменится.`,
+        ? `Поставить «${system.name}»? Рабочие в этапах тоже сменятся, сами этапы останутся.`
+        : `Поставить «${system.name}»? Текущие подходы заменятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -189,7 +190,7 @@ export function FormulasScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить цикл «${name}»? Фазы и рабочие в них заменятся.`,
+      message: `Поставить цикл «${name}»? Этапы и рабочие в них заменятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -207,7 +208,7 @@ export function FormulasScreen() {
       return;
     }
     const ok = await confirm({
-      message: "Убрать фазы? Без макроцикла веса всегда как в рабочих ниже.",
+      message: "Убрать этапы? Веса всегда как в рабочих ниже.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
     });
@@ -241,8 +242,8 @@ export function FormulasScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Схема"
-        subtitle="Как считать подходы от рабочего веса"
+        title={FORMULAS_LABEL}
+        subtitle="От твоего веса"
         backHref="/workouts"
       />
 
@@ -258,9 +259,8 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Рабочий вес × процент, вниз до шага блинов. Без макроцикла —
-                рабочие ниже. С макроциклом каждая фаза может считать по-своему.
-                Это не очередь и не программа: упражнения там, веса здесь.
+                Твой вес × процент, вниз до шага блинов. Без цикла — как в
+                рабочих. С этапом — как в нём.
               </p>
             </section>
 
@@ -286,15 +286,14 @@ export function FormulasScreen() {
             {showsIncrease ? (
               <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
                 <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="text-xl font-semibold">Прирост</h2>
+                  <h2 className="text-xl font-semibold">Плюс</h2>
                   <p className="text-sm text-muted-foreground">
                     к рабочему весу
                   </p>
                 </div>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Если у фазы включено «поднять веса», при переходе можно
-                  увеличить рабочие на этот процент. Не обязательно всем —
-                  поправишь перед подтверждением.
+                  На сколько поднять рабочие, когда этап это разрешает. Не всем
+                  сразу.
                 </p>
                 <div className="flex items-center gap-2">
                   <Input
@@ -305,7 +304,7 @@ export function FormulasScreen() {
                       setSaved(false);
                     }}
                     className="h-12 w-24 text-base"
-                    aria-label="Прирост рабочего веса"
+                    aria-label="Плюс к рабочему весу"
                   />
                   <span className="text-lg text-muted-foreground">%</span>
                 </div>
@@ -324,12 +323,11 @@ export function FormulasScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-4">
               <h2 className="text-lg font-semibold">Пример веса</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Подставь рабочий вес — справа в подходах появятся килограммы.
-                Это пример, в дневник не пишется.
+                Справа килограммы, если подставить вес. В дневник не пишется.
                 {raisedExample > 0 &&
                 raisedExample !== exampleMax &&
                 showsIncrease
-                  ? ` После прироста — от ${formatWeight(raisedExample)} кг.`
+                  ? ` После плюса — от ${formatWeight(raisedExample)} кг.`
                   : ""}
               </p>
               <div className="flex items-center gap-2">
@@ -364,8 +362,8 @@ export function FormulasScreen() {
 
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
               {kind === "dynamic"
-                ? "Разминка берётся из упражнения (штанга или блок). Рабочие без макроцикла — карточка ниже. В подходе можно сменить повторы на секунды."
-                : "Статическая разминка своя: обычно повторы, третий подход — удержание 2 с на рабочем весе. Рабочие — секунды, но любой подход можно сделать повторами."}
+                ? "Разминка — штанга или блок, как в упражнении. Повторы можно сменить на секунды."
+                : "Разминка обычно в повторах, рабочие — в секундах. Можно наоборот."}
             </p>
             {WARMUP_PRESET_IDS.map((preset) => (
               <SetCard
@@ -390,9 +388,7 @@ export function FormulasScreen() {
             <SetCard
               title="Рабочие"
               hint={
-                formulas.cycle.length > 0
-                  ? "Без макроцикла"
-                  : "От рабочего веса"
+                formulas.cycle.length > 0 ? "Без цикла" : "От рабочего веса"
               }
               defaultHold={kind === "static"}
               sets={formulas[kind].base.work}
@@ -413,11 +409,11 @@ export function FormulasScreen() {
                 onClick={() => setCycleOpen((open) => !open)}
               >
                 <div>
-                  <h2 className="text-xl font-semibold">Фазы макроцикла</h2>
+                  <h2 className="text-xl font-semibold">Этапы</h2>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {formulas.cycle.length > 0
                       ? formulas.cycle.map((phase) => phase.name).join(" → ")
-                      : "Необязательно. Для продвинутых: свой порядок фаз и рабочие в каждой."}
+                      : "Разные недели — если надо."}
                   </p>
                 </div>
                 {cycleOpen ? (
@@ -430,9 +426,7 @@ export function FormulasScreen() {
               {cycleOpen ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-base leading-relaxed text-muted-foreground">
-                    Идущий макроцикл отсюда не переписывается — только следующие
-                    переходы. Свои проценты в фазах не трогаем, пока не
-                    поставишь другой цикл.
+                    Текущий цикл не меняется.
                   </p>
                   {formulas.cycle.length === 0 ? (
                     <>
@@ -463,7 +457,7 @@ export function FormulasScreen() {
                         onClick={() => {
                           setFormulas((current) =>
                             current
-                              ? addCyclePhase(current, "Фаза 1")
+                              ? addCyclePhase(current, "Этап 1")
                               : current,
                           );
                           setSaved(false);
@@ -500,7 +494,7 @@ export function FormulasScreen() {
                                   );
                                 }}
                                 className="h-12 flex-1 text-base"
-                                aria-label="Название фазы"
+                                aria-label="Название этапа"
                               />
                               <Button
                                 type="button"
@@ -537,7 +531,7 @@ export function FormulasScreen() {
                                 <ChevronDown className="size-5" />
                               </Button>
                               <RemoveRowButton
-                                label={`Убрать фазу ${phase.name}`}
+                                label={`Убрать этап ${phase.name}`}
                                 onClick={() => {
                                   setSaved(false);
                                   setFormulas((current) =>
@@ -614,14 +608,14 @@ export function FormulasScreen() {
                             current
                               ? addCyclePhase(
                                   current,
-                                  `Фаза ${current.cycle.length + 1}`,
+                                  `Этап ${current.cycle.length + 1}`,
                                 )
                               : current,
                           );
                         }}
                       >
                         <Plus className="size-4" />
-                        Фаза
+                        Этап
                       </Button>
                       <Button
                         type="button"
@@ -629,7 +623,7 @@ export function FormulasScreen() {
                         className="h-12 text-base"
                         onClick={() => void clearCycle()}
                       >
-                        Убрать фазы
+                        Убрать этапы
                       </Button>
                     </>
                   )}
@@ -640,7 +634,7 @@ export function FormulasScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено. Следующая тренировка пойдёт по этой схеме.
+                Сохранено. Следующая тренировка — по этим подходам.
               </p>
             ) : null}
 

@@ -41,7 +41,7 @@ export async function POST(
     await rebuildTodaysPlannedSession(auth.session.userId);
     return NextResponse.json({ phase_max: phaseMax });
   } catch (error) {
-    if (error instanceof Error && error.message === "Фаза не найдена.") {
+    if (error instanceof Error && error.message === "Этап не найден.") {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 

@@ -272,7 +272,7 @@ export function SessionScreen() {
     }
 
     const ok = await confirm({
-      message: "Убрать эту тренировку? Очередь останется.",
+      message: "Убрать эту тренировку? Остальные на месте.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -361,7 +361,7 @@ export function SessionScreen() {
                     href="/workouts/exercises"
                     className={cn(buttonVariants(), "h-14 text-lg")}
                   >
-                    Написать рабочие веса
+                    Написать веса
                   </Link>
                 ) : null}
               </section>
@@ -369,7 +369,7 @@ export function SessionScreen() {
               <section className="card-surface animate-rise overflow-hidden">
                 {session.status === "planned" ? (
                   <p className="border-b border-border/70 px-5 py-3 text-sm text-muted-foreground">
-                    Не так вышло — нажми подход. В конце «Готово».
+                    Не то — жми подход. Потом «Готово».
                   </p>
                 ) : null}
                 {detail.exercises.map((item) => (
@@ -448,18 +448,17 @@ export function SessionScreen() {
                   {gymQuote(session.id)}
                 </p>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Записано. Если вспомнил другой вес — поправь, тренировка
-                  останется сделанной.
+                  Записано. Другой вес — поправь, останется сделанной.
                 </p>
                 {abovePlan ? (
                   <p className="text-base leading-relaxed">
-                    Где-то взял больше плана. Рабочий вес сам не вырастет — это
-                    в макроцикле.
+                    Где-то больше плана. Рабочий вес сам не прыгнет — это в
+                    цикле.
                   </p>
                 ) : null}
                 {nextName ? (
                   <p className="text-base text-muted-foreground">
-                    В очереди дальше: {nextName}.
+                    Дальше по кругу: {nextName}.
                   </p>
                 ) : null}
                 {phaseHint ? (
@@ -470,7 +469,7 @@ export function SessionScreen() {
                     href="/workouts/macro"
                     className="text-base font-medium text-primary"
                   >
-                    К макроциклу
+                    К циклу
                   </Link>
                 ) : null}
                 {phaseHint && !abovePlan ? (
@@ -478,7 +477,7 @@ export function SessionScreen() {
                     href="/workouts/macro"
                     className="text-base font-medium text-primary"
                   >
-                    К макроциклу
+                    К циклу
                   </Link>
                 ) : null}
                 {nextName ? (
@@ -486,7 +485,7 @@ export function SessionScreen() {
                     href="/workouts"
                     className="text-base font-medium text-primary"
                   >
-                    К очереди
+                    По кругу
                   </Link>
                 ) : (
                   <Link

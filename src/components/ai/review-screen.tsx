@@ -18,6 +18,7 @@ import {
 } from "@/lib/messages";
 import { pluralDays } from "@/lib/nutrition-stats";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
+import { REVIEW_LABEL } from "@/lib/workout/labels";
 
 type RangeId = "14" | "30";
 
@@ -99,7 +100,7 @@ export function ReviewScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Разбор" backHref={backHref(from)} />
+      <AppHeader title={REVIEW_LABEL} backHref={backHref(from)} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         <div className="animate-rise">
@@ -140,11 +141,7 @@ export function ReviewScreen() {
                 disabled={writing}
                 onClick={() => void writeReview()}
               >
-                {writing
-                  ? "Пишу…"
-                  : review
-                    ? "Написать ещё раз"
-                    : "Написать разбор"}
+                {writing ? "Пишу…" : review ? "Написать ещё раз" : "Написать"}
               </Button>
             ) : (
               <p className="text-base text-muted-foreground">
@@ -159,7 +156,7 @@ export function ReviewScreen() {
             ) : null}
 
             <p className="text-sm text-muted-foreground">
-              Это разбор записей, не план питания и не совет врача.
+              По записям. Не врач.
             </p>
           </>
         ) : null}

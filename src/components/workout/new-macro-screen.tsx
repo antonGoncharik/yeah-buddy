@@ -174,7 +174,7 @@ export function NewMacroScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Новый макроцикл" backHref="/workouts" />
+      <AppHeader title="Новый цикл" backHref="/workouts" />
 
       <div className="px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
@@ -195,11 +195,9 @@ export function NewMacroScreen() {
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             {cycle.length === 0 ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
-                <h2 className="text-xl font-semibold">Сначала фазы</h2>
+                <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Макроцикл — это твои фазы поверх очереди. Без них очередь и
-                  так крутится, веса как в рабочей схеме. Поставь готовый цикл
-                  или собери свой в схеме.
+                  Выбери цикл или собери в подходах.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
                   <button
@@ -219,21 +217,13 @@ export function NewMacroScreen() {
                   href="/settings/formulas"
                   className="text-base font-medium text-primary"
                 >
-                  Собрать свой в схеме
+                  Собрать свой в подходах
                 </Link>
               </section>
             ) : (
               <>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Фазы: {cycle.map((phase) => phase.name).join(" → ")}. От фазы
-                  считаются рабочие веса. Без макроцикла очередь тоже идёт, веса
-                  всегда как в рабочей схеме.
-                </p>
-                <p className="text-base leading-relaxed text-muted-foreground">
-                  Первый макроцикл начинается с «{cycle[0]?.name}». Цифры ниже —
-                  сколько потянешь сейчас. Фазу закрываешь сам: один круг
-                  очереди ещё не конец. Здесь только упражнения, которые
-                  делаешь. Остальные — «Не делаю» в списке упражнений.
+                  {`${cycle.map((phase) => phase.name).join(" → ")}. Начнётся с «${cycle[0]?.name}». Веса ниже — что потянешь сейчас.`}
                 </p>
                 <div className="flex flex-col gap-2">
                   <Label className="text-base">Дата начала</Label>
@@ -256,10 +246,9 @@ export function NewMacroScreen() {
                 </div>
 
                 <section className="flex flex-col gap-3">
-                  <h2 className="text-xl font-semibold">Рабочие веса</h2>
+                  <h2 className="text-xl font-semibold">Твои веса</h2>
                   <p className="text-sm text-muted-foreground">
-                    Подставлены рекорды. Если давно не жалось — поставь меньше.
-                    План пойдёт от этих цифр, рекорд на карточке останется.
+                    Стоят рекорды. Если давно не жалось — поставь меньше.
                   </p>
                   {exercises.map((exercise) => (
                     <div key={exercise.id} className="flex flex-col gap-2">
@@ -293,7 +282,7 @@ export function NewMacroScreen() {
                   className="h-14 text-lg"
                   disabled={saving}
                 >
-                  {saving ? "Создание…" : "Создать макроцикл"}
+                  {saving ? "Создание…" : "Создать цикл"}
                 </Button>
               </StickyActions>
             ) : null}

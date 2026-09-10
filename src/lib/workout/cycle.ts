@@ -186,7 +186,7 @@ export function addCyclePhase(
 ): WorkoutFormulas {
   const used = new Set(formulas.cycle.map((phase) => phase.key));
   const key = nextCustomKey(used);
-  const trimmed = name.trim() || `Фаза ${formulas.cycle.length + 1}`;
+  const trimmed = name.trim() || `Этап ${formulas.cycle.length + 1}`;
   const next = cloneFormulas(formulas);
   const phase: CyclePhaseDef = {
     key,

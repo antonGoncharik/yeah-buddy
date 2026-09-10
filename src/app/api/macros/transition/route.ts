@@ -18,7 +18,7 @@ export async function GET(): Promise<NextResponse> {
     const preview = await previewTransition(auth.session.userId);
     return NextResponse.json({ preview });
   } catch (error) {
-    if (error instanceof Error && error.message === "Нет текущей фазы.") {
+    if (error instanceof Error && error.message === "Нет текущего этапа.") {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
@@ -51,10 +51,10 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     if (
       error instanceof Error &&
-      (error.message === "Нет текущей фазы." ||
-        error.message === "Нет текущего макроцикла." ||
-        error.message === "Новый макроцикл начинается после последней фазы." ||
-        error.message === "Сначала добавьте упражнения.")
+      (error.message === "Нет текущего этапа." ||
+        error.message === "Нет текущего цикла." ||
+        error.message === "Новый цикл начинается после последнего этапа." ||
+        error.message === "Сначала упражнения.")
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }

@@ -172,7 +172,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             />
           </Field>
 
-          <Field label="Очередь">
+          <Field label="По кругу">
             <Segmented
               value={isActive ? "on" : "off"}
               options={[
@@ -182,16 +182,14 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
               onChange={(id) => setIsActive(id === "on")}
             />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Какие упражнения в этой тренировке. Порядок тренировок — в
-              очереди.
+              В круге или отложить.
             </p>
           </Field>
 
           <Field label="Тип">
             <Segmented value={kind} options={KIND_OPTIONS} onChange={setKind} />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Динамика — повторы. Статика — удержания. От этого берётся схема
-              подходов.
+              Повторы или на время.
             </p>
           </Field>
 

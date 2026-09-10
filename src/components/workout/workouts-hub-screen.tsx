@@ -18,7 +18,12 @@ import {
 } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 import { phaseLinkLabel, queueItemMark } from "@/lib/workout/hints";
-import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import {
+  CYCLE_LABEL,
+  FORMULAS_LABEL,
+  QUEUE_LABEL,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
 
 export function WorkoutsHubScreen() {
   const {
@@ -167,7 +172,7 @@ export function WorkoutsHubScreen() {
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-6">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Сегодня в очереди
+                Сегодня по кругу
               </p>
               <h2 className="mt-1 text-3xl font-semibold tracking-tight">
                 {nextTemplate.name}
@@ -195,7 +200,7 @@ export function WorkoutsHubScreen() {
                 href="/workouts/exercises"
                 className={cn(buttonVariants(), "h-14 text-lg")}
               >
-                Написать рабочие веса
+                Написать веса
               </Link>
             )}
             {activeTemplates.length > 1 ? (
@@ -217,7 +222,7 @@ export function WorkoutsHubScreen() {
                 disabled={creating || skipping}
                 onClick={() => void unskipLast()}
               >
-                Вернуть в очередь
+                Вернуть в круг
               </Button>
             ) : null}
             {canBackfillYesterday && nextHasPlanMaxes ? (
@@ -263,7 +268,7 @@ export function WorkoutsHubScreen() {
             {macro?.macro && macro.phase ? (
               <section className="flex flex-col gap-2">
                 <div className="flex items-baseline justify-between gap-3 px-1">
-                  <h2 className="text-lg font-semibold">Макроцикл</h2>
+                  <h2 className="text-lg font-semibold">{CYCLE_LABEL}</h2>
                   <Link
                     href="/workouts/macro"
                     className="text-sm font-medium text-primary"
@@ -285,8 +290,8 @@ export function WorkoutsHubScreen() {
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {session
-                      ? "От этой фазы считаются веса сегодня."
-                      : "От этой фазы посчитаются веса, когда начнёшь."}
+                      ? "От неё сегодняшние веса."
+                      : "От неё веса, когда начнёшь."}
                   </p>
                   {phaseHint ? (
                     <p className="text-base leading-snug">{phaseHint}</p>
@@ -294,8 +299,8 @@ export function WorkoutsHubScreen() {
                   {phaseHint ? (
                     <p className="text-base font-medium text-primary">
                       {phaseCircle?.last_in_cycle
-                        ? "Можно закрыть макроцикл"
-                        : "Можно закрыть фазу"}
+                        ? "Можно закрыть цикл"
+                        : "Можно закрыть этап"}
                     </p>
                   ) : null}
                 </Link>
@@ -308,18 +313,17 @@ export function WorkoutsHubScreen() {
                   href="/workouts/schedule"
                   className="flex items-center justify-between gap-3 px-1"
                 >
-                  <h2 className="text-lg font-semibold">Очередь</h2>
+                  <h2 className="text-lg font-semibold">{QUEUE_LABEL}</h2>
                   <ChevronRight
                     className="size-5 shrink-0 text-muted-foreground"
                     aria-hidden
                   />
                 </Link>
-                <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-                  Тренировки идут по кругу, не по дням недели.
-                  {session
-                    ? null
-                    : " Нажми имя, если хочешь начать не следующее."}
-                </p>
+                {session ? null : (
+                  <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+                    Нажми имя, если хочешь начать не следующее.
+                  </p>
+                )}
                 <ol className="flex flex-col gap-1 px-1">
                   {activeTemplates.map((template, index) => {
                     const mark = queueItemMark({
@@ -399,7 +403,7 @@ export function WorkoutsHubScreen() {
                 href="/settings/formulas"
                 className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
               >
-                Схема
+                {FORMULAS_LABEL}
               </Link>
             </nav>
           </div>

@@ -23,6 +23,12 @@ export const PHASE_TYPES = ["ramp", "volume", "peak", "deload"] as const;
 
 export type LegacyPhaseKey = (typeof PHASE_TYPES)[number];
 
+export const QUEUE_LABEL = "По кругу";
+export const FORMULAS_LABEL = "Подходы";
+export const CYCLE_LABEL = "Цикл";
+export const REVIEW_LABEL = "Как прошло";
+export const MEAL_TEMPLATES_LABEL = "Еда на день";
+
 export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
   isolation: "Изоляция",
@@ -30,14 +36,14 @@ export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
 
 export const EXERCISE_WORKOUT_TYPE_LABELS: Record<ExerciseWorkoutType, string> =
   {
-    dynamic: "Динамика",
-    static: "Статика",
+    dynamic: "Повторы",
+    static: "На время",
     both: "И то и то",
   };
 
 export const WORKOUT_KIND_LABELS: Record<WorkoutKind, string> = {
-  dynamic: "Динамика",
-  static: "Статика",
+  dynamic: "Повторы",
+  static: "На время",
 };
 
 export const EXERCISE_UNIT_LABELS: Record<ExerciseUnit, string> = {
@@ -91,7 +97,7 @@ export const SET_TYPE_LABELS: Record<SetType, string> = {
 export const FORMULA_PRESET_LABELS: Record<FormulaPreset, string> = {
   barbell: "Штанга",
   cable: "Блок",
-  none: "Не считать",
+  none: "Без плана",
 };
 
 export const WARMUP_PRESET_IDS = ["barbell", "cable"] as const;

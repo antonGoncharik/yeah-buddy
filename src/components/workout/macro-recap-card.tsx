@@ -28,7 +28,7 @@ export function MacroRecapCard({
   const avg = recap.avg_percent;
   const headline =
     avg == null
-      ? "Итоги макроцикла"
+      ? "Итоги цикла"
       : avg > 0
         ? "Стал сильнее"
         : avg < 0
@@ -49,7 +49,7 @@ export function MacroRecapCard({
         aria-expanded={open}
       >
         <p className="text-sm font-medium text-muted-foreground">
-          Макроцикл №{recap.number} ·{" "}
+          Цикл №{recap.number} ·{" "}
           {recap.from_name || phaseLabel(recap.from_phase)} →{" "}
           {recap.to_name || phaseLabel(recap.to_phase)}
         </p>
@@ -78,7 +78,7 @@ export function MacroRecapCard({
           )}
         </p>
         <p className="text-sm text-muted-foreground">
-          {open ? "Скрыть упражнения" : "Показать приросты"}
+          {open ? "Скрыть упражнения" : "Показать веса"}
         </p>
       </button>
 
