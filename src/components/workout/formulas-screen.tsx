@@ -189,7 +189,7 @@ export function FormulasScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить цикл «${name}»? Рабочие в фазах возьмутся из схемы ниже, лёгкая фаза — без разминки.`,
+      message: `Поставить цикл «${name}»? Фазы и рабочие в них заменятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });

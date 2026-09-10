@@ -175,6 +175,8 @@ export interface CyclePhaseDef {
   name: string;
   skip_warmup: boolean;
   increase_on_end: boolean;
+  /** If set, phase work percents are base × this, not a copy of base. */
+  percent_scale?: number;
 }
 
 export interface WorkoutFormulas {

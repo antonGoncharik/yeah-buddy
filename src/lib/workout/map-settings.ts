@@ -46,6 +46,7 @@ const cyclePhaseSchema = z.object({
   name: z.string().trim().min(1).max(40),
   skip_warmup: z.boolean(),
   increase_on_end: z.boolean(),
+  percent_scale: z.number().finite().positive().max(3).optional(),
 });
 
 const warmupPresetsSchema = z.object({

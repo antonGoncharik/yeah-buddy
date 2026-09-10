@@ -143,14 +143,14 @@ export function withCycle(
   next.dynamic.phases = {};
   next.static.phases = {};
   for (const phase of next.cycle) {
-    next.dynamic.phases[phase.key] = phaseWork(
+    next.dynamic.phases[phase.key] = workForPhase(
       next.dynamic.base,
-      phase.skip_warmup,
+      phase,
       DYNAMIC_DELOAD,
     );
-    next.static.phases[phase.key] = phaseWork(
+    next.static.phases[phase.key] = workForPhase(
       next.static.base,
-      phase.skip_warmup,
+      phase,
       STATIC_DELOAD,
     );
   }
@@ -166,14 +166,14 @@ export function applyWorkPattern(
   next.static.base = structuredClone(pattern.static.base);
   next.warmups = structuredClone(pattern.warmups);
   for (const phase of next.cycle) {
-    next.dynamic.phases[phase.key] = phaseWork(
+    next.dynamic.phases[phase.key] = workForPhase(
       next.dynamic.base,
-      phase.skip_warmup,
+      phase,
       DYNAMIC_DELOAD,
     );
-    next.static.phases[phase.key] = phaseWork(
+    next.static.phases[phase.key] = workForPhase(
       next.static.base,
-      phase.skip_warmup,
+      phase,
       STATIC_DELOAD,
     );
   }
@@ -195,12 +195,16 @@ export function addCyclePhase(
     increase_on_end: false,
   };
   next.cycle = [...next.cycle, phase];
-  next.dynamic.phases[key] = phaseWork(
+  next.dynamic.phases[key] = workForPhase(
     next.dynamic.base,
-    false,
+    phase,
     DYNAMIC_DELOAD,
   );
-  next.static.phases[key] = phaseWork(next.static.base, false, STATIC_DELOAD);
+  next.static.phases[key] = workForPhase(
+    next.static.base,
+    phase,
+    STATIC_DELOAD,
+  );
   return next;
 }
 
@@ -253,16 +257,16 @@ export function hydrateCyclePhases(formulas: WorkoutFormulas): WorkoutFormulas {
   const next = cloneFormulas(formulas);
   for (const phase of next.cycle) {
     if (!next.dynamic.phases[phase.key]) {
-      next.dynamic.phases[phase.key] = phaseWork(
+      next.dynamic.phases[phase.key] = workForPhase(
         next.dynamic.base,
-        phase.skip_warmup,
+        phase,
         DYNAMIC_DELOAD,
       );
     }
     if (!next.static.phases[phase.key]) {
-      next.static.phases[phase.key] = phaseWork(
+      next.static.phases[phase.key] = workForPhase(
         next.static.base,
-        phase.skip_warmup,
+        phase,
         STATIC_DELOAD,
       );
     }
@@ -314,15 +318,28 @@ export function sortOrderForPhase(
   return fallback;
 }
 
-function phaseWork(
+function workForPhase(
   base: FormulaPhaseSpec,
-  skipWarmup: boolean,
+  phase: CyclePhaseDef,
   deload: FormulaSetSpec[],
 ): FormulaPhaseSpec {
-  if (skipWarmup) {
+  if (phase.percent_scale != null) {
+    return {
+      warmup: [],
+      work: scaleWork(base.work, phase.percent_scale),
+    };
+  }
+  if (phase.skip_warmup) {
     return { warmup: [], work: structuredClone(deload) };
   }
   return structuredClone(base);
+}
+
+function scaleWork(work: FormulaSetSpec[], factor: number): FormulaSetSpec[] {
+  return work.map((set) => ({
+    ...set,
+    percent: Math.max(1, Math.round(set.percent * factor)),
+  }));
 }
 
 function nextCustomKey(used: Set<string>): string {

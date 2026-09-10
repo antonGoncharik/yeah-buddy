@@ -162,8 +162,49 @@ export const LOAD_DELOAD_CYCLE: CyclePhaseDef[] = [
   },
 ];
 
+export const LIGHT_MEDIUM_HEAVY_CYCLE: CyclePhaseDef[] = [
+  {
+    key: "light",
+    name: "Лёгкая",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 0.875,
+  },
+  {
+    key: "medium",
+    name: "Средняя",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 1,
+  },
+  {
+    key: "heavy",
+    name: "Тяжёлая",
+    skip_warmup: false,
+    increase_on_end: true,
+    percent_scale: 1.1,
+  },
+];
+
+export const LIGHT_HEAVY_CYCLE: CyclePhaseDef[] = [
+  {
+    key: "light",
+    name: "Лёгкая",
+    skip_warmup: false,
+    increase_on_end: false,
+    percent_scale: 0.875,
+  },
+  {
+    key: "heavy",
+    name: "Тяжёлая",
+    skip_warmup: false,
+    increase_on_end: true,
+    percent_scale: 1.1,
+  },
+];
+
 export const CYCLE_TEMPLATES: Array<{
-  id: "four_phase" | "load_deload";
+  id: "four_phase" | "load_deload" | "light_medium_heavy" | "light_heavy";
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
@@ -179,6 +220,18 @@ export const CYCLE_TEMPLATES: Array<{
     name: "Нагрузка / разгрузка",
     hint: "Две фазы. После нагрузки можно поднять веса, разгрузка лёгкая и без разминки.",
     cycle: LOAD_DELOAD_CYCLE,
+  },
+  {
+    id: "light_medium_heavy",
+    name: "Лёгкая → средняя → тяжёлая",
+    hint: "Три фазы одной очереди. От текущих рабочих: лёгкая ~70%, средняя как есть, тяжёлая тяжелее. После тяжёлой можно поднять веса.",
+    cycle: LIGHT_MEDIUM_HEAVY_CYCLE,
+  },
+  {
+    id: "light_heavy",
+    name: "Лёгкая → тяжёлая",
+    hint: "Две фазы одной очереди. Лёгкая легче рабочих, тяжёлая тяжелее. После тяжёлой можно поднять веса.",
+    cycle: LIGHT_HEAVY_CYCLE,
   },
 ];
 

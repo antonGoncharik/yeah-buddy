@@ -3,7 +3,10 @@ import {
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
 } from "@/lib/starter-foods";
-import { FORMULA_SYSTEMS } from "@/lib/workout/default-formulas";
+import {
+  CYCLE_TEMPLATES,
+  FORMULA_SYSTEMS,
+} from "@/lib/workout/default-formulas";
 import {
   PROGRAM_PRESETS,
   unknownProgramExercises,
@@ -98,6 +101,14 @@ for (const system of FORMULA_SYSTEMS) {
     system.formulas.cycle.length === 0,
     `${system.id} must not seed a cycle`,
   );
+}
+
+uniqueNames(
+  CYCLE_TEMPLATES.map((template) => template.id),
+  "cycle template id",
+);
+for (const template of CYCLE_TEMPLATES) {
+  assert(template.cycle.length > 0, `empty cycle: ${template.id}`);
 }
 
 console.log("starter catalog ok");

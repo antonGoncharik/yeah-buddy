@@ -2,6 +2,8 @@ import { nextPhaseType, withCycle } from "@/lib/workout/cycle";
 import {
   DEFAULT_WORKOUT_FORMULAS,
   FOUR_PHASE_CYCLE,
+  LIGHT_HEAVY_CYCLE,
+  LIGHT_MEDIUM_HEAVY_CYCLE,
 } from "@/lib/workout/default-formulas";
 import {
   calcPlannedWeight,
@@ -269,6 +271,37 @@ assert(simpleLegacy.formulas.cycle.length === 0, "matching work drops cycle");
 assert(
   simpleLegacy.formulas.dynamic.base.work[0]?.percent === 80,
   "simple legacy keeps 3×5 base",
+);
+
+const lmh = withCycle(DEFAULT_WORKOUT_FORMULAS, LIGHT_MEDIUM_HEAVY_CYCLE);
+assertEqual(
+  lmh.dynamic.phases.light?.work[0]?.percent ?? 0,
+  70,
+  "light is 70% from 80",
+);
+assertEqual(
+  lmh.dynamic.phases.medium?.work[0]?.percent ?? 0,
+  80,
+  "medium keeps 80%",
+);
+assertEqual(
+  lmh.dynamic.phases.heavy?.work[0]?.percent ?? 0,
+  88,
+  "heavy is 88% from 80",
+);
+assert(lmh.cycle[2]?.increase_on_end === true, "heavy raises max");
+
+const lh = withCycle(DEFAULT_WORKOUT_FORMULAS, LIGHT_HEAVY_CYCLE);
+assert(lh.cycle.length === 2, "light-heavy has two phases");
+assertEqual(
+  lh.dynamic.phases.light?.work[0]?.percent ?? 0,
+  70,
+  "light-heavy light is 70%",
+);
+assertEqual(
+  lh.dynamic.phases.heavy?.work[0]?.percent ?? 0,
+  88,
+  "light-heavy heavy is 88%",
 );
 
 console.log("workout formulas ok");
