@@ -32,4 +32,3 @@ assertEqual(
 );
 
 console.log("telegram viewport ok");
-
