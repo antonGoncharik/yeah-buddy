@@ -6,6 +6,7 @@ import {
   foodMatchKey,
   formulaHint,
   PackEmptyError,
+  packShareText,
   parseSharePayload,
 } from "@/lib/share/payload";
 import { createPackToken, isPackToken } from "@/lib/share/token";
@@ -151,6 +152,24 @@ assert(meals.templates[0]?.items.length === 1, "rest item kept");
 assert(meals.templates[1]?.items.length === 0, "training may be empty");
 assert(parseSharePayload("meals", meals) != null, "meals payload parses");
 assert(defaultMealsTitle(meals).includes("ккал"), "meals title has kcal");
+assert(
+  packShareText("meals", defaultMealsTitle(meals)) ===
+    `${defaultMealsTitle(meals)} — Yeah Buddy`,
+  "share text uses meals title",
+);
+assert(
+  packShareText("workouts", "  Тело A / Тело B  ") ===
+    "Тело A / Тело B — Yeah Buddy",
+  "share text trims workout title",
+);
+assert(
+  packShareText("meals", "  ") === "Еда на день из Yeah Buddy",
+  "share text meals fallback",
+);
+assert(
+  packShareText("workouts") === "Тренировки из Yeah Buddy",
+  "share text workouts fallback",
+);
 
 const emptyWorkouts = buildWorkoutsPayloadFail();
 assert(emptyWorkouts === PACK_EMPTY_WORKOUTS, "empty workouts text");

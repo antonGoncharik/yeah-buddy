@@ -19,9 +19,3 @@ export async function shareOrCopyLink(
   await navigator.clipboard.writeText(url);
   return "copied";
 }
-
-export function packShareText(kind: "meals" | "workouts"): string {
-  return kind === "meals"
-    ? "Еда на день из Yeah Buddy"
-    : "Тренировки из Yeah Buddy";
-}

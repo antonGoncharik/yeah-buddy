@@ -17,8 +17,9 @@ import {
   formatMacro,
   getMealLabel,
 } from "@/lib/nutrition";
-import { packShareText, shareOrCopyLink } from "@/lib/share/client";
+import { shareOrCopyLink } from "@/lib/share/client";
 import { readSharePackPayload } from "@/lib/share/map";
+import { packShareText } from "@/lib/share/payload";
 import {
   dismissPendingPackToken,
   packBackHref,
@@ -141,7 +142,10 @@ export function PackDetailScreen({ token }: { token: string }) {
     }
     const url = pack.share_url ?? window.location.href;
     try {
-      const result = await shareOrCopyLink(url, packShareText(pack.kind));
+      const result = await shareOrCopyLink(
+        url,
+        packShareText(pack.kind, pack.title),
+      );
       setCopied(result === "copied");
     } catch {
       setError(LOAD_FAILED);
@@ -267,11 +271,11 @@ function packSubtitle(pack: SharePackDetail): string {
   if (pack.saved) {
     return pack.kind === "meals"
       ? `${fromOwner}Сохранено. Можно поставить — шаблоны и цели станут как в ссылке.`
-      : `${fromOwner}Сохранено. Можно поставить — очередь станет как в ссылке.`;
+      : `${fromOwner}Сохранено. Можно поставить — очередь и схема весов станут как в ссылке.`;
   }
   return pack.kind === "meals"
     ? `${fromOwner}Еда на день. Можно поставить себе.`
-    : `${fromOwner}Тренировки по очереди. Можно поставить себе.`;
+    : `${fromOwner}Очередь и схема весов. Можно поставить себе.`;
 }
 
 function MealsPreview({ pack }: { pack: SharePackDetail }) {

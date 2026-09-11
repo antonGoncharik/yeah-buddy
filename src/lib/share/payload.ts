@@ -252,6 +252,16 @@ export function defaultWorkoutsTitle(payload: WorkoutsPackPayload): string {
   return payload.templates.map((day) => day.name).join(" / ");
 }
 
+export function packShareText(kind: SharePackKind, title?: string): string {
+  const name = title?.trim();
+  if (name) {
+    return `${name} — Yeah Buddy`;
+  }
+  return kind === "meals"
+    ? "Еда на день из Yeah Buddy"
+    : "Тренировки из Yeah Buddy";
+}
+
 export function mealDayTotals(items: PackMealItem[]): {
   protein: number;
   fat: number;
