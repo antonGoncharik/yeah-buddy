@@ -19,6 +19,7 @@ export function MealCopyActions({
   onApplyNamed,
   onSaveNamed,
   onDeleteNamed,
+  onFillTemplate,
 }: {
   date: string;
   mealType: MealType;
@@ -30,6 +31,7 @@ export function MealCopyActions({
   onApplyNamed: (namedMealId: string) => void;
   onSaveNamed: () => void;
   onDeleteNamed: (namedMealId: string, name: string) => void;
+  onFillTemplate?: () => void;
 }) {
   const [picking, setPicking] = useState(false);
   const yesterday = previousIsoDate(date);
@@ -47,10 +49,21 @@ export function MealCopyActions({
 
   return (
     <div className="flex flex-col gap-2">
-      {hasYesterday ? (
+      {onFillTemplate ? (
         <Button
           type="button"
           variant={hasItems ? "outline" : "default"}
+          className="h-12 w-full text-base"
+          disabled={busy}
+          onClick={onFillTemplate}
+        >
+          Добить из шаблона
+        </Button>
+      ) : null}
+      {hasYesterday ? (
+        <Button
+          type="button"
+          variant={hasItems || onFillTemplate ? "outline" : "default"}
           className="h-12 w-full text-base"
           disabled={busy}
           onClick={() => onCopyDate(yesterday)}

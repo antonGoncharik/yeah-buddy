@@ -93,6 +93,34 @@ export function useTodayCopy({
     }
   }
 
+  async function fillFromTemplate(url: string) {
+    if (viewOnly) {
+      return;
+    }
+
+    setBusy(true);
+    setActionError(null);
+
+    try {
+      const data = await postJson(url, {});
+      setDay(readDay(data));
+      haptic("success");
+    } catch (caught) {
+      haptic("error");
+      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function fillDayFromTemplate(dayId: string) {
+    await fillFromTemplate(`/api/days/${dayId}/fill-template`);
+  }
+
+  async function fillMealFromTemplate(mealId: string) {
+    await fillFromTemplate(`/api/meals/${mealId}/fill-template`);
+  }
+
   async function copyYesterday() {
     await runReplaceCopy({
       needsConfirm: Boolean(day),
@@ -215,5 +243,7 @@ export function useTodayCopy({
     applyNamedMeal,
     saveNamedMeal,
     deleteNamedMeal,
+    fillDayFromTemplate,
+    fillMealFromTemplate,
   };
 }

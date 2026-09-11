@@ -3,6 +3,7 @@
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
+import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
@@ -26,6 +27,8 @@ export function TodayDayView({
   hiddenMealTypes,
   fact,
   remainingLine,
+  remainingFullGap,
+  remainingMealTypes,
   dayHasItems,
   copyDays,
   namedMeals,
@@ -34,6 +37,8 @@ export function TodayDayView({
   switchType,
   saveBodyWeight,
   copyYesterday,
+  fillDayFromTemplate,
+  fillMealFromTemplate,
   copyMealFromDate,
   applyNamedMeal,
   saveNamedMeal,
@@ -50,6 +55,8 @@ export function TodayDayView({
   hiddenMealTypes: MealType[];
   fact: { protein: number; fat: number; carbs: number; kcal: number };
   remainingLine: string | null;
+  remainingFullGap: boolean;
+  remainingMealTypes: ReadonlySet<MealType>;
   dayHasItems: boolean;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -58,6 +65,8 @@ export function TodayDayView({
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
+  fillDayFromTemplate: () => Promise<void>;
+  fillMealFromTemplate: (mealId: string) => Promise<void>;
   copyMealFromDate: (
     mealId: string,
     mealType: MealType,
@@ -77,6 +86,15 @@ export function TodayDayView({
     hiddenMealTypes,
     shownDay.is_training_day,
   );
+  const remainingAction = remainingLine ? (
+    <RemainingRecipeAction
+      remainingLine={remainingLine}
+      fullGap={remainingFullGap}
+      viewOnly={viewOnly}
+      busy={busy}
+      onFill={() => void fillDayFromTemplate()}
+    />
+  ) : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -105,6 +123,12 @@ export function TodayDayView({
 
       {hiddenNote ? (
         <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
+      ) : null}
+
+      {remainingFullGap && remainingAction ? (
+        <div className="animate-rise" style={{ animationDelay: "60ms" }}>
+          {remainingAction}
+        </div>
       ) : null}
 
       {visibleMeals.map((meal, index) => (
@@ -160,6 +184,11 @@ export function TodayDayView({
               ? undefined
               : (namedMealId, name) => void deleteNamedMeal(namedMealId, name)
           }
+          onFillTemplate={
+            viewOnly || !remainingMealTypes.has(meal.meal_type)
+              ? undefined
+              : () => void fillMealFromTemplate(meal.id)
+          }
           copyBusy={busy}
           readOnly={viewOnly}
           className="animate-rise"
@@ -177,15 +206,15 @@ export function TodayDayView({
         />
       ))}
 
-      {remainingLine ? (
-        <p
-          className="animate-rise px-1 text-base leading-relaxed text-muted-foreground"
+      {remainingFullGap ? null : remainingAction ? (
+        <div
+          className="animate-rise"
           style={{
             animationDelay: `${80 + visibleMeals.length * 50}ms`,
           }}
         >
-          {remainingLine}
-        </p>
+          {remainingAction}
+        </div>
       ) : null}
 
       {viewOnly || dayHasItems ? null : (

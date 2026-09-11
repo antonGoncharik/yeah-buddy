@@ -31,6 +31,7 @@ export function MealCard({
   onApplyNamed,
   onSaveNamed,
   onDeleteNamed,
+  onFillTemplate,
   copyBusy = false,
   readOnly = false,
   className,
@@ -49,6 +50,7 @@ export function MealCard({
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
+  onFillTemplate?: () => void;
   copyBusy?: boolean;
   readOnly?: boolean;
   className?: string;
@@ -125,6 +127,7 @@ export function MealCard({
               onApplyNamed={copy.onApplyNamed}
               onSaveNamed={copy.onSaveNamed}
               onDeleteNamed={copy.onDeleteNamed}
+              onFillTemplate={onFillTemplate}
             />
           ) : null}
           {showPlate && plateHref ? <MealPlateLink href={plateHref} /> : null}

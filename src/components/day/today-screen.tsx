@@ -37,6 +37,8 @@ export function TodayScreen({
     hiddenMealTypes,
     fact,
     remainingLine,
+    remainingFullGap,
+    remainingMealTypes,
     dayHasItems,
     yesterdayExists,
     copyDays,
@@ -49,6 +51,8 @@ export function TodayScreen({
     goToDate,
     createDay,
     copyYesterday,
+    fillDayFromTemplate,
+    fillMealFromTemplate,
     copyMealFromDate,
     applyNamedMeal,
     saveNamedMeal,
@@ -148,6 +152,8 @@ export function TodayScreen({
             hiddenMealTypes={hiddenMealTypes}
             fact={fact}
             remainingLine={remainingLine}
+            remainingFullGap={remainingFullGap}
+            remainingMealTypes={remainingMealTypes}
             dayHasItems={dayHasItems}
             copyDays={copyDays}
             namedMeals={namedMeals}
@@ -156,6 +162,13 @@ export function TodayScreen({
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}
             copyYesterday={copyYesterday}
+            fillDayFromTemplate={() => {
+              if (!shownDay) {
+                return Promise.resolve();
+              }
+              return fillDayFromTemplate(shownDay.id);
+            }}
+            fillMealFromTemplate={fillMealFromTemplate}
             copyMealFromDate={copyMealFromDate}
             applyNamedMeal={applyNamedMeal}
             saveNamedMeal={saveNamedMeal}

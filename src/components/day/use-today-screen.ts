@@ -25,9 +25,11 @@ import {
 } from "@/lib/day/dates";
 import {
   formatRemainingLine,
-  loggedItemsFromMeals,
-  remainingRecipe,
+  isFullTemplateGap,
+  remainingFills,
+  remainingLines,
 } from "@/lib/day/remaining";
+import type { MealType } from "@/lib/types";
 
 export function useTodayScreen({
   initialDate,
@@ -101,21 +103,28 @@ export function useTodayScreen({
     () => hiddenMealTypesFromDay(shownDay),
     [shownDay],
   );
-  const remainingLine = useMemo(() => {
-    if (!shownDay) {
-      return null;
-    }
-    const recipe = shownDay.is_training_day
+  const recipe = shownDay
+    ? shownDay.is_training_day
       ? data.recipes.training
-      : data.recipes.rest;
-    return formatRemainingLine(
-      remainingRecipe(
-        recipe,
-        loggedItemsFromMeals(shownDay.meals),
-        shownDay.is_training_day,
-      ),
-    );
-  }, [data.recipes, shownDay]);
+      : data.recipes.rest
+    : [];
+  const remaining = useMemo(() => {
+    if (!shownDay) {
+      return [];
+    }
+    return remainingFills(recipe, shownDay.meals, shownDay.is_training_day);
+  }, [recipe, shownDay]);
+  const remainingLine = formatRemainingLine(remainingLines(remaining));
+  const remainingFullGap = shownDay
+    ? isFullTemplateGap(recipe, remaining, shownDay.is_training_day)
+    : false;
+  const remainingMealTypes = useMemo(() => {
+    const types = new Set<MealType>();
+    for (const fill of remaining) {
+      types.add(fill.mealType);
+    }
+    return types;
+  }, [remaining]);
 
   const {
     copyYesterday,
@@ -123,6 +132,8 @@ export function useTodayScreen({
     applyNamedMeal,
     saveNamedMeal,
     deleteNamedMeal,
+    fillDayFromTemplate,
+    fillMealFromTemplate,
   } = useTodayCopy({
     viewOnly,
     date,
@@ -168,6 +179,8 @@ export function useTodayScreen({
     hiddenMealTypes,
     fact,
     remainingLine,
+    remainingFullGap,
+    remainingMealTypes,
     dayHasItems,
     yesterdayExists: data.yesterdayExists,
     copyDays: data.copyDays,
@@ -180,6 +193,8 @@ export function useTodayScreen({
     goToDate,
     createDay,
     copyYesterday,
+    fillDayFromTemplate,
+    fillMealFromTemplate,
     copyMealFromDate,
     applyNamedMeal,
     saveNamedMeal,
