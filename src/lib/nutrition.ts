@@ -2,6 +2,7 @@ export {
   DAY_TEMPLATE_TITLES,
   DAY_TYPE_LABELS,
 } from "@/lib/nutrition/day-labels";
+export { QUICK_GRAMS } from "@/lib/nutrition/grams";
 export {
   calcKcalFromMacros,
   calcMacrosFromPer100,

@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import { PLATE_GRAMS_MAX, PLATE_ITEM_LIMIT } from "@/lib/ai/plate-types";
-import { addMealItem } from "@/lib/day/meal-items";
-import { createFood, getFood, listFoods } from "@/lib/food/store";
+import { addMealItems } from "@/lib/day/meal-items";
+import { createFood, deleteFood, getFood, listFoods } from "@/lib/food/store";
 import { FOOD_STATES, foodInputSchema } from "@/lib/foods";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 import { foodMatchKey } from "@/lib/share/payload";
@@ -41,26 +41,35 @@ export async function commitPlateItems(
   const byKey = new Map(
     foods.map((food) => [foodMatchKey(food), food] as const),
   );
-  const items: MealItem[] = [];
+  const createdIds: string[] = [];
+  const resolved: Array<{ food: Food; grams: number }> = [];
 
-  for (const row of input.items) {
-    const foodId = await resolveCommitFoodId(userId, row, byId, byKey);
-    const item = await addMealItem(userId, mealId, foodId, row.grams);
-    items.push(item);
+  try {
+    for (const row of input.items) {
+      const resolvedFood = await resolveCommitFood(userId, row, byId, byKey);
+      if (resolvedFood.created) {
+        createdIds.push(resolvedFood.food.id);
+      }
+      resolved.push({ food: resolvedFood.food, grams: row.grams });
+    }
+
+    return await addMealItems(userId, mealId, resolved);
+  } catch (error) {
+    await rollbackCreatedFoods(userId, createdIds);
+    throw error;
   }
-
-  return items;
 }
 
-async function resolveCommitFoodId(
+async function resolveCommitFood(
   userId: string,
   row: PlateCommitInput["items"][number],
   byId: Map<string, Food>,
   byKey: Map<string, Food>,
-): Promise<string> {
+): Promise<{ food: Food; created: boolean }> {
   if (row.kind === "food") {
-    if (byId.has(row.foodId)) {
-      return row.foodId;
+    const cached = byId.get(row.foodId);
+    if (cached) {
+      return { food: cached, created: false };
     }
     const existing = await getFood(userId, row.foodId);
     if (!existing) {
@@ -68,7 +77,7 @@ async function resolveCommitFoodId(
     }
     byId.set(existing.id, existing);
     byKey.set(foodMatchKey(existing), existing);
-    return existing.id;
+    return { food: existing, created: false };
   }
 
   const parsed = foodInputSchema.parse({
@@ -82,7 +91,7 @@ async function resolveCommitFoodId(
       row.fat_per_100,
       row.carbs_per_100,
     ),
-    default_portion_g: row.grams,
+    default_portion_g: null,
     is_favorite: false,
   });
   const key = foodMatchKey({
@@ -94,11 +103,21 @@ async function resolveCommitFoodId(
   });
   const matched = byKey.get(key);
   if (matched) {
-    return matched.id;
+    return { food: matched, created: false };
   }
 
   const created = await createFood(userId, parsed);
   byId.set(created.id, created);
   byKey.set(key, created);
-  return created.id;
+  return { food: created, created: true };
+}
+
+async function rollbackCreatedFoods(userId: string, ids: string[]) {
+  for (const id of ids) {
+    try {
+      await deleteFood(userId, id);
+    } catch {
+      // Meal write already failed; leftover food is better than a half-written meal.
+    }
+  }
 }

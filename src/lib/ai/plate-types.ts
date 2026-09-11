@@ -31,6 +31,8 @@ export type PlateFoodRef = {
   fat_per_100: number;
   carbs_per_100: number;
   kcal_per_100: number;
+  default_portion_g: number | null;
+  default_portion_label: string | null;
 };
 
 export type PlateDraftFood = {
@@ -42,6 +44,8 @@ export type PlateDraftFood = {
   fat_per_100: number;
   carbs_per_100: number;
   kcal_per_100: number;
+  default_portion_g: number | null;
+  default_portion_label: string | null;
 };
 
 export type PlateDraftNew = {

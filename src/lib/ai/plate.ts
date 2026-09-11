@@ -7,7 +7,7 @@ import type { PlateDraft, PlateFoodRef } from "@/lib/ai/plate-types";
 import { FOOD_STATES } from "@/lib/foods";
 import { AI_PLATE_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
 
-const COOLDOWN_MS = 12_000;
+const COOLDOWN_MS = 4_000;
 const lastWrite = new Map<string, number>();
 
 const SYSTEM_PROMPT = `Ты смотришь на фото еды и сопоставляешь её со списком продуктов человека.
@@ -46,8 +46,9 @@ const RESPONSE_SCHEMA = {
 
 export async function analyzePlate(
   userId: string,
-  foods: PlateFoodRef[],
+  catalogFoods: PlateFoodRef[],
   image: { mimeType: string; data: string },
+  allFoods: PlateFoodRef[] = catalogFoods,
 ): Promise<PlateDraft> {
   if (!getGeminiApiKey()) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
@@ -59,31 +60,24 @@ export async function analyzePlate(
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
 
-  lastWrite.set(userId, now);
+  const catalog = compactPlateCatalog(catalogFoods);
+  const payload = await generateGeminiJson({
+    system: SYSTEM_PROMPT,
+    parts: [
+      { inlineData: { mimeType: image.mimeType, data: image.data } },
+      { text: JSON.stringify({ catalog }) },
+    ],
+    schema: RESPONSE_SCHEMA,
+    temperature: 0.1,
+    timeoutMs: 35_000,
+    failedMessage: AI_PLATE_FAILED,
+  });
 
-  const catalog = compactPlateCatalog(foods);
-
-  try {
-    const payload = await generateGeminiJson({
-      system: SYSTEM_PROMPT,
-      parts: [
-        { inlineData: { mimeType: image.mimeType, data: image.data } },
-        { text: JSON.stringify({ catalog }) },
-      ],
-      schema: RESPONSE_SCHEMA,
-      temperature: 0.1,
-      timeoutMs: 35_000,
-      failedMessage: AI_PLATE_FAILED,
-    });
-
-    const raw = parsePlateModelItems(payload);
-    if (!raw) {
-      throw new ReviewError("GEMINI", AI_PLATE_FAILED);
-    }
-
-    return { items: resolvePlateItems(raw, foods) };
-  } catch (error) {
-    lastWrite.delete(userId);
-    throw error;
+  const raw = parsePlateModelItems(payload);
+  if (!raw) {
+    throw new ReviewError("GEMINI", AI_PLATE_FAILED);
   }
+
+  lastWrite.set(userId, Date.now());
+  return { items: resolvePlateItems(raw, catalogFoods, allFoods) };
 }

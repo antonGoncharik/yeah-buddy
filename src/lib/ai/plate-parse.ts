@@ -5,7 +5,13 @@ import {
   type PlateModelItem,
 } from "@/lib/ai/plate-types";
 import { parseFoodState } from "@/lib/foods";
-import { isRecord, mapRecordList, toNumber } from "@/lib/read";
+import {
+  isRecord,
+  mapRecordList,
+  toNullableNumber,
+  toNullableString,
+  toNumber,
+} from "@/lib/read";
 
 export function parsePlateModelItems(value: unknown): PlateModelItem[] | null {
   if (!isRecord(value)) {
@@ -69,6 +75,8 @@ export function parsePlateDraftItem(
       fat_per_100: fat,
       carbs_per_100: carbs,
       kcal_per_100: kcal,
+      default_portion_g: toNullableNumber(value.default_portion_g),
+      default_portion_label: toNullableString(value.default_portion_label),
     };
   }
 

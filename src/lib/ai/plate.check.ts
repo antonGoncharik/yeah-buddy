@@ -1,4 +1,8 @@
-import { compactPlateCatalog, normalizeFoodName } from "@/lib/ai/plate-catalog";
+import {
+  compactPlateCatalog,
+  normalizeFoodName,
+  rankPlateCatalog,
+} from "@/lib/ai/plate-catalog";
 import { resolvePlateItems, roundPlateGrams } from "@/lib/ai/plate-match";
 import { parsePlateDraft, parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateFoodRef, PlateModelItem } from "@/lib/ai/plate-types";
@@ -24,6 +28,8 @@ function food(
     fat_per_100: extras.fat_per_100 ?? 5,
     carbs_per_100: extras.carbs_per_100 ?? 20,
     kcal_per_100: extras.kcal_per_100 ?? 165,
+    default_portion_g: extras.default_portion_g ?? null,
+    default_portion_label: extras.default_portion_label ?? null,
   };
 }
 
@@ -179,10 +185,61 @@ const draft = parsePlateDraft({
   ],
 });
 assertEqual(draft?.items[0]?.kind, "food", "parse draft food");
+if (draft?.items[0]?.kind === "food") {
+  assertEqual(draft.items[0].default_portion_g, null, "draft portion empty");
+}
 assertEqual(
   parsePlateDraft({ items: [{ kind: "food", grams: 10 }] }),
   null,
   "reject bad draft",
 );
+
+const favoritesFirst = rankPlateCatalog(
+  [
+    { id: "zucchini", is_favorite: false },
+    { id: "oats", is_favorite: true },
+    { id: "curd", is_favorite: false },
+  ],
+  [{ id: "curd", is_favorite: false }],
+  2,
+);
+assertEqual(favoritesFirst[0]?.id, "oats", "favorite first");
+assertEqual(favoritesFirst[1]?.id, "curd", "recent second");
+assertEqual(favoritesFirst.length, 2, "catalog cap");
+
+const allFoods = [
+  food("alpha", "Авокадо"),
+  food("oats", "Овсянка сухая", {
+    protein_per_100: 13,
+    fat_per_100: 6,
+    carbs_per_100: 66,
+    kcal_per_100: 370,
+    default_portion_g: 40,
+    default_portion_label: "пакет",
+  }),
+];
+const rankedCatalog = [allFoods[1], allFoods[0]].filter(
+  (item): item is PlateFoodRef => item != null,
+);
+const byRank = resolvePlateItems(
+  [raw({ catalog_i: 0, name: "каша", grams: 40 })],
+  rankedCatalog,
+  allFoods,
+);
+assertEqual(byRank[0]?.kind, "food", "ranked catalog kind");
+if (byRank[0]?.kind === "food") {
+  assertEqual(byRank[0].foodId, "oats", "catalog_i uses ranked list");
+  assertEqual(byRank[0].default_portion_g, 40, "keeps portion");
+}
+
+const outside = resolvePlateItems(
+  [raw({ name: "авокадо", grams: 80 })],
+  rankedCatalog.slice(0, 1),
+  allFoods,
+);
+assertEqual(outside[0]?.kind, "food", "name match outside catalog");
+if (outside[0]?.kind === "food") {
+  assertEqual(outside[0].foodId, "alpha", "matched all foods");
+}
 
 console.log("ai plate ok");

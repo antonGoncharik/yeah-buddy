@@ -24,7 +24,8 @@ export function roundPlateGrams(grams: number): number {
 
 export function resolvePlateItems(
   raw: PlateModelItem[],
-  foods: PlateFoodRef[],
+  catalog: PlateFoodRef[],
+  allFoods: PlateFoodRef[] = catalog,
 ): PlateDraftItem[] {
   const items: PlateDraftItem[] = [];
   const seen = new Set<string>();
@@ -39,7 +40,7 @@ export function resolvePlateItems(
       continue;
     }
 
-    const matched = matchCatalogFood(row, foods);
+    const matched = matchCatalogFood(row, catalog, allFoods);
     const item = matched
       ? draftFromFood(matched, grams)
       : draftFromNew(row, grams);
@@ -65,10 +66,11 @@ export function resolvePlateItems(
 
 function matchCatalogFood(
   row: PlateModelItem,
-  foods: PlateFoodRef[],
+  catalog: PlateFoodRef[],
+  allFoods: PlateFoodRef[],
 ): PlateFoodRef | null {
-  if (Number.isInteger(row.catalog_i) && foods[row.catalog_i]) {
-    return foods[row.catalog_i];
+  if (Number.isInteger(row.catalog_i) && catalog[row.catalog_i]) {
+    return catalog[row.catalog_i];
   }
 
   const needle = normalizeFoodName(row.name);
@@ -76,7 +78,9 @@ function matchCatalogFood(
     return null;
   }
 
-  const exact = foods.filter((food) => normalizeFoodName(food.name) === needle);
+  const exact = allFoods.filter(
+    (food) => normalizeFoodName(food.name) === needle,
+  );
   if (exact.length === 1) {
     return exact[0];
   }
@@ -94,6 +98,8 @@ function draftFromFood(food: PlateFoodRef, grams: number): PlateDraftItem {
     fat_per_100: food.fat_per_100,
     carbs_per_100: food.carbs_per_100,
     kcal_per_100: food.kcal_per_100,
+    default_portion_g: food.default_portion_g,
+    default_portion_label: food.default_portion_label,
   };
 }
 

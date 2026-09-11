@@ -2,6 +2,7 @@ import type { NextResponse } from "next/server";
 
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { analyzePlate } from "@/lib/ai/plate";
+import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { readPlateImagePart } from "@/lib/ai/plate-image";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
@@ -23,8 +24,18 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const foods = await listFoods(auth.session.userId, "all");
-    const draft = await analyzePlate(auth.session.userId, foods, image);
+    const [all, recent] = await Promise.all([
+      listFoods(auth.session.userId, "all"),
+      listFoods(auth.session.userId, "recent"),
+    ]);
+    const allRefs = all.map(toPlateFoodRef);
+    const catalog = rankPlateCatalog(all, recent).map(toPlateFoodRef);
+    const draft = await analyzePlate(
+      auth.session.userId,
+      catalog,
+      image,
+      allRefs,
+    );
     return jsonOk(draft);
   } catch (error) {
     return failRoute(error, [

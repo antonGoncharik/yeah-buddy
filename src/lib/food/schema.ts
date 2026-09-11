@@ -6,6 +6,14 @@ export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
 
 export type FoodStateValue = (typeof FOOD_STATES)[number];
 
+export const FOOD_STATE_LABELS: Record<FoodStateValue, string> = {
+  raw: "Сырой",
+  dry: "Сухой",
+  cooked: "Приготовленный",
+  as_is: "Как есть",
+  liquid: "Жидкий",
+};
+
 export function parseFoodState(value: unknown): FoodStateValue {
   if (
     value === "raw" ||

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { PlateScreen } from "@/components/day/plate-screen";
 import { AppHeader } from "@/components/layout/app-header";
+import { getGeminiApiKey } from "@/lib/ai/gemini";
 import {
   isIsoDate,
   isPastDayDate,
@@ -31,7 +32,11 @@ export default async function PlateMealPage({
         title="С тарелки"
         backHref={withDateQuery(`/today/meals/${mealId}/add`, date)}
       />
-      <PlateScreen mealId={mealId} doneHref={homeHref} />
+      <PlateScreen
+        mealId={mealId}
+        doneHref={homeHref}
+        configured={getGeminiApiKey() != null}
+      />
     </div>
   );
 }

@@ -44,6 +44,7 @@ export const AI_REVIEW_FAILED = "Не получилось написать.";
 export const AI_PLATE_FAILED = "Не получилось разобрать.";
 export const AI_PLATE_EMPTY = "На фото не видно еды.";
 export const AI_PLATE_PHOTO_FAILED = "Не получилось прочитать фото.";
+export const AI_PLATE_RETRY = "Ещё раз";
 export const REVIEW_CTA_HINT = "Как прошло за эти дни";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";

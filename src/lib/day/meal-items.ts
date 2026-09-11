@@ -7,7 +7,7 @@ import {
   roundMacros,
 } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MealItem } from "@/lib/types";
+import type { Food, MealItem } from "@/lib/types";
 
 export async function getDateForMeal(
   userId: string,
@@ -105,6 +105,52 @@ export async function addMealItem(
   }
 
   return mapMealItem(inserted.data as Record<string, unknown>);
+}
+
+export async function addMealItems(
+  userId: string,
+  mealId: string,
+  entries: Array<{ food: Food; grams: number }>,
+): Promise<MealItem[]> {
+  if (entries.length === 0) {
+    throw new Error("Meal items empty");
+  }
+
+  const date = await getDateForMeal(userId, mealId);
+  if (!date) {
+    throw new Error("Meal not found");
+  }
+  assertWritableDayDate(date);
+
+  const supabase = createSupabaseServerClient();
+  const inserted = await supabase
+    .from("meal_items")
+    .insert(
+      entries.map((entry) =>
+        buildMealItemRow({
+          userId,
+          mealId,
+          foodId: entry.food.id,
+          name: entry.food.name,
+          grams: entry.grams,
+          per100: {
+            protein: entry.food.protein_per_100,
+            fat: entry.food.fat_per_100,
+            carbs: entry.food.carbs_per_100,
+            kcal: entry.food.kcal_per_100,
+          },
+        }),
+      ),
+    )
+    .select("*");
+
+  if (inserted.error) {
+    throw inserted.error;
+  }
+
+  return (inserted.data ?? []).map((row) =>
+    mapMealItem(row as Record<string, unknown>),
+  );
 }
 
 export async function getMealItem(
