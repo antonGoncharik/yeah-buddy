@@ -11,6 +11,10 @@ import { parseReviewSnapshot } from "@/lib/ai/parse-review";
 import type { ReviewBrief, ReviewSnapshot, ReviewText } from "@/lib/ai/types";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import {
+  formatBodyWeight,
+  formatProteinPerKg,
+} from "@/lib/day/body-weight";
+import {
   AI_REVIEW_EMPTY,
   AI_REVIEW_FAILED,
   AI_REVIEW_NO_KEY,
@@ -187,11 +191,11 @@ function FactsCard({ brief }: { brief: ReviewBrief }) {
           {brief.nutrition.weight.start != null &&
           brief.nutrition.weight.delta != null &&
           Math.abs(brief.nutrition.weight.delta) >= 0.5
-            ? `${brief.nutrition.weight.start} → ${brief.nutrition.weight.end} кг`
-            : `${brief.nutrition.weight.end} кг`}
+            ? `${formatBodyWeight(brief.nutrition.weight.start)} → ${formatBodyWeight(brief.nutrition.weight.end)} кг`
+            : `${formatBodyWeight(brief.nutrition.weight.end)} кг`}
           {brief.nutrition.weight.protein_per_kg == null
             ? null
-            : ` · белок ${brief.nutrition.weight.protein_per_kg} г/кг`}
+            : ` · белок ${formatProteinPerKg(brief.nutrition.weight.protein_per_kg)}`}
         </p>
       ) : null}
       {phase ? <p className="text-sm text-muted-foreground">{phase}</p> : null}
