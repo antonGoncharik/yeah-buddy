@@ -93,7 +93,8 @@ export function SessionScreen() {
               setWorkOpen={setWorkOpen}
               setDrafts={setDrafts}
               onRemove={(id) => void removeExercise(id)}
-              onStartRest={rest.start}
+              onStartRest={(id) => rest.start(id)}
+              lastRestSeconds={rest.lastSeconds}
             />
 
             {session.status === "planned" ||
@@ -168,7 +169,7 @@ export function SessionScreen() {
               onAdd={rest.add}
               onSubtract={rest.subtract}
               onStop={rest.stop}
-              onRestart={rest.start}
+              onRestart={rest.restart}
             />
           ) : null}
           <Button

@@ -1,4 +1,12 @@
-import type { ReviewBrief } from "@/lib/ai/types";
+import type { ReviewBrief, StoredReview } from "@/lib/ai/types";
+
+export type ReviewPromptPrevious = {
+  from: string;
+  to: string;
+  headline: string;
+  observations: string[];
+  watch: string[];
+};
 
 export type ReviewPromptPayload = {
   range: ReviewBrief["range"];
@@ -31,9 +39,13 @@ export type ReviewPromptPayload = {
   phase: ReviewBrief["phase"];
   maxes: ReviewBrief["maxes"];
   signals: string[];
+  previous: ReviewPromptPrevious | null;
 };
 
-export function reviewPromptPayload(brief: ReviewBrief): ReviewPromptPayload {
+export function reviewPromptPayload(
+  brief: ReviewBrief,
+  previous: StoredReview | null = null,
+): ReviewPromptPayload {
   return {
     range: brief.range,
     from: brief.from,
@@ -65,5 +77,14 @@ export function reviewPromptPayload(brief: ReviewBrief): ReviewPromptPayload {
     phase: brief.phase,
     maxes: brief.maxes,
     signals: brief.signals,
+    previous: previous
+      ? {
+          from: previous.from,
+          to: previous.to,
+          headline: previous.headline,
+          observations: previous.observations,
+          watch: previous.watch,
+        }
+      : null,
   };
 }

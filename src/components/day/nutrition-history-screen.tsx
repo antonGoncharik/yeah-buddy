@@ -18,9 +18,9 @@ import { parseDayHistoryPayload } from "@/lib/day/map";
 import { NUTRITION_HISTORY_EMPTY, REVIEW_CTA_HINT } from "@/lib/messages";
 import {
   chronological,
+  type HistoryMetric,
   hasOlderThanRange,
   isNutritionRange,
-  type NutritionMetric,
   nutritionHits,
   proteinPerKgStats,
   splitAverages,
@@ -33,11 +33,12 @@ import {
 
 type RangeId = "14" | "30";
 
-const METRIC_OPTIONS: Array<{ id: NutritionMetric; label: string }> = [
+const METRIC_OPTIONS: Array<{ id: HistoryMetric; label: string }> = [
   { id: "protein", label: "Б" },
   { id: "fat", label: "Ж" },
   { id: "carbs", label: "У" },
   { id: "kcal", label: "ккал" },
+  { id: "weight", label: "кг" },
 ];
 
 export function NutritionHistoryScreen() {
@@ -46,7 +47,7 @@ export function NutritionHistoryScreen() {
   const { items, nextBefore, loading, loadingMore, error, load } =
     useCursorHistory("/api/days/history", parseDayHistoryPayload);
   const [range, setRange] = useState<RangeId>("14");
-  const [metric, setMetric] = useState<NutritionMetric>("protein");
+  const [metric, setMetric] = useState<HistoryMetric>("protein");
 
   const parsedRange = Number(range);
   const rangeDays = isNutritionRange(parsedRange) ? parsedRange : 14;

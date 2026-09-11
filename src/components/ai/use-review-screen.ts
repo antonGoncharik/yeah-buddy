@@ -67,6 +67,7 @@ export function useReviewScreen() {
 
   const brief = snapshot?.brief ?? null;
   const review = snapshot?.review ?? null;
+  const previous = snapshot?.previous ?? null;
   const empty = brief?.coverage === "empty";
 
   return {
@@ -78,6 +79,7 @@ export function useReviewScreen() {
     error,
     brief,
     review,
+    previous,
     empty,
     load,
     writeReview,

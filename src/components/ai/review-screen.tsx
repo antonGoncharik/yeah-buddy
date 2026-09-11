@@ -30,6 +30,7 @@ export function ReviewScreen() {
     error,
     brief,
     review,
+    previous,
     empty,
     load,
     writeReview,
@@ -62,6 +63,9 @@ export function ReviewScreen() {
               <ReviewSignalsCard signals={brief.signals} />
             ) : null}
             {review ? <ReviewTextCard review={review} /> : null}
+            {previous ? (
+              <ReviewTextCard review={previous} label="Прошлый раз" muted />
+            ) : null}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

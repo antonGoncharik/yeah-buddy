@@ -4,6 +4,7 @@ import {
   carriedBodyWeight,
   formatProteinPerKg,
   formatRelative,
+  historyWeightPoints,
   parseBodyWeight,
   proteinPerKg,
   relativeStrength,
@@ -52,6 +53,15 @@ const seeded = carriedBodyWeight(
 assertEqual(seeded.get("2026-09-02"), 84, "seed carries");
 
 assertEqual(relativeStrength(175, 82.5), 2.12, "bar / body");
+assertEqual(
+  historyWeightPoints([
+    { date: "2026-09-01", body_weight: 84 },
+    { date: "2026-09-02", body_weight: null },
+    { date: "2026-09-10", body_weight: 81 },
+  ]).length,
+  2,
+  "history skips empty weight",
+);
 assertEqual(relativeStrength(0, 82), null, "no bar");
 assertEqual(proteinPerKg(148.5, 82.5), 1.8, "protein / kg");
 assertEqual(proteinPerKg(120, 0), null, "no body");

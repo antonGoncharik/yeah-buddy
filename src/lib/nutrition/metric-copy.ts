@@ -1,6 +1,7 @@
 import type { DayHistoryRow } from "@/lib/types";
 
 export type NutritionMetric = "protein" | "fat" | "carbs" | "kcal";
+export type HistoryMetric = NutritionMetric | "weight";
 
 export function metricFact(
   item: DayHistoryRow,

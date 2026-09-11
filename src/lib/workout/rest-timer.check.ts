@@ -1,12 +1,16 @@
 import {
+  clampRestSeconds,
   clearStoredRest,
   formatRestClock,
   nextRestLeft,
+  nextRestPreset,
   parseRestEndsAt,
+  parseRestState,
   REST_ADJUST_SECONDS,
   restLeftAt,
   restTimerKey,
   serializeRestEndsAt,
+  serializeRestState,
   WORK_REST_SECONDS,
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
@@ -21,6 +25,11 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 
 assertEqual(WORK_REST_SECONDS, 180, "default rest is 3:00");
 assertEqual(REST_ADJUST_SECONDS, 30, "adjust step");
+assertEqual(clampRestSeconds(210), 210, "keeps 3:30");
+assertEqual(clampRestSeconds(20), 30, "min 30");
+assertEqual(clampRestSeconds(1200), 900, "max 15:00");
+assertEqual(nextRestPreset(180, 30), 210, "preset plus 30");
+assertEqual(nextRestPreset(180, -180), 30, "preset floors at 30");
 assertEqual(formatRestClock(180), "3:00", "three minutes");
 assertEqual(formatRestClock(65), "1:05", "minute and five");
 assertEqual(formatRestClock(9), "0:09", "under ten seconds");
@@ -56,6 +65,16 @@ assertEqual(
   parseRestEndsAt(serializeRestEndsAt(1_700_000_000_000)),
   1_700_000_000_000,
   "roundtrip endsAt",
+);
+assertEqual(
+  parseRestState(serializeRestState({ endsAt: 1_700, exerciseId: "ex-1" })),
+  { endsAt: 1_700, exerciseId: "ex-1" },
+  "roundtrip rest state",
+);
+assertEqual(
+  parseRestState(serializeRestEndsAt(1_700))?.exerciseId,
+  null,
+  "old rest json has no exercise",
 );
 assertEqual(restLeftAt(1_000, 1_000), 0, "due now");
 assertEqual(restLeftAt(2_400, 1_000), 2, "ceils leftover ms");

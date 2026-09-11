@@ -7,14 +7,13 @@ export interface ReminderFacts {
 }
 
 export function reminderText(facts: ReminderFacts): string | null {
-  if (facts.foodLogged || facts.gymLogged) {
-    return null;
+  const lines: string[] = [];
+  if (!facts.foodLogged) {
+    lines.push(BOT_REMINDER_FOOD);
   }
-
-  const lines = [BOT_REMINDER_FOOD];
-  if (facts.nextTemplateName) {
+  if (!facts.gymLogged && facts.nextTemplateName) {
     lines.push(botReminderGym(facts.nextTemplateName));
   }
 
-  return lines.join("\n");
+  return lines.length === 0 ? null : lines.join("\n");
 }

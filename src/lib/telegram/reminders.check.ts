@@ -46,8 +46,8 @@ assertEqual(
     gymLogged: false,
     nextTemplateName: "Сила A",
   }),
-  null,
-  "food record is enough",
+  "Сегодня Сила A.",
+  "food done gym still due",
 );
 assertEqual(
   reminderText({
@@ -55,8 +55,26 @@ assertEqual(
     gymLogged: true,
     nextTemplateName: "Сила A",
   }),
+  "День еды пустой.",
+  "gym done food still empty",
+);
+assertEqual(
+  reminderText({
+    foodLogged: true,
+    gymLogged: true,
+    nextTemplateName: "Сила A",
+  }),
   null,
-  "gym record is enough",
+  "both logged is silence",
+);
+assertEqual(
+  reminderText({
+    foodLogged: true,
+    gymLogged: false,
+    nextTemplateName: null,
+  }),
+  null,
+  "food done and no circle",
 );
 assertEqual(
   reminderText({

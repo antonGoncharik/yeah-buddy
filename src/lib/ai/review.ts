@@ -2,7 +2,8 @@ import { buildReviewBrief } from "@/lib/ai/brief";
 import { ReviewError } from "@/lib/ai/errors";
 import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
-import type { ReviewSnapshot, ReviewText } from "@/lib/ai/types";
+import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
+import type { ReviewSnapshot, StoredReview } from "@/lib/ai/types";
 import { calendarToday } from "@/lib/day/dates";
 import {
   getLastBodyWeight,
@@ -33,11 +34,15 @@ export async function getReviewSnapshot(
   range: ReviewRange,
   today = calendarToday(),
 ): Promise<ReviewSnapshot> {
-  const brief = await loadReviewBrief(userId, range, today);
+  const [brief, stored] = await Promise.all([
+    loadReviewBrief(userId, range, today),
+    listStoredReviews(userId, range),
+  ]);
   return {
     configured: getGeminiApiKey() != null,
     brief,
-    review: null,
+    review: stored[0] ?? null,
+    previous: stored[1] ?? null,
   };
 }
 
@@ -52,21 +57,31 @@ export async function createReview(
   }
 
   const now = Date.now();
-  const previous = lastWrite.get(userId) ?? 0;
-  if (now - previous < COOLDOWN_MS) {
+  const previousWrite = lastWrite.get(userId) ?? 0;
+  if (now - previousWrite < COOLDOWN_MS) {
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
 
-  const brief = await loadReviewBrief(userId, range, today);
+  const [brief, stored] = await Promise.all([
+    loadReviewBrief(userId, range, today),
+    listStoredReviews(userId, range),
+  ]);
   if (brief.coverage === "empty") {
     throw new ReviewError("EMPTY", AI_REVIEW_EMPTY);
   }
 
   lastWrite.set(userId, now);
 
-  let review: ReviewText;
+  const previous = stored[0] ?? null;
+  let review: StoredReview;
   try {
-    review = await writeReview(brief);
+    const text = await writeReview(brief, previous);
+    review = await saveStoredReview(
+      userId,
+      range,
+      { from: brief.from, to: brief.to },
+      text,
+    );
   } catch (error) {
     lastWrite.delete(userId);
     throw error;
@@ -76,6 +91,7 @@ export async function createReview(
     configured: true,
     brief,
     review,
+    previous,
   };
 }
 

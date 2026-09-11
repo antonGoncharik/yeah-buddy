@@ -32,6 +32,7 @@ export function SessionExerciseRow({
   onRemove,
   restActive,
   onStartRest,
+  restSeconds,
 }: {
   item: SessionExerciseDetail;
   openSetIds: string[];
@@ -47,6 +48,7 @@ export function SessionExerciseRow({
   onRemove?: () => void;
   restActive?: boolean;
   onStartRest?: () => void;
+  restSeconds?: number;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
@@ -124,7 +126,7 @@ export function SessionExerciseRow({
                     disabled={disabled}
                     onClick={onStartRest}
                   >
-                    Отдых {formatRestClock(WORK_REST_SECONDS)}
+                    Отдых {formatRestClock(restSeconds ?? WORK_REST_SECONDS)}
                   </button>
                 ) : null}
               </>

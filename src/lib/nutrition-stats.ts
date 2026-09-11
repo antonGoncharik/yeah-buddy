@@ -7,6 +7,7 @@ export {
   splitAverages,
 } from "@/lib/nutrition/averages";
 export {
+  type HistoryMetric,
   metricFact,
   metricTarget,
   type NutritionMetric,

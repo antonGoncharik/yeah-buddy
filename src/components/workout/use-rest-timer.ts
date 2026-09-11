@@ -6,49 +6,64 @@ import { haptic, holdTimerStepHaptic } from "@/lib/telegram/haptic";
 import {
   clearStoredRest,
   nextRestLeft,
+  nextRestPreset,
   REST_ADJUST_SECONDS,
-  readStoredRestEndsAt,
+  readLastRestSeconds,
+  readStoredRestState,
   restLeftAt,
   WORK_REST_SECONDS,
-  writeStoredRestEndsAt,
+  writeLastRestSeconds,
+  writeStoredRestState,
 } from "@/lib/workout/rest-timer";
 
 export function useRestTimer(sessionId: string | null, enabled: boolean) {
   const [left, setLeft] = useState<number | null>(null);
+  const [exerciseId, setExerciseId] = useState<string | null>(null);
   const endsAtRef = useRef<number | null>(null);
+  const exerciseRef = useRef<string | null>(null);
   const running = left != null && left > 0;
 
-  function persist(nextEndsAt: number | null) {
+  function persist(nextEndsAt: number | null, nextExerciseId: string | null) {
     endsAtRef.current = nextEndsAt;
+    exerciseRef.current = nextExerciseId;
+    setExerciseId(nextExerciseId);
     if (!sessionId || nextEndsAt == null) {
       if (sessionId) {
         clearStoredRest(sessionId);
       }
       return;
     }
-    writeStoredRestEndsAt(sessionId, nextEndsAt);
+    writeStoredRestState(sessionId, {
+      endsAt: nextEndsAt,
+      exerciseId: nextExerciseId,
+    });
   }
 
-  function start() {
+  function start(nextExerciseId?: string | null) {
     if (!sessionId || !enabled) {
       return;
     }
+    const id = nextExerciseId || exerciseRef.current;
     haptic("tap");
-    const endsAt = Date.now() + WORK_REST_SECONDS * 1000;
-    persist(endsAt);
-    setLeft(WORK_REST_SECONDS);
+    const seconds = id ? readLastRestSeconds(id) : WORK_REST_SECONDS;
+    persist(Date.now() + seconds * 1000, id);
+    setLeft(seconds);
   }
 
   function bump(delta: number) {
     if (!sessionId || !enabled) {
       return;
     }
+    const id = exerciseRef.current;
+    if (id) {
+      writeLastRestSeconds(id, nextRestPreset(readLastRestSeconds(id), delta));
+    }
     setLeft((current) => {
       if (current == null) {
         return current;
       }
       const next = nextRestLeft(current, delta);
-      persist(Date.now() + next * 1000);
+      persist(Date.now() + next * 1000, id);
       if (next === 0 && current > 0) {
         haptic("success");
       }
@@ -57,13 +72,19 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
   }
 
   function stop() {
-    persist(null);
+    persist(null, exerciseRef.current);
     setLeft(null);
+  }
+
+  function lastSeconds(id: string): number {
+    return readLastRestSeconds(id);
   }
 
   useEffect(() => {
     if (!sessionId || !enabled) {
       endsAtRef.current = null;
+      exerciseRef.current = null;
+      setExerciseId(null);
       setLeft(null);
       if (sessionId && !enabled) {
         clearStoredRest(sessionId);
@@ -71,12 +92,14 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       return;
     }
 
-    const stored = readStoredRestEndsAt(sessionId);
+    const stored = readStoredRestState(sessionId);
     if (stored == null) {
       return;
     }
-    endsAtRef.current = stored;
-    setLeft(restLeftAt(stored, Date.now()));
+    endsAtRef.current = stored.endsAt;
+    exerciseRef.current = stored.exerciseId;
+    setExerciseId(stored.exerciseId);
+    setLeft(restLeftAt(stored.endsAt, Date.now()));
   }, [enabled, sessionId]);
 
   useEffect(() => {
@@ -99,7 +122,10 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
           haptic(kind);
         }
         if (next === 0 && sessionId) {
-          writeStoredRestEndsAt(sessionId, endsAt);
+          writeStoredRestState(sessionId, {
+            endsAt,
+            exerciseId: exerciseRef.current,
+          });
         }
         return next;
       });
@@ -119,7 +145,10 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
 
   return {
     left,
+    exerciseId,
+    lastSeconds,
     start,
+    restart: () => start(exerciseRef.current),
     add: () => bump(REST_ADJUST_SECONDS),
     subtract: () => bump(-REST_ADJUST_SECONDS),
     stop,

@@ -351,6 +351,7 @@ assertEqual(prompt.maxes.since, "first_work", "prompt labels maxes window");
 assertEqual(prompt.maxes.grown_list[0]?.current, 175, "prompt keeps kg");
 assertEqual(prompt.gym.notes.length, 0, "prompt keeps notes field");
 assertEqual(prompt.gym.feels.easy, 0, "prompt keeps feels");
+assertEqual(prompt.previous, null, "prompt previous empty");
 assertEqual(
   prompt.signals.some((line) => line.includes("84 → 81")),
   true,

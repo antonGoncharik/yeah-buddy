@@ -27,6 +27,7 @@ export function SessionExerciseList({
   setDrafts,
   onRemove,
   onStartRest,
+  lastRestSeconds,
 }: {
   detail: SessionDetail;
   busy: boolean;
@@ -42,7 +43,8 @@ export function SessionExerciseList({
   setWorkOpen: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDrafts: Dispatch<SetStateAction<Record<string, SetDraft>>>;
   onRemove: (sessionExerciseId: string) => void;
-  onStartRest?: () => void;
+  onStartRest?: (exerciseId: string) => void;
+  lastRestSeconds?: (exerciseId: string) => number;
 }) {
   const session = detail.session;
 
@@ -115,7 +117,12 @@ export function SessionExerciseList({
             session.status === "planned" ? () => onRemove(item.id) : undefined
           }
           restActive={restActive}
-          onStartRest={canRest ? onStartRest : undefined}
+          onStartRest={
+            canRest && onStartRest
+              ? () => onStartRest(item.exercise_id)
+              : undefined
+          }
+          restSeconds={lastRestSeconds?.(item.exercise_id)}
         />
       ))}
     </section>

@@ -114,8 +114,15 @@ export type ReviewText = {
   watch: string[];
 };
 
+export type StoredReview = ReviewText & {
+  from: string;
+  to: string;
+  written_at: string;
+};
+
 export type ReviewSnapshot = {
   configured: boolean;
   brief: ReviewBrief;
-  review: ReviewText | null;
+  review: StoredReview | null;
+  previous: StoredReview | null;
 };

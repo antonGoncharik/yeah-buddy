@@ -16,7 +16,12 @@ import {
   toNumber,
 } from "@/lib/ai/parse-review-fields";
 import { isReviewRange } from "@/lib/ai/range";
-import type { ReviewBrief, ReviewSnapshot, ReviewText } from "@/lib/ai/types";
+import type {
+  ReviewBrief,
+  ReviewSnapshot,
+  ReviewText,
+  StoredReview,
+} from "@/lib/ai/types";
 import { isRecord, mapRecordList } from "@/lib/read";
 
 export function parseReviewSnapshot(data: unknown): ReviewSnapshot | null {
@@ -32,7 +37,8 @@ export function parseReviewSnapshot(data: unknown): ReviewSnapshot | null {
   return {
     configured: data.configured,
     brief,
-    review: parseReviewText(data.review),
+    review: parseStoredReview(data.review),
+    previous: parseStoredReview(data.previous),
   };
 }
 
@@ -113,4 +119,36 @@ export function parseReviewText(value: unknown): ReviewText | null {
     observations: stringList(value.observations),
     watch: stringList(value.watch),
   };
+}
+
+export function parseStoredReview(value: unknown): StoredReview | null {
+  const text = parseReviewText(value);
+  if (!text || !isRecord(value)) {
+    return null;
+  }
+
+  const from = toDateOnly(value.from);
+  const to = toDateOnly(value.to);
+  const writtenAt =
+    typeof value.written_at === "string"
+      ? value.written_at
+      : typeof value.created_at === "string"
+        ? value.created_at
+        : "";
+
+  return {
+    ...text,
+    from: from ?? "",
+    to: to ?? "",
+    written_at: writtenAt,
+  };
+}
+
+function toDateOnly(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const date = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }

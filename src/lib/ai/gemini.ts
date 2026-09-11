@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { ReviewError } from "@/lib/ai/errors";
 import { reviewPromptPayload } from "@/lib/ai/prompt";
-import type { ReviewBrief, ReviewText } from "@/lib/ai/types";
+import type { ReviewBrief, ReviewText, StoredReview } from "@/lib/ai/types";
 import { AI_REVIEW_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
 
 const reviewTextSchema = z.object({
@@ -22,6 +22,7 @@ const SYSTEM_PROMPT = `Ты читаешь дневник: еда и зал. Н�
 - Вес тела — одна цифра на день, если есть. По нему видно рекомп: вес вниз при росте рабочих, белок на кг, сила к весу тела. Нет веса во входе — не выдумывай.
 - nutrition.weight, maxes и signals уже посчитаны кодом: средние БЖУ, попадания, дельта веса, г/кг, план/факт, рабочие кг и сила к весу тела. Цитируй эти числа. Не пересчитывай и не округляй заново.
 - nutrition и gym — за окно from…to. maxes.since = first_work: рабочие с первых записей, не только эти 14/30 дней.
+- previous — прошлый текст того же окна 14/30, если человек уже писал разбор. Сравни с текущими цифрами: сдвинулось ли то, на что тогда смотрели. Не копируй прошлый текст. Нет previous — не выдумывай «как в прошлый раз».
 
 Как писать
 - По-русски, коротко, как сосед по залу. Без канцелярита, лозунгов и подбадриваний.
@@ -137,10 +138,13 @@ export async function generateGeminiJson({
   }
 }
 
-export async function writeReview(brief: ReviewBrief): Promise<ReviewText> {
+export async function writeReview(
+  brief: ReviewBrief,
+  previous: StoredReview | null = null,
+): Promise<ReviewText> {
   const payload = await generateGeminiJson({
     system: SYSTEM_PROMPT,
-    parts: [{ text: JSON.stringify(reviewPromptPayload(brief)) }],
+    parts: [{ text: JSON.stringify(reviewPromptPayload(brief, previous)) }],
     schema: RESPONSE_SCHEMA,
     temperature: 0.4,
     failedMessage: AI_REVIEW_FAILED,

@@ -58,6 +58,16 @@ export function relativeStrength(
   return Math.round((barWeight / bodyWeight) * 100) / 100;
 }
 
+export function historyWeightPoints(
+  days: Array<{ date: string; body_weight: number | null }>,
+): Array<{ date: string; weight: number }> {
+  return days.flatMap((day) =>
+    day.body_weight != null && day.body_weight > 0
+      ? [{ date: day.date, weight: day.body_weight }]
+      : [],
+  );
+}
+
 export function proteinPerKg(
   protein: number,
   bodyWeight: number,
