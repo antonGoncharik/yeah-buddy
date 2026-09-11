@@ -4,6 +4,7 @@ import { ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { formatYieldGrams, parseFoodYield } from "@/lib/food/yield";
 import { FOOD_STATE_LABELS } from "@/lib/foods";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
@@ -82,8 +83,12 @@ export function FoodList({
 }
 
 function FoodListBody({ food }: { food: Food }) {
+  const yieldPair = parseFoodYield(food);
   const subtitle = [
     food.state !== "as_is" ? FOOD_STATE_LABELS[food.state] : null,
+    yieldPair
+      ? `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
+      : null,
     food.brand,
   ]
     .filter(Boolean)

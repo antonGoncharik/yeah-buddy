@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { isYieldSourceState, parseYieldPair } from "@/lib/food/yield";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 
 export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
@@ -51,10 +52,17 @@ export const foodInputSchema = z
     kcal_per_100: z.number().finite().min(0).nullable().optional(),
     default_portion_g: z.number().finite().positive().nullable().optional(),
     default_portion_label: optionalText,
+    yield_from_g: z.number().finite().positive().nullable().optional(),
+    yield_to_g: z.number().finite().positive().nullable().optional(),
     notes: optionalText,
     is_favorite: z.boolean().optional(),
   })
   .transform((value) => {
+    const yieldPair =
+      value.state == null || isYieldSourceState(value.state)
+        ? parseYieldPair(value.yield_from_g, value.yield_to_g)
+        : null;
+
     return {
       name: value.name,
       brand: value.brand ?? null,
@@ -69,6 +77,8 @@ export const foodInputSchema = z
       ),
       default_portion_g: value.default_portion_g ?? null,
       default_portion_label: value.default_portion_label ?? null,
+      yield_from_g: yieldPair?.from_g ?? null,
+      yield_to_g: yieldPair?.to_g ?? null,
       notes: value.notes ?? null,
       is_favorite: value.is_favorite ?? false,
     };

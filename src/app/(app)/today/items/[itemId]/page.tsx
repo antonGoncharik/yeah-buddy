@@ -13,6 +13,7 @@ import {
   isWritableDayDate,
   todayHomeHref,
 } from "@/lib/day/dates";
+import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
 import { readMealItemPayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -115,6 +116,9 @@ export default function EditMealItemPage() {
           initialGrams={item.grams}
           defaultPortionG={food?.default_portion_g ?? null}
           defaultPortionLabel={food?.default_portion_label ?? null}
+          yieldPair={food ? parseFoodYield(food) : null}
+          foodState={food?.state}
+          allowCooked
           backHref={homeHref}
           doneHref={homeHref}
           readOnly={

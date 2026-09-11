@@ -9,6 +9,8 @@ export interface StarterFood {
   kcal_per_100: number;
   default_portion_g: number;
   default_portion_label: string;
+  yield_from_g?: number;
+  yield_to_g?: number;
 }
 
 export interface StarterTemplateItem {
@@ -36,11 +38,23 @@ export const FAVORITE_FOODS = new Set([
 ]);
 
 export const STARTER_FOODS: StarterFood[] = [
-  food("Куриное филе сырое", "raw", 23, 2, 0, 110, 150),
+  {
+    ...food("Куриное филе сырое", "raw", 23, 2, 0, 110, 150),
+    yield_from_g: 150,
+    yield_to_g: 110,
+  },
   food("Яйца куриные", "as_is", 13, 11, 1, 155, 50, "1 шт"),
   food("Творог 5%", "as_is", 17, 5, 2, 121, 150),
-  food("Овсянка сухая", "dry", 13, 6, 62, 370, 50),
-  food("Рис сухой", "dry", 7, 1, 78, 350, 70),
+  {
+    ...food("Овсянка сухая", "dry", 13, 6, 62, 370, 50),
+    yield_from_g: 50,
+    yield_to_g: 150,
+  },
+  {
+    ...food("Рис сухой", "dry", 7, 1, 78, 350, 70),
+    yield_from_g: 70,
+    yield_to_g: 210,
+  },
   food("Гречка сухая", "dry", 13, 3, 62, 330, 70),
   food("Макароны сухие", "dry", 13, 2, 71, 350, 80),
   food("Картофель варёный", "cooked", 2, 0, 16, 80, 200),

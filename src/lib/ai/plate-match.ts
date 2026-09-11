@@ -1,5 +1,5 @@
 import { round0 } from "@/lib/ai/format";
-import { normalizeFoodName } from "@/lib/ai/plate-catalog";
+import { foodNameStem, normalizeFoodName } from "@/lib/ai/plate-catalog";
 import {
   PLATE_GRAMS_MAX,
   PLATE_ITEM_LIMIT,
@@ -7,6 +7,7 @@ import {
   type PlateFoodRef,
   type PlateModelItem,
 } from "@/lib/ai/plate-types";
+import { parseFoodYield } from "@/lib/food/yield";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 
 export function roundPlateGrams(grams: number): number {
@@ -42,7 +43,7 @@ export function resolvePlateItems(
 
     const matched = matchCatalogFood(row, catalog, allFoods);
     const item = matched
-      ? draftFromFood(matched, grams)
+      ? draftFromFood(preferSourceFood(matched, allFoods), grams)
       : draftFromNew(row, grams);
     if (!item) {
       continue;
@@ -93,6 +94,7 @@ function draftFromFood(food: PlateFoodRef, grams: number): PlateDraftItem {
     kind: "food",
     foodId: food.id,
     name: food.name,
+    state: food.state,
     grams,
     protein_per_100: food.protein_per_100,
     fat_per_100: food.fat_per_100,
@@ -100,7 +102,35 @@ function draftFromFood(food: PlateFoodRef, grams: number): PlateDraftItem {
     kcal_per_100: food.kcal_per_100,
     default_portion_g: food.default_portion_g,
     default_portion_label: food.default_portion_label,
+    yield_from_g: food.yield_from_g,
+    yield_to_g: food.yield_to_g,
   };
+}
+
+function preferSourceFood(
+  matched: PlateFoodRef,
+  allFoods: PlateFoodRef[],
+): PlateFoodRef {
+  if (matched.state !== "cooked") {
+    return matched;
+  }
+
+  const stem = foodNameStem(matched.name);
+  if (!stem) {
+    return matched;
+  }
+
+  const sources = allFoods.filter((food) => {
+    if (food.id === matched.id) {
+      return false;
+    }
+    if (!parseFoodYield(food)) {
+      return false;
+    }
+    return foodNameStem(food.name) === stem;
+  });
+
+  return sources.length === 1 ? sources[0] : matched;
 }
 
 function draftFromNew(

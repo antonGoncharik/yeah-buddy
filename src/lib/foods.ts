@@ -15,3 +15,17 @@ export {
   parseFoodListFilter,
   parseFoodState,
 } from "@/lib/food/schema";
+export {
+  convertYieldGrams,
+  type FoodYield,
+  formatYieldGrams,
+  type GramsMode,
+  isYieldSourceState,
+  nativeYieldLabel,
+  parseFoodYield,
+  parseYieldPair,
+  roundYieldGrams,
+  toCookedGrams,
+  toNativeGrams,
+  YIELD_SOURCE_STATES,
+} from "@/lib/food/yield";

@@ -11,6 +11,7 @@ export type PlateCatalogEntry = {
   p: number;
   f: number;
   c: number;
+  y?: [number, number];
 };
 
 export type PlateModelItem = {
@@ -33,12 +34,15 @@ export type PlateFoodRef = {
   kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
+  yield_from_g: number | null;
+  yield_to_g: number | null;
 };
 
 export type PlateDraftFood = {
   kind: "food";
   foodId: string;
   name: string;
+  state: FoodState;
   grams: number;
   protein_per_100: number;
   fat_per_100: number;
@@ -46,6 +50,8 @@ export type PlateDraftFood = {
   kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
+  yield_from_g: number | null;
+  yield_to_g: number | null;
 };
 
 export type PlateDraftNew = {

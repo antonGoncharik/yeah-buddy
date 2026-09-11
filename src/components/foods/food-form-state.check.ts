@@ -21,6 +21,8 @@ const food: Food = {
   kcal_per_100: 370,
   default_portion_g: 50,
   default_portion_label: null,
+  yield_from_g: 50,
+  yield_to_g: 150,
   is_favorite: true,
   notes: "hidden",
   created_at: "2026-01-01",
@@ -29,6 +31,8 @@ const food: Food = {
 
 const form = toFormState(food);
 assertEqual(form.state, "dry", "form keeps state");
+assertEqual(form.yield_from_g, "50", "form keeps yield from");
+assertEqual(form.yield_to_g, "150", "form keeps yield to");
 assertEqual(form.brand, "Myllyn Paras", "brand stays in state");
 
 const created = toFormState();
@@ -43,6 +47,14 @@ const payload = toPayload(
   370,
 );
 assertEqual(payload?.state, "dry", "payload sends state");
+assertEqual(payload?.yield_from_g, 50, "payload sends yield from");
+assertEqual(payload?.yield_to_g, 150, "payload sends yield to");
 assertEqual(payload?.brand, "Myllyn Paras", "payload keeps hidden brand");
+
+assertEqual(
+  toPayload({ ...form, yield_to_g: "" }, 370),
+  null,
+  "incomplete yield rejected",
+);
 
 console.log("food form state ok");

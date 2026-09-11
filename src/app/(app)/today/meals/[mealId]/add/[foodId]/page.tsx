@@ -14,6 +14,7 @@ import {
   todayHomeHref,
   withDateQuery,
 } from "@/lib/day/dates";
+import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -100,6 +101,9 @@ export default function AddMealItemGramsPage() {
           initialGrams={food.default_portion_g ?? 100}
           defaultPortionG={food.default_portion_g}
           defaultPortionLabel={food.default_portion_label}
+          yieldPair={parseFoodYield(food)}
+          foodState={food.state}
+          allowCooked
           backHref={backHref}
           doneHref={doneHref}
           readOnly={viewOnly}

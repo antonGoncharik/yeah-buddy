@@ -92,6 +92,8 @@ const food: Food = {
   kcal_per_100: 121,
   default_portion_g: 150,
   default_portion_label: "150 г",
+  yield_from_g: null,
+  yield_to_g: null,
   is_favorite: true,
   notes: null,
   created_at: "2026-01-01",
@@ -150,6 +152,7 @@ const filledRest: MealTemplateDetail = {
 
 const meals = buildMealsPayload(settings, [filledRest, emptyTraining]);
 assert(meals.foods.length === 1, "meals foods");
+assert(meals.foods[0]?.yield_from_g == null, "yield optional");
 assert(meals.templates[0]?.items.length === 1, "rest item kept");
 assert(meals.templates[1]?.items.length === 0, "training may be empty");
 assert(parseSharePayload("meals", meals) != null, "meals payload parses");

@@ -32,6 +32,8 @@ export async function applyMealsPack(
         kcal_per_100: food.kcal_per_100,
         default_portion_g: food.default_portion_g,
         default_portion_label: food.default_portion_label,
+        yield_from_g: food.yield_from_g ?? null,
+        yield_to_g: food.yield_to_g ?? null,
         is_favorite: food.is_favorite,
       }),
     );

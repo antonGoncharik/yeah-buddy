@@ -129,6 +129,47 @@ export function FoodForm({
         />
       </Field>
 
+      {form.state === "raw" || form.state === "dry" ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-medium">Выход после приготовления</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Шаблон в {form.state === "dry" ? "сухом," : "сыром,"} на тарелке
+              можно писать готовое. Пример: 150 → 110.
+            </p>
+          </div>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+            <Field label={form.state === "dry" ? "Сухое, г" : "Сырое, г"}>
+              <Input
+                inputMode="decimal"
+                value={form.yield_from_g}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    yield_from_g: event.target.value,
+                  }))
+                }
+                className="h-12 text-base"
+              />
+            </Field>
+            <p className="pb-3 text-lg text-muted-foreground">→</p>
+            <Field label="Готовое, г">
+              <Input
+                inputMode="decimal"
+                value={form.yield_to_g}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    yield_to_g: event.target.value,
+                  }))
+                }
+                className="h-12 text-base"
+              />
+            </Field>
+          </div>
+        </div>
+      ) : null}
+
       <label className="flex min-h-12 items-center gap-3 text-base font-medium">
         <input
           type="checkbox"

@@ -12,6 +12,8 @@ export interface FoodFormState {
   carbs_per_100: string;
   default_portion_g: string;
   default_portion_label: string;
+  yield_from_g: string;
+  yield_to_g: string;
   notes: string;
   is_favorite: boolean;
 }
@@ -27,6 +29,8 @@ export function toFormState(food?: Food): FoodFormState {
     default_portion_g:
       food?.default_portion_g == null ? "" : String(food.default_portion_g),
     default_portion_label: food?.default_portion_label ?? "",
+    yield_from_g: food?.yield_from_g == null ? "" : String(food.yield_from_g),
+    yield_to_g: food?.yield_to_g == null ? "" : String(food.yield_to_g),
     notes: food?.notes ?? "",
     is_favorite: food?.is_favorite ?? false,
   };
@@ -53,6 +57,8 @@ export function toPayload(
   kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
+  yield_from_g: number | null;
+  yield_to_g: number | null;
   notes: string | null;
   is_favorite: boolean;
 } | null {
@@ -60,6 +66,8 @@ export function toPayload(
   const fat = parseNonneg(form.fat_per_100);
   const carbs = parseNonneg(form.carbs_per_100);
   const portionRaw = form.default_portion_g.trim().replace(",", ".");
+  const yieldFromRaw = form.yield_from_g.trim().replace(",", ".");
+  const yieldToRaw = form.yield_to_g.trim().replace(",", ".");
 
   if (!form.name.trim() || protein == null || fat == null || carbs == null) {
     return null;
@@ -78,6 +86,25 @@ export function toPayload(
     default_portion_g = portion;
   }
 
+  let yield_from_g: number | null = null;
+  let yield_to_g: number | null = null;
+  if (form.state === "raw" || form.state === "dry") {
+    if (yieldFromRaw !== "" || yieldToRaw !== "") {
+      const from = Number(yieldFromRaw);
+      const to = Number(yieldToRaw);
+      if (
+        !(from > 0) ||
+        !(to > 0) ||
+        !Number.isFinite(from) ||
+        !Number.isFinite(to)
+      ) {
+        return null;
+      }
+      yield_from_g = from;
+      yield_to_g = to;
+    }
+  }
+
   return {
     name: form.name.trim(),
     brand: form.brand.trim() === "" ? null : form.brand.trim(),
@@ -91,6 +118,8 @@ export function toPayload(
       form.default_portion_label.trim() === ""
         ? null
         : form.default_portion_label.trim(),
+    yield_from_g,
+    yield_to_g,
     notes: form.notes.trim() === "" ? null : form.notes.trim(),
     is_favorite: form.is_favorite,
   };

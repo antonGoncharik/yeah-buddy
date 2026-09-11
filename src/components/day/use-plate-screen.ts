@@ -216,6 +216,7 @@ export function usePlateScreen({
     retry,
     onFile,
     setGrams: draft.setGrams,
+    setGramsMode: draft.setGramsMode,
     patchNew: draft.patchNew,
     removeItem: draft.removeItem,
     save: draft.save,

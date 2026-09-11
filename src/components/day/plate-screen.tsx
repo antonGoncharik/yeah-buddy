@@ -3,7 +3,11 @@
 import { Plus } from "lucide-react";
 
 import { PlateCameraBar } from "@/components/day/plate-camera-bar";
-import { type PlateRow, parseGramsInput } from "@/components/day/plate-draft";
+import {
+  type PlateRow,
+  rowNativeGrams,
+  rowYield,
+} from "@/components/day/plate-draft";
 import { PlateDraftRow } from "@/components/day/plate-draft-row";
 import { PlateFoodPicker } from "@/components/day/plate-food-picker";
 import { PlateLiveCamera } from "@/components/day/plate-live-camera";
@@ -79,10 +83,13 @@ export function PlateScreen({
             key={item.rowId}
             item={item}
             gramsInput={item.gramsInput}
+            gramsMode={item.gramsMode}
+            yieldPair={rowYield(item)}
             proteinInput={item.proteinInput}
             fatInput={item.fatInput}
             carbsInput={item.carbsInput}
             onGramsChange={(value) => plate.setGrams(index, value)}
+            onGramsModeChange={(mode) => plate.setGramsMode(index, mode)}
             onRemove={() => plate.removeItem(index)}
             onChangeFood={() => plate.setPicker({ mode: "replace", index })}
             onPatchNew={
@@ -162,7 +169,7 @@ export function PlateScreen({
 
 function sumDraft(items: PlateRow[]) {
   const macros = items.flatMap((item) => {
-    const grams = parseGramsInput(item.gramsInput);
+    const grams = rowNativeGrams(item);
     if (grams == null) {
       return [];
     }

@@ -4,6 +4,7 @@ import {
   type PlateCatalogEntry,
   type PlateFoodRef,
 } from "@/lib/ai/plate-types";
+import { parseFoodYield } from "@/lib/food/yield";
 
 export function rankPlateCatalog<
   T extends { id: string; is_favorite: boolean },
@@ -38,14 +39,18 @@ export function compactPlateCatalog(
   foods: PlateFoodRef[],
   limit = PLATE_CATALOG_LIMIT,
 ): PlateCatalogEntry[] {
-  return foods.slice(0, limit).map((food, index) => ({
-    i: index,
-    n: food.name,
-    s: food.state,
-    p: round1(food.protein_per_100),
-    f: round1(food.fat_per_100),
-    c: round1(food.carbs_per_100),
-  }));
+  return foods.slice(0, limit).map((food, index) => {
+    const pair = parseFoodYield(food);
+    return {
+      i: index,
+      n: food.name,
+      s: food.state,
+      p: round1(food.protein_per_100),
+      f: round1(food.fat_per_100),
+      c: round1(food.carbs_per_100),
+      ...(pair ? { y: [pair.from_g, pair.to_g] as [number, number] } : {}),
+    };
+  });
 }
 
 export function toPlateFoodRef(food: {
@@ -58,6 +63,8 @@ export function toPlateFoodRef(food: {
   kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
+  yield_from_g?: number | null;
+  yield_to_g?: number | null;
 }): PlateFoodRef {
   return {
     id: food.id,
@@ -69,7 +76,18 @@ export function toPlateFoodRef(food: {
     kcal_per_100: food.kcal_per_100,
     default_portion_g: food.default_portion_g,
     default_portion_label: food.default_portion_label,
+    yield_from_g: food.yield_from_g ?? null,
+    yield_to_g: food.yield_to_g ?? null,
   };
+}
+
+const STATE_TAIL =
+  /^(.*?)\s+(сырое|сырой|сырая|сырые|сухое|сухой|сухая|сухие|вареное|вареный|вареная|вареные|приготовленное|приготовленный|приготовленная|приготовленные)$/;
+
+export function foodNameStem(name: string): string {
+  const normalized = normalizeFoodName(name);
+  const match = STATE_TAIL.exec(normalized);
+  return match?.[1] ?? normalized;
 }
 
 export function normalizeFoodName(name: string): string {

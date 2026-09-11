@@ -1,11 +1,20 @@
 "use client";
 
 import { GramChips } from "@/components/day/gram-chips";
+import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
+import {
+  type FoodYield,
+  formatYieldGrams,
+  type GramsMode,
+  nativeYieldLabel,
+  toCookedGrams,
+  toNativeGrams,
+} from "@/lib/food/yield";
 import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
 import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
@@ -13,20 +22,26 @@ import type { FoodState } from "@/lib/types";
 export function PlateDraftRow({
   item,
   gramsInput,
+  gramsMode,
+  yieldPair,
   proteinInput,
   fatInput,
   carbsInput,
   onGramsChange,
+  onGramsModeChange,
   onRemove,
   onChangeFood,
   onPatchNew,
 }: {
   item: PlateDraftItem;
   gramsInput: string;
+  gramsMode: GramsMode;
+  yieldPair: FoodYield | null;
   proteinInput: string;
   fatInput: string;
   carbsInput: string;
   onGramsChange: (value: string) => void;
+  onGramsModeChange: (mode: GramsMode) => void;
   onRemove: () => void;
   onChangeFood: () => void;
   onPatchNew?: (patch: {
@@ -38,8 +53,13 @@ export function PlateDraftRow({
   }) => void;
 }) {
   const grams = Number(gramsInput.replace(",", "."));
+  const nativeGrams = toNativeGrams(
+    Number.isFinite(grams) ? grams : 0,
+    gramsMode,
+    yieldPair,
+  );
   const totals =
-    Number.isFinite(grams) && grams > 0
+    nativeGrams > 0
       ? calcMacrosFromPer100(
           {
             protein: item.protein_per_100,
@@ -47,9 +67,19 @@ export function PlateDraftRow({
             carbs: item.carbs_per_100,
             kcal: item.kcal_per_100,
           },
-          grams,
+          nativeGrams,
         )
       : null;
+  const cookedPortion =
+    yieldPair &&
+    item.kind === "food" &&
+    item.default_portion_g &&
+    item.default_portion_g > 0
+      ? toCookedGrams(item.default_portion_g, yieldPair)
+      : null;
+  const nativeLabel = nativeYieldLabel(
+    item.kind === "food" || item.kind === "new" ? item.state : "raw",
+  );
 
   return (
     <div className="card-surface flex flex-col gap-3 px-4 py-4">
@@ -137,11 +167,36 @@ export function PlateDraftRow({
         />
       </div>
 
+      {yieldPair ? (
+        <GramsYieldToggle
+          mode={gramsMode}
+          nativeLabel={nativeLabel}
+          equivalentLabel={
+            nativeGrams > 0
+              ? gramsMode === "cooked"
+                ? `${formatYieldGrams(nativeGrams)} г ${nativeLabel.toLowerCase()}`
+                : `${formatYieldGrams(toCookedGrams(nativeGrams, yieldPair))} г готового`
+              : `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
+          }
+          onChange={onGramsModeChange}
+        />
+      ) : null}
+
       <GramChips
-        onPick={(grams) => onGramsChange(String(grams))}
-        defaultPortionG={item.kind === "food" ? item.default_portion_g : null}
+        onPick={(value) => onGramsChange(formatYieldGrams(value))}
+        defaultPortionG={
+          gramsMode === "cooked" && cookedPortion != null
+            ? cookedPortion
+            : item.kind === "food"
+              ? item.default_portion_g
+              : null
+        }
         defaultPortionLabel={
-          item.kind === "food" ? item.default_portion_label : null
+          gramsMode === "cooked" && cookedPortion != null
+            ? `${formatYieldGrams(cookedPortion)} г готового`
+            : item.kind === "food"
+              ? item.default_portion_label
+              : null
         }
       />
 

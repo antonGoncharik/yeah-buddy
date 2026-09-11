@@ -22,6 +22,8 @@ export interface Food {
   kcal_per_100: number;
   default_portion_g: number | null;
   default_portion_label: string | null;
+  yield_from_g: number | null;
+  yield_to_g: number | null;
   is_favorite: boolean;
   notes: string | null;
   created_at: string;

@@ -1,5 +1,6 @@
 import {
   compactPlateCatalog,
+  foodNameStem,
   normalizeFoodName,
   rankPlateCatalog,
 } from "@/lib/ai/plate-catalog";
@@ -30,6 +31,8 @@ function food(
     kcal_per_100: extras.kcal_per_100 ?? 165,
     default_portion_g: extras.default_portion_g ?? null,
     default_portion_label: extras.default_portion_label ?? null,
+    yield_from_g: extras.yield_from_g ?? null,
+    yield_to_g: extras.yield_to_g ?? null,
   };
 }
 
@@ -241,5 +244,43 @@ assertEqual(outside[0]?.kind, "food", "name match outside catalog");
 if (outside[0]?.kind === "food") {
   assertEqual(outside[0].foodId, "alpha", "matched all foods");
 }
+
+assertEqual(foodNameStem("Куриное филе сырое"), "куриное филе", "stem raw");
+assertEqual(
+  foodNameStem("Куриное филе варёное"),
+  "куриное филе",
+  "stem cooked",
+);
+
+const chickenRaw = food("chicken-raw", "Куриное филе сырое", {
+  state: "raw",
+  protein_per_100: 23,
+  fat_per_100: 2,
+  carbs_per_100: 0,
+  kcal_per_100: 110,
+  yield_from_g: 150,
+  yield_to_g: 110,
+});
+const chickenCooked = food("chicken-cooked", "Куриное филе варёное", {
+  state: "cooked",
+  protein_per_100: 30,
+  fat_per_100: 4,
+  carbs_per_100: 0,
+  kcal_per_100: 156,
+});
+const remapped = resolvePlateItems(
+  [raw({ catalog_i: 1, name: "филе", grams: 110, state: "cooked" })],
+  [chickenRaw, chickenCooked],
+);
+assertEqual(remapped[0]?.kind, "food", "remap kind");
+if (remapped[0]?.kind === "food") {
+  assertEqual(remapped[0].foodId, "chicken-raw", "cooked twin uses raw");
+  assertEqual(remapped[0].grams, 110, "plate grams stay cooked");
+  assertEqual(remapped[0].yield_from_g, 150, "keeps yield from");
+}
+
+const withYield = compactPlateCatalog([chickenRaw]);
+assertEqual(withYield[0]?.y?.[0], 150, "catalog yield from");
+assertEqual(withYield[0]?.y?.[1], 110, "catalog yield to");
 
 console.log("ai plate ok");

@@ -70,6 +70,7 @@ export function parsePlateDraftItem(
       kind: "food",
       foodId: value.foodId,
       name,
+      state: parseFoodState(value.state),
       grams,
       protein_per_100: protein,
       fat_per_100: fat,
@@ -77,6 +78,8 @@ export function parsePlateDraftItem(
       kcal_per_100: kcal,
       default_portion_g: toNullableNumber(value.default_portion_g),
       default_portion_label: toNullableString(value.default_portion_label),
+      yield_from_g: toNullableNumber(value.yield_from_g),
+      yield_to_g: toNullableNumber(value.yield_to_g),
     };
   }
 

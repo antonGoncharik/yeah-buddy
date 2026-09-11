@@ -133,6 +133,8 @@ function snapshotMealItems(
       kcal_per_100: item.food.kcal_per_100,
       default_portion_g: item.food.default_portion_g,
       default_portion_label: item.food.default_portion_label,
+      yield_from_g: item.food.yield_from_g,
+      yield_to_g: item.food.yield_to_g,
       is_favorite: item.food.is_favorite,
     };
     const key = foodMatchKey(food);

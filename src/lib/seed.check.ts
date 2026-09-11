@@ -33,6 +33,18 @@ function uniqueNames(names: string[], label: string): Set<string> {
   return seen;
 }
 
+const chicken = STARTER_FOODS.find(
+  (food) => food.name === "Куриное филе сырое",
+);
+assert(
+  chicken?.yield_from_g === 150 && chicken.yield_to_g === 110,
+  "chicken yield",
+);
+const oats = STARTER_FOODS.find((food) => food.name === "Овсянка сухая");
+assert(oats?.yield_from_g === 50 && oats.yield_to_g === 150, "oats yield");
+const rice = STARTER_FOODS.find((food) => food.name === "Рис сухой");
+assert(rice?.yield_from_g === 70 && rice.yield_to_g === 210, "rice yield");
+
 const foodNames = uniqueNames(
   STARTER_FOODS.map((food) => food.name),
   "starter food",
@@ -48,6 +60,19 @@ for (const food of STARTER_FOODS) {
     food.default_portion_label.startsWith(`${food.default_portion_g} `),
     `portion label: ${food.name}`,
   );
+  if (food.yield_from_g != null || food.yield_to_g != null) {
+    assert(
+      food.state === "raw" || food.state === "dry",
+      `yield state: ${food.name}`,
+    );
+    assert(
+      food.yield_from_g != null &&
+        food.yield_to_g != null &&
+        food.yield_from_g > 0 &&
+        food.yield_to_g > 0,
+      `yield pair: ${food.name}`,
+    );
+  }
 }
 
 for (const template of STARTER_MEAL_TEMPLATES) {

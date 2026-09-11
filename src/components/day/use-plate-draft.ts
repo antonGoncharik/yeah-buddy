@@ -10,13 +10,15 @@ import {
   type PlatePicker,
   type PlateRow,
   type PlateStatus,
-  parseGramsInput,
   patchNewFoodRow,
+  rowNativeGrams,
   toCommitItem,
+  withGramsMode,
 } from "@/components/day/plate-draft";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { postJson } from "@/lib/api-cache";
+import type { GramsMode } from "@/lib/food/yield";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
@@ -53,6 +55,10 @@ export function usePlateDraft({
 
   function setGrams(index: number, gramsInput: string) {
     patchDraftItem(index, (item) => ({ ...item, gramsInput }));
+  }
+
+  function setGramsMode(index: number, mode: GramsMode) {
+    patchDraftItem(index, (item) => withGramsMode(item, mode));
   }
 
   function patchNew(index: number, patch: PlateNewPatch) {
@@ -110,12 +116,13 @@ export function usePlateDraft({
 
     const items: PlateDraftItem[] = [];
     for (const item of view.items) {
-      const grams = parseGramsInput(item.gramsInput);
-      if (grams == null) {
+      const native = rowNativeGrams(item);
+      if (native == null) {
         haptic("warn");
         setSaveError("Нужны граммы больше 0.");
         return;
       }
+      const grams = Math.min(native, PLATE_GRAMS_MAX);
       if (item.kind === "new") {
         const protein = parseNonneg(item.proteinInput);
         const fat = parseNonneg(item.fatInput);
@@ -133,7 +140,7 @@ export function usePlateDraft({
         items.push({
           ...item,
           name: item.name.trim(),
-          grams: Math.min(grams, PLATE_GRAMS_MAX),
+          grams,
           protein_per_100: protein,
           fat_per_100: fat,
           carbs_per_100: carbs,
@@ -141,7 +148,7 @@ export function usePlateDraft({
         });
         continue;
       }
-      items.push({ ...item, grams: Math.min(grams, PLATE_GRAMS_MAX) });
+      items.push({ ...item, grams });
     }
 
     setSaveError(null);
@@ -175,6 +182,7 @@ export function usePlateDraft({
     saveError,
     setSaveError,
     setGrams,
+    setGramsMode,
     patchNew,
     removeItem,
     pickFood,

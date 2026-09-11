@@ -25,6 +25,8 @@ export const packFoodSchema = z.object({
   kcal_per_100: foodKeyPart,
   default_portion_g: z.number().finite().positive().nullable(),
   default_portion_label: z.string().trim().max(80).nullable(),
+  yield_from_g: z.number().finite().positive().nullable().optional(),
+  yield_to_g: z.number().finite().positive().nullable().optional(),
   is_favorite: z.boolean(),
 });
 

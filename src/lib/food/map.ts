@@ -21,6 +21,8 @@ export function mapFood(row: Record<string, unknown>): Food {
     kcal_per_100: toNumber(row.kcal_per_100),
     default_portion_g: toNullableNumber(row.default_portion_g),
     default_portion_label: toNullableString(row.default_portion_label),
+    yield_from_g: toNullableNumber(row.yield_from_g),
+    yield_to_g: toNullableNumber(row.yield_to_g),
     is_favorite: Boolean(row.is_favorite),
     notes: toNullableString(row.notes),
     created_at: String(row.created_at),
