@@ -7,7 +7,9 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { RestBar } from "@/components/workout/rest-bar";
 import { SessionExerciseRow } from "@/components/workout/session-exercise-row";
+import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { gymQuote } from "@/lib/quotes";
@@ -47,6 +49,8 @@ export function SessionScreen() {
     setDrafts,
     removeExercise,
   } = useSessionScreen();
+  const rest = useRestTimer();
+  const canRest = session?.status === "planned" && !busy;
 
   return (
     <div className="flex flex-col gap-4">
@@ -54,9 +58,11 @@ export function SessionScreen() {
 
       <div
         className={
-          showStickyComplete
-            ? "flex flex-col gap-5 px-4 pb-24"
-            : "flex flex-col gap-5 px-4 pb-4"
+          showStickyComplete && rest.left != null
+            ? "flex flex-col gap-5 px-4 pb-40"
+            : showStickyComplete
+              ? "flex flex-col gap-5 px-4 pb-24"
+              : "flex flex-col gap-5 px-4 pb-4"
         }
       >
         {loading ? <ScreenLoading /> : null}
@@ -141,6 +147,8 @@ export function SessionScreen() {
                         ? () => void removeExercise(item.id)
                         : undefined
                     }
+                    restActive={rest.left != null}
+                    onStartRest={canRest ? rest.start : undefined}
                   />
                 ))}
               </section>
@@ -258,11 +266,23 @@ export function SessionScreen() {
 
       {showStickyComplete && detail ? (
         <StickyActions>
+          {rest.left != null ? (
+            <RestBar
+              left={rest.left}
+              onAdd={rest.add}
+              onSubtract={rest.subtract}
+              onStop={rest.stop}
+              onRestart={rest.start}
+            />
+          ) : null}
           <Button
             type="button"
             className="h-14 w-full text-lg"
             disabled={busy || detail.exercises.length === 0}
-            onClick={() => void complete()}
+            onClick={() => {
+              rest.stop();
+              void complete();
+            }}
           >
             {detail.session.status === "planned" ? "Готово" : "Сохранить"}
           </Button>

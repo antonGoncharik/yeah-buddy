@@ -12,6 +12,11 @@ import { haptic, holdTimerStepHaptic } from "@/lib/telegram/haptic";
 import type { SessionExerciseDetail, WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import {
+  formatRestClock,
+  WORK_REST_SECONDS,
+  workSetsNeedRest,
+} from "@/lib/workout/rest-timer";
+import {
   formatSetLine,
   setUsesSeconds,
   workSetDiffers,
@@ -30,6 +35,8 @@ export function SessionExerciseRow({
   onToggleWork,
   onDraft,
   onRemove,
+  restActive,
+  onStartRest,
 }: {
   item: SessionExerciseDetail;
   openSetIds: string[];
@@ -43,6 +50,8 @@ export function SessionExerciseRow({
   onToggleWork: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
   onRemove?: () => void;
+  restActive?: boolean;
+  onStartRest?: () => void;
 }) {
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
@@ -105,13 +114,25 @@ export function SessionExerciseRow({
                 : `Рабочие · ${work.length} ${setCountWord(work.length)}`}
             </button>
             {workOpen ? (
-              <SetButtons
-                sets={work}
-                showActual={showActual}
-                disabled={disabled}
-                tone="work"
-                onPick={onOpenSets}
-              />
+              <>
+                <SetButtons
+                  sets={work}
+                  showActual={showActual}
+                  disabled={disabled}
+                  tone="work"
+                  onPick={onOpenSets}
+                />
+                {onStartRest && !restActive && workSetsNeedRest(work) ? (
+                  <button
+                    type="button"
+                    className="mt-1 h-11 w-full rounded-lg bg-muted/60 text-base font-medium disabled:opacity-50"
+                    disabled={disabled}
+                    onClick={onStartRest}
+                  >
+                    Отдых {formatRestClock(WORK_REST_SECONDS)}
+                  </button>
+                ) : null}
+              </>
             ) : null}
           </div>
         ) : null}
