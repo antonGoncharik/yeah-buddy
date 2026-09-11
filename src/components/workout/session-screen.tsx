@@ -11,6 +11,7 @@ import { SessionExerciseRow } from "@/components/workout/session-exercise-row";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { gymQuote } from "@/lib/quotes";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import { QUEUE_LABEL } from "@/lib/workout/labels";
 
@@ -111,6 +112,9 @@ export function SessionScreen() {
                         const same =
                           current.length === ids.length &&
                           ids.every((id) => current.includes(id));
+                        if (!same) {
+                          haptic("tap");
+                        }
                         return same ? [] : ids;
                       })
                     }

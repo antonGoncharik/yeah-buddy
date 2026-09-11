@@ -8,6 +8,7 @@ import {
   draftFromSet,
   type SetDraft,
 } from "@/components/workout/session-drafts";
+import { haptic, holdTimerStepHaptic } from "@/lib/telegram/haptic";
 import type { SessionExerciseDetail, WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import {
@@ -259,7 +260,14 @@ function HoldTimer({
     if (left == null || left <= 0) {
       return;
     }
-    const id = window.setTimeout(() => setLeft(left - 1), 1000);
+    const id = window.setTimeout(() => {
+      const next = left - 1;
+      const kind = holdTimerStepHaptic(next);
+      if (kind) {
+        haptic(kind);
+      }
+      setLeft(next);
+    }, 1000);
     return () => window.clearTimeout(id);
   }, [left]);
 
@@ -272,7 +280,10 @@ function HoldTimer({
       type="button"
       className="col-span-2 h-11 rounded-lg bg-background text-base font-medium disabled:opacity-50"
       disabled={disabled}
-      onClick={() => setLeft(total)}
+      onClick={() => {
+        haptic("tap");
+        setLeft(total);
+      }}
     >
       {left == null
         ? `Засечь ${total} с`

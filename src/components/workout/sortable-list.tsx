@@ -4,6 +4,7 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -17,8 +18,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
 export function SortableList<T extends { id: string }>({
@@ -41,6 +43,24 @@ export function SortableList<T extends { id: string }>({
     }),
   );
   const canSort = !disabled && items.length > 1;
+  const lastOverId = useRef<string | number | null>(null);
+
+  function onDragStart() {
+    lastOverId.current = null;
+    haptic("tap");
+  }
+
+  function onDragOver(event: DragOverEvent) {
+    const overId = event.over?.id;
+    if (overId == null || overId === event.active.id) {
+      return;
+    }
+    if (overId === lastOverId.current) {
+      return;
+    }
+    lastOverId.current = overId;
+    haptic("tick");
+  }
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -54,6 +74,7 @@ export function SortableList<T extends { id: string }>({
       return;
     }
 
+    haptic("commit");
     onReorder(arrayMove(items, oldIndex, newIndex));
   }
 
@@ -61,6 +82,8 @@ export function SortableList<T extends { id: string }>({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
       <SortableContext

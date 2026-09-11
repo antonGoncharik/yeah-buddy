@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
+import { haptic } from "@/lib/telegram/haptic";
 
 const QUICK_GRAMS = [10, 50, 100, 150, 200, 250, 300, 400];
 
@@ -59,6 +60,7 @@ export function GramsScreen({
     }
 
     if (!Number.isFinite(grams) || grams <= 0) {
+      haptic("warn");
       setError("Нужны граммы больше 0.");
       return;
     }
@@ -68,9 +70,11 @@ export function GramsScreen({
 
     try {
       await save(grams);
+      haptic("success");
       router.push(doneHref);
       router.refresh();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
@@ -116,7 +120,10 @@ export function GramsScreen({
               type="button"
               variant="outline"
               className="h-12 text-base"
-              onClick={() => setGramsInput(String(value))}
+              onClick={() => {
+                haptic("tick");
+                setGramsInput(String(value));
+              }}
             >
               {value}
             </Button>
@@ -129,7 +136,10 @@ export function GramsScreen({
           type="button"
           variant="secondary"
           className="h-14 text-base"
-          onClick={() => setGramsInput(String(defaultPortionG))}
+          onClick={() => {
+            haptic("tick");
+            setGramsInput(String(defaultPortionG));
+          }}
         >
           {defaultPortionLabel
             ? `Стандартная порция · ${defaultPortionLabel}`

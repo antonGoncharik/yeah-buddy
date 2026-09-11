@@ -1,3 +1,4 @@
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import {
   type ProgramLevel,
@@ -79,7 +80,12 @@ function ProgramPresetCard({
         "card-surface w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none disabled:opacity-50",
         pressed && "ring-2 ring-primary",
       )}
-      onClick={onPick}
+      onClick={() => {
+        if (!pressed) {
+          haptic("tick");
+        }
+        onPick();
+      }}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p className="text-lg font-medium">{preset.name}</p>

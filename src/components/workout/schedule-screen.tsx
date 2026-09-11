@@ -16,6 +16,7 @@ import { ProgramPresetList } from "@/components/workout/program-preset-list";
 import { SortableList } from "@/components/workout/sortable-list";
 import { patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { readTemplates } from "@/lib/workout/hub-payload";
@@ -80,6 +81,7 @@ export function ScheduleScreen() {
       });
       setTemplates(readTemplates(data));
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
@@ -116,7 +118,9 @@ export function ScheduleScreen() {
         preset: presetId,
       });
       setTemplates(readTemplates(data));
+      haptic("success");
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);

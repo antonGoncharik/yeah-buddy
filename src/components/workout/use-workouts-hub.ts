@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
@@ -141,6 +142,7 @@ export function useWorkoutsHub() {
   async function createOnDate(templateId: string, sessionDate: string) {
     const template = templates.find((item) => item.id === templateId);
     if (template && !templateHasPlanMaxes(template, exercises)) {
+      haptic("warn");
       router.push("/workouts/exercises");
       return;
     }
@@ -178,12 +180,14 @@ export function useWorkoutsHub() {
 
       const created = readTodaySession(data);
       if (created) {
+        haptic("commit");
         router.push(`/workouts/sessions/${created.id}`);
         return;
       }
 
       await load();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setCreating(false);
@@ -198,6 +202,7 @@ export function useWorkoutsHub() {
       await postJson("/api/rotation/skip", { template_id: templateId });
       await load();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSkipping(false);
@@ -212,6 +217,7 @@ export function useWorkoutsHub() {
       await mutateJson("/api/rotation/unskip", { method: "POST" });
       await load();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSkipping(false);

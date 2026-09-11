@@ -28,6 +28,7 @@ import {
   YESTERDAY_MISSING,
 } from "@/lib/messages";
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
+import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealItem } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { readTodaySession } from "@/lib/workout/hub-payload";
@@ -237,7 +238,9 @@ export function useTodayScreen({
     try {
       const data = await postJson("/api/days", { date, dayType });
       setDay(readDay(data));
+      haptic("commit");
     } catch (caught) {
+      haptic("error");
       setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -293,13 +296,16 @@ export function useTodayScreen({
       }
 
       setDay(readDay(data));
+      haptic("success");
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 404) {
+        haptic("warn");
         setActionError(
           caught.message === LOAD_FAILED ? YESTERDAY_MISSING : caught.message,
         );
         return;
       }
+      haptic("error");
       setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -322,6 +328,7 @@ export function useTodayScreen({
       const data = await patchJson(`/api/days/${day.id}`, { dayType });
       setDay(readDay(data));
     } catch (caught) {
+      haptic("error");
       setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -363,6 +370,7 @@ export function useTodayScreen({
         };
       });
     } catch (caught) {
+      haptic("error");
       setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -395,15 +403,18 @@ export function useTodayScreen({
       });
       const created = readTodaySession(data);
       if (created) {
+        haptic("commit");
         router.push(`/workouts/sessions/${created.id}`);
         return;
       }
       await load();
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 400) {
+        haptic("warn");
         router.push("/workouts/exercises");
         return;
       }
+      haptic("error");
       setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);

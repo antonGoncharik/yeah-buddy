@@ -27,6 +27,7 @@ import {
   parsePackBackFrom,
 } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
+import { haptic } from "@/lib/telegram/haptic";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function PackDetailScreen({ token }: { token: string }) {
@@ -119,6 +120,7 @@ export function PackDetailScreen({ token }: { token: string }) {
     try {
       await mutateJson(`/api/packs/${pack.token}/apply`, { method: "POST" });
       dismissPendingPackToken(token);
+      haptic("success");
       if (pack.kind === "meals") {
         try {
           await ensureTodayDay("rest");
@@ -130,6 +132,7 @@ export function PackDetailScreen({ token }: { token: string }) {
       }
       router.replace("/workouts");
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -175,8 +178,10 @@ export function PackDetailScreen({ token }: { token: string }) {
       const loaded = readSharePackPayload(data);
       if (loaded) {
         setPack(loaded);
+        haptic("commit");
       }
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);

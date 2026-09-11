@@ -17,6 +17,7 @@ import {
   NEED_ALL_WORKING_WEIGHTS,
   NEED_CYCLE_PHASES,
 } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   CyclePhaseDef,
   ExerciseWithMax,
@@ -115,6 +116,7 @@ export function NewMacroScreen() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!formulas || formulas.cycle.length === 0) {
+      haptic("warn");
       setError(NEED_CYCLE_PHASES);
       return;
     }
@@ -128,6 +130,7 @@ export function NewMacroScreen() {
     });
 
     if (payloadMaxes.length !== exercises.length) {
+      haptic("warn");
       setError(NEED_ALL_WORKING_WEIGHTS);
       return;
     }
@@ -141,9 +144,11 @@ export function NewMacroScreen() {
         note: note.trim() === "" ? null : note.trim(),
         maxes: payloadMaxes,
       });
+      haptic("success");
       router.push("/workouts/macro");
       router.refresh();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);

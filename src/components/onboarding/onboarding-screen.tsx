@@ -26,6 +26,7 @@ import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
 import { packPath, peekPendingPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -149,6 +150,7 @@ export function OnboardingScreen() {
   function goNext() {
     if (step === "food") {
       if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
+        haptic("warn");
         setError("Нужно число в граммах.");
         return;
       }
@@ -185,6 +187,7 @@ export function OnboardingScreen() {
     );
     if (!omitProtein) {
       if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
+        haptic("warn");
         setError("Нужно число в граммах.");
         setStep("food");
         return;
@@ -229,8 +232,10 @@ export function OnboardingScreen() {
       router.replace(
         pending && isPackToken(pending) ? packPath(pending) : "/today",
       );
+      haptic("success");
       router.refresh();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSaving(false);
@@ -404,7 +409,12 @@ function FoodStep({
             type="button"
             variant={selected === value ? "default" : "outline"}
             className="h-12 flex-1 text-base"
-            onClick={() => onProteinChange(String(value))}
+            onClick={() => {
+              if (selected !== value) {
+                haptic("tick");
+              }
+              onProteinChange(String(value));
+            }}
           >
             {value} г
           </Button>

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
@@ -86,6 +87,7 @@ export function MacroScreen() {
 
     const weight = parseDecimal(drafts[exerciseId] ?? "");
     if (weight == null || weight <= 0) {
+      haptic("warn");
       setError("Проверь рабочий вес.");
       return;
     }
@@ -100,6 +102,7 @@ export function MacroScreen() {
       });
       await load();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setSavingId(null);
@@ -114,6 +117,7 @@ export function MacroScreen() {
       const data = await mutateJson("/api/macros/transition");
       const next = readPreview(data);
       if (!next) {
+        haptic("error");
         setError(LOAD_FAILED);
         return;
       }
@@ -129,6 +133,7 @@ export function MacroScreen() {
         ),
       );
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setTransitioning(false);
@@ -145,6 +150,7 @@ export function MacroScreen() {
     });
 
     if (!preview || maxes.length !== preview.maxes.length) {
+      haptic("warn");
       setError("Проверь предложенные рабочие веса.");
       return;
     }
@@ -160,8 +166,10 @@ export function MacroScreen() {
       });
       setPreview(null);
       setJustClosed(closingMacro);
+      haptic("success");
       await load();
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setTransitioning(false);

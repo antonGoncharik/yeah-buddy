@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { haptic } from "@/lib/telegram/haptic";
 
 export interface ConfirmOptions {
   message: string;
@@ -42,6 +43,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 
   const confirm = useCallback<ConfirmFn>((input) => {
     const options = typeof input === "string" ? { message: input } : input;
+    if (options.destructive) {
+      haptic("warn");
+    }
     return new Promise<boolean>((resolve) => {
       pendingRef.current?.resolve(false);
       const next = { options, resolve };

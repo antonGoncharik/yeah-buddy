@@ -19,6 +19,7 @@ import {
   writeJson,
 } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, readPhaseCircle } from "@/lib/workout/hints";
@@ -152,9 +153,11 @@ export function useSessionScreen() {
         writeJson(sessionUrl, data);
         applyDetail(next);
         setCorrecting(false);
+        haptic("success");
         await loadFollowUp(next.session.session_date);
       }
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -179,6 +182,7 @@ export function useSessionScreen() {
           : current,
       );
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }
@@ -212,6 +216,7 @@ export function useSessionScreen() {
         applyDetail(next);
       }
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);
@@ -238,8 +243,10 @@ export function useSessionScreen() {
 
     try {
       await deleteJson(`/api/sessions/${detail.session.id}`);
+      haptic("commit");
       router.replace("/workouts");
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setBusy(false);

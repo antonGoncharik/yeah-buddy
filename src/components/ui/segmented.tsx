@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
 export function Segmented<T extends string>({
@@ -52,7 +53,13 @@ export function Segmented<T extends string>({
                 ? "bg-transparent text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
-            onClick={() => onChange(option.id)}
+            onClick={() => {
+              if (selected) {
+                return;
+              }
+              haptic("tick");
+              onChange(option.id);
+            }}
           >
             {option.icon}
             {option.label}
