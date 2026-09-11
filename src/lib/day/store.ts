@@ -3,7 +3,9 @@ import {
   DayConflictError,
   isIsoDate,
   isPastDayDate,
+  MealConflictError,
   previousIsoDate,
+  YesterdayMealEmptyError,
   YesterdayMissingError,
 } from "@/lib/day/dates";
 import {
@@ -11,11 +13,12 @@ import {
   mapDayHistoryRow,
   mapDayWithMeals,
 } from "@/lib/day/map";
-import { buildMealItemRow } from "@/lib/day/meal-items";
+import { buildMealItemRow, getDateForMeal } from "@/lib/day/meal-items";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import {
   calcKcalFromMacros,
   defaultMacroGoals,
+  filledMealTypes,
   getMealOrder,
   isMealType,
   type Macros,
@@ -291,20 +294,7 @@ export async function copyYesterday(
       continue;
     }
 
-    for (const item of meal.items) {
-      rows.push({
-        user_id: userId,
-        meal_id: mealId,
-        food_id: item.food_id,
-        name_snapshot: item.name_snapshot,
-        grams: item.grams,
-        protein: item.protein,
-        fat: item.fat,
-        carbs: item.carbs,
-        kcal: item.kcal,
-        per_100_snapshot: item.per_100_snapshot,
-      });
-    }
+    rows.push(...copyMealItemRows(userId, mealId, meal.items));
   }
 
   if (rows.length > 0) {
@@ -320,6 +310,91 @@ export async function copyYesterday(
   }
 
   return day;
+}
+
+export async function copyMealFromYesterday(
+  userId: string,
+  mealId: string,
+  replace: boolean,
+): Promise<DayWithMeals> {
+  const date = await getDateForMeal(userId, mealId);
+  if (!date) {
+    throw new Error("Meal not found");
+  }
+  assertWritableDayDate(date);
+
+  const [today, yesterday] = await Promise.all([
+    getDayByDate(userId, date),
+    getDayByDate(userId, previousIsoDate(date)),
+  ]);
+
+  if (!today) {
+    throw new Error("Meal not found");
+  }
+
+  const target = today.meals.find((meal) => meal.id === mealId);
+  if (!target) {
+    throw new Error("Meal not found");
+  }
+
+  if (!yesterday) {
+    throw new YesterdayMissingError();
+  }
+
+  const source = yesterday.meals.find(
+    (meal) => meal.meal_type === target.meal_type,
+  );
+  if (!source || source.items.length === 0) {
+    throw new YesterdayMealEmptyError();
+  }
+
+  if (target.items.length > 0 && !replace) {
+    throw new MealConflictError();
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  if (target.items.length > 0) {
+    const deleted = await supabase
+      .from("meal_items")
+      .delete()
+      .eq("meal_id", mealId)
+      .eq("user_id", userId);
+
+    if (deleted.error) {
+      throw deleted.error;
+    }
+  }
+
+  const inserted = await supabase
+    .from("meal_items")
+    .insert(copyMealItemRows(userId, mealId, source.items));
+
+  if (inserted.error) {
+    throw inserted.error;
+  }
+
+  const day = await getDayByDate(userId, date);
+  if (!day) {
+    throw new Error("Day lookup failed");
+  }
+
+  return day;
+}
+
+export async function yesterdayCopyHint(
+  userId: string,
+  date: string,
+): Promise<{ exists: boolean; mealTypes: MealType[] }> {
+  const yesterday = await getDayByDate(userId, previousIsoDate(date));
+  if (!yesterday) {
+    return { exists: false, mealTypes: [] };
+  }
+
+  return {
+    exists: true,
+    mealTypes: filledMealTypes(yesterday.meals),
+  };
 }
 
 export async function setDayType(
@@ -443,4 +518,23 @@ async function getTargets(userId: string, dayType: DayType): Promise<Macros> {
     carbs,
     kcal: calcKcalFromMacros(protein, fat, carbs),
   };
+}
+
+function copyMealItemRows(
+  userId: string,
+  mealId: string,
+  items: DayWithMeals["meals"][number]["items"],
+) {
+  return items.map((item) => ({
+    user_id: userId,
+    meal_id: mealId,
+    food_id: item.food_id,
+    name_snapshot: item.name_snapshot,
+    grams: item.grams,
+    protein: item.protein,
+    fat: item.fat,
+    carbs: item.carbs,
+    kcal: item.kcal,
+    per_100_snapshot: item.per_100_snapshot,
+  }));
 }

@@ -7,6 +7,7 @@ import {
   MealItemRow,
   type MealLine,
 } from "@/components/day/meal-item-row";
+import { Button } from "@/components/ui/button";
 import {
   formatKcal,
   formatMacro,
@@ -22,6 +23,8 @@ export function MealCard({
   itemHref,
   addHref,
   onDeleteItem,
+  onCopyYesterday,
+  copyBusy = false,
   readOnly = false,
   className,
   style,
@@ -31,11 +34,15 @@ export function MealCard({
   itemHref?: (item: MealLine) => string;
   addHref?: string;
   onDeleteItem?: (item: MealLine) => void;
+  onCopyYesterday?: () => void;
+  copyBusy?: boolean;
   readOnly?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
   const totals = sumMealItems(items);
+  const showCopy = !readOnly && Boolean(onCopyYesterday);
+  const showAdd = !readOnly && Boolean(addHref);
 
   return (
     <section
@@ -75,7 +82,22 @@ export function MealCard({
         </p>
       ) : null}
 
-      {readOnly || !addHref ? null : <MealAddLink href={addHref} />}
+      {showCopy || showAdd ? (
+        <div className="flex flex-col gap-2">
+          {showCopy ? (
+            <Button
+              type="button"
+              variant={items.length === 0 ? "default" : "outline"}
+              className="h-12 w-full text-base"
+              disabled={copyBusy}
+              onClick={onCopyYesterday}
+            >
+              Как вчера
+            </Button>
+          ) : null}
+          {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -12,11 +12,10 @@ import { requireSession } from "@/lib/auth/require-session";
 import {
   createDayFromTemplate,
   DayConflictError,
-  dateHasDay,
   getDayByDate,
   isIsoDate,
   PastDayLockedError,
-  previousIsoDate,
+  yesterdayCopyHint,
 } from "@/lib/days";
 import { CHECK_FIELDS } from "@/lib/messages";
 
@@ -37,12 +36,16 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const [day, yesterdayExists] = await Promise.all([
+    const [day, yesterday] = await Promise.all([
       getDayByDate(auth.session.userId, date),
-      dateHasDay(auth.session.userId, previousIsoDate(date)),
+      yesterdayCopyHint(auth.session.userId, date),
     ]);
 
-    return jsonOk({ day, yesterdayExists });
+    return jsonOk({
+      day,
+      yesterdayExists: yesterday.exists,
+      yesterdayMealTypes: yesterday.mealTypes,
+    });
   } catch (error) {
     return failRoute(error);
   }

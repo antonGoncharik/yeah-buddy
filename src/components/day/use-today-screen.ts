@@ -21,15 +21,20 @@ import {
   todayHomeHref,
 } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { readDay, readYesterdayExists } from "@/lib/day/today-payload";
+import {
+  readDay,
+  readYesterdayExists,
+  readYesterdayMealTypes,
+} from "@/lib/day/today-payload";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
+  YESTERDAY_MEAL_EMPTY,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
-import { isMealVisible, sumMeals } from "@/lib/nutrition";
+import { isMealVisible, mealExistsReplace, sumMeals } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
-import type { DayType, MealItem } from "@/lib/types";
+import type { DayType, MealItem, MealType } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { readTodaySession } from "@/lib/workout/hub-payload";
 
@@ -56,6 +61,7 @@ export function useTodayScreen({
   const confirm = useConfirm();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [yesterdayExists, setYesterdayExists] = useState(false);
+  const [yesterdayMealTypes, setYesterdayMealTypes] = useState<MealType[]>([]);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -107,6 +113,7 @@ export function useTodayScreen({
           }
           setDay(readDay(data));
           setYesterdayExists(readYesterdayExists(data));
+          setYesterdayMealTypes(readYesterdayMealTypes(data));
           setLoadedDate(requestedDate);
           return true;
         },
@@ -165,6 +172,7 @@ export function useTodayScreen({
   useEffect(() => {
     setDay(null);
     setYesterdayExists(false);
+    setYesterdayMealTypes([]);
     setWorkoutState(null);
     if (date.length > 0) {
       reset();
@@ -312,6 +320,76 @@ export function useTodayScreen({
     }
   }
 
+  async function copyMealYesterday(mealId: string, mealType: MealType) {
+    if (viewOnly) {
+      return;
+    }
+
+    const current = day?.meals.find((meal) => meal.id === mealId);
+    let replace = false;
+    if (current && current.items.length > 0) {
+      const ok = await confirm({
+        message: mealExistsReplace(mealType),
+        confirmLabel: "Заменить",
+        cancelLabel: "Оставить",
+        destructive: true,
+      });
+      if (!ok) {
+        return;
+      }
+      replace = true;
+    }
+
+    setBusy(true);
+    setActionError(null);
+
+    try {
+      const post = (replaceFlag: boolean) =>
+        postJson(`/api/meals/${mealId}/copy-yesterday`, {
+          replace: replaceFlag,
+        });
+
+      let data: unknown;
+      try {
+        data = await post(replace);
+      } catch (caught) {
+        if (!(caught instanceof ApiError) || caught.status !== 409) {
+          throw caught;
+        }
+        const ok = await confirm({
+          message:
+            caught.message === LOAD_FAILED
+              ? mealExistsReplace(mealType)
+              : caught.message,
+          confirmLabel: "Заменить",
+          cancelLabel: "Оставить",
+          destructive: true,
+        });
+        if (!ok) {
+          return;
+        }
+        data = await post(true);
+      }
+
+      setDay(readDay(data));
+      haptic("success");
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 404) {
+        haptic("warn");
+        setActionError(
+          caught.message === LOAD_FAILED
+            ? YESTERDAY_MEAL_EMPTY
+            : caught.message,
+        );
+        return;
+      }
+      haptic("error");
+      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function switchType(dayType: DayType) {
     if (viewOnly || !day) {
       return;
@@ -439,6 +517,7 @@ export function useTodayScreen({
     fact,
     dayHasItems,
     yesterdayExists,
+    yesterdayMealTypes,
     busy,
     loadError,
     actionError,
@@ -446,6 +525,7 @@ export function useTodayScreen({
     goToDate,
     createDay,
     copyYesterday,
+    copyMealYesterday,
     switchType,
     deleteItem,
     startQueuedWorkout,

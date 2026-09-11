@@ -56,6 +56,7 @@ export function TodayScreen({
     fact,
     dayHasItems,
     yesterdayExists,
+    yesterdayMealTypes,
     busy,
     loadError,
     actionError,
@@ -63,6 +64,7 @@ export function TodayScreen({
     goToDate,
     createDay,
     copyYesterday,
+    copyMealYesterday,
     switchType,
     deleteItem,
     startQueuedWorkout,
@@ -261,6 +263,12 @@ export function TodayScreen({
                     ? undefined
                     : withDateQuery(`/today/meals/${meal.id}/add`, date)
                 }
+                onCopyYesterday={
+                  viewOnly || !yesterdayMealTypes.includes(meal.meal_type)
+                    ? undefined
+                    : () => void copyMealYesterday(meal.id, meal.meal_type)
+                }
+                copyBusy={busy}
                 readOnly={viewOnly}
                 className="animate-rise"
                 style={{ animationDelay: `${80 + index * 50}ms` }}

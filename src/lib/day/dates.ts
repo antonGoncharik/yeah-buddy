@@ -1,6 +1,8 @@
 import {
   DAY_EXISTS_REPLACE,
+  MEAL_EXISTS_REPLACE,
   PAST_DAY_LOCKED,
+  YESTERDAY_MEAL_EMPTY,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
 
@@ -17,6 +19,20 @@ export class DayConflictError extends Error {
 export class YesterdayMissingError extends Error {
   constructor() {
     super(YESTERDAY_MISSING);
+  }
+}
+
+export class YesterdayMealEmptyError extends Error {
+  constructor() {
+    super(YESTERDAY_MEAL_EMPTY);
+  }
+}
+
+export class MealConflictError extends Error {
+  readonly code = "MEAL_EXISTS";
+
+  constructor() {
+    super(MEAL_EXISTS_REPLACE);
   }
 }
 

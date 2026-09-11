@@ -146,6 +146,18 @@ export function getMealLabel(mealType: MealType): string {
   return MEAL_LABELS[mealType];
 }
 
+export function mealExistsReplace(mealType: MealType): string {
+  return `Заменить ${MEAL_LABELS[mealType].toLowerCase()}?`;
+}
+
+export function filledMealTypes(
+  meals: Array<{ meal_type: MealType; items: readonly unknown[] }>,
+): MealType[] {
+  return meals
+    .filter((meal) => meal.items.length > 0)
+    .map((meal) => meal.meal_type);
+}
+
 export function getMealOrder(mealType: MealType): number {
   return MEAL_ORDER[mealType];
 }

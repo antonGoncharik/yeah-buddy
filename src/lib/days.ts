@@ -4,6 +4,7 @@ export {
   DayConflictError,
   isIsoDate,
   isPastDayDate,
+  MealConflictError,
   nextIsoDate,
   nutritionHistoryHref,
   PastDayLockedError,
@@ -11,6 +12,7 @@ export {
   todayHistoryDayHref,
   todayHomeHref,
   withDateQuery,
+  YesterdayMealEmptyError,
   YesterdayMissingError,
 } from "@/lib/day/dates";
 export { type FoodShare, listFoodSharesInRange } from "@/lib/day/food-shares";
@@ -23,6 +25,7 @@ export {
   updateMealItemGrams,
 } from "@/lib/day/meal-items";
 export {
+  copyMealFromYesterday,
   copyYesterday,
   createDayFromTemplate,
   dateHasDay,
@@ -31,4 +34,5 @@ export {
   listDaysInRange,
   markDateAsTrainingIfExists,
   setDayType,
+  yesterdayCopyHint,
 } from "@/lib/day/store";

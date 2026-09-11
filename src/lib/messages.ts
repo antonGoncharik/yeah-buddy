@@ -5,7 +5,9 @@ export const CHECK_DATE = "Проверь дату.";
 export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY = "Продуктов пока нет.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
+export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
+export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
 export const PAST_DAY_LOCKED = "Это старый день — уже не меняется.";
 export const BOT_START = `Yeah buddy! 👟
 Твой личный дневник еды и железа.
