@@ -66,15 +66,17 @@ export function isIsoDate(value: string): boolean {
 }
 
 export function previousIsoDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number);
-  const previous = new Date(Date.UTC(year, month - 1, day - 1));
-  return previous.toISOString().slice(0, 10);
+  return shiftIsoDate(date, -1);
 }
 
 export function nextIsoDate(date: string): string {
+  return shiftIsoDate(date, 1);
+}
+
+export function shiftIsoDate(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number);
-  const next = new Date(Date.UTC(year, month - 1, day + 1));
-  return next.toISOString().slice(0, 10);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  return shifted.toISOString().slice(0, 10);
 }
 
 export function calendarToday(): string {

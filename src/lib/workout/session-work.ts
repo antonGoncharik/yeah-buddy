@@ -7,7 +7,7 @@ export {
   rebuildPlannedSession,
   rebuildTodaysPlannedSession,
   removeSessionExercise,
-} from "@/lib/workout/session-plan";
+} from "@/lib/workout/session-rebuild";
 export {
   type CompleteSessionInput,
   completeSessionSchema,

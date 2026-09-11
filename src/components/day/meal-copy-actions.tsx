@@ -1,9 +1,8 @@
 "use client";
 
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { MealCopyDaySheet } from "@/components/day/meal-copy-day-sheet";
 import { Button } from "@/components/ui/button";
 import { previousIsoDate } from "@/lib/day/dates";
 import { namedMealsOfType } from "@/lib/named-meal/map";
@@ -116,7 +115,7 @@ export function MealCopyActions({
         </Button>
       ) : null}
       {picking ? (
-        <DayPickSheet
+        <MealCopyDaySheet
           days={sources}
           yesterday={yesterday}
           dayBefore={dayBefore}
@@ -129,101 +128,4 @@ export function MealCopyActions({
       ) : null}
     </div>
   );
-}
-
-function DayPickSheet({
-  days,
-  yesterday,
-  dayBefore,
-  onPick,
-  onCancel,
-}: {
-  days: CopyDayHint[];
-  yesterday: string;
-  dayBefore: string;
-  onPick: (date: string) => void;
-  onCancel: () => void;
-}) {
-  const titleId = useId();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    panelRef.current?.focus();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onCancel();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [onCancel]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center pb-[var(--app-chrome-bottom)] sm:items-center sm:pb-0">
-      <button
-        type="button"
-        className="absolute inset-0 animate-fade bg-black/45"
-        aria-label="Закрыть"
-        onClick={onCancel}
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="card-surface animate-rise relative z-10 mx-auto w-full max-w-lg rounded-t-[1.75rem] px-5 pt-3 pb-[calc(1.25rem+var(--app-safe-bottom))] outline-none sm:mb-10 sm:rounded-[1.75rem] sm:pt-6"
-      >
-        <div
-          aria-hidden
-          className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/25 sm:hidden"
-        />
-        <p id={titleId} className="text-lg font-medium leading-snug">
-          С какого дня скопировать?
-        </p>
-        <div className="mt-5 flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
-          {days.map((day) => (
-            <Button
-              key={day.date}
-              type="button"
-              variant="outline"
-              className="h-12 w-full text-base"
-              onClick={() => onPick(day.date)}
-            >
-              {copyDayLabel(day.date, yesterday, dayBefore)}
-            </Button>
-          ))}
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          className="mt-2 h-12 w-full text-base"
-          onClick={onCancel}
-        >
-          Отмена
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function copyDayLabel(
-  date: string,
-  yesterday: string,
-  dayBefore: string,
-): string {
-  const pretty = format(new Date(`${date}T00:00:00`), "d MMMM", { locale: ru });
-  if (date === yesterday) {
-    return `Вчера, ${pretty}`;
-  }
-  if (date === dayBefore) {
-    return `Позавчера, ${pretty}`;
-  }
-  return pretty;
 }

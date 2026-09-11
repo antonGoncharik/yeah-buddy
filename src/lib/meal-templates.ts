@@ -20,4 +20,3 @@ export {
   getActiveMealTemplate,
   listMealTemplates,
 } from "@/lib/meal/store";
-export { isDayType } from "@/lib/nutrition";

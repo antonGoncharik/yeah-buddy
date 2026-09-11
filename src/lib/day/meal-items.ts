@@ -1,51 +1,14 @@
 import { mapMealItem } from "@/lib/day/map";
+import { getDateForMeal } from "@/lib/day/meal-date";
+import { buildMealItemRow } from "@/lib/day/meal-item-row";
 import { assertUserDayWritable } from "@/lib/day/writable";
 import { getFood } from "@/lib/food/store";
-import {
-  calcMacrosFromPer100,
-  type Macros,
-  roundMacros,
-} from "@/lib/nutrition";
+import { calcMacrosFromPer100, roundMacros } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food, MealItem } from "@/lib/types";
 
-export async function getDateForMeal(
-  userId: string,
-  mealId: string,
-): Promise<string | null> {
-  const supabase = createSupabaseServerClient();
-  const meal = await supabase
-    .from("meals")
-    .select("day_id")
-    .eq("id", mealId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (meal.error) {
-    throw meal.error;
-  }
-
-  if (!meal.data) {
-    return null;
-  }
-
-  const day = await supabase
-    .from("days")
-    .select("date")
-    .eq("id", meal.data.day_id)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (day.error) {
-    throw day.error;
-  }
-
-  if (!day.data) {
-    return null;
-  }
-
-  return String(day.data.date).slice(0, 10);
-}
+export { getDateForMeal } from "@/lib/day/meal-date";
+export { buildMealItemRow } from "@/lib/day/meal-item-row";
 
 export async function addMealItem(
   userId: string,
@@ -250,35 +213,4 @@ export async function deleteMealItem(
   }
 
   return Boolean(deleted.data);
-}
-
-export function buildMealItemRow({
-  userId,
-  mealId,
-  foodId,
-  name,
-  grams,
-  per100,
-}: {
-  userId: string;
-  mealId: string;
-  foodId: string;
-  name: string;
-  grams: number;
-  per100: Macros;
-}) {
-  const macros = roundMacros(calcMacrosFromPer100(per100, grams));
-
-  return {
-    user_id: userId,
-    meal_id: mealId,
-    food_id: foodId,
-    name_snapshot: name,
-    grams,
-    protein: macros.protein,
-    fat: macros.fat,
-    carbs: macros.carbs,
-    kcal: macros.kcal,
-    per_100_snapshot: per100,
-  };
 }

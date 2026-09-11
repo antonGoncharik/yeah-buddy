@@ -1,6 +1,6 @@
 import { DayConflictError } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { buildMealItemRow } from "@/lib/day/meal-items";
+import { buildMealItemRow } from "@/lib/day/meal-item-row";
 import { getDayByDate } from "@/lib/day/store";
 import { assertUserDayWritable } from "@/lib/day/writable";
 import { getActiveMealTemplate } from "@/lib/meal-templates";

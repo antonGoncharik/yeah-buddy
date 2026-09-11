@@ -1,19 +1,18 @@
 "use client";
 
-import { Camera, Images, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
+import { PlateCameraBar } from "@/components/day/plate-camera-bar";
+import { type PlateRow, parseGramsInput } from "@/components/day/plate-draft";
 import { PlateDraftRow } from "@/components/day/plate-draft-row";
 import { PlateFoodPicker } from "@/components/day/plate-food-picker";
 import { PlateLiveCamera } from "@/components/day/plate-live-camera";
+import { PlateStatusCopy } from "@/components/day/plate-status";
 import { usePlateScreen } from "@/components/day/use-plate-screen";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import {
-  AI_PLATE_EMPTY,
-  AI_PLATE_RETRY,
-  AI_REVIEW_NO_KEY,
-} from "@/lib/messages";
+import { AI_PLATE_RETRY } from "@/lib/messages";
 import {
   calcMacrosFromPer100,
   formatKcal,
@@ -69,20 +68,11 @@ export function PlateScreen({
           />
         ) : null}
 
-        {plate.view.status === "idle" ? (
-          <p className="text-base text-muted-foreground">
-            Сфотографируй тарелку. Потом проверишь граммы. В дневник попадёт
-            только то, что подтвердишь.
-          </p>
-        ) : null}
-
-        {plate.unavailable ? (
-          <p className="text-base text-muted-foreground">{AI_REVIEW_NO_KEY}</p>
-        ) : null}
-
-        {plate.empty ? (
-          <p className="text-base text-muted-foreground">{AI_PLATE_EMPTY}</p>
-        ) : null}
+        <PlateStatusCopy
+          idle={plate.view.status === "idle"}
+          unavailable={plate.unavailable}
+          empty={plate.empty}
+        />
 
         {plate.items.map((item, index) => (
           <PlateDraftRow
@@ -151,123 +141,29 @@ export function PlateScreen({
             </Button>
           ) : null}
 
-          {plate.htmlCamera ? (
-            <div className="relative">
-              <Button
-                type="button"
-                variant={
-                  plate.view.status === "idle" ||
-                  plate.view.status === "empty" ||
-                  plate.view.status === "error"
-                    ? "default"
-                    : "outline"
-                }
-                className="pointer-events-none h-14 w-full gap-2 text-lg"
-                disabled={plate.busy}
-                tabIndex={-1}
-                aria-hidden
-              >
-                <Camera className="size-5" aria-hidden />
-                {cameraLabel(plate.view.status, cameraPrimary)}
-              </Button>
-              <input
-                id={plate.cameraId}
-                ref={plate.cameraRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                disabled={plate.busy}
-                aria-label={cameraLabel(plate.view.status, cameraPrimary)}
-                className="absolute inset-0 z-10 cursor-pointer opacity-0 disabled:pointer-events-none"
-                onPointerDown={() => plate.watchCamera()}
-              />
-            </div>
-          ) : (
-            <>
-              <input
-                id={plate.cameraId}
-                ref={plate.cameraRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                tabIndex={-1}
-                aria-hidden
-                className="sr-only"
-              />
-              <Button
-                type="button"
-                variant={
-                  plate.view.status === "idle" ||
-                  plate.view.status === "empty" ||
-                  plate.view.status === "error"
-                    ? "default"
-                    : "outline"
-                }
-                className="h-14 w-full gap-2 text-lg"
-                disabled={plate.busy}
-                onClick={() => void plate.startLiveCamera()}
-              >
-                <Camera className="size-5" aria-hidden />
-                {cameraLabel(plate.view.status, cameraPrimary)}
-              </Button>
-            </>
-          )}
-
-          <div className="relative">
-            <Button
-              type="button"
-              variant="ghost"
-              className="pointer-events-none h-12 w-full gap-2 text-base"
-              disabled={plate.busy}
-              tabIndex={-1}
-              aria-hidden
-            >
-              <Images className="size-5" aria-hidden />
-              Из галереи
-            </Button>
-            <input
-              id={plate.galleryId}
-              ref={plate.galleryRef}
-              type="file"
-              accept="image/*"
-              disabled={plate.busy}
-              aria-label="Из галереи"
-              className="absolute inset-0 z-10 cursor-pointer opacity-0 disabled:pointer-events-none"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                void plate.onFile(file);
-              }}
-            />
-          </div>
+          <PlateCameraBar
+            busy={plate.busy}
+            htmlCamera={plate.htmlCamera}
+            cameraPrimary={cameraPrimary}
+            status={plate.view.status}
+            cameraId={plate.cameraId}
+            galleryId={plate.galleryId}
+            cameraRef={plate.cameraRef}
+            galleryRef={plate.galleryRef}
+            onWatchCamera={plate.watchCamera}
+            onStartLiveCamera={() => void plate.startLiveCamera()}
+            onFile={(file) => void plate.onFile(file)}
+          />
         </StickyActions>
       )}
     </>
   );
 }
 
-function cameraLabel(status: string, cameraPrimary: boolean): string {
-  if (status === "idle") {
-    return "Сфотографировать";
-  }
-  if (cameraPrimary) {
-    return AI_PLATE_RETRY;
-  }
-  return "Другое фото";
-}
-
-function sumDraft(
-  items: Array<{
-    gramsInput: string;
-    protein_per_100: number;
-    fat_per_100: number;
-    carbs_per_100: number;
-    kcal_per_100: number;
-  }>,
-) {
+function sumDraft(items: PlateRow[]) {
   const macros = items.flatMap((item) => {
-    const grams = Number(item.gramsInput.replace(",", "."));
-    if (!Number.isFinite(grams) || grams <= 0) {
+    const grams = parseGramsInput(item.gramsInput);
+    if (grams == null) {
       return [];
     }
     return [

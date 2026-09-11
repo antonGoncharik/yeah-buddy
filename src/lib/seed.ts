@@ -1,18 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-
-import { getMealOrder } from "@/lib/nutrition";
-import {
-  seededNames,
-  throwUnlessUniqueViolation,
-  UNIQUE_VIOLATION,
-} from "@/lib/seed-missing";
 import {
   FAVORITE_FOODS,
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
   type StarterMealTemplate,
   type StarterTemplateItem,
-} from "@/lib/starter-foods";
+} from "@/lib/food/starter";
+import { getMealOrder } from "@/lib/nutrition";
+import {
+  seededNames,
+  throwUnlessUniqueViolation,
+  UNIQUE_VIOLATION,
+} from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MealType } from "@/lib/types";
 import { ensureStarterExercises } from "@/lib/workout/seed";

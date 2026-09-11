@@ -1,6 +1,6 @@
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding/types";
 import { isRecord, mapRecordList } from "@/lib/read";
-import { parseUserSettings } from "@/lib/settings-map";
+import { parseUserSettings } from "@/lib/settings/map";
 import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
 

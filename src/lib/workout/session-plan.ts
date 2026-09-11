@@ -1,11 +1,5 @@
-import { calendarToday } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  Exercise,
-  SessionDetail,
-  WorkoutFormulas,
-  WorkoutSession,
-} from "@/lib/types";
+import type { Exercise, WorkoutFormulas, WorkoutSession } from "@/lib/types";
 import { specForPhase } from "@/lib/workout/cycle";
 import { listExercises } from "@/lib/workout/exercises";
 import {
@@ -14,86 +8,9 @@ import {
 } from "@/lib/workout/formulas";
 import { listCurrentPhaseMaxes } from "@/lib/workout/macros";
 import { mapSessionExercise } from "@/lib/workout/map-rows";
-import { getPhase, loadSessionDetail } from "@/lib/workout/session-work-load";
-import { getSession, getSessionOnDate } from "@/lib/workout/sessions";
+import { getPhase } from "@/lib/workout/session-work-load";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
-
-export async function removeSessionExercise(
-  userId: string,
-  sessionId: string,
-  sessionExerciseId: string,
-): Promise<SessionDetail | null> {
-  const session = await getSession(userId, sessionId);
-  if (!session) {
-    return null;
-  }
-
-  const detail = await loadSessionDetail(userId, session);
-  const target = detail.exercises.find((item) => item.id === sessionExerciseId);
-  if (!target) {
-    throw new Error("Упражнение не найдено в тренировке.");
-  }
-
-  if (target.sets.some((set) => set.is_completed)) {
-    throw new Error("Нельзя убрать упражнение с выполненными подходами.");
-  }
-
-  const supabase = createSupabaseServerClient();
-  const deleted = await supabase
-    .from("session_exercises")
-    .delete()
-    .eq("user_id", userId)
-    .eq("id", sessionExerciseId)
-    .eq("session_id", sessionId);
-
-  if (deleted.error) {
-    throw deleted.error;
-  }
-
-  return loadSessionDetail(userId, session);
-}
-
-export async function rebuildPlannedSession(
-  userId: string,
-  sessionId: string,
-): Promise<SessionDetail | null> {
-  const session = await getSession(userId, sessionId);
-  if (session?.status !== "planned") {
-    return session ? loadSessionDetail(userId, session) : null;
-  }
-
-  const detail = await loadSessionDetail(userId, session);
-  if (
-    detail.exercises.some((item) => item.sets.some((set) => set.is_completed))
-  ) {
-    return detail;
-  }
-
-  const supabase = createSupabaseServerClient();
-  const deleted = await supabase
-    .from("session_exercises")
-    .delete()
-    .eq("user_id", userId)
-    .eq("session_id", sessionId);
-
-  if (deleted.error) {
-    throw deleted.error;
-  }
-
-  await ensureSessionPlan(userId, session);
-  return loadSessionDetail(userId, session);
-}
-
-export async function rebuildTodaysPlannedSession(
-  userId: string,
-): Promise<void> {
-  const session = await getSessionOnDate(userId, calendarToday());
-  if (!session) {
-    return;
-  }
-  await rebuildPlannedSession(userId, session.id);
-}
 
 export async function ensureSessionPlan(
   userId: string,

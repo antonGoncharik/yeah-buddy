@@ -1,17 +1,17 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-
+import {
+  copyNotFoundMessage,
+  postCopyWithConflict,
+  readNamedMealHint,
+} from "@/components/day/today-copy-request";
 import { useConfirm, usePrompt } from "@/components/layout/confirm-provider";
-import { ApiError, deleteJson, postJson } from "@/lib/api-cache";
+import { deleteJson, postJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/day/map";
 import { readDay } from "@/lib/day/today-payload";
-import {
-  DAY_EXISTS_REPLACE,
-  LOAD_FAILED,
-  YESTERDAY_MISSING,
-} from "@/lib/messages";
-import { getMealLabel, isMealType, mealExistsReplace } from "@/lib/nutrition";
+import { DAY_EXISTS_REPLACE, LOAD_FAILED } from "@/lib/messages";
+import { getMealLabel, mealExistsReplace } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { MealType, NamedMealHint } from "@/lib/types";
 
@@ -35,15 +35,25 @@ export function useTodayCopy({
   const confirm = useConfirm();
   const prompt = usePrompt();
 
-  async function copyYesterday() {
+  async function runReplaceCopy({
+    needsConfirm,
+    message,
+    post,
+    treat404,
+  }: {
+    needsConfirm: boolean;
+    message: string;
+    post: (replace: boolean) => Promise<unknown>;
+    treat404?: boolean;
+  }) {
     if (viewOnly) {
       return;
     }
 
     let replace = false;
-    if (day) {
+    if (needsConfirm) {
       const ok = await confirm({
-        message: DAY_EXISTS_REPLACE,
+        message,
         confirmLabel: "Заменить",
         cancelLabel: "Оставить",
         destructive: true,
@@ -59,24 +69,21 @@ export function useTodayCopy({
 
     try {
       const result = await postCopyWithConflict(
-        (replaceFlag) =>
-          postJson("/api/days/copy-yesterday", { date, replace: replaceFlag }),
+        post,
         replace,
         confirm,
-        DAY_EXISTS_REPLACE,
+        message,
       );
       if (!result) {
         return;
       }
-
       setDay(readDay(result.data));
       haptic("success");
     } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 404) {
+      const notFound = treat404 ? copyNotFoundMessage(caught) : null;
+      if (notFound) {
         haptic("warn");
-        setActionError(
-          caught.message === LOAD_FAILED ? YESTERDAY_MISSING : caught.message,
-        );
+        setActionError(notFound);
         return;
       }
       haptic("error");
@@ -84,6 +91,16 @@ export function useTodayCopy({
     } finally {
       setBusy(false);
     }
+  }
+
+  async function copyYesterday() {
+    await runReplaceCopy({
+      needsConfirm: Boolean(day),
+      message: DAY_EXISTS_REPLACE,
+      treat404: true,
+      post: (replaceFlag) =>
+        postJson("/api/days/copy-yesterday", { date, replace: replaceFlag }),
+    });
   }
 
   async function copyMealFromDate(
@@ -91,58 +108,17 @@ export function useTodayCopy({
     mealType: MealType,
     sourceDate: string,
   ) {
-    if (viewOnly) {
-      return;
-    }
-
     const current = day?.meals.find((meal) => meal.id === mealId);
-    let replace = false;
-    if (current && current.items.length > 0) {
-      const ok = await confirm({
-        message: mealExistsReplace(mealType),
-        confirmLabel: "Заменить",
-        cancelLabel: "Оставить",
-        destructive: true,
-      });
-      if (!ok) {
-        return;
-      }
-      replace = true;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const result = await postCopyWithConflict(
-        (replaceFlag) =>
-          postJson(`/api/meals/${mealId}/copy`, {
-            sourceDate,
-            replace: replaceFlag,
-          }),
-        replace,
-        confirm,
-        mealExistsReplace(mealType),
-      );
-      if (!result) {
-        return;
-      }
-
-      setDay(readDay(result.data));
-      haptic("success");
-    } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 404) {
-        haptic("warn");
-        setActionError(
-          caught.message === LOAD_FAILED ? YESTERDAY_MISSING : caught.message,
-        );
-        return;
-      }
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    await runReplaceCopy({
+      needsConfirm: Boolean(current && current.items.length > 0),
+      message: mealExistsReplace(mealType),
+      treat404: true,
+      post: (replaceFlag) =>
+        postJson(`/api/meals/${mealId}/copy`, {
+          sourceDate,
+          replace: replaceFlag,
+        }),
+    });
   }
 
   async function applyNamedMeal(
@@ -150,51 +126,16 @@ export function useTodayCopy({
     mealType: MealType,
     namedMealId: string,
   ) {
-    if (viewOnly) {
-      return;
-    }
-
     const current = day?.meals.find((meal) => meal.id === mealId);
-    let replace = false;
-    if (current && current.items.length > 0) {
-      const ok = await confirm({
-        message: mealExistsReplace(mealType),
-        confirmLabel: "Заменить",
-        cancelLabel: "Оставить",
-        destructive: true,
-      });
-      if (!ok) {
-        return;
-      }
-      replace = true;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const result = await postCopyWithConflict(
-        (replaceFlag) =>
-          postJson(`/api/meals/${mealId}/copy-named`, {
-            namedMealId,
-            replace: replaceFlag,
-          }),
-        replace,
-        confirm,
-        mealExistsReplace(mealType),
-      );
-      if (!result) {
-        return;
-      }
-
-      setDay(readDay(result.data));
-      haptic("success");
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    await runReplaceCopy({
+      needsConfirm: Boolean(current && current.items.length > 0),
+      message: mealExistsReplace(mealType),
+      post: (replaceFlag) =>
+        postJson(`/api/meals/${mealId}/copy-named`, {
+          namedMealId,
+          replace: replaceFlag,
+        }),
+    });
   }
 
   async function saveNamedMeal(mealId: string, mealType: MealType) {
@@ -217,7 +158,7 @@ export function useTodayCopy({
 
     try {
       const data = await postJson("/api/named-meals", { name, mealId });
-      const saved = readNamedMeal(data);
+      const saved = readNamedMealHint(data);
       if (saved) {
         setNamedMeals((current) => {
           const without = current.filter(
@@ -274,58 +215,5 @@ export function useTodayCopy({
     applyNamedMeal,
     saveNamedMeal,
     deleteNamedMeal,
-  };
-}
-
-async function postCopyWithConflict(
-  post: (replaceFlag: boolean) => Promise<unknown>,
-  replace: boolean,
-  confirm: ReturnType<typeof useConfirm>,
-  fallbackMessage: string,
-): Promise<{ data: unknown } | null> {
-  try {
-    return { data: await post(replace) };
-  } catch (caught) {
-    if (!(caught instanceof ApiError) || caught.status !== 409) {
-      throw caught;
-    }
-    const ok = await confirm({
-      message:
-        caught.message === LOAD_FAILED ? fallbackMessage : caught.message,
-      confirmLabel: "Заменить",
-      cancelLabel: "Оставить",
-      destructive: true,
-    });
-    if (!ok) {
-      return null;
-    }
-    return { data: await post(true) };
-  }
-}
-
-function readNamedMeal(data: unknown): NamedMealHint | null {
-  if (!data || typeof data !== "object" || !("namedMeal" in data)) {
-    return null;
-  }
-  const value = data.namedMeal;
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const row = value as {
-    id?: unknown;
-    name?: unknown;
-    meal_type?: unknown;
-  };
-  if (
-    typeof row.id !== "string" ||
-    typeof row.name !== "string" ||
-    !isMealType(row.meal_type)
-  ) {
-    return null;
-  }
-  return {
-    id: row.id,
-    name: row.name,
-    meal_type: row.meal_type,
   };
 }

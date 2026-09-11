@@ -3,10 +3,8 @@
 import { useState } from "react";
 
 import { Segmented } from "@/components/ui/segmented";
-import {
-  ProgressChart,
-  ProgressSparkline,
-} from "@/components/workout/progress-chart";
+import { ProgressChart } from "@/components/workout/progress-chart";
+import { ProgressSparkline } from "@/components/workout/progress-sparkline";
 import { formatRelative } from "@/lib/day/body-weight";
 import type { ExerciseProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";

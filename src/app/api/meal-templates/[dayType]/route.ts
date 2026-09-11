@@ -2,8 +2,9 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { ensureMealTemplate, isDayType } from "@/lib/meal-templates";
+import { ensureMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
+import { isDayType } from "@/lib/nutrition";
 
 type RouteContext = {
   params: Promise<{ dayType: string }>;

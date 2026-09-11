@@ -1,7 +1,7 @@
+import { buildReviewBrief } from "@/lib/ai/brief";
 import { ReviewError } from "@/lib/ai/errors";
 import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
-import { buildReviewBrief } from "@/lib/ai/signals";
 import type { ReviewSnapshot, ReviewText } from "@/lib/ai/types";
 import { calendarToday } from "@/lib/day/dates";
 import {

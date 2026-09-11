@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import { isOnboardingCompleted, readSettingsPayload } from "@/lib/settings-map";
+import { isOnboardingCompleted, readSettingsPayload } from "@/lib/settings/map";
 import type { UserSettings } from "@/lib/types";
 
 export function OnboardingGate({ children }: { children: React.ReactNode }) {

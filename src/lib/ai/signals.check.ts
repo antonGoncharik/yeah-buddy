@@ -1,10 +1,8 @@
+import { buildReviewBrief } from "@/lib/ai/brief";
+import { reviewCoverage } from "@/lib/ai/coverage";
 import { formatG } from "@/lib/ai/format";
 import { reviewPromptPayload } from "@/lib/ai/prompt";
-import {
-  buildReviewBrief,
-  buildSignals,
-  reviewCoverage,
-} from "@/lib/ai/signals";
+import { buildSignals } from "@/lib/ai/signal-lines";
 import type { ReviewMaxRow } from "@/lib/ai/types";
 import type { DayHistoryRow } from "@/lib/types";
 

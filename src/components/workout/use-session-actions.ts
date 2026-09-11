@@ -50,15 +50,35 @@ export function useSessionActions({
   const router = useRouter();
   const confirm = useConfirm();
 
+  async function runBusy(work: () => Promise<void>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await work();
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function applyPayload(data: unknown): SessionDetail | null {
+    const next = readSessionDetail(data);
+    if (!next) {
+      return null;
+    }
+    writeJson(sessionUrl, data);
+    applyDetail(next);
+    return next;
+  }
+
   async function complete() {
     if (!detail) {
       return;
     }
 
-    setBusy(true);
-    setError(null);
-
-    try {
+    await runBusy(async () => {
       const data = await postJson(
         `/api/sessions/${detail.session.id}/complete`,
         {
@@ -79,20 +99,13 @@ export function useSessionActions({
         },
       );
 
-      const next = readSessionDetail(data);
+      const next = applyPayload(data);
       if (next) {
-        writeJson(sessionUrl, data);
-        applyDetail(next);
         setCorrecting(false);
         haptic("success");
         await loadFollowUp(next.session.session_date);
       }
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function saveFeel(feel: SessionFeel | null) {
@@ -141,26 +154,15 @@ export function useSessionActions({
       return;
     }
 
-    setBusy(true);
-    setError(null);
-
-    try {
+    await runBusy(async () => {
       const data = await postJson(
         `/api/sessions/${detail.session.id}/raise-maxes`,
         {},
       );
-      const next = readSessionDetail(data);
-      if (next) {
-        writeJson(sessionUrl, data);
-        applyDetail(next);
+      if (applyPayload(data)) {
         haptic("success");
       }
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function saveNote() {
@@ -201,25 +203,12 @@ export function useSessionActions({
       return;
     }
 
-    setBusy(true);
-    setError(null);
-
-    try {
+    await runBusy(async () => {
       const data = await deleteJson(
         `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}`,
       );
-
-      const next = readSessionDetail(data);
-      if (next) {
-        writeJson(sessionUrl, data);
-        applyDetail(next);
-      }
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+      applyPayload(data);
+    });
   }
 
   async function cancelToday() {
@@ -237,19 +226,11 @@ export function useSessionActions({
       return;
     }
 
-    setBusy(true);
-    setError(null);
-
-    try {
+    await runBusy(async () => {
       await deleteJson(`/api/sessions/${detail.session.id}`);
       haptic("commit");
       router.replace("/workouts");
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return {

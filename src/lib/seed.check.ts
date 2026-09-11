@@ -2,7 +2,7 @@ import {
   FAVORITE_FOODS,
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
-} from "@/lib/starter-foods";
+} from "@/lib/food/starter";
 import {
   CYCLE_TEMPLATES,
   FORMULA_SYSTEMS,

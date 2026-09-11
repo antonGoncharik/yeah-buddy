@@ -11,11 +11,11 @@ import { requireSession } from "@/lib/auth/require-session";
 import {
   addTemplateItem,
   FoodNotFoundError,
-  isDayType,
   TemplateMealHiddenError,
   templateItemWriteSchema,
 } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
+import { isDayType } from "@/lib/nutrition";
 
 type RouteContext = {
   params: Promise<{ dayType: string }>;

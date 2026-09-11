@@ -14,7 +14,7 @@ import {
   todayHomeHref,
 } from "@/lib/day/dates";
 import { readFoodPayload } from "@/lib/foods";
-import { readMealItemPayload } from "@/lib/meal-map";
+import { readMealItemPayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food, MealItem } from "@/lib/types";
 

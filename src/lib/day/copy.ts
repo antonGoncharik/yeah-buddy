@@ -1,3 +1,4 @@
+import { copyMealItemRows } from "@/lib/day/copy-rows";
 import { insertEmptyMeals } from "@/lib/day/create";
 import {
   DayConflictError,
@@ -9,14 +10,13 @@ import {
   YesterdayMissingError,
 } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { getDateForMeal } from "@/lib/day/meal-items";
+import { getDateForMeal } from "@/lib/day/meal-date";
 import { getDayByDate } from "@/lib/day/store";
 import { assertUserDayWritable } from "@/lib/day/writable";
-import { filledMealTypes, isMealType } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CopyDayHint, MealType } from "@/lib/types";
 
-const COPY_DAYS_WINDOW = 14;
+export { listCopyDays, yesterdayCopyHint } from "@/lib/day/copy-hints";
+export { copyMealItemRows } from "@/lib/day/copy-rows";
 
 export async function copyYesterday(
   userId: string,
@@ -185,93 +185,4 @@ export async function copyMealFromDate(
   }
 
   return day;
-}
-
-export async function yesterdayCopyHint(
-  userId: string,
-  date: string,
-): Promise<{ exists: boolean; mealTypes: MealType[] }> {
-  const yesterday = await getDayByDate(userId, previousIsoDate(date));
-  if (!yesterday) {
-    return { exists: false, mealTypes: [] };
-  }
-
-  return {
-    exists: true,
-    mealTypes: filledMealTypes(yesterday.meals),
-  };
-}
-
-export async function listCopyDays(
-  userId: string,
-  beforeDate: string,
-): Promise<CopyDayHint[]> {
-  const start = shiftIsoDate(beforeDate, -(COPY_DAYS_WINDOW - 1));
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("days")
-    .select(
-      `
-      date,
-      meals (
-        meal_type,
-        meal_items (id)
-      )
-    `,
-    )
-    .eq("user_id", userId)
-    .gte("date", start)
-    .lt("date", beforeDate)
-    .order("date", { ascending: false });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  return (result.data ?? []).flatMap((row) => {
-    const date = String(row.date).slice(0, 10);
-    const meals = Array.isArray(row.meals) ? row.meals : [];
-    const mealTypes = meals.flatMap((meal) => {
-      if (!meal || typeof meal !== "object") {
-        return [];
-      }
-      const record = meal as { meal_type?: unknown; meal_items?: unknown };
-      if (!isMealType(record.meal_type)) {
-        return [];
-      }
-      if (!Array.isArray(record.meal_items) || record.meal_items.length === 0) {
-        return [];
-      }
-      return [record.meal_type];
-    });
-    if (mealTypes.length === 0) {
-      return [];
-    }
-    return [{ date, mealTypes }];
-  });
-}
-
-export function copyMealItemRows(
-  userId: string,
-  mealId: string,
-  items: DayWithMeals["meals"][number]["items"],
-) {
-  return items.map((item) => ({
-    user_id: userId,
-    meal_id: mealId,
-    food_id: item.food_id,
-    name_snapshot: item.name_snapshot,
-    grams: item.grams,
-    protein: item.protein,
-    fat: item.fat,
-    carbs: item.carbs,
-    kcal: item.kcal,
-    per_100_snapshot: item.per_100_snapshot,
-  }));
-}
-
-function shiftIsoDate(date: string, days: number): string {
-  const [year, month, day] = date.split("-").map(Number);
-  const shifted = new Date(Date.UTC(year, month - 1, day + days));
-  return shifted.toISOString().slice(0, 10);
 }

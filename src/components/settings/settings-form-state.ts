@@ -1,5 +1,5 @@
 import { calcKcalFromMacros } from "@/lib/nutrition";
-import { readSettingsPayload } from "@/lib/settings-map";
+import { readSettingsPayload } from "@/lib/settings/map";
 import type { UserSettings } from "@/lib/types";
 
 export interface SettingsFormState {

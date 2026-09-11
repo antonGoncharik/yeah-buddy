@@ -8,7 +8,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { cachedGet } from "@/lib/api-cache";
-import { readMealTemplatesPayload } from "@/lib/meal-map";
+import { readMealTemplatesPayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import { DAY_TEMPLATE_TITLES, formatKcal, sumMealItems } from "@/lib/nutrition";
 import type { DayType, MealTemplateDetail } from "@/lib/types";

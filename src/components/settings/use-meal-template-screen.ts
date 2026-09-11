@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import { cachedGet, deleteJson } from "@/lib/api-cache";
-import { readMealTemplatePayload } from "@/lib/meal-map";
+import { readMealTemplatePayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import {
   calcKcalFromMacros,
@@ -14,7 +14,7 @@ import {
   sumMealItems,
   visibleMealTypes,
 } from "@/lib/nutrition";
-import { readSettingsPayload } from "@/lib/settings-map";
+import { readSettingsPayload } from "@/lib/settings/map";
 import type {
   DayType,
   MealTemplateDetail,

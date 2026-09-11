@@ -1,50 +1,13 @@
+import { phaseMarks } from "@/components/workout/progress-phase-marks";
 import { chartShape } from "@/lib/chart-shape";
 import { formatRelative } from "@/lib/day/body-weight";
-import type { PhaseType, ProgressPoint } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { phaseLabel } from "@/lib/workout/labels";
+import type { ProgressPoint } from "@/lib/types";
 import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
 import {
-  hasSecondsSeries,
   metricPoints,
   metricValues,
   type ProgressMetric,
 } from "@/lib/workout/progress-stats";
-
-export function ProgressSparkline({
-  points,
-  className,
-}: {
-  points: ProgressPoint[];
-  className?: string;
-}) {
-  const metric: ProgressMetric = hasSecondsSeries(points)
-    ? "seconds"
-    : "weight";
-  const shape = chartShape(metricValues(points, metric), 64, 28, 2);
-  if (!shape) {
-    return <span className="text-sm text-muted-foreground">—</span>;
-  }
-
-  return (
-    <svg
-      viewBox="0 0 64 28"
-      className={cn("h-7 w-16 overflow-visible", className)}
-      aria-hidden
-    >
-      <path d={shape.area} className="fill-primary/15" />
-      <path
-        d={shape.line}
-        fill="none"
-        className="stroke-primary motion-safe:animate-draw-line"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        pathLength={1}
-      />
-    </svg>
-  );
-}
 
 export function ProgressChart({
   points,
@@ -207,43 +170,4 @@ export function ProgressChart({
       </ol>
     </div>
   );
-}
-
-function phaseMarks(
-  points: ProgressPoint[],
-  dots: Array<{ x: number; y: number }>,
-  width: number,
-  pad: number,
-): Array<{ x: number; label: string; anchor: "start" | "middle" | "end" }> {
-  const marks: Array<{
-    x: number;
-    label: string;
-    anchor: "start" | "middle" | "end";
-  }> = [];
-  let previous: PhaseType | null = null;
-
-  for (let index = 0; index < points.length; index += 1) {
-    const point = points[index];
-    const dot = dots[index];
-    if (!point || !dot || point.phase_type == null) {
-      previous = point?.phase_type ?? null;
-      continue;
-    }
-
-    if (point.phase_type !== previous) {
-      marks.push({
-        x: dot.x,
-        label: phaseLabel(point.phase_type),
-        anchor:
-          dot.x < pad + 28
-            ? "start"
-            : dot.x > width - pad - 28
-              ? "end"
-              : "middle",
-      });
-    }
-    previous = point.phase_type;
-  }
-
-  return marks;
 }

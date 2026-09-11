@@ -10,7 +10,7 @@ import {
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { readMealTemplateItemPayload } from "@/lib/meal-map";
+import { readMealTemplateItemPayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isDayType } from "@/lib/nutrition";
 import type { MealTemplateItemView } from "@/lib/types";

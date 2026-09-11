@@ -9,6 +9,7 @@ import {
   nutritionHistoryHref,
   PastDayLockedError,
   previousIsoDate,
+  shiftIsoDate,
   todayHistoryDayHref,
   todayHomeHref,
   withDateQuery,
@@ -28,6 +29,11 @@ assertEqual(isIsoDate("09-09-2026"), false, "wrong order");
 assertEqual(previousIsoDate("2026-03-01"), "2026-02-28", "month rollover");
 assertEqual(previousIsoDate("2026-01-01"), "2025-12-31", "year rollover back");
 assertEqual(nextIsoDate("2026-12-31"), "2027-01-01", "year rollover forward");
+assertEqual(
+  shiftIsoDate("2026-09-12", -13),
+  "2026-08-30",
+  "copy-days window start",
+);
 assertEqual(todayHomeHref(null), "/today", "missing date stays today");
 assertEqual(todayHomeHref("2000-01-01"), "/today?date=2000-01-01", "past date");
 assertEqual(todayHomeHref(calendarToday()), "/today", "today has no query");

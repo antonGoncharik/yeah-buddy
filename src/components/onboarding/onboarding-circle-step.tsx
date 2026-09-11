@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { ProgramPresetList } from "@/components/workout/program-preset-list";
 import type { OnboardingCircle } from "@/lib/onboarding";
-import { isExtraProgram } from "@/lib/onboarding-setup";
+import { isExtraProgram } from "@/lib/onboarding/setup";
 import { cn } from "@/lib/utils";
 import {
   isProgramPresetId,

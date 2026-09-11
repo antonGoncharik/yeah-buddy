@@ -1,8 +1,17 @@
-import { isIsoDate } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Exercise, ExerciseWithMax, GlobalMax } from "@/lib/types";
+import type { GlobalMax } from "@/lib/types";
 import { StartingMaxLockedError } from "@/lib/workout/exercise-schema";
+import {
+  pickCurrentMax,
+  resolveAchievedAt,
+} from "@/lib/workout/global-max-current";
 import { mapGlobalMax } from "@/lib/workout/map-rows";
+
+export {
+  attachMaxes,
+  pickCurrentMax,
+  resolveAchievedAt,
+} from "@/lib/workout/global-max-current";
 
 export async function correctStartingMax(input: {
   userId: string;
@@ -163,26 +172,6 @@ export async function insertGlobalMax(
   return mapGlobalMax(inserted.data as Record<string, unknown>);
 }
 
-export function attachMaxes(
-  exercise: Exercise,
-  maxes: Map<string, GlobalMax[]>,
-): ExerciseWithMax {
-  const history = maxes.get(exercise.id) ?? [];
-  return {
-    ...exercise,
-    current_max: pickCurrentMax(history),
-    max_history: history,
-  };
-}
-
-export function resolveAchievedAt(value: string | undefined): string {
-  if (value && isIsoDate(value)) {
-    return value;
-  }
-
-  return new Date().toISOString().slice(0, 10);
-}
-
 async function hasCurrentPhase(userId: string): Promise<boolean> {
   const supabase = createSupabaseServerClient();
   const result = await supabase
@@ -197,31 +186,4 @@ async function hasCurrentPhase(userId: string): Promise<boolean> {
   }
 
   return Boolean(result.data);
-}
-
-export function pickCurrentMax(history: GlobalMax[]): GlobalMax | null {
-  if (history.length === 0) {
-    return null;
-  }
-
-  return history.reduce((best, record) => {
-    if (record.max_weight > best.max_weight) {
-      return record;
-    }
-
-    if (record.max_weight === best.max_weight) {
-      if (record.achieved_at > best.achieved_at) {
-        return record;
-      }
-
-      if (
-        record.achieved_at === best.achieved_at &&
-        record.created_at > best.created_at
-      ) {
-        return record;
-      }
-    }
-
-    return best;
-  });
 }

@@ -4,7 +4,7 @@ import {
   isExtraProgram,
   onboardingWeightExercises,
   scaledTemplateGrams,
-} from "@/lib/onboarding-setup";
+} from "@/lib/onboarding/setup";
 import type { ExerciseWithMax } from "@/lib/types";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 

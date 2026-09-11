@@ -1,7 +1,7 @@
 import { mutateJson, postJson, writeJson } from "@/lib/api-cache";
 import { ensureTodayDay } from "@/lib/day/ensure-today";
 import type { OnboardingCircle } from "@/lib/onboarding";
-import { parseOnboardingState } from "@/lib/onboarding-map";
+import { parseOnboardingState } from "@/lib/onboarding/map";
 import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
 import { packPath, peekPendingPackToken } from "@/lib/share/pending";

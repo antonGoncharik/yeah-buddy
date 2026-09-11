@@ -1,21 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
-import {
-  CookieMark,
-  Doodle,
-  DUMBBELL_VIEWBOX,
-  DumbbellMark,
-} from "@/components/layout/doodles";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
-import { todayHomeHref, withDateQuery } from "@/lib/day/dates";
+import { TodayDayHeader } from "@/components/day/today-day-header";
+import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { DAY_TYPE_LABELS, hiddenMealSlotsNote } from "@/lib/nutrition";
+import { hiddenMealSlotsNote } from "@/lib/nutrition";
 import type {
   CopyDayHint,
   DayType,
@@ -81,7 +72,6 @@ export function TodayDayView({
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
-  const router = useRouter();
   const hiddenNote = hiddenMealSlotsNote(
     hiddenMealKcal,
     hiddenMealTypes,
@@ -90,52 +80,15 @@ export function TodayDayView({
 
   return (
     <div className="flex flex-col gap-5">
-      {viewOnly ? (
-        <div className="animate-rise flex flex-col gap-3">
-          <p className="text-base text-muted-foreground">
-            {shownDay.is_training_day
-              ? DAY_TYPE_LABELS.training
-              : DAY_TYPE_LABELS.rest}
-            {writable ? null : ". Это старый день — граммы уже не меняются."}
-          </p>
-          {fromHistory && writable ? (
-            <Button
-              className="h-12 w-full text-base"
-              onClick={() => router.push(todayHomeHref(date))}
-            >
-              Исправить
-            </Button>
-          ) : null}
-        </div>
-      ) : (
-        <div className="animate-rise">
-          <Segmented
-            value={shownDay.is_training_day ? "training" : "rest"}
-            disabled={busy}
-            options={[
-              {
-                id: "rest",
-                label: DAY_TYPE_LABELS.rest,
-                icon: (
-                  <Doodle className="size-4" viewBox="-12 -12 24 24">
-                    <CookieMark />
-                  </Doodle>
-                ),
-              },
-              {
-                id: "training",
-                label: DAY_TYPE_LABELS.training,
-                icon: (
-                  <Doodle className="size-7" viewBox={DUMBBELL_VIEWBOX}>
-                    <DumbbellMark />
-                  </Doodle>
-                ),
-              },
-            ]}
-            onChange={(dayType) => void switchType(dayType)}
-          />
-        </div>
-      )}
+      <TodayDayHeader
+        date={date}
+        writable={writable}
+        viewOnly={viewOnly}
+        fromHistory={fromHistory}
+        isTrainingDay={shownDay.is_training_day}
+        busy={busy}
+        switchType={switchType}
+      />
 
       <div className="animate-rise" style={{ animationDelay: "40ms" }}>
         <DaySummary

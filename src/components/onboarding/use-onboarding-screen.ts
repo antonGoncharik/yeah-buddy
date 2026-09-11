@@ -11,11 +11,11 @@ import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
-import { parseOnboardingState } from "@/lib/onboarding-map";
+import { parseOnboardingState } from "@/lib/onboarding/map";
 import {
   defaultOnboardingCircle,
   onboardingWeightExercises,
-} from "@/lib/onboarding-setup";
+} from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { haptic } from "@/lib/telegram/haptic";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
