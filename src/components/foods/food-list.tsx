@@ -4,6 +4,7 @@ import { ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { FOOD_STATE_LABELS } from "@/lib/foods";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -81,11 +82,18 @@ export function FoodList({
 }
 
 function FoodListBody({ food }: { food: Food }) {
+  const subtitle = [
+    food.state !== "as_is" ? FOOD_STATE_LABELS[food.state] : null,
+    food.brand,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <span className="min-w-0 flex-1">
       <p className="truncate text-lg font-medium">{food.name}</p>
-      {food.brand ? (
-        <p className="truncate text-sm text-muted-foreground">{food.brand}</p>
+      {subtitle ? (
+        <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
       ) : null}
       <p className="mt-1 text-sm text-muted-foreground">
         Б {formatMacro(food.protein_per_100)} · Ж{" "}

@@ -1,10 +1,12 @@
+import { parseFoodState } from "@/lib/food/schema";
 import { parseFood } from "@/lib/foods";
 import { isRecord } from "@/lib/read";
-import type { Food } from "@/lib/types";
+import type { Food, FoodState } from "@/lib/types";
 
 export interface FoodFormState {
   name: string;
   brand: string;
+  state: FoodState;
   protein_per_100: string;
   fat_per_100: string;
   carbs_per_100: string;
@@ -18,6 +20,7 @@ export function toFormState(food?: Food): FoodFormState {
   return {
     name: food?.name ?? "",
     brand: food?.brand ?? "",
+    state: food?.state ?? "as_is",
     protein_per_100: food ? String(food.protein_per_100) : "",
     fat_per_100: food ? String(food.fat_per_100) : "",
     carbs_per_100: food ? String(food.carbs_per_100) : "",
@@ -43,6 +46,7 @@ export function toPayload(
 ): {
   name: string;
   brand: string | null;
+  state: FoodState;
   protein_per_100: number;
   fat_per_100: number;
   carbs_per_100: number;
@@ -77,6 +81,7 @@ export function toPayload(
   return {
     name: form.name.trim(),
     brand: form.brand.trim() === "" ? null : form.brand.trim(),
+    state: parseFoodState(form.state),
     protein_per_100: protein,
     fat_per_100: fat,
     carbs_per_100: carbs,

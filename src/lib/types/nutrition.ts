@@ -106,6 +106,51 @@ export interface MealTemplateDetail extends MealTemplate {
   items: MealTemplateItemView[];
 }
 
+export interface NamedMeal {
+  id: string;
+  user_id: string;
+  name: string;
+  meal_type: MealType;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NamedMealItem {
+  id: string;
+  user_id: string;
+  named_meal_id: string;
+  food_id: string | null;
+  name_snapshot: string;
+  grams: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+  per_100_snapshot: {
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal: number;
+  };
+  sort_order: number;
+  created_at: string;
+}
+
+export interface NamedMealDetail extends NamedMeal {
+  items: NamedMealItem[];
+}
+
+export interface NamedMealHint {
+  id: string;
+  name: string;
+  meal_type: MealType;
+}
+
+export interface CopyDayHint {
+  date: string;
+  mealTypes: MealType[];
+}
+
 export interface DayHistoryRow {
   date: string;
   is_training_day: boolean;

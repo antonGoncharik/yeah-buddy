@@ -8,8 +8,9 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import {
+  calendarToday,
   isIsoDate,
-  isPastDayDate,
+  isWritableDayDate,
   todayHomeHref,
   withDateQuery,
 } from "@/lib/day/dates";
@@ -23,7 +24,7 @@ export default function AddMealItemGramsPage() {
   const date = readDateParam(searchParams.get("date"));
   const backHref = withDateQuery(`/today/meals/${params.mealId}/add`, date);
   const doneHref = todayHomeHref(date);
-  const viewOnly = date != null && isPastDayDate(date);
+  const viewOnly = date != null && !isWritableDayDate(date, calendarToday());
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
   const [error, setError] = useState<string | null>(null);

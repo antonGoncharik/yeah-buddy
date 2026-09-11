@@ -17,17 +17,27 @@ import { cachedGet, peekJson } from "@/lib/api-cache";
 import {
   calendarToday,
   isIsoDate,
+  isWritableDayDate,
   todayHistoryDayHref,
   todayHomeHref,
 } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import {
+  formatRemainingLine,
+  loggedItemsFromMeals,
+  type RecipeLine,
+  remainingRecipe,
+} from "@/lib/day/remaining";
+import {
+  readCalendarToday,
+  readCopyDays,
   readDay,
   readLastBodyWeight,
+  readNamedMeals,
+  readRecipes,
   readYesterdayExists,
-  readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
-import type { MealType } from "@/lib/types";
+import type { CopyDayHint, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 
 function resolveStartDate(value: string | undefined, today: string): string {
@@ -46,13 +56,21 @@ export function useTodayScreen({
   readOnly?: boolean;
   fromSettings?: boolean;
 }) {
-  const today = calendarToday();
+  const [serverToday, setServerToday] = useState<string | null>(null);
+  const today = serverToday ?? calendarToday();
   const router = useRouter();
-  const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
+  const [date, setDate] = useState(() =>
+    resolveStartDate(initialDate, calendarToday()),
+  );
   const { setMood } = useDayMood();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [yesterdayExists, setYesterdayExists] = useState(false);
-  const [yesterdayMealTypes, setYesterdayMealTypes] = useState<MealType[]>([]);
+  const [copyDays, setCopyDays] = useState<CopyDayHint[]>([]);
+  const [namedMeals, setNamedMeals] = useState<NamedMealHint[]>([]);
+  const [recipes, setRecipes] = useState<{
+    rest: RecipeLine[];
+    training: RecipeLine[];
+  }>({ rest: [], training: [] });
   const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
@@ -65,7 +83,8 @@ export function useTodayScreen({
 
   const isToday = date === today;
   const fromHistory = readOnly;
-  const viewOnly = fromHistory || !isToday;
+  const writable = isWritableDayDate(date, today);
+  const viewOnly = fromHistory || !writable;
   const contentReady = loadedDate === date;
   const shownDay = contentReady && day?.date === date ? day : null;
 
@@ -103,9 +122,15 @@ export function useTodayScreen({
           if (!stillCurrent()) {
             return true;
           }
+          const nextToday = readCalendarToday(data);
+          if (nextToday) {
+            setServerToday(nextToday);
+          }
           setDay(readDay(data));
           setYesterdayExists(readYesterdayExists(data));
-          setYesterdayMealTypes(readYesterdayMealTypes(data));
+          setCopyDays(readCopyDays(data));
+          setNamedMeals(readNamedMeals(data));
+          setRecipes(readRecipes(data));
           setLastBodyWeight(readLastBodyWeight(data));
           setLoadedDate(requestedDate);
           return true;
@@ -152,20 +177,20 @@ export function useTodayScreen({
 
   const goToDate = useCallback(
     (next: string) => {
-      const resolved = resolveStartDate(next, calendarToday());
+      const resolved = resolveStartDate(next, today);
       setDate(resolved);
       const href = fromHistory
         ? todayHistoryDayHref(resolved, fromSettings)
         : todayHomeHref(resolved);
       router.replace(href, { scroll: false });
     },
-    [fromHistory, fromSettings, router],
+    [fromHistory, fromSettings, router, today],
   );
 
   useEffect(() => {
     setDay(null);
     setYesterdayExists(false);
-    setYesterdayMealTypes([]);
+    setCopyDays([]);
     setLastBodyWeight(null);
     setWorkoutState(null);
     if (date.length > 0) {
@@ -196,14 +221,34 @@ export function useTodayScreen({
     () => hiddenMealTypesFromDay(shownDay),
     [shownDay],
   );
+  const remainingLine = useMemo(() => {
+    if (!shownDay) {
+      return null;
+    }
+    const recipe = shownDay.is_training_day ? recipes.training : recipes.rest;
+    return formatRemainingLine(
+      remainingRecipe(
+        recipe,
+        loggedItemsFromMeals(shownDay.meals),
+        shownDay.is_training_day,
+      ),
+    );
+  }, [recipes, shownDay]);
 
-  const { copyYesterday, copyMealYesterday } = useTodayCopy({
+  const {
+    copyYesterday,
+    copyMealFromDate,
+    applyNamedMeal,
+    saveNamedMeal,
+    deleteNamedMeal,
+  } = useTodayCopy({
     viewOnly,
     date,
     day,
     setBusy,
     setActionError,
     setDay,
+    setNamedMeals,
   });
   const { startQueuedWorkout } = useTodayWorkoutStart({
     viewOnly,
@@ -231,6 +276,7 @@ export function useTodayScreen({
     date,
     today,
     isToday,
+    writable,
     viewOnly,
     contentReady,
     shownDay,
@@ -239,9 +285,11 @@ export function useTodayScreen({
     hiddenMealKcal,
     hiddenMealTypes,
     fact,
+    remainingLine,
     dayHasItems,
     yesterdayExists,
-    yesterdayMealTypes,
+    copyDays,
+    namedMeals,
     lastBodyWeight,
     busy,
     loadError,
@@ -250,7 +298,10 @@ export function useTodayScreen({
     goToDate,
     createDay,
     copyYesterday,
-    copyMealYesterday,
+    copyMealFromDate,
+    applyNamedMeal,
+    saveNamedMeal,
+    deleteNamedMeal,
     switchType,
     saveBodyWeight,
     deleteItem,

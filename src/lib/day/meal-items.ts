@@ -1,5 +1,5 @@
-import { assertWritableDayDate } from "@/lib/day/dates";
 import { mapMealItem } from "@/lib/day/map";
+import { assertUserDayWritable } from "@/lib/day/writable";
 import { getFood } from "@/lib/food/store";
 import {
   calcMacrosFromPer100,
@@ -57,7 +57,7 @@ export async function addMealItem(
   if (!date) {
     throw new Error("Meal not found");
   }
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
 
   const supabase = createSupabaseServerClient();
   const meal = await supabase
@@ -120,7 +120,7 @@ export async function addMealItems(
   if (!date) {
     throw new Error("Meal not found");
   }
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
 
   const supabase = createSupabaseServerClient();
   const inserted = await supabase
@@ -190,7 +190,7 @@ export async function updateMealItemGrams(
   if (!date) {
     throw new Error("Meal item not found");
   }
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
 
   const macros = roundMacros(
     calcMacrosFromPer100(item.per_100_snapshot, grams),
@@ -234,7 +234,7 @@ export async function deleteMealItem(
   if (!date) {
     return false;
   }
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
 
   const supabase = createSupabaseServerClient();
   const deleted = await supabase

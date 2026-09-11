@@ -1,7 +1,11 @@
 import { getTargets } from "@/lib/day/create";
-import { assertWritableDayDate, isPastDayDate } from "@/lib/day/dates";
+import { isWritableDayDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { getDayByDate } from "@/lib/day/store";
+import {
+  assertUserDayWritable,
+  getUserCalendarToday,
+} from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType } from "@/lib/types";
 
@@ -26,7 +30,7 @@ export async function setDayType(
     throw new Error("Day not found");
   }
 
-  assertWritableDayDate(String(existing.data.date).slice(0, 10));
+  await assertUserDayWritable(userId, String(existing.data.date).slice(0, 10));
 
   const targets = await getTargets(userId, dayType);
   const updated = await supabase
@@ -62,7 +66,8 @@ export async function markDateAsTrainingIfExists(
   userId: string,
   date: string,
 ): Promise<void> {
-  if (isPastDayDate(date)) {
+  const today = await getUserCalendarToday(userId);
+  if (!isWritableDayDate(date, today)) {
     return;
   }
 

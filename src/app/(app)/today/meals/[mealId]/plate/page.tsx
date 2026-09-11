@@ -5,10 +5,11 @@ import { AppHeader } from "@/components/layout/app-header";
 import { getGeminiApiKey } from "@/lib/ai/gemini";
 import {
   isIsoDate,
-  isPastDayDate,
+  isWritableDayDate,
   todayHomeHref,
   withDateQuery,
 } from "@/lib/day/dates";
+import { resolveRequestToday } from "@/lib/day/writable";
 
 export default async function PlateMealPage({
   params,
@@ -21,8 +22,9 @@ export default async function PlateMealPage({
   const query = await searchParams;
   const date = readDate(query.date);
   const homeHref = todayHomeHref(date);
+  const today = await resolveRequestToday();
 
-  if (date && isPastDayDate(date)) {
+  if (date && !isWritableDayDate(date, today)) {
     redirect(homeHref);
   }
 

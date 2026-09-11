@@ -1,8 +1,10 @@
 import {
   assertWritableDayDate,
+  calendarDateInTimeZone,
   calendarToday,
   isIsoDate,
   isPastDayDate,
+  isWritableDayDate,
   nextIsoDate,
   nutritionHistoryHref,
   PastDayLockedError,
@@ -58,14 +60,51 @@ assertEqual(
   "history day href",
 );
 
+const today = "2026-09-11";
+assertEqual(isWritableDayDate(today, today), true, "today is writable");
+assertEqual(
+  isWritableDayDate("2026-09-10", today),
+  true,
+  "yesterday is writable",
+);
+assertEqual(
+  isWritableDayDate("2026-09-09", today),
+  false,
+  "day before yesterday locked",
+);
+assertEqual(isWritableDayDate("2026-09-12", today), false, "future locked");
+assertEqual(
+  calendarDateInTimeZone("Europe/Moscow", new Date("2026-09-11T21:30:00Z")),
+  "2026-09-12",
+  "moscow after utc midnight",
+);
+assertEqual(
+  calendarDateInTimeZone(
+    "America/Los_Angeles",
+    new Date("2026-09-12T06:00:00Z"),
+  ),
+  "2026-09-11",
+  "la still previous evening",
+);
+
 let locked = false;
 try {
-  assertWritableDayDate("2000-01-01");
+  assertWritableDayDate("2000-01-01", today);
 } catch (error) {
   locked = error instanceof PastDayLockedError;
 }
 if (!locked) {
   throw new Error("past day should be locked");
+}
+
+let todayOk = true;
+try {
+  assertWritableDayDate("2026-09-10", today);
+} catch {
+  todayOk = false;
+}
+if (!todayOk) {
+  throw new Error("yesterday should stay writable");
 }
 
 console.log("day dates ok");

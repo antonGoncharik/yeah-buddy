@@ -8,7 +8,10 @@ export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
 export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
+export const SOURCE_MEAL_EMPTY = "В этот день этот приём пустой.";
 export const PAST_DAY_LOCKED = "Это старый день — уже не меняется.";
+export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
+export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
 export const BOT_START = `Yeah buddy! 👟
 Твой личный дневник еды и железа.
 

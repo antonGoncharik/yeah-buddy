@@ -1,21 +1,20 @@
 "use client";
 
 import type { CSSProperties } from "react";
-
+import { MealCopyActions } from "@/components/day/meal-copy-actions";
 import {
   MealAddLink,
   MealItemRow,
   type MealLine,
   MealPlateLink,
 } from "@/components/day/meal-item-row";
-import { Button } from "@/components/ui/button";
 import {
   formatKcal,
   formatMacro,
   getMealLabel,
   sumMealItems,
 } from "@/lib/nutrition";
-import type { MealType } from "@/lib/types";
+import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function MealCard({
@@ -25,7 +24,13 @@ export function MealCard({
   addHref,
   plateHref,
   onDeleteItem,
-  onCopyYesterday,
+  date,
+  copyDays,
+  namedMeals,
+  onCopyDate,
+  onApplyNamed,
+  onSaveNamed,
+  onDeleteNamed,
   copyBusy = false,
   readOnly = false,
   className,
@@ -37,14 +42,34 @@ export function MealCard({
   addHref?: string;
   plateHref?: string;
   onDeleteItem?: (item: MealLine) => void;
-  onCopyYesterday?: () => void;
+  date?: string;
+  copyDays?: CopyDayHint[];
+  namedMeals?: NamedMealHint[];
+  onCopyDate?: (sourceDate: string) => void;
+  onApplyNamed?: (namedMealId: string) => void;
+  onSaveNamed?: () => void;
+  onDeleteNamed?: (namedMealId: string, name: string) => void;
   copyBusy?: boolean;
   readOnly?: boolean;
   className?: string;
   style?: CSSProperties;
 }) {
   const totals = sumMealItems(items);
-  const showCopy = !readOnly && Boolean(onCopyYesterday);
+  const copy =
+    !readOnly &&
+    date &&
+    onCopyDate &&
+    onApplyNamed &&
+    onSaveNamed &&
+    onDeleteNamed
+      ? {
+          date,
+          onCopyDate,
+          onApplyNamed,
+          onSaveNamed,
+          onDeleteNamed,
+        }
+      : null;
   const showAdd = !readOnly && Boolean(addHref);
   const showPlate = !readOnly && Boolean(plateHref);
 
@@ -86,18 +111,21 @@ export function MealCard({
         </p>
       ) : null}
 
-      {showCopy || showPlate || showAdd ? (
+      {copy || showPlate || showAdd ? (
         <div className="flex flex-col gap-2">
-          {showCopy ? (
-            <Button
-              type="button"
-              variant={items.length === 0 ? "default" : "outline"}
-              className="h-12 w-full text-base"
-              disabled={copyBusy}
-              onClick={onCopyYesterday}
-            >
-              Как вчера
-            </Button>
+          {copy ? (
+            <MealCopyActions
+              date={copy.date}
+              mealType={mealType}
+              hasItems={items.length > 0}
+              copyDays={copyDays ?? []}
+              namedMeals={namedMeals ?? []}
+              busy={copyBusy}
+              onCopyDate={copy.onCopyDate}
+              onApplyNamed={copy.onApplyNamed}
+              onSaveNamed={copy.onSaveNamed}
+              onDeleteNamed={copy.onDeleteNamed}
+            />
           ) : null}
           {showPlate && plateHref ? <MealPlateLink href={plateHref} /> : null}
           {showAdd && addHref ? <MealAddLink href={addHref} /> : null}

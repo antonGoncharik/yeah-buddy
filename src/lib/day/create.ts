@@ -1,7 +1,8 @@
-import { assertWritableDayDate, DayConflictError } from "@/lib/day/dates";
+import { DayConflictError } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { buildMealItemRow } from "@/lib/day/meal-items";
 import { getDayByDate } from "@/lib/day/store";
+import { assertUserDayWritable } from "@/lib/day/writable";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import {
   calcKcalFromMacros,
@@ -20,7 +21,7 @@ export async function createDayFromTemplate(
   date: string,
   dayType: DayType,
 ): Promise<DayWithMeals> {
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
   const existing = await getDayByDate(userId, date);
   if (existing) {
     throw new DayConflictError();

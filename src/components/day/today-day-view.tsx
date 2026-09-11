@@ -16,11 +16,17 @@ import { Segmented } from "@/components/ui/segmented";
 import { todayHomeHref, withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { DAY_TYPE_LABELS, hiddenMealSlotsNote } from "@/lib/nutrition";
-import type { DayType, MealItem, MealType } from "@/lib/types";
+import type {
+  CopyDayHint,
+  DayType,
+  MealItem,
+  MealType,
+  NamedMealHint,
+} from "@/lib/types";
 
 export function TodayDayView({
   date,
-  isToday,
+  writable,
   viewOnly,
   fromHistory,
   shownDay,
@@ -28,18 +34,23 @@ export function TodayDayView({
   hiddenMealKcal,
   hiddenMealTypes,
   fact,
+  remainingLine,
   dayHasItems,
-  yesterdayMealTypes,
+  copyDays,
+  namedMeals,
   lastBodyWeight,
   busy,
   switchType,
   saveBodyWeight,
   copyYesterday,
-  copyMealYesterday,
+  copyMealFromDate,
+  applyNamedMeal,
+  saveNamedMeal,
+  deleteNamedMeal,
   deleteItem,
 }: {
   date: string;
-  isToday: boolean;
+  writable: boolean;
   viewOnly: boolean;
   fromHistory: boolean;
   shownDay: DayWithMeals;
@@ -47,14 +58,27 @@ export function TodayDayView({
   hiddenMealKcal: number;
   hiddenMealTypes: MealType[];
   fact: { protein: number; fat: number; carbs: number; kcal: number };
+  remainingLine: string | null;
   dayHasItems: boolean;
-  yesterdayMealTypes: MealType[];
+  copyDays: CopyDayHint[];
+  namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
-  copyMealYesterday: (mealId: string, mealType: MealType) => Promise<void>;
+  copyMealFromDate: (
+    mealId: string,
+    mealType: MealType,
+    sourceDate: string,
+  ) => Promise<void>;
+  applyNamedMeal: (
+    mealId: string,
+    mealType: MealType,
+    namedMealId: string,
+  ) => Promise<void>;
+  saveNamedMeal: (mealId: string, mealType: MealType) => Promise<void>;
+  deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
   const router = useRouter();
@@ -72,9 +96,9 @@ export function TodayDayView({
             {shownDay.is_training_day
               ? DAY_TYPE_LABELS.training
               : DAY_TYPE_LABELS.rest}
-            {isToday ? null : ". Это старый день — граммы уже не меняются."}
+            {writable ? null : ". Это старый день — граммы уже не меняются."}
           </p>
-          {fromHistory && isToday ? (
+          {fromHistory && writable ? (
             <Button
               className="h-12 w-full text-base"
               onClick={() => router.push(todayHomeHref(date))}
@@ -158,10 +182,30 @@ export function TodayDayView({
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/plate`, date)
           }
-          onCopyYesterday={
-            viewOnly || !yesterdayMealTypes.includes(meal.meal_type)
+          date={date}
+          copyDays={copyDays}
+          namedMeals={namedMeals}
+          onCopyDate={
+            viewOnly
               ? undefined
-              : () => void copyMealYesterday(meal.id, meal.meal_type)
+              : (sourceDate) =>
+                  void copyMealFromDate(meal.id, meal.meal_type, sourceDate)
+          }
+          onApplyNamed={
+            viewOnly
+              ? undefined
+              : (namedMealId) =>
+                  void applyNamedMeal(meal.id, meal.meal_type, namedMealId)
+          }
+          onSaveNamed={
+            viewOnly
+              ? undefined
+              : () => void saveNamedMeal(meal.id, meal.meal_type)
+          }
+          onDeleteNamed={
+            viewOnly
+              ? undefined
+              : (namedMealId, name) => void deleteNamedMeal(namedMealId, name)
           }
           copyBusy={busy}
           readOnly={viewOnly}
@@ -179,6 +223,17 @@ export function TodayDayView({
           }
         />
       ))}
+
+      {remainingLine ? (
+        <p
+          className="animate-rise px-1 text-base leading-relaxed text-muted-foreground"
+          style={{
+            animationDelay: `${80 + visibleMeals.length * 50}ms`,
+          }}
+        >
+          {remainingLine}
+        </p>
+      ) : null}
 
       {viewOnly || dayHasItems ? null : (
         <div

@@ -76,6 +76,7 @@ const settings: UserSettings = {
   training_carbs: 250,
   onboarding_completed_at: "2026-01-01",
   reminders_enabled: true,
+  timezone: "Europe/Moscow",
   updated_at: "2026-01-01",
 };
 

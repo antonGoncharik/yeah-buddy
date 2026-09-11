@@ -14,11 +14,17 @@ import {
   DayConflictError,
   getDayByDate,
   getLastBodyWeight,
+  getUserCalendarToday,
   isIsoDate,
+  isWritableDayDate,
+  listCopyDays,
   PastDayLockedError,
+  recipeFromTemplate,
   yesterdayCopyHint,
 } from "@/lib/days";
+import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
+import { listNamedMealHints } from "@/lib/named-meal/store";
 
 const createSchema = z.object({
   date: z.string(),
@@ -37,17 +43,38 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const [day, yesterday, lastBodyWeight] = await Promise.all([
+    const today = await getUserCalendarToday(auth.session.userId);
+    const [
+      day,
+      yesterday,
+      lastBodyWeight,
+      copyDays,
+      namedMeals,
+      rest,
+      training,
+    ] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
       getLastBodyWeight(auth.session.userId, date),
+      listCopyDays(auth.session.userId, date),
+      listNamedMealHints(auth.session.userId),
+      getActiveMealTemplate(auth.session.userId, "rest"),
+      getActiveMealTemplate(auth.session.userId, "training"),
     ]);
 
     return jsonOk({
       day,
+      today,
+      writable: isWritableDayDate(date, today),
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
       lastBodyWeight,
+      copyDays,
+      namedMeals,
+      recipes: {
+        rest: recipeFromTemplate(rest),
+        training: recipeFromTemplate(training),
+      },
     });
   } catch (error) {
     return failRoute(error);

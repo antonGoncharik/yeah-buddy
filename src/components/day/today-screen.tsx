@@ -27,6 +27,7 @@ export function TodayScreen({
     date,
     today,
     isToday,
+    writable,
     viewOnly,
     contentReady,
     shownDay,
@@ -35,9 +36,11 @@ export function TodayScreen({
     hiddenMealKcal,
     hiddenMealTypes,
     fact,
+    remainingLine,
     dayHasItems,
     yesterdayExists,
-    yesterdayMealTypes,
+    copyDays,
+    namedMeals,
     lastBodyWeight,
     busy,
     loadError,
@@ -46,7 +49,10 @@ export function TodayScreen({
     goToDate,
     createDay,
     copyYesterday,
-    copyMealYesterday,
+    copyMealFromDate,
+    applyNamedMeal,
+    saveNamedMeal,
+    deleteNamedMeal,
     switchType,
     saveBodyWeight,
     deleteItem,
@@ -133,7 +139,7 @@ export function TodayScreen({
         {contentReady && !loadError && shownDay ? (
           <TodayDayView
             date={date}
-            isToday={isToday}
+            writable={writable}
             viewOnly={viewOnly}
             fromHistory={fromHistory}
             shownDay={shownDay}
@@ -141,14 +147,19 @@ export function TodayScreen({
             hiddenMealKcal={hiddenMealKcal}
             hiddenMealTypes={hiddenMealTypes}
             fact={fact}
+            remainingLine={remainingLine}
             dayHasItems={dayHasItems}
-            yesterdayMealTypes={yesterdayMealTypes}
+            copyDays={copyDays}
+            namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
             busy={busy}
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}
             copyYesterday={copyYesterday}
-            copyMealYesterday={copyMealYesterday}
+            copyMealFromDate={copyMealFromDate}
+            applyNamedMeal={applyNamedMeal}
+            saveNamedMeal={saveNamedMeal}
+            deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
           />
         ) : null}

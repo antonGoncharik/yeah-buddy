@@ -7,7 +7,12 @@ import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { isIsoDate, isPastDayDate, todayHomeHref } from "@/lib/day/dates";
+import {
+  calendarToday,
+  isIsoDate,
+  isWritableDayDate,
+  todayHomeHref,
+} from "@/lib/day/dates";
 import { readFoodPayload } from "@/lib/foods";
 import { readMealItemPayload } from "@/lib/meal-map";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -112,9 +117,11 @@ export default function EditMealItemPage() {
           defaultPortionLabel={food?.default_portion_label ?? null}
           backHref={homeHref}
           doneHref={homeHref}
-          readOnly={dayDate != null && isPastDayDate(dayDate)}
+          readOnly={
+            dayDate != null && !isWritableDayDate(dayDate, calendarToday())
+          }
           save={
-            dayDate != null && isPastDayDate(dayDate)
+            dayDate != null && !isWritableDayDate(dayDate, calendarToday())
               ? undefined
               : (grams) => saveMealItemGrams(item.id, grams)
           }

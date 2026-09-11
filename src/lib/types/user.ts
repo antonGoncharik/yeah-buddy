@@ -19,5 +19,6 @@ export interface UserSettings {
   training_carbs: number;
   onboarding_completed_at: string | null;
   reminders_enabled: boolean;
+  timezone: string;
   updated_at: string;
 }

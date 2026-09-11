@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { haptic } from "@/lib/telegram/haptic";
 
 export interface ConfirmOptions {
@@ -20,9 +21,19 @@ export interface ConfirmOptions {
   destructive?: boolean;
 }
 
+export interface PromptOptions {
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  placeholder?: string;
+  defaultValue?: string;
+}
+
 type ConfirmFn = (options: ConfirmOptions | string) => Promise<boolean>;
+type PromptFn = (options: PromptOptions) => Promise<string | null>;
 
 const ConfirmContext = createContext<ConfirmFn | null>(null);
+const PromptContext = createContext<PromptFn | null>(null);
 
 export function useConfirm(): ConfirmFn {
   const confirm = useContext(ConfirmContext);
@@ -32,44 +43,112 @@ export function useConfirm(): ConfirmFn {
   return confirm;
 }
 
-interface Pending {
+export function usePrompt(): PromptFn {
+  const prompt = useContext(PromptContext);
+  if (!prompt) {
+    throw new Error("usePrompt must be used within ConfirmProvider");
+  }
+  return prompt;
+}
+
+interface PendingConfirm {
+  kind: "confirm";
   options: ConfirmOptions;
   resolve: (value: boolean) => void;
 }
+
+interface PendingPrompt {
+  kind: "prompt";
+  options: PromptOptions;
+  resolve: (value: string | null) => void;
+}
+
+type Pending = PendingConfirm | PendingPrompt;
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [pending, setPending] = useState<Pending | null>(null);
   const pendingRef = useRef<Pending | null>(null);
 
-  const confirm = useCallback<ConfirmFn>((input) => {
-    const options = typeof input === "string" ? { message: input } : input;
-    if (options.destructive) {
-      haptic("warn");
+  const dismissPending = useCallback(() => {
+    const current = pendingRef.current;
+    if (!current) {
+      return;
     }
-    return new Promise<boolean>((resolve) => {
-      pendingRef.current?.resolve(false);
-      const next = { options, resolve };
-      pendingRef.current = next;
-      setPending(next);
-    });
+    if (current.kind === "confirm") {
+      current.resolve(false);
+    } else {
+      current.resolve(null);
+    }
+    pendingRef.current = null;
   }, []);
 
-  const close = useCallback((value: boolean) => {
-    pendingRef.current?.resolve(value);
+  const confirm = useCallback<ConfirmFn>(
+    (input) => {
+      const options = typeof input === "string" ? { message: input } : input;
+      if (options.destructive) {
+        haptic("warn");
+      }
+      return new Promise<boolean>((resolve) => {
+        dismissPending();
+        const next: PendingConfirm = { kind: "confirm", options, resolve };
+        pendingRef.current = next;
+        setPending(next);
+      });
+    },
+    [dismissPending],
+  );
+
+  const prompt = useCallback<PromptFn>(
+    (options) => {
+      return new Promise<string | null>((resolve) => {
+        dismissPending();
+        const next: PendingPrompt = { kind: "prompt", options, resolve };
+        pendingRef.current = next;
+        setPending(next);
+      });
+    },
+    [dismissPending],
+  );
+
+  const closeConfirm = useCallback((value: boolean) => {
+    const current = pendingRef.current;
+    if (current?.kind !== "confirm") {
+      return;
+    }
+    current.resolve(value);
+    pendingRef.current = null;
+    setPending(null);
+  }, []);
+
+  const closePrompt = useCallback((value: string | null) => {
+    const current = pendingRef.current;
+    if (current?.kind !== "prompt") {
+      return;
+    }
+    current.resolve(value);
     pendingRef.current = null;
     setPending(null);
   }, []);
 
   return (
     <ConfirmContext.Provider value={confirm}>
-      {children}
-      {pending ? (
-        <ConfirmSheet
-          options={pending.options}
-          onConfirm={() => close(true)}
-          onCancel={() => close(false)}
-        />
-      ) : null}
+      <PromptContext.Provider value={prompt}>
+        {children}
+        {pending?.kind === "confirm" ? (
+          <ConfirmSheet
+            options={pending.options}
+            onConfirm={() => closeConfirm(true)}
+            onCancel={() => closeConfirm(false)}
+          />
+        ) : null}
+        {pending?.kind === "prompt" ? (
+          <PromptSheet
+            options={pending.options}
+            onConfirm={(value) => closePrompt(value)}
+            onCancel={() => closePrompt(null)}
+          />
+        ) : null}
+      </PromptContext.Provider>
     </ConfirmContext.Provider>
   );
 }
@@ -83,10 +162,86 @@ function ConfirmSheet({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  return (
+    <SheetFrame title={options.message} onCancel={onCancel}>
+      <Button
+        type="button"
+        variant={options.destructive ? "destructive" : "default"}
+        className="h-14 text-lg"
+        onClick={onConfirm}
+      >
+        {options.confirmLabel ?? "Да"}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-12 text-base"
+        onClick={onCancel}
+      >
+        {options.cancelLabel ?? "Оставить"}
+      </Button>
+    </SheetFrame>
+  );
+}
+
+function PromptSheet({
+  options,
+  onConfirm,
+  onCancel,
+}: {
+  options: PromptOptions;
+  onConfirm: (value: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(options.defaultValue ?? "");
+  const trimmed = value.trim();
+
+  return (
+    <SheetFrame title={options.message} onCancel={onCancel}>
+      <Input
+        autoFocus
+        value={value}
+        placeholder={options.placeholder}
+        onChange={(event) => setValue(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && trimmed !== "") {
+            event.preventDefault();
+            onConfirm(trimmed);
+          }
+        }}
+        className="h-12 text-base"
+      />
+      <Button
+        type="button"
+        className="h-14 text-lg"
+        disabled={trimmed === ""}
+        onClick={() => onConfirm(trimmed)}
+      >
+        {options.confirmLabel ?? "Сохранить"}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-12 text-base"
+        onClick={onCancel}
+      >
+        {options.cancelLabel ?? "Отмена"}
+      </Button>
+    </SheetFrame>
+  );
+}
+
+function SheetFrame({
+  title,
+  onCancel,
+  children,
+}: {
+  title: string;
+  onCancel: () => void;
+  children: React.ReactNode;
+}) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
-  const confirmLabel = options.confirmLabel ?? "Да";
-  const cancelLabel = options.cancelLabel ?? "Оставить";
 
   useEffect(() => {
     panelRef.current?.focus();
@@ -128,26 +283,9 @@ function ConfirmSheet({
           className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/25 sm:hidden"
         />
         <p id={titleId} className="text-lg font-medium leading-snug">
-          {options.message}
+          {title}
         </p>
-        <div className="mt-5 flex flex-col gap-2">
-          <Button
-            type="button"
-            variant={options.destructive ? "destructive" : "default"}
-            className="h-14 text-lg"
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-12 text-base"
-            onClick={onCancel}
-          >
-            {cancelLabel}
-          </Button>
-        </div>
+        <div className="mt-5 flex flex-col gap-2">{children}</div>
       </div>
     </div>
   );

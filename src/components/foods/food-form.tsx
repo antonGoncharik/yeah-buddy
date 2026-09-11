@@ -4,6 +4,7 @@ import { useFoodForm } from "@/components/foods/use-food-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
 import { formatKcal } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 
@@ -37,6 +38,23 @@ export function FoodForm({
           className="h-12 text-base"
         />
       </Field>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-base font-medium">Состояние</span>
+        <div className="flex flex-wrap gap-2">
+          {FOOD_STATES.map((state) => (
+            <Button
+              key={state}
+              type="button"
+              variant={form.state === state ? "secondary" : "outline"}
+              className="h-10 px-3 text-sm"
+              onClick={() => setForm((current) => ({ ...current, state }))}
+            >
+              {FOOD_STATE_LABELS[state]}
+            </Button>
+          ))}
+        </div>
+      </div>
 
       <p className="text-sm leading-relaxed text-muted-foreground">
         Как на пачке: белок, жир, углеводы на 100 г. Пример: творог 5% — 17 / 5

@@ -1,4 +1,5 @@
 import { isRecord, toNumber } from "@/lib/read";
+import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
 import type { UserSettings } from "@/lib/types";
 
 export function mapSettings(row: Record<string, unknown>): UserSettings {
@@ -15,6 +16,9 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
         ? row.onboarding_completed_at
         : null,
     reminders_enabled: row.reminders_enabled !== false,
+    timezone: resolveTimeZone(
+      typeof row.timezone === "string" ? row.timezone : null,
+    ),
     updated_at: String(row.updated_at),
   };
 }

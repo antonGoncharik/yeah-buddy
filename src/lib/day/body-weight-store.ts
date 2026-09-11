@@ -1,7 +1,8 @@
 import { parseBodyWeight } from "@/lib/day/body-weight";
-import { assertWritableDayDate, isIsoDate } from "@/lib/day/dates";
+import { isIsoDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { getDayByDate } from "@/lib/day/store";
+import { assertUserDayWritable } from "@/lib/day/writable";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { toNullableNumber } from "@/lib/read";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -83,7 +84,7 @@ export async function setBodyWeight(
     throw new Error("Day not found");
   }
 
-  assertWritableDayDate(String(existing.data.date).slice(0, 10));
+  await assertUserDayWritable(userId, String(existing.data.date).slice(0, 10));
 
   const updated = await supabase
     .from("days")

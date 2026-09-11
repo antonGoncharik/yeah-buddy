@@ -4,10 +4,11 @@ import { AddMealItemScreen } from "@/components/day/add-meal-item-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import {
   isIsoDate,
-  isPastDayDate,
+  isWritableDayDate,
   todayHomeHref,
   withDateQuery,
 } from "@/lib/day/dates";
+import { resolveRequestToday } from "@/lib/day/writable";
 
 export default async function AddMealItemPage({
   params,
@@ -20,8 +21,9 @@ export default async function AddMealItemPage({
   const query = await searchParams;
   const date = readDate(query.date);
   const homeHref = todayHomeHref(date);
+  const today = await resolveRequestToday();
 
-  if (date && isPastDayDate(date)) {
+  if (date && !isWritableDayDate(date, today)) {
     redirect(homeHref);
   }
 

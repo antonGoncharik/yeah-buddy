@@ -2,9 +2,11 @@ import {
   DAY_EXISTS_REPLACE,
   MEAL_EXISTS_REPLACE,
   PAST_DAY_LOCKED,
+  SOURCE_MEAL_EMPTY,
   YESTERDAY_MEAL_EMPTY,
   YESTERDAY_MISSING,
 } from "@/lib/messages";
+import { localClock } from "@/lib/telegram/reminder-clock";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -25,6 +27,18 @@ export class YesterdayMissingError extends Error {
 export class YesterdayMealEmptyError extends Error {
   constructor() {
     super(YESTERDAY_MEAL_EMPTY);
+  }
+}
+
+export class SourceDayMissingError extends Error {
+  constructor() {
+    super("В этот день записей нет.");
+  }
+}
+
+export class SourceMealEmptyError extends Error {
+  constructor() {
+    super(SOURCE_MEAL_EMPTY);
   }
 }
 
@@ -64,19 +78,32 @@ export function nextIsoDate(date: string): string {
 }
 
 export function calendarToday(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return calendarDateInTimeZone(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
 }
 
-export function isPastDayDate(date: string): boolean {
-  return isIsoDate(date) && date < calendarToday();
+export function calendarDateInTimeZone(
+  timeZone: string,
+  now = new Date(),
+): string {
+  return localClock(now, timeZone).date;
 }
 
-export function assertWritableDayDate(date: string): void {
-  if (isPastDayDate(date)) {
+export function isPastDayDate(date: string, today = calendarToday()): boolean {
+  return isIsoDate(date) && date < today;
+}
+
+export function isWritableDayDate(date: string, today: string): boolean {
+  if (!isIsoDate(date) || !isIsoDate(today)) {
+    return false;
+  }
+
+  return date === today || date === previousIsoDate(today);
+}
+
+export function assertWritableDayDate(date: string, today: string): void {
+  if (!isWritableDayDate(date, today)) {
     throw new PastDayLockedError();
   }
 }

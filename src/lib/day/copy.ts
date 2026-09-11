@@ -1,25 +1,29 @@
 import { insertEmptyMeals } from "@/lib/day/create";
 import {
-  assertWritableDayDate,
   DayConflictError,
   MealConflictError,
   previousIsoDate,
+  SourceDayMissingError,
+  SourceMealEmptyError,
   YesterdayMealEmptyError,
   YesterdayMissingError,
 } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { getDateForMeal } from "@/lib/day/meal-items";
 import { getDayByDate } from "@/lib/day/store";
-import { filledMealTypes } from "@/lib/nutrition";
+import { assertUserDayWritable } from "@/lib/day/writable";
+import { filledMealTypes, isMealType } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MealType } from "@/lib/types";
+import type { CopyDayHint, MealType } from "@/lib/types";
+
+const COPY_DAYS_WINDOW = 14;
 
 export async function copyYesterday(
   userId: string,
   date: string,
   replace: boolean,
 ): Promise<DayWithMeals> {
-  assertWritableDayDate(date);
+  await assertUserDayWritable(userId, date);
   const yesterday = await getDayByDate(userId, previousIsoDate(date));
   if (!yesterday) {
     throw new YesterdayMissingError();
@@ -102,11 +106,27 @@ export async function copyMealFromYesterday(
   if (!date) {
     throw new Error("Meal not found");
   }
-  assertWritableDayDate(date);
 
-  const [today, yesterday] = await Promise.all([
+  return copyMealFromDate(userId, mealId, previousIsoDate(date), replace);
+}
+
+export async function copyMealFromDate(
+  userId: string,
+  mealId: string,
+  sourceDate: string,
+  replace: boolean,
+): Promise<DayWithMeals> {
+  const date = await getDateForMeal(userId, mealId);
+  if (!date) {
+    throw new Error("Meal not found");
+  }
+  await assertUserDayWritable(userId, date);
+
+  const fromYesterday = sourceDate === previousIsoDate(date);
+
+  const [today, sourceDay] = await Promise.all([
     getDayByDate(userId, date),
-    getDayByDate(userId, previousIsoDate(date)),
+    getDayByDate(userId, sourceDate),
   ]);
 
   if (!today) {
@@ -118,15 +138,19 @@ export async function copyMealFromYesterday(
     throw new Error("Meal not found");
   }
 
-  if (!yesterday) {
-    throw new YesterdayMissingError();
+  if (!sourceDay) {
+    throw fromYesterday
+      ? new YesterdayMissingError()
+      : new SourceDayMissingError();
   }
 
-  const source = yesterday.meals.find(
+  const source = sourceDay.meals.find(
     (meal) => meal.meal_type === target.meal_type,
   );
   if (!source || source.items.length === 0) {
-    throw new YesterdayMealEmptyError();
+    throw fromYesterday
+      ? new YesterdayMealEmptyError()
+      : new SourceMealEmptyError();
   }
 
   if (target.items.length > 0 && !replace) {
@@ -178,7 +202,56 @@ export async function yesterdayCopyHint(
   };
 }
 
-function copyMealItemRows(
+export async function listCopyDays(
+  userId: string,
+  beforeDate: string,
+): Promise<CopyDayHint[]> {
+  const start = shiftIsoDate(beforeDate, -(COPY_DAYS_WINDOW - 1));
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("days")
+    .select(
+      `
+      date,
+      meals (
+        meal_type,
+        meal_items (id)
+      )
+    `,
+    )
+    .eq("user_id", userId)
+    .gte("date", start)
+    .lt("date", beforeDate)
+    .order("date", { ascending: false });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return (result.data ?? []).flatMap((row) => {
+    const date = String(row.date).slice(0, 10);
+    const meals = Array.isArray(row.meals) ? row.meals : [];
+    const mealTypes = meals.flatMap((meal) => {
+      if (!meal || typeof meal !== "object") {
+        return [];
+      }
+      const record = meal as { meal_type?: unknown; meal_items?: unknown };
+      if (!isMealType(record.meal_type)) {
+        return [];
+      }
+      if (!Array.isArray(record.meal_items) || record.meal_items.length === 0) {
+        return [];
+      }
+      return [record.meal_type];
+    });
+    if (mealTypes.length === 0) {
+      return [];
+    }
+    return [{ date, mealTypes }];
+  });
+}
+
+export function copyMealItemRows(
   userId: string,
   mealId: string,
   items: DayWithMeals["meals"][number]["items"],
@@ -195,4 +268,10 @@ function copyMealItemRows(
     kcal: item.kcal,
     per_100_snapshot: item.per_100_snapshot,
   }));
+}
+
+function shiftIsoDate(date: string, days: number): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  return shifted.toISOString().slice(0, 10);
 }
