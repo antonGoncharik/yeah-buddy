@@ -1,12 +1,17 @@
 import { phaseMarks } from "@/components/workout/progress-phase-marks";
-import { chartShape } from "@/lib/chart-shape";
+import { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
 import { formatRelative } from "@/lib/day/body-weight";
 import type { ProgressPoint } from "@/lib/types";
-import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
+import {
+  formatSeconds,
+  formatTonnage,
+  formatWeight,
+} from "@/lib/workout/numbers";
 import {
   metricPoints,
   metricValues,
   type ProgressMetric,
+  tonnageOverlayValues,
 } from "@/lib/workout/progress-stats";
 
 export function ProgressChart({
@@ -41,6 +46,16 @@ export function ProgressChart({
         ? formatRelative
         : formatWeight;
   const marks = phaseMarks(series, shape.dots, width, 16);
+  const tonnageValues =
+    metric === "weight" ? tonnageOverlayValues(series) : null;
+  const tonnageLayout = tonnageValues
+    ? chartLayout(tonnageValues, series.length, width, height, 16)
+    : null;
+  const tonnageShape =
+    tonnageLayout && tonnageValues
+      ? chartSeries(tonnageValues, tonnageLayout)
+      : null;
+  const showTonnage = tonnageShape != null && tonnageLayout != null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,7 +69,9 @@ export function ProgressChart({
             ? "Прогресс удержания"
             : metric === "relative"
               ? "Прогресс к весу тела"
-              : "Прогресс весов"
+              : showTonnage
+                ? "Прогресс весов и тоннажа"
+                : "Прогресс весов"
         }
       >
         <defs>
@@ -106,6 +123,18 @@ export function ProgressChart({
           strokeLinecap="round"
           pathLength={1}
         />
+        {showTonnage ? (
+          <path
+            d={tonnageShape.line}
+            fill="none"
+            className="stroke-muted-foreground motion-safe:animate-draw-line"
+            strokeWidth="1.75"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            strokeDasharray="5 4"
+            pathLength={1}
+          />
+        ) : null}
         {shape.dots.map((dot, index) => (
           <circle
             key={`${dot.x}-${dot.y}`}
@@ -116,6 +145,18 @@ export function ProgressChart({
             style={{ animationDelay: `${120 + index * 40}ms` }}
           />
         ))}
+        {showTonnage
+          ? tonnageShape.dots.map((dot, index) => (
+              <circle
+                key={`t-${dot.x}-${dot.y}`}
+                cx={dot.x}
+                cy={dot.y}
+                r={index === tonnageShape.dots.length - 1 ? 3.5 : 2.5}
+                className="fill-muted-foreground motion-safe:animate-fade"
+                style={{ animationDelay: `${140 + index * 40}ms` }}
+              />
+            ))
+          : null}
         {marks.map((mark) => (
           <text
             key={`label-${mark.x}-${mark.label}`}
@@ -130,6 +171,16 @@ export function ProgressChart({
         <text x="16" y="12" className="fill-muted-foreground text-[11px]">
           {formatValue(shape.max)} {unit}
         </text>
+        {showTonnage ? (
+          <text
+            x={width - 16}
+            y="12"
+            textAnchor="end"
+            className="fill-muted-foreground text-[11px]"
+          >
+            {formatTonnage(tonnageLayout.max)}
+          </text>
+        ) : null}
         <text
           x="16"
           y={height - 4}
@@ -146,16 +197,19 @@ export function ProgressChart({
           {last.label}
         </text>
       </svg>
+      {showTonnage ? (
+        <p className="text-[11px] text-muted-foreground">кг · тоннаж</p>
+      ) : null}
       <ol className="flex flex-col gap-1.5">
         {series.slice(-6).map((point) => (
           <li
-            key={`${point.date}-${point.label}-${point.weight}-${point.seconds}-${point.relative}`}
+            key={`${point.date}-${point.label}-${point.weight}-${point.seconds}-${point.relative}-${point.tonnage}`}
             className="flex items-baseline justify-between gap-3 text-sm"
           >
             <span className="truncate text-muted-foreground">
               {point.label}
             </span>
-            <span className="font-medium">
+            <span className="shrink-0 font-medium tabular-nums">
               {formatValue(
                 metric === "seconds"
                   ? (point.seconds ?? 0)
@@ -164,6 +218,15 @@ export function ProgressChart({
                     : point.weight,
               )}
               {unit ? ` ${unit}` : ""}
+              {metric === "weight" && point.tonnage != null
+                ? ` · тоннаж ${formatTonnage(point.tonnage)}`
+                : ""}
+              {metric === "weight" &&
+              point.circle_tonnage != null &&
+              point.tonnage != null &&
+              point.circle_tonnage !== point.tonnage
+                ? ` · круг ${formatTonnage(point.circle_tonnage)}`
+                : ""}
             </span>
           </li>
         ))}

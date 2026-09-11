@@ -128,6 +128,7 @@ export function useSessionActions({
       const next = readSessionDetail(data);
       if (next) {
         applyDetail(next);
+        await loadFollowUp(detail.session.session_date);
       }
     } catch (caught) {
       haptic("error");

@@ -12,6 +12,7 @@ import {
   formatSeconds,
   formatSignedPercent,
   formatSignedWeight,
+  formatTonnage,
   formatWeight,
 } from "@/lib/workout/numbers";
 import {
@@ -55,6 +56,9 @@ export function ProgressExerciseCard({
             {item.current_weight == null
               ? "Нет рабочего веса"
               : `${formatWeight(item.current_weight)} кг`}
+            {item.current_tonnage != null
+              ? ` · тоннаж ${formatTonnage(item.current_tonnage)}`
+              : null}
             {item.current_relative != null
               ? ` · ${formatRelative(item.current_relative)}`
               : null}
@@ -72,6 +76,16 @@ export function ProgressExerciseCard({
                 {item.relative_percent == null
                   ? null
                   : ` · ${formatSignedPercent(item.relative_percent)} к весу`}
+              </span>
+            ) : null}
+            {item.tonnage_percent != null && item.tonnage_percent !== 0 ? (
+              <span
+                className={cn(
+                  "ml-2 font-medium",
+                  (item.delta ?? 0) === 0 && "text-primary",
+                )}
+              >
+                тоннаж {formatSignedPercent(item.tonnage_percent)}
               </span>
             ) : null}
           </p>

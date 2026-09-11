@@ -50,11 +50,14 @@ export async function previewTransition(
       to_name: null,
       new_macro: true,
       increased: false,
+      hold_weights: state.phase_circle?.hold_weights === true,
       maxes: toTransitionMaxes(source, (weight) => weight),
     };
   }
 
-  const increased = shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
+  const holdWeights = state.phase_circle?.hold_weights === true;
+  const increased =
+    !holdWeights && shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
   return {
     from_phase: state.phase.phase_type,
     to_phase: nextType,
@@ -62,6 +65,7 @@ export async function previewTransition(
     to_name: phaseLabel(nextType, cycleDef(cycle, nextType)?.name),
     new_macro: false,
     increased,
+    hold_weights: holdWeights,
     maxes: toTransitionMaxes(state.maxes, (weight, step) =>
       increased
         ? increaseMax(weight, settings.max_increase_percent, step)

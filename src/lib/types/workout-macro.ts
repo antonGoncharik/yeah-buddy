@@ -102,6 +102,7 @@ export interface PhaseCircleProgress {
   next_phase_name: string | null;
   last_in_cycle: boolean;
   increases_on_end: boolean;
+  hold_weights: boolean;
   completed_count: number;
   circle_size: number;
   suggest_end: boolean;
@@ -130,5 +131,6 @@ export interface TransitionPreview {
   to_name: string | null;
   new_macro: boolean;
   increased: boolean;
+  hold_weights: boolean;
   maxes: TransitionMaxRow[];
 }

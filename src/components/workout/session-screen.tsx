@@ -36,6 +36,7 @@ export function SessionScreen() {
     abovePlan,
     nextName,
     phaseHint,
+    holdHint,
     openSetIds,
     setOpenSetIds,
     warmupOpen,
@@ -131,6 +132,7 @@ export function SessionScreen() {
                 abovePlan={abovePlan}
                 nextName={nextName}
                 phaseHint={phaseHint}
+                holdHint={holdHint}
                 feel={session.feel}
                 raiseOffers={detail.raise_offers}
                 busy={busy}

@@ -104,6 +104,9 @@ export function completePhaseHint(
   if (progress.last_in_cycle) {
     return "Закроется и начнётся новый. Веса — с последней тяжёлой.";
   }
+  if (progress.hold_weights) {
+    return "Не пошло. Держать веса, не сбрасывать.";
+  }
   if (progress.increases_on_end) {
     return `Дальше «${progress.next_phase_name}». Можно поднять веса, не всем сразу.`;
   }
@@ -113,9 +116,19 @@ export function completePhaseHint(
   return "Веса перейдут как есть. Перед подтверждением можно поправить.";
 }
 
+export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
+  if (!progress.hold_weights) {
+    return null;
+  }
+  return "Не пошло. Держать веса.";
+}
+
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.new_macro) {
     return "Закроется и начнётся новый. Веса — с последней тяжёлой, можно поправить.";
+  }
+  if (preview.hold_weights) {
+    return "Не пошло. Держать веса, можно поправить.";
   }
   if (preview.increased) {
     return `На «${preview.to_name}» можно поднять веса. Не всем сразу.`;
@@ -175,6 +188,7 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     increases_on_end:
       row.increases_on_end === true ||
       (row.increases_on_end !== false && row.phase_type === "volume"),
+    hold_weights: row.hold_weights === true,
     completed_count: row.completed_count,
     circle_size: row.circle_size,
     suggest_end: row.suggest_end,

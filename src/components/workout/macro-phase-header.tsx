@@ -2,7 +2,11 @@
 
 import type { CurrentMacroState } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { phaseEndHint, phaseLinkLabel } from "@/lib/workout/hints";
+import {
+  phaseEndHint,
+  phaseHoldHint,
+  phaseLinkLabel,
+} from "@/lib/workout/hints";
 import { phaseLabel } from "@/lib/workout/labels";
 
 export function MacroPhaseHeader({
@@ -30,6 +34,11 @@ export function MacroPhaseHeader({
       <p className="text-sm text-muted-foreground">
         С {state.phase.start_date}. Этап закрываешь кнопкой ниже.
       </p>
+      {state.phase_circle && phaseHoldHint(state.phase_circle) ? (
+        <p className="text-base leading-snug">
+          {phaseHoldHint(state.phase_circle)}
+        </p>
+      ) : null}
       {state.phase_circle && phaseEndHint(state.phase_circle) ? (
         <p className="text-base leading-snug">
           {phaseEndHint(state.phase_circle)}

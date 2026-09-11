@@ -61,3 +61,7 @@ export function formatSignedWeight(value: number): string {
   }
   return formatWeight(0);
 }
+
+export function formatTonnage(value: number): string {
+  return Math.round(value).toLocaleString("ru-RU");
+}

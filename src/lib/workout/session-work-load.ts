@@ -12,6 +12,7 @@ import {
   mapWorkoutPhase,
   mapWorkoutSet,
 } from "@/lib/workout/map-rows";
+import { loadPreviousWork } from "@/lib/workout/session-memory-load";
 import { getTemplate } from "@/lib/workout/templates";
 
 export async function loadSessionDetail(
@@ -40,10 +41,15 @@ export async function loadSessionDetail(
     mapSessionExercise(row as Record<string, unknown>),
   );
   const exerciseIds = sessionExercises.map((item) => item.exercise_id);
-  const exercisesById = await mapExercisesById(userId, exerciseIds);
-  const setsByExercise = await listSetsBySessionExercises(
-    userId,
-    sessionExercises.map((item) => item.id),
+  const [exercisesById, setsByExercise, previousByExercise] = await Promise.all(
+    [
+      mapExercisesById(userId, exerciseIds),
+      listSetsBySessionExercises(
+        userId,
+        sessionExercises.map((item) => item.id),
+      ),
+      loadPreviousWork(userId, session, exerciseIds),
+    ],
   );
 
   return {
@@ -61,6 +67,7 @@ export async function loadSessionDetail(
           ...item,
           exercise,
           sets: setsByExercise.get(item.id) ?? [],
+          previous: previousByExercise.get(item.exercise_id) ?? null,
         },
       ];
     }),

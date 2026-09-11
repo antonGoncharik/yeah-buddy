@@ -96,6 +96,8 @@ export async function getStrengthProgress(
       date: record.achieved_at.slice(0, 10),
       weight: record.max_weight,
       seconds: null,
+      tonnage: null,
+      circle_tonnage: null,
       body_weight: null,
       relative: null,
       phase_type: null,
@@ -118,6 +120,8 @@ export async function getStrengthProgress(
         date: phase.start_date,
         weight,
         seconds: null,
+        tonnage: null,
+        circle_tonnage: null,
         body_weight: null,
         relative: null,
         phase_type: phase.phase_type,
@@ -155,6 +159,16 @@ export async function getStrengthProgress(
       start_relative == null || current_relative == null
         ? null
         : percentChange(start_relative, current_relative);
+    const start_tonnage = points[0]?.tonnage ?? null;
+    const current_tonnage = points.at(-1)?.tonnage ?? null;
+    const tonnage_delta =
+      start_tonnage == null || current_tonnage == null
+        ? null
+        : current_tonnage - start_tonnage;
+    const tonnage_percent =
+      start_tonnage == null || current_tonnage == null
+        ? null
+        : percentChange(start_tonnage, current_tonnage);
 
     return {
       exercise_id: exercise.id,
@@ -167,6 +181,10 @@ export async function getStrengthProgress(
       current_relative,
       start_relative,
       relative_percent,
+      current_tonnage,
+      start_tonnage,
+      tonnage_delta,
+      tonnage_percent,
       points,
       from_work,
     };

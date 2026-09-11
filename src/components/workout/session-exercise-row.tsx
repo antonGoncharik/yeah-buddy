@@ -16,6 +16,7 @@ import {
   WORK_REST_SECONDS,
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
+import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
 
 export function SessionExerciseRow({
   item,
@@ -65,6 +66,9 @@ export function SessionExerciseRow({
     : 0;
   const editorOpen =
     leadSet != null && (leadSet.set_type === "warmup" ? warmupOpen : workOpen);
+  const previousLine = item.previous
+    ? formatPreviousWorkLine(item.previous)
+    : null;
 
   return (
     <div className="border-b border-border/70 last:border-b-0">
@@ -110,6 +114,11 @@ export function SessionExerciseRow({
                 ? "Скрыть рабочие"
                 : `Рабочие · ${work.length} ${setCountWord(work.length)}`}
             </button>
+            {previousLine ? (
+              <p className="text-xs leading-snug text-muted-foreground">
+                {previousLine}
+              </p>
+            ) : null}
             {workOpen ? (
               <>
                 <SessionSetButtons

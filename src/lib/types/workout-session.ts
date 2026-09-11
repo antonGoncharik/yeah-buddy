@@ -79,9 +79,17 @@ export interface WorkoutSet {
   created_at: string;
 }
 
+export interface SessionPreviousWork {
+  weight: number | null;
+  reps: number | null;
+  seconds: number | null;
+  feel: SessionFeel | null;
+}
+
 export interface SessionExerciseDetail extends SessionExercise {
   exercise: Exercise;
   sets: WorkoutSet[];
+  previous: SessionPreviousWork | null;
 }
 
 export interface SessionDetail {

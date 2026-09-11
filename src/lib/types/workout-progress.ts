@@ -4,6 +4,8 @@ export interface ProgressPoint {
   date: string;
   weight: number;
   seconds: number | null;
+  tonnage: number | null;
+  circle_tonnage: number | null;
   body_weight: number | null;
   relative: number | null;
   phase_type: PhaseType | null;
@@ -22,6 +24,10 @@ export interface ExerciseProgress {
   current_relative: number | null;
   start_relative: number | null;
   relative_percent: number | null;
+  current_tonnage: number | null;
+  start_tonnage: number | null;
+  tonnage_delta: number | null;
+  tonnage_percent: number | null;
   points: ProgressPoint[];
   from_work: boolean;
 }

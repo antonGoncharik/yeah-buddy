@@ -29,6 +29,7 @@ export function useSessionScreen() {
   const [workOpen, setWorkOpen] = useState<Record<string, boolean>>({});
   const [nextName, setNextName] = useState<string | null>(null);
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
+  const [holdHint, setHoldHint] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
@@ -39,6 +40,7 @@ export function useSessionScreen() {
     const followUp = await loadSessionFollowUp(sessionDate);
     setNextName(followUp.nextName);
     setPhaseHint(followUp.phaseHint);
+    setHoldHint(followUp.holdHint);
   }, []);
 
   const applyDetail = useCallback((next: SessionDetail) => {
@@ -66,6 +68,7 @@ export function useSessionScreen() {
           } else {
             setNextName(null);
             setPhaseHint(null);
+            setHoldHint(null);
           }
           return true;
         },
@@ -163,6 +166,7 @@ export function useSessionScreen() {
     abovePlan,
     nextName,
     phaseHint,
+    holdHint,
     openSetIds,
     setOpenSetIds,
     warmupOpen,

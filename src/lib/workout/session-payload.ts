@@ -3,7 +3,9 @@ import type {
   SessionDetail,
   SessionExerciseDetail,
   SessionMaxRaiseOffer,
+  SessionPreviousWork,
 } from "@/lib/types";
+import { toSessionFeel } from "@/lib/workout/map-enums";
 import {
   mapExercise,
   mapSessionExercise,
@@ -12,7 +14,7 @@ import {
   parseWorkoutSession,
   parseWorkoutTemplate,
 } from "@/lib/workout/map-rows";
-import { toNumber } from "@/lib/workout/numbers";
+import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 
 export function readSessionDetail(data: unknown): SessionDetail | null {
   if (!isRecord(data)) {
@@ -46,6 +48,28 @@ function parseSessionExerciseDetail(
     sets: mapRecordList(row.sets, (set) =>
       typeof set.id === "string" ? mapWorkoutSet(set) : null,
     ),
+    previous: parsePreviousWork(row.previous),
+  };
+}
+
+function parsePreviousWork(value: unknown): SessionPreviousWork | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const feel = toSessionFeel(value.feel);
+  const weight = toNullableNumber(value.weight);
+  const reps = toNullableNumber(value.reps);
+  const seconds = toNullableNumber(value.seconds);
+  if ((weight == null || weight <= 0) && feel == null) {
+    return null;
+  }
+
+  return {
+    weight: weight != null && weight > 0 ? weight : null,
+    reps: reps != null && reps > 0 ? reps : null,
+    seconds: seconds != null && seconds > 0 ? seconds : null,
+    feel,
   };
 }
 

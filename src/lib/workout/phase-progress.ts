@@ -2,6 +2,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PhaseCircleProgress, WorkoutPhase } from "@/lib/types";
 import { cycleDef, nextPhaseType } from "@/lib/workout/cycle";
 import { phaseLabel } from "@/lib/workout/labels";
+import { toSessionFeel } from "@/lib/workout/map-enums";
+import { shouldHoldWeights } from "@/lib/workout/session-memory";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { listActiveTemplates } from "@/lib/workout/templates";
 
@@ -22,11 +24,13 @@ export async function getPhaseCircleProgress(
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("workout_sessions")
-    .select("id", { count: "exact", head: true })
+    .select("feel")
     .eq("user_id", userId)
     .eq("phase_id", phase.id)
     .eq("status", "completed")
-    .not("template_id", "is", null);
+    .not("template_id", "is", null)
+    .order("session_date", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (result.error) {
     throw result.error;
@@ -36,7 +40,8 @@ export async function getPhaseCircleProgress(
   const cycle = settings.formulas.cycle;
   const next = nextPhaseType(phase.phase_type, cycle);
   const current = cycleDef(cycle, phase.phase_type);
-  const completedCount = result.count ?? 0;
+  const feels = (result.data ?? []).map((row) => toSessionFeel(row.feel));
+  const completedCount = feels.length;
   return {
     phase_type: phase.phase_type,
     phase_name: phaseLabel(phase.phase_type, phase.name ?? current?.name),
@@ -46,6 +51,7 @@ export async function getPhaseCircleProgress(
       : null,
     last_in_cycle: next == null,
     increases_on_end: Boolean(current?.increase_on_end),
+    hold_weights: shouldHoldWeights(feels),
     completed_count: completedCount,
     circle_size: circleSize,
     suggest_end: completedCount >= circleSize,

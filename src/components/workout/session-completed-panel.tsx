@@ -12,6 +12,7 @@ export function SessionCompletedPanel({
   abovePlan,
   nextName,
   phaseHint,
+  holdHint,
   feel,
   raiseOffers,
   busy,
@@ -23,6 +24,7 @@ export function SessionCompletedPanel({
   abovePlan: boolean;
   nextName: string | null;
   phaseHint: string | null;
+  holdHint: string | null;
   feel: SessionFeel | null;
   raiseOffers: SessionMaxRaiseOffer[];
   busy: boolean;
@@ -46,6 +48,9 @@ export function SessionCompletedPanel({
             ? "Где-то больше плана. Рабочий сам не прыгнет."
             : "Легко. Можно поднять рабочий."}
         </p>
+      ) : null}
+      {holdHint ? (
+        <p className="text-base leading-relaxed">{holdHint}</p>
       ) : null}
       {nextName ? (
         <p className="text-base text-muted-foreground">

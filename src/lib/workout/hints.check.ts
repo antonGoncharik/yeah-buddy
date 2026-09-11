@@ -1,4 +1,9 @@
-import { queueItemMark } from "@/lib/workout/hints";
+import type { PhaseCircleProgress } from "@/lib/types";
+import {
+  completePhaseHint,
+  phaseHoldHint,
+  queueItemMark,
+} from "@/lib/workout/hints";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   if (actual !== expected) {
@@ -56,6 +61,33 @@ assertEqual(
   }),
   "",
   "other templates stay unmarked",
+);
+
+const circle: PhaseCircleProgress = {
+  phase_type: "volume",
+  phase_name: "Набор",
+  next_phase_type: "peak",
+  next_phase_name: "Рывок",
+  last_in_cycle: false,
+  increases_on_end: true,
+  hold_weights: true,
+  completed_count: 4,
+  circle_size: 2,
+  suggest_end: true,
+};
+
+assertEqual(phaseHoldHint(circle), "Не пошло. Держать веса.", "hold copy");
+
+assertEqual(
+  completePhaseHint(circle),
+  "Не пошло. Держать веса, не сбрасывать.",
+  "hold beats raise on close",
+);
+
+assertEqual(
+  completePhaseHint({ ...circle, hold_weights: false }),
+  "Дальше «Рывок». Можно поднять веса, не всем сразу.",
+  "raise when not holding",
 );
 
 console.log("workout hints ok");

@@ -70,6 +70,7 @@ export function parseTransitionPreview(
           : phaseLabel(toPhase),
     new_macro: preview.new_macro === true,
     increased: preview.increased === true,
+    hold_weights: preview.hold_weights === true,
     maxes: mapRecordList(preview.maxes, parseTransitionMaxRow),
   };
 }
@@ -137,6 +138,10 @@ function parseExerciseProgress(
     current_relative: toNullableNumber(row.current_relative),
     start_relative: toNullableNumber(row.start_relative),
     relative_percent: toNullableNumber(row.relative_percent),
+    current_tonnage: toNullableNumber(row.current_tonnage),
+    start_tonnage: toNullableNumber(row.start_tonnage),
+    tonnage_delta: toNullableNumber(row.tonnage_delta),
+    tonnage_percent: toNullableNumber(row.tonnage_percent),
     points: mapRecordList(row.points, parseProgressPoint),
     from_work: row.from_work === true,
   };
@@ -156,6 +161,8 @@ function parseProgressPoint(
     date: row.date,
     weight: toNumber(row.weight),
     seconds: seconds != null && seconds > 0 ? seconds : null,
+    tonnage: toNullableNumber(row.tonnage),
+    circle_tonnage: toNullableNumber(row.circle_tonnage),
     body_weight: toNullableNumber(row.body_weight),
     relative: toNullableNumber(row.relative),
     phase_type: isPhaseType(phaseType) ? phaseType : null,

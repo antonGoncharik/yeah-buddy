@@ -51,6 +51,20 @@ export function hasRelativeSeries(points: ProgressPoint[]): boolean {
   return relativeSeries(points).length >= 2;
 }
 
+export function tonnageOverlayValues(points: ProgressPoint[]): number[] | null {
+  if (points.length < 2) {
+    return null;
+  }
+  const values: number[] = [];
+  for (const point of points) {
+    if (point.tonnage == null || point.tonnage <= 0) {
+      return null;
+    }
+    values.push(point.tonnage);
+  }
+  return values;
+}
+
 export function metricPoints(
   points: ProgressPoint[],
   metric: ProgressMetric,
