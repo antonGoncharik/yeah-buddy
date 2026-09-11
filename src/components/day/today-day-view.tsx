@@ -153,6 +153,11 @@ export function TodayDayView({
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/add`, date)
           }
+          plateHref={
+            viewOnly
+              ? undefined
+              : withDateQuery(`/today/meals/${meal.id}/plate`, date)
+          }
           onCopyYesterday={
             viewOnly || !yesterdayMealTypes.includes(meal.meal_type)
               ? undefined

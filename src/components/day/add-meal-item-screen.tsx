@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Camera, Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -26,9 +26,11 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 export function AddMealItemScreen({
   foodHrefBase,
   newFoodHref,
+  plateHref,
 }: {
   foodHrefBase: string;
   newFoodHref: string;
+  plateHref?: string;
 }) {
   const [filter, setFilter] = useState<Filter>("favorites");
   const [query, setQuery] = useState("");
@@ -77,6 +79,19 @@ export function AddMealItemScreen({
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
+        {plateHref ? (
+          <Link
+            href={plateHref}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "h-14 w-full gap-2 text-lg",
+            )}
+          >
+            <Camera className="size-5" aria-hidden />
+            Фото тарелки
+          </Link>
+        ) : null}
+
         <FoodSearch value={query} onChange={setQuery} />
 
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />

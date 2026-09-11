@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { AddMealItemScreen } from "@/components/day/add-meal-item-screen";
+import { PlateScreen } from "@/components/day/plate-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import {
   isIsoDate,
@@ -9,7 +9,7 @@ import {
   withDateQuery,
 } from "@/lib/day/dates";
 
-export default async function AddMealItemPage({
+export default async function PlateMealPage({
   params,
   searchParams,
 }: {
@@ -27,15 +27,11 @@ export default async function AddMealItemPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Добавить продукт" backHref={homeHref} />
-      <AddMealItemScreen
-        foodHrefBase={withDateQuery(`/today/meals/${mealId}/add`, date)}
-        newFoodHref={withDateQuery(
-          `/food/new?mealId=${encodeURIComponent(mealId)}`,
-          date,
-        )}
-        plateHref={withDateQuery(`/today/meals/${mealId}/plate`, date)}
+      <AppHeader
+        title="С тарелки"
+        backHref={withDateQuery(`/today/meals/${mealId}/add`, date)}
       />
+      <PlateScreen mealId={mealId} doneHref={homeHref} />
     </div>
   );
 }

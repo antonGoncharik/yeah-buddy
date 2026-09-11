@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Camera, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
@@ -68,6 +68,21 @@ export function MealAddLink({ href }: { href: string }) {
     >
       <Plus className="size-4" aria-hidden />
       Добавить продукт
+    </Link>
+  );
+}
+
+export function MealPlateLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        buttonVariants({ variant: "outline" }),
+        "h-12 w-full gap-2 rounded-xl text-base",
+      )}
+    >
+      <Camera className="size-4" aria-hidden />
+      Фото тарелки
     </Link>
   );
 }

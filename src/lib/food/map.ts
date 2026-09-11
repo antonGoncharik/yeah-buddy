@@ -1,3 +1,4 @@
+import { parseFoodState } from "@/lib/food/schema";
 import {
   isRecord,
   mapRecordList,
@@ -5,7 +6,7 @@ import {
   toNullableString,
   toNumber,
 } from "@/lib/read";
-import type { Food, FoodState } from "@/lib/types";
+import type { Food } from "@/lib/types";
 
 export function mapFood(row: Record<string, unknown>): Food {
   return {
@@ -13,7 +14,7 @@ export function mapFood(row: Record<string, unknown>): Food {
     user_id: String(row.user_id),
     name: String(row.name),
     brand: toNullableString(row.brand),
-    state: toFoodState(row.state),
+    state: parseFoodState(row.state),
     protein_per_100: toNumber(row.protein_per_100),
     fat_per_100: toNumber(row.fat_per_100),
     carbs_per_100: toNumber(row.carbs_per_100),
@@ -45,18 +46,4 @@ export function parseFoodList(data: unknown, key = "foods"): Food[] {
   }
 
   return mapRecordList(data[key], parseFood);
-}
-
-function toFoodState(value: unknown): FoodState {
-  if (
-    value === "raw" ||
-    value === "dry" ||
-    value === "cooked" ||
-    value === "as_is" ||
-    value === "liquid"
-  ) {
-    return value;
-  }
-
-  return "as_is";
 }

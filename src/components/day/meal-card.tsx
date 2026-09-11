@@ -6,6 +6,7 @@ import {
   MealAddLink,
   MealItemRow,
   type MealLine,
+  MealPlateLink,
 } from "@/components/day/meal-item-row";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ export function MealCard({
   items,
   itemHref,
   addHref,
+  plateHref,
   onDeleteItem,
   onCopyYesterday,
   copyBusy = false,
@@ -33,6 +35,7 @@ export function MealCard({
   items: MealLine[];
   itemHref?: (item: MealLine) => string;
   addHref?: string;
+  plateHref?: string;
   onDeleteItem?: (item: MealLine) => void;
   onCopyYesterday?: () => void;
   copyBusy?: boolean;
@@ -43,6 +46,7 @@ export function MealCard({
   const totals = sumMealItems(items);
   const showCopy = !readOnly && Boolean(onCopyYesterday);
   const showAdd = !readOnly && Boolean(addHref);
+  const showPlate = !readOnly && Boolean(plateHref);
 
   return (
     <section
@@ -82,7 +86,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      {showCopy || showAdd ? (
+      {showCopy || showPlate || showAdd ? (
         <div className="flex flex-col gap-2">
           {showCopy ? (
             <Button
@@ -95,6 +99,7 @@ export function MealCard({
               Как вчера
             </Button>
           ) : null}
+          {showPlate && plateHref ? <MealPlateLink href={plateHref} /> : null}
           {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
         </div>
       ) : null}

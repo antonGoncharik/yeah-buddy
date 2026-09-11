@@ -66,7 +66,25 @@ export function getGeminiModel(): string {
   return model || DEFAULT_MODEL;
 }
 
-export async function writeReview(brief: ReviewBrief): Promise<ReviewText> {
+export type GeminiUserPart =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } };
+
+export async function generateGeminiJson({
+  system,
+  parts,
+  schema,
+  temperature,
+  timeoutMs = 25_000,
+  failedMessage,
+}: {
+  system: string;
+  parts: GeminiUserPart[];
+  schema: object;
+  temperature: number;
+  timeoutMs?: number;
+  failedMessage: string;
+}): Promise<unknown> {
   const key = getGeminiApiKey();
   if (!key) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
@@ -83,36 +101,52 @@ export async function writeReview(brief: ReviewBrief): Promise<ReviewText> {
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: SYSTEM_PROMPT }],
+          parts: [{ text: system }],
         },
         contents: [
           {
             role: "user",
-            parts: [{ text: JSON.stringify(reviewPromptPayload(brief)) }],
+            parts,
           },
         ],
         generationConfig: {
-          temperature: 0.4,
+          temperature,
           responseMimeType: "application/json",
-          responseSchema: RESPONSE_SCHEMA,
+          responseSchema: schema,
         },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(timeoutMs),
     },
   );
 
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    console.error("gemini review failed", response.status, payload);
-    throw new ReviewError("GEMINI", AI_REVIEW_FAILED);
+    console.error("gemini request failed", response.status, payload);
+    throw new ReviewError("GEMINI", failedMessage);
   }
 
   const text = readCandidateText(payload);
   if (!text) {
-    throw new ReviewError("GEMINI", AI_REVIEW_FAILED);
+    throw new ReviewError("GEMINI", failedMessage);
   }
 
-  const parsed = reviewTextSchema.safeParse(readJson(text));
+  try {
+    return readJson(text);
+  } catch {
+    throw new ReviewError("GEMINI", failedMessage);
+  }
+}
+
+export async function writeReview(brief: ReviewBrief): Promise<ReviewText> {
+  const payload = await generateGeminiJson({
+    system: SYSTEM_PROMPT,
+    parts: [{ text: JSON.stringify(reviewPromptPayload(brief)) }],
+    schema: RESPONSE_SCHEMA,
+    temperature: 0.4,
+    failedMessage: AI_REVIEW_FAILED,
+  });
+
+  const parsed = reviewTextSchema.safeParse(payload);
   if (!parsed.success) {
     throw new ReviewError("GEMINI", AI_REVIEW_FAILED);
   }

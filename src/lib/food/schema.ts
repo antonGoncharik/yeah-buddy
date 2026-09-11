@@ -4,6 +4,22 @@ import { calcKcalFromMacros } from "@/lib/nutrition";
 
 export const FOOD_STATES = ["raw", "dry", "cooked", "as_is", "liquid"] as const;
 
+export type FoodStateValue = (typeof FOOD_STATES)[number];
+
+export function parseFoodState(value: unknown): FoodStateValue {
+  if (
+    value === "raw" ||
+    value === "dry" ||
+    value === "cooked" ||
+    value === "as_is" ||
+    value === "liquid"
+  ) {
+    return value;
+  }
+
+  return "as_is";
+}
+
 const optionalText = z
   .union([z.string(), z.null()])
   .optional()
