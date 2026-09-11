@@ -1,4 +1,10 @@
-import { formatG, formatPct, round0, round1 } from "@/lib/ai/format";
+import {
+  formatG,
+  formatKcalPlain,
+  formatPct,
+  round0,
+  round1,
+} from "@/lib/ai/format";
 import type { ReviewRange } from "@/lib/ai/range";
 import type {
   ReviewAverages,
@@ -10,23 +16,24 @@ import type {
   ReviewWeight,
 } from "@/lib/ai/types";
 import {
+  bodyWeightWindow,
   formatBodyWeight,
   formatProteinPerKg,
+  formatRelative,
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
 import type { FoodShare } from "@/lib/days";
 import type { Macros } from "@/lib/nutrition";
 import {
   averageMacros,
-  bodyWeightStats,
   KCAL_HIT_RATIO,
   nutritionHits,
-  proteinPerKgStats,
   splitAverages,
 } from "@/lib/nutrition-stats";
 import type {
   CurrentMacroState,
   DayHistoryRow,
+  ExerciseProgress,
   RecentWorkoutSession,
   StrengthProgress,
 } from "@/lib/types";
@@ -36,6 +43,11 @@ import {
   windowGymSessions,
 } from "@/lib/workout/history-stats";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { formatWeight } from "@/lib/workout/numbers";
+import {
+  CATEGORY_SHORT_LABELS,
+  categoryAverages,
+} from "@/lib/workout/progress-stats";
 
 const PROTEIN_MISS_G = 20;
 const CARBS_MISS_RATIO = 0.9;
@@ -89,7 +101,11 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const training = roundAverages(averages.training);
   const sessionRows = compactSessions(source.sessions, source.from, source.to);
   const maxes = compactMaxes(source.progress);
-  const weight = compactWeight(days, source.seedWeight ?? null);
+  const weight = compactWeight(days, source.seedWeight ?? null, source.from);
+  const categories = categoryAverages(source.progress.exercises).map((row) => ({
+    name: CATEGORY_SHORT_LABELS[row.id],
+    percent: round1(row.avg_percent),
+  }));
   const signals = buildSignals({
     days,
     rest,
@@ -110,6 +126,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     },
     phase: source.macro,
     maxes,
+    categories,
     avgPercent:
       source.progress.avg_percent == null
         ? null
@@ -158,7 +175,8 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       suggest_end: source.macro.phase_circle?.suggest_end ?? false,
     },
     maxes: {
-      grown: source.progress.grown_count,
+      since: "first_work",
+      grown: maxes.grownCount,
       total: source.progress.exercises.length,
       avg_percent:
         source.progress.avg_percent == null
@@ -168,6 +186,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
         source.progress.avg_relative_percent == null
           ? null
           : round1(source.progress.avg_relative_percent),
+      categories,
       grown_list: maxes.grown,
       stalled: maxes.stalled,
       last_recap: source.macro.last_recap
@@ -210,6 +229,7 @@ export function buildSignals(input: {
   };
   phase: CurrentMacroState;
   maxes: { grown: ReviewMaxRow[]; stalled: ReviewMaxRow[] };
+  categories?: Array<{ name: string; percent: number }>;
   avgPercent?: number | null;
   avgRelativePercent?: number | null;
 }): string[] {
@@ -226,8 +246,15 @@ export function buildSignals(input: {
     );
   }
 
+  if (input.rest) {
+    lines.push(formatAverageLine("Отдых", input.rest));
+  }
+  if (input.training) {
+    lines.push(formatAverageLine("Зал", input.training));
+  }
+
   const weight = input.weight;
-  if (weight.logged >= 2 && weight.start != null && weight.end != null) {
+  if (weight.start != null && weight.end != null) {
     const delta = weight.delta ?? 0;
     if (Math.abs(delta) >= WEIGHT_DELTA_KG) {
       lines.push(
@@ -236,14 +263,12 @@ export function buildSignals(input: {
     } else {
       lines.push(`Вес около ${formatBodyWeight(weight.end)} кг.`);
     }
-  } else if (weight.logged === 1 && weight.end != null) {
-    lines.push(`Вес записан: ${formatBodyWeight(weight.end)} кг.`);
   }
 
   if (
     weight.protein_per_kg != null &&
     weight.protein_per_kg_target != null &&
-    (weight.logged >= 2 || input.days.length >= 2)
+    (weight.logged >= 1 || input.days.length >= 2)
   ) {
     lines.push(
       `Белок ${formatProteinPerKg(weight.protein_per_kg)} при цели ${formatProteinPerKg(weight.protein_per_kg_target)}.`,
@@ -352,16 +377,20 @@ export function buildSignals(input: {
     );
   }
 
-  if (input.maxes.grown.length > 0) {
+  const recap = input.phase.last_recap;
+  if (recap) {
+    const from = recap.from_name || phaseLabel(recap.from_phase);
+    const to = recap.to_name || phaseLabel(recap.to_phase);
+    const pct = recap.avg_percent == null ? null : formatPct(recap.avg_percent);
     lines.push(
-      `Выросли: ${input.maxes.grown
-        .map((item) =>
-          item.percent == null
-            ? item.name
-            : `${item.name} ${formatPct(item.percent)}`,
-        )
-        .join(", ")}.`,
+      pct == null
+        ? `Прошлый цикл «${from}» → «${to}», выросли ${recap.grown_count}.`
+        : `Прошлый цикл «${from}» → «${to}»: рабочие ${pct}, выросли ${recap.grown_count}.`,
     );
+  }
+
+  if (input.maxes.grown.length > 0) {
+    lines.push(`Выросли: ${input.maxes.grown.map(formatMaxRow).join(", ")}.`);
   }
   if (input.maxes.stalled.length > 0) {
     lines.push(
@@ -401,6 +430,14 @@ export function buildSignals(input: {
     lines.push(`К весу тела рабочие ${formatPct(input.avgRelativePercent)}.`);
   }
 
+  if (input.categories && input.categories.length > 1) {
+    lines.push(
+      `По группам: ${input.categories
+        .map((item) => `${item.name} ${formatPct(item.percent)}`)
+        .join(", ")}.`,
+    );
+  }
+
   return lines;
 }
 
@@ -421,16 +458,27 @@ export function compactDay(item: DayHistoryRow): ReviewDayRow {
 function compactWeight(
   days: DayHistoryRow[],
   seed: number | null,
+  from: string,
 ): ReviewWeight {
-  const stats = bodyWeightStats(days);
-  const perKg = proteinPerKgStats(days, seed);
+  const stats = bodyWeightWindow(days, { seed, from });
+  if (!stats) {
+    return {
+      logged: 0,
+      start: null,
+      end: null,
+      delta: null,
+      protein_per_kg: null,
+      protein_per_kg_target: null,
+    };
+  }
+
   return {
     logged: stats.logged,
     start: stats.start == null ? null : round1(stats.start),
     end: stats.end == null ? null : round1(stats.end),
     delta: stats.delta == null ? null : round1(stats.delta),
-    protein_per_kg: perKg?.fact ?? null,
-    protein_per_kg_target: perKg?.target ?? null,
+    protein_per_kg: stats.protein_per_kg,
+    protein_per_kg_target: stats.protein_per_kg_target,
   };
 }
 
@@ -537,27 +585,124 @@ function weakTemplates(items: RecentWorkoutSession[]): string[] {
 function compactMaxes(progress: StrengthProgress): {
   grown: ReviewMaxRow[];
   stalled: ReviewMaxRow[];
+  grownCount: number;
 } {
-  const withPercent = progress.exercises.filter((item) => item.percent != null);
-  const grown = withPercent
-    .filter((item) => (item.percent ?? 0) > 0.5)
-    .slice(0, 4)
-    .map((item) => ({
-      name: item.name,
-      percent: item.percent == null ? null : round1(item.percent),
-      delta: item.delta == null ? null : round1(item.delta),
-    }));
-  const stalled = withPercent
-    .filter((item) => (item.percent ?? 0) <= 0.5)
-    .sort((left, right) => (left.percent ?? 0) - (right.percent ?? 0))
-    .slice(0, 4)
-    .map((item) => ({
-      name: item.name,
-      percent: item.percent == null ? null : round1(item.percent),
-      delta: item.delta == null ? null : round1(item.delta),
-    }));
+  const rows = progress.exercises.flatMap((item) => {
+    if (item.percent == null && item.relative_percent == null) {
+      return [];
+    }
+    return [toMaxRow(item)];
+  });
+  const grown = rows
+    .filter(isGrownMax)
+    .sort((left, right) => maxChange(right) - maxChange(left));
+  const stalled = rows
+    .filter((item) => !isGrownMax(item))
+    .sort((left, right) => maxChange(left) - maxChange(right));
 
-  return { grown, stalled };
+  return {
+    grown: grown.slice(0, 4),
+    stalled: stalled.slice(0, 4),
+    grownCount: grown.length,
+  };
+}
+
+function toMaxRow(item: ExerciseProgress): ReviewMaxRow {
+  return {
+    name: item.name,
+    percent: item.percent == null ? null : round1(item.percent),
+    relative_percent:
+      item.relative_percent == null ? null : round1(item.relative_percent),
+    delta: item.delta == null ? null : round1(item.delta),
+    start: item.start_weight == null ? null : round1(item.start_weight),
+    current: item.current_weight == null ? null : round1(item.current_weight),
+    start_relative:
+      item.start_relative == null ? null : round2(item.start_relative),
+    current_relative:
+      item.current_relative == null ? null : round2(item.current_relative),
+  };
+}
+
+function isGrownMax(item: ReviewMaxRow): boolean {
+  return (item.percent ?? 0) > 0.5 || (item.relative_percent ?? 0) > 0.5;
+}
+
+function maxChange(item: ReviewMaxRow): number {
+  return Math.max(
+    item.percent ?? Number.NEGATIVE_INFINITY,
+    item.relative_percent ?? Number.NEGATIVE_INFINITY,
+  );
+}
+
+function formatMaxRow(item: ReviewMaxRow): string {
+  const bar = item.percent == null ? null : formatPct(item.percent);
+  const relative =
+    item.relative_percent == null ? null : formatPct(item.relative_percent);
+  const barGrown = (item.percent ?? 0) > 0.5;
+  const relativeGrown = (item.relative_percent ?? 0) > 0.5;
+  const kg = formatKgRange(item.start, item.current);
+  const relRange = formatRelativeRange(
+    item.start_relative,
+    item.current_relative,
+  );
+  if (
+    barGrown &&
+    bar != null &&
+    relative != null &&
+    Math.abs((item.relative_percent ?? 0) - (item.percent ?? 0)) >=
+      RELATIVE_VS_BAR_PCT
+  ) {
+    return joinMaxParts(
+      item.name,
+      `${bar}${kg}`,
+      `к весу ${relative}${relRange}`,
+    );
+  }
+  if (barGrown && bar != null) {
+    return `${item.name} ${bar}${kg}`;
+  }
+  if (relativeGrown && relative != null) {
+    return `${item.name} к весу ${relative}${relRange}`;
+  }
+  if (bar != null) {
+    return `${item.name} ${bar}${kg}`;
+  }
+  return item.name;
+}
+
+function joinMaxParts(name: string, left: string, right: string): string {
+  return `${name} ${left}, ${right}`;
+}
+
+function formatKgRange(start: number | null, current: number | null): string {
+  if (start == null || current == null) {
+    return "";
+  }
+  if (start === current) {
+    return ` (${formatWeight(current)} кг)`;
+  }
+  return ` (${formatWeight(start)} → ${formatWeight(current)} кг)`;
+}
+
+function formatRelativeRange(
+  start: number | null,
+  current: number | null,
+): string {
+  if (start == null || current == null) {
+    return "";
+  }
+  if (start === current) {
+    return ` (${formatRelative(current)})`;
+  }
+  return ` (${formatRelative(start)} → ${formatRelative(current)})`;
+}
+
+function formatAverageLine(label: string, stats: ReviewAverages): string {
+  return `${label} · ${stats.count}: ${formatKcalPlain(stats.fact.kcal)}/${formatKcalPlain(stats.target.kcal)} ккал, белок ${formatG(stats.fact.protein)}/${formatG(stats.target.protein)} г.`;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function halfWindow(days: DayHistoryRow[]): {

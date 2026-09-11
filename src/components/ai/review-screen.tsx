@@ -10,10 +10,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { parseReviewSnapshot } from "@/lib/ai/parse-review";
 import type { ReviewBrief, ReviewSnapshot, ReviewText } from "@/lib/ai/types";
 import { mutateJson, postJson } from "@/lib/api-cache";
-import {
-  formatBodyWeight,
-  formatProteinPerKg,
-} from "@/lib/day/body-weight";
+import { formatBodyWeight, formatProteinPerKg } from "@/lib/day/body-weight";
 import {
   AI_REVIEW_EMPTY,
   AI_REVIEW_FAILED,
@@ -184,8 +181,7 @@ function FactsCard({ brief }: { brief: ReviewBrief }) {
           {[protein, plan].filter(Boolean).join(" · ")}
         </p>
       ) : null}
-      {brief.nutrition.weight.logged > 0 &&
-      brief.nutrition.weight.end != null ? (
+      {brief.nutrition.weight.end != null ? (
         <p className="text-sm text-muted-foreground">
           вес{" "}
           {brief.nutrition.weight.start != null &&
@@ -196,6 +192,10 @@ function FactsCard({ brief }: { brief: ReviewBrief }) {
           {brief.nutrition.weight.protein_per_kg == null
             ? null
             : ` · белок ${formatProteinPerKg(brief.nutrition.weight.protein_per_kg)}`}
+        </p>
+      ) : brief.nutrition.weight.protein_per_kg != null ? (
+        <p className="text-sm text-muted-foreground">
+          белок {formatProteinPerKg(brief.nutrition.weight.protein_per_kg)}
         </p>
       ) : null}
       {phase ? <p className="text-sm text-muted-foreground">{phase}</p> : null}

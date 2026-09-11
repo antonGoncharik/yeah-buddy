@@ -81,10 +81,12 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       suggest_end: value.phase.suggest_end === true,
     },
     maxes: {
+      since: "first_work",
       grown: toNumber(value.maxes.grown),
       total: toNumber(value.maxes.total),
       avg_percent: toNullableNumber(value.maxes.avg_percent),
       avg_relative_percent: toNullableNumber(value.maxes.avg_relative_percent),
+      categories: mapRecordList(value.maxes.categories, parseNamedPercent),
       grown_list: mapRecordList(value.maxes.grown_list, parseMaxRow),
       stalled: mapRecordList(value.maxes.stalled, parseMaxRow),
       last_recap: parseLastRecap(value.maxes.last_recap),
@@ -246,8 +248,23 @@ function parseMaxRow(row: Record<string, unknown>): ReviewMaxRow | null {
   return {
     name: row.name,
     percent: toNullableNumber(row.percent),
+    relative_percent: toNullableNumber(row.relative_percent),
     delta: toNullableNumber(row.delta),
+    start: toNullableNumber(row.start),
+    current: toNullableNumber(row.current),
+    start_relative: toNullableNumber(row.start_relative),
+    current_relative: toNullableNumber(row.current_relative),
   };
+}
+
+function parseNamedPercent(
+  row: Record<string, unknown>,
+): { name: string; percent: number } | null {
+  if (typeof row.name !== "string") {
+    return null;
+  }
+
+  return { name: row.name, percent: toNumber(row.percent) };
 }
 
 function parseLastRecap(value: unknown): ReviewBrief["maxes"]["last_recap"] {

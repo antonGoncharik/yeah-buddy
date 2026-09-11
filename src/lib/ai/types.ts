@@ -44,7 +44,12 @@ export type ReviewSessionRow = {
 export type ReviewMaxRow = {
   name: string;
   percent: number | null;
+  relative_percent: number | null;
   delta: number | null;
+  start: number | null;
+  current: number | null;
+  start_relative: number | null;
+  current_relative: number | null;
 };
 
 export type ReviewBrief = {
@@ -83,10 +88,12 @@ export type ReviewBrief = {
     suggest_end: boolean;
   };
   maxes: {
+    since: "first_work";
     grown: number;
     total: number;
     avg_percent: number | null;
     avg_relative_percent: number | null;
+    categories: Array<{ name: string; percent: number }>;
     grown_list: ReviewMaxRow[];
     stalled: ReviewMaxRow[];
     last_recap: {

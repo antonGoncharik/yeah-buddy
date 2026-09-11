@@ -1,5 +1,11 @@
 import { formatG } from "@/lib/ai/format";
-import { buildSignals, reviewCoverage } from "@/lib/ai/signals";
+import { reviewPromptPayload } from "@/lib/ai/prompt";
+import {
+  buildReviewBrief,
+  buildSignals,
+  reviewCoverage,
+} from "@/lib/ai/signals";
+import type { ReviewMaxRow } from "@/lib/ai/types";
 import type { DayHistoryRow } from "@/lib/types";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -8,6 +14,19 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
       `${label}: got ${String(actual)}, expected ${String(expected)}`,
     );
   }
+}
+
+function maxRow(input: Partial<ReviewMaxRow> & { name: string }): ReviewMaxRow {
+  return {
+    name: input.name,
+    percent: input.percent ?? null,
+    relative_percent: input.relative_percent ?? null,
+    delta: input.delta ?? null,
+    start: input.start ?? null,
+    current: input.current ?? null,
+    start_relative: input.start_relative ?? null,
+    current_relative: input.current_relative ?? null,
+  };
 }
 
 function day(input: {
@@ -108,11 +127,23 @@ const lines = buildSignals({
       circle_size: 6,
       suggest_end: true,
     },
-    last_recap: null,
+    last_recap: {
+      macro_id: "m",
+      number: 1,
+      start_date: "2026-07-01",
+      end_date: "2026-08-20",
+      from_phase: "ramp",
+      to_phase: "deload",
+      from_name: "Разгон",
+      to_name: "Сброс",
+      gains: [],
+      grown_count: 3,
+      avg_percent: 5,
+    },
   },
   maxes: {
-    grown: [{ name: "Блок", percent: 6, delta: 5 }],
-    stalled: [{ name: "Молот", percent: 0, delta: 0 }],
+    grown: [maxRow({ name: "Блок", percent: 6, delta: 5 })],
+    stalled: [maxRow({ name: "Молот", percent: 0, delta: 0 })],
   },
 });
 
@@ -140,6 +171,20 @@ assertEqual(
   lines.some((line) => line.includes("круг можно закрыть")),
   true,
   "phase end",
+);
+assertEqual(
+  lines.some((line) =>
+    line.includes("Прошлый цикл «Разгон» → «Сброс»: рабочие +5%"),
+  ),
+  true,
+  "last recap",
+);
+assertEqual(
+  lines.some((line) =>
+    line.includes("Отдых · 2: 2000/2000 ккал, белок 180/200 г."),
+  ),
+  true,
+  "rest averages",
 );
 assertEqual(
   lines.some(
@@ -187,7 +232,9 @@ const recompLines = buildSignals({
     last_recap: null,
   },
   maxes: {
-    grown: [{ name: "Присед", percent: 4, delta: 5 }],
+    grown: [
+      maxRow({ name: "Присед", percent: 4, relative_percent: 6, delta: 5 }),
+    ],
     stalled: [],
   },
   avgRelativePercent: 6,
@@ -212,6 +259,95 @@ assertEqual(
   recompLines.some((line) => line.includes("К весу тела")),
   true,
   "relative strength",
+);
+assertEqual(
+  recompLines.some((line) => line.includes("Присед +4%, к весу +6%")),
+  true,
+  "lift relative vs bar",
+);
+
+const seedBrief = buildReviewBrief({
+  range: 14,
+  from: "2026-09-01",
+  to: "2026-09-14",
+  days: [
+    day({ date: "2026-09-05", protein: 162, targetProtein: 162, weight: 81 }),
+  ],
+  sessions: [],
+  foods: [],
+  macro: {
+    macro: null,
+    phase: null,
+    phases: [],
+    maxes: [],
+    phase_circle: null,
+    last_recap: null,
+  },
+  progress: {
+    exercises: [
+      {
+        exercise_id: "e1",
+        name: "Присед",
+        category: "base",
+        current_weight: 175,
+        start_weight: 175,
+        delta: 0,
+        percent: 0,
+        current_relative: 2.16,
+        start_relative: 2.08,
+        relative_percent: 3.8,
+        points: [],
+        from_work: true,
+      },
+    ],
+    grown_count: 0,
+    avg_percent: 0,
+    avg_relative_percent: 3.8,
+  },
+  seedWeight: 84,
+});
+
+assertEqual(seedBrief.nutrition.weight.logged, 1, "one log in window");
+assertEqual(seedBrief.nutrition.weight.start, 84, "seed is start");
+assertEqual(seedBrief.nutrition.weight.end, 81, "log is end");
+assertEqual(seedBrief.nutrition.weight.delta, -3, "delta uses seed");
+assertEqual(
+  seedBrief.signals.some((line) => line.includes("84 → 81")),
+  true,
+  "signal uses seed trend",
+);
+assertEqual(seedBrief.maxes.since, "first_work", "maxes since first work");
+assertEqual(seedBrief.maxes.grown, 1, "relative counts in grown");
+assertEqual(
+  seedBrief.maxes.grown_list[0]?.name,
+  "Присед",
+  "relative counts as grown",
+);
+assertEqual(seedBrief.maxes.grown_list[0]?.start, 175, "start kg on max row");
+assertEqual(
+  seedBrief.maxes.grown_list[0]?.current_relative,
+  2.16,
+  "relative on max row",
+);
+assertEqual(
+  seedBrief.signals.some((line) =>
+    line.includes("Присед к весу +3,8% (2,08× → 2,16×)"),
+  ),
+  true,
+  "relative-only lift",
+);
+
+const prompt = reviewPromptPayload(seedBrief);
+assertEqual("days" in prompt.nutrition, false, "prompt drops days");
+assertEqual("sessions" in prompt.gym, false, "prompt drops sessions");
+assertEqual(prompt.nutrition.weight.delta, -3, "prompt keeps weight");
+assertEqual(prompt.maxes.since, "first_work", "prompt labels maxes window");
+assertEqual(prompt.maxes.grown_list[0]?.current, 175, "prompt keeps kg");
+assertEqual(prompt.gym.notes.length, 0, "prompt keeps notes field");
+assertEqual(
+  prompt.signals.some((line) => line.includes("84 → 81")),
+  true,
+  "prompt keeps signals",
 );
 
 console.log("ai signals ok");

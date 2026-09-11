@@ -89,4 +89,59 @@ assertEqual(window?.end, 81, "end");
 assertEqual(window?.delta, -3, "delta");
 assertEqual(window?.protein_per_kg, 2, "avg g/kg");
 
+const windowFromSeed = bodyWeightWindow(
+  [
+    {
+      date: "2026-09-05",
+      body_weight: 81,
+      fact_protein: 162,
+      target_protein: 162,
+    },
+  ],
+  { seed: 84, from: "2026-09-01" },
+);
+assertEqual(windowFromSeed?.logged, 1, "seed plus one log");
+assertEqual(windowFromSeed?.start, 84, "seed is window start");
+assertEqual(windowFromSeed?.end, 81, "log is window end");
+assertEqual(windowFromSeed?.delta, -3, "delta uses seed");
+assertEqual(windowFromSeed?.protein_per_kg, 2, "g/kg from carried seed");
+
+const carriedOnly = bodyWeightWindow(
+  [
+    {
+      date: "2026-09-05",
+      body_weight: null,
+      fact_protein: 168,
+      target_protein: 168,
+    },
+  ],
+  { seed: 84, from: "2026-09-01" },
+);
+assertEqual(carriedOnly?.logged, 0, "no new logs");
+assertEqual(carriedOnly?.start, 84, "carried start");
+assertEqual(carriedOnly?.end, 84, "carried end");
+assertEqual(carriedOnly?.delta, 0, "flat carried");
+assertEqual(carriedOnly?.protein_per_kg, 2, "g/kg from seed only");
+
+const onFrom = bodyWeightWindow(
+  [
+    {
+      date: "2026-09-01",
+      body_weight: 82,
+      fact_protein: 164,
+      target_protein: 164,
+    },
+    {
+      date: "2026-09-10",
+      body_weight: 81,
+      fact_protein: 162,
+      target_protein: 162,
+    },
+  ],
+  { seed: 84, from: "2026-09-01" },
+);
+assertEqual(onFrom?.start, 82, "log on from beats seed");
+assertEqual(onFrom?.end, 81, "last log");
+assertEqual(onFrom?.delta, -1, "in-window only");
+
 console.log("body weight ok");

@@ -3,7 +3,6 @@ import {
   carriedBodyWeight,
   proteinPerKg,
   roundBodyWeight,
-  weightDelta,
 } from "@/lib/day/body-weight";
 
 import type { Macros } from "@/lib/nutrition";
@@ -153,32 +152,11 @@ export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
   return { proteinHit, proteinTotal, kcalHit, kcalTotal };
 }
 
-export type BodyWeightStats = {
-  logged: number;
-  start: number | null;
-  end: number | null;
-  delta: number | null;
-};
-
 export type ProteinPerKgStats = {
   count: number;
   fact: number;
   target: number;
 };
-
-export function bodyWeightStats(items: DayHistoryRow[]): BodyWeightStats {
-  const logged = [...items]
-    .filter((item) => item.body_weight != null && item.body_weight > 0)
-    .sort((left, right) => left.date.localeCompare(right.date));
-  const start = logged[0]?.body_weight ?? null;
-  const end = logged.at(-1)?.body_weight ?? null;
-  return {
-    logged: logged.length,
-    start,
-    end,
-    delta: weightDelta(start, end),
-  };
-}
 
 export function proteinPerKgStats(
   items: DayHistoryRow[],

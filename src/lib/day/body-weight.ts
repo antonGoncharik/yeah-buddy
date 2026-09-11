@@ -124,14 +124,17 @@ export function bodyWeightWindow(
     fact_protein: number;
     target_protein: number;
   }>,
+  options?: { seed?: number | null; from?: string | null },
 ): BodyWeightWindow | null {
+  const seed = options?.seed != null && options.seed > 0 ? options.seed : null;
+  const from = options?.from ?? null;
   const logged = days
     .filter(
       (item): item is typeof item & { body_weight: number } =>
         item.body_weight != null && item.body_weight > 0,
     )
     .sort((left, right) => left.date.localeCompare(right.date));
-  const carried = carriedBodyWeight(days);
+  const carried = carriedBodyWeight(days, seed);
   let proteinSum = 0;
   let targetSum = 0;
   let perKgCount = 0;
@@ -155,8 +158,8 @@ export function bodyWeightWindow(
     return null;
   }
 
-  const start = logged[0]?.body_weight ?? null;
-  const end = logged.at(-1)?.body_weight ?? null;
+  const start = windowStartWeight(logged, seed, from);
+  const end = logged.at(-1)?.body_weight ?? seed;
   return {
     logged: logged.length,
     start,
@@ -167,6 +170,24 @@ export function bodyWeightWindow(
     protein_per_kg_target:
       perKgCount === 0 ? null : Math.round((targetSum / perKgCount) * 10) / 10,
   };
+}
+
+function windowStartWeight(
+  logged: Array<{ date: string; body_weight: number }>,
+  seed: number | null,
+  from: string | null,
+): number | null {
+  if (from != null) {
+    const onStart = logged.find((item) => item.date === from);
+    if (onStart) {
+      return onStart.body_weight;
+    }
+    if (seed != null) {
+      return seed;
+    }
+  }
+
+  return logged[0]?.body_weight ?? seed;
 }
 
 export function weightDelta(
