@@ -7,10 +7,12 @@ import { upsertTelegramUser } from "@/lib/auth/upsert-user";
 import { getServerEnv } from "@/lib/env";
 import { OPEN_VIA_BOT } from "@/lib/messages";
 import { ensureInitialData } from "@/lib/seed";
+import { rememberUserTimezone } from "@/lib/telegram/reminders";
 import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
 
 const bodySchema = z.object({
   initData: z.string().min(1),
+  timeZone: z.string().max(64).optional(),
 });
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -44,6 +46,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const user = await upsertTelegramUser(telegramUser);
     await ensureInitialData(user.id);
+    await rememberUserTimezone(user.id, parsedBody.data.timeZone);
     await setSessionCookie({
       userId: user.id,
       telegramId: user.telegram_id,

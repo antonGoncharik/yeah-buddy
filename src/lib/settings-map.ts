@@ -14,6 +14,7 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
       typeof row.onboarding_completed_at === "string"
         ? row.onboarding_completed_at
         : null,
+    reminders_enabled: row.reminders_enabled !== false,
     updated_at: String(row.updated_at),
   };
 }

@@ -75,6 +75,7 @@ const settings: UserSettings = {
   training_fat: 70,
   training_carbs: 250,
   onboarding_completed_at: "2026-01-01",
+  reminders_enabled: true,
   updated_at: "2026-01-01",
 };
 

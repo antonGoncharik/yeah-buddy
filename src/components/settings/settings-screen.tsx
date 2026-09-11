@@ -30,7 +30,10 @@ type FormState = {
   training_protein: string;
   training_fat: string;
   training_carbs: string;
+  reminders_enabled: boolean;
 };
+
+type MacroFieldKey = Exclude<keyof FormState, "reminders_enabled">;
 
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
@@ -117,9 +120,39 @@ export function SettingsScreen() {
     }
   }
 
-  function updateField(key: keyof FormState, value: string) {
+  function updateField(key: MacroFieldKey, value: string) {
     setSaved(false);
     setForm((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  async function setReminders(enabled: boolean) {
+    if (!form || form.reminders_enabled === enabled) {
+      return;
+    }
+
+    const previous = form.reminders_enabled;
+    setForm({ ...form, reminders_enabled: enabled });
+    setError(null);
+
+    try {
+      const data = await patchJson("/api/settings", {
+        reminders_enabled: enabled,
+      });
+      const settings = readSettings(data);
+      if (settings) {
+        setForm((current) =>
+          current
+            ? { ...current, reminders_enabled: settings.reminders_enabled }
+            : current,
+        );
+        writeJson("/api/settings", data);
+      }
+    } catch (caught) {
+      setForm((current) =>
+        current ? { ...current, reminders_enabled: previous } : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
   }
 
   return (
@@ -146,6 +179,24 @@ export function SettingsScreen() {
             onChange={setTheme}
           />
         </section>
+
+        {!loading && form ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+            <h2 className="text-xl font-semibold">Напоминания вечером</h2>
+            <p className="text-sm text-muted-foreground">
+              Если день пустой — одно сообщение в бот.
+            </p>
+            <Segmented
+              value={form.reminders_enabled ? "on" : "off"}
+              options={[
+                { id: "on", label: "Вкл" },
+                { id: "off", label: "Выкл" },
+              ]}
+              onChange={(id) => void setReminders(id === "on")}
+            />
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          </section>
+        ) : null}
 
         {loading ? <ScreenLoading /> : null}
 
@@ -349,6 +400,7 @@ function toFormState(settings: UserSettings): FormState {
     training_protein: String(settings.training_protein),
     training_fat: String(settings.training_fat),
     training_carbs: String(settings.training_carbs),
+    reminders_enabled: settings.reminders_enabled,
   };
 }
 

@@ -54,7 +54,10 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
         const response = await fetch("/api/auth/telegram", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ initData }),
+          body: JSON.stringify({
+            initData,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          }),
         });
 
         if (response.status === 401) {

@@ -8,14 +8,20 @@ export { isOnboardingCompleted, mapSettings } from "@/lib/settings-map";
 
 const macroGoal = z.number().finite().min(0);
 
-export const settingsInputSchema = z.object({
+const macroSettingsSchema = z.object({
   rest_protein: macroGoal,
   rest_fat: macroGoal,
   rest_carbs: macroGoal,
   training_protein: macroGoal,
   training_fat: macroGoal,
   training_carbs: macroGoal,
+  reminders_enabled: z.boolean().optional(),
 });
+
+export const settingsInputSchema = z.union([
+  macroSettingsSchema,
+  z.object({ reminders_enabled: z.boolean() }),
+]);
 
 export type SettingsInput = z.infer<typeof settingsInputSchema>;
 
@@ -62,4 +68,34 @@ export async function saveUserSettings(
   }
 
   return mapSettings(saved.data as Record<string, unknown>);
+}
+
+export async function saveUserTimezone(
+  userId: string,
+  timezone: string,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const saved = await supabase
+    .from("user_settings")
+    .update({ timezone, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
+
+  if (saved.error) {
+    throw saved.error;
+  }
+}
+
+export async function disableReminders(userId: string): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const saved = await supabase
+    .from("user_settings")
+    .update({
+      reminders_enabled: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId);
+
+  if (saved.error) {
+    throw saved.error;
+  }
 }

@@ -7,6 +7,7 @@ const serverEnvSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   TELEGRAM_MINI_APP_URL: z.string().optional(),
+  CRON_SECRET: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -25,6 +26,7 @@ export function getServerEnv(): ServerEnv {
     SESSION_SECRET: process.env.SESSION_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || undefined,
     TELEGRAM_MINI_APP_URL: process.env.TELEGRAM_MINI_APP_URL || undefined,
+    CRON_SECRET: process.env.CRON_SECRET || undefined,
   });
 
   if (!parsed.success) {

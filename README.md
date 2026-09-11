@@ -50,10 +50,11 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `SESSION_SECRET` | yes | session signing key, ≥ 32 characters |
 | `NEXT_PUBLIC_APP_URL` | no | app URL; fallback for the Mini App button |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
+| `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0014_share_packs.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0015_reminders.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
-Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
+Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). At 20:00 in the user’s timezone (from the Mini App, otherwise `Europe/Moscow`) the bot sends **one** reminder if that calendar day has no food items and no gym session: empty food day, and the next circle template if there is a queue. Not a broadcast. Toggle: Settings → Evening reminders. Cron: hourly `GET /api/cron/reminders` with `CRON_SECRET`. Hobby plans only allow a daily cron — use `0 17 * * *` (20:00 Moscow) if hourly is blocked. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 
 ```text
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook

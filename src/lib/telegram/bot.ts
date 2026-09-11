@@ -1,4 +1,4 @@
-import { Bot, InlineKeyboard } from "grammy";
+import { Bot, GrammyError, InlineKeyboard } from "grammy";
 
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import { BOT_OPEN_DIARY, BOT_START } from "@/lib/messages";
@@ -76,12 +76,54 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
 
     await ctx.reply(BOT_START, {
       // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).
-      reply_markup: new InlineKeyboard().webApp(BOT_OPEN_DIARY, buttonUrl),
+      reply_markup: diaryKeyboard(buttonUrl),
     });
   });
 
   bot = instance;
   return instance;
+}
+
+export type DiarySendResult = "sent" | "blocked" | "failed";
+
+export async function sendDiaryMessage(
+  chatId: number,
+  text: string,
+  env: ServerEnv = getServerEnv(),
+): Promise<DiarySendResult> {
+  const miniAppUrl = getMiniAppUrl(env);
+  try {
+    await createBot(env).api.sendMessage(
+      chatId,
+      text,
+      miniAppUrl ? { reply_markup: diaryKeyboard(miniAppUrl) } : {},
+    );
+    return "sent";
+  } catch (error) {
+    if (error instanceof GrammyError && isBlockedChat(error)) {
+      return "blocked";
+    }
+    console.error(error);
+    return "failed";
+  }
+}
+
+function diaryKeyboard(url: string): InlineKeyboard {
+  return new InlineKeyboard().webApp(BOT_OPEN_DIARY, url);
+}
+
+function isBlockedChat(error: GrammyError): boolean {
+  if (error.error_code === 403) {
+    return true;
+  }
+  if (error.error_code !== 400) {
+    return false;
+  }
+  const description = error.description.toLowerCase();
+  return (
+    description.includes("chat not found") ||
+    description.includes("user is deactivated")
+  );
 }
 
 async function getBotUsername(): Promise<string | null> {

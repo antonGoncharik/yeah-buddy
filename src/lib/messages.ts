@@ -15,6 +15,11 @@ export const BOT_START = `Yeah buddy! 👟
 
 Погнали🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
+export const BOT_REMINDER_FOOD = "День еды пустой.";
+
+export function botReminderGym(name: string): string {
+  return `Сегодня ${name}.`;
+}
 export const EXERCISES_EMPTY = "Пока пусто. Добавь упражнение и рабочий вес.";
 export const WORKOUTS_NEED_EXERCISES = "Сначала упражнения и рабочие веса.";
 export const WORKOUTS_NEED_TEMPLATES =

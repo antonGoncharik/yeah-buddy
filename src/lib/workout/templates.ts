@@ -304,10 +304,10 @@ export async function getNextTemplate(
   return templates[0] ?? null;
 }
 
-export function templateAfter(
-  templates: WorkoutTemplateDetail[],
+export function templateAfter<T extends { id: string }>(
+  templates: T[],
   lastId: string | null,
-): WorkoutTemplateDetail | null {
+): T | null {
   if (templates.length === 0) {
     return null;
   }

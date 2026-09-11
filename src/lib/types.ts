@@ -30,6 +30,7 @@ export interface UserSettings {
   training_fat: number;
   training_carbs: number;
   onboarding_completed_at: string | null;
+  reminders_enabled: boolean;
   updated_at: string;
 }
 

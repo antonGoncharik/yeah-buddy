@@ -36,6 +36,7 @@ TELEGRAM_BOT_TOKEN=
 SESSION_SECRET=
 NEXT_PUBLIC_APP_URL=
 TELEGRAM_MINI_APP_URL=
+CRON_SECRET=
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash-lite
 ```
@@ -44,18 +45,20 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 
 `TELEGRAM_MINI_APP_URL` или `NEXT_PUBLIC_APP_URL` — HTTPS URL Mini App для кнопки бота. Без HTTPS кнопка не ставится.
 
+`CRON_SECRET` — для вечерних напоминаний. Vercel Cron шлёт `Authorization: Bearer CRON_SECRET` на `GET /api/cron/reminders`. Без секрета крон отвечает 401.
+
 `GEMINI_API_KEY` — необязательный. Без него `/settings/review` показывает только посчитанные факты. `GEMINI_MODEL` по умолчанию `gemini-3.5-flash-lite`.
 
-На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY`. В клиентский бандл не класть.
+На сервере: `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `CRON_SECRET`, `GEMINI_API_KEY`. В клиентский бандл не класть.
 
 ---
 
 ## 3. Авторизация
 
 1. Mini App вызывает `Telegram.WebApp.ready()`, `expand()` и при Bot API 8.0+ `requestFullscreen()`.
-2. `POST /api/auth/telegram` с `{ initData }`.
+2. `POST /api/auth/telegram` с `{ initData, timeZone? }`.
 3. Сервер проверяет HMAC `initData` (окно 24 часа).
-4. Upsert `users` по `telegram_id`, при первом входе — `user_settings`.
+4. Upsert `users` по `telegram_id`, при первом входе — `user_settings`. Часовой пояс Mini App пишется в `user_settings.timezone` (IANA, иначе `Europe/Moscow`).
 5. `ensureInitialData`: стартовые продукты, шаблоны еды, упражнения. Очередь зала не сидится.
 6. HTTP-only cookie `session` (JWT jose, 7 дней, `sameSite=lax`, `secure` в production).
 7. Если `user_settings.onboarding_completed_at` пустой — редирект на `/onboarding`. Нижней панели там нет. Повтор из настроек: `/onboarding?again=1`. У кого уже есть дни еды или сессии зала, миграция ставит дату и мастер не показывает.
@@ -102,7 +105,7 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 /foods                              список продуктов
 /food/new                           новый продукт
 /food/[id]                          правка / удаление
-/settings                           тема; цели БЖУ свёрнуты в карточку. Ниже: еда (продукты, еда на день, история), зал → хаб, для друзей, как прошло, повтор онбординга
+/settings                           тема; напоминания вечером; цели БЖУ свёрнуты в карточку. Ниже: еда (продукты, еда на день, история), зал → хаб, для друзей, как прошло, повтор онбординга
 /onboarding                         первый вход; `?again=1` — повтор из настроек, очередь не меняет
 /settings/meals                     еда на день отдыха и тренировки
 /settings/meals/[dayType]           состав: приёмы, граммы
@@ -432,11 +435,13 @@ FLOOR вниз, не к ближайшему. Шаг на упражнении.
 
 ## 9. Бот и Mini App
 
-Бот: только `/start`. Текст — `BOT_START` в `src/lib/messages.ts`. Кнопка «Открыть дневник» (webApp). Если `/start TOKEN` и токен пакета — на URL кнопки добавляется `startapp`.
+Бот: `/start` и одно вечернее напоминание. Рассылок, дайджестов, маркетинга и Stars нет.
+
+`/start` — текст `BOT_START` в `src/lib/messages.ts`. Кнопка «Открыть дневник» (webApp). Если `/start TOKEN` и токен пакета — на URL кнопки добавляется `startapp`.
 
 Webhook: `POST /api/telegram/webhook`.
 
-Уведомлений, рассылок, Stars нет.
+Напоминание — не бейдж и не промо: человек забывает открыть Mini App, бот возвращает в дневник. Крон каждый час: `GET /api/cron/reminders` (Bearer `CRON_SECRET`). В 20:00 локального времени пользователя (пояс из Mini App, иначе `Europe/Moscow`) одно сообщение, если за этот календарный день не было записи: ни позиции в еде, ни сессии зала. Текст: «День еды пустой.» Если в круге есть следующий шаблон — второй строкой «Сегодня {имя}.» Та же кнопка «Открыть дневник». Повтор в тот же день не шлём. Только прошедшие онбординг, с включёнными напоминаниями. Выключить: Настройки → Напоминания вечером. Если бота заблокировали — напоминания выключаются.
 
 Mini App: `ready` + `expand` + `requestFullscreen` (8.0+), авторизация `initData`, иначе экран «через бота».
 
@@ -472,6 +477,7 @@ supabase/migrations/0011_drop_session_kind.sql kind убран; одна сес�
 supabase/migrations/0012_skip_template_ids.sql skip_template_ids колонка, не jsonb формул
 supabase/migrations/0013_custom_cycle.sql      пользовательский цикл фаз
 supabase/migrations/0014_share_packs.sql       пакеты еды/зала по ссылке
+supabase/migrations/0015_reminders.sql         reminders_enabled, timezone, reminded_on
 ```
 
 Актуальная схема — сумма этих файлов, не один `0001`.
@@ -480,7 +486,7 @@ supabase/migrations/0014_share_packs.sql       пакеты еды/зала по
 
 `users` — `telegram_id` уникален.
 
-`user_settings` — цели отдыха и тренировки, `onboarding_completed_at`.
+`user_settings` — цели отдыха и тренировки, `onboarding_completed_at`, `reminders_enabled` (по умолчанию вкл), `timezone` (по умолчанию `Europe/Moscow`), `reminded_on`.
 
 `foods` — продукты пользователя.
 
@@ -571,6 +577,7 @@ work = Рабочий
 13. Разбор: цифры считает код. Модель не пересчитывает БЖУ и веса и не выдумывает записи.
 14. Пакеты — явный жест. Снимок, не live-дневник. Еда и зал отдельно. Веса не шарятся. Постановка не затирает записанные дни и максимумы молча: превью и подтверждение.
 15. Хаптик только на жесте, который что-то меняет или бьётся о границу. Не вешать на общую кнопку и нижнюю панель.
+16. Напоминание бота — одно сообщение в день, только если нет записи еды и зала. Не маркетинг и не дайджест.
 
 ---
 
@@ -583,5 +590,5 @@ work = Рабочий
 - Telegram Stars, платежи, подписки, рефералка;
 - публичный каталог продуктов, лента друзей, мультиаккаунт кроме изоляции по `user_id`;
 - автосоздание сессий по дням недели;
-- уведомления бота;
+- массовые рассылки, дайджесты, промо в боте;
 - подтверждение каждого подхода на сессии.
