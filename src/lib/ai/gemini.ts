@@ -49,7 +49,7 @@ const RESPONSE_SCHEMA = {
   required: ["headline", "observations", "watch"],
 } as const;
 
-const DEFAULT_MODEL = "gemini-3.5-flash";
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 
 export function getGeminiApiKey(): string | null {
   const key = process.env.GEMINI_API_KEY?.trim();
