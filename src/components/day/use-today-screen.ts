@@ -2,18 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import { bannerFromTodayState } from "@/components/day/today-workout-banner";
-import { useConfirm } from "@/components/layout/confirm-provider";
-import { useDayMood } from "@/components/layout/day-mood";
 import {
-  ApiError,
-  cachedGet,
-  deleteJson,
-  patchJson,
-  peekJson,
-  postJson,
-} from "@/lib/api-cache";
+  factFromDay,
+  hiddenMealKcalFromDay,
+  hiddenMealTypesFromDay,
+  visibleMealsFromDay,
+} from "@/components/day/today-derived";
+import { bannerFromTodayState } from "@/components/day/today-workout-banner";
+import { useTodayCopy } from "@/components/day/use-today-copy";
+import { useTodayDayActions } from "@/components/day/use-today-day-actions";
+import { useTodayWorkoutStart } from "@/components/day/use-today-workout-start";
+import { useDayMood } from "@/components/layout/day-mood";
+import { cachedGet, peekJson } from "@/lib/api-cache";
 import {
   calendarToday,
   isIsoDate,
@@ -27,17 +27,8 @@ import {
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
-import {
-  DAY_EXISTS_REPLACE,
-  LOAD_FAILED,
-  YESTERDAY_MEAL_EMPTY,
-  YESTERDAY_MISSING,
-} from "@/lib/messages";
-import { isMealVisible, mealExistsReplace, sumMeals } from "@/lib/nutrition";
-import { haptic } from "@/lib/telegram/haptic";
-import type { DayType, MealItem, MealType } from "@/lib/types";
+import type { MealType } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import { readTodaySession } from "@/lib/workout/hub-payload";
 
 function resolveStartDate(value: string | undefined, today: string): string {
   if (value && isIsoDate(value) && value <= today) {
@@ -59,7 +50,6 @@ export function useTodayScreen({
   const router = useRouter();
   const [date, setDate] = useState(() => resolveStartDate(initialDate, today));
   const { setMood } = useDayMood();
-  const confirm = useConfirm();
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [yesterdayExists, setYesterdayExists] = useState(false);
   const [yesterdayMealTypes, setYesterdayMealTypes] = useState<MealType[]>([]);
@@ -196,326 +186,42 @@ export function useTodayScreen({
     setMood(shownDay.is_training_day ? "training" : "rest");
   }, [contentReady, shownDay, setMood]);
 
-  const visibleMeals = useMemo(() => {
-    if (!shownDay) {
-      return [];
-    }
+  const visibleMeals = useMemo(() => visibleMealsFromDay(shownDay), [shownDay]);
+  const fact = useMemo(() => factFromDay(shownDay), [shownDay]);
+  const hiddenMealKcal = useMemo(
+    () => hiddenMealKcalFromDay(shownDay),
+    [shownDay],
+  );
+  const hiddenMealTypes = useMemo(
+    () => hiddenMealTypesFromDay(shownDay),
+    [shownDay],
+  );
 
-    return shownDay.meals.filter((meal) =>
-      isMealVisible(meal.meal_type, shownDay.is_training_day),
-    );
-  }, [shownDay]);
-
-  const fact = useMemo(() => {
-    if (!shownDay) {
-      return { protein: 0, fat: 0, carbs: 0, kcal: 0 };
-    }
-    return sumMeals(shownDay.meals);
-  }, [shownDay]);
-
-  const hiddenMealKcal = useMemo(() => {
-    if (!shownDay) {
-      return 0;
-    }
-    return sumMeals(
-      shownDay.meals.filter(
-        (meal) =>
-          !isMealVisible(meal.meal_type, shownDay.is_training_day) &&
-          meal.items.length > 0,
-      ),
-    ).kcal;
-  }, [shownDay]);
-
-  const hiddenMealTypes = useMemo(() => {
-    if (!shownDay) {
-      return [];
-    }
-    return shownDay.meals
-      .filter(
-        (meal) =>
-          !isMealVisible(meal.meal_type, shownDay.is_training_day) &&
-          meal.items.length > 0,
-      )
-      .map((meal) => meal.meal_type);
-  }, [shownDay]);
-
-  async function createDay(dayType: DayType) {
-    if (viewOnly) {
-      return;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const data = await postJson("/api/days", { date, dayType });
-      setDay(readDay(data));
-      haptic("commit");
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copyYesterday() {
-    if (viewOnly) {
-      return;
-    }
-
-    let replace = false;
-    if (day) {
-      const ok = await confirm({
-        message: DAY_EXISTS_REPLACE,
-        confirmLabel: "Заменить",
-        cancelLabel: "Оставить",
-        destructive: true,
-      });
-      if (!ok) {
-        return;
-      }
-      replace = true;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const post = (replaceFlag: boolean) =>
-        postJson("/api/days/copy-yesterday", { date, replace: replaceFlag });
-
-      let data: unknown;
-      try {
-        data = await post(replace);
-      } catch (caught) {
-        if (!(caught instanceof ApiError) || caught.status !== 409) {
-          throw caught;
-        }
-        const ok = await confirm({
-          message:
-            caught.message === LOAD_FAILED
-              ? DAY_EXISTS_REPLACE
-              : caught.message,
-          confirmLabel: "Заменить",
-          cancelLabel: "Оставить",
-          destructive: true,
-        });
-        if (!ok) {
-          return;
-        }
-        data = await post(true);
-      }
-
-      setDay(readDay(data));
-      haptic("success");
-    } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 404) {
-        haptic("warn");
-        setActionError(
-          caught.message === LOAD_FAILED ? YESTERDAY_MISSING : caught.message,
-        );
-        return;
-      }
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copyMealYesterday(mealId: string, mealType: MealType) {
-    if (viewOnly) {
-      return;
-    }
-
-    const current = day?.meals.find((meal) => meal.id === mealId);
-    let replace = false;
-    if (current && current.items.length > 0) {
-      const ok = await confirm({
-        message: mealExistsReplace(mealType),
-        confirmLabel: "Заменить",
-        cancelLabel: "Оставить",
-        destructive: true,
-      });
-      if (!ok) {
-        return;
-      }
-      replace = true;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const post = (replaceFlag: boolean) =>
-        postJson(`/api/meals/${mealId}/copy-yesterday`, {
-          replace: replaceFlag,
-        });
-
-      let data: unknown;
-      try {
-        data = await post(replace);
-      } catch (caught) {
-        if (!(caught instanceof ApiError) || caught.status !== 409) {
-          throw caught;
-        }
-        const ok = await confirm({
-          message:
-            caught.message === LOAD_FAILED
-              ? mealExistsReplace(mealType)
-              : caught.message,
-          confirmLabel: "Заменить",
-          cancelLabel: "Оставить",
-          destructive: true,
-        });
-        if (!ok) {
-          return;
-        }
-        data = await post(true);
-      }
-
-      setDay(readDay(data));
-      haptic("success");
-    } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 404) {
-        haptic("warn");
-        setActionError(
-          caught.message === LOAD_FAILED
-            ? YESTERDAY_MEAL_EMPTY
-            : caught.message,
-        );
-        return;
-      }
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function switchType(dayType: DayType) {
-    if (viewOnly || !day) {
-      return;
-    }
-
-    if (day.is_training_day === (dayType === "training")) {
-      return;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const data = await patchJson(`/api/days/${day.id}`, { dayType });
-      setDay(readDay(data));
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function saveBodyWeight(value: number | null) {
-    if (viewOnly || !day) {
-      return;
-    }
-
-    setActionError(null);
-    const data = await patchJson(`/api/days/${day.id}`, { bodyWeight: value });
-    const next = readDay(data);
-    if (!next) {
-      throw new Error(LOAD_FAILED);
-    }
-    setDay(next);
-  }
-
-  async function deleteItem(item: MealItem) {
-    if (viewOnly) {
-      return;
-    }
-
-    const ok = await confirm({
-      message: "Убрать продукт?",
-      confirmLabel: "Убрать",
-      cancelLabel: "Оставить",
-      destructive: true,
+  const { copyYesterday, copyMealYesterday } = useTodayCopy({
+    viewOnly,
+    date,
+    day,
+    setBusy,
+    setActionError,
+    setDay,
+  });
+  const { startQueuedWorkout } = useTodayWorkoutStart({
+    viewOnly,
+    date,
+    shownDay,
+    setBusy,
+    setActionError,
+    load,
+  });
+  const { createDay, switchType, saveBodyWeight, deleteItem } =
+    useTodayDayActions({
+      viewOnly,
+      date,
+      day,
+      setBusy,
+      setActionError,
+      setDay,
     });
-    if (!ok) {
-      return;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      await deleteJson(`/api/meal-items/${item.id}`);
-
-      setDay((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-          meals: current.meals.map((meal) => ({
-            ...meal,
-            items: meal.items.filter((row) => row.id !== item.id),
-          })),
-        };
-      });
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function startQueuedWorkout(templateId: string) {
-    if (viewOnly) {
-      return;
-    }
-
-    if (shownDay && !shownDay.is_training_day) {
-      const ok = await confirm({
-        message:
-          "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
-        confirmLabel: "Сделать тренировочным",
-        cancelLabel: "Отмена",
-      });
-      if (!ok) {
-        return;
-      }
-    }
-
-    setBusy(true);
-    setActionError(null);
-    try {
-      const data = await postJson("/api/sessions", {
-        session_date: date,
-        template_id: templateId,
-      });
-      const created = readTodaySession(data);
-      if (created) {
-        haptic("commit");
-        router.push(`/workouts/sessions/${created.id}`);
-        return;
-      }
-      await load();
-    } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 400) {
-        haptic("warn");
-        router.push("/workouts/exercises");
-        return;
-      }
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
 
   const dayHasItems = Boolean(
     shownDay?.meals.some((meal) => meal.items.length > 0),

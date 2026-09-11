@@ -1,4 +1,15 @@
 export {
+  getLastBodyWeight,
+  listBodyWeights,
+  setBodyWeight,
+} from "@/lib/day/body-weight-store";
+export {
+  copyMealFromYesterday,
+  copyYesterday,
+  yesterdayCopyHint,
+} from "@/lib/day/copy";
+export { createDayFromTemplate } from "@/lib/day/create";
+export {
   assertWritableDayDate,
   calendarToday,
   DayConflictError,
@@ -15,7 +26,9 @@ export {
   YesterdayMealEmptyError,
   YesterdayMissingError,
 } from "@/lib/day/dates";
+export { markDateAsTrainingIfExists, setDayType } from "@/lib/day/day-type";
 export { type FoodShare, listFoodSharesInRange } from "@/lib/day/food-shares";
+export { listDayHistory, listDaysInRange } from "@/lib/day/history";
 export { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 export {
   addMealItem,
@@ -24,18 +37,4 @@ export {
   getMealItem,
   updateMealItemGrams,
 } from "@/lib/day/meal-items";
-export {
-  copyMealFromYesterday,
-  copyYesterday,
-  createDayFromTemplate,
-  dateHasDay,
-  getDayByDate,
-  getLastBodyWeight,
-  listBodyWeights,
-  listDayHistory,
-  listDaysInRange,
-  markDateAsTrainingIfExists,
-  setBodyWeight,
-  setDayType,
-  yesterdayCopyHint,
-} from "@/lib/day/store";
+export { dateHasDay, getDayByDate } from "@/lib/day/store";

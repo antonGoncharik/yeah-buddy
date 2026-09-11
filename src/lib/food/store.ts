@@ -1,4 +1,5 @@
-import { type FoodInput, type FoodListFilter, mapFood } from "@/lib/foods";
+import { mapFood } from "@/lib/food/map";
+import type { FoodInput, FoodListFilter } from "@/lib/food/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
 

@@ -2,13 +2,11 @@
 
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useConfirm } from "@/components/layout/confirm-provider";
-import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { useHubSessionActions } from "@/components/workout/use-hub-session-actions";
+import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import { haptic } from "@/lib/telegram/haptic";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
@@ -24,18 +22,14 @@ import {
   todayWeightsHint,
 } from "@/lib/workout/hints";
 import {
-  isRestFoodDay,
   readExercises,
   readHubSessionState,
   readMacro,
   readTemplates,
-  readTodaySession,
 } from "@/lib/workout/hub-payload";
 import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
 
 export function useWorkoutsHub() {
-  const router = useRouter();
-  const confirm = useConfirm();
   const date = format(new Date(), "yyyy-MM-dd");
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
@@ -139,109 +133,18 @@ export function useWorkoutsHub() {
     void load();
   }, [load]);
 
-  async function createOnDate(templateId: string, sessionDate: string) {
-    const template = templates.find((item) => item.id === templateId);
-    if (template && !templateHasPlanMaxes(template, exercises)) {
-      haptic("warn");
-      router.push("/workouts/exercises");
-      return;
-    }
-
-    setCreating(true);
-    setError(null);
-
-    try {
-      let dayData: unknown = null;
-      try {
-        dayData = await mutateJson(
-          `/api/days?date=${encodeURIComponent(sessionDate)}`,
-        );
-      } catch {
-        dayData = null;
-      }
-      if (dayData && isRestFoodDay(dayData)) {
-        const ok = await confirm({
-          message:
-            sessionDate === date
-              ? "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется."
-              : "За этот день еда уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
-          confirmLabel: "Сделать тренировочным",
-          cancelLabel: "Отмена",
-        });
-        if (!ok) {
-          return;
-        }
-      }
-
-      const data = await postJson("/api/sessions", {
-        session_date: sessionDate,
-        template_id: templateId,
-      });
-
-      const created = readTodaySession(data);
-      if (created) {
-        haptic("commit");
-        router.push(`/workouts/sessions/${created.id}`);
-        return;
-      }
-
-      await load();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function skipTemplate(templateId: string) {
-    setSkipping(true);
-    setError(null);
-
-    try {
-      await postJson("/api/rotation/skip", { template_id: templateId });
-      await load();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSkipping(false);
-    }
-  }
-
-  async function unskipLast() {
-    setSkipping(true);
-    setError(null);
-
-    try {
-      await mutateJson("/api/rotation/unskip", { method: "POST" });
-      await load();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSkipping(false);
-    }
-  }
-
-  async function pickTemplate(template: WorkoutTemplateDetail) {
-    if (session) {
-      return;
-    }
-
-    if (nextTemplate && template.id !== nextTemplate.id) {
-      const ok = await confirm({
-        message: `Начать «${template.name}» вместо «${nextTemplate.name}»?`,
-        confirmLabel: "Начать",
-        cancelLabel: "Оставить",
-      });
-      if (!ok) {
-        return;
-      }
-    }
-
-    void createOnDate(template.id, date);
-  }
+  const { createOnDate, skipTemplate, unskipLast, pickTemplate } =
+    useHubSessionActions({
+      date,
+      templates,
+      exercises,
+      session,
+      nextTemplate,
+      load,
+      setCreating,
+      setSkipping,
+      setError,
+    });
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =

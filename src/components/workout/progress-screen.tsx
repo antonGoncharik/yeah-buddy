@@ -1,91 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { ProgressExerciseCard } from "@/components/workout/progress-exercise-card";
 import {
-  ProgressChart,
-  ProgressSparkline,
-} from "@/components/workout/progress-chart";
-import { cachedGet } from "@/lib/api-cache";
-import { formatRelative } from "@/lib/day/body-weight";
-import { LOAD_FAILED } from "@/lib/messages";
-import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
-import { useFirstLoad } from "@/lib/use-first-load";
-import { cn } from "@/lib/utils";
+  type ProgressFilter,
+  useProgressScreen,
+} from "@/components/workout/use-progress-screen";
+import type { ExerciseProgress } from "@/lib/types";
 import { EXERCISE_CATEGORY_LABELS } from "@/lib/workout/labels";
-import { parseStrengthProgress } from "@/lib/workout/map-rows";
-import {
-  formatSeconds,
-  formatSignedPercent,
-  formatSignedWeight,
-  formatWeight,
-} from "@/lib/workout/numbers";
+import { formatSignedPercent } from "@/lib/workout/numbers";
 import {
   CATEGORY_SHORT_LABELS,
   categoryAverages,
-  hasRelativeSeries,
-  hasSecondsSeries,
-  type ProgressMetric,
 } from "@/lib/workout/progress-stats";
 
-type Filter = "all" | "base" | "isolation";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
+const FILTERS: Array<{ id: ProgressFilter; label: string }> = [
   { id: "all", label: "Все" },
   { id: "base", label: EXERCISE_CATEGORY_LABELS.base },
   { id: "isolation", label: "Изол." },
 ];
 
 export function ProgressScreen() {
-  const [progress, setProgress] = useState<StrengthProgress | null>(null);
-  const { loading, begin, done } = useFirstLoad();
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
-  const [openId, setOpenId] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    begin();
-    setError(null);
-
-    try {
-      await cachedGet(
-        "/api/progress",
-        (data) => {
-          const next = readProgress(data);
-          if (!next) {
-            return false;
-          }
-          setProgress(next);
-          return true;
-        },
-        () => done(true),
-      );
-      done(true);
-    } catch {
-      setError(LOAD_FAILED);
-      setProgress(null);
-      done(false);
-    }
-  }, [begin, done]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const visible = useMemo(() => {
-    const list = progress?.exercises ?? [];
-    if (filter === "all") {
-      return list;
-    }
-    if (filter === "isolation") {
-      return list.filter((item) => item.category === "isolation");
-    }
-    return list.filter((item) => item.category !== "isolation");
-  }, [filter, progress]);
+  const {
+    progress,
+    loading,
+    error,
+    load,
+    filter,
+    setFilter,
+    openId,
+    setOpenId,
+    visible,
+  } = useProgressScreen();
 
   return (
     <div className="flex flex-col gap-4">
@@ -155,7 +104,7 @@ export function ProgressScreen() {
               <ul className="flex flex-col gap-2">
                 {visible.map((item) => (
                   <li key={item.exercise_id}>
-                    <ExerciseProgressCard
+                    <ProgressExerciseCard
                       item={item}
                       open={openId === item.exercise_id}
                       onToggle={() =>
@@ -193,82 +142,4 @@ function CategoryLine({ exercises }: { exercises: ExerciseProgress[] }) {
         .join(" · ")}
     </p>
   );
-}
-
-function ExerciseProgressCard({
-  item,
-  open,
-  onToggle,
-}: {
-  item: ExerciseProgress;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  const secondsOk = hasSecondsSeries(item.points);
-  const relativeOk = hasRelativeSeries(item.points);
-  const [metric, setMetric] = useState<ProgressMetric>(
-    secondsOk ? "seconds" : "weight",
-  );
-  const lastSeconds = item.points.at(-1)?.seconds ?? null;
-  const metricOptions = [
-    { id: "weight" as const, label: "кг" },
-    ...(secondsOk ? [{ id: "seconds" as const, label: "сек" }] : []),
-    ...(relativeOk ? [{ id: "relative" as const, label: "× веса" }] : []),
-  ];
-
-  return (
-    <article className="card-surface px-5 py-4">
-      <button
-        type="button"
-        className="flex w-full items-center gap-3 text-left"
-        onClick={onToggle}
-        aria-expanded={open}
-      >
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-medium">{item.name}</p>
-          <p className="text-sm text-muted-foreground">
-            {item.current_weight == null
-              ? "Нет рабочего веса"
-              : `${formatWeight(item.current_weight)} кг`}
-            {item.current_relative != null
-              ? ` · ${formatRelative(item.current_relative)}`
-              : null}
-            {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
-            {item.delta != null && item.percent != null ? (
-              <span
-                className={cn(
-                  "ml-2 font-medium",
-                  item.delta > 0 && "text-primary",
-                  item.delta < 0 && "text-destructive",
-                )}
-              >
-                {formatSignedWeight(item.delta)} кг ·{" "}
-                {formatSignedPercent(item.percent)}
-                {item.relative_percent == null
-                  ? null
-                  : ` · ${formatSignedPercent(item.relative_percent)} к весу`}
-              </span>
-            ) : null}
-          </p>
-        </div>
-        <ProgressSparkline points={item.points} />
-      </button>
-      {open ? (
-        <div className="mt-4 flex flex-col gap-3 border-t border-border/60 pt-4">
-          {metricOptions.length > 1 ? (
-            <Segmented
-              value={metric}
-              options={metricOptions}
-              onChange={setMetric}
-            />
-          ) : null}
-          <ProgressChart points={item.points} metric={metric} />
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function readProgress(data: unknown): StrengthProgress | null {
-  return parseStrengthProgress(data);
 }

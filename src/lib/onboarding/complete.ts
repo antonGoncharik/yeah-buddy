@@ -1,0 +1,165 @@
+import { z } from "zod";
+
+import {
+  listMealTemplates,
+  updateTemplateItemGrams,
+} from "@/lib/meal-templates";
+import { macroGoalsFromProtein } from "@/lib/nutrition";
+import { scaledTemplateGrams } from "@/lib/onboarding/setup";
+import type { OnboardingState } from "@/lib/onboarding/types";
+import {
+  getUserSettings,
+  isOnboardingCompleted,
+  saveUserSettings,
+} from "@/lib/settings";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  correctStartingMax,
+  listExercises,
+  StartingMaxLockedError,
+} from "@/lib/workout/exercises";
+import { getCurrentMacroState } from "@/lib/workout/macros";
+import {
+  isProgramPresetId,
+  matchProgramPresetId,
+  PROGRAM_PRESET_IDS,
+} from "@/lib/workout/program-presets";
+import { ensureStarterExercises } from "@/lib/workout/seed";
+import {
+  applyProgramPreset,
+  listTemplates,
+  saveRotation,
+} from "@/lib/workout/templates";
+
+export const onboardingCompleteSchema = z.object({
+  protein: z.number().finite().positive().max(400).optional(),
+  circle: z.enum([...PROGRAM_PRESET_IDS, "empty", "keep"]),
+  maxes: z
+    .array(
+      z.object({
+        exerciseId: z.string().uuid(),
+        maxWeight: z.number().finite().positive().max(1000),
+      }),
+    )
+    .default([]),
+});
+
+export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;
+
+export async function getOnboardingState(
+  userId: string,
+): Promise<OnboardingState> {
+  const settings = await getUserSettings(userId);
+  if (!settings) {
+    throw new Error("Настройки не нашлись.");
+  }
+
+  await ensureStarterExercises(createSupabaseServerClient(), userId);
+  const [exercises, templates, macro] = await Promise.all([
+    listExercises(userId, "active"),
+    listTemplates(userId),
+    getCurrentMacroState(userId),
+  ]);
+
+  return {
+    completed: isOnboardingCompleted(settings),
+    settings,
+    exercises,
+    circle: matchProgramPresetId(templates) ?? "empty",
+    maxesLocked: macro.phase != null,
+  };
+}
+
+export async function completeOnboarding(
+  userId: string,
+  input: OnboardingCompleteInput,
+): Promise<OnboardingState> {
+  const current = await getUserSettings(userId);
+  if (!current) {
+    throw new Error("Настройки не нашлись.");
+  }
+
+  const firstRun = !isOnboardingCompleted(current);
+
+  if (input.protein != null) {
+    const goals = macroGoalsFromProtein(input.protein, current);
+    await saveUserSettings(userId, {
+      rest_protein: goals.rest.protein,
+      rest_fat: goals.rest.fat,
+      rest_carbs: goals.rest.carbs,
+      training_protein: goals.training.protein,
+      training_fat: goals.training.fat,
+      training_carbs: goals.training.carbs,
+    });
+    if (firstRun) {
+      await scaleMealTemplatesToProtein(userId, input.protein);
+    }
+  }
+
+  if (isProgramPresetId(input.circle)) {
+    await applyProgramPreset(userId, input.circle);
+  } else if (input.circle === "empty") {
+    const templates = await listTemplates(userId);
+    if (templates.length > 0) {
+      await saveRotation(userId, {
+        rotation: templates.map((template) => ({
+          id: template.id,
+          sort_order: template.sort_order,
+          is_active: false,
+        })),
+      });
+    }
+  }
+
+  const macro = await getCurrentMacroState(userId);
+  if (macro.phase == null && input.maxes.length > 0) {
+    const allowed = new Set(
+      (await listExercises(userId, "active")).map((exercise) => exercise.id),
+    );
+    for (const item of input.maxes) {
+      if (!allowed.has(item.exerciseId)) {
+        continue;
+      }
+
+      try {
+        await correctStartingMax({
+          userId,
+          exerciseId: item.exerciseId,
+          maxWeight: item.maxWeight,
+        });
+      } catch (error) {
+        if (error instanceof StartingMaxLockedError) {
+          break;
+        }
+        throw error;
+      }
+    }
+  }
+
+  const supabase = createSupabaseServerClient();
+  const stamped = await supabase
+    .from("user_settings")
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .select("user_id")
+    .maybeSingle();
+
+  if (stamped.error) {
+    throw stamped.error;
+  }
+
+  return getOnboardingState(userId);
+}
+
+async function scaleMealTemplatesToProtein(
+  userId: string,
+  protein: number,
+): Promise<void> {
+  const templates = await listMealTemplates(userId);
+  for (const template of templates) {
+    const updates = scaledTemplateGrams(template.items, protein);
+    for (const update of updates) {
+      await updateTemplateItemGrams(userId, update.id, update.grams);
+    }
+  }
+}

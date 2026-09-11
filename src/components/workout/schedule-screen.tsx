@@ -2,153 +2,33 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
-import { AddRowButton } from "@/components/ui/add-row-button";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { RemoveRowButton } from "@/components/ui/remove-row-button";
-import { ProgramPresetList } from "@/components/workout/program-preset-list";
-import { SortableList } from "@/components/workout/sortable-list";
-import { patchJson, postJson } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
-import { haptic } from "@/lib/telegram/haptic";
-import type { WorkoutTemplateDetail } from "@/lib/types";
+import { ScheduleActiveList } from "@/components/workout/schedule-active-list";
+import { ScheduleInactiveList } from "@/components/workout/schedule-inactive-list";
+import { ScheduleProgramsSection } from "@/components/workout/schedule-programs-section";
+import { useScheduleScreen } from "@/components/workout/use-schedule-screen";
 import { cn } from "@/lib/utils";
-import { readTemplates } from "@/lib/workout/hub-payload";
-import { exerciseShortLabel, QUEUE_LABEL } from "@/lib/workout/labels";
-import {
-  type ProgramPresetId,
-  programPresetById,
-} from "@/lib/workout/program-presets";
+import { QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function ScheduleScreen() {
-  const confirm = useConfirm();
-  const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [showPrograms, setShowPrograms] = useState(false);
-
-  const active = useMemo(
-    () => templates.filter((template) => template.is_active),
-    [templates],
-  );
-  const inactive = useMemo(
-    () => templates.filter((template) => !template.is_active),
-    [templates],
-  );
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/templates");
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await response.json();
-      setTemplates(readTemplates(data));
-    } catch {
-      setError(LOAD_FAILED);
-      setTemplates([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function save(next: WorkoutTemplateDetail[]) {
-    setSaving(true);
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/templates", {
-        rotation: next.map((template, index) => ({
-          id: template.id,
-          sort_order: (index + 1) * 10,
-          is_active: template.is_active,
-        })),
-      });
-      setTemplates(readTemplates(data));
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function persist(
-    nextActive: WorkoutTemplateDetail[],
-    nextInactive: WorkoutTemplateDetail[],
-  ) {
-    const next = [...nextActive, ...nextInactive];
-    setTemplates(next);
-    void save(next);
-  }
-
-  async function applyPreset(presetId: ProgramPresetId) {
-    const preset = programPresetById(presetId);
-    if (!preset) {
-      return;
-    }
-    const ok = await confirm({
-      message: `Поставить «${preset.name}»? Очередь станет этой программой. Свои тренировки не удалятся — отложатся.`,
-      confirmLabel: "Поставить",
-      cancelLabel: "Оставить",
-    });
-    if (!ok) {
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-    try {
-      const data = await postJson("/api/templates/presets", {
-        preset: presetId,
-      });
-      setTemplates(readTemplates(data));
-      haptic("success");
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function setInCircle(id: string, inCircle: boolean) {
-    if (inCircle) {
-      const template = inactive.find((item) => item.id === id);
-      if (!template) {
-        return;
-      }
-      persist(
-        [...active, { ...template, is_active: true }],
-        inactive.filter((item) => item.id !== id),
-      );
-      return;
-    }
-
-    const template = active.find((item) => item.id === id);
-    if (!template) {
-      return;
-    }
-    persist(
-      active.filter((item) => item.id !== id),
-      [{ ...template, is_active: false }, ...inactive],
-    );
-  }
+  const {
+    active,
+    inactive,
+    loading,
+    error,
+    saving,
+    showPrograms,
+    setShowPrograms,
+    load,
+    persist,
+    applyPreset,
+    setInCircle,
+  } = useScheduleScreen();
 
   return (
     <div className="flex flex-col gap-4">
@@ -178,79 +58,37 @@ export function ScheduleScreen() {
             <p className="animate-fade px-1 text-base leading-relaxed text-muted-foreground">
               Поставь программу — или собери тренировку сам.
             </p>
-            <ProgramsSection saving={saving} onPick={applyPreset} />
+            <ScheduleProgramsSection
+              saving={saving}
+              onPick={(presetId) => void applyPreset(presetId)}
+            />
           </>
         ) : null}
 
-        {!loading && active.length > 0 ? (
-          <section className="animate-rise flex flex-col gap-2">
-            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Нажми имя — упражнения.
-            </p>
-            <SortableList
-              items={active}
-              disabled={saving}
-              onReorder={(nextActive) => persist(nextActive, inactive)}
-              renderItem={(template) => (
-                <>
-                  <Link
-                    href={`/workouts/templates/${template.id}`}
-                    className="min-w-0 flex-1 rounded-xl px-2 py-2"
-                  >
-                    <p className="text-base font-medium leading-snug">
-                      {template.name}
-                    </p>
-                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                      {templateExerciseLine(template)}
-                    </p>
-                  </Link>
-                  <RemoveRowButton
-                    disabled={saving}
-                    onClick={() => setInCircle(template.id, false)}
-                  />
-                </>
-              )}
-            />
-          </section>
+        {!loading ? (
+          <ScheduleActiveList
+            active={active}
+            inactive={inactive}
+            saving={saving}
+            onPersist={persist}
+            onSetInCircle={setInCircle}
+          />
         ) : null}
 
-        {!loading && inactive.length > 0 ? (
-          <section className="animate-rise flex flex-col gap-2">
-            <h2 className="px-1 text-lg font-semibold">Отложены</h2>
-            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Сейчас не в очереди. Можно вернуть или поправить.
-            </p>
-            <div className="overflow-hidden">
-              {inactive.map((template) => (
-                <div
-                  key={template.id}
-                  className="flex items-center gap-1 border-b border-border/70 px-1 py-1 last:border-b-0"
-                >
-                  <Link
-                    href={`/workouts/templates/${template.id}`}
-                    className="min-w-0 flex-1 rounded-xl px-2 py-2"
-                  >
-                    <p className="text-base font-medium leading-snug">
-                      {template.name}
-                    </p>
-                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                      {templateExerciseLine(template)}
-                    </p>
-                  </Link>
-                  <AddRowButton
-                    label="В очередь"
-                    disabled={saving}
-                    onClick={() => setInCircle(template.id, true)}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
+        {!loading ? (
+          <ScheduleInactiveList
+            inactive={inactive}
+            saving={saving}
+            onSetInCircle={setInCircle}
+          />
         ) : null}
 
         {!loading && (active.length > 0 || inactive.length > 0) ? (
           showPrograms ? (
-            <ProgramsSection saving={saving} onPick={applyPreset} />
+            <ScheduleProgramsSection
+              saving={saving}
+              onPick={(presetId) => void applyPreset(presetId)}
+            />
           ) : (
             <button
               type="button"
@@ -282,32 +120,4 @@ export function ScheduleScreen() {
       </div>
     </div>
   );
-}
-
-function ProgramsSection({
-  saving,
-  onPick,
-}: {
-  saving: boolean;
-  onPick: (presetId: ProgramPresetId) => void;
-}) {
-  return (
-    <section className="animate-rise flex flex-col gap-2">
-      <h2 className="px-1 text-lg font-semibold">Программы</h2>
-      <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-        Поставь в очередь. Свои отложатся.
-      </p>
-      <ProgramPresetList disabled={saving} onPick={onPick} />
-    </section>
-  );
-}
-
-function templateExerciseLine(template: WorkoutTemplateDetail): string {
-  if (template.exercises.length === 0) {
-    return "Упражнений пока нет";
-  }
-
-  return template.exercises
-    .map((exercise) => exerciseShortLabel(exercise.short_name, exercise.name))
-    .join(" · ");
 }

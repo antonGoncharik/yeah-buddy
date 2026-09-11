@@ -8,8 +8,10 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { WorkoutHistoryRow } from "@/components/workout/workout-history-row";
+import { WorkoutHistoryStats } from "@/components/workout/workout-history-stats";
 import { calendarToday } from "@/lib/day/dates";
-import { formatIsoDate, groupByMonth } from "@/lib/day/format";
+import { groupByMonth } from "@/lib/day/format";
 import { REVIEW_CTA_HINT, SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   HISTORY_RANGE_OPTIONS,
@@ -18,17 +20,10 @@ import {
 import {
   hasOlderThanRange,
   isWorkoutHistoryRange,
-  pluralWorkouts,
   summarizeWorkoutHistory,
-  type WorkoutHistoryRange,
-  type WorkoutHistoryStats,
   windowGymSessions,
 } from "@/lib/workout/history-stats";
 import { parseRecentSession } from "@/lib/workout/hub-payload";
-import {
-  SESSION_STATUS_LABELS,
-  WORKOUT_KIND_LABELS,
-} from "@/lib/workout/labels";
 
 type RangeId = "14" | "30";
 
@@ -79,7 +74,9 @@ export function WorkoutHistoryScreen() {
           </div>
         ) : null}
 
-        {showStats ? <StatsCard days={rangeDays} stats={stats} /> : null}
+        {showStats ? (
+          <WorkoutHistoryStats days={rangeDays} stats={stats} />
+        ) : null}
 
         {showStats ? (
           <Link
@@ -109,30 +106,7 @@ export function WorkoutHistoryScreen() {
                 <ul className="flex flex-col gap-1">
                   {group.items.map((item) => (
                     <li key={item.session.id}>
-                      <Link
-                        href={`/workouts/sessions/${item.session.id}`}
-                        className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-                      >
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-base font-medium">
-                            {item.template_name ??
-                              WORKOUT_KIND_LABELS[item.session.workout_type]}
-                          </span>
-                          {item.summary ? (
-                            <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-                              {item.summary}
-                            </span>
-                          ) : item.session.status !== "completed" ? (
-                            <span className="text-sm text-muted-foreground">
-                              {SESSION_STATUS_LABELS[item.session.status]}
-                            </span>
-                          ) : null}
-                        </span>
-                        <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
-                          {formatIsoDate(item.session.session_date, "d MMMM")}
-                          <ChevronRight className="size-4" aria-hidden />
-                        </span>
-                      </Link>
+                      <WorkoutHistoryRow item={item} />
                     </li>
                   ))}
                 </ul>
@@ -152,85 +126,6 @@ export function WorkoutHistoryScreen() {
             {loadingMore ? "Загрузка…" : "Ещё"}
           </Button>
         ) : null}
-      </div>
-    </div>
-  );
-}
-
-function StatsCard({
-  days,
-  stats,
-}: {
-  days: WorkoutHistoryRange;
-  stats: WorkoutHistoryStats;
-}) {
-  const kinds = [
-    stats.dynamic > 0
-      ? `${WORKOUT_KIND_LABELS.dynamic} · ${stats.dynamic}`
-      : null,
-    stats.static > 0 ? `${WORKOUT_KIND_LABELS.static} · ${stats.static}` : null,
-  ].filter((value): value is string => value != null);
-
-  return (
-    <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          За {days} дней
-        </p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight">
-          {stats.count}
-          <span className="ml-2 text-lg font-medium text-muted-foreground">
-            {pluralWorkouts(stats.count)}
-          </span>
-        </p>
-        {kinds.length > 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            {kinds.join(" · ")}
-          </p>
-        ) : null}
-        {stats.templates.length > 0 ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {stats.templates
-              .map((item) => `${item.name} · ${item.count}`)
-              .join(", ")}
-          </p>
-        ) : null}
-      </div>
-      {stats.planTotal > 0 ? (
-        <HitRow
-          label="Не слабее плана"
-          hit={stats.planHit}
-          total={stats.planTotal}
-        />
-      ) : null}
-    </section>
-  );
-}
-
-function HitRow({
-  label,
-  hit,
-  total,
-}: {
-  label: string;
-  hit: number;
-  total: number;
-}) {
-  const ratio = hit / total;
-
-  return (
-    <div className="flex flex-col gap-1.5 border-t border-border/70 pt-4">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <p className="font-medium">{label}</p>
-        <p className="text-muted-foreground">
-          {hit} из {total}
-        </p>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${Math.round(ratio * 100)}%` }}
-        />
       </div>
     </div>
   );
