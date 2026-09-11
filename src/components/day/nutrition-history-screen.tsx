@@ -10,6 +10,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { formatBodyWeight, formatProteinPerKg } from "@/lib/day/body-weight";
 import { calendarToday, todayHistoryDayHref } from "@/lib/day/dates";
 import { formatIsoDate, groupByMonth } from "@/lib/day/format";
 import { parseDayHistoryPayload } from "@/lib/day/map";
@@ -25,6 +26,7 @@ import {
   type NutritionRange,
   nutritionHits,
   pluralDays,
+  proteinPerKgStats,
   splitAverages,
   windowDays,
 } from "@/lib/nutrition-stats";
@@ -59,6 +61,7 @@ export function NutritionHistoryScreen() {
   );
   const averages = useMemo(() => splitAverages(windowed), [windowed]);
   const hits = useMemo(() => nutritionHits(windowed), [windowed]);
+  const perKg = useMemo(() => proteinPerKgStats(windowed), [windowed]);
   const chartDays = useMemo(() => chronological(windowed), [windowed]);
   const groups = useMemo(
     () => groupByMonth(items, (item) => item.date),
@@ -104,6 +107,7 @@ export function NutritionHistoryScreen() {
             rest={averages.rest}
             training={averages.training}
             hits={hits}
+            perKg={perKg}
           />
         ) : null}
 
@@ -171,6 +175,9 @@ export function NutritionHistoryScreen() {
                               {" "}
                               / {formatKcal(item.target_kcal)} ккал
                             </span>
+                            {item.body_weight == null
+                              ? null
+                              : ` · ${formatBodyWeight(item.body_weight)} кг`}
                           </p>
                           <div className="flex flex-col gap-1.5">
                             <MiniBar
@@ -225,12 +232,14 @@ function StatsCard({
   rest,
   training,
   hits,
+  perKg,
 }: {
   days: NutritionRange;
   count: number;
   rest: MacroAverages | null;
   training: MacroAverages | null;
   hits: NutritionHits;
+  perKg: ReturnType<typeof proteinPerKgStats>;
 }) {
   const showHits = hits.proteinTotal > 0 || hits.kcalTotal > 0;
 
@@ -263,6 +272,12 @@ function StatsCard({
             total={hits.kcalTotal}
             barClass="bg-primary"
           />
+          {perKg ? (
+            <p className="text-sm text-muted-foreground">
+              Белок {formatProteinPerKg(perKg.fact)} при цели{" "}
+              {formatProteinPerKg(perKg.target)}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </section>

@@ -54,6 +54,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       protein_total: toNumber(value.nutrition.protein_total),
       kcal_hit: toNumber(value.nutrition.kcal_hit),
       kcal_total: toNumber(value.nutrition.kcal_total),
+      weight: parseWeight(value.nutrition.weight),
       days: mapRecordList(value.nutrition.days, parseDayRow),
       foods: mapRecordList(value.nutrition.foods, parseFoodShare),
     },
@@ -83,6 +84,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       grown: toNumber(value.maxes.grown),
       total: toNumber(value.maxes.total),
       avg_percent: toNullableNumber(value.maxes.avg_percent),
+      avg_relative_percent: toNullableNumber(value.maxes.avg_relative_percent),
       grown_list: mapRecordList(value.maxes.grown_list, parseMaxRow),
       stalled: mapRecordList(value.maxes.stalled, parseMaxRow),
       last_recap: parseLastRecap(value.maxes.last_recap),
@@ -150,6 +152,29 @@ function parseDayRow(row: Record<string, unknown>): ReviewDayRow | null {
     carbs_target: toNumber(row.carbs_target),
     kcal: toNumber(row.kcal),
     kcal_target: toNumber(row.kcal_target),
+    weight: toNullableNumber(row.weight),
+  };
+}
+
+function parseWeight(value: unknown): ReviewBrief["nutrition"]["weight"] {
+  if (!isRecord(value)) {
+    return {
+      logged: 0,
+      start: null,
+      end: null,
+      delta: null,
+      protein_per_kg: null,
+      protein_per_kg_target: null,
+    };
+  }
+
+  return {
+    logged: toNumber(value.logged),
+    start: toNullableNumber(value.start),
+    end: toNullableNumber(value.end),
+    delta: toNullableNumber(value.delta),
+    protein_per_kg: toNullableNumber(value.protein_per_kg),
+    protein_per_kg_target: toNullableNumber(value.protein_per_kg_target),
   };
 }
 

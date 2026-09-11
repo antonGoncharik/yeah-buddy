@@ -137,6 +137,8 @@ async function pointsFromSessions(
         date,
         weight,
         seconds: seconds != null && seconds > 0 ? seconds : null,
+        body_weight: null,
+        relative: null,
         phase_type: meta?.phase_type ?? null,
         macro_number: meta?.macro_number ?? null,
         label,

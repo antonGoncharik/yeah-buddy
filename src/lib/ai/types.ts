@@ -19,6 +19,16 @@ export type ReviewDayRow = {
   carbs_target: number;
   kcal: number;
   kcal_target: number;
+  weight: number | null;
+};
+
+export type ReviewWeight = {
+  logged: number;
+  start: number | null;
+  end: number | null;
+  delta: number | null;
+  protein_per_kg: number | null;
+  protein_per_kg_target: number | null;
 };
 
 export type ReviewSessionRow = {
@@ -50,6 +60,7 @@ export type ReviewBrief = {
     protein_total: number;
     kcal_hit: number;
     kcal_total: number;
+    weight: ReviewWeight;
     days: ReviewDayRow[];
     foods: FoodShare[];
   };
@@ -75,6 +86,7 @@ export type ReviewBrief = {
     grown: number;
     total: number;
     avg_percent: number | null;
+    avg_relative_percent: number | null;
     grown_list: ReviewMaxRow[];
     stalled: ReviewMaxRow[];
     last_recap: {

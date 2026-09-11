@@ -1,4 +1,5 @@
 import { chartShape } from "@/lib/chart-shape";
+import { formatRelative } from "@/lib/day/body-weight";
 import type { PhaseType, ProgressPoint } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { phaseLabel } from "@/lib/workout/labels";
@@ -69,8 +70,13 @@ export function ProgressChart({
     return null;
   }
 
-  const unit = metric === "seconds" ? "с" : "кг";
-  const formatValue = metric === "seconds" ? formatSeconds : formatWeight;
+  const unit = metric === "seconds" ? "с" : metric === "relative" ? "" : "кг";
+  const formatValue =
+    metric === "seconds"
+      ? formatSeconds
+      : metric === "relative"
+        ? formatRelative
+        : formatWeight;
   const marks = phaseMarks(series, shape.dots, width, 16);
 
   return (
@@ -81,7 +87,11 @@ export function ProgressChart({
         className="h-44 w-full overflow-visible"
         role="img"
         aria-label={
-          metric === "seconds" ? "Прогресс удержания" : "Прогресс весов"
+          metric === "seconds"
+            ? "Прогресс удержания"
+            : metric === "relative"
+              ? "Прогресс к весу тела"
+              : "Прогресс весов"
         }
       >
         <defs>
@@ -176,7 +186,7 @@ export function ProgressChart({
       <ol className="flex flex-col gap-1.5">
         {series.slice(-6).map((point) => (
           <li
-            key={`${point.date}-${point.label}-${point.weight}-${point.seconds}`}
+            key={`${point.date}-${point.label}-${point.weight}-${point.seconds}-${point.relative}`}
             className="flex items-baseline justify-between gap-3 text-sm"
           >
             <span className="truncate text-muted-foreground">
@@ -184,9 +194,13 @@ export function ProgressChart({
             </span>
             <span className="font-medium">
               {formatValue(
-                metric === "seconds" ? (point.seconds ?? 0) : point.weight,
-              )}{" "}
-              {unit}
+                metric === "seconds"
+                  ? (point.seconds ?? 0)
+                  : metric === "relative"
+                    ? (point.relative ?? 0)
+                    : point.weight,
+              )}
+              {unit ? ` ${unit}` : ""}
             </span>
           </li>
         ))}

@@ -7,13 +7,21 @@ import type {
   ReviewDayRow,
   ReviewMaxRow,
   ReviewSessionRow,
+  ReviewWeight,
 } from "@/lib/ai/types";
+import {
+  formatBodyWeight,
+  formatProteinPerKg,
+  formatSignedBodyWeight,
+} from "@/lib/day/body-weight";
 import type { FoodShare } from "@/lib/days";
 import type { Macros } from "@/lib/nutrition";
 import {
   averageMacros,
+  bodyWeightStats,
   KCAL_HIT_RATIO,
   nutritionHits,
+  proteinPerKgStats,
   splitAverages,
 } from "@/lib/nutrition-stats";
 import type {
@@ -33,6 +41,8 @@ const PROTEIN_MISS_G = 20;
 const CARBS_MISS_RATIO = 0.9;
 const HALF_KCAL_RATIO = 0.08;
 const HALF_PROTEIN_G = 12;
+const WEIGHT_DELTA_KG = 0.5;
+const RELATIVE_VS_BAR_PCT = 2;
 const WEAK_PLAN_RATIO = 0.75;
 const WEAK_PLAN_MIN_SETS = 3;
 
@@ -45,6 +55,7 @@ export type ReviewSource = {
   foods: FoodShare[];
   macro: CurrentMacroState;
   progress: StrengthProgress;
+  seedWeight?: number | null;
 };
 
 export function reviewCoverage(
@@ -78,6 +89,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const training = roundAverages(averages.training);
   const sessionRows = compactSessions(source.sessions, source.from, source.to);
   const maxes = compactMaxes(source.progress);
+  const weight = compactWeight(days, source.seedWeight ?? null);
   const signals = buildSignals({
     days,
     rest,
@@ -86,6 +98,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     proteinTotal: hits.proteinTotal,
     kcalHit: hits.kcalHit,
     kcalTotal: hits.kcalTotal,
+    weight,
     foods: source.foods,
     gym: {
       completed: gymStats.count,
@@ -97,6 +110,14 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     },
     phase: source.macro,
     maxes,
+    avgPercent:
+      source.progress.avg_percent == null
+        ? null
+        : round1(source.progress.avg_percent),
+    avgRelativePercent:
+      source.progress.avg_relative_percent == null
+        ? null
+        : round1(source.progress.avg_relative_percent),
   });
 
   return {
@@ -112,6 +133,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       protein_total: hits.proteinTotal,
       kcal_hit: hits.kcalHit,
       kcal_total: hits.kcalTotal,
+      weight,
       days: days.map(compactDay),
       foods: source.foods,
     },
@@ -142,6 +164,10 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
         source.progress.avg_percent == null
           ? null
           : round1(source.progress.avg_percent),
+      avg_relative_percent:
+        source.progress.avg_relative_percent == null
+          ? null
+          : round1(source.progress.avg_relative_percent),
       grown_list: maxes.grown,
       stalled: maxes.stalled,
       last_recap: source.macro.last_recap
@@ -172,6 +198,7 @@ export function buildSignals(input: {
   proteinTotal: number;
   kcalHit: number;
   kcalTotal: number;
+  weight: ReviewWeight;
   foods: FoodShare[];
   gym: {
     completed: number;
@@ -183,6 +210,8 @@ export function buildSignals(input: {
   };
   phase: CurrentMacroState;
   maxes: { grown: ReviewMaxRow[]; stalled: ReviewMaxRow[] };
+  avgPercent?: number | null;
+  avgRelativePercent?: number | null;
 }): string[] {
   const lines: string[] = [];
 
@@ -194,6 +223,30 @@ export function buildSignals(input: {
   if (input.kcalTotal >= 3) {
     lines.push(
       `Калории около цели (±${Math.round(KCAL_HIT_RATIO * 100)}%): ${input.kcalHit} из ${input.kcalTotal} дней.`,
+    );
+  }
+
+  const weight = input.weight;
+  if (weight.logged >= 2 && weight.start != null && weight.end != null) {
+    const delta = weight.delta ?? 0;
+    if (Math.abs(delta) >= WEIGHT_DELTA_KG) {
+      lines.push(
+        `Вес ${formatSignedBodyWeight(delta)} кг (${formatBodyWeight(weight.start)} → ${formatBodyWeight(weight.end)}).`,
+      );
+    } else {
+      lines.push(`Вес около ${formatBodyWeight(weight.end)} кг.`);
+    }
+  } else if (weight.logged === 1 && weight.end != null) {
+    lines.push(`Вес записан: ${formatBodyWeight(weight.end)} кг.`);
+  }
+
+  if (
+    weight.protein_per_kg != null &&
+    weight.protein_per_kg_target != null &&
+    (weight.logged >= 2 || input.days.length >= 2)
+  ) {
+    lines.push(
+      `Белок ${formatProteinPerKg(weight.protein_per_kg)} при цели ${formatProteinPerKg(weight.protein_per_kg_target)}.`,
     );
   }
 
@@ -316,6 +369,38 @@ export function buildSignals(input: {
     );
   }
 
+  const delta = weight.delta;
+  if (
+    delta != null &&
+    delta <= -WEIGHT_DELTA_KG &&
+    input.maxes.grown.length > 0
+  ) {
+    lines.push(`Вес ${formatSignedBodyWeight(delta)} кг, рабочие выросли.`);
+  } else if (
+    delta != null &&
+    delta >= WEIGHT_DELTA_KG &&
+    input.maxes.grown.length > 0
+  ) {
+    lines.push(
+      `Вес ${formatSignedBodyWeight(delta)} кг, рабочие тоже выросли.`,
+    );
+  }
+
+  if (
+    input.avgPercent != null &&
+    input.avgRelativePercent != null &&
+    Math.abs(input.avgRelativePercent - input.avgPercent) >= RELATIVE_VS_BAR_PCT
+  ) {
+    lines.push(
+      `К весу тела рабочие ${formatPct(input.avgRelativePercent)}, по штанге ${formatPct(input.avgPercent)}.`,
+    );
+  } else if (
+    input.avgRelativePercent != null &&
+    Math.abs(input.avgRelativePercent) >= 1
+  ) {
+    lines.push(`К весу тела рабочие ${formatPct(input.avgRelativePercent)}.`);
+  }
+
   return lines;
 }
 
@@ -329,6 +414,23 @@ export function compactDay(item: DayHistoryRow): ReviewDayRow {
     carbs_target: round1(item.target_carbs),
     kcal: round0(item.fact_kcal),
     kcal_target: round0(item.target_kcal),
+    weight: item.body_weight == null ? null : round1(item.body_weight),
+  };
+}
+
+function compactWeight(
+  days: DayHistoryRow[],
+  seed: number | null,
+): ReviewWeight {
+  const stats = bodyWeightStats(days);
+  const perKg = proteinPerKgStats(days, seed);
+  return {
+    logged: stats.logged,
+    start: stats.start == null ? null : round1(stats.start),
+    end: stats.end == null ? null : round1(stats.end),
+    delta: stats.delta == null ? null : round1(stats.delta),
+    protein_per_kg: perKg?.fact ?? null,
+    protein_per_kg_target: perKg?.target ?? null,
   };
 }
 

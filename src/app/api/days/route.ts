@@ -13,6 +13,7 @@ import {
   createDayFromTemplate,
   DayConflictError,
   getDayByDate,
+  getLastBodyWeight,
   isIsoDate,
   PastDayLockedError,
   yesterdayCopyHint,
@@ -36,15 +37,17 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const [day, yesterday] = await Promise.all([
+    const [day, yesterday, lastBodyWeight] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
+      getLastBodyWeight(auth.session.userId, date),
     ]);
 
     return jsonOk({
       day,
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
+      lastBodyWeight,
     });
   } catch (error) {
     return failRoute(error);

@@ -180,6 +180,20 @@ function FactsCard({ brief }: { brief: ReviewBrief }) {
           {[protein, plan].filter(Boolean).join(" · ")}
         </p>
       ) : null}
+      {brief.nutrition.weight.logged > 0 &&
+      brief.nutrition.weight.end != null ? (
+        <p className="text-sm text-muted-foreground">
+          вес{" "}
+          {brief.nutrition.weight.start != null &&
+          brief.nutrition.weight.delta != null &&
+          Math.abs(brief.nutrition.weight.delta) >= 0.5
+            ? `${brief.nutrition.weight.start} → ${brief.nutrition.weight.end} кг`
+            : `${brief.nutrition.weight.end} кг`}
+          {brief.nutrition.weight.protein_per_kg == null
+            ? null
+            : ` · белок ${brief.nutrition.weight.protein_per_kg} г/кг`}
+        </p>
+      ) : null}
       {phase ? <p className="text-sm text-muted-foreground">{phase}</p> : null}
     </section>
   );

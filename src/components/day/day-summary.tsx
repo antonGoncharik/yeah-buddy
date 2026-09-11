@@ -1,3 +1,5 @@
+import { BodyWeightField } from "@/components/day/body-weight-field";
+import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Day } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -6,6 +8,12 @@ export function DaySummary({
   day,
   fact,
   factLabel = "Съел",
+  showWeight = false,
+  bodyWeight = null,
+  lastBodyWeight = null,
+  bodyWeightReadOnly = false,
+  bodyWeightBusy = false,
+  onSaveBodyWeight,
 }: {
   day: Pick<
     Day,
@@ -18,11 +26,19 @@ export function DaySummary({
     kcal: number;
   };
   factLabel?: string;
+  showWeight?: boolean;
+  bodyWeight?: number | null;
+  lastBodyWeight?: number | null;
+  bodyWeightReadOnly?: boolean;
+  bodyWeightBusy?: boolean;
+  onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
   const remainingProtein = day.target_protein - fact.protein;
   const proteinOverflow = remainingProtein < 0;
+  const perKg =
+    bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
@@ -53,16 +69,42 @@ export function DaySummary({
             {proteinOverflow
               ? `сверх ${formatMacro(Math.abs(remainingProtein))} г белка`
               : `ещё ${formatMacro(remainingProtein)} г белка`}
+            {perKg != null ? (
+              <span className="text-muted-foreground">
+                {" "}
+                · {formatProteinPerKg(perKg)}
+              </span>
+            ) : null}
           </p>
+          {showWeight ? (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {factLabel} {formatKcal(fact.kcal)}
+            </p>
+          ) : null}
         </div>
-        <div className="text-right">
-          <p className="text-sm font-medium text-muted-foreground">
-            {factLabel}
-          </p>
-          <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-            {formatKcal(fact.kcal)}
-          </p>
-        </div>
+        {showWeight ? (
+          <div className="text-right">
+            <p className="text-sm font-medium text-muted-foreground">Вес</p>
+            <div className="mt-1">
+              <BodyWeightField
+                value={bodyWeight}
+                placeholder={bodyWeight == null ? lastBodyWeight : null}
+                readOnly={bodyWeightReadOnly}
+                disabled={bodyWeightBusy}
+                onSave={onSaveBodyWeight}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="text-right">
+            <p className="text-sm font-medium text-muted-foreground">
+              {factLabel}
+            </p>
+            <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
+              {formatKcal(fact.kcal)}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-4">
@@ -72,6 +114,11 @@ export function DaySummary({
           plan={day.target_protein}
           kcalPerGram={4}
           barClass="bg-[var(--macro-protein)]"
+          perKg={
+            bodyWeight != null
+              ? proteinPerKg(day.target_protein, bodyWeight)
+              : null
+          }
         />
         <MacroBar
           label="Жиры"
@@ -98,12 +145,14 @@ function MacroBar({
   plan,
   kcalPerGram,
   barClass,
+  perKg,
 }: {
   label: string;
   fact: number;
   plan: number;
   kcalPerGram: number;
   barClass: string;
+  perKg?: number | null;
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
@@ -117,6 +166,7 @@ function MacroBar({
         <p className="text-muted-foreground">
           <span className="text-foreground">{formatMacro(fact)}</span>
           <span> / {formatMacro(plan)}</span>
+          {perKg != null ? <span> · {formatProteinPerKg(perKg)}</span> : null}
         </p>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-muted">

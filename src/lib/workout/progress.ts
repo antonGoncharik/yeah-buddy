@@ -1,3 +1,4 @@
+import { listBodyWeights } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ExerciseProgress,
@@ -12,6 +13,10 @@ import {
   mapWorkoutPhase,
 } from "@/lib/workout/map-rows";
 import { percentChange } from "@/lib/workout/numbers";
+import {
+  relativeSeries,
+  withRelativePoints,
+} from "@/lib/workout/progress-stats";
 import { listExerciseWorkPoints } from "@/lib/workout/session-log";
 
 export async function getStrengthProgress(
@@ -19,32 +24,40 @@ export async function getStrengthProgress(
 ): Promise<StrengthProgress> {
   const exercises = await listExercises(userId, "active");
   const supabase = createSupabaseServerClient();
-  const [macrosResult, phasesResult, maxesResult, globalsResult] =
-    await Promise.all([
-      supabase
-        .from("macro_cycles")
-        .select("*")
-        .eq("user_id", userId)
-        .order("number", { ascending: true }),
-      supabase
-        .from("workout_phases")
-        .select("*")
-        .eq("user_id", userId)
-        .order("start_date", { ascending: true })
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("phase_maxes")
-        .select("*")
-        .eq("user_id", userId)
-        .order("set_at", { ascending: false })
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("global_maxes")
-        .select("*")
-        .eq("user_id", userId)
-        .order("achieved_at", { ascending: true })
-        .order("created_at", { ascending: true }),
-    ]);
+  const [
+    macrosResult,
+    phasesResult,
+    maxesResult,
+    globalsResult,
+    workByExercise,
+    weights,
+  ] = await Promise.all([
+    supabase
+      .from("macro_cycles")
+      .select("*")
+      .eq("user_id", userId)
+      .order("number", { ascending: true }),
+    supabase
+      .from("workout_phases")
+      .select("*")
+      .eq("user_id", userId)
+      .order("start_date", { ascending: true })
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("phase_maxes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("set_at", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("global_maxes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("achieved_at", { ascending: true })
+      .order("created_at", { ascending: true }),
+    listExerciseWorkPoints(userId),
+    listBodyWeights(userId),
+  ]);
 
   if (macrosResult.error) {
     throw macrosResult.error;
@@ -83,14 +96,14 @@ export async function getStrengthProgress(
       date: record.achieved_at.slice(0, 10),
       weight: record.max_weight,
       seconds: null,
+      body_weight: null,
+      relative: null,
       phase_type: null,
       macro_number: null,
       label: record.achieved_at.slice(0, 10),
     });
     globalPoints.set(record.exercise_id, list);
   }
-
-  const workByExercise = await listExerciseWorkPoints(userId);
 
   const progress: ExerciseProgress[] = exercises.map((exercise) => {
     const workPoints = workByExercise.get(exercise.id) ?? [];
@@ -105,6 +118,8 @@ export async function getStrengthProgress(
         date: phase.start_date,
         weight,
         seconds: null,
+        body_weight: null,
+        relative: null,
         phase_type: phase.phase_type,
         macro_number: number,
         label:
@@ -119,7 +134,10 @@ export async function getStrengthProgress(
         ? phasePoints
         : (globalPoints.get(exercise.id) ?? []);
     const from_work = workPoints.length > 0;
-    const points = from_work ? workPoints : fallback;
+    const points = withRelativePoints(
+      from_work ? workPoints : fallback,
+      weights,
+    );
     const start_weight = points[0]?.weight ?? null;
     const current_weight = points.at(-1)?.weight ?? null;
     const delta =
@@ -130,6 +148,13 @@ export async function getStrengthProgress(
       start_weight == null || current_weight == null
         ? null
         : percentChange(start_weight, current_weight);
+    const relatives = relativeSeries(points);
+    const start_relative = relatives[0]?.relative ?? null;
+    const current_relative = relatives.at(-1)?.relative ?? null;
+    const relative_percent =
+      start_relative == null || current_relative == null
+        ? null
+        : percentChange(start_relative, current_relative);
 
     return {
       exercise_id: exercise.id,
@@ -139,6 +164,9 @@ export async function getStrengthProgress(
       start_weight,
       delta,
       percent,
+      current_relative,
+      start_relative,
+      relative_percent,
       points,
       from_work,
     };
@@ -156,6 +184,9 @@ export async function getStrengthProgress(
   const percents = progress.flatMap((item) =>
     item.percent == null ? [] : [item.percent],
   );
+  const relativePercents = progress.flatMap((item) =>
+    item.relative_percent == null ? [] : [item.relative_percent],
+  );
 
   return {
     exercises: progress,
@@ -164,5 +195,10 @@ export async function getStrengthProgress(
       percents.length === 0
         ? null
         : percents.reduce((sum, value) => sum + value, 0) / percents.length,
+    avg_relative_percent:
+      relativePercents.length === 0
+        ? null
+        : relativePercents.reduce((sum, value) => sum + value, 0) /
+          relativePercents.length,
   };
 }

@@ -61,6 +61,7 @@ export interface Day {
   target_fat: number;
   target_carbs: number;
   target_kcal: number;
+  body_weight: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -429,6 +430,8 @@ export interface ProgressPoint {
   date: string;
   weight: number;
   seconds: number | null;
+  body_weight: number | null;
+  relative: number | null;
   phase_type: PhaseType | null;
   macro_number: number | null;
   label: string;
@@ -442,6 +445,9 @@ export interface ExerciseProgress {
   start_weight: number | null;
   delta: number | null;
   percent: number | null;
+  current_relative: number | null;
+  start_relative: number | null;
+  relative_percent: number | null;
   points: ProgressPoint[];
   from_work: boolean;
 }
@@ -450,6 +456,7 @@ export interface StrengthProgress {
   exercises: ExerciseProgress[];
   grown_count: number;
   avg_percent: number | null;
+  avg_relative_percent: number | null;
 }
 
 export interface DayHistoryRow {
@@ -459,6 +466,7 @@ export interface DayHistoryRow {
   target_fat: number;
   target_carbs: number;
   target_kcal: number;
+  body_weight: number | null;
   fact_protein: number;
   fact_fat: number;
   fact_carbs: number;

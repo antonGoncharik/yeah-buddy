@@ -1,4 +1,10 @@
 import { format, parseISO, subDays } from "date-fns";
+import {
+  carriedBodyWeight,
+  proteinPerKg,
+  roundBodyWeight,
+  weightDelta,
+} from "@/lib/day/body-weight";
 
 import type { Macros } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
@@ -145,6 +151,68 @@ export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
   }
 
   return { proteinHit, proteinTotal, kcalHit, kcalTotal };
+}
+
+export type BodyWeightStats = {
+  logged: number;
+  start: number | null;
+  end: number | null;
+  delta: number | null;
+};
+
+export type ProteinPerKgStats = {
+  count: number;
+  fact: number;
+  target: number;
+};
+
+export function bodyWeightStats(items: DayHistoryRow[]): BodyWeightStats {
+  const logged = [...items]
+    .filter((item) => item.body_weight != null && item.body_weight > 0)
+    .sort((left, right) => left.date.localeCompare(right.date));
+  const start = logged[0]?.body_weight ?? null;
+  const end = logged.at(-1)?.body_weight ?? null;
+  return {
+    logged: logged.length,
+    start,
+    end,
+    delta: weightDelta(start, end),
+  };
+}
+
+export function proteinPerKgStats(
+  items: DayHistoryRow[],
+  seed: number | null = null,
+): ProteinPerKgStats | null {
+  const carried = carriedBodyWeight(items, seed);
+  let fact = 0;
+  let target = 0;
+  let count = 0;
+
+  for (const item of items) {
+    const weight = carried.get(item.date);
+    if (weight == null) {
+      continue;
+    }
+    const factPerKg = proteinPerKg(item.fact_protein, weight);
+    const targetPerKg = proteinPerKg(item.target_protein, weight);
+    if (factPerKg == null || targetPerKg == null) {
+      continue;
+    }
+    fact += factPerKg;
+    target += targetPerKg;
+    count += 1;
+  }
+
+  if (count === 0) {
+    return null;
+  }
+
+  return {
+    count,
+    fact: roundBodyWeight(fact / count),
+    target: roundBodyWeight(target / count),
+  };
 }
 
 export function metricFact(

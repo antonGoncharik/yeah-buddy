@@ -19,6 +19,7 @@ function day(input: {
   targetCarbs?: number;
   kcal?: number;
   targetKcal?: number;
+  weight?: number | null;
 }): DayHistoryRow {
   return {
     date: input.date,
@@ -27,6 +28,7 @@ function day(input: {
     target_fat: 70,
     target_carbs: input.targetCarbs ?? 130,
     target_kcal: input.targetKcal ?? 2000,
+    body_weight: input.weight ?? null,
     fact_protein: input.protein,
     fact_fat: 70,
     fact_carbs: input.carbs ?? 130,
@@ -62,6 +64,14 @@ const lines = buildSignals({
   proteinTotal: 3,
   kcalHit: 2,
   kcalTotal: 3,
+  weight: {
+    logged: 0,
+    start: null,
+    end: null,
+    delta: null,
+    protein_per_kg: null,
+    protein_per_kg_target: null,
+  },
   foods: [{ name: "Творог", protein: 80, kcal: 400, grams: 400 }],
   gym: {
     completed: 3,
@@ -137,6 +147,71 @@ assertEqual(
   ),
   true,
   "protein holes",
+);
+
+const recompLines = buildSignals({
+  days: [
+    day({ date: "2026-09-01", protein: 160, targetProtein: 160, weight: 84 }),
+    day({ date: "2026-09-05", protein: 160, targetProtein: 160, weight: 82 }),
+    day({ date: "2026-09-10", protein: 160, targetProtein: 160, weight: 81 }),
+  ],
+  rest: null,
+  training: null,
+  proteinHit: 2,
+  proteinTotal: 2,
+  kcalHit: 2,
+  kcalTotal: 2,
+  weight: {
+    logged: 3,
+    start: 84,
+    end: 81,
+    delta: -3,
+    protein_per_kg: 1.9,
+    protein_per_kg_target: 1.9,
+  },
+  foods: [],
+  gym: {
+    completed: 4,
+    skipped: 0,
+    planHit: 12,
+    planTotal: 12,
+    templates: [{ name: "Тело A", count: 2 }],
+    weak: [],
+  },
+  phase: {
+    macro: null,
+    phase: null,
+    phases: [],
+    maxes: [],
+    phase_circle: null,
+    last_recap: null,
+  },
+  maxes: {
+    grown: [{ name: "Присед", percent: 4, delta: 5 }],
+    stalled: [],
+  },
+  avgRelativePercent: 6,
+});
+
+assertEqual(
+  recompLines.some((line) => line.includes("84 → 81")),
+  true,
+  "weight trend",
+);
+assertEqual(
+  recompLines.some((line) => line.includes("рабочие выросли")),
+  true,
+  "recomp",
+);
+assertEqual(
+  recompLines.some((line) => line.includes("Белок 1,9 г/кг")),
+  true,
+  "protein per kg",
+);
+assertEqual(
+  recompLines.some((line) => line.includes("К весу тела")),
+  true,
+  "relative strength",
 );
 
 console.log("ai signals ok");

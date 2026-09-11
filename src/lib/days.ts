@@ -30,9 +30,12 @@ export {
   createDayFromTemplate,
   dateHasDay,
   getDayByDate,
+  getLastBodyWeight,
+  listBodyWeights,
   listDayHistory,
   listDaysInRange,
   markDateAsTrainingIfExists,
+  setBodyWeight,
   setDayType,
   yesterdayCopyHint,
 } from "@/lib/day/store";

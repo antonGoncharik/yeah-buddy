@@ -379,6 +379,7 @@ export function parseStrengthProgress(data: unknown): StrengthProgress | null {
     exercises: mapRecordList(data.exercises, parseExerciseProgress),
     grown_count: toNumber(data.grown_count),
     avg_percent: toNullableNumber(data.avg_percent),
+    avg_relative_percent: toNullableNumber(data.avg_relative_percent),
   };
 }
 
@@ -429,6 +430,9 @@ function parseExerciseProgress(
     start_weight: toNullableNumber(row.start_weight),
     delta: toNullableNumber(row.delta),
     percent: toNullableNumber(row.percent),
+    current_relative: toNullableNumber(row.current_relative),
+    start_relative: toNullableNumber(row.start_relative),
+    relative_percent: toNullableNumber(row.relative_percent),
     points: mapRecordList(row.points, parseProgressPoint),
     from_work: row.from_work === true,
   };
@@ -448,6 +452,8 @@ function parseProgressPoint(
     date: row.date,
     weight: toNumber(row.weight),
     seconds: seconds != null && seconds > 0 ? seconds : null,
+    body_weight: toNullableNumber(row.body_weight),
+    relative: toNullableNumber(row.relative),
     phase_type: isPhaseType(phaseType) ? phaseType : null,
     macro_number: toNullableNumber(row.macro_number),
     label: String(row.label ?? ""),

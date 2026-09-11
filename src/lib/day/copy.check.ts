@@ -1,4 +1,7 @@
-import { readYesterdayMealTypes } from "@/lib/day/today-payload";
+import {
+  readLastBodyWeight,
+  readYesterdayMealTypes,
+} from "@/lib/day/today-payload";
 import { filledMealTypes, mealExistsReplace } from "@/lib/nutrition";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -37,5 +40,12 @@ assertEqual(
 );
 assertEqual(readYesterdayMealTypes({}), [], "missing payload");
 assertEqual(readYesterdayMealTypes({ yesterdayExists: true }), [], "no types");
+
+assertEqual(
+  readLastBodyWeight({ lastBodyWeight: 82.4 }),
+  82.4,
+  "last body weight",
+);
+assertEqual(readLastBodyWeight({}), null, "missing last weight");
 
 console.log("copy yesterday meal ok");

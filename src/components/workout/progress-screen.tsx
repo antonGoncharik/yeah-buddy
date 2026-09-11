@@ -11,6 +11,7 @@ import {
   ProgressSparkline,
 } from "@/components/workout/progress-chart";
 import { cachedGet } from "@/lib/api-cache";
+import { formatRelative } from "@/lib/day/body-weight";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -26,6 +27,7 @@ import {
 import {
   CATEGORY_SHORT_LABELS,
   categoryAverages,
+  hasRelativeSeries,
   hasSecondsSeries,
   type ProgressMetric,
 } from "@/lib/workout/progress-stats";
@@ -130,6 +132,9 @@ export function ProgressScreen() {
                   : progress.exercises.some((item) => item.from_work)
                     ? "Рабочие веса из зала."
                     : "Появятся после зала."}
+                {progress.avg_relative_percent == null
+                  ? null
+                  : ` · к весу тела ${formatSignedPercent(progress.avg_relative_percent)}`}
               </p>
               <CategoryLine exercises={progress.exercises} />
             </section>
@@ -200,10 +205,16 @@ function ExerciseProgressCard({
   onToggle: () => void;
 }) {
   const secondsOk = hasSecondsSeries(item.points);
+  const relativeOk = hasRelativeSeries(item.points);
   const [metric, setMetric] = useState<ProgressMetric>(
     secondsOk ? "seconds" : "weight",
   );
   const lastSeconds = item.points.at(-1)?.seconds ?? null;
+  const metricOptions = [
+    { id: "weight" as const, label: "кг" },
+    ...(secondsOk ? [{ id: "seconds" as const, label: "сек" }] : []),
+    ...(relativeOk ? [{ id: "relative" as const, label: "× веса" }] : []),
+  ];
 
   return (
     <article className="card-surface px-5 py-4">
@@ -219,6 +230,9 @@ function ExerciseProgressCard({
             {item.current_weight == null
               ? "Нет рабочего веса"
               : `${formatWeight(item.current_weight)} кг`}
+            {item.current_relative != null
+              ? ` · ${formatRelative(item.current_relative)}`
+              : null}
             {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
             {item.delta != null && item.percent != null ? (
               <span
@@ -230,6 +244,9 @@ function ExerciseProgressCard({
               >
                 {formatSignedWeight(item.delta)} кг ·{" "}
                 {formatSignedPercent(item.percent)}
+                {item.relative_percent == null
+                  ? null
+                  : ` · ${formatSignedPercent(item.relative_percent)} к весу`}
               </span>
             ) : null}
           </p>
@@ -238,20 +255,14 @@ function ExerciseProgressCard({
       </button>
       {open ? (
         <div className="mt-4 flex flex-col gap-3 border-t border-border/60 pt-4">
-          {secondsOk ? (
+          {metricOptions.length > 1 ? (
             <Segmented
               value={metric}
-              options={[
-                { id: "weight", label: "кг" },
-                { id: "seconds", label: "сек" },
-              ]}
+              options={metricOptions}
               onChange={setMetric}
             />
           ) : null}
-          <ProgressChart
-            points={item.points}
-            metric={secondsOk ? metric : "weight"}
-          />
+          <ProgressChart points={item.points} metric={metric} />
         </div>
       ) : null}
     </article>

@@ -1,6 +1,6 @@
 import { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 import { isMealType } from "@/lib/nutrition";
-import { isRecord } from "@/lib/read";
+import { isRecord, toNullableNumber } from "@/lib/read";
 import type { MealType } from "@/lib/types";
 
 export function readDay(data: unknown): DayWithMeals | null {
@@ -21,4 +21,12 @@ export function readYesterdayMealTypes(data: unknown): MealType[] {
   }
 
   return data.yesterdayMealTypes.filter(isMealType);
+}
+
+export function readLastBodyWeight(data: unknown): number | null {
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  return toNullableNumber(data.lastBodyWeight);
 }

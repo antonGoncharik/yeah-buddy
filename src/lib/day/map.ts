@@ -1,5 +1,10 @@
 import { isMealType, type Macros } from "@/lib/nutrition";
-import { isRecord, toNullableString, toNumber } from "@/lib/read";
+import {
+  isRecord,
+  toNullableNumber,
+  toNullableString,
+  toNumber,
+} from "@/lib/read";
 import type { Day, DayHistoryRow, Meal, MealItem } from "@/lib/types";
 
 export type DayWithMeals = Day & {
@@ -22,6 +27,7 @@ export function mapDayWithMeals(row: Record<string, unknown>): DayWithMeals {
     target_fat: toNumber(row.target_fat),
     target_carbs: toNumber(row.target_carbs),
     target_kcal: toNumber(row.target_kcal),
+    body_weight: toNullableNumber(row.body_weight),
     notes: toNullableString(row.notes),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -55,6 +61,7 @@ export function mapDayHistoryRow(row: Record<string, unknown>): DayHistoryRow {
     target_fat: toNumber(row.target_fat),
     target_carbs: toNumber(row.target_carbs),
     target_kcal: toNumber(row.target_kcal),
+    body_weight: toNullableNumber(row.body_weight),
     fact_protein: protein,
     fact_fat: fat,
     fact_carbs: carbs,
@@ -76,6 +83,7 @@ export function parseDayHistoryPayload(
     target_fat: toNumber(row.target_fat),
     target_carbs: toNumber(row.target_carbs),
     target_kcal: toNumber(row.target_kcal),
+    body_weight: toNullableNumber(row.body_weight),
     fact_protein: toNumber(row.fact_protein),
     fact_fat: toNumber(row.fact_fat),
     fact_carbs: toNumber(row.fact_carbs),

@@ -57,6 +57,7 @@ export function TodayScreen({
     dayHasItems,
     yesterdayExists,
     yesterdayMealTypes,
+    lastBodyWeight,
     busy,
     loadError,
     actionError,
@@ -66,6 +67,7 @@ export function TodayScreen({
     copyYesterday,
     copyMealYesterday,
     switchType,
+    saveBodyWeight,
     deleteItem,
     startQueuedWorkout,
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
@@ -233,7 +235,16 @@ export function TodayScreen({
             )}
 
             <div className="animate-rise" style={{ animationDelay: "40ms" }}>
-              <DaySummary day={shownDay} fact={fact} />
+              <DaySummary
+                day={shownDay}
+                fact={fact}
+                showWeight
+                bodyWeight={shownDay.body_weight}
+                lastBodyWeight={lastBodyWeight}
+                onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
+                bodyWeightReadOnly={viewOnly}
+                bodyWeightBusy={busy}
+              />
             </div>
 
             {hiddenNote ? (

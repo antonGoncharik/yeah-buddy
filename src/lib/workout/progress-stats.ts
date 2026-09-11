@@ -1,10 +1,11 @@
+import { bodyWeightOnOrBefore, relativeStrength } from "@/lib/day/body-weight";
 import type {
   ExerciseCategory,
   ExerciseProgress,
   ProgressPoint,
 } from "@/lib/types";
 
-export type ProgressMetric = "weight" | "seconds";
+export type ProgressMetric = "weight" | "seconds" | "relative";
 
 export const CATEGORY_SHORT_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
@@ -42,11 +43,25 @@ export function hasSecondsSeries(points: ProgressPoint[]): boolean {
   return secondsSeries(points).length >= 2;
 }
 
+export function relativeSeries(points: ProgressPoint[]): ProgressPoint[] {
+  return points.filter((point) => point.relative != null && point.relative > 0);
+}
+
+export function hasRelativeSeries(points: ProgressPoint[]): boolean {
+  return relativeSeries(points).length >= 2;
+}
+
 export function metricPoints(
   points: ProgressPoint[],
   metric: ProgressMetric,
 ): ProgressPoint[] {
-  return metric === "seconds" ? secondsSeries(points) : points;
+  if (metric === "seconds") {
+    return secondsSeries(points);
+  }
+  if (metric === "relative") {
+    return relativeSeries(points);
+  }
+  return points;
 }
 
 export function metricValues(
@@ -56,6 +71,23 @@ export function metricValues(
   if (metric === "seconds") {
     return secondsSeries(points).map((point) => point.seconds ?? 0);
   }
+  if (metric === "relative") {
+    return relativeSeries(points).map((point) => point.relative ?? 0);
+  }
 
   return points.map((point) => point.weight);
+}
+
+export function withRelativePoints(
+  points: ProgressPoint[],
+  weights: Array<{ date: string; weight: number }>,
+): ProgressPoint[] {
+  return points.map((point) => {
+    const body = bodyWeightOnOrBefore(weights, point.date);
+    return {
+      ...point,
+      body_weight: body,
+      relative: body == null ? null : relativeStrength(point.weight, body),
+    };
+  });
 }

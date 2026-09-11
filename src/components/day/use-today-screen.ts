@@ -23,6 +23,7 @@ import {
 import type { DayWithMeals } from "@/lib/day/map";
 import {
   readDay,
+  readLastBodyWeight,
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
@@ -62,6 +63,7 @@ export function useTodayScreen({
   const [day, setDay] = useState<DayWithMeals | null>(null);
   const [yesterdayExists, setYesterdayExists] = useState(false);
   const [yesterdayMealTypes, setYesterdayMealTypes] = useState<MealType[]>([]);
+  const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -114,6 +116,7 @@ export function useTodayScreen({
           setDay(readDay(data));
           setYesterdayExists(readYesterdayExists(data));
           setYesterdayMealTypes(readYesterdayMealTypes(data));
+          setLastBodyWeight(readLastBodyWeight(data));
           setLoadedDate(requestedDate);
           return true;
         },
@@ -173,6 +176,7 @@ export function useTodayScreen({
     setDay(null);
     setYesterdayExists(false);
     setYesterdayMealTypes([]);
+    setLastBodyWeight(null);
     setWorkoutState(null);
     if (date.length > 0) {
       reset();
@@ -413,6 +417,20 @@ export function useTodayScreen({
     }
   }
 
+  async function saveBodyWeight(value: number | null) {
+    if (viewOnly || !day) {
+      return;
+    }
+
+    setActionError(null);
+    const data = await patchJson(`/api/days/${day.id}`, { bodyWeight: value });
+    const next = readDay(data);
+    if (!next) {
+      throw new Error(LOAD_FAILED);
+    }
+    setDay(next);
+  }
+
   async function deleteItem(item: MealItem) {
     if (viewOnly) {
       return;
@@ -518,6 +536,7 @@ export function useTodayScreen({
     dayHasItems,
     yesterdayExists,
     yesterdayMealTypes,
+    lastBodyWeight,
     busy,
     loadError,
     actionError,
@@ -527,6 +546,7 @@ export function useTodayScreen({
     copyYesterday,
     copyMealYesterday,
     switchType,
+    saveBodyWeight,
     deleteItem,
     startQueuedWorkout,
   };
