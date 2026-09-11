@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { getSessionDetail } from "@/lib/workout/session-detail";
+import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import type {
   CompleteSessionInput,
   PatchSetInput,
@@ -88,7 +89,10 @@ export async function patchWorkoutSet(
     return null;
   }
 
-  return loadSessionDetail(userId, session);
+  return withSessionRaiseOffers(
+    userId,
+    await loadSessionDetail(userId, session),
+  );
 }
 
 export async function completeSessionAsPlanned(
@@ -154,8 +158,15 @@ export async function completeSessionAsPlanned(
   await patchSession(userId, session.id, {
     status: "completed",
     note: input.note !== undefined ? input.note : undefined,
+    feel: input.feel !== undefined ? input.feel : undefined,
   });
   await clearSkipTemplateIds(userId);
   const refreshed = await getSession(userId, sessionId);
-  return refreshed ? loadSessionDetail(userId, refreshed) : null;
+  if (!refreshed) {
+    return null;
+  }
+  return withSessionRaiseOffers(
+    userId,
+    await loadSessionDetail(userId, refreshed),
+  );
 }

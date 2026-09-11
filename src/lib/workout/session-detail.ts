@@ -1,5 +1,6 @@
 import type { SessionDetail } from "@/lib/types";
 import { ensureSessionPlan } from "@/lib/workout/session-plan";
+import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession } from "@/lib/workout/sessions";
 
@@ -13,5 +14,8 @@ export async function getSessionDetail(
   }
 
   await ensureSessionPlan(userId, session);
-  return loadSessionDetail(userId, session);
+  return withSessionRaiseOffers(
+    userId,
+    await loadSessionDetail(userId, session),
+  );
 }

@@ -98,20 +98,26 @@ export function useSessionScreen() {
     );
   }, [detail]);
 
-  const { complete, saveNote, removeExercise, cancelToday } = useSessionActions(
-    {
-      detail,
-      note,
-      drafts,
-      sessionUrl,
-      applyDetail,
-      loadFollowUp,
-      setBusy,
-      setError,
-      setCorrecting,
-      setDetail,
-    },
-  );
+  const {
+    complete,
+    saveFeel,
+    raiseMaxes,
+    saveNote,
+    removeExercise,
+    cancelToday,
+  } = useSessionActions({
+    detail,
+    note,
+    drafts,
+    sessionUrl,
+    applyDetail,
+    loadFollowUp,
+    setBusy,
+    setError,
+    setCorrecting,
+    setDetail,
+    correcting,
+  });
 
   const session = detail?.session;
   const title =
@@ -149,6 +155,8 @@ export function useSessionScreen() {
     setNote,
     saveNote,
     complete,
+    saveFeel,
+    raiseMaxes,
     cancelToday,
     correcting,
     setCorrecting,

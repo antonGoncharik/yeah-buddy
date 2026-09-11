@@ -131,6 +131,7 @@ export async function patchSession(
       status: input.status ?? current.status,
       note:
         input.note === undefined ? current.note : toNullableString(input.note),
+      feel: input.feel === undefined ? current.feel : input.feel,
     })
     .eq("user_id", userId)
     .eq("id", id)

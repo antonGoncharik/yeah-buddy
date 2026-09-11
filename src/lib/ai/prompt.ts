@@ -26,6 +26,7 @@ export type ReviewPromptPayload = {
     templates: ReviewBrief["gym"]["templates"];
     weak: string[];
     notes: ReviewBrief["gym"]["notes"];
+    feels: ReviewBrief["gym"]["feels"];
   };
   phase: ReviewBrief["phase"];
   maxes: ReviewBrief["maxes"];
@@ -59,6 +60,7 @@ export function reviewPromptPayload(brief: ReviewBrief): ReviewPromptPayload {
       templates: brief.gym.templates,
       weak: brief.gym.weak,
       notes: brief.gym.notes,
+      feels: brief.gym.feels,
     },
     phase: brief.phase,
     maxes: brief.maxes,

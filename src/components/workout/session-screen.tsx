@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
+import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
@@ -27,6 +28,8 @@ export function SessionScreen() {
     setNote,
     saveNote,
     complete,
+    saveFeel,
+    raiseMaxes,
     cancelToday,
     correcting,
     setCorrecting,
@@ -43,7 +46,7 @@ export function SessionScreen() {
     setDrafts,
     removeExercise,
   } = useSessionScreen();
-  const rest = useRestTimer();
+  const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
 
   return (
@@ -94,8 +97,22 @@ export function SessionScreen() {
             />
 
             {session.status === "planned" ||
-            (session.status === "completed" && correcting) ||
-            note.trim() !== "" ? (
+            (session.status === "completed" && correcting) ? (
+              <div className="flex flex-col gap-3">
+                <SessionFeelPicker
+                  value={session.feel}
+                  disabled={busy}
+                  onChange={(feel) => void saveFeel(feel)}
+                />
+                <SessionNoteField
+                  note={note}
+                  busy={busy}
+                  canEditSets={canEditSets}
+                  onChange={setNote}
+                  onSave={() => void saveNote()}
+                />
+              </div>
+            ) : note.trim() !== "" ? (
               <SessionNoteField
                 note={note}
                 busy={busy}
@@ -113,8 +130,12 @@ export function SessionScreen() {
                 abovePlan={abovePlan}
                 nextName={nextName}
                 phaseHint={phaseHint}
+                feel={session.feel}
+                raiseOffers={detail.raise_offers}
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}
+                onFeel={(feel) => void saveFeel(feel)}
+                onRaise={() => void raiseMaxes()}
               />
             ) : null}
 

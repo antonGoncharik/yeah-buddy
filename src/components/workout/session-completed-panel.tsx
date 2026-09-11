@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
+import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import { gymQuote } from "@/lib/quotes";
+import type { SessionFeel, SessionMaxRaiseOffer } from "@/lib/types";
 import { QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function SessionCompletedPanel({
@@ -11,16 +12,26 @@ export function SessionCompletedPanel({
   abovePlan,
   nextName,
   phaseHint,
+  feel,
+  raiseOffers,
   busy,
   onCorrect,
+  onFeel,
+  onRaise,
 }: {
   sessionId: string;
   abovePlan: boolean;
   nextName: string | null;
   phaseHint: string | null;
+  feel: SessionFeel | null;
+  raiseOffers: SessionMaxRaiseOffer[];
   busy: boolean;
   onCorrect: () => void;
+  onFeel: (value: SessionFeel | null) => void;
+  onRaise: () => void;
 }) {
+  const canRaise = raiseOffers.length > 0;
+
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">
       <h2 className="text-xl font-semibold">Готово</h2>
@@ -28,9 +39,12 @@ export function SessionCompletedPanel({
       <p className="text-base leading-relaxed text-muted-foreground">
         Записано. Другой вес — поправь, останется сделанной.
       </p>
-      {abovePlan ? (
+      <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
+      {canRaise ? (
         <p className="text-base leading-relaxed">
-          Где-то больше плана. Рабочий вес сам не прыгнет — это в цикле.
+          {abovePlan
+            ? "Где-то больше плана. Рабочий сам не прыгнет."
+            : "Легко. Можно поднять рабочий."}
         </p>
       ) : null}
       {nextName ? (
@@ -41,15 +55,17 @@ export function SessionCompletedPanel({
       {phaseHint ? (
         <p className="text-base text-muted-foreground">{phaseHint}</p>
       ) : null}
-      {abovePlan ? (
-        <Link
-          href="/workouts/macro"
-          className="text-base font-medium text-primary"
+      {canRaise ? (
+        <Button
+          type="button"
+          className="h-12 text-base"
+          disabled={busy}
+          onClick={onRaise}
         >
-          К циклу
-        </Link>
+          Поднять рабочий
+        </Button>
       ) : null}
-      {phaseHint && !abovePlan ? (
+      {phaseHint ? (
         <Link
           href="/workouts/macro"
           className="text-base font-medium text-primary"

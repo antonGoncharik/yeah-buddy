@@ -1,5 +1,6 @@
 import {
   compactDay,
+  compactFeels,
   compactMaxes,
   compactSessions,
   compactWeight,
@@ -63,6 +64,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       planTotal: gymStats.planTotal,
       templates: gymStats.templates,
       weak: weakTemplates(gymWindow),
+      feels: compactFeels(sessionRows),
     },
     phase: source.macro,
     maxes,
@@ -105,6 +107,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       weak: weakTemplates(gymWindow),
       notes: sessionNotes(sessionRows),
       sessions: sessionRows,
+      feels: compactFeels(sessionRows),
     },
     phase: {
       type: source.macro.phase

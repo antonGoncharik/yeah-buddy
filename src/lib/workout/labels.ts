@@ -4,6 +4,7 @@ import type {
   ExerciseUnit,
   ExerciseWorkoutType,
   FormulaPreset,
+  SessionFeel,
   SessionStatus,
   SetType,
   WorkoutKind,
@@ -99,6 +100,14 @@ export const SESSION_STATUS_LABELS: Record<SessionStatus, string> = {
   planned: "В плане",
   completed: "Сделана",
   skipped: "Пропущена",
+};
+
+export const SESSION_FEELS = ["easy", "close", "miss"] as const;
+
+export const SESSION_FEEL_LABELS: Record<SessionFeel, string> = {
+  easy: "Легко",
+  close: "Впритык",
+  miss: "Не пошло",
 };
 
 export const SET_TYPE_LABELS: Record<SetType, string> = {

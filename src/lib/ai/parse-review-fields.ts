@@ -141,6 +141,10 @@ export function parseSessionRow(
     plan_hit: toNumber(row.plan_hit),
     plan_total: toNumber(row.plan_total),
     note: typeof row.note === "string" ? row.note : null,
+    feel:
+      row.feel === "easy" || row.feel === "close" || row.feel === "miss"
+        ? row.feel
+        : null,
   };
 }
 
@@ -192,6 +196,22 @@ export function stringList(value: unknown): string[] {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+export function parseFeels(value: unknown): {
+  easy: number;
+  close: number;
+  miss: number;
+} {
+  if (!isRecord(value)) {
+    return { easy: 0, close: 0, miss: 0 };
+  }
+
+  return {
+    easy: toNumber(value.easy),
+    close: toNumber(value.close),
+    miss: toNumber(value.miss),
+  };
 }
 
 export function toNumber(value: unknown): number {

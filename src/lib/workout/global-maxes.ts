@@ -199,7 +199,7 @@ async function hasCurrentPhase(userId: string): Promise<boolean> {
   return Boolean(result.data);
 }
 
-function pickCurrentMax(history: GlobalMax[]): GlobalMax | null {
+export function pickCurrentMax(history: GlobalMax[]): GlobalMax | null {
   if (history.length === 0) {
     return null;
   }

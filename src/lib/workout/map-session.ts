@@ -1,6 +1,10 @@
 import { isRecord } from "@/lib/read";
 import type { SessionExercise, WorkoutSession, WorkoutSet } from "@/lib/types";
-import { toSessionStatus, toWorkoutKind } from "@/lib/workout/map-enums";
+import {
+  toSessionFeel,
+  toSessionStatus,
+  toWorkoutKind,
+} from "@/lib/workout/map-enums";
 import {
   toNullableNumber,
   toNullableString,
@@ -20,6 +24,7 @@ export function mapWorkoutSession(
     template_id: toNullableString(row.template_id),
     status: toSessionStatus(row.status),
     note: toNullableString(row.note),
+    feel: toSessionFeel(row.feel),
     created_at: String(row.created_at),
   };
 }

@@ -40,6 +40,7 @@ export const createSessionSchema = z.object({
 export const patchSessionSchema = z.object({
   status: z.enum(["planned", "completed", "skipped"]).optional(),
   note: z.union([z.string(), z.null()]).optional(),
+  feel: z.enum(["easy", "close", "miss"]).nullable().optional(),
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;

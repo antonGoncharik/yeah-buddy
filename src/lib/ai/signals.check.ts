@@ -222,6 +222,7 @@ const recompLines = buildSignals({
     planTotal: 12,
     templates: [{ name: "Тело A", count: 2 }],
     weak: [],
+    feels: { easy: 2, close: 1, miss: 0 },
   },
   phase: {
     macro: null,
@@ -241,9 +242,16 @@ const recompLines = buildSignals({
 });
 
 assertEqual(
-  recompLines.some((line) => line.includes("84 → 81")),
+  recompLines.some(
+    (line) => line.includes("Легко 2") || line.includes("легко 2"),
+  ),
   true,
-  "weight trend",
+  "feel summary",
+);
+assertEqual(
+  recompLines.some((line) => line.includes("можно поднять рабочий")),
+  true,
+  "easy without cycle suggests raise",
 );
 assertEqual(
   recompLines.some((line) => line.includes("рабочие выросли")),
@@ -344,6 +352,7 @@ assertEqual(prompt.nutrition.weight.delta, -3, "prompt keeps weight");
 assertEqual(prompt.maxes.since, "first_work", "prompt labels maxes window");
 assertEqual(prompt.maxes.grown_list[0]?.current, 175, "prompt keeps kg");
 assertEqual(prompt.gym.notes.length, 0, "prompt keeps notes field");
+assertEqual(prompt.gym.feels.easy, 0, "prompt keeps feels");
 assertEqual(
   prompt.signals.some((line) => line.includes("84 → 81")),
   true,

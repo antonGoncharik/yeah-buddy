@@ -6,6 +6,7 @@ import type {
   ExerciseWorkoutType,
   MaxSource,
   PhaseType,
+  SessionFeel,
   SessionStatus,
   WorkoutKind,
 } from "@/lib/types";
@@ -49,6 +50,14 @@ export function toSessionStatus(value: unknown): SessionStatus {
   }
 
   return "planned";
+}
+
+export function toSessionFeel(value: unknown): SessionFeel | null {
+  if (value === "easy" || value === "close" || value === "miss") {
+    return value;
+  }
+
+  return null;
 }
 
 export function toCycleStatus(value: unknown): CycleStatus {

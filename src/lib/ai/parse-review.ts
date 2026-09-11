@@ -1,6 +1,7 @@
 import {
   parseAverages,
   parseDayRow,
+  parseFeels,
   parseFoodShare,
   parseGymNote,
   parseLastRecap,
@@ -75,6 +76,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       weak: stringList(value.gym.weak),
       notes: mapRecordList(value.gym.notes, parseGymNote),
       sessions: mapRecordList(value.gym.sessions, parseSessionRow),
+      feels: parseFeels(value.gym.feels),
     },
     phase: {
       type: typeof value.phase.type === "string" ? value.phase.type : null,

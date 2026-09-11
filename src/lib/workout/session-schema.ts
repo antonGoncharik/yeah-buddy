@@ -9,6 +9,7 @@ export const patchSetSchema = z.object({
 
 export const completeSessionSchema = z.object({
   note: z.union([z.string(), z.null()]).optional(),
+  feel: z.enum(["easy", "close", "miss"]).nullable().optional(),
   sets: z
     .array(
       z.object({

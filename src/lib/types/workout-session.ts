@@ -1,5 +1,6 @@
 import type {
   Exercise,
+  SessionFeel,
   SessionStatus,
   SetType,
   WorkoutKind,
@@ -21,7 +22,15 @@ export interface WorkoutSession {
   template_id: string | null;
   status: SessionStatus;
   note: string | null;
+  feel: SessionFeel | null;
   created_at: string;
+}
+
+export interface SessionMaxRaiseOffer {
+  exercise_id: string;
+  name: string;
+  from_weight: number;
+  to_weight: number;
 }
 
 export interface RecentWorkoutSession {
@@ -80,4 +89,5 @@ export interface SessionDetail {
   template: WorkoutTemplate | null;
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
+  raise_offers: SessionMaxRaiseOffer[];
 }

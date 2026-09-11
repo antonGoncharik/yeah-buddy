@@ -8,12 +8,19 @@ import {
   parseInteger,
   type SetDraft,
 } from "@/components/workout/session-drafts";
-import { deleteJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
+import {
+  deleteJson,
+  fetchJson,
+  patchJson,
+  postJson,
+  writeJson,
+} from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type { SessionDetail } from "@/lib/types";
+import type { SessionDetail, SessionFeel } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { readSessionDetail } from "@/lib/workout/session-payload";
+import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
 
 export function useSessionActions({
   detail,
@@ -26,6 +33,7 @@ export function useSessionActions({
   setError,
   setCorrecting,
   setDetail,
+  correcting,
 }: {
   detail: SessionDetail | null;
   note: string;
@@ -37,6 +45,7 @@ export function useSessionActions({
   setError: Dispatch<SetStateAction<string | null>>;
   setCorrecting: Dispatch<SetStateAction<boolean>>;
   setDetail: Dispatch<SetStateAction<SessionDetail | null>>;
+  correcting: boolean;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -54,6 +63,7 @@ export function useSessionActions({
         `/api/sessions/${detail.session.id}/complete`,
         {
           note: note.trim() === "" ? null : note.trim(),
+          feel: detail.session.feel,
           sets: Object.entries(drafts).map(([id, draft]) => ({
             id,
             actual_weight: parseDecimal(draft.weight),
@@ -76,6 +86,74 @@ export function useSessionActions({
         setCorrecting(false);
         haptic("success");
         await loadFollowUp(next.session.session_date);
+      }
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveFeel(feel: SessionFeel | null) {
+    if (!detail) {
+      return;
+    }
+
+    const previous = detail.session.feel;
+    setDetail((current) =>
+      current ? { ...current, session: { ...current.session, feel } } : current,
+    );
+
+    try {
+      await patchJson(`/api/sessions/${detail.session.id}`, { feel });
+      if (detail.session.status !== "completed" || correcting) {
+        return;
+      }
+
+      const data = await fetchJson(sessionUrl);
+      const next = readSessionDetail(data);
+      if (next) {
+        applyDetail(next);
+      }
+    } catch (caught) {
+      haptic("error");
+      setDetail((current) =>
+        current
+          ? { ...current, session: { ...current.session, feel: previous } }
+          : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
+  async function raiseMaxes() {
+    if (!detail || detail.raise_offers.length === 0) {
+      return;
+    }
+
+    const ok = await confirm({
+      message: raiseMaxConfirmMessage(detail.raise_offers),
+      confirmLabel: "Поднять",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/raise-maxes`,
+        {},
+      );
+      const next = readSessionDetail(data);
+      if (next) {
+        writeJson(sessionUrl, data);
+        applyDetail(next);
+        haptic("success");
       }
     } catch (caught) {
       haptic("error");
@@ -174,5 +252,12 @@ export function useSessionActions({
     }
   }
 
-  return { complete, saveNote, removeExercise, cancelToday };
+  return {
+    complete,
+    saveFeel,
+    raiseMaxes,
+    saveNote,
+    removeExercise,
+    cancelToday,
+  };
 }

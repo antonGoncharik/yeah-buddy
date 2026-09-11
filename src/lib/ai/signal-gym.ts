@@ -1,7 +1,7 @@
 import { formatPct } from "@/lib/ai/format";
 import type { CurrentMacroState } from "@/lib/types";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
-import { phaseLabel } from "@/lib/workout/labels";
+import { phaseLabel, SESSION_FEEL_LABELS } from "@/lib/workout/labels";
 
 export function gymSignalLines(input: {
   gym: {
@@ -11,6 +11,7 @@ export function gymSignalLines(input: {
     planTotal: number;
     templates: Array<{ name: string; count: number }>;
     weak: string[];
+    feels?: { easy: number; close: number; miss: number };
   };
   phase: CurrentMacroState;
 }): string[] {
@@ -39,6 +40,11 @@ export function gymSignalLines(input: {
     lines.push(`Слабее плана: ${input.gym.weak.join(", ")}.`);
   }
 
+  const feelLine = gymFeelLine(input.gym.feels, input.phase.phase == null);
+  if (feelLine) {
+    lines.push(feelLine);
+  }
+
   const circle = input.phase.phase_circle;
   if (input.phase.phase && circle) {
     const extra = circle.suggest_end ? ", круг можно закрыть" : "";
@@ -60,4 +66,28 @@ export function gymSignalLines(input: {
   }
 
   return lines;
+}
+
+function gymFeelLine(
+  feels: { easy: number; close: number; miss: number } | undefined,
+  withoutCycle: boolean,
+): string | null {
+  if (!feels) {
+    return null;
+  }
+
+  const parts = (["easy", "close", "miss"] as const).flatMap((key) => {
+    const count = feels[key];
+    if (count <= 0) {
+      return [];
+    }
+    return [`${SESSION_FEEL_LABELS[key].toLowerCase()} ${count}`];
+  });
+  if (parts.length === 0) {
+    return null;
+  }
+
+  const raise =
+    withoutCycle && feels.easy > 0 ? " Без цикла можно поднять рабочий." : "";
+  return `Как прошло: ${parts.join(", ")}.${raise}`;
 }

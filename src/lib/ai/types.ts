@@ -39,6 +39,7 @@ export type ReviewSessionRow = {
   plan_hit: number;
   plan_total: number;
   note: string | null;
+  feel: "easy" | "close" | "miss" | null;
 };
 
 export type ReviewMaxRow = {
@@ -80,6 +81,7 @@ export type ReviewBrief = {
     weak: string[];
     notes: Array<{ date: string; name: string; note: string }>;
     sessions: ReviewSessionRow[];
+    feels: { easy: number; close: number; miss: number };
   };
   phase: {
     type: string | null;

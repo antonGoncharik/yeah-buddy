@@ -1,7 +1,12 @@
 import {
+  clearStoredRest,
   formatRestClock,
   nextRestLeft,
+  parseRestEndsAt,
   REST_ADJUST_SECONDS,
+  restLeftAt,
+  restTimerKey,
+  serializeRestEndsAt,
   WORK_REST_SECONDS,
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
@@ -44,5 +49,17 @@ assertEqual(
   false,
   "warmup alone is not rest",
 );
+assertEqual(restTimerKey("abc"), "yb.rest:abc", "storage key");
+assertEqual(parseRestEndsAt(null), null, "empty storage");
+assertEqual(parseRestEndsAt("nope"), null, "bad json");
+assertEqual(
+  parseRestEndsAt(serializeRestEndsAt(1_700_000_000_000)),
+  1_700_000_000_000,
+  "roundtrip endsAt",
+);
+assertEqual(restLeftAt(1_000, 1_000), 0, "due now");
+assertEqual(restLeftAt(2_400, 1_000), 2, "ceils leftover ms");
+assertEqual(restLeftAt(500, 1_000), 0, "past endsAt is zero");
+clearStoredRest("abc");
 
 console.log("rest timer ok");

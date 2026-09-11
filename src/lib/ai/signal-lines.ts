@@ -26,6 +26,7 @@ export function buildSignals(input: {
     planTotal: number;
     templates: Array<{ name: string; count: number }>;
     weak: string[];
+    feels?: { easy: number; close: number; miss: number };
   };
   phase: CurrentMacroState;
   maxes: { grown: ReviewMaxRow[]; stalled: ReviewMaxRow[] };

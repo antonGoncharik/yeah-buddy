@@ -112,6 +112,7 @@ export function compactSessions(
         plan_hit: item.plan_hit,
         plan_total: item.plan_total,
         note: item.session.note,
+        feel: item.session.feel,
       },
     ];
   });
@@ -135,6 +136,21 @@ export function sessionNotes(
       ];
     })
     .slice(0, 5);
+}
+
+export function compactFeels(sessions: ReviewSessionRow[]): {
+  easy: number;
+  close: number;
+  miss: number;
+} {
+  const feels = { easy: 0, close: 0, miss: 0 };
+  for (const item of sessions) {
+    if (item.status !== "completed" || item.feel == null) {
+      continue;
+    }
+    feels[item.feel] += 1;
+  }
+  return feels;
 }
 
 export function weakTemplates(items: RecentWorkoutSession[]): string[] {

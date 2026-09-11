@@ -64,6 +64,7 @@ export async function loadSessionDetail(
         },
       ];
     }),
+    raise_offers: [],
   };
 }
 

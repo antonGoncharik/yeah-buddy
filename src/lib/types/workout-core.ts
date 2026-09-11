@@ -14,6 +14,8 @@ export type MaxSource = "auto" | "manual";
 
 export type SessionStatus = "planned" | "completed" | "skipped";
 
+export type SessionFeel = "easy" | "close" | "miss";
+
 export type SetType = "warmup" | "work";
 
 export type FormulaPreset = "barbell" | "cable" | "none";
