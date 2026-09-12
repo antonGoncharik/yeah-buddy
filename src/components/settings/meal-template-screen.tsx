@@ -80,7 +80,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
                   mealType={mealType}
                   items={items}
                   itemHref={(item) =>
-                    `/settings/meals/${dayType}/items/${item.id}`
+                    `/settings/template-items/${dayType}/${item.id}`
                   }
                   addHref={`/settings/meals/${dayType}/${mealType}/add`}
                   className="animate-rise"

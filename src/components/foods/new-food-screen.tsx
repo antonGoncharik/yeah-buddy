@@ -1,28 +1,22 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+
 import { FoodForm } from "@/components/foods/food-form";
 import { AppHeader } from "@/components/layout/app-header";
-import { isIsoDate, withDateQuery } from "@/lib/day/dates";
-import { resolveRequestToday } from "@/lib/day/writable";
+import { calendarToday, isIsoDate, withDateQuery } from "@/lib/day/dates";
 import { isDayType, isMealType } from "@/lib/nutrition";
 
-export default async function NewFoodPage({
-  searchParams,
-}: {
-  searchParams: Promise<{
-    mealId?: string | string[];
-    dayType?: string | string[];
-    mealType?: string | string[];
-    date?: string | string[];
-  }>;
-}) {
-  const params = await searchParams;
-  const mealId = readSingle(params.mealId);
-  const dayTypeRaw = readSingle(params.dayType);
-  const mealTypeRaw = readSingle(params.mealType);
-  const dateRaw = readSingle(params.date);
+export function NewFoodScreen() {
+  const searchParams = useSearchParams();
+  const mealId = readParam(searchParams.get("mealId"));
+  const dayTypeRaw = readParam(searchParams.get("dayType"));
+  const mealTypeRaw = readParam(searchParams.get("mealType"));
+  const dateRaw = readParam(searchParams.get("date"));
   const dayType = isDayType(dayTypeRaw) ? dayTypeRaw : undefined;
   const mealType = isMealType(mealTypeRaw) ? mealTypeRaw : undefined;
   const date = dateRaw && isIsoDate(dateRaw) ? dateRaw : null;
-  const today = await resolveRequestToday();
+  const today = calendarToday();
 
   const backHref = mealId
     ? withDateQuery(`/today/meals/${mealId}/add`, date, today)
@@ -48,8 +42,8 @@ export default async function NewFoodPage({
   );
 }
 
-function readSingle(value: string | string[] | undefined): string | undefined {
-  if (typeof value !== "string" || value.trim() === "") {
+function readParam(value: string | null): string | undefined {
+  if (!value || value.trim() === "") {
     return undefined;
   }
 

@@ -11,8 +11,23 @@ import { isRecord } from "@/lib/read";
 import type { ExerciseWithMax } from "@/lib/types";
 import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 
-export default function EditExercisePage() {
+export default function ExercisePage() {
   const params = useParams<{ id: string }>();
+  if (params.id === "new") {
+    return (
+      <div className="flex flex-col gap-4">
+        <AppHeader title="Новое упражнение" backHref="/workouts/exercises" />
+        <div className="px-4 pb-4">
+          <ExerciseForm />
+        </div>
+      </div>
+    );
+  }
+
+  return <EditExercisePage id={params.id} />;
+}
+
+function EditExercisePage({ id }: { id: string }) {
   const [reloadToken, setReloadToken] = useState(0);
   const [exercise, setExercise] = useState<ExerciseWithMax | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +42,7 @@ export default function EditExercisePage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/exercises/${params.id}`);
+        const response = await fetch(`/api/exercises/${id}`);
         if (cancelled) {
           return;
         }
@@ -61,7 +76,7 @@ export default function EditExercisePage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id, reloadToken]);
+  }, [id, reloadToken]);
 
   return (
     <div className="flex flex-col gap-4">

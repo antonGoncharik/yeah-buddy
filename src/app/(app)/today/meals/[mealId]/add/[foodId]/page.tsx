@@ -1,21 +1,75 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
+import { LumpMacrosCreate } from "@/components/day/lump-macros-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { isIsoDate, todayHomeHref, withDateQuery } from "@/lib/day/dates";
+import {
+  calendarToday,
+  isIsoDate,
+  isWritableDayDate,
+  todayHomeHref,
+  withDateQuery,
+} from "@/lib/day/dates";
 import { readCalendarToday, readDayWritable } from "@/lib/day/today-payload";
 import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
-export default function AddMealItemGramsPage() {
+export default function AddMealItemExtraPage() {
   const params = useParams<{ mealId: string; foodId: string }>();
+  if (params.foodId === "lump") {
+    return <AddLumpMealItemPage mealId={params.mealId} />;
+  }
+
+  return <AddMealItemGramsPage mealId={params.mealId} foodId={params.foodId} />;
+}
+
+function AddLumpMealItemPage({ mealId }: { mealId: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const date = readDateParam(searchParams.get("date"));
+  const name = (searchParams.get("name") ?? "").trim();
+  const today = calendarToday();
+  const homeHref = todayHomeHref(date, today);
+  const backHref = withDateQuery(`/today/meals/${mealId}/add`, date, today);
+  const locked = Boolean(date && !isWritableDayDate(date, today));
+
+  useEffect(() => {
+    if (locked) {
+      router.replace(homeHref);
+    }
+  }, [homeHref, locked, router]);
+
+  if (locked) {
+    return <ScreenLoading />;
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <AppHeader title="Записать" backHref={backHref} />
+      <LumpMacrosCreate
+        mealId={mealId}
+        initialName={name}
+        backHref={backHref}
+        doneHref={homeHref}
+      />
+    </div>
+  );
+}
+
+function AddMealItemGramsPage({
+  mealId,
+  foodId,
+}: {
+  mealId: string;
+  foodId: string;
+}) {
   const searchParams = useSearchParams();
   const date = readDateParam(searchParams.get("date"));
   const [reloadToken, setReloadToken] = useState(0);
@@ -25,7 +79,7 @@ export default function AddMealItemGramsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const backHref = withDateQuery(
-    `/today/meals/${params.mealId}/add`,
+    `/today/meals/${mealId}/add`,
     date,
     today ?? undefined,
   );
@@ -42,7 +96,7 @@ export default function AddMealItemGramsPage() {
 
       try {
         const [foodResponse, dayResponse] = await Promise.all([
-          fetch(`/api/foods/${params.foodId}`),
+          fetch(`/api/foods/${foodId}`),
           date
             ? fetch(`/api/days?date=${encodeURIComponent(date)}`)
             : Promise.resolve(null),
@@ -96,7 +150,7 @@ export default function AddMealItemGramsPage() {
     return () => {
       cancelled = true;
     };
-  }, [date, params.foodId, reloadToken]);
+  }, [date, foodId, reloadToken]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -132,7 +186,7 @@ export default function AddMealItemGramsPage() {
           save={
             viewOnly
               ? undefined
-              : (grams) => addMealItemGrams(params.mealId, food.id, grams)
+              : (grams) => addMealItemGrams(mealId, food.id, grams)
           }
         />
       ) : null}

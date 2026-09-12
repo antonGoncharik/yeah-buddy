@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { FoodForm } from "@/components/foods/food-form";
+import { NewFoodScreen } from "@/components/foods/new-food-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,20 @@ import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
-export default function EditFoodPage() {
+export default function FoodPage() {
   const params = useParams<{ id: string }>();
+  if (params.id === "new") {
+    return (
+      <Suspense fallback={<ScreenLoading />}>
+        <NewFoodScreen />
+      </Suspense>
+    );
+  }
+
+  return <EditFoodPage id={params.id} />;
+}
+
+function EditFoodPage({ id }: { id: string }) {
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +40,7 @@ export default function EditFoodPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/foods/${params.id}`);
+        const response = await fetch(`/api/foods/${id}`);
         if (cancelled) {
           return;
         }
@@ -61,7 +74,7 @@ export default function EditFoodPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id, reloadToken]);
+  }, [id, reloadToken]);
 
   return (
     <div className="flex flex-col gap-4">
