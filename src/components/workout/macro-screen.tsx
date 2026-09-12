@@ -6,14 +6,15 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { MacroPhaseHeader } from "@/components/workout/macro-phase-header";
 import { MacroPhaseMaxes } from "@/components/workout/macro-phase-maxes";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { MacroTransitionPanel } from "@/components/workout/macro-transition-panel";
 import { useMacroScreen } from "@/components/workout/use-macro-screen";
 import { cn } from "@/lib/utils";
-import { completePhaseHint } from "@/lib/workout/hints";
-import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
+import { completePhaseHint, cycleSequenceLabel } from "@/lib/workout/hints";
+import { CYCLE_LABEL, FORMULAS_LABEL, phaseLabel } from "@/lib/workout/labels";
 
 export function MacroScreen() {
   const {
@@ -72,13 +73,30 @@ export function MacroScreen() {
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
               <p className="text-lg font-medium">Цикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Тренировки те же, просто легче или тяжелее. Этап закрываешь сам.
+                {state.planned_cycle.length > 0
+                  ? `Схема: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же, что в очереди — этап меняет веса.`
+                  : "Сначала схема этапов, потом цикл. Тренировки те же, что в очереди."}
               </p>
+              {state.planned_cycle.length > 0 ? (
+                <CycleTimeline
+                  steps={state.planned_cycle.map((phase) => ({
+                    key: phase.key,
+                    name: phase.name,
+                    state: "upcoming",
+                  }))}
+                />
+              ) : null}
               <Link
                 href="/workouts/macro/new"
                 className={cn(buttonVariants(), "h-14 text-lg")}
               >
                 Создать цикл
+              </Link>
+              <Link
+                href="/settings/formulas"
+                className="text-center text-base font-medium text-primary"
+              >
+                {FORMULAS_LABEL}
               </Link>
             </section>
           </>

@@ -1,6 +1,8 @@
 import type { PhaseCircleProgress } from "@/lib/types";
 import {
   completePhaseHint,
+  cycleSequenceLabel,
+  cycleTimeline,
   phaseHoldHint,
   queueItemMark,
 } from "@/lib/workout/hints";
@@ -88,6 +90,50 @@ assertEqual(
   completePhaseHint({ ...circle, hold_weights: false }),
   "Дальше «Рывок». Можно поднять веса, не всем сразу.",
   "raise when not holding",
+);
+
+const planned = [
+  { key: "ramp", name: "Разгон" },
+  { key: "volume", name: "Набор" },
+  { key: "peak", name: "Рывок" },
+  { key: "deload", name: "Сброс" },
+];
+
+assertEqual(
+  cycleSequenceLabel(planned),
+  "Разгон → Набор → Рывок → Сброс",
+  "full scheme label",
+);
+
+assertEqual(
+  cycleTimeline(planned, "ramp")
+    .map((step) => step.state)
+    .join(","),
+  "current,upcoming,upcoming,upcoming",
+  "ramp shows the rest of the cycle",
+);
+
+assertEqual(
+  cycleTimeline(planned, "peak")
+    .map((step) => `${step.name}:${step.state}`)
+    .join(","),
+  "Разгон:completed,Набор:completed,Рывок:current,Сброс:upcoming",
+  "peak marks earlier phases done",
+);
+
+assertEqual(
+  cycleTimeline(
+    [
+      { key: "light", name: "Лёгкая" },
+      { key: "heavy", name: "Тяжёлая" },
+    ],
+    "ramp",
+    "Разгон",
+  )
+    .map((step) => `${step.name}:${step.state}`)
+    .join(","),
+  "Разгон:current,Лёгкая:upcoming,Тяжёлая:upcoming",
+  "keeps the running phase if the scheme changed",
 );
 
 console.log("workout hints ok");

@@ -22,7 +22,6 @@ export function useFormulasActions({
   setFormulas,
   maxIncrease,
   setMaxIncrease,
-  setCycleOpen,
   setError,
   setSaved,
   setSaving,
@@ -31,7 +30,6 @@ export function useFormulasActions({
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
   maxIncrease: string;
   setMaxIncrease: Dispatch<SetStateAction<string>>;
-  setCycleOpen: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
   setSaving: Dispatch<SetStateAction<boolean>>;
@@ -72,7 +70,7 @@ export function useFormulasActions({
 
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть 3×5 без этапов? Сейчас всё заменится.",
+      message: "Вернуть 3×5 без цикла? Сейчас всё заменится.",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
@@ -81,7 +79,6 @@ export function useFormulasActions({
     }
     setFormulas(cloneFormulas(DEFAULT_WORKOUT_FORMULAS));
     setMaxIncrease("5");
-    setCycleOpen(false);
     setSaved(false);
     setError(null);
   }
@@ -93,7 +90,7 @@ export function useFormulasActions({
     }
     const ok = await confirm({
       message: formulas.cycle.length
-        ? `Поставить «${system.name}»? Рабочие в этапах тоже сменятся, сами этапы останутся.`
+        ? `Поставить «${system.name}»? Рабочие обновятся. Этапы без своих подходов тоже.`
         : `Поставить «${system.name}»? Текущие подходы заменятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
@@ -111,7 +108,7 @@ export function useFormulasActions({
       return;
     }
     const ok = await confirm({
-      message: `Поставить цикл «${name}»? Этапы и рабочие в них заменятся.`,
+      message: `Поставить цикл «${name}»? Этапы сменятся, свои подходы в них сбросятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -119,7 +116,6 @@ export function useFormulasActions({
       return;
     }
     setFormulas(withCycle(formulas, cycle));
-    setCycleOpen(true);
     setSaved(false);
     setError(null);
   }
@@ -129,7 +125,7 @@ export function useFormulasActions({
       return;
     }
     const ok = await confirm({
-      message: "Убрать этапы? Веса всегда как в рабочих ниже.",
+      message: "Убрать цикл? Веса всегда как в рабочих.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
     });

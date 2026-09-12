@@ -4,10 +4,59 @@ import type {
   ExerciseWithMax,
   PhaseCircleProgress,
   PhaseType,
+  PlannedCyclePhase,
   TransitionPreview,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
 import { phaseLabel } from "@/lib/workout/labels";
+
+export type CycleTimelineState = "completed" | "current" | "upcoming";
+
+export interface CycleTimelineStep {
+  key: string;
+  name: string;
+  state: CycleTimelineState;
+}
+
+export function cycleTimeline(
+  planned: PlannedCyclePhase[],
+  currentKey: string | null,
+  currentName?: string | null,
+): CycleTimelineStep[] {
+  const currentIndex = currentKey
+    ? planned.findIndex((phase) => phase.key === currentKey)
+    : -1;
+
+  const steps: CycleTimelineStep[] = planned.map((phase, index) => ({
+    key: phase.key,
+    name: phase.name,
+    state:
+      currentIndex < 0
+        ? "upcoming"
+        : index < currentIndex
+          ? "completed"
+          : index === currentIndex
+            ? "current"
+            : "upcoming",
+  }));
+
+  if (currentKey && currentIndex < 0) {
+    return [
+      {
+        key: currentKey,
+        name: currentName?.trim() || currentKey,
+        state: "current",
+      },
+      ...steps,
+    ];
+  }
+
+  return steps;
+}
+
+export function cycleSequenceLabel(planned: PlannedCyclePhase[]): string {
+  return planned.map((phase) => phase.name).join(" → ");
+}
 
 export function todayWeightsHint(
   phaseType: PhaseType | null,

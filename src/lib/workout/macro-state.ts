@@ -4,6 +4,7 @@ import { listPhaseMaxRows } from "@/lib/workout/macro-maxes";
 import { getLatestCompletedMacroRecap } from "@/lib/workout/macro-recap";
 import { mapMacroCycle, mapWorkoutPhase } from "@/lib/workout/map-rows";
 import { getPhaseCircleProgress } from "@/lib/workout/phase-progress";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export async function getCurrentMacroState(
   userId: string,
@@ -20,12 +21,19 @@ export async function getCurrentMacroState(
     throw macros.error;
   }
 
+  const settings = await ensureWorkoutSettings(userId);
+  const planned_cycle = settings.formulas.cycle.map((phase) => ({
+    key: phase.key,
+    name: phase.name,
+  }));
+
   if (!macros.data) {
     return {
       macro: null,
       phase: null,
       phases: [],
       maxes: [],
+      planned_cycle,
       phase_circle: null,
       last_recap: await getLatestCompletedMacroRecap(userId),
     };
@@ -51,7 +59,15 @@ export async function getCurrentMacroState(
   const phase_circle = await getPhaseCircleProgress(userId, phase);
   const last_recap = await getLatestCompletedMacroRecap(userId);
 
-  return { macro, phase, phases, maxes, phase_circle, last_recap };
+  return {
+    macro,
+    phase,
+    phases,
+    maxes,
+    planned_cycle,
+    phase_circle,
+    last_recap,
+  };
 }
 
 export async function listCurrentPhaseMaxes(

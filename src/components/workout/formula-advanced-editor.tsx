@@ -4,10 +4,9 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
-import { FormulaCycleEditor } from "@/components/workout/formula-cycle-editor";
 import { patchBaseWork, patchWarmup } from "@/components/workout/formula-form";
 import { SetCard } from "@/components/workout/formula-set-card";
-import type { CyclePhaseDef, WorkoutFormulas, WorkoutKind } from "@/lib/types";
+import type { WorkoutFormulas, WorkoutKind } from "@/lib/types";
 import {
   FORMULA_PRESET_LABELS,
   WARMUP_PRESET_IDS,
@@ -21,37 +20,27 @@ export function FormulaAdvancedEditor({
   kind,
   exampleMax,
   exampleStep,
-  increasePercent,
-  cycleOpen,
   previewMax,
   raisedExample,
   showsIncrease,
   setKind,
   setPreviewMax,
   setPreviewStep,
-  setCycleOpen,
   setFormulas,
   setSaved,
-  applyCycleTemplate,
-  clearCycle,
 }: {
   formulas: WorkoutFormulas;
   kind: WorkoutKind;
   exampleMax: number;
   exampleStep: number;
-  increasePercent: number;
-  cycleOpen: boolean;
   previewMax: { dynamic: string; static: string };
   raisedExample: number;
   showsIncrease: boolean;
   setKind: Dispatch<SetStateAction<WorkoutKind>>;
   setPreviewMax: Dispatch<SetStateAction<{ dynamic: string; static: string }>>;
   setPreviewStep: Dispatch<SetStateAction<{ dynamic: number; static: number }>>;
-  setCycleOpen: Dispatch<SetStateAction<boolean>>;
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
-  applyCycleTemplate: (cycle: CyclePhaseDef[], name: string) => Promise<void>;
-  clearCycle: () => Promise<void>;
 }) {
   return (
     <>
@@ -127,7 +116,11 @@ export function FormulaAdvancedEditor({
       ))}
       <SetCard
         title="Рабочие"
-        hint={formulas.cycle.length > 0 ? "Без цикла" : "От рабочего веса"}
+        hint={
+          formulas.cycle.length > 0
+            ? "Этапы без своих подходов берут это"
+            : "От рабочего веса"
+        }
         defaultHold={kind === "static"}
         sets={formulas[kind].base.work}
         exampleMax={exampleMax}
@@ -138,20 +131,6 @@ export function FormulaAdvancedEditor({
             current ? patchBaseWork(current, kind, work) : current,
           );
         }}
-      />
-
-      <FormulaCycleEditor
-        formulas={formulas}
-        kind={kind}
-        exampleMax={exampleMax}
-        exampleStep={exampleStep}
-        increasePercent={increasePercent}
-        cycleOpen={cycleOpen}
-        setCycleOpen={setCycleOpen}
-        setFormulas={setFormulas}
-        setSaved={setSaved}
-        applyCycleTemplate={applyCycleTemplate}
-        clearCycle={clearCycle}
       />
     </>
   );

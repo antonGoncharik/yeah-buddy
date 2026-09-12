@@ -19,7 +19,6 @@ export function useFormulasScreen() {
   const [kind, setKind] = useState<WorkoutKind>("dynamic");
   const [maxIncrease, setMaxIncrease] = useState("5");
   const [formulas, setFormulas] = useState<WorkoutFormulas | null>(null);
-  const [cycleOpen, setCycleOpen] = useState(false);
   const [previewMax, setPreviewMax] = useState({
     dynamic: "220",
     static: "76",
@@ -46,7 +45,7 @@ export function useFormulasScreen() {
           }
           setFormulas(cloneFormulas(settings.formulas));
           setMaxIncrease(String(settings.max_increase_percent));
-          setCycleOpen(settings.formulas.cycle.length > 0);
+          setAdvanced(settings.formulas.cycle.length > 0);
           return true;
         },
         () => done(true),
@@ -68,7 +67,6 @@ export function useFormulasScreen() {
     setFormulas,
     maxIncrease,
     setMaxIncrease,
-    setCycleOpen,
     setError,
     setSaved,
     setSaving,
@@ -100,8 +98,6 @@ export function useFormulasScreen() {
     setMaxIncrease,
     formulas,
     setFormulas,
-    cycleOpen,
-    setCycleOpen,
     previewMax,
     setPreviewMax,
     previewStep,

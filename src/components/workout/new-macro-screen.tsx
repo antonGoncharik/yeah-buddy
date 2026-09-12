@@ -57,7 +57,8 @@ export function NewMacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Выбери цикл или собери в подходах.
+                  Тренировки те же, что в очереди. Выбери цикл — он только
+                  меняет веса по неделям.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
                   <button
@@ -77,13 +78,13 @@ export function NewMacroScreen() {
                   href="/settings/formulas"
                   className="text-base font-medium text-primary"
                 >
-                  Собрать свой в подходах
+                  Собрать свой в схеме весов
                 </Link>
               </section>
             ) : (
               <>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  {`${cycle.map((phase) => phase.name).join(" → ")}. Начнётся с «${cycle[0]?.name}». Веса ниже — что потянешь сейчас.`}
+                  {`${cycle.map((phase) => phase.name).join(" → ")}. Тренировки те же, что в очереди. Начнётся с «${cycle[0]?.name}». Веса ниже — что потянешь сейчас.`}
                 </p>
                 <div className="flex flex-col gap-2">
                   <Label className="text-base">Дата начала</Label>

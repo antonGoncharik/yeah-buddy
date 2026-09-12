@@ -20,6 +20,53 @@ export function workSetsEqual(
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+export function workSummary(work: FormulaSetSpec[]): string {
+  const first = work[0];
+  if (!first) {
+    return "нет подходов";
+  }
+
+  const same = work.every(
+    (set) =>
+      set.percent === first.percent &&
+      set.reps === first.reps &&
+      set.seconds === first.seconds,
+  );
+  if (same) {
+    return `${work.length}×${setCountLabel(first)} · ${first.percent}%`;
+  }
+
+  return work.map((set) => `${set.percent}×${setCountLabel(set)}`).join(" / ");
+}
+
+export function phaseSchemeHint(
+  phase: CyclePhaseDef,
+  custom: boolean,
+  work: FormulaSetSpec[],
+): string {
+  const summary = workSummary(work);
+  if (custom) {
+    return `Свои · ${summary}`;
+  }
+  if (phase.skip_warmup && phase.percent_scale == null) {
+    return `Лёгкие · ${summary}`;
+  }
+  if (phase.percent_scale != null && phase.percent_scale !== 1) {
+    return `От рабочих · ${summary}`;
+  }
+  return `Как рабочие · ${summary}`;
+}
+
+function setCountLabel(set: FormulaSetSpec): string {
+  if (set.reps != null) {
+    return String(set.reps);
+  }
+  if (set.seconds != null) {
+    return `${set.seconds}с`;
+  }
+  return "?";
+}
+
 export function specForPhase(
   formulas: WorkoutFormulas,
   kind: WorkoutKind,

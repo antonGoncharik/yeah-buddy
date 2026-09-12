@@ -108,11 +108,17 @@ export interface PhaseCircleProgress {
   suggest_end: boolean;
 }
 
+export interface PlannedCyclePhase {
+  key: string;
+  name: string;
+}
+
 export interface CurrentMacroState {
   macro: MacroCycle | null;
   phase: WorkoutPhase | null;
   phases: WorkoutPhase[];
   maxes: PhaseMaxRow[];
+  planned_cycle: PlannedCyclePhase[];
   phase_circle: PhaseCircleProgress | null;
   last_recap: MacroRecap | null;
 }

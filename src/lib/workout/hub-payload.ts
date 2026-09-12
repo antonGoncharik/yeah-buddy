@@ -2,6 +2,7 @@ import { isRecord, mapRecordList, readKeyedRecord } from "@/lib/read";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
+  PlannedCyclePhase,
   RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
@@ -51,9 +52,29 @@ export function parseCurrentMacroState(
     phase: parseWorkoutPhase(data.phase),
     phases: mapRecordList(data.phases, (row) => parseWorkoutPhase(row)),
     maxes: mapRecordList(data.maxes, parsePhaseMaxRow),
+    planned_cycle: parsePlannedCycle(data.planned_cycle),
     phase_circle: readPhaseCircle(data),
     last_recap: parseMacroRecap(data.last_recap),
   };
+}
+
+function parsePlannedCycle(value: unknown): PlannedCyclePhase[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((row) => {
+    if (
+      !isRecord(row) ||
+      typeof row.key !== "string" ||
+      row.key.trim() === "" ||
+      typeof row.name !== "string" ||
+      row.name.trim() === ""
+    ) {
+      return [];
+    }
+    return [{ key: row.key, name: row.name.trim() }];
+  });
 }
 
 export function readCanUnskip(data: unknown): boolean {

@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,37 +17,40 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 import {
-  moveCyclePhase,
   patchCyclePhase,
+  phaseHasCustomWork,
+  phaseSchemeHint,
   removeCyclePhase,
+  resetPhaseWork,
 } from "@/lib/workout/cycle";
 import { previewMaxForPhase } from "@/lib/workout/formulas";
 
 export function FormulaCyclePhaseRow({
   phase,
-  index,
-  cycleLength,
   kind,
   work,
   cycle,
   exampleMax,
   exampleStep,
   increasePercent,
+  formulas,
   setFormulas,
   setSaved,
 }: {
   phase: CyclePhaseDef;
-  index: number;
-  cycleLength: number;
   kind: WorkoutKind;
   work: FormulaSetSpec[];
   cycle: CyclePhaseDef[];
   exampleMax: number;
   exampleStep: number;
   increasePercent: number;
+  formulas: WorkoutFormulas;
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
 }) {
+  const custom = phaseHasCustomWork(formulas, kind, phase);
+  const [editing, setEditing] = useState(false);
+  const showSets = custom || editing;
   const phaseMax = previewMaxForPhase(
     cycle,
     phase.key,
@@ -57,13 +59,17 @@ export function FormulaCyclePhaseRow({
     exampleStep,
   );
 
+  function markDirty() {
+    setSaved(false);
+  }
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-border/70 px-4 py-3">
       <div className="flex items-center gap-2">
         <Input
           value={phase.name}
           onChange={(event) => {
-            setSaved(false);
+            markDirty();
             setFormulas((current) =>
               current
                 ? patchCyclePhase(current, phase.key, {
@@ -75,52 +81,25 @@ export function FormulaCyclePhaseRow({
           className="h-12 flex-1 text-base"
           aria-label="Название этапа"
         />
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-12 w-12 p-0"
-          disabled={index === 0}
-          aria-label="Выше"
-          onClick={() => {
-            setSaved(false);
-            setFormulas((current) =>
-              current ? moveCyclePhase(current, phase.key, -1) : current,
-            );
-          }}
-        >
-          <ChevronUp className="size-5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-12 w-12 p-0"
-          disabled={index === cycleLength - 1}
-          aria-label="Ниже"
-          onClick={() => {
-            setSaved(false);
-            setFormulas((current) =>
-              current ? moveCyclePhase(current, phase.key, 1) : current,
-            );
-          }}
-        >
-          <ChevronDown className="size-5" />
-        </Button>
         <RemoveRowButton
           label={`Убрать этап ${phase.name}`}
           onClick={() => {
-            setSaved(false);
+            markDirty();
             setFormulas((current) =>
               current ? removeCyclePhase(current, phase.key) : current,
             );
           }}
         />
       </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {phaseSchemeHint(phase, custom, work)}
+      </p>
       <div className="flex flex-wrap gap-2">
         <ToggleChip
           on={phase.skip_warmup}
           label="Без разминки"
           onClick={() => {
-            setSaved(false);
+            markDirty();
             setFormulas((current) =>
               current
                 ? patchCyclePhase(current, phase.key, {
@@ -134,7 +113,7 @@ export function FormulaCyclePhaseRow({
           on={phase.increase_on_end}
           label="Поднять веса в конце"
           onClick={() => {
-            setSaved(false);
+            markDirty();
             setFormulas((current) =>
               current
                 ? patchCyclePhase(current, phase.key, {
@@ -145,22 +124,49 @@ export function FormulaCyclePhaseRow({
           }}
         />
       </div>
-      <SetCard
-        title={phase.name}
-        hint={phaseWorkHint(phase, exampleMax, phaseMax)}
-        defaultHold={kind === "static"}
-        sets={work}
-        exampleMax={phaseMax}
-        exampleStep={exampleStep}
-        onChange={(nextWork) => {
-          setSaved(false);
-          setFormulas((current) =>
-            current
-              ? patchPhaseWork(current, kind, phase.key, nextWork)
-              : current,
-          );
-        }}
-      />
+      {showSets ? (
+        <>
+          <SetCard
+            title={phase.name}
+            hint={phaseWorkHint(phase, exampleMax, phaseMax)}
+            defaultHold={kind === "static"}
+            sets={work}
+            exampleMax={phaseMax}
+            exampleStep={exampleStep}
+            onChange={(nextWork) => {
+              markDirty();
+              setFormulas((current) =>
+                current
+                  ? patchPhaseWork(current, kind, phase.key, nextWork)
+                  : current,
+              );
+            }}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 text-base"
+            onClick={() => {
+              markDirty();
+              setEditing(false);
+              setFormulas((current) =>
+                current ? resetPhaseWork(current, kind, phase.key) : current,
+              );
+            }}
+          >
+            Как в рабочих
+          </Button>
+        </>
+      ) : (
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-11 text-base"
+          onClick={() => setEditing(true)}
+        >
+          Свои подходы
+        </Button>
+      )}
     </div>
   );
 }

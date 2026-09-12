@@ -5,8 +5,10 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { FormulaAdvancedEditor } from "@/components/workout/formula-advanced-editor";
+import { FormulaCycleEditor } from "@/components/workout/formula-cycle-editor";
 import { FormulaIncreaseField } from "@/components/workout/formula-increase-field";
 import { useFormulasScreen } from "@/components/workout/use-formulas-screen";
+import { workSummary } from "@/lib/workout/cycle";
 import { FORMULA_SYSTEMS } from "@/lib/workout/default-formulas";
 import { FORMULAS_LABEL } from "@/lib/workout/labels";
 
@@ -18,8 +20,6 @@ export function FormulasScreen() {
     setMaxIncrease,
     formulas,
     setFormulas,
-    cycleOpen,
-    setCycleOpen,
     previewMax,
     setPreviewMax,
     setPreviewStep,
@@ -47,7 +47,7 @@ export function FormulasScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={FORMULAS_LABEL}
-        subtitle="От твоего веса"
+        subtitle="Подходы и этапы"
         backHref="/workouts"
       />
 
@@ -63,8 +63,8 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Твой вес × процент, вниз до шага блинов. Без цикла — как в
-                рабочих. С этапом — как в нём.
+                Тренировки — в очереди. Здесь подходы. Цикл, если включён,
+                только меняет веса по этапам.
               </p>
             </section>
 
@@ -87,6 +87,18 @@ export function FormulasScreen() {
               </div>
             </section>
 
+            <FormulaCycleEditor
+              formulas={formulas}
+              kind={kind}
+              exampleMax={exampleMax}
+              exampleStep={exampleStep}
+              increasePercent={increasePercent}
+              setFormulas={setFormulas}
+              setSaved={setSaved}
+              applyCycleTemplate={applyCycleTemplate}
+              clearCycle={clearCycle}
+            />
+
             {showsIncrease ? (
               <FormulaIncreaseField
                 maxIncrease={maxIncrease}
@@ -103,27 +115,25 @@ export function FormulasScreen() {
                 kind={kind}
                 exampleMax={exampleMax}
                 exampleStep={exampleStep}
-                increasePercent={increasePercent}
-                cycleOpen={cycleOpen}
                 previewMax={previewMax}
                 raisedExample={raisedExample}
                 showsIncrease={showsIncrease}
                 setKind={setKind}
                 setPreviewMax={setPreviewMax}
                 setPreviewStep={setPreviewStep}
-                setCycleOpen={setCycleOpen}
                 setFormulas={setFormulas}
                 setSaved={setSaved}
-                applyCycleTemplate={applyCycleTemplate}
-                clearCycle={clearCycle}
               />
             ) : (
               <button
                 type="button"
-                className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="card-surface flex flex-col gap-1 px-5 py-4 text-left transition-colors hover:bg-muted/40"
                 onClick={() => setAdvanced(true)}
               >
-                Настроить самому
+                <p className="text-lg font-semibold">Подходы и разминка</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {workSummary(formulas[kind].base.work)}. Разминка отдельно.
+                </p>
               </button>
             )}
 

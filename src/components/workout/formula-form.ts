@@ -5,6 +5,7 @@ import type {
   WorkoutFormulas,
   WorkoutKind,
 } from "@/lib/types";
+import { patchKindBaseWork } from "@/lib/workout/cycle";
 import { WARMUP_PRESET_IDS } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
@@ -31,13 +32,7 @@ export function patchBaseWork(
   kind: WorkoutKind,
   work: FormulaSetSpec[],
 ): WorkoutFormulas {
-  return {
-    ...formulas,
-    [kind]: {
-      ...formulas[kind],
-      base: { ...formulas[kind].base, work },
-    },
-  };
+  return patchKindBaseWork(formulas, kind, work);
 }
 
 export function patchPhaseWork(

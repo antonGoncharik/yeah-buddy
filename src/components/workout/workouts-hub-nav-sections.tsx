@@ -3,6 +3,8 @@
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
+import { CycleTimeline } from "@/components/workout/cycle-timeline";
+import { reviewHref } from "@/lib/ai/review-nav";
 import type {
   CurrentMacroState,
   PhaseCircleProgress,
@@ -10,8 +12,17 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { phaseLinkLabel, queueItemMark } from "@/lib/workout/hints";
-import { CYCLE_LABEL, FORMULAS_LABEL, QUEUE_LABEL } from "@/lib/workout/labels";
+import {
+  cycleTimeline,
+  phaseLinkLabel,
+  queueItemMark,
+} from "@/lib/workout/hints";
+import {
+  CYCLE_LABEL,
+  FORMULAS_LABEL,
+  QUEUE_LABEL,
+  REVIEW_LABEL,
+} from "@/lib/workout/labels";
 
 export function WorkoutsHubNavSections({
   macro,
@@ -66,9 +77,18 @@ export function WorkoutsHubNavSections({
             </p>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {session
-                ? "От неё сегодняшние веса."
-                : "От неё веса, когда начнёшь."}
+                ? "Тренировки те же. Этап задаёт сегодняшние веса."
+                : "Тренировки те же, что в очереди. Этап задаёт веса."}
             </p>
+            {macro.planned_cycle.length > 0 ? (
+              <CycleTimeline
+                steps={cycleTimeline(
+                  macro.planned_cycle,
+                  macro.phase.phase_type,
+                  macro.phase.name,
+                )}
+              />
+            ) : null}
             {phaseHint ? (
               <p className="text-base leading-snug">
                 {phaseHint}
@@ -155,10 +175,10 @@ export function WorkoutsHubNavSections({
       <div className="flex flex-col gap-2">
         <nav className="grid grid-cols-2 gap-2">
           <Link
-            href="/workouts/progress"
+            href={reviewHref("workouts")}
             className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
           >
-            Прогресс
+            {REVIEW_LABEL}
           </Link>
           <Link
             href="/workouts/history"
@@ -167,18 +187,24 @@ export function WorkoutsHubNavSections({
             История
           </Link>
           <Link
+            href="/workouts/progress"
+            className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+          >
+            Рабочие веса
+          </Link>
+          <Link
             href="/workouts/exercises"
             className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
           >
             Упражнения
           </Link>
+          <Link
+            href="/settings/formulas"
+            className="card-surface col-span-2 px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
+          >
+            {FORMULAS_LABEL}
+          </Link>
         </nav>
-        <Link
-          href="/settings/formulas"
-          className="px-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {FORMULAS_LABEL}
-        </Link>
       </div>
     </div>
   );

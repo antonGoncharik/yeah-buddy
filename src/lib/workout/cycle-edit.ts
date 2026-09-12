@@ -3,7 +3,9 @@ import type {
   FormulaPhaseSpec,
   FormulaSetSpec,
   WorkoutFormulas,
+  WorkoutKind,
 } from "@/lib/types";
+import { workSetsEqual } from "@/lib/workout/cycle-query";
 import {
   cloneFormulas,
   DYNAMIC_DELOAD,
@@ -42,16 +44,22 @@ export function applyWorkPattern(
   next.static.base = structuredClone(pattern.static.base);
   next.warmups = structuredClone(pattern.warmups);
   for (const phase of next.cycle) {
-    next.dynamic.phases[phase.key] = workForPhase(
-      next.dynamic.base,
+    next.dynamic.phases[phase.key] = phaseHasCustomWork(
+      current,
+      "dynamic",
       phase,
-      DYNAMIC_DELOAD,
-    );
-    next.static.phases[phase.key] = workForPhase(
-      next.static.base,
-      phase,
-      STATIC_DELOAD,
-    );
+    )
+      ? structuredClone(
+          current.dynamic.phases[phase.key] ??
+            workForPhase(next.dynamic.base, phase, DYNAMIC_DELOAD),
+        )
+      : workForPhase(next.dynamic.base, phase, DYNAMIC_DELOAD);
+    next.static.phases[phase.key] = phaseHasCustomWork(current, "static", phase)
+      ? structuredClone(
+          current.static.phases[phase.key] ??
+            workForPhase(next.static.base, phase, STATIC_DELOAD),
+        )
+      : workForPhase(next.static.base, phase, STATIC_DELOAD);
   }
   return next;
 }
@@ -89,11 +97,86 @@ export function patchCyclePhase(
   key: string,
   patch: Partial<Omit<CyclePhaseDef, "key">>,
 ): WorkoutFormulas {
+  const previous = formulas.cycle.find((phase) => phase.key === key);
   const next = cloneFormulas(formulas);
   next.cycle = next.cycle.map((phase) =>
     phase.key === key ? { ...phase, ...patch } : phase,
   );
+  const updated = next.cycle.find((phase) => phase.key === key);
+  if (
+    !previous ||
+    !updated ||
+    (previous.skip_warmup === updated.skip_warmup &&
+      previous.percent_scale === updated.percent_scale)
+  ) {
+    return next;
+  }
+
+  for (const kind of ["dynamic", "static"] as const) {
+    if (!phaseHasCustomWork(formulas, kind, previous)) {
+      next[kind].phases[key] = workForPhase(
+        next[kind].base,
+        updated,
+        deloadFor(kind),
+      );
+    }
+  }
   return next;
+}
+
+export function patchKindBaseWork(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+  work: FormulaSetSpec[],
+): WorkoutFormulas {
+  const previousBase = formulas[kind].base;
+  const next = cloneFormulas(formulas);
+  next[kind] = {
+    ...next[kind],
+    base: { ...next[kind].base, work },
+  };
+  const deload = deloadFor(kind);
+  for (const phase of next.cycle) {
+    if (phaseHasCustomWork(formulas, kind, phase, previousBase)) {
+      continue;
+    }
+    next[kind].phases[phase.key] = workForPhase(next[kind].base, phase, deload);
+  }
+  return next;
+}
+
+export function resetPhaseWork(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+  key: string,
+): WorkoutFormulas {
+  const phase = formulas.cycle.find((item) => item.key === key);
+  if (!phase) {
+    return formulas;
+  }
+  const next = cloneFormulas(formulas);
+  next[kind].phases[key] = workForPhase(
+    next[kind].base,
+    phase,
+    deloadFor(kind),
+  );
+  return next;
+}
+
+export function phaseHasCustomWork(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+  phase: CyclePhaseDef,
+  base: FormulaPhaseSpec = formulas[kind].base,
+): boolean {
+  const stored = formulas[kind].phases[phase.key];
+  if (!stored) {
+    return false;
+  }
+  return !workSetsEqual(
+    stored.work,
+    workForPhase(base, phase, deloadFor(kind)).work,
+  );
 }
 
 export function removeCyclePhase(
@@ -129,6 +212,32 @@ export function moveCyclePhase(
   return next;
 }
 
+export function reorderCycle(
+  formulas: WorkoutFormulas,
+  keys: string[],
+): WorkoutFormulas {
+  if (keys.length !== formulas.cycle.length) {
+    return formulas;
+  }
+  if (new Set(keys).size !== keys.length) {
+    return formulas;
+  }
+
+  const byKey = new Map(formulas.cycle.map((phase) => [phase.key, phase]));
+  const cycle: CyclePhaseDef[] = [];
+  for (const key of keys) {
+    const phase = byKey.get(key);
+    if (!phase) {
+      return formulas;
+    }
+    cycle.push(phase);
+  }
+
+  const next = cloneFormulas(formulas);
+  next.cycle = cycle.map((phase) => ({ ...phase }));
+  return next;
+}
+
 export function workForPhase(
   base: FormulaPhaseSpec,
   phase: CyclePhaseDef,
@@ -144,6 +253,10 @@ export function workForPhase(
     return { warmup: [], work: structuredClone(deload) };
   }
   return structuredClone(base);
+}
+
+function deloadFor(kind: WorkoutKind): FormulaSetSpec[] {
+  return kind === "dynamic" ? DYNAMIC_DELOAD : STATIC_DELOAD;
 }
 
 function scaleWork(work: FormulaSetSpec[], factor: number): FormulaSetSpec[] {

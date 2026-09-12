@@ -3,7 +3,11 @@ export {
   applyWorkPattern,
   moveCyclePhase,
   patchCyclePhase,
+  patchKindBaseWork,
+  phaseHasCustomWork,
   removeCyclePhase,
+  reorderCycle,
+  resetPhaseWork,
   withCycle,
 } from "@/lib/workout/cycle-edit";
 export {
@@ -17,6 +21,7 @@ export {
   firstCyclePhase,
   isLastCyclePhase,
   nextPhaseType,
+  phaseSchemeHint,
   previewMaxForPhase,
   raisedMaxForPhase,
   recapEndPhaseKey,
@@ -24,4 +29,5 @@ export {
   sortOrderForPhase,
   specForPhase,
   workSetsEqual,
+  workSummary,
 } from "@/lib/workout/cycle-query";
