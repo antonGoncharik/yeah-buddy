@@ -65,6 +65,7 @@ export function TodayDayMeals({
             fat: item.fat,
             carbs: item.carbs,
             kcal: item.kcal,
+            lump: item.food_id == null,
           }))}
           itemHref={
             viewOnly

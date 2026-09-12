@@ -1,3 +1,8 @@
+import {
+  LUMP_PORTION_G,
+  type LumpMealItemInput,
+  macrosFromLump,
+} from "@/lib/day/lump";
 import { mapMealItem } from "@/lib/day/map";
 import { getDateForMeal } from "@/lib/day/meal-date";
 import { buildMealItemRow } from "@/lib/day/meal-item-row";
@@ -69,4 +74,39 @@ export async function addMealItems(
   return (inserted.data ?? []).map((row) =>
     mapMealItem(row as Record<string, unknown>),
   );
+}
+
+export async function addLumpMealItem(
+  userId: string,
+  mealId: string,
+  input: LumpMealItemInput,
+): Promise<MealItem> {
+  const date = await getDateForMeal(userId, mealId);
+  if (!date) {
+    throw new Error("Meal not found");
+  }
+  await assertUserDayWritable(userId, date);
+
+  const macros = macrosFromLump(input);
+  const supabase = createSupabaseServerClient();
+  const inserted = await supabase
+    .from("meal_items")
+    .insert(
+      buildMealItemRow({
+        userId,
+        mealId,
+        foodId: null,
+        name: input.name,
+        grams: LUMP_PORTION_G,
+        per100: macros,
+      }),
+    )
+    .select("*")
+    .single();
+
+  if (inserted.error || !inserted.data) {
+    throw inserted.error ?? new Error("Meal item insert failed");
+  }
+
+  return mapMealItem(inserted.data as Record<string, unknown>);
 }

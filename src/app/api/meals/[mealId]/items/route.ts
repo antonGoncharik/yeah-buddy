@@ -9,16 +9,20 @@ import {
   whenMessage,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { addMealItem, PastDayLockedError } from "@/lib/days";
+import { lumpMealItemSchema } from "@/lib/day/lump";
+import { addLumpMealItem, addMealItem, PastDayLockedError } from "@/lib/days";
 
 type RouteContext = {
   params: Promise<{ mealId: string }>;
 };
 
-const bodySchema = z.object({
-  foodId: z.string().min(1),
-  grams: z.number().finite().positive(),
-});
+const bodySchema = z.union([
+  lumpMealItemSchema,
+  z.object({
+    foodId: z.string().min(1),
+    grams: z.number().finite().positive(),
+  }),
+]);
 
 export async function POST(
   request: Request,
@@ -37,12 +41,15 @@ export async function POST(
   }
 
   try {
-    const item = await addMealItem(
-      auth.session.userId,
-      mealId,
-      parsed.data.foodId,
-      parsed.data.grams,
-    );
+    const item =
+      "foodId" in parsed.data
+        ? await addMealItem(
+            auth.session.userId,
+            mealId,
+            parsed.data.foodId,
+            parsed.data.grams,
+          )
+        : await addLumpMealItem(auth.session.userId, mealId, parsed.data);
     return jsonOk({ item });
   } catch (error) {
     return failRoute(error, [

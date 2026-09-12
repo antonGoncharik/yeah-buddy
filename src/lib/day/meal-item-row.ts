@@ -14,7 +14,7 @@ export function buildMealItemRow({
 }: {
   userId: string;
   mealId: string;
-  foodId: string;
+  foodId: string | null;
   name: string;
   grams: number;
   per100: Macros;

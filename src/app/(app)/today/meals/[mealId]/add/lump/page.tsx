@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { AddMealItemScreen } from "@/components/day/add-meal-item-screen";
+import { LumpMacrosCreate } from "@/components/day/lump-macros-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import {
   isIsoDate,
@@ -10,18 +10,20 @@ import {
 } from "@/lib/day/dates";
 import { resolveRequestToday } from "@/lib/day/writable";
 
-export default async function AddMealItemPage({
+export default async function AddLumpMealItemPage({
   params,
   searchParams,
 }: {
   params: Promise<{ mealId: string }>;
-  searchParams: Promise<{ date?: string | string[] }>;
+  searchParams: Promise<{ date?: string | string[]; name?: string | string[] }>;
 }) {
   const { mealId } = await params;
   const query = await searchParams;
   const date = readDate(query.date);
+  const name = readName(query.name);
   const today = await resolveRequestToday();
   const homeHref = todayHomeHref(date, today);
+  const backHref = withDateQuery(`/today/meals/${mealId}/add`, date, today);
 
   if (date && !isWritableDayDate(date, today)) {
     redirect(homeHref);
@@ -29,20 +31,12 @@ export default async function AddMealItemPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Добавить продукт" backHref={homeHref} />
-      <AddMealItemScreen
-        foodHrefBase={withDateQuery(`/today/meals/${mealId}/add`, date, today)}
-        newFoodHref={withDateQuery(
-          `/food/new?mealId=${encodeURIComponent(mealId)}`,
-          date,
-          today,
-        )}
-        lumpHrefBase={withDateQuery(
-          `/today/meals/${mealId}/add/lump`,
-          date,
-          today,
-        )}
-        plateHref={withDateQuery(`/today/meals/${mealId}/plate`, date, today)}
+      <AppHeader title="Записать" backHref={backHref} />
+      <LumpMacrosCreate
+        mealId={mealId}
+        initialName={name}
+        backHref={backHref}
+        doneHref={homeHref}
       />
     </div>
   );
@@ -52,6 +46,12 @@ function readDate(value: string | string[] | undefined): string | null {
   if (typeof value !== "string" || !isIsoDate(value)) {
     return null;
   }
-
   return value;
+}
+
+function readName(value: string | string[] | undefined): string {
+  if (typeof value !== "string") {
+    return "";
+  }
+  return value.trim();
 }

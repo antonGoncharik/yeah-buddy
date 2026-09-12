@@ -37,10 +37,12 @@ export { type FoodShare, listFoodSharesInRange } from "@/lib/day/food-shares";
 export { listDayHistory, listDaysInRange } from "@/lib/day/history";
 export { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 export {
+  addLumpMealItem,
   addMealItem,
   deleteMealItem,
   getDateForMeal,
   getMealItem,
+  updateLumpMealItem,
   updateMealItemGrams,
 } from "@/lib/day/meal-items";
 export {

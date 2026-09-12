@@ -4,10 +4,13 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
+import { LumpMacrosScreen } from "@/components/day/lump-macros-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
+import { patchJson } from "@/lib/api-cache";
 import { isIsoDate, todayHomeHref } from "@/lib/day/dates";
+import { isLumpMealItem } from "@/lib/day/lump";
 import { readCalendarToday, readDayWritable } from "@/lib/day/today-payload";
 import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
@@ -104,7 +107,10 @@ export default function EditMealItemPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Порция" backHref={homeHref} />
+      <AppHeader
+        title={item && isLumpMealItem(item) ? "Запись" : "Порция"}
+        backHref={homeHref}
+      />
       {loading ? <ScreenLoading /> : null}
       {!loading && error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-10">
@@ -117,7 +123,23 @@ export default function EditMealItemPage() {
           </Button>
         </div>
       ) : null}
-      {!loading && item ? (
+      {!loading && item && isLumpMealItem(item) ? (
+        <LumpMacrosScreen
+          initialName={item.name_snapshot}
+          initialProtein={String(item.protein)}
+          initialFat={String(item.fat)}
+          initialCarbs={String(item.carbs)}
+          backHref={homeHref}
+          doneHref={homeHref}
+          readOnly={!writable}
+          save={
+            writable
+              ? (input) => patchJson(`/api/meal-items/${item.id}`, input)
+              : undefined
+          }
+        />
+      ) : null}
+      {!loading && item && !isLumpMealItem(item) ? (
         <GramsScreen
           name={item.name_snapshot}
           protein={item.per_100_snapshot.protein}

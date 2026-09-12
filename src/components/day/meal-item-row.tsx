@@ -16,6 +16,7 @@ export interface MealLine {
   fat: number;
   carbs: number;
   kcal: number;
+  lump?: boolean;
 }
 
 export function MealItemRow({
@@ -31,7 +32,9 @@ export function MealItemRow({
     <>
       <p className="truncate text-lg font-medium">{item.name}</p>
       <p className="text-sm text-muted-foreground">
-        {formatMacro(item.grams)} г · {formatKcal(item.kcal)} ккал
+        {item.lump
+          ? `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`
+          : `${formatMacro(item.grams)} г · ${formatKcal(item.kcal)} ккал`}
       </p>
     </>
   );

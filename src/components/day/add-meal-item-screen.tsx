@@ -11,6 +11,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { lumpHref } from "@/lib/day/lump";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -27,10 +28,12 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 export function AddMealItemScreen({
   foodHrefBase,
   newFoodHref,
+  lumpHrefBase,
   plateHref,
 }: {
   foodHrefBase: string;
   newFoodHref: string;
+  lumpHrefBase?: string;
   plateHref?: string;
 }) {
   const [filter, setFilter] = useState<Filter>("favorites");
@@ -86,7 +89,9 @@ export function AddMealItemScreen({
         {plateHref ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
-      <div className="px-4 pb-24">
+      <div
+        className={query.trim() && lumpHrefBase ? "px-4 pb-40" : "px-4 pb-24"}
+      >
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -103,7 +108,7 @@ export function AddMealItemScreen({
 
         {!loading && !error && visibleFoods.length === 0 ? (
           <p className="py-10 text-center text-muted-foreground">
-            {emptyMessage(filter, query)}
+            {emptyMessage(filter, query, lumpHrefBase)}
           </p>
         ) : null}
 
@@ -117,9 +122,22 @@ export function AddMealItemScreen({
       </div>
 
       <StickyActions>
+        {query.trim() && lumpHrefBase ? (
+          <Link
+            href={lumpHref(lumpHrefBase, query)}
+            className={cn(buttonVariants(), "h-14 w-full text-lg")}
+          >
+            Записать «{query.trim()}»
+          </Link>
+        ) : null}
         <Link
           href={newFoodHref}
-          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
+          className={cn(
+            buttonVariants({
+              variant: query.trim() && lumpHrefBase ? "outline" : "default",
+            }),
+            "h-14 w-full gap-2 text-lg",
+          )}
         >
           <Plus className="size-5" aria-hidden />
           Новый продукт
@@ -129,9 +147,15 @@ export function AddMealItemScreen({
   );
 }
 
-function emptyMessage(filter: Filter, query: string): string {
+function emptyMessage(
+  filter: Filter,
+  query: string,
+  lumpHrefBase: string | undefined,
+): string {
   if (query.trim()) {
-    return "Ничего не найдено.";
+    return lumpHrefBase
+      ? "Нет в списке. Запиши порцию как есть."
+      : "Ничего не найдено.";
   }
 
   if (filter === "favorites") {

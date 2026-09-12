@@ -10,6 +10,7 @@ import {
   whenMessage,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
+import { lumpMealItemSchema } from "@/lib/day/lump";
 import {
   deleteMealItem,
   getDateForMeal,
@@ -17,6 +18,7 @@ import {
   getUserCalendarToday,
   isWritableDayDate,
   PastDayLockedError,
+  updateLumpMealItem,
   updateMealItemGrams,
 } from "@/lib/days";
 import { NOT_FOUND } from "@/lib/messages";
@@ -25,9 +27,12 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-const patchSchema = z.object({
-  grams: z.number().finite().positive(),
-});
+const patchSchema = z.union([
+  lumpMealItemSchema,
+  z.object({
+    grams: z.number().finite().positive(),
+  }),
+]);
 
 export async function GET(
   _request: Request,
@@ -77,16 +82,17 @@ export async function PATCH(
   }
 
   try {
-    const item = await updateMealItemGrams(
-      auth.session.userId,
-      id,
-      parsed.data.grams,
-    );
+    const item =
+      "grams" in parsed.data
+        ? await updateMealItemGrams(auth.session.userId, id, parsed.data.grams)
+        : await updateLumpMealItem(auth.session.userId, id, parsed.data);
     return jsonOk({ item });
   } catch (error) {
     return failRoute(error, [
       whenError(PastDayLockedError, 409),
       whenMessage("Meal item not found", 404, NOT_FOUND),
+      whenMessage("Not a lump item", 400, "Это продукт, не строка."),
+      whenMessage("Not a catalog item", 400, "Это строка, не продукт."),
     ]);
   }
 }
