@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+
+import { useBootSplash } from "@/components/layout/boot-splash";
 import {
   BARBELL_VIEWBOX,
   BarbellMark,
@@ -43,7 +46,26 @@ const BEATS = [
   },
 ] as const;
 
-export function ScreenLoading({ title }: { title?: string }) {
+export function ScreenLoading({
+  title,
+  splash = false,
+}: {
+  title?: string;
+  splash?: boolean;
+}) {
+  const boot = useBootSplash();
+
+  useEffect(() => {
+    if (splash || boot == null) {
+      return;
+    }
+    return boot.hold();
+  }, [boot, splash]);
+
+  if (!splash && boot?.active) {
+    return null;
+  }
+
   return (
     <div
       role="status"

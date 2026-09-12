@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  BootSplashProvider,
+  useBootSplash,
+} from "@/components/layout/boot-splash";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button } from "@/components/ui/button";
@@ -36,6 +40,15 @@ function enterTelegramFullscreen(webApp: {
 }
 
 export function TelegramGate({ children }: { children: React.ReactNode }) {
+  return (
+    <BootSplashProvider>
+      <TelegramGateBody>{children}</TelegramGateBody>
+    </BootSplashProvider>
+  );
+}
+
+function TelegramGateBody({ children }: { children: React.ReactNode }) {
+  const boot = useBootSplash();
   const [state, setState] = useState<GateState>("loading");
 
   const authenticate = useCallback(async () => {
@@ -89,14 +102,20 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
     void authenticate();
   }, [authenticate]);
 
+  useEffect(() => {
+    if (state === "ready") {
+      boot?.armIfIdle();
+    }
+  }, [boot, state]);
+
+  const showSplash = state === "loading" || (state === "ready" && boot?.active);
+
   return (
     <>
       <TelegramViewport />
-      {state === "ready" ? (
-        children
-      ) : (
+      {state === "ready" ? children : null}
+      {state === "outside" || state === "error" ? (
         <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
-          {state === "loading" ? <ScreenLoading title="Yeah Buddy" /> : null}
           {state === "outside" ? (
             <p className="animate-rise max-w-xs text-xl font-semibold leading-snug">
               {OPEN_VIA_BOT}
@@ -114,7 +133,8 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
         </main>
-      )}
+      ) : null}
+      {showSplash ? <ScreenLoading splash title="Yeah Buddy" /> : null}
     </>
   );
 }
