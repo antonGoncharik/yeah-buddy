@@ -74,7 +74,7 @@ export function DaySummary({
   }, [closed]);
 
   return (
-    <section className="card-surface flex flex-col gap-5 px-5 py-5">
+    <section className="card-surface flex flex-col gap-4 px-4 py-4">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-muted-foreground">
@@ -136,7 +136,7 @@ export function DaySummary({
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <MacroBar
           label="Белки"
           fact={fact.protein}
@@ -176,15 +176,20 @@ function MacroBar({
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between gap-3 text-base">
         <p className="font-medium">{label}</p>
-        <p className="text-muted-foreground">
+        <p
+          className={cn(
+            "tabular-nums text-muted-foreground",
+            overflow && "text-destructive",
+          )}
+        >
           <span className="text-foreground">{formatMacro(fact)}</span>
           <span> / {formatMacro(plan)}</span>
         </p>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
         <div
           className={cn(
             "h-full rounded-full transition-[width,background-color] duration-700 ease-[var(--ease-out-soft)]",
@@ -193,16 +198,6 @@ function MacroBar({
           style={{ width: `${Math.round(ratio * 100)}%` }}
         />
       </div>
-      <p
-        className={cn(
-          "text-sm tabular-nums transition-colors duration-300 ease-[var(--ease-out-soft)]",
-          overflow ? "text-destructive" : "text-muted-foreground",
-        )}
-      >
-        {overflow
-          ? `+${formatMacro(Math.abs(remaining))} г`
-          : `ещё ${formatMacro(remaining)} г`}
-      </p>
     </div>
   );
 }

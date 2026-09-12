@@ -1,5 +1,6 @@
 "use client";
 
+import { MoreHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { MealCopyDaySheet } from "@/components/day/meal-copy-day-sheet";
@@ -48,11 +49,13 @@ export function MealCopyActions({
       <Button
         type="button"
         variant="ghost"
-        className="h-11 px-2 text-base text-muted-foreground"
+        size="icon-lg"
+        className="size-11 text-muted-foreground"
         disabled={busy}
+        aria-label="Ещё"
         onClick={() => setOpen(true)}
       >
-        Ещё
+        <MoreHorizontal className="size-5" />
       </Button>
       {open ? (
         <MealCopyDaySheet

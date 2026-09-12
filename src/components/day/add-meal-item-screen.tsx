@@ -41,8 +41,10 @@ export function AddMealItemScreen({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (nextFilter: Filter) => {
-    setLoading(true);
+  const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
+    if (showLoading) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -63,9 +65,12 @@ export function AddMealItemScreen({
     }
   }, []);
 
+  const search = query.trim();
+  const listFilter = search ? "all" : filter;
+
   useEffect(() => {
-    void load(filter);
-  }, [filter, load]);
+    void load(listFilter);
+  }, [listFilter, load]);
 
   const visibleFoods = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -82,16 +87,18 @@ export function AddMealItemScreen({
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch value={query} onChange={setQuery} />
+        <FoodSearch value={query} onChange={setQuery} placeholder="Что съел" />
 
-        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
-        {lumpHrefBase ? (
+        {search ? null : (
+          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        )}
+        {lumpHrefBase && search ? (
           <MealLumpLink href={lumpHrefBase} query={query} />
         ) : null}
-        {plateHref && !query.trim() ? <MealPlateLink href={plateHref} /> : null}
+        {plateHref && !search ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
-      <div className="px-4 pb-24">
+      <div className={search && lumpHrefBase ? "px-4 pb-4" : "px-4 pb-24"}>
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -99,7 +106,7 @@ export function AddMealItemScreen({
             <p className="text-center font-medium">{error}</p>
             <Button
               className="h-12 min-w-40 text-base"
-              onClick={() => void load(filter)}
+              onClick={() => void load(listFilter, true)}
             >
               Повторить
             </Button>
@@ -108,7 +115,7 @@ export function AddMealItemScreen({
 
         {!loading && !error && visibleFoods.length === 0 ? (
           <p className="py-10 text-center text-muted-foreground">
-            {emptyMessage(filter, query)}
+            {emptyMessage(filter, search, Boolean(lumpHrefBase))}
           </p>
         ) : null}
 
@@ -121,22 +128,26 @@ export function AddMealItemScreen({
         ) : null}
       </div>
 
-      <StickyActions>
-        <Link
-          href={newFoodHref}
-          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
-        >
-          <Plus className="size-5" aria-hidden />
-          Новый продукт
-        </Link>
-      </StickyActions>
+      {search && lumpHrefBase ? null : (
+        <StickyActions>
+          <Link
+            href={newFoodHref}
+            className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
+          >
+            <Plus className="size-5" aria-hidden />
+            Новый продукт
+          </Link>
+        </StickyActions>
+      )}
     </>
   );
 }
 
-function emptyMessage(filter: Filter, query: string): string {
-  if (query.trim()) {
-    return "Ничего не найдено.";
+function emptyMessage(filter: Filter, query: string, canLump: boolean): string {
+  if (query) {
+    return canLump
+      ? "Нет в списке — запиши порцию сверху."
+      : "Ничего не найдено.";
   }
 
   if (filter === "favorites") {

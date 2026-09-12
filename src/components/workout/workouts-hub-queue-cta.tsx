@@ -47,7 +47,7 @@ export function WorkoutsHubQueueCta({
             <p className="text-sm font-medium text-muted-foreground">
               Сегодня в очереди
             </p>
-            <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               {nextTemplate.name}
             </h2>
             {nextTemplate.exercises.length > 0 ? (

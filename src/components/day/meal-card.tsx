@@ -79,7 +79,7 @@ export function MealCard({
 
   return (
     <section
-      className={cn("card-surface flex flex-col gap-3 px-5 py-4", className)}
+      className={cn("card-surface flex flex-col gap-3 px-4 py-4", className)}
       style={style}
     >
       <div className="flex items-center justify-between gap-3">
@@ -110,7 +110,9 @@ export function MealCard({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-base text-muted-foreground">Пока пусто.</p>
+        readOnly ? (
+          <p className="text-base text-muted-foreground">Пока пусто.</p>
+        ) : null
       ) : onReorderItems && !readOnly ? (
         <SortableList
           items={items}
@@ -148,18 +150,20 @@ export function MealCard({
 
       {showFill || showAdd ? (
         <div className="flex flex-col gap-2">
+          {showAdd && addHref ? (
+            <MealAddLink href={addHref} prominent={items.length === 0} />
+          ) : null}
           {showFill && onFillTemplate ? (
             <Button
               type="button"
-              variant={items.length > 0 ? "outline" : "default"}
+              variant="outline"
               className="h-12 w-full text-base"
               disabled={copyBusy}
               onClick={onFillTemplate}
             >
-              Добить из шаблона
+              Из шаблона
             </Button>
           ) : null}
-          {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
         </div>
       ) : null}
     </section>

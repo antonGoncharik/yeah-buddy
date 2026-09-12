@@ -19,14 +19,8 @@ assertEqual(
     { next_template: { name: "Жим" } },
     { isToday: true, isTrainingDay: false },
   ),
-  {
-    href: "/workouts",
-    label: "Следующая",
-    title: "Жим",
-    hint: "Открыть",
-    templateId: null,
-  },
-  "queue on empty today",
+  null,
+  "rest day keeps gym on the workouts tab",
 );
 
 assertEqual(
@@ -70,6 +64,24 @@ assertEqual(
     templateId: null,
   },
   "open session wins",
+);
+
+assertEqual(
+  bannerFromTodayState(
+    {
+      session: { id: "s1", workout_type: "dynamic", status: "planned" },
+      session_template: { name: "Тяга" },
+    },
+    { isToday: true, isTrainingDay: false },
+  ),
+  {
+    href: "/workouts/sessions/s1",
+    label: "В зале",
+    title: "Тяга",
+    hint: "В плане",
+    templateId: null,
+  },
+  "open session still shows on rest day",
 );
 
 assertEqual(

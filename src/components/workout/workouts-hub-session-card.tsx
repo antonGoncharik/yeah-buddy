@@ -67,7 +67,7 @@ export function WorkoutsHubSessionCard({
             <p className="text-sm font-medium text-muted-foreground">
               {session.status === "planned" ? "Сегодня в зале" : "Сегодня"}
             </p>
-            <h2 className="mt-1 text-3xl font-semibold tracking-tight">
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
             </h2>

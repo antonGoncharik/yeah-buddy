@@ -94,10 +94,10 @@ export function bannerFromTodayState(
     };
   }
 
-  if (nextTemplate && options.isToday) {
+  if (nextTemplate && options.isToday && options.isTrainingDay) {
     return {
       href: "/workouts",
-      label: options.isTrainingDay ? "В зале" : "Следующая",
+      label: "В зале",
       title: nextTemplate.name,
       hint: nextTemplate.id ? "Начать" : "Открыть",
       templateId: nextTemplate.id,

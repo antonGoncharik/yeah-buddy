@@ -101,7 +101,7 @@ export function TodayDayView({
   ) : null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <TodayDayHeader
         date={date}
         today={today}

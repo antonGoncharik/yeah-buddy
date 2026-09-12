@@ -113,11 +113,6 @@ export function WorkoutsHubNavSections({
               aria-hidden
             />
           </Link>
-          {session ? null : (
-            <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-              Нажми имя, если хочешь начать не следующее.
-            </p>
-          )}
           <ol className="flex flex-col gap-1 px-1">
             {activeTemplates.map((template, index) => {
               const mark = queueItemMark({

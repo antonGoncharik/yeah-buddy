@@ -61,17 +61,23 @@ export function MealItemRow({
   );
 }
 
-export function MealAddLink({ href }: { href: string }) {
+export function MealAddLink({
+  href,
+  prominent = false,
+}: {
+  href: string;
+  prominent?: boolean;
+}) {
   return (
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: "outline" }),
+        buttonVariants({ variant: prominent ? "default" : "outline" }),
         "h-12 w-full gap-2 rounded-xl text-base",
       )}
     >
       <Plus className="size-4" aria-hidden />
-      Добавить продукт
+      Добавить
     </Link>
   );
 }

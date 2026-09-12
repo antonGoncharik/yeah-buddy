@@ -88,7 +88,7 @@ export function TodayScreen({
         }
       />
 
-      <div className="flex flex-col gap-5 px-4 pb-4">
+      <div className="flex flex-col gap-4 px-4 pb-4">
         {contentReady && !loadError && banner ? (
           <TodayWorkoutBanner
             href={banner.href}

@@ -29,7 +29,7 @@ export default async function AddMealItemPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Добавить продукт" backHref={homeHref} />
+      <AppHeader title="Добавить" backHref={homeHref} />
       <AddMealItemScreen
         foodHrefBase={withDateQuery(`/today/meals/${mealId}/add`, date, today)}
         newFoodHref={withDateQuery(
