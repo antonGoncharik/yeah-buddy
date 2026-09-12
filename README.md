@@ -8,18 +8,18 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 **Food**
 
-- A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover kcal.
-- Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A plate photo can draft the same path: match to your foods or propose a new one, then you confirm grams.
+- A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover protein.
+- Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A plate photo lives on the add-food screen: match to your foods or propose a new one, then you confirm grams.
 - Your own food list: CRUD, search, favorites, recents. No external catalogs.
-- A new day is copied from the rest or training meal template (edited in Settings), or from yesterday. On a meal, «Как вчера» / a named meal copies just that meal. Yesterday stays writable after midnight in the user's timezone.
-- Older days on Today are view-only. Food history: macros by day and averages. Rest/training targets live in Settings. The day screen shows leftover recipe grams vs the template.
+- Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Yesterday stays writable after midnight in the user's timezone.
+- Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template.
 
 **Gym**
 
 - A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Optional macrocycle uses the same queue.
 - Skip moves the circle without taking the date; you can put a template back.
 - Optional macrocycle: ramp → volume → peak → deload. Finishing a queue loop does not close the phase by itself.
-- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), actuals in history and on charts. Edit the scheme in Settings.
+- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово», actuals in history and on charts. How it felt is asked after you finish. Edit the scheme in Settings.
 - Progress (working weights and relative strength when body weight is logged), session history, exercise list.
 
 **Share**

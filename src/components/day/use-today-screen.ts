@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   factFromDay,
   hiddenMealKcalFromDay,
@@ -24,6 +24,8 @@ import {
   todayHistoryDayHref,
   todayHomeHref,
 } from "@/lib/day/dates";
+import { isRecord } from "@/lib/read";
+import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
 export function useTodayScreen({
   initialDate,
@@ -141,6 +143,33 @@ export function useTodayScreen({
       setActionError,
       setDay: data.setDay,
     });
+
+  const openedTodayRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!data.contentReady || data.loadError || viewOnly || shownDay) {
+      return;
+    }
+    if (date !== data.today) {
+      return;
+    }
+    if (openedTodayRef.current === date) {
+      return;
+    }
+    openedTodayRef.current = date;
+    const session = parseWorkoutSession(
+      isRecord(data.workoutState) ? data.workoutState.session : null,
+    );
+    void createDay(session ? "training" : "rest");
+  }, [
+    createDay,
+    data.contentReady,
+    data.loadError,
+    data.today,
+    data.workoutState,
+    date,
+    shownDay,
+    viewOnly,
+  ]);
 
   const dayHasItems = Boolean(
     shownDay?.meals.some((meal) => meal.items.length > 0),

@@ -77,8 +77,8 @@ export function MealPlateLink({ href }: { href: string }) {
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: "outline" }),
-        "h-12 w-full gap-2 rounded-xl text-base",
+        buttonVariants({ variant: "ghost" }),
+        "h-11 w-full gap-2 rounded-xl text-base text-muted-foreground",
       )}
     >
       <Camera className="size-4" aria-hidden />

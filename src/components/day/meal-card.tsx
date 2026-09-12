@@ -1,13 +1,14 @@
 "use client";
 
 import type { CSSProperties } from "react";
+
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
 import {
   MealAddLink,
   MealItemRow,
   type MealLine,
-  MealPlateLink,
 } from "@/components/day/meal-item-row";
+import { Button } from "@/components/ui/button";
 import {
   formatKcal,
   formatMacro,
@@ -22,7 +23,6 @@ export function MealCard({
   items,
   itemHref,
   addHref,
-  plateHref,
   onDeleteItem,
   date,
   copyDays,
@@ -41,7 +41,6 @@ export function MealCard({
   items: MealLine[];
   itemHref?: (item: MealLine) => string;
   addHref?: string;
-  plateHref?: string;
   onDeleteItem?: (item: MealLine) => void;
   date?: string;
   copyDays?: CopyDayHint[];
@@ -73,7 +72,7 @@ export function MealCard({
         }
       : null;
   const showAdd = !readOnly && Boolean(addHref);
-  const showPlate = !readOnly && Boolean(plateHref);
+  const showFill = !readOnly && Boolean(onFillTemplate);
 
   return (
     <section
@@ -113,8 +112,20 @@ export function MealCard({
         </p>
       ) : null}
 
-      {copy || showPlate || showAdd ? (
+      {showFill || copy || showAdd ? (
         <div className="flex flex-col gap-2">
+          {showFill && onFillTemplate ? (
+            <Button
+              type="button"
+              variant={items.length > 0 ? "outline" : "default"}
+              className="h-12 w-full text-base"
+              disabled={copyBusy}
+              onClick={onFillTemplate}
+            >
+              Добить из шаблона
+            </Button>
+          ) : null}
+          {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
           {copy ? (
             <MealCopyActions
               date={copy.date}
@@ -127,11 +138,8 @@ export function MealCard({
               onApplyNamed={copy.onApplyNamed}
               onSaveNamed={copy.onSaveNamed}
               onDeleteNamed={copy.onDeleteNamed}
-              onFillTemplate={onFillTemplate}
             />
           ) : null}
-          {showPlate && plateHref ? <MealPlateLink href={plateHref} /> : null}
-          {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
         </div>
       ) : null}
     </section>

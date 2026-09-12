@@ -70,13 +70,11 @@ export function WorkoutsHubNavSections({
                 : "От неё веса, когда начнёшь."}
             </p>
             {phaseHint ? (
-              <p className="text-base leading-snug">{phaseHint}</p>
-            ) : null}
-            {phaseHint ? (
-              <p className="text-base font-medium text-primary">
+              <p className="text-base leading-snug">
+                {phaseHint}
                 {phaseCircle?.last_in_cycle
-                  ? "Можно закрыть цикл"
-                  : "Можно закрыть этап"}
+                  ? " Можно закрыть цикл."
+                  : " Можно закрыть этап."}
               </p>
             ) : null}
           </Link>

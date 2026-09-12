@@ -139,6 +139,7 @@ export function TodayDayView({
         viewOnly={viewOnly}
         visibleMeals={visibleMeals}
         remainingMealTypes={remainingMealTypes}
+        remainingFullGap={remainingFullGap}
         copyDays={copyDays}
         namedMeals={namedMeals}
         busy={busy}

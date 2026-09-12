@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
-import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
@@ -99,22 +98,8 @@ export function SessionScreen() {
             />
 
             {session.status === "planned" ||
-            (session.status === "completed" && correcting) ? (
-              <div className="flex flex-col gap-3">
-                <SessionFeelPicker
-                  value={session.feel}
-                  disabled={busy}
-                  onChange={(feel) => void saveFeel(feel)}
-                />
-                <SessionNoteField
-                  note={note}
-                  busy={busy}
-                  canEditSets={canEditSets}
-                  onChange={setNote}
-                  onSave={() => void saveNote()}
-                />
-              </div>
-            ) : note.trim() !== "" ? (
+            (session.status === "completed" && correcting) ||
+            note.trim() !== "" ? (
               <SessionNoteField
                 note={note}
                 busy={busy}
@@ -128,7 +113,6 @@ export function SessionScreen() {
 
             {session.status === "completed" && !correcting ? (
               <SessionCompletedPanel
-                sessionId={session.id}
                 abovePlan={abovePlan}
                 nextName={nextName}
                 phaseHint={phaseHint}

@@ -68,7 +68,9 @@ export function TodayScreen({
     locale: ru,
   });
   const canGoForward = date < today;
-  const showLoading = !contentReady;
+  const openingToday =
+    isToday && !viewOnly && !shownDay && !loadError && !actionError;
+  const showLoading = !contentReady || openingToday;
 
   return (
     <div className="flex flex-col gap-4">
@@ -79,7 +81,6 @@ export function TodayScreen({
         trailing={
           <TodayDateNav
             date={date}
-            fromHistory={fromHistory}
             canGoForward={canGoForward}
             onGoToDate={goToDate}
           />
@@ -118,11 +119,12 @@ export function TodayScreen({
           </p>
         ) : null}
 
-        {contentReady && !loadError && !shownDay && !viewOnly ? (
+        {contentReady &&
+        !loadError &&
+        !shownDay &&
+        !viewOnly &&
+        (!isToday || actionError) ? (
           <div className="animate-rise flex flex-col gap-5">
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Скопируется еда на день. Отдых или зал — от этого цели.
-            </p>
             <CreateDayButtons
               busy={busy}
               trainingFirst={isToday}

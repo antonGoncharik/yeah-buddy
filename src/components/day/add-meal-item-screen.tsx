@@ -1,9 +1,10 @@
 "use client";
 
-import { Camera, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { MealPlateLink } from "@/components/day/meal-item-row";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenLoading } from "@/components/layout/screen-status";
@@ -79,22 +80,10 @@ export function AddMealItemScreen({
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
-        {plateHref ? (
-          <Link
-            href={plateHref}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "h-14 w-full gap-2 text-lg",
-            )}
-          >
-            <Camera className="size-5" aria-hidden />
-            Фото тарелки
-          </Link>
-        ) : null}
-
         <FoodSearch value={query} onChange={setQuery} />
 
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        {plateHref ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
       <div className="px-4 pb-24">

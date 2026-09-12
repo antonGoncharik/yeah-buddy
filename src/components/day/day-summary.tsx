@@ -49,38 +49,24 @@ export function DaySummary({
           </p>
           <p
             className={cn(
-              "mt-1 text-3xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
-              overflow && "text-destructive",
-            )}
-          >
-            {overflow
-              ? `+${formatKcal(Math.abs(remainingKcal))}`
-              : formatKcal(remainingKcal)}
-            <span className="ml-1.5 text-lg font-medium text-muted-foreground">
-              ккал
-            </span>
-          </p>
-          <p
-            className={cn(
-              "mt-1 text-base font-medium tabular-nums",
-              proteinOverflow ? "text-destructive" : "text-muted-foreground",
+              "mt-1 text-2xl font-semibold tracking-tight tabular-nums transition-colors duration-300 ease-[var(--ease-out-soft)]",
+              proteinOverflow && "text-destructive",
             )}
           >
             {proteinOverflow
-              ? `сверх ${formatMacro(Math.abs(remainingProtein))} г белка`
-              : `ещё ${formatMacro(remainingProtein)} г белка`}
-            {perKg != null ? (
-              <span className="text-muted-foreground">
-                {" "}
-                · {formatProteinPerKg(perKg)}
-              </span>
-            ) : null}
+              ? `+${formatMacro(Math.abs(remainingProtein))}`
+              : formatMacro(Math.max(0, remainingProtein))}
+            <span className="ml-1.5 text-base font-medium text-muted-foreground">
+              г белка
+            </span>
           </p>
-          {showWeight ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              {factLabel} {formatKcal(fact.kcal)}
-            </p>
-          ) : null}
+          <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+            {overflow
+              ? `+${formatKcal(Math.abs(remainingKcal))} ккал`
+              : `${formatKcal(remainingKcal)} ккал`}
+            {showWeight ? ` · ${factLabel} ${formatKcal(fact.kcal)}` : null}
+            {perKg != null ? ` · ${formatProteinPerKg(perKg)}` : null}
+          </p>
         </div>
         {showWeight ? (
           <div className="text-right">
@@ -112,26 +98,18 @@ export function DaySummary({
           label="Белки"
           fact={fact.protein}
           plan={day.target_protein}
-          kcalPerGram={4}
           barClass="bg-[var(--macro-protein)]"
-          perKg={
-            bodyWeight != null
-              ? proteinPerKg(day.target_protein, bodyWeight)
-              : null
-          }
         />
         <MacroBar
           label="Жиры"
           fact={fact.fat}
           plan={day.target_fat}
-          kcalPerGram={9}
           barClass="bg-[var(--macro-fat)]"
         />
         <MacroBar
           label="Углеводы"
           fact={fact.carbs}
           plan={day.target_carbs}
-          kcalPerGram={4}
           barClass="bg-[var(--macro-carbs)]"
         />
       </div>
@@ -143,21 +121,16 @@ function MacroBar({
   label,
   fact,
   plan,
-  kcalPerGram,
   barClass,
-  perKg,
 }: {
   label: string;
   fact: number;
   plan: number;
-  kcalPerGram: number;
   barClass: string;
-  perKg?: number | null;
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
-  const remainingKcal = Math.abs(remaining) * kcalPerGram;
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -166,7 +139,6 @@ function MacroBar({
         <p className="text-muted-foreground">
           <span className="text-foreground">{formatMacro(fact)}</span>
           <span> / {formatMacro(plan)}</span>
-          {perKg != null ? <span> · {formatProteinPerKg(perKg)}</span> : null}
         </p>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-muted">
@@ -180,13 +152,13 @@ function MacroBar({
       </div>
       <p
         className={cn(
-          "text-sm transition-colors duration-300 ease-[var(--ease-out-soft)]",
+          "text-sm tabular-nums transition-colors duration-300 ease-[var(--ease-out-soft)]",
           overflow ? "text-destructive" : "text-muted-foreground",
         )}
       >
         {overflow
-          ? `+${formatMacro(Math.abs(remaining))} · +${formatKcal(remainingKcal)} ккал`
-          : `ещё ${formatMacro(remaining)} · ${formatKcal(remainingKcal)} ккал`}
+          ? `+${formatMacro(Math.abs(remaining))} г`
+          : `ещё ${formatMacro(remaining)} г`}
       </p>
     </div>
   );

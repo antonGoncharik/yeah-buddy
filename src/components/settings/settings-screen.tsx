@@ -40,6 +40,96 @@ export function SettingsScreen() {
       <AppHeader title="Настройки" />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
+        {loading ? <ScreenLoading /> : null}
+
+        {!loading && error && !form ? (
+          <div className="animate-rise flex flex-col items-center gap-3 py-10">
+            <p className="text-center font-medium">{error}</p>
+            <Button
+              className="h-12 min-w-40 text-base"
+              onClick={() => void load()}
+            >
+              Повторить
+            </Button>
+          </div>
+        ) : null}
+
+        <h2 className="px-1 text-lg font-semibold">Еда</h2>
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/settings/meals"
+            title={MEAL_TEMPLATES_LABEL}
+            hint="На новый день"
+          />
+          <NavRow
+            href="/foods"
+            title="Продукты"
+            hint="Свои, из них собирается день"
+          />
+        </section>
+
+        {!loading && form ? (
+          <>
+            <button
+              type="button"
+              className="card-surface animate-rise flex flex-col gap-1 px-5 py-4 text-left transition-colors hover:bg-muted/30"
+              onClick={() => setShowGoals((open) => !open)}
+            >
+              <h2 className="text-xl font-semibold">Цели на день</h2>
+              <p className="text-sm text-muted-foreground">
+                {restKcal != null && trainingKcal != null
+                  ? `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`
+                  : "Белок, жир и углеводы"}
+              </p>
+            </button>
+            {showGoals ? (
+              <SettingsGoalsForm
+                form={form}
+                restKcal={restKcal}
+                trainingKcal={trainingKcal}
+                error={error}
+                saved={saved}
+                saving={saving}
+                onSubmit={onSubmit}
+                updateField={updateField}
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        <h2 className="px-1 text-lg font-semibold">Журнал</h2>
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/today/history?from=settings"
+            title="История еды"
+            hint="По дням"
+          />
+          <NavRow
+            href="/today/week?from=settings"
+            title="Неделя"
+            hint="Еда и зал за 7 дней"
+          />
+          <NavRow
+            href="/settings/review"
+            title={REVIEW_LABEL}
+            hint="Еда и зал за 14 или 30 дней"
+          />
+        </section>
+
+        <h2 className="px-1 text-lg font-semibold">Ещё</h2>
+        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow
+            href="/settings/packs"
+            title={PACKS_LABEL}
+            hint="Поделиться едой и залом"
+          />
+          <NavRow
+            href="/onboarding?again=1"
+            title="Ещё раз с начала"
+            hint="Белок и веса. Очередь и еду на день не трогает"
+          />
+        </section>
+
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
           <h2 className="text-xl font-semibold">Тема</h2>
           <Segmented
@@ -77,95 +167,6 @@ export function SettingsScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </section>
         ) : null}
-
-        {loading ? <ScreenLoading /> : null}
-
-        {!loading && error && !form ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-10">
-            <p className="text-center font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
-        ) : null}
-
-        {!loading && form ? (
-          <>
-            <button
-              type="button"
-              className="card-surface animate-rise flex flex-col gap-1 px-5 py-4 text-left transition-colors hover:bg-muted/30"
-              onClick={() => setShowGoals((open) => !open)}
-            >
-              <h2 className="text-xl font-semibold">Цели на день</h2>
-              <p className="text-sm text-muted-foreground">
-                {restKcal != null && trainingKcal != null
-                  ? `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`
-                  : "Белок, жир и углеводы"}
-              </p>
-            </button>
-            {showGoals ? (
-              <SettingsGoalsForm
-                form={form}
-                restKcal={restKcal}
-                trainingKcal={trainingKcal}
-                error={error}
-                saved={saved}
-                saving={saving}
-                onSubmit={onSubmit}
-                updateField={updateField}
-              />
-            ) : null}
-          </>
-        ) : null}
-
-        <h2 className="px-1 text-lg font-semibold">Еда</h2>
-        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow
-            href="/foods"
-            title="Продукты"
-            hint="Свои, из них собирается день"
-          />
-          <NavRow
-            href="/settings/meals"
-            title={MEAL_TEMPLATES_LABEL}
-            hint="На новый день"
-          />
-          <NavRow
-            href="/today/history?from=settings"
-            title="История еды"
-            hint="По дням"
-          />
-          <NavRow
-            href="/today/week?from=settings"
-            title="Неделя"
-            hint="Еда и зал за 7 дней"
-          />
-        </section>
-
-        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow href="/workouts" title="Зал" hint="Очередь, схема и цикл" />
-        </section>
-
-        <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-          <NavRow
-            href="/settings/packs"
-            title={PACKS_LABEL}
-            hint="Поделиться едой и залом"
-          />
-          <NavRow
-            href="/settings/review"
-            title={REVIEW_LABEL}
-            hint="Еда и зал за 14 или 30 дней"
-          />
-          <NavRow
-            href="/onboarding?again=1"
-            title="Ещё раз с начала"
-            hint="Белок и веса. Очередь и еду на день не трогает"
-          />
-        </section>
       </div>
     </div>
   );

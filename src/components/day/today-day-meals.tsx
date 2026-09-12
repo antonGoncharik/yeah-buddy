@@ -16,6 +16,7 @@ export function TodayDayMeals({
   viewOnly,
   visibleMeals,
   remainingMealTypes,
+  remainingFullGap,
   copyDays,
   namedMeals,
   busy,
@@ -31,6 +32,7 @@ export function TodayDayMeals({
   viewOnly: boolean;
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
+  remainingFullGap: boolean;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   busy: boolean;
@@ -74,11 +76,6 @@ export function TodayDayMeals({
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/add`, date, today)
           }
-          plateHref={
-            viewOnly
-              ? undefined
-              : withDateQuery(`/today/meals/${meal.id}/plate`, date, today)
-          }
           date={date}
           copyDays={copyDays}
           namedMeals={namedMeals}
@@ -105,7 +102,9 @@ export function TodayDayMeals({
               : (namedMealId, name) => void deleteNamedMeal(namedMealId, name)
           }
           onFillTemplate={
-            viewOnly || !remainingMealTypes.has(meal.meal_type)
+            viewOnly ||
+            remainingFullGap ||
+            !remainingMealTypes.has(meal.meal_type)
               ? undefined
               : () => void fillMealFromTemplate(meal.id)
           }

@@ -1,9 +1,16 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import { useCallback } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
+import {
+  ApiError,
+  deleteJson,
+  fetchJson,
+  patchJson,
+  postJson,
+} from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/day/map";
 import { readDay } from "@/lib/day/today-payload";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -27,25 +34,43 @@ export function useTodayDayActions({
 }) {
   const confirm = useConfirm();
 
-  async function createDay(dayType: DayType) {
-    if (viewOnly) {
-      return;
-    }
+  const createDay = useCallback(
+    async (dayType: DayType) => {
+      if (viewOnly) {
+        return;
+      }
 
-    setBusy(true);
-    setActionError(null);
+      setBusy(true);
+      setActionError(null);
 
-    try {
-      const data = await postJson("/api/days", { date, dayType });
-      setDay(readDay(data));
-      haptic("commit");
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
+      try {
+        const data = await postJson("/api/days", { date, dayType });
+        const next = readDay(data);
+        if (!next) {
+          throw new Error(LOAD_FAILED);
+        }
+        setDay(next);
+        haptic("commit");
+      } catch (caught) {
+        if (caught instanceof ApiError && caught.status === 409) {
+          const data = await fetchJson(
+            `/api/days?date=${encodeURIComponent(date)}`,
+          );
+          const next = readDay(data);
+          if (!next) {
+            throw new Error(LOAD_FAILED);
+          }
+          setDay(next);
+          return;
+        }
+        haptic("error");
+        setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [date, setActionError, setBusy, setDay, viewOnly],
+  );
 
   async function switchType(dayType: DayType) {
     if (viewOnly || !day) {
