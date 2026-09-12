@@ -38,6 +38,9 @@ export const SESSION_HISTORY_EMPTY =
   "Когда сделаешь тренировку, она появится здесь.";
 export const NUTRITION_HISTORY_EMPTY =
   "Дней ещё нет. Появятся, когда заведёшь «Сегодня».";
+export const WEEK_EMPTY = "Появятся, когда заведёшь день или зал.";
+export const WEEK_NO_FOOD = "еды нет";
+export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
   "Нет рабочего веса. Напиши его в упражнении и зайди ещё раз.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";

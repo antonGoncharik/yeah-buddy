@@ -34,7 +34,8 @@ export function BottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fromSettings =
-    pathname.startsWith("/today/history") &&
+    (pathname.startsWith("/today/history") ||
+      pathname.startsWith("/today/week")) &&
     searchParams.get("from") === "settings";
 
   return (

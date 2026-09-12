@@ -20,6 +20,7 @@ export {
   MealConflictError,
   nextIsoDate,
   nutritionHistoryHref,
+  nutritionWeekHref,
   PastDayLockedError,
   previousIsoDate,
   SourceDayMissingError,

@@ -1,9 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, History } from "lucide-react";
+import {
+  CalendarRange,
+  ChevronLeft,
+  ChevronRight,
+  History,
+} from "lucide-react";
 import Link from "next/link";
 
-import { nextIsoDate, previousIsoDate } from "@/lib/day/dates";
+import {
+  nextIsoDate,
+  nutritionWeekHref,
+  previousIsoDate,
+} from "@/lib/day/dates";
 
 export function TodayDateNav({
   date,
@@ -19,13 +28,22 @@ export function TodayDateNav({
   return (
     <>
       {fromHistory ? null : (
-        <Link
-          href="/today/history"
-          className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
-          aria-label="История еды"
-        >
-          <History className="size-5" />
-        </Link>
+        <>
+          <Link
+            href="/today/history"
+            className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+            aria-label="История еды"
+          >
+            <History className="size-5" />
+          </Link>
+          <Link
+            href={nutritionWeekHref()}
+            className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
+            aria-label="Неделя"
+          >
+            <CalendarRange className="size-5" />
+          </Link>
+        </>
       )}
       <button
         type="button"

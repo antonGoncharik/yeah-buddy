@@ -138,6 +138,11 @@ export function SettingsScreen() {
             title="История еды"
             hint="По дням"
           />
+          <NavRow
+            href="/today/week?from=settings"
+            title="Неделя"
+            hint="Еда и зал за 7 дней"
+          />
         </section>
 
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">

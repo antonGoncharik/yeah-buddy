@@ -7,6 +7,7 @@ import {
   isWritableDayDate,
   nextIsoDate,
   nutritionHistoryHref,
+  nutritionWeekHref,
   PastDayLockedError,
   previousIsoDate,
   shiftIsoDate,
@@ -64,6 +65,12 @@ assertEqual(
   todayHistoryDayHref("2000-01-01"),
   "/today?date=2000-01-01&view=history",
   "history day href",
+);
+assertEqual(nutritionWeekHref(), "/today/week", "week href");
+assertEqual(
+  nutritionWeekHref(true),
+  "/today/week?from=settings",
+  "week from settings",
 );
 
 const today = "2026-09-11";

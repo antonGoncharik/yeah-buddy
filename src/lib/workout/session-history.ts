@@ -10,6 +10,7 @@ export async function listSessionHistory(
   options: {
     before?: string;
     since?: string;
+    until?: string;
     limit: number;
     statuses?: SessionStatus[];
   },
@@ -32,6 +33,10 @@ export async function listSessionHistory(
 
   if (options.since && isIsoDate(options.since)) {
     query = query.gte("session_date", options.since);
+  }
+
+  if (options.until && isIsoDate(options.until)) {
+    query = query.lte("session_date", options.until);
   }
 
   const result = await query;

@@ -134,6 +134,10 @@ export function nutritionHistoryHref(fromSettings = false): string {
   return fromSettings ? "/today/history?from=settings" : "/today/history";
 }
 
+export function nutritionWeekHref(fromSettings = false): string {
+  return fromSettings ? "/today/week?from=settings" : "/today/week";
+}
+
 export function todayHistoryDayHref(
   date: string,
   fromSettings = false,
