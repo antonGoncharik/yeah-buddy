@@ -10,6 +10,7 @@ import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { reviewHref } from "@/lib/ai/review-nav";
 import { formatKcal } from "@/lib/nutrition";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -100,9 +101,9 @@ export function SettingsScreen() {
         <h2 className="px-1 text-lg font-semibold">Журнал</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
           <NavRow
-            href="/today/history?from=settings"
-            title="История еды"
-            hint="По дням"
+            href={reviewHref("settings")}
+            title={REVIEW_LABEL}
+            hint="Еда, зал и вес за 14 или 30 дней"
           />
           <NavRow
             href="/today/week?from=settings"
@@ -110,9 +111,9 @@ export function SettingsScreen() {
             hint="Еда и зал за 7 дней"
           />
           <NavRow
-            href="/settings/review"
-            title={REVIEW_LABEL}
-            hint="Еда и зал за 14 или 30 дней"
+            href="/today/history?from=settings"
+            title="История еды"
+            hint="По дням"
           />
         </section>
 

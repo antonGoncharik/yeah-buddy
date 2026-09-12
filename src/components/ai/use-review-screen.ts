@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { parseReviewSnapshot } from "@/lib/ai/parse-review";
+import { reviewBackHref } from "@/lib/ai/review-nav";
 import type { ReviewSnapshot } from "@/lib/ai/types";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import { AI_REVIEW_FAILED, LOAD_FAILED } from "@/lib/messages";
@@ -72,6 +73,7 @@ export function useReviewScreen() {
 
   return {
     from,
+    backHref: reviewBackHref(from),
     range,
     snapshot,
     loading,
@@ -85,19 +87,6 @@ export function useReviewScreen() {
     writeReview,
     changeRange,
   };
-}
-
-export function reviewBackHref(from: string | null): string {
-  switch (from) {
-    case "food":
-      return "/today/history";
-    case "gym":
-      return "/workouts/history";
-    case "workouts":
-      return "/workouts";
-    default:
-      return "/settings";
-  }
 }
 
 function readSnapshot(data: unknown): ReviewSnapshot | null {

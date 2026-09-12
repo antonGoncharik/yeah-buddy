@@ -40,3 +40,21 @@ export function buildSignals(input: {
     ...maxesSignalLines(input),
   ];
 }
+
+export function reviewDetailSignals(signals: string[]): string[] {
+  return signals.filter((line) => !isScoreboardSignal(line));
+}
+
+function isScoreboardSignal(line: string): boolean {
+  if (
+    line.startsWith("Белок дотянули:") ||
+    line.startsWith("Калории около цели") ||
+    line.startsWith("Вес ") ||
+    line.startsWith("Зал:") ||
+    line.startsWith("К весу тела") ||
+    line.startsWith("По группам:")
+  ) {
+    return true;
+  }
+  return line.startsWith("Белок ") && line.includes("г/кг при цели");
+}

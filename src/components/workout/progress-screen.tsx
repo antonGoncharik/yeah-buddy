@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ export function ProgressScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Прогресс" backHref="/workouts" />
+      <AppHeader title="Рабочие веса" backHref="/workouts" />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
         {loading ? <ScreenLoading /> : null}
@@ -57,6 +58,7 @@ export function ProgressScreen() {
 
         {!loading && progress ? (
           <>
+            <ReviewCta from="workouts" />
             <section className="card-surface animate-rise px-5 py-5">
               <p className="text-sm font-medium text-muted-foreground">
                 {progress.exercises.some((item) => item.from_work)

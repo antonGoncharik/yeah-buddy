@@ -1,11 +1,11 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { ReviewScreen } from "@/components/ai/review-screen";
+import { reviewHref } from "@/lib/ai/review-nav";
 
-export default function ReviewPage() {
-  return (
-    <Suspense>
-      <ReviewScreen />
-    </Suspense>
-  );
+export default async function SettingsReviewRedirect({
+  searchParams,
+}: PageProps<"/settings/review">) {
+  const params = await searchParams;
+  const from = typeof params.from === "string" ? params.from : null;
+  redirect(reviewHref(from));
 }

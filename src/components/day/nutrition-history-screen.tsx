@@ -1,10 +1,9 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { ReviewCta } from "@/components/ai/review-cta";
 import { NutritionHistoryDayRow } from "@/components/day/nutrition-history-day-row";
 import { NutritionHistoryStats } from "@/components/day/nutrition-history-stats";
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
@@ -15,7 +14,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
 import { parseDayHistoryPayload } from "@/lib/day/map";
-import { NUTRITION_HISTORY_EMPTY, REVIEW_CTA_HINT } from "@/lib/messages";
+import { NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   chronological,
   type HistoryMetric,
@@ -107,23 +106,7 @@ export function NutritionHistoryScreen() {
           />
         ) : null}
 
-        {showStats ? (
-          <Link
-            href="/settings/review?from=food"
-            className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block text-base font-medium">Как прошло</span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">
-                {REVIEW_CTA_HINT}
-              </span>
-            </span>
-            <ChevronRight
-              className="size-5 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </Link>
-        ) : null}
+        {showStats ? <ReviewCta from="food" /> : null}
 
         {showStats && chartDays.length >= 2 ? (
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">

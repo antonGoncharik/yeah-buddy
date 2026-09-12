@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewCta } from "@/components/ai/review-cta";
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
@@ -175,6 +176,8 @@ export function TodayDayView({
           />
         </div>
       )}
+
+      {viewOnly ? null : <ReviewCta from="today" />}
     </div>
   );
 }

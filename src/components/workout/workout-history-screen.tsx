@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { WorkoutHistoryRow } from "@/components/workout/workout-history-row";
 import { WorkoutHistoryStats } from "@/components/workout/workout-history-stats";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
-import { REVIEW_CTA_HINT, SESSION_HISTORY_EMPTY } from "@/lib/messages";
+import { SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   HISTORY_RANGE_OPTIONS,
   useCursorHistory,
@@ -78,23 +77,7 @@ export function WorkoutHistoryScreen() {
           <WorkoutHistoryStats days={rangeDays} stats={stats} />
         ) : null}
 
-        {showStats ? (
-          <Link
-            href="/settings/review?from=gym"
-            className="card-surface animate-rise flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block text-base font-medium">Как прошло</span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">
-                {REVIEW_CTA_HINT}
-              </span>
-            </span>
-            <ChevronRight
-              className="size-5 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </Link>
-        ) : null}
+        {showStats ? <ReviewCta from="gym" /> : null}
 
         {!loading && groups.length > 0 ? (
           <div className="animate-rise flex flex-col gap-6">

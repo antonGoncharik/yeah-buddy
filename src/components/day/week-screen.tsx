@@ -1,6 +1,8 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+
+import { ReviewCta } from "@/components/ai/review-cta";
 import { useWeekScreen } from "@/components/day/use-week-screen";
 import { WeekDayRow } from "@/components/day/week-day-row";
 import { AppHeader } from "@/components/layout/app-header";
@@ -35,17 +37,20 @@ export function WeekScreen() {
         ) : null}
 
         {!loading && week && weekHasEntries(week.items) ? (
-          <ul className="animate-rise flex flex-col gap-2">
-            {week.items.map((item) => (
-              <li key={item.date}>
-                <WeekDayRow
-                  slot={item}
-                  today={week.today}
-                  fromSettings={fromSettings}
-                />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ReviewCta from="week" />
+            <ul className="animate-rise flex flex-col gap-2">
+              {week.items.map((item) => (
+                <li key={item.date}>
+                  <WeekDayRow
+                    slot={item}
+                    today={week.today}
+                    fromSettings={fromSettings}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
       </div>
     </div>

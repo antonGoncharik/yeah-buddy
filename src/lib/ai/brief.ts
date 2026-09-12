@@ -23,6 +23,7 @@ import {
   CATEGORY_SHORT_LABELS,
   categoryAverages,
 } from "@/lib/workout/progress-stats";
+import { windowStrengthProgress } from "@/lib/workout/progress-window";
 
 export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const days = [...source.days].sort((left, right) =>
@@ -41,9 +42,14 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const rest = roundAverages(averages.rest);
   const training = roundAverages(averages.training);
   const sessionRows = compactSessions(source.sessions, source.from, source.to);
-  const maxes = compactMaxes(source.progress);
+  const progress = windowStrengthProgress(
+    source.progress,
+    source.from,
+    source.to,
+  );
+  const maxes = compactMaxes(progress);
   const weight = compactWeight(days, source.seedWeight ?? null, source.from);
-  const categories = categoryAverages(source.progress.exercises).map((row) => ({
+  const categories = categoryAverages(progress.exercises).map((row) => ({
     name: CATEGORY_SHORT_LABELS[row.id],
     percent: round1(row.avg_percent),
   }));
@@ -70,13 +76,11 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     maxes,
     categories,
     avgPercent:
-      source.progress.avg_percent == null
-        ? null
-        : round1(source.progress.avg_percent),
+      progress.avg_percent == null ? null : round1(progress.avg_percent),
     avgRelativePercent:
-      source.progress.avg_relative_percent == null
+      progress.avg_relative_percent == null
         ? null
-        : round1(source.progress.avg_relative_percent),
+        : round1(progress.avg_relative_percent),
   });
 
   return {
@@ -118,17 +122,15 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       suggest_end: source.macro.phase_circle?.suggest_end ?? false,
     },
     maxes: {
-      since: "first_work",
+      since: "window",
       grown: maxes.grownCount,
-      total: source.progress.exercises.length,
+      total: progress.exercises.length,
       avg_percent:
-        source.progress.avg_percent == null
-          ? null
-          : round1(source.progress.avg_percent),
+        progress.avg_percent == null ? null : round1(progress.avg_percent),
       avg_relative_percent:
-        source.progress.avg_relative_percent == null
+        progress.avg_relative_percent == null
           ? null
-          : round1(source.progress.avg_relative_percent),
+          : round1(progress.avg_relative_percent),
       categories,
       grown_list: maxes.grown,
       stalled: maxes.stalled,

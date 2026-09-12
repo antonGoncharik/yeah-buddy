@@ -95,7 +95,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       suggest_end: value.phase.suggest_end === true,
     },
     maxes: {
-      since: "first_work",
+      since: value.maxes.since === "first_work" ? "first_work" : "window",
       grown: toNumber(value.maxes.grown),
       total: toNumber(value.maxes.total),
       avg_percent: toNullableNumber(value.maxes.avg_percent),

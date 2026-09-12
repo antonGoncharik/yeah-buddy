@@ -89,7 +89,7 @@ const brief = {
     suggest_end: false,
   },
   maxes: {
-    since: "first_work",
+    since: "window",
     grown: 0,
     total: 0,
     avg_percent: null,

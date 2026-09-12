@@ -32,29 +32,14 @@ const ITEMS: Array<{
 
 export function BottomNav() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const fromSettings =
-    (pathname.startsWith("/today/history") ||
-      pathname.startsWith("/today/week")) &&
-    searchParams.get("from") === "settings";
+  const from = useSearchParams().get("from");
+  const activeHref = navActiveHref(pathname, from);
 
   return (
     <nav className="app-bottom-nav app-fixed-bottom fixed inset-x-0 z-10 border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
       <ul className="mx-auto grid max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
-          const active =
-            item.href === "/settings"
-              ? fromSettings ||
-                pathname.startsWith("/settings") ||
-                pathname.startsWith("/foods") ||
-                pathname.startsWith("/food/") ||
-                pathname.startsWith("/packs/")
-              : item.href === "/today"
-                ? !fromSettings &&
-                  (pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`))
-                : pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
+          const active = item.href === activeHref;
           const Icon = item.icon;
 
           return (
@@ -88,4 +73,38 @@ export function BottomNav() {
       </ul>
     </nav>
   );
+}
+
+function navActiveHref(pathname: string, from: string | null): string {
+  if (pathname.startsWith("/progress")) {
+    if (from === "gym" || from === "workouts") {
+      return "/workouts";
+    }
+    if (from === "today" || from === "food" || from === "week") {
+      return "/today";
+    }
+    return "/settings";
+  }
+  if (
+    (pathname.startsWith("/today/history") ||
+      pathname.startsWith("/today/week")) &&
+    from === "settings"
+  ) {
+    return "/settings";
+  }
+  if (
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/foods") ||
+    pathname.startsWith("/food/") ||
+    pathname.startsWith("/packs/")
+  ) {
+    return "/settings";
+  }
+  if (pathname === "/today" || pathname.startsWith("/today/")) {
+    return "/today";
+  }
+  if (pathname === "/workouts" || pathname.startsWith("/workouts/")) {
+    return "/workouts";
+  }
+  return "/today";
 }

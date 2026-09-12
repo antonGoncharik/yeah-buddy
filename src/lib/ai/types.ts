@@ -90,7 +90,7 @@ export type ReviewBrief = {
     suggest_end: boolean;
   };
   maxes: {
-    since: "first_work";
+    since: "window" | "first_work";
     grown: number;
     total: number;
     avg_percent: number | null;

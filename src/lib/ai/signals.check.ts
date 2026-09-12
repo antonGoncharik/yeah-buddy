@@ -2,7 +2,7 @@ import { buildReviewBrief } from "@/lib/ai/brief";
 import { reviewCoverage } from "@/lib/ai/coverage";
 import { formatG } from "@/lib/ai/format";
 import { reviewPromptPayload } from "@/lib/ai/prompt";
-import { buildSignals } from "@/lib/ai/signal-lines";
+import { buildSignals, reviewDetailSignals } from "@/lib/ai/signal-lines";
 import type { ReviewMaxRow } from "@/lib/ai/types";
 import type { DayHistoryRow } from "@/lib/types";
 
@@ -114,6 +114,12 @@ const lines = buildSignals({
     },
     phases: [],
     maxes: [],
+    planned_cycle: [
+      { key: "ramp", name: "Разгон" },
+      { key: "volume", name: "Набор" },
+      { key: "peak", name: "Рывок" },
+      { key: "deload", name: "Сброс" },
+    ],
     phase_circle: {
       phase_type: "volume",
       phase_name: "Набор",
@@ -228,6 +234,7 @@ const recompLines = buildSignals({
     phase: null,
     phases: [],
     maxes: [],
+    planned_cycle: [],
     phase_circle: null,
     last_recap: null,
   },
@@ -273,6 +280,28 @@ assertEqual(
   "lift relative vs bar",
 );
 
+const details = reviewDetailSignals(lines);
+assertEqual(
+  details.some((line) => line.startsWith("Белок дотянули:")),
+  false,
+  "detail drops protein hit",
+);
+assertEqual(
+  details.some((line) => line.startsWith("Зал:")),
+  false,
+  "detail drops gym count",
+);
+assertEqual(
+  details.some((line) => line.includes("углеводов не хватало")),
+  true,
+  "detail keeps carbs miss",
+);
+assertEqual(
+  details.some((line) => line.includes("Топ белка")),
+  true,
+  "detail keeps foods",
+);
+
 const seedBrief = buildReviewBrief({
   range: 14,
   from: "2026-09-01",
@@ -287,6 +316,7 @@ const seedBrief = buildReviewBrief({
     phase: null,
     phases: [],
     maxes: [],
+    planned_cycle: [],
     phase_circle: null,
     last_recap: null,
   },
@@ -307,7 +337,32 @@ const seedBrief = buildReviewBrief({
         start_tonnage: null,
         tonnage_delta: null,
         tonnage_percent: null,
-        points: [],
+        points: [
+          {
+            date: "2026-08-20",
+            weight: 175,
+            seconds: null,
+            tonnage: null,
+            circle_tonnage: null,
+            body_weight: 84,
+            relative: 2.08,
+            phase_type: null,
+            macro_number: null,
+            label: "2026-08-20",
+          },
+          {
+            date: "2026-09-10",
+            weight: 175,
+            seconds: null,
+            tonnage: null,
+            circle_tonnage: null,
+            body_weight: 81,
+            relative: 2.16,
+            phase_type: null,
+            macro_number: null,
+            label: "2026-09-10",
+          },
+        ],
         from_work: true,
       },
     ],
@@ -327,7 +382,7 @@ assertEqual(
   true,
   "signal uses seed trend",
 );
-assertEqual(seedBrief.maxes.since, "first_work", "maxes since first work");
+assertEqual(seedBrief.maxes.since, "window", "maxes since window");
 assertEqual(seedBrief.maxes.grown, 1, "relative counts in grown");
 assertEqual(
   seedBrief.maxes.grown_list[0]?.name,
@@ -352,7 +407,7 @@ const prompt = reviewPromptPayload(seedBrief);
 assertEqual("days" in prompt.nutrition, false, "prompt drops days");
 assertEqual("sessions" in prompt.gym, false, "prompt drops sessions");
 assertEqual(prompt.nutrition.weight.delta, -3, "prompt keeps weight");
-assertEqual(prompt.maxes.since, "first_work", "prompt labels maxes window");
+assertEqual(prompt.maxes.since, "window", "prompt labels maxes window");
 assertEqual(prompt.maxes.grown_list[0]?.current, 175, "prompt keeps kg");
 assertEqual(prompt.gym.notes.length, 0, "prompt keeps notes field");
 assertEqual(prompt.gym.feels.easy, 0, "prompt keeps feels");
