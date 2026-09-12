@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { CurrentMacroState } from "@/lib/types";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -42,10 +43,12 @@ export function MacroPhaseMaxes({
           <div className="flex gap-2">
             <Input
               inputMode="decimal"
+              enterKeyHint="done"
               value={drafts[row.exercise.id] ?? ""}
               onChange={(event) =>
                 onDraftChange(row.exercise.id, event.target.value)
               }
+              onKeyDown={handleNumericEnter}
               className="h-12 text-base"
             />
             <Button

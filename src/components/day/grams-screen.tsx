@@ -3,11 +3,13 @@
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
 import { useGramsScreen } from "@/components/day/use-grams-screen";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { FoodYield } from "@/lib/food/yield";
 import { formatYieldGrams } from "@/lib/food/yield";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
 
@@ -69,7 +71,15 @@ export function GramsScreen({
   });
 
   return (
-    <div className="animate-rise flex flex-col gap-5 px-4 pb-4">
+    <form
+      className="animate-rise flex flex-col gap-5 px-4 pb-28"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!readOnly) {
+          void grams.onSave();
+        }
+      }}
+    >
       <div>
         <p className="text-2xl font-semibold tracking-tight">{name}</p>
         <p className="mt-1 text-base text-muted-foreground">
@@ -87,8 +97,10 @@ export function GramsScreen({
         ) : (
           <Input
             inputMode="decimal"
+            enterKeyHint="done"
             value={grams.gramsInput}
             onChange={(event) => grams.setGramsInput(event.target.value)}
+            onKeyDown={handleNumericEnter}
             className="h-14 text-lg"
           />
         )}
@@ -125,23 +137,16 @@ export function GramsScreen({
       ) : null}
 
       {readOnly ? null : (
-        <Button
-          className="h-14 text-lg"
-          disabled={grams.saving}
-          onClick={() => void grams.onSave()}
-        >
-          {grams.saving ? "Сохранение…" : "Сохранить"}
-        </Button>
+        <StickyActions>
+          <Button
+            type="submit"
+            className="h-14 text-lg"
+            disabled={grams.saving}
+          >
+            {grams.saving ? "Сохранение…" : "Сохранить"}
+          </Button>
+        </StickyActions>
       )}
-
-      <Button
-        type="button"
-        variant="ghost"
-        className="h-12 text-base"
-        onClick={grams.onCancel}
-      >
-        {readOnly ? "Назад" : "Отмена"}
-      </Button>
-    </div>
+    </form>
   );
 }

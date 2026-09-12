@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { postJson } from "@/lib/api-cache";
 import { LUMP_MACRO_MAX, LUMP_NAME_MAX } from "@/lib/day/lump";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import { LOAD_FAILED } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
@@ -43,7 +44,6 @@ export function LumpMacrosScreen({
   initialFat = "",
   initialCarbs = "",
   save,
-  backHref,
   doneHref,
   readOnly = false,
 }: {
@@ -129,7 +129,13 @@ export function LumpMacrosScreen({
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-28">
+    <form
+      className="flex flex-col gap-5 px-4 pb-28"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onSave();
+      }}
+    >
       <p className="text-base leading-relaxed text-muted-foreground">
         Сколько съел в этой порции. В продукты не попадёт.
       </p>
@@ -137,10 +143,13 @@ export function LumpMacrosScreen({
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
+          onKeyDown={readOnly ? undefined : handleNumericEnter}
           className="h-12 text-base"
           readOnly={readOnly}
           maxLength={LUMP_NAME_MAX}
           placeholder="Бургер, шаурма…"
+          enterKeyHint="next"
+          autoComplete="off"
           autoFocus={!readOnly && initialName.trim() === ""}
         />
       </FoodFormField>
@@ -148,8 +157,10 @@ export function LumpMacrosScreen({
         <FoodFormField label="Белки">
           <Input
             inputMode="decimal"
+            enterKeyHint="next"
             value={protein}
             onChange={(event) => setProtein(event.target.value)}
+            onKeyDown={readOnly ? undefined : handleNumericEnter}
             className="h-12 text-base"
             readOnly={readOnly}
             autoFocus={!readOnly && initialName.trim() !== ""}
@@ -158,8 +169,10 @@ export function LumpMacrosScreen({
         <FoodFormField label="Жиры">
           <Input
             inputMode="decimal"
+            enterKeyHint="next"
             value={fat}
             onChange={(event) => setFat(event.target.value)}
+            onKeyDown={readOnly ? undefined : handleNumericEnter}
             className="h-12 text-base"
             readOnly={readOnly}
           />
@@ -167,8 +180,10 @@ export function LumpMacrosScreen({
         <FoodFormField label="Угли">
           <Input
             inputMode="decimal"
+            enterKeyHint="done"
             value={carbs}
             onChange={(event) => setCarbs(event.target.value)}
+            onKeyDown={readOnly ? undefined : handleNumericEnter}
             className="h-12 text-base"
             readOnly={readOnly}
           />
@@ -179,26 +194,17 @@ export function LumpMacrosScreen({
       </p>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <StickyActions>
-        {readOnly || !save ? null : (
+      {readOnly || !save ? null : (
+        <StickyActions>
           <Button
-            type="button"
+            type="submit"
             className="h-14 w-full text-lg"
             disabled={saving}
-            onClick={() => void onSave()}
           >
             Записать
           </Button>
-        )}
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-12 w-full text-base"
-          onClick={() => router.push(readOnly ? doneHref : backHref)}
-        >
-          Назад
-        </Button>
-      </StickyActions>
-    </div>
+        </StickyActions>
+      )}
+    </form>
   );
 }

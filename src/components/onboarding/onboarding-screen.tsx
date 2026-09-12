@@ -126,6 +126,7 @@ export function OnboardingScreen() {
             variant="ghost"
             className="h-12 w-full text-base"
             disabled={saving}
+            data-keyboard-secondary
             onClick={() => skipFoodStep()}
           >
             Пропустить
@@ -137,6 +138,7 @@ export function OnboardingScreen() {
             variant="ghost"
             className="h-12 w-full text-base"
             disabled={saving}
+            data-keyboard-secondary
             onClick={() => void finish({ omitMaxes: true })}
           >
             Пока без весов

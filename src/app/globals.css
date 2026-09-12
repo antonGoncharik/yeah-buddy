@@ -245,6 +245,8 @@
     calc(100dvh - var(--tg-viewport-stable-height, 100dvh))
   );
   --app-nav-clearance: calc(4.5rem + var(--app-safe-bottom));
+  --app-fixed-bottom: var(--app-chrome-bottom);
+  --app-field-scroll-pad: calc(5.5rem + var(--app-nav-clearance));
 }
 
 .dark {
@@ -438,7 +440,26 @@ html.dark[data-day="training"] {
 }
 
 @utility app-fixed-bottom {
-  bottom: var(--app-chrome-bottom);
+  bottom: var(--app-fixed-bottom);
+}
+
+html[data-keyboard="open"] {
+  --app-nav-clearance: 0.75rem;
+  --app-field-scroll-pad: 5.5rem;
+}
+
+html[data-keyboard="open"] .app-bottom-nav {
+  display: none;
+}
+
+html[data-keyboard="open"] .app-sticky-actions {
+  padding-top: 0.5rem;
+  background-image: none;
+  background-color: var(--background);
+}
+
+html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
+  display: none;
 }
 
 @utility card-surface {

@@ -8,6 +8,7 @@ import { ExerciseIdentityFields } from "@/components/workout/exercise-identity-f
 import { ExerciseMaxHistory } from "@/components/workout/exercise-max-history";
 import { ExerciseTypeFields } from "@/components/workout/exercise-type-fields";
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { ExerciseWithMax } from "@/lib/types";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -54,6 +55,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           <Input
             required
             inputMode="decimal"
+            enterKeyHint="done"
             value={form.max_weight}
             onChange={(event) =>
               setForm((current) => ({
@@ -61,7 +63,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
                 max_weight: event.target.value,
               }))
             }
-            className="h-12 scroll-mb-36 text-base"
+            onKeyDown={handleNumericEnter}
+            className="h-12 text-base"
           />
           {exercise ? (
             <p className="text-sm text-muted-foreground">

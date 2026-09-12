@@ -39,7 +39,7 @@ export function BottomNav() {
     searchParams.get("from") === "settings";
 
   return (
-    <nav className="app-fixed-bottom fixed inset-x-0 z-10 border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
+    <nav className="app-bottom-nav app-fixed-bottom fixed inset-x-0 z-10 border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
       <ul className="mx-auto grid max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active =

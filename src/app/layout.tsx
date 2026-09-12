@@ -49,6 +49,7 @@ export async function generateViewport(): Promise<Viewport> {
     width: "device-width",
     initialScale: 1,
     viewportFit: "cover",
+    interactiveWidget: "overlays-content",
     themeColor: theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR,
   };
 }

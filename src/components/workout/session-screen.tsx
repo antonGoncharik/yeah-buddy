@@ -150,13 +150,15 @@ export function SessionScreen() {
       {showStickyComplete && detail ? (
         <StickyActions>
           {rest.left != null ? (
-            <RestBar
-              left={rest.left}
-              onAdd={rest.add}
-              onSubtract={rest.subtract}
-              onStop={rest.stop}
-              onRestart={rest.restart}
-            />
+            <div data-keyboard-secondary>
+              <RestBar
+                left={rest.left}
+                onAdd={rest.add}
+                onSubtract={rest.subtract}
+                onStop={rest.stop}
+                onRestart={rest.restart}
+              />
+            </div>
           ) : null}
           <Button
             type="button"

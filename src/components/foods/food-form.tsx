@@ -7,8 +7,10 @@ import {
   FoodYieldFields,
 } from "@/components/foods/food-form-fields";
 import { useFoodForm } from "@/components/foods/use-food-form";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { Food } from "@/lib/types";
 
 export function FoodForm({
@@ -34,12 +36,17 @@ export function FoodForm({
   }
 
   return (
-    <form className="animate-rise flex flex-col gap-4 pb-8" onSubmit={onSubmit}>
+    <form
+      className="animate-rise flex flex-col gap-4 pb-28"
+      onSubmit={onSubmit}
+    >
       <FoodFormField label="Название">
         <Input
           required
           value={form.name}
           onChange={(event) => patch({ name: event.target.value })}
+          onKeyDown={handleNumericEnter}
+          enterKeyHint="next"
           className="h-12 text-base"
         />
       </FoodFormField>
@@ -59,8 +66,10 @@ export function FoodForm({
       <FoodFormField label="Порция, г">
         <Input
           inputMode="decimal"
+          enterKeyHint="next"
           value={form.default_portion_g}
           onChange={(event) => patch({ default_portion_g: event.target.value })}
+          onKeyDown={handleNumericEnter}
           className="h-12 text-base"
         />
       </FoodFormField>
@@ -91,13 +100,15 @@ export function FoodForm({
         </Button>
       ) : null}
 
-      <Button
-        type="submit"
-        className="h-14 text-lg"
-        disabled={saving || deleting}
-      >
-        {saving ? "Сохранение…" : "Сохранить"}
-      </Button>
+      <StickyActions>
+        <Button
+          type="submit"
+          className="h-14 text-lg"
+          disabled={saving || deleting}
+        >
+          {saving ? "Сохранение…" : "Сохранить"}
+        </Button>
+      </StickyActions>
     </form>
   );
 }

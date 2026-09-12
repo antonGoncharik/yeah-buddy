@@ -14,7 +14,7 @@ export function StickyActions({
   return (
     <div
       className={cn(
-        "app-fixed-bottom pointer-events-none fixed inset-x-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8",
+        "app-fixed-bottom app-sticky-actions pointer-events-none fixed inset-x-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8",
         withNav
           ? "pb-[var(--app-nav-clearance)]"
           : "pb-[max(1.25rem,var(--app-safe-bottom))]",

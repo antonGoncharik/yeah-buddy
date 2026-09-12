@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import { formatKcal } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
 
@@ -67,10 +68,12 @@ export function FoodMacrosFields({
           <Input
             required
             inputMode="decimal"
+            enterKeyHint="next"
             value={form.protein_per_100}
             onChange={(event) =>
               onChange({ protein_per_100: event.target.value })
             }
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </FoodFormField>
@@ -78,8 +81,10 @@ export function FoodMacrosFields({
           <Input
             required
             inputMode="decimal"
+            enterKeyHint="next"
             value={form.fat_per_100}
             onChange={(event) => onChange({ fat_per_100: event.target.value })}
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </FoodFormField>
@@ -87,10 +92,12 @@ export function FoodMacrosFields({
           <Input
             required
             inputMode="decimal"
+            enterKeyHint="next"
             value={form.carbs_per_100}
             onChange={(event) =>
               onChange({ carbs_per_100: event.target.value })
             }
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </FoodFormField>
@@ -129,8 +136,10 @@ export function FoodYieldFields({
         <FoodFormField label={form.state === "dry" ? "Сухое, г" : "Сырое, г"}>
           <Input
             inputMode="decimal"
+            enterKeyHint="next"
             value={form.yield_from_g}
             onChange={(event) => onChange({ yield_from_g: event.target.value })}
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </FoodFormField>
@@ -138,8 +147,10 @@ export function FoodYieldFields({
         <FoodFormField label="Готовое, г">
           <Input
             inputMode="decimal"
+            enterKeyHint="done"
             value={form.yield_to_g}
             onChange={(event) => onChange({ yield_to_g: event.target.value })}
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </FoodFormField>

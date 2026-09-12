@@ -3,17 +3,20 @@
 import { parseMacro } from "@/components/settings/settings-form-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import { formatKcal } from "@/lib/nutrition";
 
 export function SettingsMacroField({
   label,
   value,
   kcalPerGram,
+  enterKeyHint = "next",
   onChange,
 }: {
   label: string;
   value: string;
   kcalPerGram: number;
+  enterKeyHint?: "next" | "done";
   onChange: (value: string) => void;
 }) {
   const grams = parseMacro(value);
@@ -32,8 +35,10 @@ export function SettingsMacroField({
       <Input
         required
         inputMode="decimal"
+        enterKeyHint={enterKeyHint}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={handleNumericEnter}
         className="h-12 text-base"
       />
     </div>

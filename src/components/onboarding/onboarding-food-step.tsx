@@ -67,7 +67,7 @@ export function OnboardingFoodStep({
           autoComplete="off"
           value={protein}
           onChange={(event) => onProteinChange(event.target.value)}
-          className="h-12 scroll-mb-36 text-base"
+          className="h-12 text-base"
         />
         {preview ? (
           <p className="text-sm text-muted-foreground">

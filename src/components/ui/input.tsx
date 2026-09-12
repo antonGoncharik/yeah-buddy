@@ -1,21 +1,39 @@
 import { Input as InputPrimitive } from "@base-ui/react/input";
 import type * as React from "react";
 
+import { revealField } from "@/lib/form/field-nav";
 import { cn } from "@/lib/utils";
 
 export const nativeSelectClassName =
   "native-select field-control h-12 w-full rounded-xl border border-input/70 bg-input-bg pl-2.5 pr-10 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({
+  className,
+  type,
+  inputMode,
+  enterKeyHint,
+  autoComplete,
+  onFocus,
+  ...props
+}: React.ComponentProps<"input">) {
+  const numeric = inputMode === "decimal" || inputMode === "numeric";
+
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
+      inputMode={inputMode}
+      enterKeyHint={enterKeyHint ?? (numeric ? "done" : undefined)}
+      autoComplete={autoComplete ?? (numeric ? "off" : undefined)}
+      {...props}
+      onFocus={(event) => {
+        onFocus?.(event);
+        revealField(event.currentTarget);
+      }}
       className={cn(
-        "field-control h-8 w-full min-w-0 rounded-xl border border-input/70 bg-input-bg px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "field-control h-8 w-full min-w-0 scroll-mb-[var(--app-field-scroll-pad)] rounded-xl border border-input/70 bg-input-bg px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         className,
       )}
-      {...props}
     />
   );
 }

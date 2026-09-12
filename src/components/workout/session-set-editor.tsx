@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import type { SetDraft } from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { setUsesSeconds } from "@/lib/workout/session-format";
@@ -29,7 +30,7 @@ export function SessionSetEditor({
       : `${kind} ${setNumber}`;
 
   return (
-    <div className="grid grid-cols-2 gap-2 px-5 pb-4">
+    <div className="grid grid-cols-2 gap-2 px-5 pb-4" data-field-group>
       <div className="col-span-2 grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
         <p className="col-span-2 text-sm text-muted-foreground">{title}</p>
         <FieldInput
@@ -37,6 +38,7 @@ export function SessionSetEditor({
           value={draft.weight}
           disabled={disabled}
           inputMode="decimal"
+          enterKeyHint="next"
           onChange={(value) => onDraft({ weight: value })}
         />
         {setUsesSeconds(set) ? (
@@ -46,6 +48,7 @@ export function SessionSetEditor({
               value={draft.seconds}
               disabled={disabled}
               inputMode="decimal"
+              enterKeyHint="done"
               onChange={(value) => onDraft({ seconds: value })}
             />
             <SessionHoldTimer
@@ -59,6 +62,7 @@ export function SessionSetEditor({
             value={draft.reps}
             disabled={disabled}
             inputMode="numeric"
+            enterKeyHint="done"
             onChange={(value) => onDraft({ reps: value })}
           />
         )}
@@ -84,12 +88,14 @@ function FieldInput({
   value,
   disabled,
   inputMode,
+  enterKeyHint,
   onChange,
 }: {
   label: string;
   value: string;
   disabled: boolean;
   inputMode: "decimal" | "numeric";
+  enterKeyHint: "next" | "done";
   onChange: (value: string) => void;
 }) {
   return (
@@ -97,9 +103,11 @@ function FieldInput({
       <span className="text-xs text-muted-foreground">{label}</span>
       <Input
         inputMode={inputMode}
+        enterKeyHint={enterKeyHint}
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={handleNumericEnter}
         className="h-11 text-base"
         aria-label={label}
       />

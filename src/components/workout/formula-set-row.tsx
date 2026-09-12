@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { FormulaSetSpec } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { calcPlannedWeight, setUsesHold } from "@/lib/workout/formulas";
@@ -32,7 +33,10 @@ export function FormulaSetRow({
       : null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-muted/50 px-3 py-3">
+    <div
+      className="flex flex-col gap-2 rounded-xl bg-muted/50 px-3 py-3"
+      data-field-group
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium text-muted-foreground">
           Подход {index + 1}
@@ -46,6 +50,7 @@ export function FormulaSetRow({
       <div className="flex flex-wrap items-center gap-2">
         <Input
           inputMode="decimal"
+          enterKeyHint="next"
           value={String(set.percent)}
           onChange={(event) => {
             const percent = parseDecimal(event.target.value);
@@ -54,6 +59,7 @@ export function FormulaSetRow({
             }
             onUpdate({ percent });
           }}
+          onKeyDown={handleNumericEnter}
           className="h-12 w-20 text-base"
           aria-label={`Процент, подход ${index + 1}`}
         />
@@ -61,6 +67,7 @@ export function FormulaSetRow({
         <span className="text-base text-muted-foreground">×</span>
         <Input
           inputMode={hold ? "decimal" : "numeric"}
+          enterKeyHint="done"
           value={count == null ? "" : String(count)}
           onChange={(event) => {
             const next = parseDecimal(event.target.value);
@@ -76,6 +83,7 @@ export function FormulaSetRow({
             }
             onUpdate({ reps: next, seconds: null });
           }}
+          onKeyDown={handleNumericEnter}
           className="h-12 w-20 text-base"
           aria-label={
             hold

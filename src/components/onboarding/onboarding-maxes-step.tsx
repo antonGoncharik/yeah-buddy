@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { OnboardingState } from "@/lib/onboarding";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 
@@ -25,8 +26,9 @@ export function OnboardingMaxesStep({
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"
         style={{ animationDelay: "80ms" }}
+        data-field-group
       >
-        {exercises.map((exercise) => (
+        {exercises.map((exercise, index) => (
           <div key={exercise.id} className="flex items-center gap-3 py-3">
             <Label
               htmlFor={`max-${exercise.id}`}
@@ -37,12 +39,13 @@ export function OnboardingMaxesStep({
             <Input
               id={`max-${exercise.id}`}
               inputMode="decimal"
-              enterKeyHint="done"
+              enterKeyHint={index === exercises.length - 1 ? "done" : "next"}
               autoComplete="off"
               placeholder="кг"
               value={values[exercise.id] ?? ""}
               onChange={(event) => onChange(exercise.id, event.target.value)}
-              className="h-12 w-24 shrink-0 scroll-mb-36 text-base tabular-nums"
+              onKeyDown={handleNumericEnter}
+              className="h-12 w-24 shrink-0 text-base tabular-nums"
             />
           </div>
         ))}

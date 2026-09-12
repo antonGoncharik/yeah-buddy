@@ -14,6 +14,13 @@ export type TelegramViewportSource = {
   offEvent: (event: string, callback: () => void) => void;
 };
 
+export type ViewportSizes = {
+  layoutHeight: number;
+  visualBottom?: number;
+  visualHeight?: number;
+  baselineHeight?: number;
+};
+
 const SIDES = ["top", "bottom", "left", "right"] as const;
 const EVENTS = [
   "viewportChanged",
@@ -55,6 +62,50 @@ export function chromeBottomShift(
   return Math.max(0, Math.round(layoutHeight - stableHeight));
 }
 
+export function keyboardOverlayInset(
+  layoutHeight: number,
+  visualBottom: number,
+): number {
+  const gap = layoutHeight - visualBottom;
+  if (!Number.isFinite(gap) || gap <= HOME_INDICATOR_MAX) {
+    return 0;
+  }
+  return Math.round(gap);
+}
+
+export function isKeyboardOpen(
+  visualHeight: number,
+  options: { stableHeight?: number; baselineHeight?: number } = {},
+): boolean {
+  const { stableHeight, baselineHeight } = options;
+  const baseline = pickBaseline(stableHeight, baselineHeight);
+  if (baseline == null || !Number.isFinite(visualHeight)) {
+    return false;
+  }
+  return baseline - visualHeight > HOME_INDICATOR_MAX;
+}
+
+function pickBaseline(
+  stableHeight: number | undefined,
+  baselineHeight: number | undefined,
+): number | null {
+  if (
+    typeof stableHeight === "number" &&
+    Number.isFinite(stableHeight) &&
+    stableHeight > 0
+  ) {
+    return stableHeight;
+  }
+  if (
+    typeof baselineHeight === "number" &&
+    Number.isFinite(baselineHeight) &&
+    baselineHeight > 0
+  ) {
+    return baselineHeight;
+  }
+  return null;
+}
+
 function asPx(value: number): string {
   return `${Math.max(0, Math.round(value))}px`;
 }
@@ -71,17 +122,20 @@ function readInset(
 
 export function syncTelegramViewport(
   webApp: TelegramViewportSource,
-  root: CSSStyleDeclaration,
-  sizes: { layoutHeight: number; visualBottom?: number },
+  root: HTMLElement,
+  sizes: ViewportSizes,
 ): void {
-  const { layoutHeight, visualBottom } = sizes;
+  const { layoutHeight, visualBottom, visualHeight, baselineHeight } = sizes;
+  const style = root.style;
   const stable = webApp.viewportStableHeight;
+  const chrome =
+    typeof stable === "number" && Number.isFinite(stable) && stable > 0
+      ? chromeBottomShift(layoutHeight, stable)
+      : 0;
+
   if (typeof stable === "number" && Number.isFinite(stable) && stable > 0) {
-    root.setProperty("--tg-viewport-stable-height", asPx(stable));
-    root.setProperty(
-      "--app-chrome-bottom",
-      asPx(chromeBottomShift(layoutHeight, stable)),
-    );
+    style.setProperty("--tg-viewport-stable-height", asPx(stable));
+    style.setProperty("--app-chrome-bottom", asPx(chrome));
   }
 
   const extra =
@@ -91,30 +145,50 @@ export function syncTelegramViewport(
     for (const side of SIDES) {
       const safe = readInset(webApp.safeAreaInset, side);
       const fallback = side === "bottom" ? extra : 0;
-      root.setProperty(
+      style.setProperty(
         `--tg-safe-area-inset-${side}`,
         asPx(Math.max(safe, fallback)),
       );
     }
   } else if (extra > 0) {
-    root.setProperty("--tg-safe-area-inset-bottom", asPx(extra));
+    style.setProperty("--tg-safe-area-inset-bottom", asPx(extra));
   }
 
   if (webApp.contentSafeAreaInset) {
     for (const side of SIDES) {
-      root.setProperty(
+      style.setProperty(
         `--tg-content-safe-area-inset-${side}`,
         asPx(readInset(webApp.contentSafeAreaInset, side)),
       );
     }
   }
+
+  const overlay =
+    visualBottom === undefined
+      ? 0
+      : keyboardOverlayInset(layoutHeight, visualBottom);
+  const open =
+    typeof visualHeight === "number" &&
+    isKeyboardOpen(visualHeight, {
+      stableHeight: typeof stable === "number" ? stable : undefined,
+      baselineHeight,
+    });
+
+  if (open) {
+    root.dataset.keyboard = "open";
+    style.setProperty("--app-fixed-bottom", asPx(overlay));
+  } else {
+    delete root.dataset.keyboard;
+    style.removeProperty("--app-fixed-bottom");
+  }
 }
 
-function currentSizes(): { layoutHeight: number; visualBottom?: number } {
+function currentSizes(): ViewportSizes {
   const viewport = window.visualViewport;
   return {
     layoutHeight: window.innerHeight,
     visualBottom: viewport ? viewport.height + viewport.offsetTop : undefined,
+    visualHeight: viewport?.height,
   };
 }
 
@@ -123,12 +197,25 @@ export function bindTelegramViewport(
 ): () => void {
   webApp.ready?.();
 
+  let baselineHeight = 0;
+
   const sync = () => {
-    syncTelegramViewport(
-      webApp,
-      document.documentElement.style,
-      currentSizes(),
-    );
+    const sizes = currentSizes();
+    if (
+      typeof sizes.visualHeight === "number" &&
+      sizes.visualHeight > baselineHeight
+    ) {
+      baselineHeight = sizes.visualHeight;
+    }
+    syncTelegramViewport(webApp, document.documentElement, {
+      ...sizes,
+      baselineHeight,
+    });
+  };
+
+  const onOrientation = () => {
+    baselineHeight = 0;
+    sync();
   };
 
   sync();
@@ -140,6 +227,8 @@ export function bindTelegramViewport(
   const viewport = window.visualViewport;
   viewport?.addEventListener("resize", sync);
   viewport?.addEventListener("scroll", sync);
+  window.addEventListener("resize", sync);
+  window.addEventListener("orientationchange", onOrientation);
 
   return () => {
     for (const event of EVENTS) {
@@ -150,5 +239,7 @@ export function bindTelegramViewport(
     }
     viewport?.removeEventListener("resize", sync);
     viewport?.removeEventListener("scroll", sync);
+    window.removeEventListener("resize", sync);
+    window.removeEventListener("orientationchange", onOrientation);
   };
 }

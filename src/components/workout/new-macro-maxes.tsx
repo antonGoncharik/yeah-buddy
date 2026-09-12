@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { ExerciseWithMax } from "@/lib/types";
 
 export function NewMacroMaxes({
@@ -14,12 +15,12 @@ export function NewMacroMaxes({
   onChange: (exerciseId: string, value: string) => void;
 }) {
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-3" data-field-group>
       <h2 className="text-xl font-semibold">Твои веса</h2>
       <p className="text-sm text-muted-foreground">
         Стоят рекорды. Если давно не жалось — поставь меньше.
       </p>
-      {exercises.map((exercise) => (
+      {exercises.map((exercise, index) => (
         <div key={exercise.id} className="flex flex-col gap-2">
           <Label className="text-base">
             {exercise.short_name || exercise.name}
@@ -27,8 +28,10 @@ export function NewMacroMaxes({
           <Input
             required
             inputMode="decimal"
+            enterKeyHint={index === exercises.length - 1 ? "done" : "next"}
             value={maxes[exercise.id] ?? ""}
             onChange={(event) => onChange(exercise.id, event.target.value)}
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </div>

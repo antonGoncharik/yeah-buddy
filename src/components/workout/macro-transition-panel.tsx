@@ -3,6 +3,7 @@
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { TransitionPreview } from "@/lib/types";
 import { transitionExplain } from "@/lib/workout/hints";
 import { phaseLabel } from "@/lib/workout/labels";
@@ -28,7 +29,10 @@ export function MacroTransitionPanel({
   onCancel: () => void;
 }) {
   return (
-    <section className="card-surface flex flex-col gap-3 px-5 py-5">
+    <section
+      className="card-surface flex flex-col gap-3 px-5 py-5"
+      data-field-group
+    >
       <h2 className="text-xl font-semibold">
         {preview.new_macro
           ? "Новый цикл"
@@ -52,10 +56,12 @@ export function MacroTransitionPanel({
           </p>
           <Input
             inputMode="decimal"
+            enterKeyHint="next"
             value={transitionMaxes[row.exercise_id] ?? ""}
             onChange={(event) =>
               onMaxChange(row.exercise_id, event.target.value)
             }
+            onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
         </div>

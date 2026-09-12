@@ -125,6 +125,7 @@ export function PlateDraftRow({
             <Label className="text-base">Граммы</Label>
             <Input
               inputMode="decimal"
+              enterKeyHint="done"
               value={gramsInput}
               onChange={(event) => onGramsChange(event.target.value)}
               className="h-12 text-lg"

@@ -123,8 +123,8 @@ export function PlateFoodPicker({
         ) : null}
       </div>
 
-      <div className="app-fixed-bottom pointer-events-none mx-auto w-full max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[max(1.25rem,var(--app-safe-bottom))]">
-        <div className="pointer-events-auto">
+      <div className="app-fixed-bottom app-sticky-actions pointer-events-none mx-auto w-full max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[max(1.25rem,var(--app-safe-bottom))]">
+        <div className="pointer-events-auto" data-keyboard-secondary>
           <Button
             type="button"
             variant="ghost"

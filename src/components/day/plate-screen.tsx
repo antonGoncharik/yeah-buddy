@@ -148,19 +148,21 @@ export function PlateScreen({
             </Button>
           ) : null}
 
-          <PlateCameraBar
-            busy={plate.busy}
-            htmlCamera={plate.htmlCamera}
-            cameraPrimary={cameraPrimary}
-            status={plate.view.status}
-            cameraId={plate.cameraId}
-            galleryId={plate.galleryId}
-            cameraRef={plate.cameraRef}
-            galleryRef={plate.galleryRef}
-            onWatchCamera={plate.watchCamera}
-            onStartLiveCamera={() => void plate.startLiveCamera()}
-            onFile={(file) => void plate.onFile(file)}
-          />
+          <div data-keyboard-secondary>
+            <PlateCameraBar
+              busy={plate.busy}
+              htmlCamera={plate.htmlCamera}
+              cameraPrimary={cameraPrimary}
+              status={plate.view.status}
+              cameraId={plate.cameraId}
+              galleryId={plate.galleryId}
+              cameraRef={plate.cameraRef}
+              galleryRef={plate.galleryRef}
+              onWatchCamera={plate.watchCamera}
+              onStartLiveCamera={() => void plate.startLiveCamera()}
+              onFile={(file) => void plate.onFile(file)}
+            />
+          </div>
         </StickyActions>
       )}
     </>

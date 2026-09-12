@@ -1,5 +1,6 @@
 "use client";
 
+import { StickyActions } from "@/components/layout/sticky-actions";
 import type {
   MacroFieldKey,
   SettingsFormState,
@@ -28,7 +29,7 @@ export function SettingsGoalsForm({
   updateField: (key: MacroFieldKey, value: string) => void;
 }) {
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-4 pb-28" onSubmit={onSubmit}>
       <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
         <h2 className="text-xl font-semibold">День отдыха</h2>
         <p className="text-sm text-muted-foreground">На день без зала.</p>
@@ -81,6 +82,7 @@ export function SettingsGoalsForm({
           label="Углеводы"
           value={form.training_carbs}
           kcalPerGram={4}
+          enterKeyHint="done"
           onChange={(value) => updateField("training_carbs", value)}
         />
         {trainingKcal != null ? (
@@ -95,9 +97,11 @@ export function SettingsGoalsForm({
         <p className="animate-fade text-sm text-muted-foreground">Сохранено.</p>
       ) : null}
 
-      <Button type="submit" className="h-14 text-lg" disabled={saving}>
-        {saving ? "Сохранение…" : "Сохранить"}
-      </Button>
+      <StickyActions>
+        <Button type="submit" className="h-14 text-lg" disabled={saving}>
+          {saving ? "Сохранение…" : "Сохранить"}
+        </Button>
+      </StickyActions>
     </form>
   );
 }

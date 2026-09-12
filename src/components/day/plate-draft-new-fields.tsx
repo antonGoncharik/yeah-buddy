@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
+import { handleNumericEnter } from "@/lib/form/field-nav";
 import { formatKcal } from "@/lib/nutrition";
 
 export function PlateDraftLumpFields({
@@ -28,20 +29,23 @@ export function PlateDraftLumpFields({
       <p className="text-sm text-muted-foreground">
         Сколько съел в этой порции. В продукты не попадёт.
       </p>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2" data-field-group>
         <MacroField
           label="Белки"
           value={proteinInput}
+          enterKeyHint="next"
           onChange={(value) => onPatchLump({ proteinInput: value })}
         />
         <MacroField
           label="Жиры"
           value={fatInput}
+          enterKeyHint="next"
           onChange={(value) => onPatchLump({ fatInput: value })}
         />
         <MacroField
           label="Угли"
           value={carbsInput}
+          enterKeyHint="done"
           onChange={(value) => onPatchLump({ carbsInput: value })}
         />
       </div>
@@ -57,10 +61,12 @@ export function PlateDraftLumpFields({
 function MacroField({
   label,
   value,
+  enterKeyHint,
   onChange,
 }: {
   label: string;
   value: string;
+  enterKeyHint: "next" | "done";
   onChange: (value: string) => void;
 }) {
   return (
@@ -68,8 +74,10 @@ function MacroField({
       <Label className="text-sm">{label}</Label>
       <Input
         inputMode="decimal"
+        enterKeyHint={enterKeyHint}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={handleNumericEnter}
         className="h-12 text-base"
       />
     </div>
