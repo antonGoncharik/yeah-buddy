@@ -36,6 +36,8 @@ export function SessionScreen() {
     nextName,
     phaseHint,
     holdHint,
+    completedSessions,
+    phaseCircle,
     openSetIds,
     setOpenSetIds,
     warmupOpen,
@@ -123,6 +125,8 @@ export function SessionScreen() {
                 holdHint={holdHint}
                 feel={session.feel}
                 raiseOffers={detail.raise_offers}
+                completedSessions={completedSessions}
+                phaseCircle={phaseCircle}
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}
                 onFeel={(feel) => void saveFeel(feel)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useBootSplash } from "@/components/layout/boot-splash";
 import {
@@ -15,6 +15,7 @@ import {
   MugMark,
 } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
+import { LOADING_LINES, loadingFlavor, loadingLine } from "@/lib/flavor";
 import { cn } from "@/lib/utils";
 
 const BEATS = [
@@ -54,6 +55,8 @@ export function ScreenLoading({
   splash?: boolean;
 }) {
   const boot = useBootSplash();
+  const flavor = loadingFlavor({ splash, title });
+  const [line, setLine] = useState(LOADING_LINES[flavor][0] ?? "Загрузка…");
 
   useEffect(() => {
     if (splash || boot == null) {
@@ -61,6 +64,10 @@ export function ScreenLoading({
     }
     return boot.hold();
   }, [boot, splash]);
+
+  useEffect(() => {
+    setLine(loadingLine(flavor, Date.now()));
+  }, [flavor]);
 
   if (!splash && boot?.active) {
     return null;
@@ -95,7 +102,7 @@ export function ScreenLoading({
           ))}
         </div>
         <p aria-hidden className="animate-fade text-base">
-          {title ? "Загрузка углеводами…" : "Загрузка…"}
+          {line}
         </p>
       </div>
     </div>

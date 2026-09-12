@@ -3,7 +3,7 @@ export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";
 export const NOT_FOUND = "Запись не найдена.";
-export const FOODS_EMPTY = "Продуктов пока нет.";
+export const FOODS_EMPTY = "Пока пусто. Свои продукты — из них день.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 export const YESTERDAY_MISSING = "Вчера пусто.";
@@ -20,13 +20,15 @@ export const BOT_START = `Yeah buddy! 👟
 
 Погнали🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
-export const BOT_REMINDER_FOOD = "День еды пустой.";
+export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
 
 export function botReminderGym(name: string): string {
   return `Сегодня ${name}.`;
 }
-export const EXERCISES_EMPTY = "Пока пусто. Добавь упражнение и рабочий вес.";
-export const WORKOUTS_NEED_EXERCISES = "Сначала упражнения и рабочие веса.";
+export const EXERCISES_EMPTY =
+  "Пока пусто. Без упражнения и рабочего веса план не из чего считать.";
+export const WORKOUTS_NEED_EXERCISES =
+  "Сначала упражнения и рабочие веса. Иначе не из чего собрать зал.";
 export const WORKOUTS_NEED_TEMPLATES =
   "Поставь программу или собери тренировку.";
 export const WORKOUTS_NEED_MAXES = "Напиши рабочие веса.";
@@ -34,17 +36,16 @@ export const NEED_ALL_WORKING_WEIGHTS =
   "Нужен рабочий вес у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала этапы.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
-export const SESSION_HISTORY_EMPTY =
-  "Когда сделаешь тренировку, она появится здесь.";
+export const SESSION_HISTORY_EMPTY = "Пока пусто. Сделаешь — появится.";
 export const NUTRITION_HISTORY_EMPTY =
-  "Дней ещё нет. Появятся, когда заведёшь «Сегодня».";
-export const WEEK_EMPTY = "Появятся, когда заведёшь день или зал.";
+  "Дней ещё нет. Съешь что-нибудь — появится.";
+export const WEEK_EMPTY = "Пока пусто. День или зал — и строка появится.";
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
   "Нет рабочего веса. Напиши его в упражнении и зайди ещё раз.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
-export const AI_REVIEW_EMPTY = "Пока мало записей.";
+export const AI_REVIEW_EMPTY = "Пока мало записей. Не из чего писать.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";
 export const AI_REVIEW_FAILED = "Не получилось написать.";
 export const AI_PLATE_FAILED = "Не получилось разобрать.";

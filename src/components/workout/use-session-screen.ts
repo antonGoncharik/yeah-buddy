@@ -12,7 +12,7 @@ import { loadSessionFollowUp } from "@/components/workout/session-follow-up";
 import { useSessionActions } from "@/components/workout/use-session-actions";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import type { SessionDetail } from "@/lib/types";
+import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { workAbovePlan } from "@/lib/workout/session-format";
@@ -30,6 +30,10 @@ export function useSessionScreen() {
   const [nextName, setNextName] = useState<string | null>(null);
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [holdHint, setHoldHint] = useState<string | null>(null);
+  const [completedSessions, setCompletedSessions] = useState(0);
+  const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
+    null,
+  );
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
@@ -41,6 +45,8 @@ export function useSessionScreen() {
     setNextName(followUp.nextName);
     setPhaseHint(followUp.phaseHint);
     setHoldHint(followUp.holdHint);
+    setCompletedSessions(followUp.completedSessions);
+    setPhaseCircle(followUp.phaseCircle);
   }, []);
 
   const applyDetail = useCallback((next: SessionDetail) => {
@@ -69,6 +75,8 @@ export function useSessionScreen() {
             setNextName(null);
             setPhaseHint(null);
             setHoldHint(null);
+            setCompletedSessions(0);
+            setPhaseCircle(null);
           }
           return true;
         },
@@ -168,6 +176,8 @@ export function useSessionScreen() {
     nextName,
     phaseHint,
     holdHint,
+    completedSessions,
+    phaseCircle,
     openSetIds,
     setOpenSetIds,
     warmupOpen,

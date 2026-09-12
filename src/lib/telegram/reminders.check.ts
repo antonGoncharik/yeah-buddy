@@ -55,7 +55,7 @@ assertEqual(
     gymLogged: true,
     nextTemplateName: "Сила A",
   }),
-  "День еды пустой.",
+  "День еды пустой. Холодильник сам не запишет.",
   "gym done food still empty",
 );
 assertEqual(
@@ -82,7 +82,7 @@ assertEqual(
     gymLogged: false,
     nextTemplateName: null,
   }),
-  "День еды пустой.",
+  "День еды пустой. Холодильник сам не запишет.",
   "food only",
 );
 assertEqual(
@@ -91,7 +91,7 @@ assertEqual(
     gymLogged: false,
     nextTemplateName: "Сила A",
   }),
-  "День еды пустой.\nСегодня Сила A.",
+  "День еды пустой. Холодильник сам не запишет.\nСегодня Сила A.",
   "food and circle",
 );
 

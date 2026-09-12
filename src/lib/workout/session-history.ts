@@ -5,6 +5,21 @@ import { mapWorkoutSession } from "@/lib/workout/map-rows";
 import { listSessionWorkInfo } from "@/lib/workout/session-log";
 import { templateNamesById } from "@/lib/workout/session-names";
 
+export async function countCompletedSessions(userId: string): Promise<number> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "completed");
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return result.count ?? 0;
+}
+
 export async function listSessionHistory(
   userId: string,
   options: {

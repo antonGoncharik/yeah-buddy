@@ -1,0 +1,120 @@
+import type { PhaseCircleProgress, SessionFeel } from "@/lib/types";
+
+export type LoadingFlavor = "boot" | "food" | "idle";
+
+export const LOADING_LINES: Record<LoadingFlavor, readonly string[]> = {
+  boot: [
+    "Загрузка углеводами…",
+    "Греем блины…",
+    "Ищем рабочий…",
+    "Минуту. Белок считается.",
+  ],
+  food: ["Загрузка углеводами…", "Считаю граммы…", "Греем блины…"],
+  idle: ["Загрузка…", "Секунду.", "Минуту."],
+};
+
+export function loadingFlavor(options: {
+  splash?: boolean;
+  title?: string;
+}): LoadingFlavor {
+  if (options.splash) {
+    return "boot";
+  }
+  if (options.title) {
+    return "food";
+  }
+  return "idle";
+}
+
+export function loadingLine(flavor: LoadingFlavor, nowMs: number): string {
+  const lines = LOADING_LINES[flavor];
+  const hour = Math.floor(nowMs / (1000 * 60 * 60));
+  return lines[hour % lines.length] ?? lines[0];
+}
+
+export function sessionDoneHeadline(feel: SessionFeel | null): string {
+  if (feel === "easy") {
+    return "Yeah buddy.";
+  }
+  if (feel === "close") {
+    return "Впритык.";
+  }
+  if (feel === "miss") {
+    return "Не пошло.";
+  }
+  return "Готово";
+}
+
+export function sessionDoneLead(feel: SessionFeel | null): string {
+  if (feel === "close") {
+    return "Так и надо.";
+  }
+  if (feel === "miss") {
+    return "Бывает. Записано как было.";
+  }
+  return "Записано как в плане. Другой вес — поправь.";
+}
+
+export function sessionRaiseLine(
+  abovePlan: boolean,
+  feel: SessionFeel | null,
+): string {
+  if (abovePlan) {
+    return "Где-то больше плана. Рабочий сам не прыгнет.";
+  }
+  if (feel === "easy") {
+    return "Можно поднять рабочий.";
+  }
+  return "Легко. Можно поднять рабочий.";
+}
+
+export function sessionMilestoneLine(count: number): string | null {
+  if (count === 10) {
+    return "Десять. Уже не разовый заход.";
+  }
+  if (count === 50) {
+    return "Пятьдесят. Yeah buddy.";
+  }
+  if (count === 100) {
+    return "Сотня. Можно не считать, но мы посчитали.";
+  }
+  return null;
+}
+
+export function firstDeloadLine(
+  circle: PhaseCircleProgress | null,
+): string | null {
+  if (circle == null || circle.phase_type !== "deload") {
+    return null;
+  }
+  if (circle.completed_count > 1) {
+    return null;
+  }
+  return "Сброс. Легче — не значит зря.";
+}
+
+export function consecutiveProteinHits(
+  slots: ReadonlyArray<{
+    day: { fact_protein: number; target_protein: number } | null;
+  }>,
+): number {
+  let count = 0;
+  for (const slot of slots) {
+    const day = slot.day;
+    if (!day || day.target_protein <= 0) {
+      break;
+    }
+    if (day.fact_protein + 0.5 < day.target_protein) {
+      break;
+    }
+    count += 1;
+  }
+  return count;
+}
+
+export function proteinWeekLine(hits: number): string | null {
+  if (hits < 7) {
+    return null;
+  }
+  return "Белок семь дней подряд. Холодильник в курсе.";
+}

@@ -1,13 +1,18 @@
 "use client";
 
+import Link from "next/link";
+
+import { FlavorNote } from "@/components/layout/flavor-note";
+import { CycleTimeline } from "@/components/workout/cycle-timeline";
+import { firstDeloadLine } from "@/lib/flavor";
 import type { CurrentMacroState } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import {
+  cycleTimeline,
   phaseEndHint,
   phaseHoldHint,
   phaseLinkLabel,
 } from "@/lib/workout/hints";
-import { phaseLabel } from "@/lib/workout/labels";
+import { FORMULAS_LABEL, phaseLabel } from "@/lib/workout/labels";
 
 export function MacroPhaseHeader({
   state,
@@ -17,8 +22,19 @@ export function MacroPhaseHeader({
     phase: NonNullable<CurrentMacroState["phase"]>;
   };
 }) {
+  const holdHint = state.phase_circle
+    ? phaseHoldHint(state.phase_circle)
+    : null;
+  const endHint = state.phase_circle ? phaseEndHint(state.phase_circle) : null;
+  const deloadLine = firstDeloadLine(state.phase_circle);
+  const steps = cycleTimeline(
+    state.planned_cycle,
+    state.phase.phase_type,
+    state.phase.name,
+  );
+
   return (
-    <section className="card-surface flex flex-col gap-2 px-5 py-5">
+    <section className="card-surface flex flex-col gap-3 px-5 py-5">
       <p className="text-sm text-muted-foreground">
         Цикл{" "}
         {phaseLinkLabel(
@@ -31,34 +47,20 @@ export function MacroPhaseHeader({
       <h2 className="text-2xl font-semibold">
         {phaseLabel(state.phase.phase_type, state.phase.name)}
       </h2>
-      <p className="text-sm text-muted-foreground">
-        С {state.phase.start_date}. Этап закрываешь кнопкой ниже.
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Тренировки те же, что в очереди. Этап меняет веса. Закрываешь кнопкой
+        ниже.
       </p>
-      {state.phase_circle && phaseHoldHint(state.phase_circle) ? (
-        <p className="text-base leading-snug">
-          {phaseHoldHint(state.phase_circle)}
-        </p>
-      ) : null}
-      {state.phase_circle && phaseEndHint(state.phase_circle) ? (
-        <p className="text-base leading-snug">
-          {phaseEndHint(state.phase_circle)}
-        </p>
-      ) : null}
-      <ol className="mt-2 flex flex-wrap gap-2">
-        {state.phases.map((phase) => (
-          <li
-            key={phase.id}
-            className={cn(
-              "rounded-full px-3 py-1 text-sm",
-              phase.status === "current"
-                ? "bg-primary/12 text-primary"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
-            {phaseLabel(phase.phase_type, phase.name)}
-          </li>
-        ))}
-      </ol>
+      {steps.length > 0 ? <CycleTimeline steps={steps} /> : null}
+      <FlavorNote line={deloadLine} />
+      {holdHint ? <p className="text-base leading-snug">{holdHint}</p> : null}
+      {endHint ? <p className="text-base leading-snug">{endHint}</p> : null}
+      <Link
+        href="/settings/formulas"
+        className="text-base font-medium text-primary"
+      >
+        {FORMULAS_LABEL}
+      </Link>
     </section>
   );
 }

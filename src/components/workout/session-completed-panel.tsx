@@ -1,9 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { FlavorNote } from "@/components/layout/flavor-note";
 import { Button } from "@/components/ui/button";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
-import type { SessionFeel, SessionMaxRaiseOffer } from "@/lib/types";
+import {
+  firstDeloadLine,
+  sessionDoneHeadline,
+  sessionDoneLead,
+  sessionMilestoneLine,
+  sessionRaiseLine,
+} from "@/lib/flavor";
+import type {
+  PhaseCircleProgress,
+  SessionFeel,
+  SessionMaxRaiseOffer,
+} from "@/lib/types";
 import { QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function SessionCompletedPanel({
@@ -13,6 +25,8 @@ export function SessionCompletedPanel({
   holdHint,
   feel,
   raiseOffers,
+  completedSessions,
+  phaseCircle,
   busy,
   onCorrect,
   onFeel,
@@ -24,25 +38,29 @@ export function SessionCompletedPanel({
   holdHint: string | null;
   feel: SessionFeel | null;
   raiseOffers: SessionMaxRaiseOffer[];
+  completedSessions: number;
+  phaseCircle: PhaseCircleProgress | null;
   busy: boolean;
   onCorrect: () => void;
   onFeel: (value: SessionFeel | null) => void;
   onRaise: () => void;
 }) {
   const canRaise = raiseOffers.length > 0;
+  const milestone = sessionMilestoneLine(completedSessions);
+  const deload = firstDeloadLine(phaseCircle);
 
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">
-      <h2 className="text-xl font-semibold">Готово</h2>
+      <h2 className="text-xl font-semibold">{sessionDoneHeadline(feel)}</h2>
       <p className="text-base leading-relaxed text-muted-foreground">
-        Записано как в плане. Другой вес — поправь.
+        {sessionDoneLead(feel)}
       </p>
+      <FlavorNote line={milestone} className="text-foreground" />
+      <FlavorNote line={deload} className="text-foreground" />
       <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       {canRaise ? (
         <p className="text-base leading-relaxed">
-          {abovePlan
-            ? "Где-то больше плана. Рабочий сам не прыгнет."
-            : "Легко. Можно поднять рабочий."}
+          {sessionRaiseLine(abovePlan, feel)}
         </p>
       ) : null}
       {holdHint ? (

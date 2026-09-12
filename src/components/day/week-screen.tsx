@@ -6,8 +6,10 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useWeekScreen } from "@/components/day/use-week-screen";
 import { WeekDayRow } from "@/components/day/week-day-row";
 import { AppHeader } from "@/components/layout/app-header";
+import { FlavorNote } from "@/components/layout/flavor-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { weekHasEntries } from "@/lib/day/week";
+import { consecutiveProteinHits, proteinWeekLine } from "@/lib/flavor";
 import { WEEK_EMPTY } from "@/lib/messages";
 
 export function WeekScreen() {
@@ -15,6 +17,7 @@ export function WeekScreen() {
   const { week, loading, error, load } = useWeekScreen();
   const items = week?.items ?? [];
   const empty = !loading && !error && week != null && !weekHasEntries(items);
+  const proteinLine = proteinWeekLine(consecutiveProteinHits(items));
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,6 +41,10 @@ export function WeekScreen() {
 
         {!loading && week && weekHasEntries(week.items) ? (
           <>
+            <FlavorNote
+              line={proteinLine}
+              className="px-1 text-muted-foreground"
+            />
             <ReviewCta from="week" />
             <ul className="animate-rise flex flex-col gap-2">
               {week.items.map((item) => (

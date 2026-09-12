@@ -7,7 +7,10 @@ export {
   SessionLockedError,
   SessionNeedsMaxesError,
 } from "@/lib/workout/session-errors";
-export { listSessionHistory } from "@/lib/workout/session-history";
+export {
+  countCompletedSessions,
+  listSessionHistory,
+} from "@/lib/workout/session-history";
 export {
   getSession,
   getSessionOnDate,
