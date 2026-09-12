@@ -1,5 +1,4 @@
-import { format, parseISO, subDays } from "date-fns";
-
+import { isIsoDate, shiftIsoDate } from "@/lib/day/dates";
 import type { DayHistoryRow } from "@/lib/types";
 
 export type NutritionRange = 14 | 30;
@@ -39,9 +38,9 @@ export function chronological(items: DayHistoryRow[]): DayHistoryRow[] {
 }
 
 function rangeStart(todayIso: string, days: NutritionRange): string | null {
-  try {
-    return format(subDays(parseISO(todayIso), days - 1), "yyyy-MM-dd");
-  } catch {
+  if (!isIsoDate(todayIso)) {
     return null;
   }
+
+  return shiftIsoDate(todayIso, 1 - days);
 }

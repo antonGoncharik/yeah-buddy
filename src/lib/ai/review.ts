@@ -4,9 +4,9 @@ import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
 import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
 import type { ReviewSnapshot, StoredReview } from "@/lib/ai/types";
-import { calendarToday } from "@/lib/day/dates";
 import {
   getLastBodyWeight,
+  getUserCalendarToday,
   listDaysInRange,
   listFoodSharesInRange,
 } from "@/lib/days";
@@ -32,10 +32,11 @@ export function parseReviewRange(value: unknown): ReviewRange | null {
 export async function getReviewSnapshot(
   userId: string,
   range: ReviewRange,
-  today = calendarToday(),
+  today?: string,
 ): Promise<ReviewSnapshot> {
+  const resolvedToday = today ?? (await getUserCalendarToday(userId));
   const [brief, stored] = await Promise.all([
-    loadReviewBrief(userId, range, today),
+    loadReviewBrief(userId, range, resolvedToday),
     listStoredReviews(userId, range),
   ]);
   return {
@@ -49,7 +50,7 @@ export async function getReviewSnapshot(
 export async function createReview(
   userId: string,
   range: ReviewRange,
-  today = calendarToday(),
+  today?: string,
 ): Promise<ReviewSnapshot> {
   const key = getGeminiApiKey();
   if (!key) {
@@ -62,8 +63,9 @@ export async function createReview(
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
 
+  const resolvedToday = today ?? (await getUserCalendarToday(userId));
   const [brief, stored] = await Promise.all([
-    loadReviewBrief(userId, range, today),
+    loadReviewBrief(userId, range, resolvedToday),
     listStoredReviews(userId, range),
   ]);
   if (brief.coverage === "empty") {

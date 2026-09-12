@@ -16,6 +16,7 @@ import type { DayType } from "@/lib/types";
 
 export function TodayDayHeader({
   date,
+  today,
   writable,
   viewOnly,
   fromHistory,
@@ -24,6 +25,7 @@ export function TodayDayHeader({
   switchType,
 }: {
   date: string;
+  today: string;
   writable: boolean;
   viewOnly: boolean;
   fromHistory: boolean;
@@ -43,7 +45,7 @@ export function TodayDayHeader({
         {fromHistory && writable ? (
           <Button
             className="h-12 w-full text-base"
-            onClick={() => router.push(todayHomeHref(date))}
+            onClick={() => router.push(todayHomeHref(date, today))}
           >
             Исправить
           </Button>

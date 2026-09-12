@@ -27,6 +27,10 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 assertEqual(isIsoDate("2026-09-09"), true, "valid iso date");
 assertEqual(isIsoDate("2026-9-9"), false, "unpadded date");
 assertEqual(isIsoDate("09-09-2026"), false, "wrong order");
+assertEqual(isIsoDate("2026-02-31"), false, "impossible day");
+assertEqual(isIsoDate("2026-13-01"), false, "impossible month");
+assertEqual(isIsoDate("2026-02-29"), false, "non-leap feb 29");
+assertEqual(isIsoDate("2024-02-29"), true, "leap feb 29");
 assertEqual(previousIsoDate("2026-03-01"), "2026-02-28", "month rollover");
 assertEqual(previousIsoDate("2026-01-01"), "2025-12-31", "year rollover back");
 assertEqual(nextIsoDate("2026-12-31"), "2027-01-01", "year rollover forward");
@@ -38,6 +42,21 @@ assertEqual(
 assertEqual(todayHomeHref(null), "/today", "missing date stays today");
 assertEqual(todayHomeHref("2000-01-01"), "/today?date=2000-01-01", "past date");
 assertEqual(todayHomeHref(calendarToday()), "/today", "today has no query");
+assertEqual(
+  todayHomeHref("2026-09-11", "2026-09-12"),
+  "/today?date=2026-09-11",
+  "user today keeps yesterday query",
+);
+assertEqual(
+  todayHomeHref("2026-09-11", "2026-09-11"),
+  "/today",
+  "same calendar day drops query",
+);
+assertEqual(
+  withDateQuery("/food/new", "2026-09-11", "2026-09-12"),
+  "/food/new?date=2026-09-11",
+  "user today keeps date on path",
+);
 assertEqual(
   withDateQuery("/food/new", "2000-01-01"),
   "/food/new?date=2000-01-01",

@@ -12,6 +12,7 @@ import type {
 
 export function TodayDayMeals({
   date,
+  today,
   viewOnly,
   visibleMeals,
   remainingMealTypes,
@@ -26,6 +27,7 @@ export function TodayDayMeals({
   deleteItem,
 }: {
   date: string;
+  today: string;
   viewOnly: boolean;
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
@@ -65,17 +67,17 @@ export function TodayDayMeals({
           itemHref={
             viewOnly
               ? undefined
-              : (item) => withDateQuery(`/today/items/${item.id}`, date)
+              : (item) => withDateQuery(`/today/items/${item.id}`, date, today)
           }
           addHref={
             viewOnly
               ? undefined
-              : withDateQuery(`/today/meals/${meal.id}/add`, date)
+              : withDateQuery(`/today/meals/${meal.id}/add`, date, today)
           }
           plateHref={
             viewOnly
               ? undefined
-              : withDateQuery(`/today/meals/${meal.id}/plate`, date)
+              : withDateQuery(`/today/meals/${meal.id}/plate`, date, today)
           }
           date={date}
           copyDays={copyDays}

@@ -1,4 +1,5 @@
 import {
+  readDayWritable,
   readLastBodyWeight,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
@@ -47,5 +48,20 @@ assertEqual(
   "last body weight",
 );
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
+assertEqual(
+  readDayWritable({ writable: true }, "2026-09-10", "2026-09-12"),
+  true,
+  "payload writable wins",
+);
+assertEqual(
+  readDayWritable({}, "2026-09-11", "2026-09-12"),
+  true,
+  "fallback keeps yesterday writable",
+);
+assertEqual(
+  readDayWritable({}, "2026-09-10", "2026-09-12"),
+  false,
+  "fallback locks older day",
+);
 
 console.log("copy yesterday meal ok");

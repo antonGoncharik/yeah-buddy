@@ -1,6 +1,7 @@
 import { FoodForm } from "@/components/foods/food-form";
 import { AppHeader } from "@/components/layout/app-header";
 import { isIsoDate, withDateQuery } from "@/lib/day/dates";
+import { resolveRequestToday } from "@/lib/day/writable";
 import { isDayType, isMealType } from "@/lib/nutrition";
 
 export default async function NewFoodPage({
@@ -21,16 +22,17 @@ export default async function NewFoodPage({
   const dayType = isDayType(dayTypeRaw) ? dayTypeRaw : undefined;
   const mealType = isMealType(mealTypeRaw) ? mealTypeRaw : undefined;
   const date = dateRaw && isIsoDate(dateRaw) ? dateRaw : null;
+  const today = await resolveRequestToday();
 
   const backHref = mealId
-    ? withDateQuery(`/today/meals/${mealId}/add`, date)
+    ? withDateQuery(`/today/meals/${mealId}/add`, date, today)
     : dayType && mealType
       ? `/settings/meals/${dayType}/${mealType}/add`
       : "/foods";
 
   const afterCreateHref = mealId
     ? (foodId: string) =>
-        withDateQuery(`/today/meals/${mealId}/add/${foodId}`, date)
+        withDateQuery(`/today/meals/${mealId}/add/${foodId}`, date, today)
     : dayType && mealType
       ? (foodId: string) =>
           `/settings/meals/${dayType}/${mealType}/add/${foodId}`

@@ -61,8 +61,15 @@ export function isIsoDate(value: string): boolean {
     return false;
   }
 
-  const parsed = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
+  const [year, month, day] = value.split("-").map(Number);
+  if (year == null || month == null || day == null) {
+    return false;
+  }
+
+  return (
+    new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) ===
+    value
+  );
 }
 
 export function previousIsoDate(date: string): string {
@@ -110,8 +117,11 @@ export function assertWritableDayDate(date: string, today: string): void {
   }
 }
 
-export function todayHomeHref(date: string | null | undefined): string {
-  if (!date || !isIsoDate(date) || date >= calendarToday()) {
+export function todayHomeHref(
+  date: string | null | undefined,
+  today = calendarToday(),
+): string {
+  if (!date || !isIsoDate(date) || date >= today) {
     return "/today";
   }
 
@@ -121,8 +131,9 @@ export function todayHomeHref(date: string | null | undefined): string {
 export function withDateQuery(
   path: string,
   date: string | null | undefined,
+  today = calendarToday(),
 ): string {
-  if (!date || !isIsoDate(date) || date >= calendarToday()) {
+  if (!date || !isIsoDate(date) || date >= today) {
     return path;
   }
 
@@ -141,9 +152,10 @@ export function nutritionWeekHref(fromSettings = false): string {
 export function todayHistoryDayHref(
   date: string,
   fromSettings = false,
+  today = calendarToday(),
 ): string {
   const params = new URLSearchParams();
-  if (date && isIsoDate(date) && date < calendarToday()) {
+  if (date && isIsoDate(date) && date < today) {
     params.set("date", date);
   }
   params.set("view", "history");

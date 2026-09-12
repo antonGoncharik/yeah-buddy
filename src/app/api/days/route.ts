@@ -27,7 +27,7 @@ import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
 
 const createSchema = z.object({
-  date: z.string(),
+  date: z.string().optional(),
   dayType: z.enum(["rest", "training"]),
 });
 
@@ -87,17 +87,24 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  const parsed = await parseJsonSchema(request, createSchema, (data) =>
-    isIsoDate(data.date),
+  const parsed = await parseJsonSchema(
+    request,
+    createSchema,
+    (data) => data.date == null || isIsoDate(data.date),
   );
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
+    const today = await getUserCalendarToday(auth.session.userId);
+    const date =
+      parsed.data.date && isIsoDate(parsed.data.date)
+        ? parsed.data.date
+        : today;
     const day = await createDayFromTemplate(
       auth.session.userId,
-      parsed.data.date,
+      date,
       parsed.data.dayType,
     );
     return jsonOk({ day });

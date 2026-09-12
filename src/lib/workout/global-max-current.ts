@@ -13,12 +13,15 @@ export function attachMaxes(
   };
 }
 
-export function resolveAchievedAt(value: string | undefined): string {
+export function resolveAchievedAt(
+  value: string | undefined,
+  today: string,
+): string {
   if (value && isIsoDate(value)) {
     return value;
   }
 
-  return new Date().toISOString().slice(0, 10);
+  return today;
 }
 
 export function pickCurrentMax(history: GlobalMax[]): GlobalMax | null {

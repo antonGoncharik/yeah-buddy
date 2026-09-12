@@ -1,4 +1,4 @@
-import { calendarToday } from "@/lib/day/dates";
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { raiseGlobalMax } from "@/lib/workout/exercises";
 import { getCurrentMacroState } from "@/lib/workout/macros";
@@ -32,7 +32,7 @@ async function main() {
     throw new Error("no current phase");
   }
 
-  const today = calendarToday();
+  const today = await getUserCalendarToday(user.id);
   const raised: string[] = [];
   for (const row of state.maxes) {
     if (!row.phase_max) {

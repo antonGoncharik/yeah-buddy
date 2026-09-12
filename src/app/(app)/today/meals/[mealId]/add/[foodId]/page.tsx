@@ -7,13 +7,8 @@ import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import {
-  calendarToday,
-  isIsoDate,
-  isWritableDayDate,
-  todayHomeHref,
-  withDateQuery,
-} from "@/lib/day/dates";
+import { isIsoDate, todayHomeHref, withDateQuery } from "@/lib/day/dates";
+import { readCalendarToday, readDayWritable } from "@/lib/day/today-payload";
 import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -23,13 +18,19 @@ export default function AddMealItemGramsPage() {
   const params = useParams<{ mealId: string; foodId: string }>();
   const searchParams = useSearchParams();
   const date = readDateParam(searchParams.get("date"));
-  const backHref = withDateQuery(`/today/meals/${params.mealId}/add`, date);
-  const doneHref = todayHomeHref(date);
-  const viewOnly = date != null && !isWritableDayDate(date, calendarToday());
   const [reloadToken, setReloadToken] = useState(0);
   const [food, setFood] = useState<Food | null>(null);
+  const [today, setToday] = useState<string | null>(null);
+  const [writable, setWritable] = useState(date == null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const backHref = withDateQuery(
+    `/today/meals/${params.mealId}/add`,
+    date,
+    today ?? undefined,
+  );
+  const doneHref = todayHomeHref(date, today ?? undefined);
+  const viewOnly = !writable;
 
   useEffect(() => {
     let cancelled = false;
@@ -40,23 +41,44 @@ export default function AddMealItemGramsPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/foods/${params.foodId}`);
+        const [foodResponse, dayResponse] = await Promise.all([
+          fetch(`/api/foods/${params.foodId}`),
+          date
+            ? fetch(`/api/days?date=${encodeURIComponent(date)}`)
+            : Promise.resolve(null),
+        ]);
         if (cancelled) {
           return;
         }
 
-        if (response.status === 404) {
+        if (foodResponse.status === 404) {
           setError("Продукт не найден.");
           setFood(null);
           return;
         }
 
-        if (!response.ok) {
+        if (!foodResponse.ok) {
           throw new Error("load failed");
         }
 
-        const data: unknown = await response.json();
+        const data: unknown = await foodResponse.json();
         setFood(readFood(data));
+
+        if (date && dayResponse?.ok) {
+          const dayData: unknown = await dayResponse.json();
+          if (cancelled) {
+            return;
+          }
+          const loadedToday = readCalendarToday(dayData);
+          setToday(loadedToday);
+          setWritable(
+            loadedToday != null && readDayWritable(dayData, date, loadedToday),
+          );
+        } else if (date) {
+          setWritable(false);
+        } else {
+          setWritable(true);
+        }
       } catch {
         if (!cancelled) {
           setError(LOAD_FAILED);
@@ -74,7 +96,7 @@ export default function AddMealItemGramsPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.foodId, reloadToken]);
+  }, [date, params.foodId, reloadToken]);
 
   return (
     <div className="flex flex-col gap-4">

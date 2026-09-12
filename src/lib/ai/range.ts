@@ -1,4 +1,4 @@
-import { format, parseISO, subDays } from "date-fns";
+import { shiftIsoDate } from "@/lib/day/dates";
 
 export const REVIEW_RANGES = [14, 30] as const;
 
@@ -13,7 +13,7 @@ export function reviewWindow(
   days: ReviewRange,
 ): { start: string; end: string } {
   return {
-    start: format(subDays(parseISO(todayIso), days - 1), "yyyy-MM-dd"),
+    start: shiftIsoDate(todayIso, 1 - days),
     end: todayIso,
   };
 }

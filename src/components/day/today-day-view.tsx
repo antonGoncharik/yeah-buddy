@@ -17,6 +17,7 @@ import type {
 
 export function TodayDayView({
   date,
+  today,
   writable,
   viewOnly,
   fromHistory,
@@ -45,6 +46,7 @@ export function TodayDayView({
   deleteItem,
 }: {
   date: string;
+  today: string;
   writable: boolean;
   viewOnly: boolean;
   fromHistory: boolean;
@@ -99,6 +101,7 @@ export function TodayDayView({
     <div className="flex flex-col gap-5">
       <TodayDayHeader
         date={date}
+        today={today}
         writable={writable}
         viewOnly={viewOnly}
         fromHistory={fromHistory}
@@ -132,6 +135,7 @@ export function TodayDayView({
 
       <TodayDayMeals
         date={date}
+        today={today}
         viewOnly={viewOnly}
         visibleMeals={visibleMeals}
         remainingMealTypes={remainingMealTypes}

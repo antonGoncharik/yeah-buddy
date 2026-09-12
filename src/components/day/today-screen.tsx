@@ -143,6 +143,7 @@ export function TodayScreen({
         {contentReady && !loadError && shownDay ? (
           <TodayDayView
             date={date}
+            today={today}
             writable={writable}
             viewOnly={viewOnly}
             fromHistory={fromHistory}

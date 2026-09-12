@@ -1,4 +1,4 @@
-import { isIsoDate } from "@/lib/day/dates";
+import { isIsoDate, isWritableDayDate } from "@/lib/day/dates";
 import { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 import type { RecipeLine } from "@/lib/day/remaining";
 import { isMealType } from "@/lib/nutrition";
@@ -53,7 +53,7 @@ export function readDayWritable(
   if (isRecord(data) && typeof data.writable === "boolean") {
     return data.writable;
   }
-  return date === today;
+  return isWritableDayDate(date, today);
 }
 
 export function readCopyDays(data: unknown): CopyDayHint[] {

@@ -63,16 +63,16 @@ export function useTodayScreen({
   );
 
   useEffect(() => {
-    setDate(resolveStartDate(initialDate, calendarToday()));
-  }, [initialDate]);
+    setDate(resolveStartDate(initialDate, data.today));
+  }, [data.today, initialDate]);
 
   const goToDate = useCallback(
     (next: string) => {
       const resolved = resolveStartDate(next, data.today);
       setDate(resolved);
       const href = fromHistory
-        ? todayHistoryDayHref(resolved, fromSettings)
-        : todayHomeHref(resolved);
+        ? todayHistoryDayHref(resolved, fromSettings, data.today)
+        : todayHomeHref(resolved, data.today);
       router.replace(href, { scroll: false });
     },
     [data.today, fromHistory, fromSettings, router],

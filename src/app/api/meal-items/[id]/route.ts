@@ -14,6 +14,8 @@ import {
   deleteMealItem,
   getDateForMeal,
   getMealItem,
+  getUserCalendarToday,
+  isWritableDayDate,
   PastDayLockedError,
   updateMealItemGrams,
 } from "@/lib/days";
@@ -45,8 +47,14 @@ export async function GET(
     }
 
     const date = await getDateForMeal(auth.session.userId, item.meal_id);
+    const today = await getUserCalendarToday(auth.session.userId);
 
-    return jsonOk({ item, date });
+    return jsonOk({
+      item,
+      date,
+      today,
+      writable: date != null && isWritableDayDate(date, today),
+    });
   } catch (error) {
     return failRoute(error);
   }

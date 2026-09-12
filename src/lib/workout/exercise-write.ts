@@ -1,3 +1,4 @@
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Exercise, ExerciseWithMax } from "@/lib/types";
 import { getExercise, listExercises } from "@/lib/workout/exercise-read";
@@ -90,7 +91,10 @@ export async function createExercise(
   await insertGlobalMax(userId, {
     exerciseId: exercise.id,
     maxWeight: input.max_weight,
-    achievedAt: resolveAchievedAt(input.achieved_at),
+    achievedAt: resolveAchievedAt(
+      input.achieved_at,
+      await getUserCalendarToday(userId),
+    ),
   });
   await copyMaxToCurrentPhase(supabase, userId, exercise.id, input.max_weight);
 

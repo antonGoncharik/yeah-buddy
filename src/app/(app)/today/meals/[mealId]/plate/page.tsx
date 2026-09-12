@@ -21,8 +21,8 @@ export default async function PlateMealPage({
   const { mealId } = await params;
   const query = await searchParams;
   const date = readDate(query.date);
-  const homeHref = todayHomeHref(date);
   const today = await resolveRequestToday();
+  const homeHref = todayHomeHref(date, today);
 
   if (date && !isWritableDayDate(date, today)) {
     redirect(homeHref);
@@ -32,7 +32,7 @@ export default async function PlateMealPage({
     <div className="flex flex-col gap-4">
       <AppHeader
         title="С тарелки"
-        backHref={withDateQuery(`/today/meals/${mealId}/add`, date)}
+        backHref={withDateQuery(`/today/meals/${mealId}/add`, date, today)}
       />
       <PlateScreen
         mealId={mealId}

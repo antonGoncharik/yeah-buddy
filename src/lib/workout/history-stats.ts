@@ -1,5 +1,4 @@
-import { format, parseISO, subDays } from "date-fns";
-
+import { isIsoDate, shiftIsoDate } from "@/lib/day/dates";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
@@ -119,9 +118,9 @@ function rangeStart(
   todayIso: string,
   days: WorkoutHistoryRange,
 ): string | null {
-  try {
-    return format(subDays(parseISO(todayIso), days - 1), "yyyy-MM-dd");
-  } catch {
+  if (!isIsoDate(todayIso)) {
     return null;
   }
+
+  return shiftIsoDate(todayIso, 1 - days);
 }

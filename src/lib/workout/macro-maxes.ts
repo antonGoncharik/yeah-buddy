@@ -1,3 +1,4 @@
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PhaseMax, PhaseMaxRow, WorkoutPhase } from "@/lib/types";
 import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
@@ -39,7 +40,7 @@ export async function setPhaseMax(
     userId,
     exerciseId: input.exercise_id,
     maxWeight: input.max_weight,
-    achievedAt: new Date().toISOString().slice(0, 10),
+    achievedAt: await getUserCalendarToday(userId),
     phaseId,
   });
   return mapped;

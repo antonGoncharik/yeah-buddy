@@ -7,12 +7,8 @@ import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import {
-  calendarToday,
-  isIsoDate,
-  isWritableDayDate,
-  todayHomeHref,
-} from "@/lib/day/dates";
+import { isIsoDate, todayHomeHref } from "@/lib/day/dates";
+import { readCalendarToday, readDayWritable } from "@/lib/day/today-payload";
 import { parseFoodYield } from "@/lib/food/yield";
 import { readFoodPayload } from "@/lib/foods";
 import { readMealItemPayload } from "@/lib/meal/parse";
@@ -22,13 +18,16 @@ import type { Food, MealItem } from "@/lib/types";
 export default function EditMealItemPage() {
   const params = useParams<{ itemId: string }>();
   const searchParams = useSearchParams();
-  const homeHref = todayHomeHref(readDateParam(searchParams.get("date")));
+  const dateParam = readDateParam(searchParams.get("date"));
   const [reloadToken, setReloadToken] = useState(0);
   const [item, setItem] = useState<MealItem | null>(null);
   const [food, setFood] = useState<Food | null>(null);
   const [dayDate, setDayDate] = useState<string | null>(null);
+  const [today, setToday] = useState<string | null>(null);
+  const [writable, setWritable] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const homeHref = todayHomeHref(dateParam ?? dayDate, today ?? undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +48,8 @@ export default function EditMealItemPage() {
           setError("Запись не найдена.");
           setItem(null);
           setDayDate(null);
+          setToday(null);
+          setWritable(false);
           return;
         }
 
@@ -58,8 +59,16 @@ export default function EditMealItemPage() {
 
         const data: unknown = await response.json();
         const loaded = readItem(data);
+        const loadedDate = readItemDate(data);
+        const loadedToday = readCalendarToday(data);
         setItem(loaded);
-        setDayDate(readItemDate(data));
+        setDayDate(loadedDate);
+        setToday(loadedToday);
+        setWritable(
+          loadedDate != null &&
+            loadedToday != null &&
+            readDayWritable(data, loadedDate, loadedToday),
+        );
 
         if (loaded?.food_id) {
           const foodResponse = await fetch(`/api/foods/${loaded.food_id}`);
@@ -76,6 +85,8 @@ export default function EditMealItemPage() {
           setError(LOAD_FAILED);
           setItem(null);
           setDayDate(null);
+          setToday(null);
+          setWritable(false);
         }
       } finally {
         if (!cancelled) {
@@ -121,13 +132,9 @@ export default function EditMealItemPage() {
           allowCooked
           backHref={homeHref}
           doneHref={homeHref}
-          readOnly={
-            dayDate != null && !isWritableDayDate(dayDate, calendarToday())
-          }
+          readOnly={!writable}
           save={
-            dayDate != null && !isWritableDayDate(dayDate, calendarToday())
-              ? undefined
-              : (grams) => saveMealItemGrams(item.id, grams)
+            writable ? (grams) => saveMealItemGrams(item.id, grams) : undefined
           }
         />
       ) : null}

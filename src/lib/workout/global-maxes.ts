@@ -1,3 +1,4 @@
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { GlobalMax } from "@/lib/types";
 import { StartingMaxLockedError } from "@/lib/workout/exercise-schema";
@@ -28,7 +29,10 @@ export async function correctStartingMax(input: {
     return insertGlobalMax(input.userId, {
       exerciseId: input.exerciseId,
       maxWeight: input.maxWeight,
-      achievedAt: resolveAchievedAt(undefined),
+      achievedAt: resolveAchievedAt(
+        undefined,
+        await getUserCalendarToday(input.userId),
+      ),
     });
   }
 

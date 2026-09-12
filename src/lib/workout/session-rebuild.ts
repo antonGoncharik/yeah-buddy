@@ -1,4 +1,4 @@
-import { calendarToday } from "@/lib/day/dates";
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { ensureSessionPlan } from "@/lib/workout/session-plan";
@@ -74,7 +74,10 @@ export async function rebuildPlannedSession(
 export async function rebuildTodaysPlannedSession(
   userId: string,
 ): Promise<void> {
-  const session = await getSessionOnDate(userId, calendarToday());
+  const session = await getSessionOnDate(
+    userId,
+    await getUserCalendarToday(userId),
+  );
   if (!session) {
     return;
   }
