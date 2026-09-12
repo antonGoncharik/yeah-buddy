@@ -126,7 +126,7 @@ export function SettingsScreen() {
           <NavRow
             href="/onboarding?again=1"
             title="Ещё раз с начала"
-            hint="Белок и веса. Очередь и еду на день не трогает"
+            hint="Только белок и рабочие веса. Тренировки и еда как были"
           />
         </section>
 
