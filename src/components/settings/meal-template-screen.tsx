@@ -21,6 +21,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
     targets,
     load,
     deleteItem,
+    reorderItems,
   } = useMealTemplateScreen(dayType);
 
   return (
@@ -91,6 +92,14 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
                     );
                     if (row && !busy) {
                       void deleteItem(row);
+                    }
+                  }}
+                  onReorderItems={(next) => {
+                    if (!busy) {
+                      void reorderItems(
+                        mealType,
+                        next.map((item) => item.id),
+                      );
                     }
                   }}
                 />

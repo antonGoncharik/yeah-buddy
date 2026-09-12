@@ -14,6 +14,7 @@ export function FormulaSetRow({
   exampleMax,
   exampleStep,
   canRemove,
+  hideIndex = false,
   onUpdate,
   onRemove,
 }: {
@@ -22,6 +23,7 @@ export function FormulaSetRow({
   exampleMax: number;
   exampleStep: number;
   canRemove: boolean;
+  hideIndex?: boolean;
   onUpdate: (patch: Partial<FormulaSetSpec>) => void;
   onRemove: () => void;
 }) {
@@ -37,16 +39,18 @@ export function FormulaSetRow({
       className="flex flex-col gap-2 rounded-xl bg-muted/50 px-3 py-3"
       data-field-group
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-muted-foreground">
-          Подход {index + 1}
-        </p>
-        <RemoveRowButton
-          label={`Убрать подход ${index + 1}`}
-          disabled={!canRemove}
-          onClick={onRemove}
-        />
-      </div>
+      {hideIndex ? null : (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Подход {index + 1}
+          </p>
+          <RemoveRowButton
+            label={`Убрать подход ${index + 1}`}
+            disabled={!canRemove}
+            onClick={onRemove}
+          />
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Input
           inputMode="decimal"
@@ -131,6 +135,13 @@ export function FormulaSetRow({
         <p className="min-w-0 flex-1 text-right text-base font-medium tabular-nums">
           {weight == null ? "—" : `${formatWeight(weight)} кг`}
         </p>
+        {hideIndex ? (
+          <RemoveRowButton
+            label={`Убрать подход ${index + 1}`}
+            disabled={!canRemove}
+            onClick={onRemove}
+          />
+        ) : null}
       </div>
     </div>
   );

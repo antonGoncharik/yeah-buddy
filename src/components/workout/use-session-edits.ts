@@ -8,6 +8,7 @@ import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail } from "@/lib/types";
+import { readSessionDetail } from "@/lib/workout/session-payload";
 import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
 
 export function useSessionEdits({
@@ -99,6 +100,40 @@ export function useSessionEdits({
     });
   }
 
+  async function reorderExercises(exerciseIds: string[]) {
+    if (!detail) {
+      return;
+    }
+
+    const previous = detail;
+    const exercises = exerciseIds.flatMap((id) => {
+      const row = previous.exercises.find((item) => item.id === id);
+      return row ? [row] : [];
+    });
+    if (exercises.length !== previous.exercises.length) {
+      return;
+    }
+
+    setDetail({ ...previous, exercises });
+
+    try {
+      const data = await patchJson(
+        `/api/sessions/${detail.session.id}/exercises`,
+        { exerciseIds },
+      );
+      const next = readSessionDetail(data);
+      if (next) {
+        setDetail((current) =>
+          current ? { ...current, exercises: next.exercises } : next,
+        );
+      }
+    } catch (caught) {
+      haptic("error");
+      setDetail(previous);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
   async function cancelToday() {
     if (!detail) {
       return;
@@ -121,5 +156,11 @@ export function useSessionEdits({
     });
   }
 
-  return { raiseMaxes, saveNote, removeExercise, cancelToday };
+  return {
+    raiseMaxes,
+    saveNote,
+    removeExercise,
+    reorderExercises,
+    cancelToday,
+  };
 }

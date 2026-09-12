@@ -1,4 +1,5 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
+import { assertSameIds, orderRanks } from "@/lib/order";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { ensureSessionPlan } from "@/lib/workout/session-plan";
@@ -35,6 +36,42 @@ export async function removeSessionExercise(
 
   if (deleted.error) {
     throw deleted.error;
+  }
+
+  return loadSessionDetail(userId, session);
+}
+
+export async function reorderSessionExercises(
+  userId: string,
+  sessionId: string,
+  exerciseIds: string[],
+): Promise<SessionDetail | null> {
+  const session = await getSession(userId, sessionId);
+  if (!session) {
+    return null;
+  }
+
+  const detail = await loadSessionDetail(userId, session);
+  assertSameIds(
+    detail.exercises.map((item) => item.id),
+    exerciseIds,
+  );
+
+  const supabase = createSupabaseServerClient();
+  const updated = await Promise.all(
+    orderRanks(exerciseIds).map((rank) =>
+      supabase
+        .from("session_exercises")
+        .update({ sort_order: rank.sort_order })
+        .eq("user_id", userId)
+        .eq("session_id", sessionId)
+        .eq("id", rank.id),
+    ),
+  );
+
+  const failed = updated.find((result) => result.error);
+  if (failed?.error) {
+    throw failed.error;
   }
 
   return loadSessionDetail(userId, session);

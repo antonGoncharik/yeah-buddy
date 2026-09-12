@@ -22,5 +22,12 @@ export const completeSessionSchema = z.object({
     .optional(),
 });
 
+export const reorderSessionExercisesSchema = z.object({
+  exerciseIds: z.array(z.string().uuid()).min(1),
+});
+
 export type PatchSetInput = z.infer<typeof patchSetSchema>;
 export type CompleteSessionInput = z.infer<typeof completeSessionSchema>;
+export type ReorderSessionExercisesInput = z.infer<
+  typeof reorderSessionExercisesSchema
+>;

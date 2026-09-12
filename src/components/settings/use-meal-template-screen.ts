@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
-import { cachedGet, deleteJson } from "@/lib/api-cache";
+import { cachedGet, deleteJson, patchJson, writeJson } from "@/lib/api-cache";
 import { readMealTemplatePayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import {
@@ -19,6 +19,7 @@ import type {
   DayType,
   MealTemplateDetail,
   MealTemplateItemView,
+  MealType,
   UserSettings,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -160,6 +161,52 @@ export function useMealTemplateScreen(dayType: DayType) {
     }
   }
 
+  async function reorderItems(mealType: MealType, itemIds: string[]) {
+    if (!template || busy) {
+      return;
+    }
+
+    const previous = template;
+    const currentMeal = previous.items.filter(
+      (item) => item.meal_type === mealType,
+    );
+    const reordered = itemIds.flatMap((id) => {
+      const row = currentMeal.find((item) => item.id === id);
+      return row ? [row] : [];
+    });
+    if (reordered.length !== currentMeal.length) {
+      return;
+    }
+
+    const next = {
+      ...previous,
+      items: [
+        ...previous.items.filter((item) => item.meal_type !== mealType),
+        ...reordered,
+      ],
+    };
+    setTemplate(next);
+    setBusy(true);
+    setError(null);
+
+    try {
+      const data = await patchJson(`/api/meal-templates/${dayType}/items`, {
+        mealType,
+        itemIds,
+      });
+      const loaded = readTemplate(data);
+      if (loaded) {
+        setTemplate(loaded);
+        writeJson(`/api/meal-templates/${dayType}`, { template: loaded });
+      }
+    } catch (caught) {
+      setTemplate(previous);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return {
     template,
     loading,
@@ -171,6 +218,7 @@ export function useMealTemplateScreen(dayType: DayType) {
     targets,
     load,
     deleteItem,
+    reorderItems,
   };
 }
 

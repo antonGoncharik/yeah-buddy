@@ -9,6 +9,7 @@ import {
   type MealLine,
 } from "@/components/day/meal-item-row";
 import { Button } from "@/components/ui/button";
+import { SortableList } from "@/components/workout/sortable-list";
 import {
   formatKcal,
   formatMacro,
@@ -24,6 +25,7 @@ export function MealCard({
   itemHref,
   addHref,
   onDeleteItem,
+  onReorderItems,
   date,
   copyDays,
   namedMeals,
@@ -42,6 +44,7 @@ export function MealCard({
   itemHref?: (item: MealLine) => string;
   addHref?: string;
   onDeleteItem?: (item: MealLine) => void;
+  onReorderItems?: (next: MealLine[]) => void;
   date?: string;
   copyDays?: CopyDayHint[];
   namedMeals?: NamedMealHint[];
@@ -108,6 +111,19 @@ export function MealCard({
 
       {items.length === 0 ? (
         <p className="text-base text-muted-foreground">Пока пусто.</p>
+      ) : onReorderItems && !readOnly ? (
+        <SortableList
+          items={items}
+          disabled={copyBusy}
+          onReorder={onReorderItems}
+          renderItem={(item) => (
+            <MealItemRow
+              item={item}
+              href={itemHref ? itemHref(item) : undefined}
+              onDelete={onDeleteItem ? () => onDeleteItem(item) : undefined}
+            />
+          )}
+        />
       ) : (
         <div className="flex flex-col divide-y divide-border/80">
           {items.map((item) => (

@@ -7,12 +7,14 @@ export {
   addTemplateItem,
   deleteTemplateItem,
   getTemplateItem,
+  reorderTemplateItems,
   replaceMealTemplateItems,
   updateTemplateItemGrams,
 } from "@/lib/meal/items";
 export {
   type TemplateItemWriteInput,
   templateItemGramsSchema,
+  templateItemReorderSchema,
   templateItemWriteSchema,
 } from "@/lib/meal/schema";
 export {

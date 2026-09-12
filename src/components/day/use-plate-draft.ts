@@ -38,41 +38,50 @@ export function usePlateDraft({
   const [picker, setPicker] = useState<PlatePicker>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  function patchDraftItem(index: number, update: (item: PlateRow) => PlateRow) {
+  function patchDraftItem(rowId: string, update: (item: PlateRow) => PlateRow) {
     setView((current) => {
       if (current.status !== "draft") {
         return current;
       }
       return {
         ...current,
-        items: current.items.map((item, itemIndex) =>
-          itemIndex === index ? update(item) : item,
+        items: current.items.map((item) =>
+          item.rowId === rowId ? update(item) : item,
         ),
       };
     });
   }
 
-  function setGrams(index: number, gramsInput: string) {
-    patchDraftItem(index, (item) => ({ ...item, gramsInput }));
+  function setGrams(rowId: string, gramsInput: string) {
+    patchDraftItem(rowId, (item) => ({ ...item, gramsInput }));
   }
 
-  function setGramsMode(index: number, mode: GramsMode) {
-    patchDraftItem(index, (item) => withGramsMode(item, mode));
+  function setGramsMode(rowId: string, mode: GramsMode) {
+    patchDraftItem(rowId, (item) => withGramsMode(item, mode));
   }
 
-  function patchLump(index: number, patch: PlateLumpPatch) {
-    patchDraftItem(index, (item) => patchLumpRow(item, patch));
+  function patchLump(rowId: string, patch: PlateLumpPatch) {
+    patchDraftItem(rowId, (item) => patchLumpRow(item, patch));
   }
 
-  function removeItem(index: number) {
+  function removeItem(rowId: string) {
     haptic("tick");
     setView((current) => {
       if (current.status !== "draft") {
         return current;
       }
-      const items = current.items.filter((_, itemIndex) => itemIndex !== index);
+      const items = current.items.filter((item) => item.rowId !== rowId);
       if (items.length === 0) {
         return { status: "empty", previewUrl: current.previewUrl };
+      }
+      return { ...current, items };
+    });
+  }
+
+  function reorderItems(items: PlateRow[]) {
+    setView((current) => {
+      if (current.status !== "draft") {
+        return current;
       }
       return { ...current, items };
     });
@@ -96,8 +105,8 @@ export function usePlateDraft({
       }
 
       if (picker?.mode === "replace") {
-        const items = current.items.map((item, index) =>
-          index === picker.index
+        const items = current.items.map((item) =>
+          item.rowId === picker.rowId
             ? {
                 ...next,
                 gramsInput:
@@ -159,6 +168,7 @@ export function usePlateDraft({
     setGramsMode,
     patchLump,
     removeItem,
+    reorderItems,
     pickFood,
     save,
   };

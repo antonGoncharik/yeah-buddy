@@ -16,6 +16,7 @@ import { usePlateScreen } from "@/components/day/use-plate-screen";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
+import { SortableList } from "@/components/workout/sortable-list";
 import { AI_PLATE_RETRY } from "@/lib/messages";
 import {
   calcMacrosFromPer100,
@@ -78,27 +79,38 @@ export function PlateScreen({
           empty={plate.empty}
         />
 
-        {plate.items.map((item, index) => (
-          <PlateDraftRow
-            key={item.rowId}
-            item={item}
-            gramsInput={item.gramsInput}
-            gramsMode={item.gramsMode}
-            yieldPair={rowYield(item)}
-            proteinInput={item.proteinInput}
-            fatInput={item.fatInput}
-            carbsInput={item.carbsInput}
-            onGramsChange={(value) => plate.setGrams(index, value)}
-            onGramsModeChange={(mode) => plate.setGramsMode(index, mode)}
-            onRemove={() => plate.removeItem(index)}
-            onChangeFood={() => plate.setPicker({ mode: "replace", index })}
-            onPatchLump={
-              item.kind === "lump"
-                ? (patch) => plate.patchLump(index, patch)
-                : undefined
-            }
+        {plate.items.length > 0 ? (
+          <SortableList
+            variant="cards"
+            items={plate.items.map((item) => ({ ...item, id: item.rowId }))}
+            disabled={plate.busy}
+            onReorder={(next) => plate.reorderItems(next)}
+            renderItem={(item) => (
+              <PlateDraftRow
+                item={item}
+                gramsInput={item.gramsInput}
+                gramsMode={item.gramsMode}
+                yieldPair={rowYield(item)}
+                proteinInput={item.proteinInput}
+                fatInput={item.fatInput}
+                carbsInput={item.carbsInput}
+                onGramsChange={(value) => plate.setGrams(item.rowId, value)}
+                onGramsModeChange={(mode) =>
+                  plate.setGramsMode(item.rowId, mode)
+                }
+                onRemove={() => plate.removeItem(item.rowId)}
+                onChangeFood={() =>
+                  plate.setPicker({ mode: "replace", rowId: item.rowId })
+                }
+                onPatchLump={
+                  item.kind === "lump"
+                    ? (patch) => plate.patchLump(item.rowId, patch)
+                    : undefined
+                }
+              />
+            )}
           />
-        ))}
+        ) : null}
 
         {plate.canAddFood ? (
           <Button

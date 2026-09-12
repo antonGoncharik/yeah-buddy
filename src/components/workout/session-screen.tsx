@@ -45,6 +45,7 @@ export function SessionScreen() {
     drafts,
     setDrafts,
     removeExercise,
+    reorderExercises,
   } = useSessionScreen();
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
@@ -93,6 +94,9 @@ export function SessionScreen() {
               setWorkOpen={setWorkOpen}
               setDrafts={setDrafts}
               onRemove={(id) => void removeExercise(id)}
+              onReorder={
+                canEditSets ? (ids) => void reorderExercises(ids) : undefined
+              }
               onStartRest={(id) => rest.start(id)}
               lastRestSeconds={rest.lastSeconds}
             />

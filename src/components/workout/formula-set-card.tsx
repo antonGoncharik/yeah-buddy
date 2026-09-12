@@ -1,10 +1,12 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { MAX_SETS } from "@/components/workout/formula-form";
 import { FormulaSetRow } from "@/components/workout/formula-set-row";
+import { SortableList } from "@/components/workout/sortable-list";
 import type { FormulaSetSpec } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +54,13 @@ export function SetCard({
   allowEmpty?: boolean;
   onChange: (sets: FormulaSetSpec[]) => void;
 }) {
+  const rowIds = useRef<string[]>([]);
+  if (rowIds.current.length !== sets.length) {
+    rowIds.current = sets.map(
+      (_, index) => rowIds.current[index] ?? `set-${crypto.randomUUID()}`,
+    );
+  }
+
   function updateAt(index: number, patch: Partial<FormulaSetSpec>) {
     onChange(
       sets.map((set, setIndex) =>
@@ -65,6 +74,7 @@ export function SetCard({
       return;
     }
     const last = sets[sets.length - 1];
+    rowIds.current = [...rowIds.current, `set-${crypto.randomUUID()}`];
     onChange([
       ...sets,
       last
@@ -79,6 +89,7 @@ export function SetCard({
     if (!allowEmpty && sets.length <= 1) {
       return;
     }
+    rowIds.current = rowIds.current.filter((_, setIndex) => setIndex !== index);
     onChange(sets.filter((_, setIndex) => setIndex !== index));
   }
 
@@ -91,21 +102,31 @@ export function SetCard({
 
       {sets.length === 0 ? (
         <p className="text-base text-muted-foreground">Пусто</p>
-      ) : null}
-
-      {sets.map((set, index) => (
-        <FormulaSetRow
-          // biome-ignore lint/suspicious/noArrayIndexKey: identical work sets share values
-          key={index}
-          index={index}
-          set={set}
-          exampleMax={exampleMax}
-          exampleStep={exampleStep}
-          canRemove={allowEmpty || sets.length > 1}
-          onUpdate={(patch) => updateAt(index, patch)}
-          onRemove={() => removeAt(index)}
+      ) : (
+        <SortableList
+          variant="cards"
+          items={sets.map((set, index) => ({
+            id: rowIds.current[index] ?? `set-${index}`,
+            set,
+          }))}
+          onReorder={(next) => {
+            rowIds.current = next.map((item) => item.id);
+            onChange(next.map((item) => item.set));
+          }}
+          renderItem={(item, index) => (
+            <FormulaSetRow
+              index={index}
+              set={item.set}
+              exampleMax={exampleMax}
+              exampleStep={exampleStep}
+              canRemove={allowEmpty || sets.length > 1}
+              hideIndex
+              onUpdate={(patch) => updateAt(index, patch)}
+              onRemove={() => removeAt(index)}
+            />
+          )}
         />
-      ))}
+      )}
 
       <Button
         type="button"

@@ -12,7 +12,7 @@ export type PlateRow = PlateDraftItem & {
 
 export type PlatePicker =
   | { mode: "add" }
-  | { mode: "replace"; index: number }
+  | { mode: "replace"; rowId: string }
   | null;
 
 export type PlateStatus =

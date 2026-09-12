@@ -6,7 +6,8 @@ import {
   type DragEndEvent,
   type DragOverEvent,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -28,15 +29,20 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   disabled,
   renderItem,
+  variant = "rows",
 }: {
   items: T[];
   onReorder: (next: T[]) => void;
   disabled?: boolean;
   renderItem: (item: T, index: number) => ReactNode;
+  variant?: "rows" | "cards";
 }) {
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: { distance: 6 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { distance: 8 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -90,7 +96,9 @@ export function SortableList<T extends { id: string }>({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div>
+        <div
+          className={variant === "cards" ? "flex flex-col gap-3" : undefined}
+        >
           {items.map((item, index) => (
             <SortableRow
               key={item.id}
@@ -98,6 +106,7 @@ export function SortableList<T extends { id: string }>({
               disabled={!canSort}
               showHandle={items.length > 1}
               index={index}
+              variant={variant}
             >
               {renderItem(item, index)}
             </SortableRow>
@@ -113,12 +122,14 @@ function SortableRow({
   disabled,
   showHandle,
   index,
+  variant,
   children,
 }: {
   id: string;
   disabled: boolean;
   showHandle: boolean;
   index: number;
+  variant: "rows" | "cards";
   children: ReactNode;
 }) {
   const {
@@ -140,14 +151,19 @@ function SortableRow({
         transition,
       }}
       className={cn(
-        "flex items-center gap-1 border-b border-border/70 px-1 py-1 last:border-b-0",
+        "flex items-start gap-1",
+        variant === "rows" &&
+          "border-b border-border/70 px-1 py-1 last:border-b-0",
         isDragging && "relative z-10 rounded-xl bg-card shadow-lg",
       )}
     >
       {showHandle ? (
         <button
           type="button"
-          className="flex size-11 shrink-0 touch-none items-center justify-center rounded-xl disabled:opacity-50"
+          className={cn(
+            "flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl active:cursor-grabbing disabled:opacity-50",
+            variant === "cards" && "mt-1",
+          )}
           aria-label="Перетащить"
           disabled={disabled}
           {...attributes}
@@ -158,13 +174,25 @@ function SortableRow({
           </span>
         </button>
       ) : (
-        <span className="flex size-11 shrink-0 items-center justify-center">
+        <span
+          className={cn(
+            "flex size-11 shrink-0 items-center justify-center",
+            variant === "cards" && "mt-1",
+          )}
+        >
           <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
             {index + 1}
           </span>
         </span>
       )}
-      {children}
+      <div
+        className={cn(
+          "min-w-0 flex-1",
+          variant === "rows" && "flex items-center",
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

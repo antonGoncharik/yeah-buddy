@@ -10,6 +10,7 @@ import {
   loadTemplateDetail,
 } from "@/lib/meal/store";
 import { getMealOrder, isMealVisible } from "@/lib/nutrition";
+import { assertSameIds, orderRanks } from "@/lib/order";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   DayType,
@@ -137,6 +138,44 @@ export async function deleteTemplateItem(
   }
 
   return Boolean(deleted.data);
+}
+
+export async function reorderTemplateItems(
+  userId: string,
+  dayType: DayType,
+  mealType: MealType,
+  itemIds: string[],
+): Promise<MealTemplateDetail> {
+  if (!isMealVisible(mealType, dayType === "training")) {
+    throw new TemplateMealHiddenError();
+  }
+
+  const template = await ensureMealTemplate(userId, dayType);
+  const current = template.items.filter((item) => item.meal_type === mealType);
+  assertSameIds(
+    current.map((item) => item.id),
+    itemIds,
+  );
+
+  const supabase = createSupabaseServerClient();
+  const ranks = orderRanks(itemIds, getMealOrder(mealType) * 10);
+  const updated = await Promise.all(
+    ranks.map((rank) =>
+      supabase
+        .from("meal_template_items")
+        .update({ sort_order: rank.sort_order })
+        .eq("user_id", userId)
+        .eq("template_id", template.id)
+        .eq("id", rank.id),
+    ),
+  );
+
+  const failed = updated.find((result) => result.error);
+  if (failed?.error) {
+    throw failed.error;
+  }
+
+  return loadTemplateDetail(supabase, userId, template);
 }
 
 export async function replaceMealTemplateItems(

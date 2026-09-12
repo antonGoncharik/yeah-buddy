@@ -7,10 +7,12 @@ export {
   rebuildPlannedSession,
   rebuildTodaysPlannedSession,
   removeSessionExercise,
+  reorderSessionExercises,
 } from "@/lib/workout/session-rebuild";
 export {
   type CompleteSessionInput,
   completeSessionSchema,
   type PatchSetInput,
   patchSetSchema,
+  reorderSessionExercisesSchema,
 } from "@/lib/workout/session-schema";

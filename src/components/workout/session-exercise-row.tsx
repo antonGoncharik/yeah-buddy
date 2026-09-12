@@ -20,6 +20,7 @@ import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
 
 export function SessionExerciseRow({
   item,
+  compact = false,
   openSetIds,
   warmupOpen,
   workOpen,
@@ -36,6 +37,7 @@ export function SessionExerciseRow({
   restSeconds,
 }: {
   item: SessionExerciseDetail;
+  compact?: boolean;
   openSetIds: string[];
   warmupOpen: boolean;
   workOpen: boolean;
@@ -71,8 +73,18 @@ export function SessionExerciseRow({
     : null;
 
   return (
-    <div className="border-b border-border/70 last:border-b-0">
-      <div className="flex flex-col items-start gap-2.5 px-5 py-4">
+    <div
+      className={
+        compact ? undefined : "border-b border-border/70 last:border-b-0"
+      }
+    >
+      <div
+        className={
+          compact
+            ? "flex flex-col items-start gap-2.5 px-2 py-3"
+            : "flex flex-col items-start gap-2.5 px-5 py-4"
+        }
+      >
         <div className="flex w-full items-start gap-2">
           <h3 className="min-w-0 flex-1 text-xl font-semibold tracking-tight">
             {item.exercise.short_name || item.exercise.name}
