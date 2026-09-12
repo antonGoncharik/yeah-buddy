@@ -9,6 +9,7 @@ import {
   whenError,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
+import { shiftIsoDate } from "@/lib/day/dates";
 import {
   createDayFromTemplate,
   DayConflictError,
@@ -17,11 +18,13 @@ import {
   getUserCalendarToday,
   isIsoDate,
   isWritableDayDate,
+  listBodyWeightsInRange,
   listCopyDays,
   PastDayLockedError,
   recipeFromTemplate,
   yesterdayCopyHint,
 } from "@/lib/days";
+import { STEADY_WEIGHT_DAYS, steadyWeightLine } from "@/lib/flavor";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
@@ -52,6 +55,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       namedMeals,
       rest,
       training,
+      recentWeights,
     ] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
@@ -60,6 +64,11 @@ export async function GET(request: Request): Promise<NextResponse> {
       listNamedMealHints(auth.session.userId),
       getActiveMealTemplate(auth.session.userId, "rest"),
       getActiveMealTemplate(auth.session.userId, "training"),
+      listBodyWeightsInRange(
+        auth.session.userId,
+        shiftIsoDate(date, 1 - STEADY_WEIGHT_DAYS),
+        date,
+      ),
     ]);
 
     return jsonOk({
@@ -69,6 +78,11 @@ export async function GET(request: Request): Promise<NextResponse> {
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
       lastBodyWeight,
+      weightSteady:
+        steadyWeightLine(
+          new Map(recentWeights.map((row) => [row.date, row.weight])),
+          date,
+        ) != null,
       copyDays,
       namedMeals,
       recipes: {

@@ -3,7 +3,7 @@
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useDayMood } from "@/components/layout/day-mood";
 import { useHubSessionActions } from "@/components/workout/use-hub-session-actions";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -31,6 +31,7 @@ import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
 
 export function useWorkoutsHub() {
   const date = format(new Date(), "yyyy-MM-dd");
+  const { setMood } = useDayMood();
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
@@ -132,6 +133,14 @@ export function useWorkoutsHub() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+    setMood(macro?.phase?.phase_type === "deload" ? "deload" : "training");
+    return () => setMood(null);
+  }, [loading, macro?.phase?.phase_type, setMood]);
 
   const { createOnDate, skipTemplate, unskipLast, pickTemplate } =
     useHubSessionActions({

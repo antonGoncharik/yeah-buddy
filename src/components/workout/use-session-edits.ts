@@ -29,9 +29,9 @@ export function useSessionEdits({
   const router = useRouter();
   const confirm = useConfirm();
 
-  async function raiseMaxes() {
+  async function raiseMaxes(): Promise<boolean> {
     if (!detail || detail.raise_offers.length === 0) {
-      return;
+      return false;
     }
 
     const ok = await confirm({
@@ -40,9 +40,10 @@ export function useSessionEdits({
       cancelLabel: "Оставить",
     });
     if (!ok) {
-      return;
+      return false;
     }
 
+    let raised = false;
     await runBusy(async () => {
       const data = await postJson(
         `/api/sessions/${detail.session.id}/raise-maxes`,
@@ -50,8 +51,10 @@ export function useSessionEdits({
       );
       if (applyPayload(data)) {
         haptic("success");
+        raised = true;
       }
     });
+    return raised;
   }
 
   async function saveNote() {

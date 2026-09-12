@@ -3,13 +3,13 @@
 import { CalendarDays, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { ComponentType } from "react";
-
+import { type ComponentType, type MouseEvent, useState } from "react";
 import {
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
 } from "@/components/layout/doodles";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
 function DumbbellNavIcon({ className }: { className?: string }) {
@@ -34,6 +34,17 @@ export function BottomNav() {
   const pathname = usePathname();
   const from = useSearchParams().get("from");
   const activeHref = navActiveHref(pathname, from);
+  const [wiggle, setWiggle] = useState(false);
+
+  function onWorkoutsClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/workouts") {
+      return;
+    }
+    event.preventDefault();
+    haptic("tick");
+    setWiggle(false);
+    requestAnimationFrame(() => setWiggle(true));
+  }
 
   return (
     <nav className="app-bottom-nav app-fixed-bottom fixed inset-x-0 z-10 border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
@@ -41,11 +52,13 @@ export function BottomNav() {
         {ITEMS.map((item) => {
           const active = item.href === activeHref;
           const Icon = item.icon;
+          const workouts = item.href === "/workouts";
 
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
+                onClick={workouts ? onWorkoutsClick : undefined}
                 className={cn(
                   "flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",
                   active ? "text-primary" : "text-muted-foreground",
@@ -57,13 +70,22 @@ export function BottomNav() {
                     active ? "scale-100 bg-primary/12" : "scale-90",
                   )}
                 >
-                  <Icon
+                  <span
                     className={cn(
-                      item.href === "/workouts" ? "size-7" : "size-5",
-                      "transition-transform duration-300 ease-[var(--ease-out-soft)]",
-                      active && "scale-105",
+                      workouts && wiggle && "animate-dumbbell-wiggle",
                     )}
-                  />
+                    onAnimationEnd={
+                      workouts ? () => setWiggle(false) : undefined
+                    }
+                  >
+                    <Icon
+                      className={cn(
+                        workouts ? "size-7" : "size-5",
+                        "transition-transform duration-300 ease-[var(--ease-out-soft)]",
+                        active && "scale-105",
+                      )}
+                    />
+                  </span>
                 </span>
                 {item.label}
               </Link>

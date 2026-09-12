@@ -10,6 +10,7 @@ import { SessionExerciseList } from "@/components/workout/session-exercise-list"
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
+import { SKIP_SESSION_LABEL } from "@/lib/flavor";
 
 export function SessionScreen() {
   const {
@@ -130,7 +131,7 @@ export function SessionScreen() {
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}
                 onFeel={(feel) => void saveFeel(feel)}
-                onRaise={() => void raiseMaxes()}
+                onRaise={() => raiseMaxes()}
               />
             ) : null}
 
@@ -148,7 +149,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                Не получилось
+                {SKIP_SESSION_LABEL}
               </Button>
             ) : null}
           </>

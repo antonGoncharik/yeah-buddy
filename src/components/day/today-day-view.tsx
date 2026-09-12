@@ -34,6 +34,7 @@ export function TodayDayView({
   copyDays,
   namedMeals,
   lastBodyWeight,
+  weightSteady,
   busy,
   switchType,
   saveBodyWeight,
@@ -63,6 +64,7 @@ export function TodayDayView({
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
+  weightSteady: boolean;
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
@@ -118,6 +120,7 @@ export function TodayDayView({
           showWeight
           bodyWeight={shownDay.body_weight}
           lastBodyWeight={lastBodyWeight}
+          weightSteady={weightSteady}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
           bodyWeightBusy={busy}

@@ -3,11 +3,15 @@ import {
   firstDeloadLine,
   loadingFlavor,
   loadingLine,
+  overflowKcalLabel,
+  proteinClosed,
   proteinWeekLine,
+  STEADY_WEIGHT_LINE,
   sessionDoneHeadline,
   sessionDoneLead,
   sessionMilestoneLine,
   sessionRaiseLine,
+  steadyWeightLine,
 } from "@/lib/flavor";
 import type { PhaseCircleProgress } from "@/lib/types";
 
@@ -148,6 +152,52 @@ assertEqual(
   proteinWeekLine(7),
   "Белок семь дней подряд. Холодильник в курсе.",
   "week closed",
+);
+
+assertEqual(proteinClosed(0.4, 160), true, "protein hit");
+assertEqual(proteinClosed(0.6, 160), false, "still leftover");
+assertEqual(proteinClosed(0, 0), false, "empty day is not closed");
+assertEqual(proteinClosed(-12, 180), true, "overflow is closed");
+assertEqual(overflowKcalLabel(true), "Ну, праздник.", "kcal overflow");
+assertEqual(overflowKcalLabel(false), "Осталось", "kcal leftover");
+
+const steadyDates = Array.from({ length: 14 }, (_, index) => {
+  const day = String(index + 1).padStart(2, "0");
+  return [`2026-09-${day}`, 81] as const;
+});
+assertEqual(
+  steadyWeightLine(new Map(steadyDates), "2026-09-14"),
+  STEADY_WEIGHT_LINE,
+  "fourteen same days",
+);
+assertEqual(
+  steadyWeightLine(new Map(steadyDates.slice(1)), "2026-09-14"),
+  null,
+  "thirteen is not enough",
+);
+assertEqual(
+  steadyWeightLine(
+    new Map([
+      ...steadyDates.slice(0, 7),
+      ["2026-09-08", 81.2],
+      ...steadyDates.slice(8),
+    ]),
+    "2026-09-14",
+  ),
+  null,
+  "jump breaks the stand",
+);
+assertEqual(
+  steadyWeightLine(
+    new Map([
+      ...steadyDates.slice(0, 7),
+      ["2026-09-08", 81.04],
+      ...steadyDates.slice(8),
+    ]),
+    "2026-09-14",
+  ),
+  STEADY_WEIGHT_LINE,
+  "0.04 kg still counts",
 );
 
 console.log("flavor ok");

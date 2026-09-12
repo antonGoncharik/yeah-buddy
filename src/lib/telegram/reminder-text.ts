@@ -1,4 +1,8 @@
-import { BOT_REMINDER_FOOD, botReminderGym } from "@/lib/messages";
+import {
+  BOT_REMINDER_FOOD,
+  BOT_YEAH_BUDDY,
+  botReminderGym,
+} from "@/lib/messages";
 
 export interface ReminderFacts {
   foodLogged: boolean;
@@ -14,6 +18,12 @@ export function reminderText(facts: ReminderFacts): string | null {
   if (!facts.gymLogged && facts.nextTemplateName) {
     lines.push(botReminderGym(facts.nextTemplateName));
   }
+  if (lines.length > 0) {
+    return lines.join("\n");
+  }
+  if (facts.foodLogged && facts.gymLogged) {
+    return BOT_YEAH_BUDDY;
+  }
 
-  return lines.length === 0 ? null : lines.join("\n");
+  return null;
 }

@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useDayMood } from "@/components/layout/day-mood";
 import {
   draftsFromDetail,
   formatSessionDate,
@@ -20,6 +20,7 @@ import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionScreen() {
   const params = useParams<{ id: string }>();
+  const { setMood } = useDayMood();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
@@ -99,6 +100,11 @@ export function useSessionScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setMood(detail?.phase?.phase_type === "deload" ? "deload" : "training");
+    return () => setMood(null);
+  }, [detail?.phase?.phase_type, setMood]);
 
   const abovePlan = useMemo(() => {
     if (detail?.session.status !== "completed") {

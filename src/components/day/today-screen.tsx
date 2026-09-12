@@ -44,6 +44,7 @@ export function TodayScreen({
     copyDays,
     namedMeals,
     lastBodyWeight,
+    weightSteady,
     busy,
     loadError,
     actionError,
@@ -161,6 +162,7 @@ export function TodayScreen({
             copyDays={copyDays}
             namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
+            weightSteady={weightSteady}
             busy={busy}
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}

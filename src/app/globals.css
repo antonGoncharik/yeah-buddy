@@ -363,6 +363,44 @@ html.dark[data-day="training"] {
   --wallpaper-ink: oklch(0.84 0.05 48 / 0.14);
 }
 
+html[data-day="deload"] {
+  --background: oklch(0.984 0.006 55);
+  --foreground: oklch(0.28 0.016 48);
+  --card: oklch(0.996 0.003 55);
+  --card-foreground: oklch(0.28 0.016 48);
+  --popover: oklch(0.996 0.003 55);
+  --popover-foreground: oklch(0.28 0.016 48);
+  --muted: oklch(0.96 0.008 55);
+  --muted-foreground: oklch(0.5 0.016 48);
+  --secondary: oklch(0.96 0.007 55);
+  --secondary-foreground: oklch(0.3 0.016 48);
+  --accent: oklch(0.954 0.01 55);
+  --accent-foreground: oklch(0.3 0.018 48);
+  --border: oklch(0.9 0.012 55);
+  --input: oklch(0.46 0.03 48);
+  --input-bg: oklch(0.997 0.002 55);
+  --wallpaper-ink: oklch(0.42 0.03 50 / 0.08);
+}
+
+html.dark[data-day="deload"] {
+  --background: oklch(0.19 0.014 40);
+  --foreground: oklch(0.96 0.008 55);
+  --card: oklch(0.24 0.014 40);
+  --card-foreground: oklch(0.96 0.008 55);
+  --popover: oklch(0.236 0.014 40);
+  --popover-foreground: oklch(0.96 0.008 55);
+  --muted: oklch(0.29 0.016 40);
+  --muted-foreground: oklch(0.76 0.014 48);
+  --secondary: oklch(0.29 0.016 40);
+  --secondary-foreground: oklch(0.96 0.008 55);
+  --accent: oklch(0.31 0.018 40);
+  --accent-foreground: oklch(0.96 0.008 55);
+  --border: oklch(0.9 0.018 40 / 14%);
+  --input: oklch(0.76 0.022 45);
+  --input-bg: oklch(0.34 0.016 40);
+  --wallpaper-ink: oklch(0.86 0.025 50 / 0.1);
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -570,6 +608,26 @@ html.dark .native-select {
   animation: recap-glow 1.2s var(--ease-out-soft) 1;
 }
 
+@keyframes dumbbell-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+  75% {
+    transform: rotate(-8deg);
+  }
+}
+
+@utility animate-dumbbell-wiggle {
+  animation: dumbbell-wiggle 0.42s var(--ease-out-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --theme-duration: 0s;
@@ -579,7 +637,8 @@ html.dark .native-select {
   .animate-fade,
   .animate-loader-beat,
   .animate-draw-line,
-  .animate-recap-glow {
+  .animate-recap-glow,
+  .animate-dumbbell-wiggle {
     animation: none;
   }
 

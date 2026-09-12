@@ -13,6 +13,7 @@ import {
   readLastBodyWeight,
   readNamedMeals,
   readRecipes,
+  readWeightSteady,
   readYesterdayExists,
 } from "@/lib/day/today-payload";
 import type { CopyDayHint, NamedMealHint } from "@/lib/types";
@@ -40,6 +41,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     training: RecipeLine[];
   }>({ rest: [], training: [] });
   const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
+  const [weightSteady, setWeightSteady] = useState(false);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -85,6 +87,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
           setNamedMeals(readNamedMeals(data));
           setRecipes(readRecipes(data));
           setLastBodyWeight(readLastBodyWeight(data));
+          setWeightSteady(readWeightSteady(data));
           setLoadedDate(requestedDate);
           return true;
         },
@@ -129,6 +132,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setYesterdayExists(false);
     setCopyDays([]);
     setLastBodyWeight(null);
+    setWeightSteady(false);
     setWorkoutState(null);
     if (date.length > 0) {
       reset();
@@ -149,6 +153,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setNamedMeals,
     recipes,
     lastBodyWeight,
+    weightSteady,
     workoutState,
     loadError,
     contentReady,

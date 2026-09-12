@@ -64,8 +64,8 @@ assertEqual(
     gymLogged: true,
     nextTemplateName: "Сила A",
   }),
-  null,
-  "both logged is silence",
+  "Yeah buddy.",
+  "both logged is Yeah buddy",
 );
 assertEqual(
   reminderText({

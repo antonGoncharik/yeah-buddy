@@ -11,6 +11,7 @@ import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewHref } from "@/lib/ai/review-nav";
+import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { formatKcal } from "@/lib/nutrition";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -143,7 +144,7 @@ export function SettingsScreen() {
               },
               {
                 id: "dark",
-                label: "Тёмная",
+                label: DARK_THEME_LABEL,
                 icon: <Moon className="size-4" aria-hidden />,
               },
             ]}
@@ -155,7 +156,7 @@ export function SettingsScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
             <p className="text-sm text-muted-foreground">
-              Если день пустой — одно сообщение в бот.
+              Пустой день — напомню. Еда и зал закрыты — Yeah buddy.
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

@@ -63,11 +63,12 @@ export function DumbbellMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
-function plates(side: 1 | -1, ink: string) {
+function plates(side: 1 | -1, ink: string, count: 1 | 2 | 3, extra: boolean) {
   const inner = { x: 10.4, w: 3.9, h: 17.2 };
   const mid = { x: 15.65, w: 3.15, h: 12.8 };
   const outer = { x: 20.1, w: 2.45, h: 8.4 };
-  const cap = 24.05;
+  const bonus = { x: 23.2, w: 1.9, h: 12.4 };
+  const cap = extra ? 26.4 : 24.05;
 
   return (
     <g fill={ink} stroke="none">
@@ -78,31 +79,52 @@ function plates(side: 1 | -1, ink: string) {
         height={inner.h}
         rx={0.85}
       />
-      <rect
-        x={side < 0 ? -mid.x - mid.w : mid.x}
-        y={-mid.h / 2}
-        width={mid.w}
-        height={mid.h}
-        rx={0.75}
-      />
-      <rect
-        x={side < 0 ? -outer.x - outer.w : outer.x}
-        y={-outer.h / 2}
-        width={outer.w}
-        height={outer.h}
-        rx={0.65}
-      />
+      {count >= 2 ? (
+        <rect
+          x={side < 0 ? -mid.x - mid.w : mid.x}
+          y={-mid.h / 2}
+          width={mid.w}
+          height={mid.h}
+          rx={0.75}
+        />
+      ) : null}
+      {count >= 3 ? (
+        <rect
+          x={side < 0 ? -outer.x - outer.w : outer.x}
+          y={-outer.h / 2}
+          width={outer.w}
+          height={outer.h}
+          rx={0.65}
+        />
+      ) : null}
+      {extra ? (
+        <rect
+          x={side < 0 ? -bonus.x - bonus.w : bonus.x}
+          y={-bonus.h / 2}
+          width={bonus.w}
+          height={bonus.h}
+          rx={0.6}
+        />
+      ) : null}
       <circle cx={side * cap} cy={0} r={1.25} />
     </g>
   );
 }
 
-export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
+export function BarbellMark({
+  ink = "currentColor",
+  plates: count = 3,
+  extra = false,
+}: {
+  ink?: string;
+  plates?: 1 | 2 | 3;
+  extra?: boolean;
+}) {
   return (
     <g fill={ink} stroke="none">
       <rect x="-24.6" y="-0.75" width="49.2" height="1.5" rx="0.75" />
-      {plates(-1, ink)}
-      {plates(1, ink)}
+      {plates(-1, ink, count, extra)}
+      {plates(1, ink, count, extra)}
     </g>
   );
 }
@@ -110,7 +132,7 @@ export function BarbellMark({ ink = "currentColor" }: { ink?: string }) {
 export const COOKIE_VIEWBOX = "-12.8 -12.8 25.6 25.6";
 export const MUG_VIEWBOX = "-12.9 -16.2 29.8 33.2";
 export const DUMBBELL_VIEWBOX = "-19.2 -7.6 38.4 15.2";
-export const BARBELL_VIEWBOX = "-25.8 -9.6 51.6 19.2";
+export const BARBELL_VIEWBOX = "-28.2 -9.6 56.4 19.2";
 
 export function Doodle({
   children,

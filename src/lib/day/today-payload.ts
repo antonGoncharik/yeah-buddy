@@ -38,6 +38,10 @@ export function readLastBodyWeight(data: unknown): number | null {
   return toNullableNumber(data.lastBodyWeight);
 }
 
+export function readWeightSteady(data: unknown): boolean {
+  return isRecord(data) && data.weightSteady === true;
+}
+
 export function readCalendarToday(data: unknown): string | null {
   if (!isRecord(data) || typeof data.today !== "string") {
     return null;

@@ -1,6 +1,7 @@
 export {
   getLastBodyWeight,
   listBodyWeights,
+  listBodyWeightsInRange,
   setBodyWeight,
 } from "@/lib/day/body-weight-store";
 export {

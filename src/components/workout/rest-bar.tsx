@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { REST_DONE_LABEL } from "@/lib/flavor";
 import { formatRestClock } from "@/lib/workout/rest-timer";
 
 export function RestBar({
@@ -19,7 +20,9 @@ export function RestBar({
   if (left === 0) {
     return (
       <div className="flex items-center gap-2 rounded-xl bg-muted/80 px-3 py-2">
-        <p className="min-w-0 flex-1 text-lg font-semibold">Отдых</p>
+        <p className="min-w-0 flex-1 text-lg font-semibold">
+          {REST_DONE_LABEL}
+        </p>
         <Button
           type="button"
           className="h-11 px-4 text-base"

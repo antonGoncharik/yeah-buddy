@@ -33,6 +33,39 @@ export async function getLastBodyWeight(
   return toNullableNumber(result.data?.body_weight);
 }
 
+export async function listBodyWeightsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<Array<{ date: string; weight: number }>> {
+  if (!isIsoDate(startDate) || !isIsoDate(endDate)) {
+    return [];
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("days")
+    .select("date, body_weight")
+    .eq("user_id", userId)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .not("body_weight", "is", null)
+    .order("date", { ascending: true });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return (result.data ?? []).flatMap((row) => {
+    const date = String(row.date).slice(0, 10);
+    const weight = toNullableNumber(row.body_weight);
+    if (!isIsoDate(date) || weight == null) {
+      return [];
+    }
+    return [{ date, weight }];
+  });
+}
+
 export async function listBodyWeights(
   userId: string,
 ): Promise<Array<{ date: string; weight: number }>> {

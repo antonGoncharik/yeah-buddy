@@ -1,3 +1,4 @@
+import { shiftIsoDate } from "@/lib/day/dates";
 import type { PhaseCircleProgress, SessionFeel } from "@/lib/types";
 
 export type LoadingFlavor = "boot" | "food" | "idle";
@@ -117,4 +118,50 @@ export function proteinWeekLine(hits: number): string | null {
     return null;
   }
   return "Белок семь дней подряд. Холодильник в курсе.";
+}
+
+export const REST_DONE_LABEL = "Погнали.";
+export const SKIP_SESSION_LABEL = "Не сегодня.";
+export const DARK_THEME_LABEL = "Ночная смена";
+export const OVERFLOW_KCAL_LABEL = "Ну, праздник.";
+export const PROTEIN_CLOSED_LABEL = "закрыт";
+export const STEADY_WEIGHT_DAYS = 14;
+export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
+export const SPLASH_HOLD_MS = 480;
+export const PLATE_BURST_MS = 400;
+export const PROTEIN_CLOSED_MS = 1200;
+
+export function proteinClosed(remaining: number, factProtein: number): boolean {
+  return factProtein > 0 && remaining <= 0.5;
+}
+
+export function overflowKcalLabel(overflow: boolean): string {
+  return overflow ? OVERFLOW_KCAL_LABEL : "Осталось";
+}
+
+export function steadyWeightLine(
+  byDate: ReadonlyMap<string, number>,
+  endDate: string,
+  need = STEADY_WEIGHT_DAYS,
+): string | null {
+  if (need <= 0) {
+    return null;
+  }
+
+  let expected: number | null = null;
+  for (let offset = 0; offset < need; offset += 1) {
+    const date = shiftIsoDate(endDate, -offset);
+    const weight = byDate.get(date);
+    if (weight == null) {
+      return null;
+    }
+    if (expected == null) {
+      expected = weight;
+    }
+    if (Math.abs(weight - expected) > 0.05) {
+      return null;
+    }
+  }
+
+  return STEADY_WEIGHT_LINE;
 }

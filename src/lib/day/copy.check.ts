@@ -1,6 +1,7 @@
 import {
   readDayWritable,
   readLastBodyWeight,
+  readWeightSteady,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
 import { filledMealTypes, mealExistsReplace } from "@/lib/nutrition";
@@ -48,6 +49,8 @@ assertEqual(
   "last body weight",
 );
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
+assertEqual(readWeightSteady({ weightSteady: true }), true, "steady flag");
+assertEqual(readWeightSteady({}), false, "missing steady is false");
 assertEqual(
   readDayWritable({ writable: true }, "2026-09-10", "2026-09-12"),
   true,

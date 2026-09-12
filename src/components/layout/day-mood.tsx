@@ -18,7 +18,7 @@ import {
 } from "@/components/layout/doodles";
 import { cn } from "@/lib/utils";
 
-export type DayMood = "rest" | "training";
+export type DayMood = "rest" | "training" | "deload";
 
 const DayMoodContext = createContext<{
   mood: DayMood | null;
@@ -80,6 +80,14 @@ export function DayBackdrop() {
       >
         <TrainingBackdrop />
       </div>
+      <div
+        className={cn(
+          "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+          mood === "deload" ? "opacity-100" : "opacity-0",
+        )}
+      >
+        <TrainingBackdrop deload />
+      </div>
     </div>
   );
 }
@@ -120,15 +128,30 @@ function RestBackdrop() {
   );
 }
 
-function TrainingBackdrop() {
+function TrainingBackdrop({ deload = false }: { deload?: boolean }) {
+  const plates: 1 | 3 = deload ? 1 : 3;
+  const patternId = deload ? "deload-wallpaper" : "train-wallpaper-v4";
+
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.04_48_/_0.38),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.4_0.05_36_/_0.4),transparent_70%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.82_0.05_42_/_0.14),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.3_0.05_32_/_0.3),transparent_62%)]" />
+      <div
+        className={
+          deload
+            ? "absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.94_0.02_52_/_0.24),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.38_0.025_40_/_0.26),transparent_70%)]"
+            : "absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.04_48_/_0.38),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.4_0.05_36_/_0.4),transparent_70%)]"
+        }
+      />
+      <div
+        className={
+          deload
+            ? "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.88_0.02_50_/_0.1),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.32_0.02_40_/_0.2),transparent_62%)]"
+            : "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.82_0.05_42_/_0.14),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.3_0.05_32_/_0.3),transparent_62%)]"
+        }
+      />
       <svg aria-hidden className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
-            id="train-wallpaper-v4"
+            id={patternId}
             width="360"
             height="460"
             patternUnits="userSpaceOnUse"
@@ -137,20 +160,20 @@ function TrainingBackdrop() {
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
             <Mark x={232} y={48} rotate={5} scale={1.62}>
-              <BarbellMark ink="var(--wallpaper-ink)" />
+              <BarbellMark ink="var(--wallpaper-ink)" plates={plates} />
             </Mark>
             <Mark x={78} y={248} rotate={-4} scale={1.55}>
-              <BarbellMark ink="var(--wallpaper-ink)" />
+              <BarbellMark ink="var(--wallpaper-ink)" plates={plates} />
             </Mark>
             <Mark x={254} y={276} rotate={-9} scale={1.82}>
               <DumbbellMark ink="var(--wallpaper-ink)" />
             </Mark>
             <Mark x={168} y={416} rotate={-6} scale={1.52}>
-              <BarbellMark ink="var(--wallpaper-ink)" />
+              <BarbellMark ink="var(--wallpaper-ink)" plates={plates} />
             </Mark>
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#train-wallpaper-v4)" />
+        <rect width="100%" height="100%" fill={`url(#${patternId})`} />
       </svg>
     </>
   );

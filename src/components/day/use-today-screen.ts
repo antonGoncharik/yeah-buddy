@@ -196,6 +196,7 @@ export function useTodayScreen({
     copyDays: data.copyDays,
     namedMeals: data.namedMeals,
     lastBodyWeight: data.lastBodyWeight,
+    weightSteady: data.weightSteady,
     busy,
     loadError: data.loadError,
     actionError,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useBootSplash } from "@/components/layout/boot-splash";
 import {
@@ -15,7 +15,12 @@ import {
   MugMark,
 } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
-import { LOADING_LINES, loadingFlavor, loadingLine } from "@/lib/flavor";
+import {
+  LOADING_LINES,
+  loadingFlavor,
+  loadingLine,
+  SPLASH_HOLD_MS,
+} from "@/lib/flavor";
 import { cn } from "@/lib/utils";
 
 const BEATS = [
@@ -57,6 +62,8 @@ export function ScreenLoading({
   const boot = useBootSplash();
   const flavor = loadingFlavor({ splash, title });
   const [line, setLine] = useState(LOADING_LINES[flavor][0] ?? "Загрузка…");
+  const [splitTitle, setSplitTitle] = useState(false);
+  const holdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (splash || boot == null) {
@@ -68,6 +75,34 @@ export function ScreenLoading({
   useEffect(() => {
     setLine(loadingLine(flavor, Date.now()));
   }, [flavor]);
+
+  useEffect(() => {
+    return () => {
+      if (holdRef.current != null) {
+        window.clearTimeout(holdRef.current);
+      }
+    };
+  }, []);
+
+  function startHold() {
+    if (!splash || splitTitle) {
+      return;
+    }
+    if (holdRef.current != null) {
+      window.clearTimeout(holdRef.current);
+    }
+    holdRef.current = window.setTimeout(() => {
+      holdRef.current = null;
+      setSplitTitle(true);
+    }, SPLASH_HOLD_MS);
+  }
+
+  function endHold() {
+    if (holdRef.current != null) {
+      window.clearTimeout(holdRef.current);
+      holdRef.current = null;
+    }
+  }
 
   if (!splash && boot?.active) {
     return null;
@@ -81,8 +116,24 @@ export function ScreenLoading({
     >
       <div className="flex flex-col items-center gap-4 text-muted-foreground">
         {title ? (
-          <p className="animate-fade text-3xl font-semibold tracking-tight text-foreground">
-            {title}
+          <p
+            className={cn(
+              "animate-fade text-3xl font-semibold tracking-tight text-foreground",
+              splash && "pointer-events-auto select-none",
+            )}
+            onPointerDown={splash ? startHold : undefined}
+            onPointerUp={splash ? endHold : undefined}
+            onPointerLeave={splash ? endHold : undefined}
+            onPointerCancel={splash ? endHold : undefined}
+          >
+            {splash && splitTitle ? (
+              <>
+                <span className="block">Yeah.</span>
+                <span className="block">Buddy.</span>
+              </>
+            ) : (
+              title
+            )}
           </p>
         ) : null}
         <div className="flex items-center gap-2">

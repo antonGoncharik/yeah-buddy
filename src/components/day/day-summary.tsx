@@ -1,5 +1,16 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
+import {
+  overflowKcalLabel,
+  PROTEIN_CLOSED_LABEL,
+  PROTEIN_CLOSED_MS,
+  proteinClosed,
+  STEADY_WEIGHT_LINE,
+} from "@/lib/flavor";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Day } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -13,6 +24,7 @@ export function DaySummary({
   lastBodyWeight = null,
   bodyWeightReadOnly = false,
   bodyWeightBusy = false,
+  weightSteady = false,
   onSaveBodyWeight,
 }: {
   day: Pick<
@@ -31,34 +43,60 @@ export function DaySummary({
   lastBodyWeight?: number | null;
   bodyWeightReadOnly?: boolean;
   bodyWeightBusy?: boolean;
+  weightSteady?: boolean;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
   const remainingProtein = day.target_protein - fact.protein;
   const proteinOverflow = remainingProtein < 0;
+  const closed = proteinClosed(remainingProtein, fact.protein);
+  const [flashClosed, setFlashClosed] = useState(false);
+  const wasClosed = useRef(false);
   const perKg =
     bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
+
+  useEffect(() => {
+    if (!closed) {
+      wasClosed.current = false;
+      setFlashClosed(false);
+      return;
+    }
+    if (wasClosed.current) {
+      return;
+    }
+    wasClosed.current = true;
+    setFlashClosed(true);
+    const timer = window.setTimeout(() => {
+      setFlashClosed(false);
+    }, PROTEIN_CLOSED_MS);
+    return () => window.clearTimeout(timer);
+  }, [closed]);
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-muted-foreground">
-            {overflow ? "Сверх плана" : "Осталось"}
+            {overflowKcalLabel(overflow)}
           </p>
           <p
             className={cn(
-              "mt-1 text-2xl font-semibold tracking-tight tabular-nums transition-colors duration-300 ease-[var(--ease-out-soft)]",
-              proteinOverflow && "text-destructive",
+              "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+              flashClosed ? "animate-fade" : "tabular-nums",
+              proteinOverflow && !flashClosed && "text-destructive",
             )}
           >
-            {proteinOverflow
-              ? `+${formatMacro(Math.abs(remainingProtein))}`
-              : formatMacro(Math.max(0, remainingProtein))}
-            <span className="ml-1.5 text-base font-medium text-muted-foreground">
-              г белка
-            </span>
+            {flashClosed
+              ? PROTEIN_CLOSED_LABEL
+              : proteinOverflow
+                ? `+${formatMacro(Math.abs(remainingProtein))}`
+                : formatMacro(Math.max(0, remainingProtein))}
+            {flashClosed ? null : (
+              <span className="ml-1.5 text-base font-medium text-muted-foreground">
+                г белка
+              </span>
+            )}
           </p>
           <p className="mt-1 text-sm text-muted-foreground tabular-nums">
             {overflow
@@ -80,6 +118,11 @@ export function DaySummary({
                 onSave={onSaveBodyWeight}
               />
             </div>
+            {weightSteady ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {STEADY_WEIGHT_LINE}
+              </p>
+            ) : null}
           </div>
         ) : (
           <div className="text-right">
