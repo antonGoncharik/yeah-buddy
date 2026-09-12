@@ -92,9 +92,9 @@ export function PlateScreen({
             onGramsModeChange={(mode) => plate.setGramsMode(index, mode)}
             onRemove={() => plate.removeItem(index)}
             onChangeFood={() => plate.setPicker({ mode: "replace", index })}
-            onPatchNew={
-              item.kind === "new"
-                ? (patch) => plate.patchNew(index, patch)
+            onPatchLump={
+              item.kind === "lump"
+                ? (patch) => plate.patchLump(index, patch)
                 : undefined
             }
           />
@@ -169,6 +169,20 @@ export function PlateScreen({
 
 function sumDraft(items: PlateRow[]) {
   const macros = items.flatMap((item) => {
+    if (item.kind === "lump") {
+      if (item.protein + item.fat + item.carbs <= 0) {
+        return [];
+      }
+      return [
+        {
+          protein: item.protein,
+          fat: item.fat,
+          carbs: item.carbs,
+          kcal: item.kcal,
+        },
+      ];
+    }
+
     const grams = rowNativeGrams(item);
     if (grams == null) {
       return [];

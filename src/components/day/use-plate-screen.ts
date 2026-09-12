@@ -183,7 +183,7 @@ export function usePlateScreen({
     onFile,
     setGrams: draft.setGrams,
     setGramsMode: draft.setGramsMode,
-    patchNew: draft.patchNew,
+    patchLump: draft.patchLump,
     removeItem: draft.removeItem,
     save: draft.save,
     closeLiveCamera: camera.closeLiveCamera,

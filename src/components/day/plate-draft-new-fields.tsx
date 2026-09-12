@@ -1,27 +1,23 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
-import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
 import { formatKcal } from "@/lib/nutrition";
-import type { FoodState } from "@/lib/types";
 
-export function PlateDraftNewFields({
+export function PlateDraftLumpFields({
   item,
   proteinInput,
   fatInput,
   carbsInput,
-  onPatchNew,
+  onPatchLump,
 }: {
-  item: Extract<PlateDraftItem, { kind: "new" }>;
+  item: Extract<PlateDraftItem, { kind: "lump" }>;
   proteinInput: string;
   fatInput: string;
   carbsInput: string;
-  onPatchNew: (patch: {
+  onPatchLump: (patch: {
     name?: string;
-    state?: FoodState;
     proteinInput?: string;
     fatInput?: string;
     carbsInput?: string;
@@ -29,45 +25,31 @@ export function PlateDraftNewFields({
 }) {
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <Label className="text-base">Состояние</Label>
-        <div className="flex flex-wrap gap-2">
-          {FOOD_STATES.map((state) => (
-            <Button
-              key={state}
-              type="button"
-              variant={item.state === state ? "secondary" : "outline"}
-              className="h-10 px-3 text-sm"
-              onClick={() => onPatchNew({ state })}
-            >
-              {FOOD_STATE_LABELS[state]}
-            </Button>
-          ))}
-        </div>
+      <p className="text-sm text-muted-foreground">
+        Сколько съел в этой порции. В продукты не попадёт.
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        <MacroField
+          label="Белки"
+          value={proteinInput}
+          onChange={(value) => onPatchLump({ proteinInput: value })}
+        />
+        <MacroField
+          label="Жиры"
+          value={fatInput}
+          onChange={(value) => onPatchLump({ fatInput: value })}
+        />
+        <MacroField
+          label="Угли"
+          value={carbsInput}
+          onChange={(value) => onPatchLump({ carbsInput: value })}
+        />
       </div>
-      <div className="flex flex-col gap-2">
-        <p className="text-base font-medium">На 100 г</p>
-        <div className="grid grid-cols-3 gap-2">
-          <MacroField
-            label="Б"
-            value={proteinInput}
-            onChange={(value) => onPatchNew({ proteinInput: value })}
-          />
-          <MacroField
-            label="Ж"
-            value={fatInput}
-            onChange={(value) => onPatchNew({ fatInput: value })}
-          />
-          <MacroField
-            label="У"
-            value={carbsInput}
-            onChange={(value) => onPatchNew({ carbsInput: value })}
-          />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {formatKcal(item.kcal_per_100)} ккал / 100 г
-        </p>
-      </div>
+      <p className="text-base tabular-nums">
+        {item.protein + item.fat + item.carbs > 0
+          ? `${formatKcal(item.kcal)} ккал`
+          : "ккал посчитаются"}
+      </p>
     </>
   );
 }

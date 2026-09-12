@@ -1,6 +1,5 @@
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
 import type { GramsMode } from "@/lib/food/yield";
-import type { FoodState } from "@/lib/types";
 
 export type PlateRow = PlateDraftItem & {
   rowId: string;
@@ -25,9 +24,8 @@ export type PlateStatus =
   | { status: "draft"; previewUrl: string; items: PlateRow[] }
   | { status: "saving"; previewUrl: string; items: PlateRow[] };
 
-export type PlateNewPatch = {
+export type PlateLumpPatch = {
   name?: string;
-  state?: FoodState;
   proteinInput?: string;
   fatInput?: string;
   carbsInput?: string;

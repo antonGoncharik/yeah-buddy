@@ -6,11 +6,11 @@ import { useState } from "react";
 import {
   foodRowFromPick,
   mergeFoodRows,
-  type PlateNewPatch,
+  type PlateLumpPatch,
   type PlatePicker,
   type PlateRow,
   type PlateStatus,
-  patchNewFoodRow,
+  patchLumpRow,
   withGramsMode,
 } from "@/components/day/plate-draft";
 import {
@@ -60,8 +60,8 @@ export function usePlateDraft({
     patchDraftItem(index, (item) => withGramsMode(item, mode));
   }
 
-  function patchNew(index: number, patch: PlateNewPatch) {
-    patchDraftItem(index, (item) => patchNewFoodRow(item, patch));
+  function patchLump(index: number, patch: PlateLumpPatch) {
+    patchDraftItem(index, (item) => patchLumpRow(item, patch));
   }
 
   function removeItem(index: number) {
@@ -98,7 +98,12 @@ export function usePlateDraft({
       if (picker?.mode === "replace") {
         const items = current.items.map((item, index) =>
           index === picker.index
-            ? { ...next, gramsInput: item.gramsInput, rowId: item.rowId }
+            ? {
+                ...next,
+                gramsInput:
+                  item.kind === "lump" ? next.gramsInput : item.gramsInput,
+                rowId: item.rowId,
+              }
             : item,
         );
         return { ...current, items: mergeFoodRows(items) };
@@ -152,7 +157,7 @@ export function usePlateDraft({
     setSaveError,
     setGrams,
     setGramsMode,
-    patchNew,
+    patchLump,
     removeItem,
     pickFood,
     save,

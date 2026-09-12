@@ -11,6 +11,10 @@ import { getFood } from "@/lib/food/list";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food, MealItem } from "@/lib/types";
 
+export type MealItemWrite =
+  | { kind: "food"; food: Food; grams: number }
+  | { kind: "lump"; input: LumpMealItemInput };
+
 export async function addMealItem(
   userId: string,
   mealId: string,
@@ -35,7 +39,38 @@ export async function addMealItems(
   mealId: string,
   entries: Array<{ food: Food; grams: number }>,
 ): Promise<MealItem[]> {
-  if (entries.length === 0) {
+  return addMealItemWrites(
+    userId,
+    mealId,
+    entries.map((entry) => ({
+      kind: "food",
+      food: entry.food,
+      grams: entry.grams,
+    })),
+  );
+}
+
+export async function addLumpMealItem(
+  userId: string,
+  mealId: string,
+  input: LumpMealItemInput,
+): Promise<MealItem> {
+  const items = await addMealItemWrites(userId, mealId, [
+    { kind: "lump", input },
+  ]);
+  const item = items[0];
+  if (!item) {
+    throw new Error("Meal item insert failed");
+  }
+  return item;
+}
+
+export async function addMealItemWrites(
+  userId: string,
+  mealId: string,
+  writes: MealItemWrite[],
+): Promise<MealItem[]> {
+  if (writes.length === 0) {
     throw new Error("Meal items empty");
   }
 
@@ -48,23 +83,7 @@ export async function addMealItems(
   const supabase = createSupabaseServerClient();
   const inserted = await supabase
     .from("meal_items")
-    .insert(
-      entries.map((entry) =>
-        buildMealItemRow({
-          userId,
-          mealId,
-          foodId: entry.food.id,
-          name: entry.food.name,
-          grams: entry.grams,
-          per100: {
-            protein: entry.food.protein_per_100,
-            fat: entry.food.fat_per_100,
-            carbs: entry.food.carbs_per_100,
-            kcal: entry.food.kcal_per_100,
-          },
-        }),
-      ),
-    )
+    .insert(writes.map((write) => toMealItemRow(userId, mealId, write)))
     .select("*");
 
   if (inserted.error) {
@@ -76,37 +95,29 @@ export async function addMealItems(
   );
 }
 
-export async function addLumpMealItem(
-  userId: string,
-  mealId: string,
-  input: LumpMealItemInput,
-): Promise<MealItem> {
-  const date = await getDateForMeal(userId, mealId);
-  if (!date) {
-    throw new Error("Meal not found");
-  }
-  await assertUserDayWritable(userId, date);
-
-  const macros = macrosFromLump(input);
-  const supabase = createSupabaseServerClient();
-  const inserted = await supabase
-    .from("meal_items")
-    .insert(
-      buildMealItemRow({
-        userId,
-        mealId,
-        foodId: null,
-        name: input.name,
-        grams: LUMP_PORTION_G,
-        per100: macros,
-      }),
-    )
-    .select("*")
-    .single();
-
-  if (inserted.error || !inserted.data) {
-    throw inserted.error ?? new Error("Meal item insert failed");
+function toMealItemRow(userId: string, mealId: string, write: MealItemWrite) {
+  if (write.kind === "food") {
+    return buildMealItemRow({
+      userId,
+      mealId,
+      foodId: write.food.id,
+      name: write.food.name,
+      grams: write.grams,
+      per100: {
+        protein: write.food.protein_per_100,
+        fat: write.food.fat_per_100,
+        carbs: write.food.carbs_per_100,
+        kcal: write.food.kcal_per_100,
+      },
+    });
   }
 
-  return mapMealItem(inserted.data as Record<string, unknown>);
+  return buildMealItemRow({
+    userId,
+    mealId,
+    foodId: null,
+    name: write.input.name,
+    grams: LUMP_PORTION_G,
+    per100: macrosFromLump(write.input),
+  });
 }

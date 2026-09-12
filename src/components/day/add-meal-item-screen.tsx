@@ -86,7 +86,7 @@ export function AddMealItemScreen({
         <FoodSearch value={query} onChange={setQuery} />
 
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />
-        {plateHref ? <MealPlateLink href={plateHref} /> : null}
+        {plateHref && !query.trim() ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
       <div

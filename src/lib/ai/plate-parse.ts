@@ -44,13 +44,37 @@ export function parsePlateDraft(value: unknown): PlateDraft | null {
 export function parsePlateDraftItem(
   value: Record<string, unknown>,
 ): PlateDraftItem | null {
-  const grams = toNumber(value.grams);
-  if (!Number.isFinite(grams) || grams <= 0) {
+  const name = typeof value.name === "string" ? value.name.trim() : "";
+  if (name === "") {
     return null;
   }
 
-  const name = typeof value.name === "string" ? value.name.trim() : "";
-  if (name === "") {
+  if (value.kind === "lump") {
+    const protein = toNumber(value.protein);
+    const fat = toNumber(value.fat);
+    const carbs = toNumber(value.carbs);
+    const kcal = toNumber(value.kcal);
+    if (
+      protein < 0 ||
+      fat < 0 ||
+      carbs < 0 ||
+      kcal < 0 ||
+      protein + fat + carbs <= 0
+    ) {
+      return null;
+    }
+    return {
+      kind: "lump",
+      name: name.slice(0, 80),
+      protein,
+      fat,
+      carbs,
+      kcal,
+    };
+  }
+
+  const grams = toNumber(value.grams);
+  if (!Number.isFinite(grams) || grams <= 0) {
     return null;
   }
 
@@ -83,19 +107,6 @@ export function parsePlateDraftItem(
     };
   }
 
-  if (value.kind === "new") {
-    return {
-      kind: "new",
-      name: name.slice(0, 80),
-      state: parseFoodState(value.state),
-      grams,
-      protein_per_100: protein,
-      fat_per_100: fat,
-      carbs_per_100: carbs,
-      kcal_per_100: kcal,
-    };
-  }
-
   return null;
 }
 
@@ -108,15 +119,26 @@ function parsePlateModelItem(
   }
 
   const grams = toNumber(value.grams);
-  if (!Number.isFinite(grams) || grams <= 0) {
+  const protein = readOptionalMacro(value.protein);
+  const fat = readOptionalMacro(value.fat);
+  const carbs = readOptionalMacro(value.carbs);
+  const hasPortion =
+    protein != null &&
+    fat != null &&
+    carbs != null &&
+    protein + fat + carbs > 0;
+  if (!hasPortion && (!Number.isFinite(grams) || grams <= 0)) {
     return null;
   }
 
   return {
     catalog_i: readCatalogIndex(value.catalog_i),
     name: name.slice(0, 80),
-    grams,
+    grams: Number.isFinite(grams) && grams > 0 ? grams : 0,
     state: parseFoodState(value.state),
+    protein,
+    fat,
+    carbs,
     protein_per_100: readOptionalMacro(value.protein_per_100),
     fat_per_100: readOptionalMacro(value.fat_per_100),
     carbs_per_100: readOptionalMacro(value.carbs_per_100),

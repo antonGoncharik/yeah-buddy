@@ -4,11 +4,16 @@ import {
   PLATE_GRAMS_MAX,
   PLATE_ITEM_LIMIT,
   type PlateDraftItem,
+  type PlateDraftLump,
   type PlateFoodRef,
   type PlateModelItem,
 } from "@/lib/ai/plate-types";
+import {
+  LUMP_MACRO_MAX,
+  type LumpMealItemInput,
+  macrosFromLump,
+} from "@/lib/day/lump";
 import { parseFoodYield } from "@/lib/food/yield";
-import { calcKcalFromMacros } from "@/lib/nutrition";
 
 export function roundPlateGrams(grams: number): number {
   if (!Number.isFinite(grams) || grams <= 0) {
@@ -36,15 +41,10 @@ export function resolvePlateItems(
       break;
     }
 
-    const grams = roundPlateGrams(row.grams);
-    if (grams <= 0) {
-      continue;
-    }
-
     const matched = matchCatalogFood(row, catalog, allFoods);
     const item = matched
-      ? draftFromFood(preferSourceFood(matched, allFoods), grams)
-      : draftFromNew(row, grams);
+      ? draftFromFood(preferSourceFood(matched, allFoods), row.grams)
+      : draftFromLump(row);
     if (!item) {
       continue;
     }
@@ -53,7 +53,7 @@ export function resolvePlateItems(
     if (seen.has(key)) {
       const existing = items.find((entry) => draftKey(entry) === key);
       if (existing) {
-        existing.grams = roundPlateGrams(existing.grams + item.grams);
+        mergeDraftItem(existing, item);
       }
       continue;
     }
@@ -89,13 +89,21 @@ function matchCatalogFood(
   return null;
 }
 
-function draftFromFood(food: PlateFoodRef, grams: number): PlateDraftItem {
+function draftFromFood(
+  food: PlateFoodRef,
+  grams: number,
+): PlateDraftItem | null {
+  const rounded = roundPlateGrams(grams);
+  if (rounded <= 0) {
+    return null;
+  }
+
   return {
     kind: "food",
     foodId: food.id,
     name: food.name,
     state: food.state,
-    grams,
+    grams: rounded,
     protein_per_100: food.protein_per_100,
     fat_per_100: food.fat_per_100,
     carbs_per_100: food.carbs_per_100,
@@ -133,43 +141,93 @@ function preferSourceFood(
   return sources.length === 1 ? sources[0] : matched;
 }
 
-function draftFromNew(
-  row: PlateModelItem,
-  grams: number,
-): PlateDraftItem | null {
-  if (
-    row.protein_per_100 == null ||
-    row.fat_per_100 == null ||
-    row.carbs_per_100 == null
-  ) {
+function draftFromLump(row: PlateModelItem): PlateDraftLump | null {
+  const portion = portionFromModel(row);
+  if (!portion) {
     return null;
   }
 
-  const protein = clampMacro(row.protein_per_100);
-  const fat = clampMacro(row.fat_per_100);
-  const carbs = clampMacro(row.carbs_per_100);
   const name = row.name.trim();
   if (name === "") {
     return null;
   }
 
+  const macros = macrosFromLump(portion);
+  if (macros.protein + macros.fat + macros.carbs <= 0) {
+    return null;
+  }
+
   return {
-    kind: "new",
+    kind: "lump",
     name: name.slice(0, 80),
-    state: row.state,
-    grams,
-    protein_per_100: protein,
-    fat_per_100: fat,
-    carbs_per_100: carbs,
-    kcal_per_100: calcKcalFromMacros(protein, fat, carbs),
+    protein: macros.protein,
+    fat: macros.fat,
+    carbs: macros.carbs,
+    kcal: macros.kcal,
   };
 }
 
-function clampMacro(value: number): number {
-  if (!Number.isFinite(value) || value < 0) {
-    return 0;
+function portionFromModel(row: PlateModelItem): LumpMealItemInput | null {
+  if (
+    row.protein != null &&
+    row.fat != null &&
+    row.carbs != null &&
+    row.protein + row.fat + row.carbs > 0
+  ) {
+    return clampPortion({
+      name: row.name,
+      protein: row.protein,
+      fat: row.fat,
+      carbs: row.carbs,
+    });
   }
-  return Math.min(100, Math.round(value * 10) / 10);
+
+  if (
+    row.protein_per_100 == null ||
+    row.fat_per_100 == null ||
+    row.carbs_per_100 == null ||
+    row.grams <= 0
+  ) {
+    return null;
+  }
+
+  return clampPortion({
+    name: row.name,
+    protein: (row.protein_per_100 * row.grams) / 100,
+    fat: (row.fat_per_100 * row.grams) / 100,
+    carbs: (row.carbs_per_100 * row.grams) / 100,
+  });
+}
+
+function clampPortion(input: LumpMealItemInput): LumpMealItemInput | null {
+  if (
+    input.protein > LUMP_MACRO_MAX ||
+    input.fat > LUMP_MACRO_MAX ||
+    input.carbs > LUMP_MACRO_MAX
+  ) {
+    return null;
+  }
+
+  return input;
+}
+
+function mergeDraftItem(existing: PlateDraftItem, incoming: PlateDraftItem) {
+  if (existing.kind === "food" && incoming.kind === "food") {
+    existing.grams = roundPlateGrams(existing.grams + incoming.grams);
+    return;
+  }
+
+  if (existing.kind === "lump" && incoming.kind === "lump") {
+    const macros = macrosFromLump({
+      protein: existing.protein + incoming.protein,
+      fat: existing.fat + incoming.fat,
+      carbs: existing.carbs + incoming.carbs,
+    });
+    existing.protein = macros.protein;
+    existing.fat = macros.fat;
+    existing.carbs = macros.carbs;
+    existing.kcal = macros.kcal;
+  }
 }
 
 function draftKey(item: PlateDraftItem): string {
@@ -177,12 +235,5 @@ function draftKey(item: PlateDraftItem): string {
     return `food:${item.foodId}`;
   }
 
-  return [
-    "new",
-    normalizeFoodName(item.name),
-    item.state,
-    item.protein_per_100,
-    item.fat_per_100,
-    item.carbs_per_100,
-  ].join("|");
+  return `lump:${normalizeFoodName(item.name)}`;
 }

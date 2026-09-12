@@ -4,6 +4,7 @@ import {
   normalizeFoodName,
   rankPlateCatalog,
 } from "@/lib/ai/plate-catalog";
+import { plateCommitSchema } from "@/lib/ai/plate-commit";
 import { resolvePlateItems, roundPlateGrams } from "@/lib/ai/plate-match";
 import { parsePlateDraft, parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateFoodRef, PlateModelItem } from "@/lib/ai/plate-types";
@@ -37,13 +38,16 @@ function food(
 }
 
 function raw(
-  input: Partial<PlateModelItem> & { name: string; grams: number },
+  input: Partial<PlateModelItem> & { name: string; grams?: number },
 ): PlateModelItem {
   return {
     catalog_i: input.catalog_i ?? -1,
     name: input.name,
-    grams: input.grams,
+    grams: input.grams ?? 0,
     state: input.state ?? "as_is",
+    protein: input.protein ?? null,
+    fat: input.fat ?? null,
+    carbs: input.carbs ?? null,
     protein_per_100: input.protein_per_100 ?? null,
     fat_per_100: input.fat_per_100 ?? null,
     carbs_per_100: input.carbs_per_100 ?? null,
@@ -129,13 +133,30 @@ const ambiguous = resolvePlateItems(
     }),
   ],
 );
-assertEqual(ambiguous[0]?.kind, "new", "ambiguous stays new");
+assertEqual(ambiguous[0]?.kind, "lump", "ambiguous stays lump");
 
 const created = resolvePlateItems(
   [
     raw({
       name: "Хумус",
-      grams: 40,
+      protein: 8,
+      fat: 17,
+      carbs: 14,
+    }),
+  ],
+  catalogFoods,
+);
+assertEqual(created[0]?.kind, "lump", "unknown is lump");
+if (created[0]?.kind === "lump") {
+  assertEqual(created[0].name, "Хумус", "lump name");
+  assertEqual(created[0].kcal, 8 * 4 + 17 * 9 + 14 * 4, "portion kcal");
+}
+
+const fromPer100 = resolvePlateItems(
+  [
+    raw({
+      name: "Хумус",
+      grams: 50,
       protein_per_100: 8,
       fat_per_100: 17,
       carbs_per_100: 14,
@@ -143,10 +164,9 @@ const created = resolvePlateItems(
   ],
   catalogFoods,
 );
-assertEqual(created[0]?.kind, "new", "new food");
-if (created[0]?.kind === "new") {
-  assertEqual(created[0].name, "Хумус", "new name");
-  assertEqual(created[0].kcal_per_100, 8 * 4 + 17 * 9 + 14 * 4, "kcal formula");
+assertEqual(fromPer100[0]?.kind, "lump", "per-100 unknown becomes lump");
+if (fromPer100[0]?.kind === "lump") {
+  assertEqual(fromPer100[0].protein, 4, "portion from per-100");
 }
 
 const dropped = resolvePlateItems(
@@ -191,11 +211,36 @@ assertEqual(draft?.items[0]?.kind, "food", "parse draft food");
 if (draft?.items[0]?.kind === "food") {
   assertEqual(draft.items[0].default_portion_g, null, "draft portion empty");
 }
+const parsedLump = parsePlateDraft({
+  items: [
+    {
+      kind: "lump",
+      name: "шаурма",
+      protein: 40,
+      fat: 40,
+      carbs: 60,
+      kcal: 760,
+    },
+  ],
+});
+assertEqual(parsedLump?.items[0]?.kind, "lump", "parse draft lump");
 assertEqual(
   parsePlateDraft({ items: [{ kind: "food", grams: 10 }] }),
   null,
   "reject bad draft",
 );
+
+const mergedLumps = resolvePlateItems(
+  [
+    raw({ name: "шаурма", protein: 20, fat: 20, carbs: 30 }),
+    raw({ name: "Шаурма", protein: 20, fat: 20, carbs: 30 }),
+  ],
+  catalogFoods,
+);
+assertEqual(mergedLumps.length, 1, "merge same lump name");
+if (mergedLumps[0]?.kind === "lump") {
+  assertEqual(mergedLumps[0].protein, 40, "merged lump protein");
+}
 
 const favoritesFirst = rankPlateCatalog(
   [
@@ -282,5 +327,27 @@ if (remapped[0]?.kind === "food") {
 const withYield = compactPlateCatalog([chickenRaw]);
 assertEqual(withYield[0]?.y?.[0], 150, "catalog yield from");
 assertEqual(withYield[0]?.y?.[1], 110, "catalog yield to");
+
+assertEqual(
+  plateCommitSchema.safeParse({
+    items: [{ kind: "lump", name: "шаурма", protein: 40, fat: 40, carbs: 60 }],
+  }).success,
+  true,
+  "commit lump",
+);
+assertEqual(
+  plateCommitSchema.safeParse({
+    items: [{ kind: "lump", name: "x", protein: 0, fat: 0, carbs: 0 }],
+  }).success,
+  false,
+  "empty lump rejected",
+);
+assertEqual(
+  plateCommitSchema.safeParse({
+    items: [{ kind: "food", foodId: "f1", grams: 80 }],
+  }).success,
+  true,
+  "commit food",
+);
 
 console.log("ai plate ok");

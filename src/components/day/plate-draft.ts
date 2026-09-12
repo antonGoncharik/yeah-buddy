@@ -1,9 +1,10 @@
 import type {
-  PlateNewPatch,
+  PlateLumpPatch,
   PlateRow,
 } from "@/components/day/plate-draft-types";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
+import { macrosFromLump } from "@/lib/day/lump";
 import {
   type FoodYield,
   formatYieldGrams,
@@ -14,11 +15,10 @@ import {
   toCookedGrams,
   toNativeGrams,
 } from "@/lib/food/yield";
-import { calcKcalFromMacros } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 
 export type {
-  PlateNewPatch,
+  PlateLumpPatch,
   PlatePicker,
   PlateRow,
   PlateStatus,
@@ -31,6 +31,9 @@ export function rowYield(item: PlateDraftItem): FoodYield | null {
 }
 
 export function rowNativeGrams(item: PlateRow): number | null {
+  if (item.kind === "lump") {
+    return null;
+  }
   const grams = parseGramsInput(item.gramsInput);
   if (grams == null) {
     return null;
@@ -40,6 +43,18 @@ export function rowNativeGrams(item: PlateRow): number | null {
 }
 
 export function toPlateRow(item: PlateDraftItem): PlateRow {
+  if (item.kind === "lump") {
+    return {
+      ...item,
+      rowId: crypto.randomUUID(),
+      gramsInput: "",
+      gramsMode: "native",
+      proteinInput: String(item.protein),
+      fatInput: String(item.fat),
+      carbsInput: String(item.carbs),
+    };
+  }
+
   const pair = rowYield(item);
   return {
     ...item,
@@ -101,30 +116,27 @@ export function mergeFoodRows(items: PlateRow[]): PlateRow[] {
   return merged;
 }
 
-export function patchNewFoodRow(
-  item: PlateRow,
-  patch: PlateNewPatch,
-): PlateRow {
-  if (item.kind !== "new") {
+export function patchLumpRow(item: PlateRow, patch: PlateLumpPatch): PlateRow {
+  if (item.kind !== "lump") {
     return item;
   }
   const proteinInput = patch.proteinInput ?? item.proteinInput;
   const fatInput = patch.fatInput ?? item.fatInput;
   const carbsInput = patch.carbsInput ?? item.carbsInput;
-  const protein = parseNonneg(proteinInput) ?? item.protein_per_100;
-  const fat = parseNonneg(fatInput) ?? item.fat_per_100;
-  const carbs = parseNonneg(carbsInput) ?? item.carbs_per_100;
+  const protein = parseNonneg(proteinInput) ?? item.protein;
+  const fat = parseNonneg(fatInput) ?? item.fat;
+  const carbs = parseNonneg(carbsInput) ?? item.carbs;
+  const macros = macrosFromLump({ protein, fat, carbs });
   return {
     ...item,
     name: patch.name ?? item.name,
-    state: patch.state ?? item.state,
     proteinInput,
     fatInput,
     carbsInput,
-    protein_per_100: protein,
-    fat_per_100: fat,
-    carbs_per_100: carbs,
-    kcal_per_100: calcKcalFromMacros(protein, fat, carbs),
+    protein: macros.protein,
+    fat: macros.fat,
+    carbs: macros.carbs,
+    kcal: macros.kcal,
   };
 }
 

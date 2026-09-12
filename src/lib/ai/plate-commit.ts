@@ -1,11 +1,16 @@
 import { z } from "zod";
 
 import { PLATE_GRAMS_MAX, PLATE_ITEM_LIMIT } from "@/lib/ai/plate-types";
-import { addMealItems } from "@/lib/day/meal-items";
-import { createFood, deleteFood, getFood, listFoods } from "@/lib/food/store";
-import { FOOD_STATES, foodInputSchema } from "@/lib/foods";
-import { calcKcalFromMacros } from "@/lib/nutrition";
-import { foodMatchKey } from "@/lib/share/payload";
+import {
+  LUMP_MACRO_MAX,
+  LUMP_NAME_MAX,
+  lumpMealItemSchema,
+} from "@/lib/day/lump";
+import {
+  addMealItemWrites,
+  type MealItemWrite,
+} from "@/lib/day/meal-items-add";
+import { getFood, listFoods } from "@/lib/food/store";
 import type { Food, MealItem } from "@/lib/types";
 
 export const plateCommitItemSchema = z.discriminatedUnion("kind", [
@@ -15,19 +20,32 @@ export const plateCommitItemSchema = z.discriminatedUnion("kind", [
     grams: z.number().finite().positive().max(PLATE_GRAMS_MAX),
   }),
   z.object({
-    kind: z.literal("new"),
-    name: z.string().trim().min(1).max(80),
-    state: z.enum(FOOD_STATES).optional(),
-    protein_per_100: z.number().finite().min(0).max(100),
-    fat_per_100: z.number().finite().min(0).max(100),
-    carbs_per_100: z.number().finite().min(0).max(100),
-    grams: z.number().finite().positive().max(PLATE_GRAMS_MAX),
+    kind: z.literal("lump"),
+    name: z.string().trim().min(1).max(LUMP_NAME_MAX),
+    protein: z.number().finite().min(0).max(LUMP_MACRO_MAX),
+    fat: z.number().finite().min(0).max(LUMP_MACRO_MAX),
+    carbs: z.number().finite().min(0).max(LUMP_MACRO_MAX),
   }),
 ]);
 
-export const plateCommitSchema = z.object({
-  items: z.array(plateCommitItemSchema).min(1).max(PLATE_ITEM_LIMIT),
-});
+export const plateCommitSchema = z
+  .object({
+    items: z.array(plateCommitItemSchema).min(1).max(PLATE_ITEM_LIMIT),
+  })
+  .superRefine((value, ctx) => {
+    for (const [index, item] of value.items.entries()) {
+      if (item.kind !== "lump") {
+        continue;
+      }
+      if (item.protein + item.fat + item.carbs <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Lump macros empty",
+          path: ["items", index],
+        });
+      }
+    }
+  });
 
 export type PlateCommitInput = z.infer<typeof plateCommitSchema>;
 
@@ -38,86 +56,45 @@ export async function commitPlateItems(
 ): Promise<MealItem[]> {
   const foods = await listFoods(userId, "all");
   const byId = new Map(foods.map((food) => [food.id, food] as const));
-  const byKey = new Map(
-    foods.map((food) => [foodMatchKey(food), food] as const),
-  );
-  const createdIds: string[] = [];
-  const resolved: Array<{ food: Food; grams: number }> = [];
+  const writes: MealItemWrite[] = [];
 
-  try {
-    for (const row of input.items) {
-      const resolvedFood = await resolveCommitFood(userId, row, byId, byKey);
-      if (resolvedFood.created) {
-        createdIds.push(resolvedFood.food.id);
-      }
-      resolved.push({ food: resolvedFood.food, grams: row.grams });
+  for (const row of input.items) {
+    if (row.kind === "lump") {
+      writes.push({
+        kind: "lump",
+        input: lumpMealItemSchema.parse({
+          name: row.name,
+          protein: row.protein,
+          fat: row.fat,
+          carbs: row.carbs,
+        }),
+      });
+      continue;
     }
 
-    return await addMealItems(userId, mealId, resolved);
-  } catch (error) {
-    await rollbackCreatedFoods(userId, createdIds);
-    throw error;
+    writes.push({
+      kind: "food",
+      food: await resolveCommitFood(userId, row.foodId, byId),
+      grams: row.grams,
+    });
   }
+
+  return addMealItemWrites(userId, mealId, writes);
 }
 
 async function resolveCommitFood(
   userId: string,
-  row: PlateCommitInput["items"][number],
+  foodId: string,
   byId: Map<string, Food>,
-  byKey: Map<string, Food>,
-): Promise<{ food: Food; created: boolean }> {
-  if (row.kind === "food") {
-    const cached = byId.get(row.foodId);
-    if (cached) {
-      return { food: cached, created: false };
-    }
-    const existing = await getFood(userId, row.foodId);
-    if (!existing) {
-      throw new Error("Food not found");
-    }
-    byId.set(existing.id, existing);
-    byKey.set(foodMatchKey(existing), existing);
-    return { food: existing, created: false };
+): Promise<Food> {
+  const cached = byId.get(foodId);
+  if (cached) {
+    return cached;
   }
-
-  const parsed = foodInputSchema.parse({
-    name: row.name,
-    state: row.state ?? "as_is",
-    protein_per_100: row.protein_per_100,
-    fat_per_100: row.fat_per_100,
-    carbs_per_100: row.carbs_per_100,
-    kcal_per_100: calcKcalFromMacros(
-      row.protein_per_100,
-      row.fat_per_100,
-      row.carbs_per_100,
-    ),
-    default_portion_g: null,
-    is_favorite: false,
-  });
-  const key = foodMatchKey({
-    name: parsed.name,
-    state: parsed.state ?? "as_is",
-    protein_per_100: parsed.protein_per_100,
-    fat_per_100: parsed.fat_per_100,
-    carbs_per_100: parsed.carbs_per_100,
-  });
-  const matched = byKey.get(key);
-  if (matched) {
-    return { food: matched, created: false };
+  const existing = await getFood(userId, foodId);
+  if (!existing) {
+    throw new Error("Food not found");
   }
-
-  const created = await createFood(userId, parsed);
-  byId.set(created.id, created);
-  byKey.set(key, created);
-  return { food: created, created: true };
-}
-
-async function rollbackCreatedFoods(userId: string, ids: string[]) {
-  for (const id of ids) {
-    try {
-      await deleteFood(userId, id);
-    } catch {
-      // Meal write already failed; leftover food is better than a half-written meal.
-    }
-  }
+  byId.set(existing.id, existing);
+  return existing;
 }

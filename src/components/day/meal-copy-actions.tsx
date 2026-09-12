@@ -35,7 +35,6 @@ export function MealCopyActions({
   const extras = useMealCopyExtras({
     date,
     mealType,
-    hasItems,
     copyDays,
     namedMeals,
   });
@@ -91,13 +90,11 @@ export function MealCopyActions({
 function useMealCopyExtras({
   date,
   mealType,
-  hasItems,
   copyDays,
   namedMeals,
 }: {
   date: string;
   mealType: MealType;
-  hasItems: boolean;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
 }) {
@@ -116,6 +113,6 @@ function useMealCopyExtras({
     named,
     sources,
     hasYesterday,
-    hasAny: hasYesterday || named.length > 0 || hasItems || sources.length > 0,
+    hasAny: hasYesterday || named.length > 0 || sources.length > 0,
   };
 }

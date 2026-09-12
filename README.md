@@ -9,7 +9,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 **Food**
 
 - A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover protein.
-- Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen.
+- Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen: known foods get grams, unknown food becomes that same one-off row.
 - Your own food list: CRUD, search, favorites, recents. No external catalogs.
 - Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Yesterday stays writable after midnight in the user's timezone.
 - Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template.

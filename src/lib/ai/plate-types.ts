@@ -19,6 +19,9 @@ export type PlateModelItem = {
   name: string;
   grams: number;
   state: FoodState;
+  protein: number | null;
+  fat: number | null;
+  carbs: number | null;
   protein_per_100: number | null;
   fat_per_100: number | null;
   carbs_per_100: number | null;
@@ -54,18 +57,16 @@ export type PlateDraftFood = {
   yield_to_g: number | null;
 };
 
-export type PlateDraftNew = {
-  kind: "new";
+export type PlateDraftLump = {
+  kind: "lump";
   name: string;
-  state: FoodState;
-  grams: number;
-  protein_per_100: number;
-  fat_per_100: number;
-  carbs_per_100: number;
-  kcal_per_100: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
 };
 
-export type PlateDraftItem = PlateDraftFood | PlateDraftNew;
+export type PlateDraftItem = PlateDraftFood | PlateDraftLump;
 
 export type PlateDraft = {
   items: PlateDraftItem[];
