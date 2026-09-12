@@ -2,6 +2,7 @@ import {
   convertYieldGrams,
   formatYieldGrams,
   parseFoodYield,
+  switchGramsMode,
   toCookedGrams,
   toNativeGrams,
 } from "@/lib/food/yield";
@@ -33,6 +34,15 @@ assertEqual(toNativeGrams(150, "native", chicken), 150, "native stays native");
 assertEqual(convertYieldGrams(70, 70, 210), 210, "70 dry -> 210 cooked");
 assertEqual(formatYieldGrams(136.36), "136.4", "one decimal");
 assertEqual(formatYieldGrams(150), "150", "integer grams");
+assertEqual(
+  toNativeGrams(
+    switchGramsMode(110, "cooked", "native", chicken),
+    "native",
+    chicken,
+  ),
+  150,
+  "switch cooked to native",
+);
 assertEqual(
   parseFoodYield({ state: "cooked", yield_from_g: 150, yield_to_g: 110 }),
   null,

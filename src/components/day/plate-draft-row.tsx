@@ -2,6 +2,7 @@
 
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
+import { PlateDraftNewFields } from "@/components/day/plate-draft-new-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +13,10 @@ import {
   formatYieldGrams,
   type GramsMode,
   nativeYieldLabel,
-  toCookedGrams,
+  parseGramsInput,
   toNativeGrams,
 } from "@/lib/food/yield";
-import { FOOD_STATE_LABELS, FOOD_STATES } from "@/lib/foods";
+import { gramsChipForMode, yieldEquivalentLabel } from "@/lib/food/yield-copy";
 import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
 
@@ -52,12 +53,8 @@ export function PlateDraftRow({
     carbsInput?: string;
   }) => void;
 }) {
-  const grams = Number(gramsInput.replace(",", "."));
-  const nativeGrams = toNativeGrams(
-    Number.isFinite(grams) ? grams : 0,
-    gramsMode,
-    yieldPair,
-  );
+  const grams = parseGramsInput(gramsInput) ?? 0;
+  const nativeGrams = toNativeGrams(grams, gramsMode, yieldPair);
   const totals =
     nativeGrams > 0
       ? calcMacrosFromPer100(
@@ -70,15 +67,14 @@ export function PlateDraftRow({
           nativeGrams,
         )
       : null;
-  const cookedPortion =
-    yieldPair &&
-    item.kind === "food" &&
-    item.default_portion_g &&
-    item.default_portion_g > 0
-      ? toCookedGrams(item.default_portion_g, yieldPair)
-      : null;
   const nativeLabel = nativeYieldLabel(
     item.kind === "food" || item.kind === "new" ? item.state : "raw",
+  );
+  const chip = gramsChipForMode(
+    gramsMode,
+    yieldPair,
+    item.kind === "food" ? item.default_portion_g : null,
+    item.kind === "food" ? item.default_portion_label : null,
   );
 
   return (
@@ -98,9 +94,7 @@ export function PlateDraftRow({
               />
             </div>
           ) : (
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <p className="text-lg font-medium">{item.name}</p>
-            </div>
+            <p className="text-lg font-medium">{item.name}</p>
           )}
           {item.kind === "food" ? (
             <p className="mt-1 text-sm text-muted-foreground">
@@ -114,47 +108,13 @@ export function PlateDraftRow({
       </div>
 
       {item.kind === "new" && onPatchNew ? (
-        <>
-          <div className="flex flex-col gap-2">
-            <Label className="text-base">Состояние</Label>
-            <div className="flex flex-wrap gap-2">
-              {FOOD_STATES.map((state) => (
-                <Button
-                  key={state}
-                  type="button"
-                  variant={item.state === state ? "secondary" : "outline"}
-                  className="h-10 px-3 text-sm"
-                  onClick={() => onPatchNew({ state })}
-                >
-                  {FOOD_STATE_LABELS[state]}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-base font-medium">На 100 г</p>
-            <div className="grid grid-cols-3 gap-2">
-              <Field
-                label="Б"
-                value={proteinInput}
-                onChange={(value) => onPatchNew({ proteinInput: value })}
-              />
-              <Field
-                label="Ж"
-                value={fatInput}
-                onChange={(value) => onPatchNew({ fatInput: value })}
-              />
-              <Field
-                label="У"
-                value={carbsInput}
-                onChange={(value) => onPatchNew({ carbsInput: value })}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {formatKcal(item.kcal_per_100)} ккал / 100 г
-            </p>
-          </div>
-        </>
+        <PlateDraftNewFields
+          item={item}
+          proteinInput={proteinInput}
+          fatInput={fatInput}
+          carbsInput={carbsInput}
+          onPatchNew={onPatchNew}
+        />
       ) : null}
 
       <div className="flex flex-col gap-2">
@@ -171,33 +131,20 @@ export function PlateDraftRow({
         <GramsYieldToggle
           mode={gramsMode}
           nativeLabel={nativeLabel}
-          equivalentLabel={
-            nativeGrams > 0
-              ? gramsMode === "cooked"
-                ? `${formatYieldGrams(nativeGrams)} г ${nativeLabel.toLowerCase()}`
-                : `${formatYieldGrams(toCookedGrams(nativeGrams, yieldPair))} г готового`
-              : `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
-          }
+          equivalentLabel={yieldEquivalentLabel(
+            nativeGrams,
+            gramsMode,
+            yieldPair,
+            nativeLabel,
+          )}
           onChange={onGramsModeChange}
         />
       ) : null}
 
       <GramChips
         onPick={(value) => onGramsChange(formatYieldGrams(value))}
-        defaultPortionG={
-          gramsMode === "cooked" && cookedPortion != null
-            ? cookedPortion
-            : item.kind === "food"
-              ? item.default_portion_g
-              : null
-        }
-        defaultPortionLabel={
-          gramsMode === "cooked" && cookedPortion != null
-            ? `${formatYieldGrams(cookedPortion)} г готового`
-            : item.kind === "food"
-              ? item.default_portion_label
-              : null
-        }
+        defaultPortionG={chip.grams ?? null}
+        defaultPortionLabel={chip.label ?? null}
       />
 
       <Button
@@ -215,28 +162,6 @@ export function PlateDraftRow({
           {formatMacro(totals.carbs)} · {formatKcal(totals.kcal)} ккал
         </p>
       ) : null}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Label className="text-sm">{label}</Label>
-      <Input
-        inputMode="decimal"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-12 text-base"
-      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { parseFoodState } from "@/lib/food/schema";
+import { isYieldSourceState, parseYieldPair } from "@/lib/food/yield";
 import { parseFood } from "@/lib/foods";
 import { isRecord } from "@/lib/read";
 import type { Food, FoodState } from "@/lib/types";
@@ -88,21 +89,16 @@ export function toPayload(
 
   let yield_from_g: number | null = null;
   let yield_to_g: number | null = null;
-  if (form.state === "raw" || form.state === "dry") {
-    if (yieldFromRaw !== "" || yieldToRaw !== "") {
-      const from = Number(yieldFromRaw);
-      const to = Number(yieldToRaw);
-      if (
-        !(from > 0) ||
-        !(to > 0) ||
-        !Number.isFinite(from) ||
-        !Number.isFinite(to)
-      ) {
-        return null;
-      }
-      yield_from_g = from;
-      yield_to_g = to;
+  if (
+    isYieldSourceState(form.state) &&
+    (yieldFromRaw !== "" || yieldToRaw !== "")
+  ) {
+    const pair = parseYieldPair(Number(yieldFromRaw), Number(yieldToRaw));
+    if (!pair) {
+      return null;
     }
+    yield_from_g = pair.from_g;
+    yield_to_g = pair.to_g;
   }
 
   return {

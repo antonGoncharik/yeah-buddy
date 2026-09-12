@@ -2,10 +2,9 @@
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
-import { MealCard } from "@/components/day/meal-card";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { TodayDayHeader } from "@/components/day/today-day-header";
-import { withDateQuery } from "@/lib/day/dates";
+import { TodayDayMeals } from "@/components/day/today-day-meals";
 import type { DayWithMeals } from "@/lib/day/map";
 import { hiddenMealSlotsNote } from "@/lib/nutrition";
 import type {
@@ -131,80 +130,21 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {visibleMeals.map((meal, index) => (
-        <MealCard
-          key={meal.id}
-          mealType={meal.meal_type}
-          items={meal.items.map((item) => ({
-            id: item.id,
-            name: item.name_snapshot,
-            grams: item.grams,
-            protein: item.protein,
-            fat: item.fat,
-            carbs: item.carbs,
-            kcal: item.kcal,
-          }))}
-          itemHref={
-            viewOnly
-              ? undefined
-              : (item) => withDateQuery(`/today/items/${item.id}`, date)
-          }
-          addHref={
-            viewOnly
-              ? undefined
-              : withDateQuery(`/today/meals/${meal.id}/add`, date)
-          }
-          plateHref={
-            viewOnly
-              ? undefined
-              : withDateQuery(`/today/meals/${meal.id}/plate`, date)
-          }
-          date={date}
-          copyDays={copyDays}
-          namedMeals={namedMeals}
-          onCopyDate={
-            viewOnly
-              ? undefined
-              : (sourceDate) =>
-                  void copyMealFromDate(meal.id, meal.meal_type, sourceDate)
-          }
-          onApplyNamed={
-            viewOnly
-              ? undefined
-              : (namedMealId) =>
-                  void applyNamedMeal(meal.id, meal.meal_type, namedMealId)
-          }
-          onSaveNamed={
-            viewOnly
-              ? undefined
-              : () => void saveNamedMeal(meal.id, meal.meal_type)
-          }
-          onDeleteNamed={
-            viewOnly
-              ? undefined
-              : (namedMealId, name) => void deleteNamedMeal(namedMealId, name)
-          }
-          onFillTemplate={
-            viewOnly || !remainingMealTypes.has(meal.meal_type)
-              ? undefined
-              : () => void fillMealFromTemplate(meal.id)
-          }
-          copyBusy={busy}
-          readOnly={viewOnly}
-          className="animate-rise"
-          style={{ animationDelay: `${80 + index * 50}ms` }}
-          onDeleteItem={
-            viewOnly
-              ? undefined
-              : (item) => {
-                  const row = meal.items.find((entry) => entry.id === item.id);
-                  if (row) {
-                    void deleteItem(row);
-                  }
-                }
-          }
-        />
-      ))}
+      <TodayDayMeals
+        date={date}
+        viewOnly={viewOnly}
+        visibleMeals={visibleMeals}
+        remainingMealTypes={remainingMealTypes}
+        copyDays={copyDays}
+        namedMeals={namedMeals}
+        busy={busy}
+        fillMealFromTemplate={fillMealFromTemplate}
+        copyMealFromDate={copyMealFromDate}
+        applyNamedMeal={applyNamedMeal}
+        saveNamedMeal={saveNamedMeal}
+        deleteNamedMeal={deleteNamedMeal}
+        deleteItem={deleteItem}
+      />
 
       {remainingFullGap ? null : remainingAction ? (
         <div

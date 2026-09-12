@@ -1,3 +1,7 @@
+import type {
+  PlateNewPatch,
+  PlateRow,
+} from "@/components/day/plate-draft-types";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import {
@@ -5,50 +9,22 @@ import {
   formatYieldGrams,
   type GramsMode,
   parseFoodYield,
+  parseGramsInput,
+  switchGramsMode,
   toCookedGrams,
   toNativeGrams,
 } from "@/lib/food/yield";
 import { calcKcalFromMacros } from "@/lib/nutrition";
-import type { Food, FoodState } from "@/lib/types";
+import type { Food } from "@/lib/types";
 
-export type PlateRow = PlateDraftItem & {
-  rowId: string;
-  gramsInput: string;
-  gramsMode: GramsMode;
-  proteinInput: string;
-  fatInput: string;
-  carbsInput: string;
-};
+export type {
+  PlateNewPatch,
+  PlatePicker,
+  PlateRow,
+  PlateStatus,
+} from "@/components/day/plate-draft-types";
 
-export type PlatePicker =
-  | { mode: "add" }
-  | { mode: "replace"; index: number }
-  | null;
-
-export type PlateStatus =
-  | { status: "idle" }
-  | { status: "unavailable" }
-  | { status: "working"; title: string; previewUrl: string | null }
-  | { status: "error"; message: string; previewUrl: string | null }
-  | { status: "empty"; previewUrl: string }
-  | { status: "draft"; previewUrl: string; items: PlateRow[] }
-  | { status: "saving"; previewUrl: string; items: PlateRow[] };
-
-export type PlateNewPatch = {
-  name?: string;
-  state?: FoodState;
-  proteinInput?: string;
-  fatInput?: string;
-  carbsInput?: string;
-};
-
-export function parseGramsInput(value: string): number | null {
-  const grams = Number(value.replace(",", "."));
-  if (!Number.isFinite(grams) || grams <= 0) {
-    return null;
-  }
-  return grams;
-}
+export { parseGramsInput };
 
 export function rowYield(item: PlateDraftItem): FoodYield | null {
   return item.kind === "food" ? parseFoodYield(item) : null;
@@ -152,22 +128,6 @@ export function patchNewFoodRow(
   };
 }
 
-export function toCommitItem(item: PlateDraftItem) {
-  if (item.kind === "food") {
-    return { kind: "food" as const, foodId: item.foodId, grams: item.grams };
-  }
-
-  return {
-    kind: "new" as const,
-    name: item.name,
-    state: item.state,
-    protein_per_100: item.protein_per_100,
-    fat_per_100: item.fat_per_100,
-    carbs_per_100: item.carbs_per_100,
-    grams: item.grams,
-  };
-}
-
 export function foodRowFromPick(food: Food): PlateRow {
   const grams =
     food.default_portion_g && food.default_portion_g > 0
@@ -185,11 +145,11 @@ export function withGramsMode(item: PlateRow, next: GramsMode): PlateRow {
   if (grams == null) {
     return { ...item, gramsMode: next };
   }
-  const native = toNativeGrams(grams, item.gramsMode, pair);
-  const shown = next === "cooked" ? toCookedGrams(native, pair) : native;
   return {
     ...item,
     gramsMode: next,
-    gramsInput: formatYieldGrams(shown),
+    gramsInput: formatYieldGrams(
+      switchGramsMode(grams, item.gramsMode, next, pair),
+    ),
   };
 }

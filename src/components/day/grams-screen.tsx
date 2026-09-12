@@ -1,26 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
+import { useGramsScreen } from "@/components/day/use-grams-screen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { patchJson, postJson } from "@/lib/api-cache";
-import {
-  type FoodYield,
-  formatYieldGrams,
-  type GramsMode,
-  nativeYieldLabel,
-  toCookedGrams,
-  toNativeGrams,
-} from "@/lib/food/yield";
-import { LOAD_FAILED } from "@/lib/messages";
-import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
-import { haptic } from "@/lib/telegram/haptic";
+import type { FoodYield } from "@/lib/food/yield";
+import { formatYieldGrams } from "@/lib/food/yield";
+import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
+
+export {
+  addMealItemGrams,
+  addTemplateItemGrams,
+  saveMealItemGrams,
+  saveTemplateItemGrams,
+} from "@/components/day/grams-save";
 
 export function GramsScreen({
   name,
@@ -55,79 +51,22 @@ export function GramsScreen({
   doneHref: string;
   readOnly?: boolean;
 }) {
-  const router = useRouter();
-  const [gramsInput, setGramsInput] = useState(String(initialGrams));
-  const [gramsMode, setGramsMode] = useState<GramsMode>("native");
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const canCooked = allowCooked && yieldPair != null;
-  const pair = canCooked ? yieldPair : null;
-  const grams = Number(gramsInput.replace(",", "."));
-  const nativeGrams = toNativeGrams(
-    Number.isFinite(grams) ? grams : 0,
-    gramsMode,
-    pair,
-  );
-  const totals = useMemo(() => {
-    if (!(nativeGrams > 0)) {
-      return null;
-    }
-
-    return calcMacrosFromPer100({ protein, fat, carbs, kcal }, nativeGrams);
-  }, [carbs, fat, kcal, nativeGrams, protein]);
-
-  const cookedPortion =
-    pair && defaultPortionG && defaultPortionG > 0
-      ? toCookedGrams(defaultPortionG, pair)
-      : null;
-  const chipPortionG =
-    gramsMode === "cooked" && cookedPortion != null
-      ? cookedPortion
-      : defaultPortionG;
-  const chipPortionLabel =
-    gramsMode === "cooked" && cookedPortion != null
-      ? `${formatYieldGrams(cookedPortion)} г готового`
-      : defaultPortionLabel;
-
-  function changeMode(next: GramsMode) {
-    if (next === gramsMode || !pair) {
-      return;
-    }
-    if (Number.isFinite(grams) && grams > 0) {
-      const native = toNativeGrams(grams, gramsMode, pair);
-      const shown = next === "cooked" ? toCookedGrams(native, pair) : native;
-      setGramsInput(formatYieldGrams(shown));
-    }
-    setGramsMode(next);
-  }
-
-  async function onSave() {
-    if (readOnly || !save) {
-      return;
-    }
-
-    if (!Number.isFinite(grams) || !(nativeGrams > 0)) {
-      haptic("warn");
-      setError("Нужны граммы больше 0.");
-      return;
-    }
-
-    setError(null);
-    setSaving(true);
-
-    try {
-      await save(nativeGrams);
-      haptic("success");
-      router.push(doneHref);
-      router.refresh();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSaving(false);
-    }
-  }
+  const grams = useGramsScreen({
+    protein,
+    fat,
+    carbs,
+    kcal,
+    initialGrams,
+    defaultPortionG,
+    defaultPortionLabel,
+    yieldPair,
+    foodState,
+    allowCooked,
+    save,
+    backHref,
+    doneHref,
+    readOnly,
+  });
 
   return (
     <div className="animate-rise flex flex-col gap-5 px-4 pb-4">
@@ -142,59 +81,56 @@ export function GramsScreen({
       <div className="flex flex-col gap-2">
         <Label className="text-base">Граммы</Label>
         {readOnly ? (
-          <p className="text-2xl font-semibold tabular-nums">{gramsInput}</p>
+          <p className="text-2xl font-semibold tabular-nums">
+            {grams.gramsInput}
+          </p>
         ) : (
           <Input
             inputMode="decimal"
-            value={gramsInput}
-            onChange={(event) => setGramsInput(event.target.value)}
+            value={grams.gramsInput}
+            onChange={(event) => grams.setGramsInput(event.target.value)}
             className="h-14 text-lg"
           />
         )}
       </div>
 
-      {pair ? (
+      {grams.pair ? (
         <GramsYieldToggle
-          mode={gramsMode}
-          nativeLabel={nativeYieldLabel(foodState ?? "raw")}
-          equivalentLabel={
-            nativeGrams > 0
-              ? gramsMode === "cooked"
-                ? `${formatYieldGrams(nativeGrams)} г ${nativeYieldLabel(foodState ?? "raw").toLowerCase()}`
-                : `${formatYieldGrams(toCookedGrams(nativeGrams, pair))} г готового`
-              : pair
-                ? `${formatYieldGrams(pair.from_g)} → ${formatYieldGrams(pair.to_g)}`
-                : ""
-          }
+          mode={grams.gramsMode}
+          nativeLabel={grams.nativeLabel}
+          equivalentLabel={grams.equivalentLabel}
           disabled={readOnly}
-          onChange={changeMode}
+          onChange={grams.changeMode}
         />
       ) : null}
 
-      {totals ? (
+      {grams.totals ? (
         <div className="card-surface px-5 py-4 text-lg">
-          Итого: Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} ·
-          У {formatMacro(totals.carbs)} · {formatKcal(totals.kcal)} ккал
+          Итого: Б {formatMacro(grams.totals.protein)} · Ж{" "}
+          {formatMacro(grams.totals.fat)} · У {formatMacro(grams.totals.carbs)}{" "}
+          · {formatKcal(grams.totals.kcal)} ккал
         </div>
       ) : null}
 
       {readOnly ? null : (
         <GramChips
-          onPick={(value) => setGramsInput(formatYieldGrams(value))}
-          defaultPortionG={chipPortionG}
-          defaultPortionLabel={chipPortionLabel}
+          onPick={(value) => grams.setGramsInput(formatYieldGrams(value))}
+          defaultPortionG={grams.chip.grams ?? null}
+          defaultPortionLabel={grams.chip.label ?? null}
         />
       )}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {grams.error ? (
+        <p className="text-sm text-destructive">{grams.error}</p>
+      ) : null}
 
       {readOnly ? null : (
         <Button
           className="h-14 text-lg"
-          disabled={saving}
-          onClick={() => void onSave()}
+          disabled={grams.saving}
+          onClick={() => void grams.onSave()}
         >
-          {saving ? "Сохранение…" : "Сохранить"}
+          {grams.saving ? "Сохранение…" : "Сохранить"}
         </Button>
       )}
 
@@ -202,39 +138,10 @@ export function GramsScreen({
         type="button"
         variant="ghost"
         className="h-12 text-base"
-        onClick={() => router.push(readOnly ? doneHref : backHref)}
+        onClick={grams.onCancel}
       >
         {readOnly ? "Назад" : "Отмена"}
       </Button>
     </div>
   );
-}
-
-export async function saveMealItemGrams(itemId: string, grams: number) {
-  await patchJson(`/api/meal-items/${itemId}`, { grams });
-}
-
-export async function addMealItemGrams(
-  mealId: string,
-  foodId: string,
-  grams: number,
-) {
-  await postJson(`/api/meals/${mealId}/items`, { foodId, grams });
-}
-
-export async function addTemplateItemGrams(
-  dayType: string,
-  mealType: string,
-  foodId: string,
-  grams: number,
-) {
-  await postJson(`/api/meal-templates/${dayType}/items`, {
-    mealType,
-    foodId,
-    grams,
-  });
-}
-
-export async function saveTemplateItemGrams(itemId: string, grams: number) {
-  await patchJson(`/api/meal-template-items/${itemId}`, { grams });
 }

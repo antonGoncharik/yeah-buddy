@@ -1,120 +1,13 @@
 import { mapMealItem } from "@/lib/day/map";
 import { getDateForMeal } from "@/lib/day/meal-date";
-import { buildMealItemRow } from "@/lib/day/meal-item-row";
 import { assertUserDayWritable } from "@/lib/day/writable";
-import { getFood } from "@/lib/food/store";
 import { calcMacrosFromPer100, roundMacros } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Food, MealItem } from "@/lib/types";
+import type { MealItem } from "@/lib/types";
 
 export { getDateForMeal } from "@/lib/day/meal-date";
 export { buildMealItemRow } from "@/lib/day/meal-item-row";
-
-export async function addMealItem(
-  userId: string,
-  mealId: string,
-  foodId: string,
-  grams: number,
-): Promise<MealItem> {
-  const date = await getDateForMeal(userId, mealId);
-  if (!date) {
-    throw new Error("Meal not found");
-  }
-  await assertUserDayWritable(userId, date);
-
-  const supabase = createSupabaseServerClient();
-  const meal = await supabase
-    .from("meals")
-    .select("id")
-    .eq("id", mealId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (meal.error) {
-    throw meal.error;
-  }
-
-  if (!meal.data) {
-    throw new Error("Meal not found");
-  }
-
-  const food = await getFood(userId, foodId);
-  if (!food) {
-    throw new Error("Food not found");
-  }
-
-  const inserted = await supabase
-    .from("meal_items")
-    .insert(
-      buildMealItemRow({
-        userId,
-        mealId,
-        foodId: food.id,
-        name: food.name,
-        grams,
-        per100: {
-          protein: food.protein_per_100,
-          fat: food.fat_per_100,
-          carbs: food.carbs_per_100,
-          kcal: food.kcal_per_100,
-        },
-      }),
-    )
-    .select("*")
-    .single();
-
-  if (inserted.error || !inserted.data) {
-    throw inserted.error ?? new Error("Meal item insert failed");
-  }
-
-  return mapMealItem(inserted.data as Record<string, unknown>);
-}
-
-export async function addMealItems(
-  userId: string,
-  mealId: string,
-  entries: Array<{ food: Food; grams: number }>,
-): Promise<MealItem[]> {
-  if (entries.length === 0) {
-    throw new Error("Meal items empty");
-  }
-
-  const date = await getDateForMeal(userId, mealId);
-  if (!date) {
-    throw new Error("Meal not found");
-  }
-  await assertUserDayWritable(userId, date);
-
-  const supabase = createSupabaseServerClient();
-  const inserted = await supabase
-    .from("meal_items")
-    .insert(
-      entries.map((entry) =>
-        buildMealItemRow({
-          userId,
-          mealId,
-          foodId: entry.food.id,
-          name: entry.food.name,
-          grams: entry.grams,
-          per100: {
-            protein: entry.food.protein_per_100,
-            fat: entry.food.fat_per_100,
-            carbs: entry.food.carbs_per_100,
-            kcal: entry.food.kcal_per_100,
-          },
-        }),
-      ),
-    )
-    .select("*");
-
-  if (inserted.error) {
-    throw inserted.error;
-  }
-
-  return (inserted.data ?? []).map((row) =>
-    mapMealItem(row as Record<string, unknown>),
-  );
-}
+export { addMealItem, addMealItems } from "@/lib/day/meal-items-add";
 
 export async function getMealItem(
   userId: string,

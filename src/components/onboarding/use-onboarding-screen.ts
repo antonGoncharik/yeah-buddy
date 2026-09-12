@@ -7,6 +7,10 @@ import {
   loadPendingPackKind,
   submitOnboardingFinish,
 } from "@/components/onboarding/onboarding-finish";
+import {
+  type OnboardingStep,
+  onboardingSteps,
+} from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { macroGoalsFromProtein } from "@/lib/nutrition";
@@ -19,12 +23,9 @@ import {
 import type { SharePackKind } from "@/lib/share/payload";
 import { haptic } from "@/lib/telegram/haptic";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
-import {
-  isProgramPresetId,
-  RECOMMENDED_PROGRAM_PRESET_ID,
-} from "@/lib/workout/program-presets";
+import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
-export type OnboardingStep = "food" | "circle" | "maxes";
+export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
 
 export function useOnboardingScreen() {
   const router = useRouter();
@@ -94,28 +95,10 @@ export function useOnboardingScreen() {
     ? onboardingWeightExercises(circle, state.exercises)
     : [];
 
-  const steps = useMemo((): OnboardingStep[] => {
-    const next: OnboardingStep[] = [];
-    if (pendingKind !== "meals") {
-      next.push("food");
-    }
-    if (!replay && pendingKind !== "workouts") {
-      next.push("circle");
-    }
-    if (
-      pendingKind !== "workouts" &&
-      isProgramPresetId(circle) &&
-      state &&
-      !state.maxesLocked &&
-      weightExercises.length > 0
-    ) {
-      next.push("maxes");
-    }
-    if (next.length === 0) {
-      next.push("food");
-    }
-    return next;
-  }, [circle, pendingKind, replay, state, weightExercises.length]);
+  const steps = useMemo(
+    () => onboardingSteps({ pendingKind, replay, circle, state }),
+    [circle, pendingKind, replay, state],
+  );
 
   useEffect(() => {
     if (!steps.includes(step)) {

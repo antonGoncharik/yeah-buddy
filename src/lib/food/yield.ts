@@ -55,8 +55,25 @@ export function roundYieldGrams(value: number): number {
 }
 
 export function formatYieldGrams(value: number): string {
-  const rounded = roundYieldGrams(value);
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+  return String(roundYieldGrams(value));
+}
+
+export function parseGramsInput(value: string): number | null {
+  const grams = Number(value.replace(",", "."));
+  if (!Number.isFinite(grams) || grams <= 0) {
+    return null;
+  }
+  return grams;
+}
+
+export function switchGramsMode(
+  grams: number,
+  from: GramsMode,
+  to: GramsMode,
+  pair: FoodYield,
+): number {
+  const native = toNativeGrams(grams, from, pair);
+  return to === "cooked" ? toCookedGrams(native, pair) : native;
 }
 
 export function convertYieldGrams(

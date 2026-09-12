@@ -4,14 +4,14 @@ import type { Dispatch, SetStateAction } from "react";
 import {
   copyNotFoundMessage,
   postCopyWithConflict,
-  readNamedMealHint,
 } from "@/components/day/today-copy-request";
-import { useConfirm, usePrompt } from "@/components/layout/confirm-provider";
-import { deleteJson, postJson } from "@/lib/api-cache";
+import { useTodayNamedMeals } from "@/components/day/use-today-named";
+import { useConfirm } from "@/components/layout/confirm-provider";
+import { postJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/day/map";
 import { readDay } from "@/lib/day/today-payload";
 import { DAY_EXISTS_REPLACE, LOAD_FAILED } from "@/lib/messages";
-import { getMealLabel, mealExistsReplace } from "@/lib/nutrition";
+import { mealExistsReplace } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { MealType, NamedMealHint } from "@/lib/types";
 
@@ -33,7 +33,12 @@ export function useTodayCopy({
   setNamedMeals: Dispatch<SetStateAction<NamedMealHint[]>>;
 }) {
   const confirm = useConfirm();
-  const prompt = usePrompt();
+  const named = useTodayNamedMeals({
+    viewOnly,
+    setBusy,
+    setActionError,
+    setNamedMeals,
+  });
 
   async function runReplaceCopy({
     needsConfirm,
@@ -113,14 +118,6 @@ export function useTodayCopy({
     }
   }
 
-  async function fillDayFromTemplate(dayId: string) {
-    await fillFromTemplate(`/api/days/${dayId}/fill-template`);
-  }
-
-  async function fillMealFromTemplate(mealId: string) {
-    await fillFromTemplate(`/api/meals/${mealId}/fill-template`);
-  }
-
   async function copyYesterday() {
     await runReplaceCopy({
       needsConfirm: Boolean(day),
@@ -166,84 +163,15 @@ export function useTodayCopy({
     });
   }
 
-  async function saveNamedMeal(mealId: string, mealType: MealType) {
-    if (viewOnly) {
-      return;
-    }
-
-    const name = await prompt({
-      message: "Как назвать приём?",
-      defaultValue: getMealLabel(mealType),
-      confirmLabel: "Сохранить",
-      placeholder: "Мой завтрак",
-    });
-    if (!name) {
-      return;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const data = await postJson("/api/named-meals", { name, mealId });
-      const saved = readNamedMealHint(data);
-      if (saved) {
-        setNamedMeals((current) => {
-          const without = current.filter(
-            (meal) =>
-              meal.id !== saved.id &&
-              meal.name.toLowerCase() !== saved.name.toLowerCase(),
-          );
-          return [...without, saved];
-        });
-      }
-      haptic("success");
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function deleteNamedMeal(namedMealId: string, name: string) {
-    if (viewOnly) {
-      return;
-    }
-
-    const ok = await confirm({
-      message: `Удалить «${name}»?`,
-      confirmLabel: "Удалить",
-      cancelLabel: "Оставить",
-      destructive: true,
-    });
-    if (!ok) {
-      return;
-    }
-
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      await deleteJson(`/api/named-meals/${namedMealId}`);
-      setNamedMeals((current) =>
-        current.filter((meal) => meal.id !== namedMealId),
-      );
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return {
     copyYesterday,
     copyMealFromDate,
     applyNamedMeal,
-    saveNamedMeal,
-    deleteNamedMeal,
-    fillDayFromTemplate,
-    fillMealFromTemplate,
+    saveNamedMeal: named.saveNamedMeal,
+    deleteNamedMeal: named.deleteNamedMeal,
+    fillDayFromTemplate: (dayId: string) =>
+      fillFromTemplate(`/api/days/${dayId}/fill-template`),
+    fillMealFromTemplate: (mealId: string) =>
+      fillFromTemplate(`/api/meals/${mealId}/fill-template`),
   };
 }

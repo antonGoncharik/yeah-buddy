@@ -6,6 +6,7 @@ import {
   factFromDay,
   hiddenMealKcalFromDay,
   hiddenMealTypesFromDay,
+  remainingFromDay,
   visibleMealsFromDay,
 } from "@/components/day/today-derived";
 import { bannerFromTodayState } from "@/components/day/today-workout-banner";
@@ -23,13 +24,6 @@ import {
   todayHistoryDayHref,
   todayHomeHref,
 } from "@/lib/day/dates";
-import {
-  formatRemainingLine,
-  isFullTemplateGap,
-  remainingFills,
-  remainingLines,
-} from "@/lib/day/remaining";
-import type { MealType } from "@/lib/types";
 
 export function useTodayScreen({
   initialDate,
@@ -108,23 +102,10 @@ export function useTodayScreen({
       ? data.recipes.training
       : data.recipes.rest
     : [];
-  const remaining = useMemo(() => {
-    if (!shownDay) {
-      return [];
-    }
-    return remainingFills(recipe, shownDay.meals, shownDay.is_training_day);
-  }, [recipe, shownDay]);
-  const remainingLine = formatRemainingLine(remainingLines(remaining));
-  const remainingFullGap = shownDay
-    ? isFullTemplateGap(recipe, remaining, shownDay.is_training_day)
-    : false;
-  const remainingMealTypes = useMemo(() => {
-    const types = new Set<MealType>();
-    for (const fill of remaining) {
-      types.add(fill.mealType);
-    }
-    return types;
-  }, [remaining]);
+  const remaining = remainingFromDay(shownDay, recipe);
+  const remainingLine = remaining.line;
+  const remainingFullGap = remaining.fullGap;
+  const remainingMealTypes = remaining.mealTypes;
 
   const {
     copyYesterday,

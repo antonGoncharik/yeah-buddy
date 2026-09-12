@@ -11,16 +11,15 @@ import {
   type PlateRow,
   type PlateStatus,
   patchNewFoodRow,
-  rowNativeGrams,
-  toCommitItem,
   withGramsMode,
 } from "@/components/day/plate-draft";
-import { parseNonneg } from "@/components/foods/food-form-state";
-import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
+import {
+  commitItemsFromRows,
+  toCommitItem,
+} from "@/components/day/plate-draft-commit";
 import { postJson } from "@/lib/api-cache";
 import type { GramsMode } from "@/lib/food/yield";
-import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
-import { calcKcalFromMacros } from "@/lib/nutrition";
+import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
 
@@ -114,41 +113,11 @@ export function usePlateDraft({
       return;
     }
 
-    const items: PlateDraftItem[] = [];
-    for (const item of view.items) {
-      const native = rowNativeGrams(item);
-      if (native == null) {
-        haptic("warn");
-        setSaveError("Нужны граммы больше 0.");
-        return;
-      }
-      const grams = Math.min(native, PLATE_GRAMS_MAX);
-      if (item.kind === "new") {
-        const protein = parseNonneg(item.proteinInput);
-        const fat = parseNonneg(item.fatInput);
-        const carbs = parseNonneg(item.carbsInput);
-        if (
-          item.name.trim() === "" ||
-          protein == null ||
-          fat == null ||
-          carbs == null
-        ) {
-          haptic("warn");
-          setSaveError(CHECK_FIELDS);
-          return;
-        }
-        items.push({
-          ...item,
-          name: item.name.trim(),
-          grams,
-          protein_per_100: protein,
-          fat_per_100: fat,
-          carbs_per_100: carbs,
-          kcal_per_100: calcKcalFromMacros(protein, fat, carbs),
-        });
-        continue;
-      }
-      items.push({ ...item, grams });
+    const prepared = commitItemsFromRows(view.items);
+    if (!prepared.ok) {
+      haptic("warn");
+      setSaveError(prepared.message);
+      return;
     }
 
     setSaveError(null);
@@ -160,7 +129,7 @@ export function usePlateDraft({
 
     try {
       await postJson(`/api/meals/${mealId}/plate`, {
-        items: items.map(toCommitItem),
+        items: prepared.items.map(toCommitItem),
       });
       haptic("success");
       router.push(doneHref);

@@ -1,14 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  CurrentMacroState,
-  CyclePhaseDef,
-  PhaseMaxRow,
-  TransitionPreview,
-} from "@/lib/types";
+import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import {
   cycleDef,
   isLastCyclePhase,
-  recapEndPhaseKey,
   sortOrderForPhase,
 } from "@/lib/workout/cycle";
 import {
@@ -18,13 +12,15 @@ import {
 } from "@/lib/workout/formulas";
 import { phaseLabel } from "@/lib/workout/labels";
 import { createFirstMacro, createPhase } from "@/lib/workout/macro-create";
-import { listPhaseMaxRows } from "@/lib/workout/macro-maxes";
 import type {
   ConfirmTransitionInput,
   CreateMacroInput,
 } from "@/lib/workout/macro-schema";
 import { getCurrentMacroState } from "@/lib/workout/macro-state";
-import { mapWorkoutPhase } from "@/lib/workout/map-rows";
+import {
+  getRecapEndMaxes,
+  toTransitionMaxes,
+} from "@/lib/workout/macro-transition-maxes";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export async function previewTransition(
@@ -175,60 +171,4 @@ export async function completeMacroAndStartNext(
   }
 
   return createFirstMacro(userId, input);
-}
-
-function toTransitionMaxes(
-  rows: PhaseMaxRow[],
-  propose: (current: number, step: number) => number,
-): TransitionPreview["maxes"] {
-  return rows.flatMap((row) => {
-    if (!row.phase_max) {
-      return [];
-    }
-
-    return [
-      {
-        exercise_id: row.exercise.id,
-        name: row.exercise.short_name || row.exercise.name,
-        current_weight: row.phase_max.max_weight,
-        proposed_weight: propose(
-          row.phase_max.max_weight,
-          row.exercise.weight_step,
-        ),
-      },
-    ];
-  });
-}
-
-async function getRecapEndMaxes(
-  userId: string,
-  macroId: string,
-  cycle: CyclePhaseDef[],
-): Promise<PhaseMaxRow[]> {
-  const supabase = createSupabaseServerClient();
-  const result = await supabase
-    .from("workout_phases")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("macro_cycle_id", macroId)
-    .order("sort_order", { ascending: true });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  const phases = (result.data ?? []).map((row) =>
-    mapWorkoutPhase(row as Record<string, unknown>),
-  );
-  const endKey = recapEndPhaseKey(
-    cycle,
-    phases.map((phase) => phase.phase_type),
-  );
-  const end =
-    phases.find((phase) => phase.phase_type === endKey) ?? phases.at(-1);
-  if (!end) {
-    return [];
-  }
-
-  return listPhaseMaxRows(userId, end.id);
 }
