@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import { lumpHref } from "@/lib/day/lump";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -86,6 +87,27 @@ export function MealPlateLink({ href }: { href: string }) {
     >
       <Camera className="size-4" aria-hidden />
       Фото тарелки
+    </Link>
+  );
+}
+
+export function MealLumpLink({
+  href,
+  query,
+}: {
+  href: string;
+  query?: string;
+}) {
+  const trimmed = query?.trim() ?? "";
+  return (
+    <Link
+      href={lumpHref(href, trimmed)}
+      className={cn(
+        buttonVariants({ variant: "outline" }),
+        "h-12 w-full rounded-xl text-base",
+      )}
+    >
+      {trimmed ? `Записать «${trimmed}»` : "Разовая порция"}
     </Link>
   );
 }

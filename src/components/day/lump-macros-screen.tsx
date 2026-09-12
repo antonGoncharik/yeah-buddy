@@ -140,6 +140,8 @@ export function LumpMacrosScreen({
           className="h-12 text-base"
           readOnly={readOnly}
           maxLength={LUMP_NAME_MAX}
+          placeholder="Бургер, шаурма…"
+          autoFocus={!readOnly && initialName.trim() === ""}
         />
       </FoodFormField>
       <div className="grid grid-cols-3 gap-3">
@@ -150,6 +152,7 @@ export function LumpMacrosScreen({
             onChange={(event) => setProtein(event.target.value)}
             className="h-12 text-base"
             readOnly={readOnly}
+            autoFocus={!readOnly && initialName.trim() !== ""}
           />
         </FoodFormField>
         <FoodFormField label="Жиры">

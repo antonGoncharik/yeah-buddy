@@ -4,14 +4,13 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { MealPlateLink } from "@/components/day/meal-item-row";
+import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { lumpHref } from "@/lib/day/lump";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -86,12 +85,13 @@ export function AddMealItemScreen({
         <FoodSearch value={query} onChange={setQuery} />
 
         <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        {lumpHrefBase ? (
+          <MealLumpLink href={lumpHrefBase} query={query} />
+        ) : null}
         {plateHref && !query.trim() ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
-      <div
-        className={query.trim() && lumpHrefBase ? "px-4 pb-40" : "px-4 pb-24"}
-      >
+      <div className="px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -108,7 +108,7 @@ export function AddMealItemScreen({
 
         {!loading && !error && visibleFoods.length === 0 ? (
           <p className="py-10 text-center text-muted-foreground">
-            {emptyMessage(filter, query, lumpHrefBase)}
+            {emptyMessage(filter, query)}
           </p>
         ) : null}
 
@@ -122,22 +122,9 @@ export function AddMealItemScreen({
       </div>
 
       <StickyActions>
-        {query.trim() && lumpHrefBase ? (
-          <Link
-            href={lumpHref(lumpHrefBase, query)}
-            className={cn(buttonVariants(), "h-14 w-full text-lg")}
-          >
-            Записать «{query.trim()}»
-          </Link>
-        ) : null}
         <Link
           href={newFoodHref}
-          className={cn(
-            buttonVariants({
-              variant: query.trim() && lumpHrefBase ? "outline" : "default",
-            }),
-            "h-14 w-full gap-2 text-lg",
-          )}
+          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
         >
           <Plus className="size-5" aria-hidden />
           Новый продукт
@@ -147,15 +134,9 @@ export function AddMealItemScreen({
   );
 }
 
-function emptyMessage(
-  filter: Filter,
-  query: string,
-  lumpHrefBase: string | undefined,
-): string {
+function emptyMessage(filter: Filter, query: string): string {
   if (query.trim()) {
-    return lumpHrefBase
-      ? "Нет в списке. Запиши порцию как есть."
-      : "Ничего не найдено.";
+    return "Ничего не найдено.";
   }
 
   if (filter === "favorites") {
