@@ -30,7 +30,9 @@ export function LumpMacrosCreate({
       initialName={initialName}
       backHref={backHref}
       doneHref={doneHref}
-      save={(input) => postJson(`/api/meals/${mealId}/items`, input)}
+      save={async (input) => {
+        await postJson(`/api/meals/${mealId}/items`, input);
+      }}
     />
   );
 }

@@ -183,7 +183,10 @@ const merged = resolvePlateItems(
   catalogFoods,
 );
 assertEqual(merged.length, 1, "merge same food");
-assertEqual(merged[0]?.grams, 150, "merged grams");
+assertEqual(merged[0]?.kind, "food", "merged is food");
+if (merged[0]?.kind === "food") {
+  assertEqual(merged[0].grams, 150, "merged grams");
+}
 
 const parsed = parsePlateModelItems({
   items: [

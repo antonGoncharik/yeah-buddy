@@ -134,7 +134,9 @@ export default function EditMealItemPage() {
           readOnly={!writable}
           save={
             writable
-              ? (input) => patchJson(`/api/meal-items/${item.id}`, input)
+              ? async (input) => {
+                  await patchJson(`/api/meal-items/${item.id}`, input);
+                }
               : undefined
           }
         />
