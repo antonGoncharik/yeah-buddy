@@ -1,13 +1,15 @@
 import {
-  compactDay,
   compactFeels,
   compactMaxes,
   compactSessions,
-  compactWeight,
-  roundAverages,
   sessionNotes,
   weakTemplates,
-} from "@/lib/ai/compact";
+} from "@/lib/ai/compact-gym";
+import {
+  compactDay,
+  compactWeight,
+  roundAverages,
+} from "@/lib/ai/compact-nutrition";
 import { reviewCoverage } from "@/lib/ai/coverage";
 import { round1 } from "@/lib/ai/format";
 import type { ReviewSource } from "@/lib/ai/review-source";

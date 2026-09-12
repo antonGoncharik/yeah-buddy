@@ -1,4 +1,4 @@
-import { getDateForMeal } from "@/lib/day/meal-date";
+import { getDateForMeal } from "@/lib/day/meal-items";
 import { getDayByDate } from "@/lib/day/store";
 import { assertUserDayWritable } from "@/lib/day/writable";
 import {

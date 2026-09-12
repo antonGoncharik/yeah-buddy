@@ -1,9 +1,7 @@
-import type {
-  PlateLumpPatch,
-  PlateRow,
-} from "@/components/day/plate-draft-types";
 import { parseNonneg } from "@/components/foods/food-form-state";
+import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
+import { ApiError } from "@/lib/api-cache";
 import { macrosFromLump } from "@/lib/day/lump";
 import {
   type FoodYield,
@@ -15,14 +13,38 @@ import {
   toCookedGrams,
   toNativeGrams,
 } from "@/lib/food/yield";
+import { AI_PLATE_FAILED, readApiError } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
-export type {
-  PlateLumpPatch,
-  PlatePicker,
-  PlateRow,
-  PlateStatus,
-} from "@/components/day/plate-draft-types";
+export type PlateRow = PlateDraftItem & {
+  rowId: string;
+  gramsInput: string;
+  gramsMode: GramsMode;
+  proteinInput: string;
+  fatInput: string;
+  carbsInput: string;
+};
+
+export type PlatePicker =
+  | { mode: "add" }
+  | { mode: "replace"; rowId: string }
+  | null;
+
+export type PlateStatus =
+  | { status: "idle" }
+  | { status: "unavailable" }
+  | { status: "working"; title: string; previewUrl: string | null }
+  | { status: "error"; message: string; previewUrl: string | null }
+  | { status: "empty"; previewUrl: string }
+  | { status: "draft"; previewUrl: string; items: PlateRow[] }
+  | { status: "saving"; previewUrl: string; items: PlateRow[] };
+
+export type PlateLumpPatch = {
+  name?: string;
+  proteinInput?: string;
+  fatInput?: string;
+  carbsInput?: string;
+};
 
 export { parseGramsInput };
 
@@ -164,4 +186,45 @@ export function withGramsMode(item: PlateRow, next: GramsMode): PlateRow {
       switchGramsMode(grams, item.gramsMode, next, pair),
     ),
   };
+}
+
+export async function requestPlateDraft(blob: Blob, signal?: AbortSignal) {
+  const body = new FormData();
+  body.append("image", blob, "plate.jpg");
+  const response = await fetch("/api/ai/plate", {
+    method: "POST",
+    body,
+    signal,
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new ApiError(
+      readApiError(data) ?? AI_PLATE_FAILED,
+      response.status,
+      data,
+    );
+  }
+
+  const parsed = parsePlateDraft(data);
+  if (!parsed) {
+    throw new Error(AI_PLATE_FAILED);
+  }
+
+  return parsed.items.map(toPlateRow);
+}
+
+export function rememberPreview(
+  file: File,
+  previewRef: { current: string | null },
+): string {
+  revokePreview(previewRef.current);
+  const url = URL.createObjectURL(file);
+  previewRef.current = url;
+  return url;
+}
+
+export function revokePreview(url: string | null) {
+  if (url) {
+    URL.revokeObjectURL(url);
+  }
 }

@@ -1,4 +1,4 @@
-import { roundMacros } from "@/lib/ai/compact";
+import { roundMacros } from "@/lib/ai/compact-nutrition";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewAverages } from "@/lib/ai/types";
 import { averageMacros } from "@/lib/nutrition-stats";

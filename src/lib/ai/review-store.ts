@@ -1,4 +1,4 @@
-import { stringList } from "@/lib/ai/parse-review-numbers";
+import { stringList } from "@/lib/ai/parse-review-fields";
 import type { ReviewRange } from "@/lib/ai/range";
 import type { ReviewText, StoredReview } from "@/lib/ai/types";
 import { isIsoDate } from "@/lib/day/dates";

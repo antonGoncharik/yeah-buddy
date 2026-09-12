@@ -2,9 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { requestPlateDraft } from "@/components/day/plate-analyze";
-import type { PlateRow, PlateStatus } from "@/components/day/plate-draft";
-import { rememberPreview, revokePreview } from "@/components/day/plate-media";
+import {
+  type PlateRow,
+  type PlateStatus,
+  rememberPreview,
+  requestPlateDraft,
+  revokePreview,
+} from "@/components/day/plate-draft";
 import { usePlateCamera } from "@/components/day/use-plate-camera";
 import { usePlateDraft } from "@/components/day/use-plate-draft";
 import { compressPlateImage } from "@/lib/ai/read-plate-image";

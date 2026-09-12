@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 
-import { guessHtmlCamera, stopMedia } from "@/components/day/plate-media";
 import { haptic } from "@/lib/telegram/haptic";
 import { watchHtmlCapture } from "@/lib/telegram/html-capture";
 import {
@@ -112,4 +111,20 @@ export function usePlateCamera({
     watchCamera,
     captureLive,
   };
+}
+
+function guessHtmlCamera(): boolean {
+  if (typeof navigator === "undefined") {
+    return true;
+  }
+  return /android/i.test(navigator.userAgent);
+}
+
+function stopMedia(stream: MediaStream | null) {
+  if (!stream) {
+    return;
+  }
+  for (const track of stream.getTracks()) {
+    track.stop();
+  }
 }

@@ -2,8 +2,8 @@ import { isIsoDate } from "@/lib/day/dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { RecentWorkoutSession, SessionStatus } from "@/lib/types";
 import { mapWorkoutSession } from "@/lib/workout/map-rows";
-import { listSessionWorkInfo } from "@/lib/workout/session-log";
 import { templateNamesById } from "@/lib/workout/session-names";
+import { listSessionWorkInfo } from "@/lib/workout/session-work-info";
 
 export async function countCompletedSessions(userId: string): Promise<number> {
   const supabase = createSupabaseServerClient();

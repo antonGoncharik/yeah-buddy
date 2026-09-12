@@ -6,10 +6,7 @@ import {
   LUMP_NAME_MAX,
   lumpMealItemSchema,
 } from "@/lib/day/lump";
-import {
-  addMealItemWrites,
-  type MealItemWrite,
-} from "@/lib/day/meal-items-add";
+import { addMealItemWrites, type MealItemWrite } from "@/lib/day/meal-items";
 import { getFood, listFoods } from "@/lib/food/store";
 import type { Food, MealItem } from "@/lib/types";
 

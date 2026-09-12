@@ -1,5 +1,4 @@
-import { rowNativeGrams } from "@/components/day/plate-draft";
-import type { PlateRow } from "@/components/day/plate-draft-types";
+import { type PlateRow, rowNativeGrams } from "@/components/day/plate-draft";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { lumpMealItemSchema, macrosFromLump } from "@/lib/day/lump";

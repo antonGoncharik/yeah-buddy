@@ -1,6 +1,7 @@
 import { listBodyWeights } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ProgressPoint, StrengthProgress } from "@/lib/types";
+import { listExerciseWorkPoints } from "@/lib/workout/exercise-work-points";
 import { listExercises, mapGlobalMax } from "@/lib/workout/exercises";
 import {
   mapMacroCycle,
@@ -11,7 +12,6 @@ import {
   buildExerciseProgress,
   summarizeProgress,
 } from "@/lib/workout/progress-build";
-import { listExerciseWorkPoints } from "@/lib/workout/session-log";
 
 export async function getStrengthProgress(
   userId: string,

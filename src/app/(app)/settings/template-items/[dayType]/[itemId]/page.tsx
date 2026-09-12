@@ -8,8 +8,7 @@ import {
   saveTemplateItemGrams,
 } from "@/components/day/grams-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenLoading } from "@/components/layout/screen-status";
-import { Button } from "@/components/ui/button";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { readMealTemplateItemPayload } from "@/lib/meal/parse";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isDayType } from "@/lib/nutrition";
@@ -76,15 +75,10 @@ export default function EditTemplateItemPage() {
       <AppHeader title="Порция" backHref={backHref} />
       {loading ? <ScreenLoading /> : null}
       {!loading && error ? (
-        <div className="flex flex-col items-center gap-3 px-4 py-10">
-          <p className="text-center font-medium">{error}</p>
-          <Button
-            className="h-12 min-w-40 text-base"
-            onClick={() => setReloadToken((value) => value + 1)}
-          >
-            Повторить
-          </Button>
-        </div>
+        <ScreenError
+          message={error}
+          onRetry={() => setReloadToken((value) => value + 1)}
+        />
       ) : null}
       {!loading && item ? (
         <GramsScreen
