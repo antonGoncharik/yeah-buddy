@@ -79,13 +79,31 @@ export function MealCard({
       className={cn("card-surface flex flex-col gap-3 px-5 py-4", className)}
       style={style}
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-semibold">{getMealLabel(mealType)}</h2>
-        {items.length > 0 ? (
-          <p className="text-base font-semibold tabular-nums">
-            {formatKcal(totals.kcal)} ккал
-          </p>
-        ) : null}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="min-w-0 truncate text-xl font-semibold">
+          {getMealLabel(mealType)}
+        </h2>
+        <div className="flex shrink-0 items-center gap-1">
+          {items.length > 0 ? (
+            <p className="text-base font-semibold tabular-nums">
+              {formatKcal(totals.kcal)} ккал
+            </p>
+          ) : null}
+          {copy ? (
+            <MealCopyActions
+              date={copy.date}
+              mealType={mealType}
+              hasItems={items.length > 0}
+              copyDays={copyDays ?? []}
+              namedMeals={namedMeals ?? []}
+              busy={copyBusy}
+              onCopyDate={copy.onCopyDate}
+              onApplyNamed={copy.onApplyNamed}
+              onSaveNamed={copy.onSaveNamed}
+              onDeleteNamed={copy.onDeleteNamed}
+            />
+          ) : null}
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -112,7 +130,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      {showFill || copy || showAdd ? (
+      {showFill || showAdd ? (
         <div className="flex flex-col gap-2">
           {showFill && onFillTemplate ? (
             <Button
@@ -126,20 +144,6 @@ export function MealCard({
             </Button>
           ) : null}
           {showAdd && addHref ? <MealAddLink href={addHref} /> : null}
-          {copy ? (
-            <MealCopyActions
-              date={copy.date}
-              mealType={mealType}
-              hasItems={items.length > 0}
-              copyDays={copyDays ?? []}
-              namedMeals={namedMeals ?? []}
-              busy={copyBusy}
-              onCopyDate={copy.onCopyDate}
-              onApplyNamed={copy.onApplyNamed}
-              onSaveNamed={copy.onSaveNamed}
-              onDeleteNamed={copy.onDeleteNamed}
-            />
-          ) : null}
         </div>
       ) : null}
     </section>

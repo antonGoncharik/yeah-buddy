@@ -1,66 +1,55 @@
 "use client";
 
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
-
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
-import type { CopyDayHint, NamedMealHint } from "@/lib/types";
+import type { NamedMealHint } from "@/lib/types";
 
 export function MealCopyDaySheet({
-  days,
   yesterday,
   dayBefore,
   namedMeals,
   hasYesterday,
+  hasDayBefore,
   hasItems,
   busy = false,
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
   onDeleteNamed,
-  onPick,
   onCancel,
 }: {
-  days: CopyDayHint[];
   yesterday: string;
   dayBefore: string;
   namedMeals?: NamedMealHint[];
   hasYesterday?: boolean;
+  hasDayBefore?: boolean;
   hasItems?: boolean;
   busy?: boolean;
   onCopyDate?: (date: string) => void;
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
-  onPick?: (date: string) => void;
   onCancel: () => void;
 }) {
-  const copyDate = onCopyDate ?? onPick;
-  const otherDays = days.filter(
-    (day) => day.date !== yesterday && day.date !== dayBefore,
-  );
-  const hasDayBefore = days.some((day) => day.date === dayBefore);
-
   return (
     <SheetFrame title="Ещё" onCancel={onCancel}>
-      {hasYesterday && copyDate ? (
+      {hasYesterday && onCopyDate ? (
         <Button
           type="button"
           className="h-12 w-full text-base"
           disabled={busy}
-          onClick={() => copyDate(yesterday)}
+          onClick={() => onCopyDate(yesterday)}
         >
           Как вчера
         </Button>
       ) : null}
-      {hasDayBefore && copyDate ? (
+      {hasDayBefore && onCopyDate ? (
         <Button
           type="button"
           variant="outline"
           className="h-12 w-full text-base"
           disabled={busy}
-          onClick={() => copyDate(dayBefore)}
+          onClick={() => onCopyDate(dayBefore)}
         >
           Как позавчера
         </Button>
@@ -90,22 +79,6 @@ export function MealCopyDaySheet({
           ) : null}
         </div>
       ))}
-      {otherDays.length > 0 && copyDate ? (
-        <div className="flex max-h-[40vh] flex-col gap-2 overflow-y-auto">
-          {otherDays.map((day) => (
-            <Button
-              key={day.date}
-              type="button"
-              variant="outline"
-              className="h-12 w-full text-base"
-              disabled={busy}
-              onClick={() => copyDate(day.date)}
-            >
-              {copyDayLabel(day.date, yesterday, dayBefore)}
-            </Button>
-          ))}
-        </div>
-      ) : null}
       {hasItems && onSaveNamed ? (
         <Button
           type="button"
@@ -127,19 +100,4 @@ export function MealCopyDaySheet({
       </Button>
     </SheetFrame>
   );
-}
-
-function copyDayLabel(
-  date: string,
-  yesterday: string,
-  dayBefore: string,
-): string {
-  const pretty = format(new Date(`${date}T00:00:00`), "d MMMM", { locale: ru });
-  if (date === yesterday) {
-    return `Вчера, ${pretty}`;
-  }
-  if (date === dayBefore) {
-    return `Позавчера, ${pretty}`;
-  }
-  return pretty;
 }

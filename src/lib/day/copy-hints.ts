@@ -4,7 +4,7 @@ import { filledMealTypes, isMealType } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CopyDayHint, MealType } from "@/lib/types";
 
-const COPY_DAYS_WINDOW = 14;
+const COPY_DAYS_WINDOW = 3;
 
 export async function yesterdayCopyHint(
   userId: string,

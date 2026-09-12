@@ -48,7 +48,7 @@ export function MealCopyActions({
       <Button
         type="button"
         variant="ghost"
-        className="h-11 w-full text-base text-muted-foreground"
+        className="h-11 px-2 text-base text-muted-foreground"
         disabled={busy}
         onClick={() => setOpen(true)}
       >
@@ -56,11 +56,11 @@ export function MealCopyActions({
       </Button>
       {open ? (
         <MealCopyDaySheet
-          days={extras.sources}
           yesterday={extras.yesterday}
           dayBefore={extras.dayBefore}
           namedMeals={extras.named}
           hasYesterday={extras.hasYesterday}
+          hasDayBefore={extras.hasDayBefore}
           hasItems={hasItems}
           busy={busy}
           onCopyDate={(sourceDate) => {
@@ -106,13 +106,14 @@ function useMealCopyExtras({
     [copyDays, mealType],
   );
   const hasYesterday = sources.some((day) => day.date === yesterday);
+  const hasDayBefore = sources.some((day) => day.date === dayBefore);
 
   return {
     yesterday,
     dayBefore,
     named,
-    sources,
     hasYesterday,
-    hasAny: hasYesterday || named.length > 0 || sources.length > 0,
+    hasDayBefore,
+    hasAny: hasYesterday || hasDayBefore || named.length > 0,
   };
 }
