@@ -32,7 +32,7 @@ export function MealCopyDaySheet({
   onCancel: () => void;
 }) {
   return (
-    <SheetFrame title="Ещё" onCancel={onCancel}>
+    <SheetFrame label="Ещё" onCancel={onCancel}>
       {hasYesterday && onCopyDate ? (
         <Button
           type="button"

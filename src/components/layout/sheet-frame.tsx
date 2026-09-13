@@ -5,15 +5,18 @@ import { createPortal } from "react-dom";
 
 export function SheetFrame({
   title,
+  label,
   onCancel,
   children,
 }: {
-  title: string;
+  title?: string;
+  label?: string;
   onCancel: () => void;
   children: React.ReactNode;
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const accessibleName = title ?? label ?? "Меню";
 
   useEffect(() => {
     panelRef.current?.focus();
@@ -46,18 +49,21 @@ export function SheetFrame({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={title ? undefined : accessibleName}
         tabIndex={-1}
-        className="card-surface animate-rise relative z-10 mx-auto max-h-[min(32rem,calc(100dvh-var(--app-chrome-bottom)-var(--app-nav-clearance)-1.5rem))] w-full max-w-lg overflow-y-auto rounded-t-[1.75rem] px-5 pt-3 pb-5 outline-none sm:mb-10 sm:max-h-[min(32rem,calc(100dvh-3rem))] sm:rounded-[1.75rem] sm:pt-6"
+        className="card-surface animate-rise relative z-10 mx-auto max-h-[min(32rem,calc(100dvh-var(--app-chrome-bottom)-var(--app-nav-clearance)-1.5rem))] w-full max-w-lg overflow-y-auto rounded-t-[1.75rem] px-5 py-5 outline-none sm:mb-10 sm:max-h-[min(32rem,calc(100dvh-3rem))] sm:rounded-[1.75rem] sm:pt-6"
       >
+        {title ? (
+          <p id={titleId} className="text-lg font-medium leading-snug">
+            {title}
+          </p>
+        ) : null}
         <div
-          aria-hidden
-          className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/25 sm:hidden"
-        />
-        <p id={titleId} className="text-lg font-medium leading-snug">
-          {title}
-        </p>
-        <div className="mt-5 flex flex-col gap-2">{children}</div>
+          className={title ? "mt-5 flex flex-col gap-2" : "flex flex-col gap-2"}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

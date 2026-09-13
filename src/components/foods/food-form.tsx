@@ -37,7 +37,7 @@ export function FoodForm({
 
   return (
     <form
-      className="animate-rise flex flex-col gap-4 pb-28"
+      className="animate-rise flex flex-col gap-4 pb-[var(--app-field-scroll-pad)]"
       onSubmit={onSubmit}
     >
       <FoodFormField label="Название">
@@ -55,6 +55,16 @@ export function FoodForm({
         value={form.state}
         onChange={(state) => patch({ state })}
       />
+
+      <label className="flex min-h-12 items-center gap-3 text-base font-medium">
+        <input
+          type="checkbox"
+          checked={form.is_favorite}
+          onChange={(event) => patch({ is_favorite: event.target.checked })}
+          className="size-5"
+        />
+        Избранное
+      </label>
 
       <p className="text-sm leading-relaxed text-muted-foreground">
         Как на пачке: белок, жир, углеводы на 100 г. Пример: творог 5% — 17 / 5
@@ -75,16 +85,6 @@ export function FoodForm({
       </FoodFormField>
 
       <FoodYieldFields form={form} onChange={patch} />
-
-      <label className="flex min-h-12 items-center gap-3 text-base font-medium">
-        <input
-          type="checkbox"
-          checked={form.is_favorite}
-          onChange={(event) => patch({ is_favorite: event.target.checked })}
-          className="size-5"
-        />
-        Избранное
-      </label>
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
