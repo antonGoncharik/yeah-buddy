@@ -100,15 +100,14 @@ export function FormulasScreen() {
               clearCycle={clearCycle}
             />
 
-            {showsIncrease ? (
-              <FormulaIncreaseField
-                maxIncrease={maxIncrease}
-                onChange={(value) => {
-                  setMaxIncrease(value);
-                  setSaved(false);
-                }}
-              />
-            ) : null}
+            <FormulaIncreaseField
+              maxIncrease={maxIncrease}
+              cycleRaises={showsIncrease}
+              onChange={(value) => {
+                setMaxIncrease(value);
+                setSaved(false);
+              }}
+            />
 
             {advanced ? (
               <FormulaAdvancedEditor

@@ -17,9 +17,9 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 **Gym**
 
 - A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Optional macrocycle uses the same queue.
-- Skip moves the circle without taking the date; you can put a template back.
-- Optional macrocycle: ramp → volume → peak → deload. Finishing a queue loop does not close the phase by itself.
-- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово», actuals in history and on charts. How it felt is asked after you finish. Edit the scheme in Settings.
+- «Пропустить» on the hub moves the queue without taking the date; you can put the skipped day back. «Не сегодня» inside a started session just removes that entry; the day stays next in the queue.
+- Optional macrocycle: ramp → volume → peak → deload. Finishing a queue loop does not close the phase by itself. Starting a cycle needs working weights only for exercises in the queue; inside a cycle weights move on phase change, not after a single session.
+- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово», actuals in history and on charts. Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
 - Progress (working weights and relative strength when body weight is logged), session history, exercise list.
 
 **Share**
@@ -60,7 +60,7 @@ Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELE
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
 ```
 
-Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding; the recommended start is the full-body program.
+Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. A workout can start as soon as the day has at least one exercise with a set scheme; missing working weights are asked inside the session (`POST /api/sessions/:id/maxes`). First visit with no history opens onboarding; the recommended start is the full-body program.
 
 Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format` · `test` (`*.check.ts`).
 

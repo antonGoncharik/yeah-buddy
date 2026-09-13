@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { isIsoDate } from "@/lib/day/dates";
-import { WORKOUTS_NEED_MAXES } from "@/lib/messages";
+import { WORKOUT_TEMPLATE_EMPTY } from "@/lib/messages";
 
 export class SessionLockedError extends Error {
   constructor() {
@@ -15,10 +15,10 @@ export class SessionConflictError extends Error {
   }
 }
 
-export class SessionNeedsMaxesError extends Error {
+export class TemplateEmptyError extends Error {
   constructor() {
-    super(WORKOUTS_NEED_MAXES);
-    this.name = "SessionNeedsMaxesError";
+    super(WORKOUT_TEMPLATE_EMPTY);
+    this.name = "TemplateEmptyError";
   }
 }
 

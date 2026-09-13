@@ -11,7 +11,11 @@ import {
   shouldIncreaseMax,
 } from "@/lib/workout/formulas";
 import { phaseLabel } from "@/lib/workout/labels";
-import { createFirstMacro, createPhase } from "@/lib/workout/macro-create";
+import {
+  createFirstMacro,
+  createPhase,
+  startingPhaseMaxes,
+} from "@/lib/workout/macro-create";
 import type {
   ConfirmTransitionInput,
   CreateMacroInput,
@@ -143,6 +147,10 @@ export async function completeMacroAndStartNext(
   if (!isLastCyclePhase(current.phase.phase_type, settings.formulas.cycle)) {
     throw new Error("Новый цикл начинается после последнего этапа.");
   }
+
+  // Validate weights before closing anything, so a bad payload cannot leave
+  // the user with a closed cycle and no new one.
+  await startingPhaseMaxes(userId, input.maxes);
 
   const supabase = createSupabaseServerClient();
   const closedPhase = await supabase

@@ -15,7 +15,7 @@ import {
   createSessionSchema,
   getTodayWorkoutState,
   SessionConflictError,
-  SessionNeedsMaxesError,
+  TemplateEmptyError,
 } from "@/lib/workout/sessions";
 import { TemplateNotFoundError } from "@/lib/workout/templates";
 
@@ -54,7 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return jsonOk({ session });
   } catch (error) {
     return failRoute(error, [
-      whenError(SessionNeedsMaxesError, 400),
+      whenError(TemplateEmptyError, 400),
       whenError(SessionConflictError, 409),
       whenError(TemplateNotFoundError, 409),
     ]);

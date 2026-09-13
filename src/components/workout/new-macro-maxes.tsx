@@ -18,8 +18,8 @@ export function NewMacroMaxes({
     <section className="flex flex-col gap-3" data-field-group>
       <h2 className="text-xl font-semibold">Рабочие веса</h2>
       <p className="text-sm text-muted-foreground">
-        Подставлены текущие рабочие веса. Если давно не тренировался — поставь
-        меньше.
+        Упражнения из очереди, с этих весов начнётся цикл. Подставлены текущие.
+        Если давно не тренировался — поставь меньше.
       </p>
       {exercises.map((exercise, index) => (
         <div key={exercise.id} className="flex flex-col gap-2">

@@ -49,13 +49,17 @@ export function SessionExerciseList({
   const canReorder = Boolean(onReorder) && canEditSets;
 
   if (detail.exercises.length === 0) {
+    const canFillBelow =
+      session.status === "planned" && detail.missing_maxes.length > 0;
     return (
       <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
         <p className="text-lg font-medium">Нет упражнений в плане</p>
         <p className="text-base leading-relaxed text-muted-foreground">
-          {SESSION_PLAN_EMPTY}
+          {canFillBelow
+            ? "Ни у одного упражнения ещё нет рабочего веса. Заполни ниже — план посчитается."
+            : SESSION_PLAN_EMPTY}
         </p>
-        {session.status === "planned" ? (
+        {session.status === "planned" && !canFillBelow ? (
           <Link
             href="/workouts/exercises"
             className={cn(buttonVariants(), "h-14 text-lg")}

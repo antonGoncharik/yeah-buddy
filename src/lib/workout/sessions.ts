@@ -5,7 +5,7 @@ export {
   patchSessionSchema,
   SessionConflictError,
   SessionLockedError,
-  SessionNeedsMaxesError,
+  TemplateEmptyError,
 } from "@/lib/workout/session-errors";
 export {
   countCompletedSessions,

@@ -39,11 +39,11 @@ export function FormulaCycleEditor({
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <div>
-        <h2 className="text-xl font-semibold">Цикл</h2>
+        <h2 className="text-xl font-semibold">Этапы цикла</h2>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           {hasCycle
-            ? `${cycleSequenceLabel(formulas.cycle)}. Тренировки те же — меняется только вес.`
-            : "Без цикла веса всегда считаются одинаково. Какие дни качать — в очереди."}
+            ? `${cycleSequenceLabel(formulas.cycle)}. Тренировки те же — меняется только вес. Здесь схема этапов; запустить цикл по ней — на вкладке Тренировки → Цикл.`
+            : "Необязательно. Без цикла вес всегда считается одинаково и растёт после лёгких тренировок. Цикл меняет вес по этапам: легче, тяжелее, разгрузка."}
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export function FormulaCycleEditor({
           className="h-12 text-base"
           onClick={() => setPicking(true)}
         >
-          Включить цикл
+          Выбрать этапы
         </Button>
       )}
     </section>

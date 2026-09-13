@@ -137,13 +137,31 @@ export function useSessionEdits({
     }
   }
 
+  async function saveMissingMaxes(
+    maxes: Array<{ exercise_id: string; max_weight: number }>,
+  ) {
+    if (!detail || maxes.length === 0) {
+      return;
+    }
+
+    await runBusy(async () => {
+      const data = await postJson(`/api/sessions/${detail.session.id}/maxes`, {
+        maxes,
+      });
+      if (applyPayload(data)) {
+        haptic("commit");
+      }
+    });
+  }
+
   async function cancelToday() {
     if (!detail) {
       return;
     }
 
     const ok = await confirm({
-      message: "Убрать эту тренировку? Остальные на месте.",
+      message:
+        "Убрать эту тренировку? Она останется следующей в очереди, ничего не потеряется.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -164,6 +182,7 @@ export function useSessionEdits({
     saveNote,
     removeExercise,
     reorderExercises,
+    saveMissingMaxes,
     cancelToday,
   };
 }

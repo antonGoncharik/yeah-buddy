@@ -91,6 +91,35 @@ export function templateHasPlanMaxes(
   });
 }
 
+/** A workout can start when at least one exercise gets a plan of sets. */
+export function templateCanPlan(template: { exercises: Exercise[] }): boolean {
+  return template.exercises.some(
+    (exercise) => exercise.formula_preset !== "none",
+  );
+}
+
+/** Template exercises that need a working weight before they can get a plan. */
+export function templateMissingMaxes(
+  template: { exercises: Exercise[] },
+  catalog: ExerciseWithMax[],
+  plannedExerciseIds: Iterable<string> = [],
+): Exercise[] {
+  const planned = new Set(plannedExerciseIds);
+  const maxById = new Map(
+    catalog.map((exercise) => [
+      exercise.id,
+      exercise.current_max?.max_weight ?? 0,
+    ]),
+  );
+
+  return template.exercises.filter((exercise) => {
+    if (exercise.formula_preset === "none" || planned.has(exercise.id)) {
+      return false;
+    }
+    return (maxById.get(exercise.id) ?? 0) <= 0;
+  });
+}
+
 export function phaseLinkLabel(
   macroNumber: number,
   progress: PhaseCircleProgress | null,

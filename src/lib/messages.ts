@@ -41,14 +41,16 @@ export function botReminderGym(name: string): string {
 }
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение и его рабочий вес — без этого план подходов не посчитать.";
-export const WORKOUTS_NEED_EXERCISES =
-  "Сначала добавь упражнения и рабочие веса.";
+export const WORKOUTS_NEED_EXERCISES = "Сначала добавь упражнения.";
 export const WORKOUTS_NEED_TEMPLATES =
   "Очередь пустая. Поставь готовую программу или собери тренировку сам.";
-export const WORKOUTS_NEED_MAXES = "Укажи рабочие веса, чтобы посчитать план.";
+export const WORKOUT_TEMPLATE_EMPTY =
+  "В этой тренировке нет упражнений с планом подходов. Добавь их в очереди.";
 export const NEED_ALL_WORKING_WEIGHTS =
   "Нужен рабочий вес у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
+export const CYCLE_RAISE_LATER =
+  "Идёт цикл: рабочие веса поднимаются на смене этапа, а не после одной тренировки.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
 export const SESSION_HISTORY_EMPTY =
   "Пока пусто. Здесь появятся сделанные тренировки.";

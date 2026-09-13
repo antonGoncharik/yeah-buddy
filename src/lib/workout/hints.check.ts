@@ -1,10 +1,12 @@
-import type { PhaseCircleProgress } from "@/lib/types";
+import type { ExerciseWithMax, PhaseCircleProgress } from "@/lib/types";
 import {
   completePhaseHint,
   cycleSequenceLabel,
   cycleTimeline,
   phaseHoldHint,
   queueItemMark,
+  templateCanPlan,
+  templateMissingMaxes,
 } from "@/lib/workout/hints";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -174,6 +176,71 @@ assertEqual(
     .join(","),
   "Разгон:current,Лёгкая:upcoming,Тяжёлая:upcoming",
   "keeps the running phase if the scheme changed",
+);
+
+function exercise(
+  id: string,
+  max: number | null,
+  preset: ExerciseWithMax["formula_preset"] = "barbell",
+): ExerciseWithMax {
+  return {
+    id,
+    user_id: "u",
+    name: id,
+    short_name: null,
+    category: "base",
+    workout_type: "dynamic",
+    unit: "reps",
+    weight_step: 2.5,
+    formula_preset: preset,
+    slot: null,
+    is_active: true,
+    created_at: "",
+    updated_at: "",
+    archived_at: null,
+    current_max:
+      max == null
+        ? null
+        : {
+            id: `${id}-max`,
+            user_id: "u",
+            exercise_id: id,
+            max_weight: max,
+            achieved_at: "2026-01-01",
+            phase_id: null,
+            workout_session_id: null,
+            created_at: "",
+          },
+    max_history: [],
+  };
+}
+
+const squat = exercise("squat", 100);
+const press = exercise("press", null);
+const plank = exercise("plank", null, "none");
+const template = { exercises: [squat, press, plank] };
+
+assertEqual(
+  templateCanPlan(template),
+  true,
+  "a workout can start when at least one exercise gets a plan",
+);
+assertEqual(
+  templateCanPlan({ exercises: [plank] }),
+  false,
+  "only no-plan exercises cannot start a workout",
+);
+assertEqual(
+  templateMissingMaxes(template, [squat, press, plank])
+    .map((item) => item.id)
+    .join(","),
+  "press",
+  "missing maxes lists exercises without a weight, skipping no-plan ones",
+);
+assertEqual(
+  templateMissingMaxes(template, [squat, press, plank], ["press"]).length,
+  0,
+  "exercises already in the session are not missing",
 );
 
 console.log("workout hints ok");

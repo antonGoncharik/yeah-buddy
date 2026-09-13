@@ -22,7 +22,8 @@ export function OnboardingMaxesStep({
         style={{ animationDelay: "40ms" }}
       >
         Вес, с которым ты обычно делаешь подходы в этих упражнениях. Не рекорд
-        на один раз. От него посчитается план подходов.
+        на один раз. От него посчитается план подходов. Веса для остальных
+        упражнений спросим прямо в тренировке.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

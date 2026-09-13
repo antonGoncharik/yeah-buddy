@@ -16,7 +16,11 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import { phaseEndHint, templateHasPlanMaxes } from "@/lib/workout/hints";
+import {
+  phaseEndHint,
+  templateCanPlan,
+  templateMissingMaxes,
+} from "@/lib/workout/hints";
 import {
   readExercises,
   readHubSessionState,
@@ -138,17 +142,17 @@ export function useWorkoutsHub() {
     return () => setMood(null);
   }, [loading, macro?.phase?.phase_type, setMood]);
 
-  const { createOnDate, unskipLast, pickTemplate } = useHubSessionActions({
-    date,
-    templates,
-    exercises,
-    session,
-    nextTemplate,
-    load,
-    setCreating,
-    setSkipping,
-    setError,
-  });
+  const { createOnDate, unskipLast, skipNext, pickTemplate } =
+    useHubSessionActions({
+      date,
+      templates,
+      session,
+      nextTemplate,
+      load,
+      setCreating,
+      setSkipping,
+      setError,
+    });
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =
@@ -160,8 +164,11 @@ export function useWorkoutsHub() {
           ? "Готово"
           : null;
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
-  const nextHasPlanMaxes =
-    nextTemplate != null && templateHasPlanMaxes(nextTemplate, exercises);
+  const nextCanStart = nextTemplate != null && templateCanPlan(nextTemplate);
+  const nextMissingMaxes = useMemo(
+    () => (nextTemplate ? templateMissingMaxes(nextTemplate, exercises) : []),
+    [nextTemplate, exercises],
+  );
 
   return {
     date,
@@ -185,9 +192,11 @@ export function useWorkoutsHub() {
     skipping,
     sessionAction,
     phaseHint,
-    nextHasPlanMaxes,
+    nextCanStart,
+    nextMissingMaxes,
     createOnDate,
     unskipLast,
+    skipNext,
     pickTemplate,
   };
 }

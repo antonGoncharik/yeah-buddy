@@ -7,20 +7,19 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
-import { LOAD_FAILED, switchRestToTrainingMessage } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  switchRestToTrainingMessage,
+  WORKOUT_TEMPLATE_EMPTY,
+} from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type {
-  ExerciseWithMax,
-  WorkoutSession,
-  WorkoutTemplateDetail,
-} from "@/lib/types";
-import { templateHasPlanMaxes } from "@/lib/workout/hints";
+import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
+import { templateCanPlan } from "@/lib/workout/hints";
 import { isRestFoodDay, readTodaySession } from "@/lib/workout/hub-payload";
 
 export function useHubSessionActions({
   date,
   templates,
-  exercises,
   session,
   nextTemplate,
   load,
@@ -30,7 +29,6 @@ export function useHubSessionActions({
 }: {
   date: string;
   templates: WorkoutTemplateDetail[];
-  exercises: ExerciseWithMax[];
   session: WorkoutSession | null;
   nextTemplate: WorkoutTemplateDetail | null;
   load: () => Promise<void>;
@@ -43,9 +41,9 @@ export function useHubSessionActions({
 
   async function createOnDate(templateId: string, sessionDate: string) {
     const template = templates.find((item) => item.id === templateId);
-    if (template && !templateHasPlanMaxes(template, exercises)) {
+    if (template && !templateCanPlan(template)) {
       haptic("warn");
-      router.push("/workouts/exercises");
+      setError(WORKOUT_TEMPLATE_EMPTY);
       return;
     }
 
@@ -114,6 +112,35 @@ export function useHubSessionActions({
     }
   }
 
+  async function skipNext(following: WorkoutTemplateDetail) {
+    if (!nextTemplate || session) {
+      return;
+    }
+
+    const ok = await confirm({
+      message: `Пропустить «${nextTemplate.name}»? Следующей станет «${following.name}». Пропущенную можно вернуть.`,
+      confirmLabel: "Пропустить",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+
+    setSkipping(true);
+    setError(null);
+
+    try {
+      await postJson("/api/rotation/skip", { template_id: nextTemplate.id });
+      haptic("commit");
+      await load();
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setSkipping(false);
+    }
+  }
+
   async function pickTemplate(template: WorkoutTemplateDetail) {
     if (session) {
       return;
@@ -133,5 +160,5 @@ export function useHubSessionActions({
     void createOnDate(template.id, date);
   }
 
-  return { createOnDate, unskipLast, pickTemplate };
+  return { createOnDate, unskipLast, skipNext, pickTemplate };
 }

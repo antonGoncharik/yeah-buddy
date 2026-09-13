@@ -1,6 +1,10 @@
-import { NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CurrentMacroState, MaxSource, WorkoutPhase } from "@/lib/types";
+import type {
+  CurrentMacroState,
+  ExerciseWithMax,
+  MaxSource,
+  WorkoutPhase,
+} from "@/lib/types";
 import { firstCyclePhase } from "@/lib/workout/cycle";
 import { listExercises, raiseGlobalMax } from "@/lib/workout/exercises";
 import {
@@ -9,9 +13,11 @@ import {
   NoExercisesError,
 } from "@/lib/workout/macro-errors";
 import type { CreateMacroInput } from "@/lib/workout/macro-schema";
+import { resolveStartingPhaseMaxes } from "@/lib/workout/macro-starting-maxes";
 import { getCurrentMacroState } from "@/lib/workout/macro-state";
 import { mapMacroCycle, mapWorkoutPhase } from "@/lib/workout/map-rows";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { listActiveTemplates } from "@/lib/workout/template-store";
 
 interface CreatePhaseInput {
   macroId: string;
@@ -46,14 +52,7 @@ export async function createFirstMacro(
     throw new CycleEmptyError();
   }
 
-  const maxByExercise = new Map(
-    input.maxes.map((item) => [item.exercise_id, item.max_weight]),
-  );
-  for (const exercise of exercises) {
-    if (!maxByExercise.has(exercise.id)) {
-      throw new Error(NEED_ALL_WORKING_WEIGHTS);
-    }
-  }
+  const phaseMaxes = await startingPhaseMaxes(userId, input.maxes, exercises);
 
   const supabase = createSupabaseServerClient();
   const last = await supabase
@@ -99,14 +98,26 @@ export async function createFirstMacro(
     name: first.name,
     sortOrder: 1,
     startDate: input.start_date,
-    maxes: exercises.map((exercise) => ({
-      exercise_id: exercise.id,
-      max_weight: maxByExercise.get(exercise.id) ?? 0,
-      source: "manual" as const,
-    })),
+    maxes: phaseMaxes,
   });
 
   return getCurrentMacroState(userId);
+}
+
+/** Resolves (and validates) starting weights; throws before anything is written. */
+export async function startingPhaseMaxes(
+  userId: string,
+  provided: Array<{ exercise_id: string; max_weight: number }>,
+  exercises?: ExerciseWithMax[],
+): Promise<CreatePhaseInput["maxes"]> {
+  const catalog = exercises ?? (await listExercises(userId, "active"));
+  const templates = await listActiveTemplates(userId);
+  const queueExerciseIds = new Set(
+    templates.flatMap((template) =>
+      template.exercises.map((exercise) => exercise.id),
+    ),
+  );
+  return resolveStartingPhaseMaxes(catalog, queueExerciseIds, provided);
 }
 
 export async function createPhase(

@@ -5,8 +5,10 @@ import type {
   WorkoutPhase,
   WorkoutSession,
   WorkoutSet,
+  WorkoutTemplateDetail,
 } from "@/lib/types";
-import { mapExercise } from "@/lib/workout/exercises";
+import { listExercises, mapExercise } from "@/lib/workout/exercises";
+import { templateMissingMaxes } from "@/lib/workout/hints";
 import {
   mapSessionExercise,
   mapWorkoutPhase,
@@ -41,21 +43,22 @@ export async function loadSessionDetail(
     mapSessionExercise(row as Record<string, unknown>),
   );
   const exerciseIds = sessionExercises.map((item) => item.exercise_id);
-  const [exercisesById, setsByExercise, previousByExercise] = await Promise.all(
-    [
+  const [exercisesById, setsByExercise, previousByExercise, missingMaxes] =
+    await Promise.all([
       mapExercisesById(userId, exerciseIds),
       listSetsBySessionExercises(
         userId,
         sessionExercises.map((item) => item.id),
       ),
       loadPreviousWork(userId, session, exerciseIds),
-    ],
-  );
+      listMissingMaxes(userId, session, template, exerciseIds),
+    ]);
 
   return {
     session,
     template,
     phase,
+    missing_maxes: missingMaxes,
     exercises: sessionExercises.flatMap((item) => {
       const exercise = exercisesById.get(item.exercise_id);
       if (!exercise) {
@@ -100,6 +103,25 @@ export async function getPhase(
   }
 
   return mapWorkoutPhase(result.data as Record<string, unknown>);
+}
+
+async function listMissingMaxes(
+  userId: string,
+  session: WorkoutSession,
+  template: WorkoutTemplateDetail | null,
+  plannedExerciseIds: string[],
+): Promise<Exercise[]> {
+  if (session.status !== "planned" || !template) {
+    return [];
+  }
+
+  const missing = templateMissingMaxes(template, [], plannedExerciseIds);
+  if (missing.length === 0) {
+    return [];
+  }
+
+  const catalog = await listExercises(userId, "active");
+  return templateMissingMaxes(template, catalog, plannedExerciseIds);
 }
 
 async function mapExercisesById(userId: string, ids: string[]) {

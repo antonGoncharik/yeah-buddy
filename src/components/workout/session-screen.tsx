@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
+import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
@@ -48,6 +49,7 @@ export function SessionScreen() {
     setDrafts,
     removeExercise,
     reorderExercises,
+    saveMissingMaxes,
   } = useSessionScreen();
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
@@ -101,6 +103,15 @@ export function SessionScreen() {
               lastRestSeconds={rest.lastSeconds}
             />
 
+            {session.status === "planned" && detail.missing_maxes.length > 0 ? (
+              <SessionMissingMaxes
+                exercises={detail.missing_maxes}
+                busy={busy}
+                inCycle={Boolean(session.phase_id)}
+                onSave={saveMissingMaxes}
+              />
+            ) : null}
+
             {session.status === "planned" ||
             (session.status === "completed" && correcting) ||
             note.trim() !== "" ? (
@@ -122,6 +133,7 @@ export function SessionScreen() {
                 phaseHint={phaseHint}
                 holdHint={holdHint}
                 feel={session.feel}
+                inCycle={Boolean(session.phase_id)}
                 raiseOffers={detail.raise_offers}
                 completedSessions={completedSessions}
                 lastCompletedBefore={lastCompletedBefore}

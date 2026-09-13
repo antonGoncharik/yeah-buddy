@@ -15,13 +15,30 @@ import type {
   CyclePhaseDef,
   ExerciseWithMax,
   WorkoutFormulas,
+  WorkoutTemplateDetail,
 } from "@/lib/types";
 import { withCycle } from "@/lib/workout/cycle";
-import { readExercises } from "@/lib/workout/hub-payload";
+import { readExercises, readTemplates } from "@/lib/workout/hub-payload";
 import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 type MaxDraft = Record<string, string>;
+
+/** Exercises that appear in the queue and get a plan — the cycle needs weights only for them. */
+function queueExercises(
+  exercises: ExerciseWithMax[],
+  templates: WorkoutTemplateDetail[],
+): ExerciseWithMax[] {
+  const inQueue = new Set(
+    templates
+      .filter((template) => template.is_active)
+      .flatMap((template) => template.exercises.map((exercise) => exercise.id)),
+  );
+  return exercises.filter(
+    (exercise) =>
+      inQueue.has(exercise.id) && exercise.formula_preset !== "none",
+  );
+}
 
 export function useNewMacroScreen() {
   const router = useRouter();
@@ -41,17 +58,27 @@ export function useNewMacroScreen() {
     setError(null);
 
     try {
-      const [exerciseResponse, settingsResponse] = await Promise.all([
-        fetch("/api/exercises?filter=active"),
-        fetch("/api/workout-settings"),
-      ]);
-      if (!exerciseResponse.ok || !settingsResponse.ok) {
+      const [exerciseResponse, settingsResponse, templatesResponse] =
+        await Promise.all([
+          fetch("/api/exercises?filter=active"),
+          fetch("/api/workout-settings"),
+          fetch("/api/templates"),
+        ]);
+      if (
+        !exerciseResponse.ok ||
+        !settingsResponse.ok ||
+        !templatesResponse.ok
+      ) {
         throw new Error("load failed");
       }
 
       const exerciseData: unknown = await exerciseResponse.json();
       const settingsData: unknown = await settingsResponse.json();
-      const list = readExercises(exerciseData);
+      const templatesData: unknown = await templatesResponse.json();
+      const list = queueExercises(
+        readExercises(exerciseData),
+        readTemplates(templatesData),
+      );
       const settings = readWorkoutSettingsPayload(settingsData);
       setExercises(list);
       setFormulas(settings?.formulas ?? null);
@@ -150,6 +177,7 @@ export function useNewMacroScreen() {
   const cycle = formulas?.cycle ?? [];
 
   return {
+    queueEmpty: !loading && !error && exercises.length === 0,
     exercises,
     formulas,
     startDate,

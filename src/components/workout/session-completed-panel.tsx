@@ -21,6 +21,7 @@ import {
   sessionMilestoneLine,
   sessionRaiseLine,
 } from "@/lib/flavor";
+import { CYCLE_RAISE_LATER } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
   PhaseCircleProgress,
@@ -34,6 +35,7 @@ export function SessionCompletedPanel({
   phaseHint,
   holdHint,
   feel,
+  inCycle,
   raiseOffers,
   completedSessions,
   lastCompletedBefore,
@@ -49,6 +51,7 @@ export function SessionCompletedPanel({
   phaseHint: string | null;
   holdHint: string | null;
   feel: SessionFeel | null;
+  inCycle: boolean;
   raiseOffers: SessionMaxRaiseOffer[];
   completedSessions: number;
   lastCompletedBefore: string | null;
@@ -179,6 +182,11 @@ export function SessionCompletedPanel({
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}
+        </p>
+      ) : null}
+      {inCycle && !holdHint && (feel === "easy" || abovePlan) ? (
+        <p className="text-base leading-relaxed text-muted-foreground">
+          {CYCLE_RAISE_LATER}
         </p>
       ) : null}
       {holdHint ? (

@@ -31,6 +31,9 @@ export function readSessionDetail(data: unknown): SessionDetail | null {
     template: parseWorkoutTemplate(data.template),
     phase: parseWorkoutPhase(data.phase),
     exercises: mapRecordList(data.exercises, parseSessionExerciseDetail),
+    missing_maxes: mapRecordList(data.missing_maxes, (row) =>
+      typeof row.id === "string" ? mapExercise(row) : null,
+    ),
     raise_offers: mapRecordList(data.raise_offers, parseRaiseOffer),
   };
 }

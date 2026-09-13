@@ -99,5 +99,7 @@ export interface SessionDetail {
   template: WorkoutTemplate | null;
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
+  /** Template exercises left out of the plan because they have no working weight yet. */
+  missing_maxes: Exercise[];
   raise_offers: SessionMaxRaiseOffer[];
 }

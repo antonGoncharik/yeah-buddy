@@ -10,6 +10,7 @@ import {
   StartingMaxLockedError,
   updateExercise,
 } from "@/lib/workout/exercises";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -82,6 +83,10 @@ export async function PATCH(
     const exercise = await updateExercise(auth.session.userId, id, parsed.data);
     if (!exercise) {
       return jsonError("Упражнение не найдено.", 404);
+    }
+
+    if (parsed.data.max_weight != null) {
+      await rebuildTodaysPlannedSession(auth.session.userId);
     }
 
     return jsonOk({ exercise });

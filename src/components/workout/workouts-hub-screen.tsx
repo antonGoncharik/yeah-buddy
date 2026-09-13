@@ -35,9 +35,11 @@ export function WorkoutsHubScreen() {
     skipping,
     sessionAction,
     phaseHint,
-    nextHasPlanMaxes,
+    nextCanStart,
+    nextMissingMaxes,
     createOnDate,
     unskipLast,
+    skipNext,
     pickTemplate,
   } = useWorkoutsHub();
   const guideTip = useGuideTip("workouts");
@@ -80,12 +82,14 @@ export function WorkoutsHubScreen() {
             session={session}
             nextTemplate={nextTemplate}
             followingTemplate={followingTemplate}
-            nextHasPlanMaxes={nextHasPlanMaxes}
+            nextCanStart={nextCanStart}
+            nextMissingMaxes={nextMissingMaxes}
             creating={creating}
             skipping={skipping}
             canUnskip={canUnskip}
             canBackfillYesterday={canBackfillYesterday}
             onStart={() => void createOnDate(nextTemplate?.id ?? "", date)}
+            onSkip={(following) => void skipNext(following)}
             onUnskip={() => void unskipLast()}
             onBackfill={() =>
               void createOnDate(nextTemplate?.id ?? "", previousIsoDate(date))

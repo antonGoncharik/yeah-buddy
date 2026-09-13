@@ -126,6 +126,7 @@ export function useSessionScreen() {
     saveNote,
     removeExercise,
     reorderExercises,
+    saveMissingMaxes,
     cancelToday,
   } = useSessionActions({
     detail,
@@ -197,5 +198,6 @@ export function useSessionScreen() {
     setDrafts,
     removeExercise,
     reorderExercises,
+    saveMissingMaxes,
   };
 }

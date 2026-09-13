@@ -1,8 +1,7 @@
 import { markDateAsTrainingIfExists } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutKind, WorkoutSession } from "@/lib/types";
-import { listExercises } from "@/lib/workout/exercises";
-import { templateHasPlanMaxes } from "@/lib/workout/hints";
+import { templateCanPlan } from "@/lib/workout/hints";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { mapWorkoutSession } from "@/lib/workout/map-rows";
 import { toNullableString } from "@/lib/workout/numbers";
@@ -11,7 +10,7 @@ import {
   type PatchSessionInput,
   SessionConflictError,
   SessionLockedError,
-  SessionNeedsMaxesError,
+  TemplateEmptyError,
 } from "@/lib/workout/session-errors";
 import { getSession, getSessionOnDate } from "@/lib/workout/session-read";
 import { getTemplate, TemplateNotFoundError } from "@/lib/workout/templates";
@@ -39,9 +38,8 @@ export async function createSession(
     throw new TemplateNotFoundError();
   }
 
-  const catalog = await listExercises(userId, "active");
-  if (!templateHasPlanMaxes(template, catalog)) {
-    throw new SessionNeedsMaxesError();
+  if (!templateCanPlan(template)) {
+    throw new TemplateEmptyError();
   }
 
   const macro = await getCurrentMacroState(userId);

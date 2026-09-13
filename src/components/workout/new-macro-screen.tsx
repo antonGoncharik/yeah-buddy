@@ -5,11 +5,12 @@ import Link from "next/link";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NewMacroMaxes } from "@/components/workout/new-macro-maxes";
 import { useNewMacroScreen } from "@/components/workout/use-new-macro-screen";
+import { cn } from "@/lib/utils";
 import { CYCLE_TEMPLATES } from "@/lib/workout/default-formulas";
 
 export function NewMacroScreen() {
@@ -30,6 +31,7 @@ export function NewMacroScreen() {
     applyCycle,
     onSubmit,
     cycle,
+    queueEmpty,
   } = useNewMacroScreen();
 
   return (
@@ -49,6 +51,22 @@ export function NewMacroScreen() {
               Повторить
             </Button>
           </div>
+        ) : null}
+
+        {queueEmpty ? (
+          <section className="card-surface flex flex-col gap-3 px-5 py-5">
+            <p className="text-lg font-medium">Очередь пустая</p>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Цикл меняет вес в тех тренировках, что стоят в очереди. Сначала
+              поставь программу или собери тренировку.
+            </p>
+            <Link
+              href="/workouts/schedule"
+              className={cn(buttonVariants(), "h-14 text-lg")}
+            >
+              К очереди
+            </Link>
+          </section>
         ) : null}
 
         {!loading && exercises.length > 0 ? (
@@ -84,7 +102,7 @@ export function NewMacroScreen() {
             ) : (
               <>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  {`${cycle.map((phase) => phase.name).join(" → ")}. Тренировки те же. Начнётся с «${cycle[0]?.name}». Веса ниже — с чем работаешь сейчас.`}
+                  {`${cycle.map((phase) => phase.name).join(" → ")}. Тренировки те же, что в очереди. Начнётся с «${cycle[0]?.name}».`}
                 </p>
                 <div className="flex flex-col gap-2">
                   <Label className="text-base">Дата начала</Label>
