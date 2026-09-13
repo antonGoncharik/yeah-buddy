@@ -1,5 +1,7 @@
 "use client";
 
+import { GuideTipCard } from "@/components/guide/guide-tip-card";
+import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
@@ -38,12 +40,16 @@ export function WorkoutsHubScreen() {
     unskipLast,
     pickTemplate,
   } = useWorkoutsHub();
+  const guideTip = useGuideTip("workouts");
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
+        {!loading && !error && guideTip.tip ? (
+          <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
+        ) : null}
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (

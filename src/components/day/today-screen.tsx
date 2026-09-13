@@ -10,6 +10,8 @@ import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayView } from "@/components/day/today-day-view";
 import { TodayWorkoutBanner } from "@/components/day/today-workout-banner";
 import { useTodayScreen } from "@/components/day/use-today-screen";
+import { GuideTipCard } from "@/components/guide/guide-tip-card";
+import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -68,6 +70,7 @@ export function TodayScreen({
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
+  const guideTip = useGuideTip("today");
   const [pickerOpen, setPickerOpen] = useState(false);
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
@@ -111,6 +114,9 @@ export function TodayScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 px-4 pb-4">
+        {contentReady && !loadError && !viewOnly && guideTip.tip ? (
+          <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
+        ) : null}
         {contentReady && !loadError && banner ? (
           <TodayWorkoutBanner
             href={banner.href}

@@ -3,19 +3,25 @@ import { onboardingWeightExercises } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
 
-export type OnboardingStep = "food" | "circle" | "maxes";
+export type OnboardingStep = "food" | "circle" | "maxes" | "guide";
 
 export function onboardingSteps({
   pendingKind,
   replay,
+  tour,
   circle,
   state,
 }: {
   pendingKind: SharePackKind | null;
   replay: boolean;
+  tour: boolean;
   circle: OnboardingCircle;
   state: OnboardingState | null;
 }): OnboardingStep[] {
+  if (tour && !replay) {
+    return ["guide"];
+  }
+
   const weightExercises = state
     ? onboardingWeightExercises(circle, state.exercises)
     : [];

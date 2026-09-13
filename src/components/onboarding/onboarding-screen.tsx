@@ -2,6 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 
+import { GuideTour } from "@/components/guide/guide-tour";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
@@ -39,6 +40,8 @@ export function OnboardingScreen() {
     goNext,
     skipFoodStep,
     finish,
+    leaveTour,
+    fromSettings,
     onProteinChange,
     onMaxChange,
   } = useOnboardingScreen();
@@ -59,6 +62,18 @@ export function OnboardingScreen() {
           onRetry={() => void load()}
         />
       </main>
+    );
+  }
+
+  if (step === "guide") {
+    return (
+      <GuideTour
+        mode={fromSettings ? "settings" : "onboarding"}
+        error={error}
+        onBackFromStart={fromSettings ? leaveTour : undefined}
+        onDone={leaveTour}
+        onSkip={leaveTour}
+      />
     );
   }
 
@@ -186,6 +201,9 @@ function titleForStep(step: OnboardingStep): string {
   }
   if (step === "circle") {
     return "Программа";
+  }
+  if (step === "guide") {
+    return "Как устроено";
   }
   return "Веса";
 }

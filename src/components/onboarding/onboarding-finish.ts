@@ -74,5 +74,21 @@ export async function submitOnboardingFinish({
     }
   }
 
-  return pending && isPackToken(pending) ? packPath(pending) : "/today";
+  return onboardingExitHref({ replay, pendingToken: pending });
+}
+
+export function onboardingExitHref({
+  replay,
+  pendingToken,
+}: {
+  replay: boolean;
+  pendingToken: string | null;
+}): string {
+  if (pendingToken && isPackToken(pendingToken)) {
+    return packPath(pendingToken);
+  }
+  if (!replay) {
+    return "/onboarding?tour=1";
+  }
+  return "/today";
 }

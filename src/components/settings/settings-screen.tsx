@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
+import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -121,6 +122,7 @@ export function SettingsScreen() {
 
         <h2 className="px-1 text-lg font-semibold">Ещё</h2>
         <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <NavRow href={GUIDE_HREF} title={GUIDE_LABEL} hint={GUIDE_HINT} />
           <NavRow
             href="/settings/packs"
             title={PACKS_LABEL}
