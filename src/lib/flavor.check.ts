@@ -1,9 +1,16 @@
 import {
+  comebackLine,
   consecutiveProteinHits,
   firstDeloadLine,
+  firstPhaseLine,
+  foodSearchEasterEgg,
+  hundredWeightLine,
+  lateNightLine,
   loadingFlavor,
   loadingLine,
+  macrosClosedLine,
   overflowKcalLabel,
+  proteinAlmostLine,
   proteinClosed,
   proteinWeekLine,
   STEADY_WEIGHT_LINE,
@@ -11,6 +18,7 @@ import {
   sessionDoneLead,
   sessionMilestoneLine,
   sessionRaiseLine,
+  splashBeatProgress,
   steadyWeightLine,
 } from "@/lib/flavor";
 import type { PhaseCircleProgress } from "@/lib/types";
@@ -83,6 +91,7 @@ assertEqual(
 );
 
 assertEqual(sessionMilestoneLine(9), null, "not yet ten");
+assertEqual(sessionMilestoneLine(1), "Первый. Yeah buddy.", "first session");
 assertEqual(
   sessionMilestoneLine(10),
   "Десять. Уже не разовый заход.",
@@ -117,6 +126,32 @@ assertEqual(
   null,
   "peak is not deload",
 );
+assertEqual(
+  firstPhaseLine({ ...deload, phase_type: "peak" }),
+  "Пик. Не плюсуй сгоряча.",
+  "first peak",
+);
+assertEqual(
+  firstPhaseLine({ ...deload, phase_type: "volume" }),
+  "Объём. Тот же рабочий, больше работы.",
+  "first volume",
+);
+assertEqual(
+  firstPhaseLine({ ...deload, phase_type: "ramp" }),
+  null,
+  "ramp stays quiet",
+);
+assertEqual(
+  comebackLine("2026-09-15", "2026-09-01"),
+  "Давно не были. Нормально.",
+  "two weeks away",
+);
+assertEqual(
+  comebackLine("2026-09-14", "2026-09-01"),
+  null,
+  "thirteen is early",
+);
+assertEqual(comebackLine("2026-09-15", null), null, "first has no comeback");
 
 assertEqual(
   consecutiveProteinHits([
@@ -199,5 +234,40 @@ assertEqual(
   STEADY_WEIGHT_LINE,
   "0.04 kg still counts",
 );
+
+assertEqual(proteinAlmostLine(3, 117), "Почти.", "a few grams left");
+assertEqual(proteinAlmostLine(0.4, 160), null, "closed is not almost");
+assertEqual(proteinAlmostLine(6, 114), null, "six grams is still work");
+assertEqual(
+  macrosClosedLine(
+    { protein: 160, fat: 70, carbs: 200 },
+    { target_protein: 160, target_fat: 70, target_carbs: 200 },
+  ),
+  "Три из трёх.",
+  "all bars closed",
+);
+assertEqual(
+  macrosClosedLine(
+    { protein: 160, fat: 10, carbs: 200 },
+    { target_protein: 160, target_fat: 70, target_carbs: 200 },
+  ),
+  null,
+  "fat still open",
+);
+assertEqual(hundredWeightLine(100), "Сотня.", "even hundred");
+assertEqual(hundredWeightLine(100.04), "Сотня.", "scale jitter");
+assertEqual(hundredWeightLine(99.8), null, "not yet a hundred");
+assertEqual(lateNightLine(22), "Поздновато. Нормально.", "late evening");
+assertEqual(lateNightLine(4), "Поздновато. Нормально.", "before dawn");
+assertEqual(lateNightLine(12), null, "noon is quiet");
+assertEqual(foodSearchEasterEgg("Ронни"), "Yeah buddy.", "ronnie search");
+assertEqual(foodSearchEasterEgg("yeah buddy."), "Yeah buddy.", "full yeah");
+assertEqual(foodSearchEasterEgg("овсянка"), null, "real food");
+assertEqual(splashBeatProgress(0, "mug"), 1, "first beat");
+assertEqual(splashBeatProgress(1, "dumbbell"), 2, "second beat");
+assertEqual(splashBeatProgress(1, "cookie"), 0, "wrong resets");
+assertEqual(splashBeatProgress(1, "mug"), 1, "mug restarts");
+assertEqual(splashBeatProgress(3, "barbell"), 4, "sequence done");
+assertEqual(splashBeatProgress(4, "mug"), 4, "done stays done");
 
 console.log("flavor ok");

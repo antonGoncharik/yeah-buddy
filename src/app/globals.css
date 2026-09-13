@@ -628,6 +628,10 @@ html.dark .native-select {
   animation: dumbbell-wiggle 0.42s var(--ease-out-soft);
 }
 
+@utility animate-nav-wiggle {
+  animation: dumbbell-wiggle 0.42s var(--ease-out-soft);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --theme-duration: 0s;
@@ -638,7 +642,8 @@ html.dark .native-select {
   .animate-loader-beat,
   .animate-draw-line,
   .animate-recap-glow,
-  .animate-dumbbell-wiggle {
+  .animate-dumbbell-wiggle,
+  .animate-nav-wiggle {
     animation: none;
   }
 

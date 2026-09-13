@@ -34,16 +34,16 @@ export function BottomNav() {
   const pathname = usePathname();
   const from = useSearchParams().get("from");
   const activeHref = navActiveHref(pathname, from);
-  const [wiggle, setWiggle] = useState(false);
+  const [wiggleHref, setWiggleHref] = useState<string | null>(null);
 
-  function onWorkoutsClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (pathname !== "/workouts") {
+  function onTabClick(href: string, event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== href) {
       return;
     }
     event.preventDefault();
     haptic("tick");
-    setWiggle(false);
-    requestAnimationFrame(() => setWiggle(true));
+    setWiggleHref(null);
+    requestAnimationFrame(() => setWiggleHref(href));
   }
 
   return (
@@ -58,7 +58,7 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                onClick={workouts ? onWorkoutsClick : undefined}
+                onClick={(event) => onTabClick(item.href, event)}
                 className={cn(
                   "flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",
                   active ? "text-primary" : "text-muted-foreground",
@@ -72,11 +72,9 @@ export function BottomNav() {
                 >
                   <span
                     className={cn(
-                      workouts && wiggle && "animate-dumbbell-wiggle",
+                      wiggleHref === item.href && "animate-nav-wiggle",
                     )}
-                    onAnimationEnd={
-                      workouts ? () => setWiggle(false) : undefined
-                    }
+                    onAnimationEnd={() => setWiggleHref(null)}
                   >
                     <Icon
                       className={cn(

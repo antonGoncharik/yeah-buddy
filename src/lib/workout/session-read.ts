@@ -10,6 +10,7 @@ import { mapWorkoutSession } from "@/lib/workout/map-rows";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 import {
   countCompletedSessions,
+  getLastCompletedDateBefore,
   listSessionHistory,
 } from "@/lib/workout/session-history";
 import { templateNamesById } from "@/lib/workout/session-names";
@@ -93,14 +94,16 @@ export async function getTodayWorkoutState(
     : null;
 
   const yesterdayGym = await getSessionOnDate(userId, previousIsoDate(date));
-  const [unfinished, recent, completed_sessions] = await Promise.all([
-    listUnfinishedGym(userId, date),
-    listSessionHistory(userId, {
-      limit: 5,
-      statuses: ["completed"],
-    }).then((page) => page.items),
-    countCompletedSessions(userId),
-  ]);
+  const [unfinished, recent, completed_sessions, last_completed_before] =
+    await Promise.all([
+      listUnfinishedGym(userId, date),
+      listSessionHistory(userId, {
+        limit: 5,
+        statuses: ["completed"],
+      }).then((page) => page.items),
+      countCompletedSessions(userId),
+      getLastCompletedDateBefore(userId, date),
+    ]);
 
   return {
     session: gym,
@@ -116,6 +119,7 @@ export async function getTodayWorkoutState(
     can_backfill_yesterday: yesterdayGym == null,
     phase_circle: macro.phase_circle,
     completed_sessions,
+    last_completed_before,
   };
 }
 

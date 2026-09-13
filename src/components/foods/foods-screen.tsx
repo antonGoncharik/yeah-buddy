@@ -12,6 +12,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, patchJson } from "@/lib/api-cache";
+import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -158,6 +159,10 @@ export function FoodsScreen() {
 }
 
 function emptyMessage(filter: Filter, query: string): string {
+  const easter = foodSearchEasterEgg(query);
+  if (easter) {
+    return easter;
+  }
   if (query.trim()) {
     return "Ничего не найдено.";
   }

@@ -1,7 +1,7 @@
 import { Bot, GrammyError, InlineKeyboard } from "grammy";
 
 import { getServerEnv, type ServerEnv } from "@/lib/env";
-import { BOT_OPEN_DIARY, BOT_START } from "@/lib/messages";
+import { BOT_OPEN_DIARY, BOT_START, BOT_YEAH_BUDDY } from "@/lib/messages";
 import { isPackToken } from "@/lib/share/token";
 
 let bot: Bot | null = null;
@@ -78,6 +78,10 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
       // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).
       reply_markup: diaryKeyboard(buttonUrl),
     });
+  });
+
+  instance.command("yeah", async (ctx) => {
+    await ctx.reply(BOT_YEAH_BUDDY);
   });
 
   bot = instance;

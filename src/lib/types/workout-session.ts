@@ -52,6 +52,7 @@ export interface TodayWorkoutState {
   can_backfill_yesterday: boolean;
   phase_circle: PhaseCircleProgress | null;
   completed_sessions: number;
+  last_completed_before: string | null;
 }
 
 export interface SessionExercise {

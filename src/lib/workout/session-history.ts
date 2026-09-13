@@ -20,6 +20,34 @@ export async function countCompletedSessions(userId: string): Promise<number> {
   return result.count ?? 0;
 }
 
+export async function getLastCompletedDateBefore(
+  userId: string,
+  beforeDate: string,
+): Promise<string | null> {
+  if (!isIsoDate(beforeDate)) {
+    return null;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("workout_sessions")
+    .select("session_date")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .lt("session_date", beforeDate)
+    .order("session_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  const date = String(result.data?.session_date ?? "").slice(0, 10);
+  return isIsoDate(date) ? date : null;
+}
+
 export async function listSessionHistory(
   userId: string,
   options: {

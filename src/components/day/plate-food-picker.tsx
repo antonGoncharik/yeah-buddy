@@ -7,6 +7,7 @@ import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -151,6 +152,10 @@ export function PlateFoodPicker({
 }
 
 function emptyMessage(filter: Filter, query: string): string {
+  const easter = foodSearchEasterEgg(query);
+  if (easter) {
+    return easter;
+  }
   if (query.trim()) {
     return "Ничего не найдено.";
   }

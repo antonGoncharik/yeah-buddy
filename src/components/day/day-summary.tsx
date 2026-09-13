@@ -5,9 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import {
+  hundredWeightLine,
+  lateNightLine,
+  macrosClosedLine,
   overflowKcalLabel,
   PROTEIN_CLOSED_LABEL,
   PROTEIN_CLOSED_MS,
+  proteinAlmostLine,
   proteinClosed,
   STEADY_WEIGHT_LINE,
 } from "@/lib/flavor";
@@ -25,6 +29,7 @@ export function DaySummary({
   bodyWeightReadOnly = false,
   bodyWeightBusy = false,
   weightSteady = false,
+  lateNight = false,
   onSaveBodyWeight,
 }: {
   day: Pick<
@@ -44,6 +49,7 @@ export function DaySummary({
   bodyWeightReadOnly?: boolean;
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
+  lateNight?: boolean;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
@@ -52,7 +58,14 @@ export function DaySummary({
   const proteinOverflow = remainingProtein < 0;
   const closed = proteinClosed(remainingProtein, fact.protein);
   const [flashClosed, setFlashClosed] = useState(false);
+  const [nightLine, setNightLine] = useState<string | null>(null);
   const wasClosed = useRef(false);
+  const almost = flashClosed
+    ? null
+    : proteinAlmostLine(remainingProtein, fact.protein);
+  const macros = macrosClosedLine(fact, day);
+  const hundred = hundredWeightLine(bodyWeight);
+  const weightNote = hundred ?? (weightSteady ? STEADY_WEIGHT_LINE : null);
   const perKg =
     bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
 
@@ -72,6 +85,14 @@ export function DaySummary({
     }, PROTEIN_CLOSED_MS);
     return () => window.clearTimeout(timer);
   }, [closed]);
+
+  useEffect(() => {
+    if (!lateNight) {
+      setNightLine(null);
+      return;
+    }
+    setNightLine(lateNightLine(new Date().getHours()));
+  }, [lateNight]);
 
   return (
     <section className="card-surface flex flex-col gap-4 px-4 py-4">
@@ -98,6 +119,9 @@ export function DaySummary({
               </span>
             )}
           </p>
+          {almost ? (
+            <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
+          ) : null}
           <p className="mt-1 text-sm text-muted-foreground tabular-nums">
             {overflow
               ? `+${formatKcal(Math.abs(remainingKcal))} ккал`
@@ -118,10 +142,8 @@ export function DaySummary({
                 onSave={onSaveBodyWeight}
               />
             </div>
-            {weightSteady ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {STEADY_WEIGHT_LINE}
-              </p>
+            {weightNote ? (
+              <p className="mt-1 text-sm text-muted-foreground">{weightNote}</p>
             ) : null}
           </div>
         ) : (
@@ -156,6 +178,12 @@ export function DaySummary({
           barClass="bg-[var(--macro-carbs)]"
         />
       </div>
+      {macros ? (
+        <p className="text-sm text-muted-foreground">{macros}</p>
+      ) : null}
+      {nightLine ? (
+        <p className="text-sm text-muted-foreground">{nightLine}</p>
+      ) : null}
     </section>
   );
 }

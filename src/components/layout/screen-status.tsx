@@ -19,8 +19,13 @@ import {
   LOADING_LINES,
   loadingFlavor,
   loadingLine,
+  SPLASH_BEAT_ORDER,
   SPLASH_HOLD_MS,
+  type SplashBeat,
+  splashBeatProgress,
+  YEAH_BUDDY_LINE,
 } from "@/lib/flavor";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
 const BEATS = [
@@ -63,6 +68,8 @@ export function ScreenLoading({
   const flavor = loadingFlavor({ splash, title });
   const [line, setLine] = useState(LOADING_LINES[flavor][0] ?? "Загрузка…");
   const [splitTitle, setSplitTitle] = useState(false);
+  const [beatStep, setBeatStep] = useState(0);
+  const [beatLine, setBeatLine] = useState<string | null>(null);
   const holdRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -73,8 +80,11 @@ export function ScreenLoading({
   }, [boot, splash]);
 
   useEffect(() => {
+    if (beatLine) {
+      return;
+    }
     setLine(loadingLine(flavor, Date.now()));
-  }, [flavor]);
+  }, [beatLine, flavor]);
 
   useEffect(() => {
     return () => {
@@ -102,6 +112,20 @@ export function ScreenLoading({
       window.clearTimeout(holdRef.current);
       holdRef.current = null;
     }
+  }
+
+  function tapBeat(key: SplashBeat) {
+    if (!splash || beatLine) {
+      return;
+    }
+    const next = splashBeatProgress(beatStep, key);
+    setBeatStep(next);
+    if (next >= SPLASH_BEAT_ORDER.length) {
+      setBeatLine(YEAH_BUDDY_LINE);
+      haptic("success");
+      return;
+    }
+    haptic("tick");
   }
 
   if (!splash && boot?.active) {
@@ -136,15 +160,23 @@ export function ScreenLoading({
             )}
           </p>
         ) : null}
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            splash && "pointer-events-auto",
+          )}
+          aria-hidden
+        >
           {BEATS.map((item, index) => (
             <span
               key={item.key}
               className={cn(
                 "animate-loader-beat block",
+                splash && "cursor-pointer",
                 "pull" in item && item.pull,
               )}
               style={{ animationDelay: `${index * 0.22}s` }}
+              onClick={splash ? () => tapBeat(item.key) : undefined}
             >
               <Doodle className={item.box} viewBox={item.viewBox}>
                 {item.mark}
@@ -153,7 +185,7 @@ export function ScreenLoading({
           ))}
         </div>
         <p aria-hidden className="animate-fade text-base">
-          {line}
+          {beatLine ?? line}
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { mutateJson } from "@/lib/api-cache";
+import { isIsoDate } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 import type { PhaseCircleProgress } from "@/lib/types";
 import {
@@ -14,6 +15,7 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
   phaseHint: string | null;
   holdHint: string | null;
   completedSessions: number;
+  lastCompletedBefore: string | null;
   phaseCircle: PhaseCircleProgress | null;
 }> {
   const empty = {
@@ -21,6 +23,7 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
     phaseHint: null,
     holdHint: null,
     completedSessions: 0,
+    lastCompletedBefore: null,
     phaseCircle: null,
   };
 
@@ -35,6 +38,12 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
       phaseHint: circle ? phaseEndHint(circle) : null,
       holdHint: circle ? phaseHoldHint(circle) : null,
       completedSessions: isRecord(data) ? toNumber(data.completed_sessions) : 0,
+      lastCompletedBefore:
+        isRecord(data) &&
+        typeof data.last_completed_before === "string" &&
+        isIsoDate(data.last_completed_before)
+          ? data.last_completed_before
+          : null,
       phaseCircle: circle,
     };
   } catch {

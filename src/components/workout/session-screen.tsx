@@ -38,6 +38,7 @@ export function SessionScreen() {
     phaseHint,
     holdHint,
     completedSessions,
+    lastCompletedBefore,
     phaseCircle,
     openSetIds,
     setOpenSetIds,
@@ -127,6 +128,8 @@ export function SessionScreen() {
                 feel={session.feel}
                 raiseOffers={detail.raise_offers}
                 completedSessions={completedSessions}
+                lastCompletedBefore={lastCompletedBefore}
+                sessionDate={session.session_date}
                 phaseCircle={phaseCircle}
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}

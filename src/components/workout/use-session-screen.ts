@@ -32,6 +32,9 @@ export function useSessionScreen() {
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [holdHint, setHoldHint] = useState<string | null>(null);
   const [completedSessions, setCompletedSessions] = useState(0);
+  const [lastCompletedBefore, setLastCompletedBefore] = useState<string | null>(
+    null,
+  );
   const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
     null,
   );
@@ -47,6 +50,7 @@ export function useSessionScreen() {
     setPhaseHint(followUp.phaseHint);
     setHoldHint(followUp.holdHint);
     setCompletedSessions(followUp.completedSessions);
+    setLastCompletedBefore(followUp.lastCompletedBefore);
     setPhaseCircle(followUp.phaseCircle);
   }, []);
 
@@ -77,6 +81,7 @@ export function useSessionScreen() {
             setPhaseHint(null);
             setHoldHint(null);
             setCompletedSessions(0);
+            setLastCompletedBefore(null);
             setPhaseCircle(null);
           }
           return true;
@@ -183,6 +188,7 @@ export function useSessionScreen() {
     phaseHint,
     holdHint,
     completedSessions,
+    lastCompletedBefore,
     phaseCircle,
     openSetIds,
     setOpenSetIds,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BARBELL_VIEWBOX,
   BarbellMark,
@@ -11,13 +11,17 @@ import { FlavorNote } from "@/components/layout/flavor-note";
 import { Button } from "@/components/ui/button";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import {
-  firstDeloadLine,
+  comebackLine,
+  firstPhaseLine,
+  LIGHT_WEIGHT_LINE,
   PLATE_BURST_MS,
+  SPLASH_HOLD_MS,
   sessionDoneHeadline,
   sessionDoneLead,
   sessionMilestoneLine,
   sessionRaiseLine,
 } from "@/lib/flavor";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   PhaseCircleProgress,
   SessionFeel,
@@ -33,6 +37,8 @@ export function SessionCompletedPanel({
   feel,
   raiseOffers,
   completedSessions,
+  lastCompletedBefore,
+  sessionDate,
   phaseCircle,
   busy,
   onCorrect,
@@ -46,6 +52,8 @@ export function SessionCompletedPanel({
   feel: SessionFeel | null;
   raiseOffers: SessionMaxRaiseOffer[];
   completedSessions: number;
+  lastCompletedBefore: string | null;
+  sessionDate: string;
   phaseCircle: PhaseCircleProgress | null;
   busy: boolean;
   onCorrect: () => void;
@@ -54,8 +62,14 @@ export function SessionCompletedPanel({
 }) {
   const canRaise = raiseOffers.length > 0;
   const milestone = sessionMilestoneLine(completedSessions);
-  const deload = firstDeloadLine(phaseCircle);
+  const phase = firstPhaseLine(phaseCircle);
+  const comeback = milestone
+    ? null
+    : comebackLine(sessionDate, lastCompletedBefore);
   const [extraPlate, setExtraPlate] = useState(false);
+  const [lightWeight, setLightWeight] = useState(false);
+  const plateHold = useRef<number | null>(null);
+  const titleHold = useRef<number | null>(null);
 
   useEffect(() => {
     if (!extraPlate) {
@@ -65,28 +79,102 @@ export function SessionCompletedPanel({
     return () => window.clearTimeout(timer);
   }, [extraPlate]);
 
+  useEffect(() => {
+    return () => {
+      if (plateHold.current != null) {
+        window.clearTimeout(plateHold.current);
+      }
+      if (titleHold.current != null) {
+        window.clearTimeout(titleHold.current);
+      }
+    };
+  }, []);
+
   async function raise() {
     if (await onRaise()) {
       setExtraPlate(true);
     }
   }
 
+  function burstPlate() {
+    haptic("tick");
+    setExtraPlate(true);
+  }
+
+  function startPlateHold() {
+    if (plateHold.current != null) {
+      window.clearTimeout(plateHold.current);
+    }
+    plateHold.current = window.setTimeout(() => {
+      plateHold.current = null;
+      burstPlate();
+    }, SPLASH_HOLD_MS);
+  }
+
+  function endPlateHold() {
+    if (plateHold.current != null) {
+      window.clearTimeout(plateHold.current);
+      plateHold.current = null;
+    }
+  }
+
+  function startTitleHold() {
+    if (feel !== "easy" || lightWeight) {
+      return;
+    }
+    if (titleHold.current != null) {
+      window.clearTimeout(titleHold.current);
+    }
+    titleHold.current = window.setTimeout(() => {
+      titleHold.current = null;
+      setLightWeight(true);
+      haptic("success");
+    }, SPLASH_HOLD_MS);
+  }
+
+  function endTitleHold() {
+    if (titleHold.current != null) {
+      window.clearTimeout(titleHold.current);
+      titleHold.current = null;
+    }
+  }
+
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl font-semibold">{sessionDoneHeadline(feel)}</h2>
-        <Doodle
-          className="mt-1 h-5 w-auto text-muted-foreground"
-          viewBox={BARBELL_VIEWBOX}
+        <h2
+          className="select-none text-xl font-semibold"
+          onPointerDown={feel === "easy" ? startTitleHold : undefined}
+          onPointerUp={feel === "easy" ? endTitleHold : undefined}
+          onPointerLeave={feel === "easy" ? endTitleHold : undefined}
+          onPointerCancel={feel === "easy" ? endTitleHold : undefined}
         >
-          <BarbellMark extra={extraPlate} />
-        </Doodle>
+          {sessionDoneHeadline(feel)}
+        </h2>
+        <button
+          type="button"
+          className="mt-1 text-muted-foreground"
+          aria-label="Штанга"
+          onPointerDown={startPlateHold}
+          onPointerUp={endPlateHold}
+          onPointerLeave={endPlateHold}
+          onPointerCancel={endPlateHold}
+        >
+          <Doodle className="h-5 w-auto" viewBox={BARBELL_VIEWBOX}>
+            <BarbellMark extra={extraPlate} />
+          </Doodle>
+        </button>
       </div>
       <p className="text-base leading-relaxed text-muted-foreground">
         {sessionDoneLead(feel)}
       </p>
+      <FlavorNote
+        line={lightWeight ? LIGHT_WEIGHT_LINE : null}
+        className="text-foreground"
+      />
       <FlavorNote line={milestone} className="text-foreground" />
-      <FlavorNote line={deload} className="text-foreground" />
+      <FlavorNote line={phase} className="text-foreground" />
+      <FlavorNote line={comeback} className="text-foreground" />
       <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       {canRaise ? (
         <p className="text-base leading-relaxed">

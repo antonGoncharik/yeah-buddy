@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
-import { firstDeloadLine } from "@/lib/flavor";
+import { firstPhaseLine } from "@/lib/flavor";
 import type { CurrentMacroState } from "@/lib/types";
 import {
   cycleTimeline,
@@ -26,7 +26,7 @@ export function MacroPhaseHeader({
     ? phaseHoldHint(state.phase_circle)
     : null;
   const endHint = state.phase_circle ? phaseEndHint(state.phase_circle) : null;
-  const deloadLine = firstDeloadLine(state.phase_circle);
+  const phaseLine = firstPhaseLine(state.phase_circle);
   const steps = cycleTimeline(
     state.planned_cycle,
     state.phase.phase_type,
@@ -52,7 +52,7 @@ export function MacroPhaseHeader({
         ниже.
       </p>
       {steps.length > 0 ? <CycleTimeline steps={steps} /> : null}
-      <FlavorNote line={deloadLine} />
+      <FlavorNote line={phaseLine} />
       {holdHint ? <p className="text-base leading-snug">{holdHint}</p> : null}
       {endHint ? <p className="text-base leading-snug">{endHint}</p> : null}
       <Link

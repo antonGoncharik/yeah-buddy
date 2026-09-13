@@ -11,6 +11,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -156,6 +157,10 @@ export function AddMealItemScreen({
 }
 
 function emptyMessage(filter: Filter, query: string, canLump: boolean): string {
+  const easter = foodSearchEasterEgg(query);
+  if (easter) {
+    return easter;
+  }
   if (query) {
     return canLump
       ? "Нет в списке — запиши порцию сверху."
