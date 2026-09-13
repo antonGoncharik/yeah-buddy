@@ -2,9 +2,11 @@
 
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useState } from "react";
 
 import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
+import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayView } from "@/components/day/today-day-view";
 import { TodayWorkoutBanner } from "@/components/day/today-workout-banner";
 import { useTodayScreen } from "@/components/day/use-today-screen";
@@ -13,6 +15,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { nutritionHistoryHref } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 
 export function TodayScreen({
   initialDate,
@@ -65,6 +68,7 @@ export function TodayScreen({
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
+  const [pickerOpen, setPickerOpen] = useState(false);
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
   });
@@ -79,6 +83,11 @@ export function TodayScreen({
         title={titleDate}
         subtitle={viewOnly ? "Только просмотр" : undefined}
         backHref={fromHistory ? nutritionHistoryHref(fromSettings) : undefined}
+        titleExpanded={pickerOpen}
+        onTitleClick={() => {
+          haptic("tap");
+          setPickerOpen(true);
+        }}
         trailing={
           <TodayDateNav
             date={date}
@@ -87,6 +96,19 @@ export function TodayScreen({
           />
         }
       />
+      {pickerOpen ? (
+        <TodayDatePickerSheet
+          date={date}
+          today={today}
+          onSelect={(next) => {
+            setPickerOpen(false);
+            if (next !== date) {
+              goToDate(next);
+            }
+          }}
+          onCancel={() => setPickerOpen(false)}
+        />
+      ) : null}
 
       <div className="flex flex-col gap-4 px-4 pb-4">
         {contentReady && !loadError && banner ? (
