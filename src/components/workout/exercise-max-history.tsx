@@ -14,7 +14,7 @@ export function ExerciseMaxHistory({
 
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-base font-medium">Рекорды</h2>
+      <h2 className="text-base font-medium">Как менялся рабочий вес</h2>
       <ul className="card-surface divide-y divide-border/70">
         {exercise.max_history.map((record) => (
           <li

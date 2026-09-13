@@ -16,9 +16,10 @@ export function NewMacroMaxes({
 }) {
   return (
     <section className="flex flex-col gap-3" data-field-group>
-      <h2 className="text-xl font-semibold">Твои веса</h2>
+      <h2 className="text-xl font-semibold">Рабочие веса</h2>
       <p className="text-sm text-muted-foreground">
-        Стоят рекорды. Если давно не жалось — поставь меньше.
+        Подставлены текущие рабочие веса. Если давно не тренировался — поставь
+        меньше.
       </p>
       {exercises.map((exercise, index) => (
         <div key={exercise.id} className="flex flex-col gap-2">

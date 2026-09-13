@@ -40,8 +40,6 @@ export function OnboardingScreen() {
     goNext,
     skipFoodStep,
     finish,
-    leaveTour,
-    tour,
     onProteinChange,
     onMaxChange,
   } = useOnboardingScreen();
@@ -66,15 +64,7 @@ export function OnboardingScreen() {
   }
 
   if (step === "guide") {
-    return (
-      <GuideTour
-        mode={tour ? "settings" : "onboarding"}
-        error={error}
-        onBackFromStart={tour ? leaveTour : undefined}
-        onDone={tour ? leaveTour : goNext}
-        onSkip={tour ? leaveTour : goNext}
-      />
-    );
+    return <GuideTour error={error} onDone={goNext} onSkip={goNext} />;
   }
 
   return (
@@ -161,7 +151,7 @@ export function OnboardingScreen() {
             data-keyboard-secondary
             onClick={() => void finish({ omitMaxes: true })}
           >
-            Пока без весов
+            Указать позже
           </Button>
         ) : null}
         <Button
@@ -200,13 +190,13 @@ function StepDots({
 
 function titleForStep(step: OnboardingStep): string {
   if (step === "food") {
-    return "Белок";
+    return "Белок на день";
   }
   if (step === "circle") {
-    return "Программа";
+    return "Программа тренировок";
   }
   if (step === "guide") {
-    return "Как устроено";
+    return "Как это устроено";
   }
-  return "Веса";
+  return "Рабочие веса";
 }

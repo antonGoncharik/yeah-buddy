@@ -63,8 +63,9 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Здесь — сколько подходов и с каким весом. Какие дни качать — в
-                очереди. Цикл, если есть, только меняет вес.
+                Здесь настраивается, сколько подходов делать и с каким весом от
+                рабочего. Какие тренировки и в каком порядке — это в очереди.
+                Цикл, если включён, меняет только вес по этапам.
               </p>
             </section>
 

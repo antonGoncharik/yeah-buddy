@@ -27,7 +27,8 @@ export function PlateDraftLumpFields({
   return (
     <>
       <p className="text-sm text-muted-foreground">
-        Сколько съел в этой порции. В продукты не попадёт.
+        Белки, жиры и углеводы этой порции. Разовая запись — в список продуктов
+        не попадёт.
       </p>
       <div className="grid grid-cols-3 gap-2" data-field-group>
         <MacroField
@@ -43,7 +44,7 @@ export function PlateDraftLumpFields({
           onChange={(value) => onPatchLump({ fatInput: value })}
         />
         <MacroField
-          label="Угли"
+          label="Углеводы"
           value={carbsInput}
           enterKeyHint="done"
           onChange={(value) => onPatchLump({ carbsInput: value })}

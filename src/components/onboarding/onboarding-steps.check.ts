@@ -11,7 +11,6 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 const empty = {
   pendingKind: null,
   replay: false,
-  tour: false,
   circle: "empty" as const,
   state: null,
 };
@@ -22,38 +21,24 @@ assertEqual(
   "first run explains the diary before protein",
 );
 assertEqual(
-  onboardingSteps({ ...empty, tour: true }).join(),
-  "guide",
-  "settings replay is the walkthrough only",
-);
-assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
   "food",
-  "protein replay stays setup",
-);
-assertEqual(
-  onboardingSteps({ ...empty, replay: true, tour: true }).join(),
-  "food",
-  "replay wins over tour",
+  "protein replay skips the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
   "guide,food",
-  "workout pack skips program after the walkthrough",
-);
-assertEqual(
-  onboardingSteps({
-    ...empty,
-    pendingKind: "workouts",
-    tour: true,
-  }).join(),
-  "guide",
-  "tour still available after a pack",
+  "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals" }).join(),
   "guide,circle",
-  "meal pack skips protein after the walkthrough",
+  "meal pack skips protein after the intro",
+);
+assertEqual(
+  onboardingSteps({ ...empty, replay: true, pendingKind: "meals" }).join(),
+  "food",
+  "replay always has at least the protein step",
 );
 
 console.log("onboarding steps ok");

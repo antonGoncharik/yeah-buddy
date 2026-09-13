@@ -126,13 +126,13 @@ export function SettingsScreen() {
           <NavRow
             href="/settings/packs"
             title={PACKS_LABEL}
-            hint="Поделиться едой и залом"
+            hint="Поделиться едой на день или программой тренировок"
           />
           <ShareAppRow />
           <NavRow
             href="/onboarding?again=1"
-            title="Белок и веса"
-            hint="Как в первый раз. Еду и программу не трогает"
+            title="Белок и рабочие веса"
+            hint="Задать заново. Еда на день и программа не изменятся"
           />
         </section>
 
@@ -160,8 +160,8 @@ export function SettingsScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
             <p className="text-sm text-muted-foreground">
-              Если день пустой — напомню вечером. Если всё записано — Yeah
-              buddy.
+              Если к вечеру день остался пустым — одно напоминание про еду и
+              тренировку. Если всё записано — просто «Yeah buddy».
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

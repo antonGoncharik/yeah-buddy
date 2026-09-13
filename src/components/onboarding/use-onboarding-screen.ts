@@ -12,7 +12,6 @@ import {
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
-import { GUIDE_HREF } from "@/lib/guide";
 import { LOAD_FAILED } from "@/lib/messages";
 import { macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
@@ -28,14 +27,17 @@ import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
 export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
 
+export const PROTEIN_INVALID = "Введи число от 1 до 400 граммов.";
+
+function proteinValid(value: number | null): value is number {
+  return value != null && value > 0 && value <= 400;
+}
+
 export function useOnboardingScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const replay = searchParams.get("again") === "1";
-  const tourRequest = searchParams.get("tour") === "1";
-  const fromSettings = searchParams.get("from") === "settings";
   const [state, setState] = useState<OnboardingState | null>(null);
-  const [tour, setTour] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<OnboardingStep>("food");
@@ -57,13 +59,11 @@ export function useOnboardingScreen() {
       if (!onboarding) {
         throw new Error(LOAD_FAILED);
       }
-      const nextTour = Boolean(onboarding.completed && tourRequest && !replay);
-      if (onboarding.completed && !replay && !nextTour) {
+      if (onboarding.completed && !replay) {
         router.replace("/today");
         return;
       }
-      const incoming = replay || nextTour ? null : await loadPendingPackKind();
-      setTour(nextTour);
+      const incoming = replay ? null : await loadPendingPackKind();
       setPendingKind(incoming);
       setState(onboarding);
       setProtein(String(onboarding.settings.rest_protein));
@@ -79,16 +79,14 @@ export function useOnboardingScreen() {
           ]),
         ),
       );
-      setStep(
-        nextTour || (!onboarding.completed && !replay) ? "guide" : "food",
-      );
+      setStep(replay ? "food" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
     } finally {
       setLoading(false);
     }
-  }, [replay, router, tourRequest]);
+  }, [replay, router]);
 
   useEffect(() => {
     void load();
@@ -96,7 +94,7 @@ export function useOnboardingScreen() {
 
   const proteinValue = parseDecimal(protein);
   const preview =
-    proteinValue != null && proteinValue > 0 && state
+    proteinValid(proteinValue) && state
       ? macroGoalsFromProtein(proteinValue, state.settings)
       : null;
   const weightExercises = state
@@ -104,8 +102,8 @@ export function useOnboardingScreen() {
     : [];
 
   const steps = useMemo(
-    () => onboardingSteps({ pendingKind, replay, tour, circle, state }),
-    [circle, pendingKind, replay, state, tour],
+    () => onboardingSteps({ pendingKind, replay, circle, state }),
+    [circle, pendingKind, replay, state],
   );
 
   useEffect(() => {
@@ -127,9 +125,9 @@ export function useOnboardingScreen() {
 
   function goNext() {
     if (step === "food") {
-      if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
+      if (!proteinValid(proteinValue)) {
         haptic("warn");
-        setError("Нужно число в граммах.");
+        setError(PROTEIN_INVALID);
         return;
       }
       setSkipFood(false);
@@ -163,13 +161,11 @@ export function useOnboardingScreen() {
     const omitProtein = Boolean(
       options?.omitProtein || skipFood || pendingKind === "meals",
     );
-    if (!omitProtein) {
-      if (proteinValue == null || proteinValue <= 0 || proteinValue > 400) {
-        haptic("warn");
-        setError("Нужно число в граммах.");
-        setStep("food");
-        return;
-      }
+    if (!omitProtein && !proteinValid(proteinValue)) {
+      haptic("warn");
+      setError(PROTEIN_INVALID);
+      setStep("food");
+      return;
     }
 
     setSaving(true);
@@ -194,10 +190,6 @@ export function useOnboardingScreen() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function leaveTour() {
-    router.replace(fromSettings ? GUIDE_HREF : "/today");
   }
 
   function onProteinChange(value: string) {
@@ -232,9 +224,6 @@ export function useOnboardingScreen() {
     goNext,
     skipFoodStep,
     finish,
-    leaveTour,
-    fromSettings,
-    tour,
     onProteinChange,
     onMaxChange,
   };

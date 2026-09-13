@@ -33,7 +33,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
 
       <div className="flex flex-col gap-5 px-4 pb-4">
         <p className="text-base text-muted-foreground">
-          Новый день возьмёт этот состав. Старые не трогает.
+          Новый день возьмёт этот состав. Уже записанные дни не изменятся.
         </p>
 
         {loading ? <ScreenLoading /> : null}

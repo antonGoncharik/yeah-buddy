@@ -13,12 +13,12 @@ export function switchRestToTrainingMessage(input: {
   swapMeals: boolean;
 }): string {
   const prefix = input.isToday
-    ? "Этот день уже как отдых."
-    : "За этот день еда уже как отдых.";
+    ? "Сейчас это день отдыха."
+    : "Этот день записан как день отдыха.";
   const suffix = input.swapMeals
-    ? "Еда станет из шаблона тренировки."
-    : "Цели еды сменятся. Записи не тронем.";
-  return `${prefix} Сделать тренировочным? ${suffix}`;
+    ? "Приёмы пищи подставятся из шаблона тренировки."
+    : "Цели поменяются, записанная еда останется.";
+  return `${prefix} Сделать его тренировочным? ${suffix}`;
 }
 export const YESTERDAY_MISSING = "Вчера пусто.";
 export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
@@ -27,12 +27,11 @@ export const PAST_DAY_LOCKED = "Это старый день — уже не м�
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
 export const BOT_START = `Yeah buddy! 👟
-Дневник еды и тренировок.
+Это дневник еды и тренировок.
 
-Записывай, что съел и что сделал в зале. Подходы считаются от твоих рабочих весов.
-Меньше слов.
+Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
 
-Погнали🔥`;
+Погнали 🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
@@ -41,24 +40,26 @@ export function botReminderGym(name: string): string {
   return `Сегодня ${name}.`;
 }
 export const EXERCISES_EMPTY =
-  "Пока пусто. Добавь упражнение и рабочий вес — без них план не посчитать.";
-export const WORKOUTS_NEED_EXERCISES = "Сначала упражнения и рабочие веса.";
+  "Пока пусто. Добавь упражнение и его рабочий вес — без этого план подходов не посчитать.";
+export const WORKOUTS_NEED_EXERCISES =
+  "Сначала добавь упражнения и рабочие веса.";
 export const WORKOUTS_NEED_TEMPLATES =
-  "Поставь программу или собери тренировку.";
-export const WORKOUTS_NEED_MAXES = "Укажи рабочие веса.";
+  "Очередь пустая. Поставь готовую программу или собери тренировку сам.";
+export const WORKOUTS_NEED_MAXES = "Укажи рабочие веса, чтобы посчитать план.";
 export const NEED_ALL_WORKING_WEIGHTS =
   "Нужен рабочий вес у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
-export const SESSION_HISTORY_EMPTY = "Пока пусто. Сделаешь — появится.";
+export const SESSION_HISTORY_EMPTY =
+  "Пока пусто. Здесь появятся сделанные тренировки.";
 export const NUTRITION_HISTORY_EMPTY =
-  "Дней ещё нет. Съешь что-нибудь — появится.";
+  "Пока пусто. Здесь появятся дни с записанной едой.";
 export const WEEK_EMPTY =
-  "Пока пусто. Запиши еду или тренировку — появится строка.";
+  "Пока пусто. Запиши еду или тренировку — день появится здесь.";
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
-  "Нет рабочего веса. Укажи его в упражнении и зайди ещё раз.";
+  "Нет рабочего веса — план не посчитать. Укажи его в упражнении.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
 export const AI_REVIEW_EMPTY = "Пока мало записей, чтобы разобрать.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";

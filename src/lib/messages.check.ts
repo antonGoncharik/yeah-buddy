@@ -10,17 +10,17 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 
 assertEqual(
   switchRestToTrainingMessage({ isToday: true, swapMeals: true }),
-  "Этот день уже как отдых. Сделать тренировочным? Еда станет из шаблона тренировки.",
+  "Сейчас это день отдыха. Сделать его тренировочным? Приёмы пищи подставятся из шаблона тренировки.",
   "today swap",
 );
 assertEqual(
   switchRestToTrainingMessage({ isToday: true, swapMeals: false }),
-  "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся. Записи не тронем.",
+  "Сейчас это день отдыха. Сделать его тренировочным? Цели поменяются, записанная еда останется.",
   "today keep",
 );
 assertEqual(
   switchRestToTrainingMessage({ isToday: false, swapMeals: true }),
-  "За этот день еда уже как отдых. Сделать тренировочным? Еда станет из шаблона тренировки.",
+  "Этот день записан как день отдыха. Сделать его тренировочным? Приёмы пищи подставятся из шаблона тренировки.",
   "other day swap",
 );
 

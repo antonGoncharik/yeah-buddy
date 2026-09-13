@@ -104,7 +104,7 @@ export function LumpMacrosScreen({
     }
     if (!parsed) {
       haptic("warn");
-      setError("Имя и БЖУ порции.");
+      setError("Заполни название и белки, жиры, углеводы.");
       return;
     }
 
@@ -137,7 +137,8 @@ export function LumpMacrosScreen({
       }}
     >
       <p className="text-base leading-relaxed text-muted-foreground">
-        Сколько съел в этой порции. В продукты не попадёт.
+        Сколько белков, жиров и углеводов в этой порции. Разовая запись — в
+        список продуктов не попадёт.
       </p>
       <FoodFormField label="Что это">
         <Input
@@ -177,7 +178,7 @@ export function LumpMacrosScreen({
             readOnly={readOnly}
           />
         </FoodFormField>
-        <FoodFormField label="Угли">
+        <FoodFormField label="Углеводы">
           <Input
             inputMode="decimal"
             enterKeyHint="done"

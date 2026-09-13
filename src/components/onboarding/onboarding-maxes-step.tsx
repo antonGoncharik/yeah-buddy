@@ -21,7 +21,8 @@ export function OnboardingMaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Вес, с которым обычно работаешь. Не разовый максимум.
+        Вес, с которым ты обычно делаешь подходы в этих упражнениях. Не рекорд
+        на один раз. От него посчитается план подходов.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

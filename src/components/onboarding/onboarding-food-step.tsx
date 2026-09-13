@@ -71,21 +71,28 @@ export function OnboardingFoodStep({
         />
         {preview ? (
           <p className="text-sm text-muted-foreground">
-            Отдых {formatKcal(preview.rest.kcal)} ккал · зал{" "}
-            {formatKcal(preview.training.kcal)} ккал
+            Получится: день отдыха — {formatKcal(preview.rest.kcal)} ккал, день
+            тренировки — {formatKcal(preview.training.kcal)} ккал.
           </p>
         ) : null}
       </div>
+      <p
+        className="animate-rise px-1 text-sm leading-relaxed text-muted-foreground"
+        style={{ animationDelay: "160ms" }}
+      >
+        Не знаешь, сколько ставить? Обычный ориентир — 1,6–2 г на килограмм
+        веса. Потом это можно поменять в Настройках → «Цели на день».
+      </p>
     </>
   );
 }
 
 function foodLead(replay: boolean, fromWorkoutPack: boolean): string {
   if (fromWorkoutPack) {
-    return "Тренировки уже из ссылки. Осталось указать белок на день.";
+    return "Программа тренировок возьмётся из ссылки. Осталось указать, сколько белка ты хочешь съедать в день.";
   }
   if (replay) {
-    return "Белок на день. Приёмы пищи не трогаем.";
+    return "Сколько белка ты хочешь съедать в день. Изменятся только цели — еда на день и записи останутся.";
   }
-  return "Белок на день. От него посчитаем калории и приёмы пищи.";
+  return "Сколько белка ты хочешь съедать в день. От этой цифры посчитаем калории и цели на дни отдыха и тренировок, а стартовую еду на день подгоним под неё.";
 }

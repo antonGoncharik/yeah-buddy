@@ -42,7 +42,7 @@ export function MacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={CYCLE_LABEL}
-        subtitle="То легче, то тяжелее"
+        subtitle="Меняется вес, тренировки те же"
         backHref="/workouts"
       />
 

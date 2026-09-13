@@ -14,7 +14,7 @@ export function GuideTipCard({
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
-        <p className="text-sm font-medium text-muted-foreground">Как тут</p>
+        <p className="text-sm font-medium text-muted-foreground">Подсказка</p>
         <h2 className="mt-1 text-xl font-semibold tracking-tight">
           {tip.title}
         </h2>

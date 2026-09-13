@@ -1,4 +1,5 @@
 import {
+  GUIDE_INTRO_PAGES,
   GUIDE_PAGES,
   GUIDE_TIPS,
   GUIDE_TOPIC_NEEDLES,
@@ -31,11 +32,31 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
   }
 }
 
-assert(GUIDE_PAGES.length >= 9, "guide covers a full walkthrough");
+assert(
+  GUIDE_INTRO_PAGES.length >= 3 && GUIDE_INTRO_PAGES.length <= 5,
+  "intro is short enough to read before setup",
+);
+assert(GUIDE_PAGES.length >= 6, "reference covers the whole diary");
 assert(GUIDE_TIPS.length === 2, "today and workouts tips");
 
-const ids = GUIDE_PAGES.map((page) => page.id);
+const ids = [...GUIDE_INTRO_PAGES, ...GUIDE_PAGES].map((page) => page.id);
 assertEqual(new Set(ids).size, ids.length, "page ids unique");
+
+for (const page of GUIDE_INTRO_PAGES) {
+  const text = guidePageText(page);
+  assert(page.title.trim().length > 0, `${page.id} has title`);
+  assert(page.lead.trim().length >= 40, `${page.id} lead is a sentence`);
+  assert(
+    page.paragraphs.length >= 1 && page.paragraphs.length <= 3,
+    `${page.id} intro stays short`,
+  );
+  assert(text.length <= 900, `${page.id} intro fits one screen`);
+  assert(page.remember.trim().length >= 24, `${page.id} has a takeaway`);
+  assert(
+    (GUIDE_DOODLES as readonly string[]).includes(page.doodle),
+    `${page.id} doodle`,
+  );
+}
 
 for (const page of GUIDE_PAGES) {
   const text = guidePageText(page);
@@ -48,6 +69,15 @@ for (const page of GUIDE_PAGES) {
     (GUIDE_DOODLES as readonly string[]).includes(page.doodle),
     `${page.id} doodle`,
   );
+}
+
+for (const page of [...GUIDE_INTRO_PAGES, ...GUIDE_PAGES]) {
+  for (const line of [page.lead, ...page.paragraphs, page.remember]) {
+    assert(
+      /[.!?…»)]$/.test(line.trim()),
+      `${page.id} line ends as a sentence: ${line}`,
+    );
+  }
 }
 
 const blob = guideAllText().toLowerCase();

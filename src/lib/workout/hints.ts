@@ -120,16 +120,16 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
 
   if (progress.last_in_cycle) {
     if (rounds >= 2) {
-      return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Когда отошёл — закрывай цикл.`;
+      return `«${phase}» идёт уже ${rounds} ${circleWord(rounds)}. Когда восстановился — можно закрыть цикл.`;
     }
-    return `Круг «${phase}» пройден. Когда отошёл — закрывай цикл.`;
+    return `Круг «${phase}» пройден. Когда восстановился — можно закрыть цикл.`;
   }
 
   if (rounds >= 2) {
-    return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно ещё или закрыть${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
+    return `«${phase}» идёт уже ${rounds} ${circleWord(rounds)}. Можно продолжить или закрыть этап${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
   }
 
-  return `Круг «${phase}» пройден. Закрывать — когда будешь готов${nextLabel ? `. Дальше «${nextLabel}»` : ""}.`;
+  return `Круг «${phase}» пройден. Закрой этап, когда будешь готов${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
 }
 
 export function completePhaseHint(

@@ -21,10 +21,10 @@ export function MacroPhaseMaxes({
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-semibold">Веса этого этапа</h2>
+      <h2 className="text-xl font-semibold">Рабочие веса на этом этапе</h2>
       <p className="text-sm text-muted-foreground">
-        От этих цифр считается план. Только упражнения, которые делаешь.
-        Остальные — «Не делаю» в списке упражнений.
+        От этих цифр считается план подходов. Здесь только упражнения, которые
+        ты делаешь — остальные отмечены «Не делаю» в списке упражнений.
       </p>
       {maxes.map((row) => (
         <div
@@ -35,7 +35,7 @@ export function MacroPhaseMaxes({
             {row.exercise.short_name || row.exercise.name}
           </p>
           <p className="text-sm text-muted-foreground">
-            Рекорд{" "}
+            Сейчас{" "}
             {row.exercise.current_max
               ? `${formatWeight(row.exercise.current_max.max_weight)} кг`
               : "—"}

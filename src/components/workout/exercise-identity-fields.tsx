@@ -35,10 +35,10 @@ export function ExerciseIdentityFields({
         />
       </Field>
 
-      <Field label="Кратко">
+      <Field label="Короткое название">
         <Input
           value={form.short_name}
-          placeholder="жим"
+          placeholder="Например: жим"
           onChange={(event) =>
             setForm((current) => ({
               ...current,

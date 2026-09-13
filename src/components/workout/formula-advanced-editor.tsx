@@ -54,9 +54,10 @@ export function FormulaAdvancedEditor({
       />
 
       <section className="card-surface flex flex-col gap-3 px-5 py-4">
-        <h2 className="text-lg font-semibold">Пример веса</h2>
+        <h2 className="text-lg font-semibold">Пример расчёта</h2>
         <p className="text-base leading-relaxed text-muted-foreground">
-          Справа килограммы, если подставить вес. В дневник не пишется.
+          Подставь любой рабочий вес — справа у подходов появятся килограммы.
+          Это только для наглядности, в дневник не записывается.
           {raisedExample > 0 && raisedExample !== exampleMax && showsIncrease
             ? ` После плюса — от ${formatWeight(raisedExample)} кг.`
             : ""}

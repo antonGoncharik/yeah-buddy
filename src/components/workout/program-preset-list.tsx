@@ -91,7 +91,7 @@ function ProgramPresetCard({
         <p className="text-lg font-medium">{preset.name}</p>
         {recommended ? (
           <span className="rounded-full bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary">
-            для старта
+            советуем для начала
           </span>
         ) : null}
       </div>
