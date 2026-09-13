@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from "@/lib/brand";
+import { siteOriginUrl } from "@/lib/site-url";
 import {
   DARK_THEME_COLOR,
   LIGHT_THEME_COLOR,
@@ -19,10 +21,19 @@ const manrope = Manrope({
   variable: "--font-sans",
 });
 
+const siteOrigin = siteOriginUrl();
+const ogImage = {
+  url: "/icons/icon-512.png",
+  width: 512,
+  height: 512,
+  alt: APP_NAME,
+};
+
 export const metadata: Metadata = {
-  title: "Дневник",
-  description: "Питание и тренировки",
-  applicationName: "Дневник",
+  metadataBase: siteOrigin,
+  title: APP_SHORT_NAME,
+  description: APP_DESCRIPTION,
+  applicationName: APP_SHORT_NAME,
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
@@ -36,8 +47,23 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Дневник",
-    statusBarStyle: "default",
+    title: APP_SHORT_NAME,
+    statusBarStyle: "black-translucent",
+  },
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    url: siteOrigin,
+    images: [ogImage],
+  },
+  twitter: {
+    card: "summary",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: [ogImage.url],
   },
 };
 

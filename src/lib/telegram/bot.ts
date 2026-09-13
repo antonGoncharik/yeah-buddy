@@ -3,6 +3,12 @@ import { Bot, GrammyError, InlineKeyboard } from "grammy";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import { BOT_OPEN_DIARY, BOT_START, BOT_YEAH_BUDDY } from "@/lib/messages";
 import { isPackToken } from "@/lib/share/token";
+import {
+  isTelegramMeUrl,
+  resolveAppShareUrl,
+  resolvePackShareUrl,
+  withStartApp,
+} from "@/lib/telegram/share-url";
 
 let bot: Bot | null = null;
 let botUsername: string | null | undefined;
@@ -25,35 +31,24 @@ export function getMiniAppUrl(env: ServerEnv = getServerEnv()): string | null {
   }
 }
 
-export function withStartApp(url: string, token: string): string {
-  const parsed = new URL(url);
-  parsed.searchParams.set("startapp", token);
-  return parsed.toString();
+export { withStartApp } from "@/lib/telegram/share-url";
+
+export async function getAppShareUrl(
+  env: ServerEnv = getServerEnv(),
+): Promise<string | null> {
+  const mini = getMiniAppUrl(env);
+  if (mini && isTelegramMeUrl(mini)) {
+    return mini;
+  }
+
+  return resolveAppShareUrl({
+    miniAppUrl: mini,
+    botUsername: await getBotUsername(),
+  });
 }
 
 export async function getPackShareUrl(token: string): Promise<string | null> {
-  if (!isPackToken(token)) {
-    return null;
-  }
-
-  const mini = getMiniAppUrl();
-  if (mini) {
-    try {
-      const parsed = new URL(mini);
-      if (parsed.hostname === "t.me") {
-        return withStartApp(mini, token);
-      }
-    } catch {
-      // fall through to bot username
-    }
-  }
-
-  const username = await getBotUsername();
-  if (username) {
-    return `https://t.me/${username}?startapp=${encodeURIComponent(token)}`;
-  }
-
-  return mini ? withStartApp(mini, token) : null;
+  return resolvePackShareUrl(token, await getAppShareUrl());
 }
 
 export function createBot(env: ServerEnv = getServerEnv()): Bot {

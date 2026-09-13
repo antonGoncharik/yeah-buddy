@@ -8,6 +8,7 @@ import {
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button } from "@/components/ui/button";
+import { APP_NAME } from "@/lib/brand";
 import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
 import { rememberPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
@@ -134,7 +135,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
           ) : null}
         </main>
       ) : null}
-      {showSplash ? <ScreenLoading splash title="Yeah Buddy" /> : null}
+      {showSplash ? <ScreenLoading splash title={APP_NAME} /> : null}
     </>
   );
 }

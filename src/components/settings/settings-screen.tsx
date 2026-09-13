@@ -8,6 +8,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
+import { ShareAppRow } from "@/components/share/share-app-row";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewHref } from "@/lib/ai/review-nav";
@@ -125,6 +126,7 @@ export function SettingsScreen() {
             title={PACKS_LABEL}
             hint="Поделиться едой и залом"
           />
+          <ShareAppRow />
           <NavRow
             href="/onboarding?again=1"
             title="Белок и веса"

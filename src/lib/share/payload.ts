@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { APP_NAME } from "@/lib/brand";
 import { FOOD_STATES } from "@/lib/foods";
 import { PACK_EMPTY_MEALS, PACK_EMPTY_WORKOUTS } from "@/lib/messages";
 import {
@@ -308,11 +309,11 @@ export function defaultWorkoutsTitle(payload: WorkoutsPackPayload): string {
 export function packShareText(kind: SharePackKind, title?: string): string {
   const name = title?.trim();
   if (name) {
-    return `${name} — Yeah Buddy`;
+    return `${name} — ${APP_NAME}`;
   }
   return kind === "meals"
-    ? "Еда на день из Yeah Buddy"
-    : "Тренировки из Yeah Buddy";
+    ? `Еда на день из ${APP_NAME}`
+    : `Тренировки из ${APP_NAME}`;
 }
 
 export function mealDayTotals(items: PackMealItem[]): {
