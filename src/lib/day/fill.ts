@@ -79,7 +79,7 @@ async function applyRemainingFills(
       continue;
     }
 
-    const existing = matchingItem(meal.items, fill.foodId, fill.name);
+    const existing = matchingItem(meal.items, fill.foodId);
     if (existing) {
       await bumpItemGrams(supabase, userId, existing, fill.grams);
       existing.grams += fill.grams;
@@ -145,21 +145,8 @@ async function loadDayById(
   return getDayByDate(userId, String(result.data.date).slice(0, 10));
 }
 
-function matchingItem(
-  items: MealItem[],
-  foodId: string,
-  name: string,
-): MealItem | undefined {
-  const byId = items.find((item) => item.food_id === foodId);
-  if (byId) {
-    return byId;
-  }
-
-  const nameKey = name.trim().toLowerCase();
-  return items.find(
-    (item) =>
-      !item.food_id && item.name_snapshot.trim().toLowerCase() === nameKey,
-  );
+function matchingItem(items: MealItem[], foodId: string): MealItem | undefined {
+  return items.find((item) => item.food_id === foodId);
 }
 
 async function bumpItemGrams(

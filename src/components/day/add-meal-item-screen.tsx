@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
 import { FoodList } from "@/components/foods/food-list";
@@ -40,9 +40,12 @@ export function AddMealItemScreen({
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
+  const loadedFilterRef = useRef<Filter | null>(null);
 
   const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
-    if (showLoading) {
+    const requestId = ++requestIdRef.current;
+    if (showLoading || loadedFilterRef.current !== nextFilter) {
       setLoading(true);
     }
     setError(null);
@@ -56,12 +59,21 @@ export function AddMealItemScreen({
       }
 
       const data: unknown = await response.json();
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setFoods(readFoods(data));
+      loadedFilterRef.current = nextFilter;
     } catch {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setError(LOAD_FAILED);
       setFoods([]);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

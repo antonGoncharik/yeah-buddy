@@ -35,6 +35,9 @@ export async function previewTransition(
   const cycle = settings.formulas.cycle;
   const nextType = nextPhaseType(state.phase.phase_type, cycle);
   const fromName = phaseLabel(state.phase.phase_type, state.phase.name);
+  const holdWeights = state.phase_circle?.hold_weights === true;
+  const increased =
+    !holdWeights && shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
 
   if (!nextType) {
     const peak = await getRecapEndMaxes(userId, state.macro.id, cycle);
@@ -45,15 +48,15 @@ export async function previewTransition(
       from_name: fromName,
       to_name: null,
       new_macro: true,
-      increased: false,
-      hold_weights: state.phase_circle?.hold_weights === true,
-      maxes: toTransitionMaxes(source, (weight) => weight),
+      increased,
+      hold_weights: holdWeights,
+      maxes: toTransitionMaxes(source, (weight, step) =>
+        increased
+          ? increaseMax(weight, settings.max_increase_percent, step)
+          : weight,
+      ),
     };
   }
-
-  const holdWeights = state.phase_circle?.hold_weights === true;
-  const increased =
-    !holdWeights && shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
   return {
     from_phase: state.phase.phase_type,
     to_phase: nextType,

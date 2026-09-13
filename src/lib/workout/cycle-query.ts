@@ -102,13 +102,18 @@ export function nextPhaseType(
 
 export function shouldIncreaseMax(
   from: string,
-  to: string,
+  to: string | null,
   cycle: CyclePhaseDef[],
 ): boolean {
   if (cycle.length > 0) {
     const current = cycleDef(cycle, from);
-    const next = cycleDef(cycle, to);
-    return Boolean(current?.increase_on_end && next);
+    if (!current?.increase_on_end) {
+      return false;
+    }
+    if (to == null) {
+      return true;
+    }
+    return cycleDef(cycle, to) != null;
   }
 
   return from === "volume" && to === "peak";

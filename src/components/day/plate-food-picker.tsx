@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
@@ -33,8 +33,10 @@ export function PlateFoodPicker({
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const load = useCallback(async (nextFilter: Filter) => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
 
@@ -45,12 +47,21 @@ export function PlateFoodPicker({
       if (!response.ok) {
         throw new Error("load failed");
       }
-      setFoods(parseFoodList(await response.json()));
+      const data: unknown = await response.json();
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+      setFoods(parseFoodList(data));
     } catch {
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setError(LOAD_FAILED);
       setFoods([]);
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 

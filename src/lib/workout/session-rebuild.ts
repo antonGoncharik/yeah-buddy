@@ -93,6 +93,8 @@ export async function rebuildPlannedSession(
     return detail;
   }
 
+  const previousExerciseIds = detail.exercises.map((item) => item.exercise_id);
+
   const supabase = createSupabaseServerClient();
   const deleted = await supabase
     .from("session_exercises")
@@ -105,7 +107,40 @@ export async function rebuildPlannedSession(
   }
 
   await ensureSessionPlan(userId, session);
-  return loadSessionDetail(userId, session);
+  const rebuilt = await loadSessionDetail(userId, session);
+  const nextIds = preserveSessionExerciseIds(
+    previousExerciseIds,
+    rebuilt.exercises,
+  );
+  if (
+    nextIds.length > 1 &&
+    nextIds.some((id, index) => rebuilt.exercises[index]?.id !== id)
+  ) {
+    return reorderSessionExercises(userId, sessionId, nextIds);
+  }
+  return rebuilt;
+}
+
+function preserveSessionExerciseIds(
+  previousExerciseIds: string[],
+  exercises: Array<{ id: string; exercise_id: string }>,
+): string[] {
+  const remaining = [...exercises];
+  const ordered: string[] = [];
+  for (const exerciseId of previousExerciseIds) {
+    const index = remaining.findIndex(
+      (item) => item.exercise_id === exerciseId,
+    );
+    if (index < 0) {
+      continue;
+    }
+    const [row] = remaining.splice(index, 1);
+    if (row) {
+      ordered.push(row.id);
+    }
+  }
+  ordered.push(...remaining.map((item) => item.id));
+  return ordered;
 }
 
 export async function rebuildTodaysPlannedSession(

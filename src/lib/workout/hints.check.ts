@@ -92,6 +92,42 @@ assertEqual(
   "raise when not holding",
 );
 
+assertEqual(
+  completePhaseHint({
+    ...circle,
+    last_in_cycle: true,
+    next_phase_type: null,
+    next_phase_name: null,
+  }),
+  "Не пошло. Держать веса, не сбрасывать.",
+  "hold beats new cycle",
+);
+
+assertEqual(
+  completePhaseHint({
+    ...circle,
+    last_in_cycle: true,
+    hold_weights: false,
+    next_phase_type: null,
+    next_phase_name: null,
+  }),
+  "Закроется и начнётся новый. Можно поднять веса, не всем сразу.",
+  "last stage still raises",
+);
+
+assertEqual(
+  completePhaseHint({
+    ...circle,
+    last_in_cycle: true,
+    hold_weights: false,
+    increases_on_end: false,
+    next_phase_type: null,
+    next_phase_name: null,
+  }),
+  "Закроется и начнётся новый. Веса — с последней тяжёлой.",
+  "last stage without raise keeps recap copy",
+);
+
 const planned = [
   { key: "ramp", name: "Разгон" },
   { key: "volume", name: "Набор" },

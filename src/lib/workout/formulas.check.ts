@@ -15,6 +15,7 @@ import {
   plannedSetsFromFormula,
   previewMaxForPhase,
   resolvePhaseSpec,
+  shouldIncreaseMax,
 } from "@/lib/workout/formulas";
 import {
   fillFormulas,
@@ -339,6 +340,23 @@ assertEqual(
 assert(
   volumeStrength.cycle[1]?.increase_on_end === true,
   "strength week raises max",
+);
+
+assert(
+  shouldIncreaseMax("heavy", null, LIGHT_MEDIUM_HEAVY_CYCLE),
+  "heavy raises into the next cycle",
+);
+assert(
+  !shouldIncreaseMax("light", null, LIGHT_MEDIUM_HEAVY_CYCLE),
+  "light does not raise at cycle end",
+);
+assert(
+  shouldIncreaseMax("w85", "deload", LINEAR_CYCLE),
+  "85 raises into deload",
+);
+assert(
+  !shouldIncreaseMax("deload", null, LINEAR_CYCLE),
+  "deload does not raise into the next cycle",
 );
 
 console.log("workout formulas ok");

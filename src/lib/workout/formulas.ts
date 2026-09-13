@@ -117,7 +117,7 @@ export function nextPhaseType(
 
 export function shouldIncreaseMax(
   from: string,
-  to: string,
+  to: string | null,
   cycle: CyclePhaseDef[] = [],
 ): boolean {
   return shouldIncreaseFromCycle(from, to, cycle);
