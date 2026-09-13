@@ -35,7 +35,7 @@ export function RemainingRecipeAction({
         disabled={busy}
         onClick={onFill}
       >
-        Как в шаблоне
+        Подставить из шаблона
       </Button>
     );
   }

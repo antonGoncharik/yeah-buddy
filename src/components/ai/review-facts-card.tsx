@@ -54,7 +54,7 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         hint={weightHint(brief)}
       />
       <FactRow
-        label="Рабочие"
+        label="Рабочие веса"
         value={liftsValue(brief)}
         hint={liftsHint(brief)}
       />
@@ -115,7 +115,7 @@ function weightHint(brief: ReviewBrief): string | null {
 
 function liftsValue(brief: ReviewBrief): string {
   if (brief.maxes.total === 0) {
-    return "пока рано";
+    return "пока мало данных";
   }
   if (brief.maxes.grown > 0) {
     return `выросли ${brief.maxes.grown} из ${brief.maxes.total}`;

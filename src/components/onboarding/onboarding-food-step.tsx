@@ -82,10 +82,10 @@ export function OnboardingFoodStep({
 
 function foodLead(replay: boolean, fromWorkoutPack: boolean): string {
   if (fromWorkoutPack) {
-    return "Зал уже из ссылки. Белок на день — от него цели и приёмы.";
+    return "Тренировки уже из ссылки. Осталось указать белок на день.";
   }
   if (replay) {
-    return "Белок на день. Приёмы как были.";
+    return "Белок на день. Приёмы пищи не трогаем.";
   }
-  return "Белок на день. От него цели и приёмы.";
+  return "Белок на день. От него посчитаем калории и приёмы пищи.";
 }

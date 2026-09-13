@@ -42,16 +42,16 @@ export function FormulaCycleEditor({
         <h2 className="text-xl font-semibold">Цикл</h2>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           {hasCycle
-            ? `${cycleSequenceLabel(formulas.cycle)}. Тренировки те же, что в очереди — этап меняет веса.`
-            : "Без цикла одна схема на все дни. Тренировки — в очереди."}
+            ? `${cycleSequenceLabel(formulas.cycle)}. Тренировки те же — меняется только вес.`
+            : "Без цикла веса всегда считаются одинаково. Какие дни качать — в очереди."}
         </p>
       </div>
 
       {hasCycle ? (
         <div className="flex flex-col gap-3">
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Потяни номер — порядок. Новые тренировки по этой схеме. Уже начатый
-            цикл не переписывается.
+            Потяни за номер — поменяешь порядок. Для новых тренировок. Уже
+            запущенный цикл не изменится.
           </p>
           <SortableList
             variant="cards"

@@ -58,15 +58,12 @@ export function sessionDoneLead(feel: SessionFeel | null): string | null {
 
 export function sessionRaiseLine(
   abovePlan: boolean,
-  feel: SessionFeel | null,
+  _feel: SessionFeel | null,
 ): string {
   if (abovePlan) {
-    return "Где-то больше плана. Рабочий сам не прыгнет.";
+    return "Где-то взял больше плана. Рабочий вес сам не вырастет.";
   }
-  if (feel === "easy") {
-    return "Можно поднять рабочий.";
-  }
-  return "Легко. Можно поднять рабочий.";
+  return "Можно поднять рабочий вес.";
 }
 
 export function sessionMilestoneLine(count: number): string | null {
@@ -91,14 +88,15 @@ export function firstPhaseLine(
   if (circle == null || circle.completed_count > 1) {
     return null;
   }
+  const name = circle.phase_name.trim();
   if (circle.phase_type === "deload") {
-    return "Сброс. Легче — не значит зря.";
+    return `${name || "Сброс"}. Легче — не значит зря.`;
   }
   if (circle.phase_type === "peak") {
-    return "Пик. Не плюсуй сгоряча.";
+    return `${name || "Рывок"}. Не плюсуй сгоряча.`;
   }
   if (circle.phase_type === "volume") {
-    return "Объём. Тот же рабочий, больше работы.";
+    return `${name || "Набор"}. Тот же рабочий, больше работы.`;
   }
   return null;
 }
@@ -163,7 +161,7 @@ export function proteinWeekLine(hits: number): string | null {
 
 export const REST_DONE_LABEL = "Погнали.";
 export const SKIP_SESSION_LABEL = "Не сегодня.";
-export const DARK_THEME_LABEL = "Ночная смена";
+export const DARK_THEME_LABEL = "Тёмная";
 export const OVERFLOW_KCAL_LABEL = "Ну, праздник.";
 export const PROTEIN_CLOSED_LABEL = "закрыт";
 export const PROTEIN_ALMOST_LINE = "Почти.";

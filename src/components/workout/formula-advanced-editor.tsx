@@ -118,7 +118,7 @@ export function FormulaAdvancedEditor({
         title="Рабочие"
         hint={
           formulas.cycle.length > 0
-            ? "Этапы без своих подходов берут это"
+            ? "Этапы без своих подходов берут эти"
             : "От рабочего веса"
         }
         defaultHold={kind === "static"}

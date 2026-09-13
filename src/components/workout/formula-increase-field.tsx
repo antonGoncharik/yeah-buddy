@@ -16,7 +16,8 @@ export function FormulaIncreaseField({
         <p className="text-sm text-muted-foreground">к рабочему весу</p>
       </div>
       <p className="text-base leading-relaxed text-muted-foreground">
-        На сколько поднять рабочие, когда этап это разрешает. Не всем сразу.
+        На сколько поднимать рабочий вес в конце этапа. Можно не все упражнения
+        сразу.
       </p>
       <div className="flex items-center gap-2">
         <Input

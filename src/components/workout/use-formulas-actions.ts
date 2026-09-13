@@ -90,7 +90,7 @@ export function useFormulasActions({
     }
     const ok = await confirm({
       message: formulas.cycle.length
-        ? `Поставить «${system.name}»? Рабочие обновятся. Этапы без своих подходов тоже.`
+        ? `Поставить «${system.name}»? Рабочие подходы обновятся. Этапы без своих подходов — тоже.`
         : `Поставить «${system.name}»? Текущие подходы заменятся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
@@ -125,7 +125,7 @@ export function useFormulasActions({
       return;
     }
     const ok = await confirm({
-      message: "Убрать цикл? Веса всегда как в рабочих.",
+      message: "Убрать цикл? Веса всегда будут как в рабочих подходах.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
     });

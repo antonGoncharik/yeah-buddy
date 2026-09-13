@@ -47,7 +47,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От него веса в зале. Поднять — на смене этапа.
+            От этого веса считаются подходы. Поднять можно в конце этапа.
           </p>
         </div>
       ) : (
@@ -68,7 +68,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           />
           {exercise ? (
             <p className="text-sm text-muted-foreground">
-              От него веса в зале. Без цикла правишь здесь.
+              От этого веса считаются подходы. Без цикла меняй здесь.
             </p>
           ) : null}
         </Field>

@@ -72,17 +72,17 @@ assertEqual(sessionDoneLead("close"), "Так и надо.", "close lead");
 assertEqual(sessionDoneLead("miss"), "Бывает. Записано как было.", "miss lead");
 assertEqual(
   sessionRaiseLine(true, "easy"),
-  "Где-то больше плана. Рабочий сам не прыгнет.",
+  "Где-то взял больше плана. Рабочий вес сам не вырастет.",
   "above plan wins",
 );
 assertEqual(
   sessionRaiseLine(false, "easy"),
-  "Можно поднять рабочий.",
+  "Можно поднять рабочий вес.",
   "easy raise without repeating Легко",
 );
 assertEqual(
   sessionRaiseLine(false, null),
-  "Легко. Можно поднять рабочий.",
+  "Можно поднять рабочий вес.",
   "raise before feel",
 );
 
@@ -123,13 +123,13 @@ assertEqual(
   "peak is not deload",
 );
 assertEqual(
-  firstPhaseLine({ ...deload, phase_type: "peak" }),
-  "Пик. Не плюсуй сгоряча.",
+  firstPhaseLine({ ...deload, phase_type: "peak", phase_name: "Рывок" }),
+  "Рывок. Не плюсуй сгоряча.",
   "first peak",
 );
 assertEqual(
-  firstPhaseLine({ ...deload, phase_type: "volume" }),
-  "Объём. Тот же рабочий, больше работы.",
+  firstPhaseLine({ ...deload, phase_type: "volume", phase_name: "Набор" }),
+  "Набор. Тот же рабочий, больше работы.",
   "first volume",
 );
 assertEqual(

@@ -10,7 +10,7 @@ export function publicPackDescription(
   const fromOwner = ownerName ? `От ${ownerName}. ` : "";
   return kind === "meals"
     ? `${fromOwner}Еда на день. Можно поставить себе.`
-    : `${fromOwner}Очередь и схема весов. Можно поставить себе.`;
+    : `${fromOwner}Программа тренировок. Можно поставить себе.`;
 }
 
 export async function publicPackOpenGraph(

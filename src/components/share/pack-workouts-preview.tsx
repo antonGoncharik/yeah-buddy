@@ -12,7 +12,7 @@ export function PackWorkoutsPreview({ pack }: { pack: SharePackDetail }) {
   return (
     <>
       <p className="px-1 text-sm text-muted-foreground">
-        Схема весов {workouts.formula_hint}
+        План подходов: {workouts.formula_hint}
       </p>
       {workouts.days.map((day) => (
         <section

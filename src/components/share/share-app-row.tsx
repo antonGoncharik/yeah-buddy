@@ -38,7 +38,9 @@ export function ShareAppRow() {
       title="Показать дневник"
       hint={
         error ??
-        (copied ? "Ссылка скопирована." : "Само приложение, без еды и зала")
+        (copied
+          ? "Ссылка скопирована."
+          : "Ссылка на приложение, без твоей еды и зала")
       }
       busy={busy}
       onClick={() => void onShare()}

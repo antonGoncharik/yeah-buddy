@@ -32,7 +32,7 @@ export function ExercisesScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Упражнения"
-        subtitle="Что делаешь и веса"
+        subtitle="Что делаешь и рабочие веса"
         backHref="/workouts"
       />
 

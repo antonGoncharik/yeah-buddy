@@ -36,7 +36,7 @@ export function useTodayWorkoutStart({
     if (shownDay && !shownDay.is_training_day) {
       const ok = await confirm({
         message:
-          "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся, полдник останется.",
+          "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся. Записи полдника не тронем.",
         confirmLabel: "Сделать тренировочным",
         cancelLabel: "Отмена",
       });

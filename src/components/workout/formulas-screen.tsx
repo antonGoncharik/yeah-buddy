@@ -47,7 +47,7 @@ export function FormulasScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={FORMULAS_LABEL}
-        subtitle="Подходы и этапы"
+        subtitle="Сколько подходов и с каким весом"
         backHref="/workouts"
       />
 
@@ -63,8 +63,8 @@ export function FormulasScreen() {
             <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
               <h2 className="text-xl font-semibold">Как считать</h2>
               <p className="text-base leading-relaxed text-muted-foreground">
-                Тренировки — в очереди. Здесь подходы. Цикл, если включён,
-                только меняет веса по этапам.
+                Здесь — сколько подходов и с каким весом. Какие дни качать — в
+                очереди. Цикл, если есть, только меняет вес.
               </p>
             </section>
 
@@ -140,7 +140,7 @@ export function FormulasScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
-                Сохранено. Следующая тренировка — по этой схеме.
+                Сохранено. Следующая тренировка посчитается заново.
               </p>
             ) : null}
 

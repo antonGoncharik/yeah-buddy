@@ -22,7 +22,7 @@ export function ExercisesList({
     <>
       <ExerciseGroup
         title="Делаю"
-        hint="Эти в зале."
+        hint="Эти будут в тренировках."
         empty="Включи из списка ниже."
         exercises={active}
         busyId={busyId}
@@ -31,8 +31,8 @@ export function ExercisesList({
       />
       <ExerciseGroup
         title="Не делаю"
-        hint="В плане не будет."
-        empty="Все, что есть, в работе."
+        hint="В тренировки не попадёт."
+        empty="Все упражнения в работе."
         exercises={idle}
         busyId={busyId}
         actionLabel="Делаю"

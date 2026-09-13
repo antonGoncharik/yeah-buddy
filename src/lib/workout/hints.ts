@@ -129,57 +129,57 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
     return `«${phase}» уже ${rounds} ${circleWord(rounds)}. Можно ещё или закрыть${nextLabel ? ` — дальше «${nextLabel}»` : ""}.`;
   }
 
-  return `Круг «${phase}» пройден. Закрывать — сам${nextLabel ? `. Дальше «${nextLabel}»` : ""}.`;
+  return `Круг «${phase}» пройден. Закрывать — когда будешь готов${nextLabel ? `. Дальше «${nextLabel}»` : ""}.`;
 }
 
 export function completePhaseHint(
   progress: PhaseCircleProgress | null,
 ): string {
   if (!progress) {
-    return "Веса перейдут как есть. Перед подтверждением можно поправить.";
+    return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
   }
   if (progress.hold_weights) {
-    return "Не пошло. Держать веса, не сбрасывать.";
+    return "Не пошло — рабочие веса не трогаем.";
   }
   if (progress.last_in_cycle) {
     if (progress.increases_on_end) {
-      return "Закроется и начнётся новый. Можно поднять веса, не всем сразу.";
+      return "Цикл закроется и начнётся новый. Можно поднять рабочие веса — не всем сразу.";
     }
-    return "Закроется и начнётся новый. Веса — с последней тяжёлой.";
+    return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели.";
   }
   if (progress.increases_on_end) {
-    return `Дальше «${progress.next_phase_name}». Можно поднять веса, не всем сразу.`;
+    return `Дальше «${progress.next_phase_name}». Можно поднять рабочие веса — не всем сразу.`;
   }
   if (progress.next_phase_name) {
     return `Дальше «${progress.next_phase_name}». Веса те же, можно поправить.`;
   }
-  return "Веса перейдут как есть. Перед подтверждением можно поправить.";
+  return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
 }
 
 export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
   if (!progress.hold_weights) {
     return null;
   }
-  return "Не пошло. Держать веса.";
+  return "Не пошло — рабочие веса не трогаем.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
-    return "Не пошло. Держать веса, можно поправить.";
+    return "Не пошло — рабочие веса не трогаем, можно поправить.";
   }
   if (preview.new_macro && preview.increased) {
-    return "Закроется и начнётся новый. Можно поднять веса, не всем сразу.";
+    return "Цикл закроется и начнётся новый. Можно поднять рабочие веса — не всем сразу.";
   }
   if (preview.new_macro) {
-    return "Закроется и начнётся новый. Веса — с последней тяжёлой, можно поправить.";
+    return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели, можно поправить.";
   }
   if (preview.increased) {
-    return `На «${preview.to_name}» можно поднять веса. Не всем сразу.`;
+    return `На «${preview.to_name}» можно поднять рабочие веса. Не всем сразу.`;
   }
   if (preview.to_name) {
     return `Дальше «${preview.to_name}». Веса те же, можно поправить.`;
   }
-  return "Веса перейдут как есть. Перед подтверждением можно поправить.";
+  return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
 }
 
 export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {

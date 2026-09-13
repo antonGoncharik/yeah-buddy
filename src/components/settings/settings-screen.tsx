@@ -62,12 +62,12 @@ export function SettingsScreen() {
           <NavRow
             href="/settings/meals"
             title={MEAL_TEMPLATES_LABEL}
-            hint="На новый день"
+            hint="Что подставлять в новый день"
           />
           <NavRow
             href="/foods"
             title="Продукты"
-            hint="Свои, из них собирается день"
+            hint="Свои продукты для записи еды"
           />
         </section>
 
@@ -158,7 +158,8 @@ export function SettingsScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
             <p className="text-sm text-muted-foreground">
-              Пустой день — напомню. Еда и зал закрыты — Yeah buddy.
+              Если день пустой — напомню вечером. Если всё записано — Yeah
+              buddy.
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

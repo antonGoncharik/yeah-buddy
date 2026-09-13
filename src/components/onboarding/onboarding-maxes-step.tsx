@@ -21,7 +21,7 @@ export function OnboardingMaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Вес, с которым работаешь. Не подход на раз.
+        Вес, с которым обычно работаешь. Не разовый максимум.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

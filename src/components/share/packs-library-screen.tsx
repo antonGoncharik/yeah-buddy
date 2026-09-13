@@ -50,8 +50,9 @@ export function PacksLibraryScreen() {
 
       <div className="flex flex-col gap-4 px-4 pb-36">
         <p className="text-base text-muted-foreground">
-          Еда и зал — отдельные ссылки. Свои шаблоны, не дневник и не веса.
-          Чужое сохраняется сюда, поставить можно когда удобно.
+          Еда и тренировки — отдельные ссылки. Это шаблоны, не записи из
+          дневника и не рабочие веса. Чужое сохраняется сюда — поставить можно
+          когда удобно.
         </p>
 
         {loading ? <ScreenLoading /> : null}
@@ -62,7 +63,7 @@ export function PacksLibraryScreen() {
 
         {!loading && !error && packs.length === 0 ? (
           <p className="animate-rise px-1 text-base leading-relaxed text-muted-foreground">
-            Пока пусто. Поделись едой на день или очередью зала — ссылка
+            Пока пусто. Поделись едой на день или программой зала — ссылка
             останется здесь.
           </p>
         ) : null}

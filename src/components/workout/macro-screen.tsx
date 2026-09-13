@@ -74,8 +74,8 @@ export function MacroScreen() {
               <p className="text-lg font-medium">Цикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 {state.planned_cycle.length > 0
-                  ? `Схема: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же, что в очереди — этап меняет веса.`
-                  : "Сначала схема этапов, потом цикл. Тренировки те же, что в очереди."}
+                  ? `Этапы: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — меняется только вес.`
+                  : "Сначала выбери этапы, потом запусти цикл. Тренировки те же — меняется только вес."}
               </p>
               {state.planned_cycle.length > 0 ? (
                 <CycleTimeline

@@ -25,7 +25,7 @@ export const PHASE_TYPES = ["ramp", "volume", "peak", "deload"] as const;
 export type LegacyPhaseKey = (typeof PHASE_TYPES)[number];
 
 export const QUEUE_LABEL = "Очередь";
-export const FORMULAS_LABEL = "Схема весов";
+export const FORMULAS_LABEL = "План подходов";
 export const CYCLE_LABEL = "Цикл";
 export const REVIEW_LABEL = "Как прошло";
 export const MEAL_TEMPLATES_LABEL = "Еда на день";

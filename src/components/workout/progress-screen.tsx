@@ -62,12 +62,12 @@ export function ProgressScreen() {
             <section className="card-surface animate-rise px-5 py-5">
               <p className="text-sm font-medium text-muted-foreground">
                 {progress.exercises.some((item) => item.from_work)
-                  ? "С первых рабочих"
-                  : "С первых рабочих весов"}
+                  ? "С первой записи"
+                  : "С первой записи рабочего веса"}
               </p>
               <p className="mt-1 text-3xl font-semibold tracking-tight">
                 {progress.avg_percent == null ? (
-                  "Пока рано"
+                  "Пока мало данных"
                 ) : (
                   <>
                     {formatSignedPercent(progress.avg_percent)}

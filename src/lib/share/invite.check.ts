@@ -17,7 +17,7 @@ assertEqual(
 );
 assertEqual(
   publicPackDescription("workouts", "Антон"),
-  "От Антон. Очередь и схема весов. Можно поставить себе.",
+  "От Антон. Программа тренировок. Можно поставить себе.",
   "workouts with owner",
 );
 

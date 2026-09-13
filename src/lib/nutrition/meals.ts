@@ -70,16 +70,16 @@ export function hiddenMealSlotsNote(
 
   const kcalText = formatKcal(kcal);
   if (mealTypes.length === 1 && mealTypes[0] === "snack") {
-    return `Ещё ${kcalText} ккал в полднике — его на тренировке не показываем.`;
+    return `Ещё ${kcalText} ккал в полднике. В день тренировки этот приём скрыт.`;
   }
 
   const names = mealTypes.map((type) => getMealLabel(type).toLowerCase());
-  const where = isTrainingDay ? "на тренировке" : "на отдыхе";
+  const where = isTrainingDay ? "В день тренировки" : "В день отдыха";
   if (names.length === 1) {
-    return `Ещё ${kcalText} ккал (${names[0]}) — ${where} не показываем.`;
+    return `Ещё ${kcalText} ккал (${names[0]}). ${where} этот приём скрыт.`;
   }
 
-  return `Ещё ${kcalText} ккал (${names.join(", ")}) — на этом дне не показываем.`;
+  return `Ещё ${kcalText} ккал (${names.join(", ")}). На этом дне эти приёмы скрыты.`;
 }
 
 export function visibleMealTypes(isTrainingDay: boolean): MealType[] {

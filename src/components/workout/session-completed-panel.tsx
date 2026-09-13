@@ -191,7 +191,7 @@ export function SessionCompletedPanel({
           disabled={busy}
           onClick={() => void raise()}
         >
-          Поднять рабочий
+          Поднять рабочий вес
         </Button>
       ) : null}
       {nextName ? (
@@ -206,7 +206,7 @@ export function SessionCompletedPanel({
             href="/workouts/macro"
             className="text-base font-medium text-primary"
           >
-            К циклу
+            Открыть цикл
           </Link>
         ) : null}
         <Button

@@ -129,10 +129,10 @@ function Field({
 
 function warmupHint(preset: FormulaPreset): string {
   if (preset === "barbell") {
-    return "Как у штанги.";
+    return "Разминка как у штанги.";
   }
   if (preset === "cable") {
-    return "Как у блока.";
+    return "Разминка как у блока.";
   }
-  return "В план не попадёт — нет процентов.";
+  return "Без плана подходов — вес ставишь сам.";
 }

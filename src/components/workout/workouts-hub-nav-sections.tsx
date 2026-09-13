@@ -146,17 +146,17 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/progress"
           title="Рабочие веса"
-          hint="Как растут"
+          hint="Как менялись"
         />
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"
-          hint="Состав и максимумы"
+          hint="Список и рабочие веса"
         />
         <NavRow
           href="/settings/formulas"
           title={FORMULAS_LABEL}
-          hint="Откуда берутся подходы"
+          hint="Сколько подходов и с каким весом"
         />
         <NavRow
           href={reviewHref("workouts")}

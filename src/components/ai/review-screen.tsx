@@ -106,7 +106,7 @@ export function ReviewScreen() {
               <NavRow
                 href="/workouts/progress"
                 title="Рабочие веса"
-                hint="С первых записей"
+                hint="Как менялись"
               />
             </section>
           </>
