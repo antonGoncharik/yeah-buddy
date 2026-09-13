@@ -21,7 +21,7 @@ export function OnboardingMaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Рабочий вес, не на раз. Пустое допишешь в зале.
+        Вес, с которым работаешь. Не подход на раз.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"

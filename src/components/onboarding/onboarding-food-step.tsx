@@ -12,11 +12,13 @@ const PROTEIN_PRESETS = [100, 120, 150] as const;
 export function OnboardingFoodStep({
   protein,
   preview,
+  replay,
   fromWorkoutPack,
   onProteinChange,
 }: {
   protein: string;
   preview: ReturnType<typeof macroGoalsFromProtein> | null;
+  replay: boolean;
   fromWorkoutPack: boolean;
   onProteinChange: (value: string) => void;
 }) {
@@ -28,9 +30,7 @@ export function OnboardingFoodStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        {fromWorkoutPack
-          ? "Это дневник еды и зала. Зал возьмём из ссылки. Сначала белок на день — от него шаблон еды. 120 хватает большинству."
-          : "Это дневник еды и зала. Сначала белок на день — от него шаблон. 120 хватает большинству. Потом поправишь."}
+        {foodLead(replay, fromWorkoutPack)}
       </p>
       <div
         className="animate-rise flex gap-2"
@@ -71,12 +71,21 @@ export function OnboardingFoodStep({
         />
         {preview ? (
           <p className="text-sm text-muted-foreground">
-            Жир и углеводы пока как обычно. Отдых{" "}
-            {formatKcal(preview.rest.kcal)} ккал · зал{" "}
+            Отдых {formatKcal(preview.rest.kcal)} ккал · зал{" "}
             {formatKcal(preview.training.kcal)} ккал
           </p>
         ) : null}
       </div>
     </>
   );
+}
+
+function foodLead(replay: boolean, fromWorkoutPack: boolean): string {
+  if (fromWorkoutPack) {
+    return "Зал уже из ссылки. Белок на день — от него цели и приёмы.";
+  }
+  if (replay) {
+    return "Белок на день. Приёмы как были.";
+  }
+  return "Белок на день. От него цели и приёмы.";
 }

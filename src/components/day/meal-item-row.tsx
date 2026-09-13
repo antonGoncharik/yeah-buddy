@@ -110,10 +110,17 @@ export function MealLumpLink({
       href={lumpHref(href, trimmed)}
       className={cn(
         buttonVariants({ variant: "outline" }),
-        "h-12 w-full rounded-xl text-base",
+        "h-12 w-full gap-2 rounded-xl text-base",
       )}
     >
-      {trimmed ? `Записать «${trimmed}»` : "Разовая порция"}
+      {trimmed ? (
+        `Записать «${trimmed}»`
+      ) : (
+        <>
+          <Plus className="size-4" aria-hidden />
+          Не из списка
+        </>
+      )}
     </Link>
   );
 }

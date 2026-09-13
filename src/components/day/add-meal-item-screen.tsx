@@ -105,7 +105,7 @@ export function AddMealItemScreen({
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
-        {lumpHrefBase && search ? (
+        {lumpHrefBase ? (
           <MealLumpLink href={lumpHrefBase} query={query} />
         ) : null}
         {plateHref && !search ? <MealPlateLink href={plateHref} /> : null}

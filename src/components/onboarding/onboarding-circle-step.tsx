@@ -33,8 +33,8 @@ export function OnboardingCircleStep({
     <>
       <p className="animate-rise text-base text-muted-foreground">
         {fromMealPack
-          ? "Это дневник еды и зала. Еду возьмём из ссылки. Поставь программу — и можно в зал."
-          : "Поставь программу — и можно в зал. Потом поменяешь."}
+          ? "Еда уже из ссылки. Осталась программа."
+          : "Программа на неделю."}
       </p>
       <ProgramPresetList
         value={isProgramPresetId(value) ? value : null}
@@ -69,9 +69,9 @@ export function OnboardingCircleStep({
         )}
         onClick={() => onChange("empty")}
       >
-        <p className="text-lg font-medium">Соберу сам</p>
+        <p className="text-lg font-medium">Без программы</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Без тренировок. Если зал не ведёшь — так и сделай.
+          Не веду зал — или соберу сам.
         </p>
       </button>
     </>

@@ -27,6 +27,7 @@ export function OnboardingScreen() {
     stepIndex,
     isLast,
     saving,
+    replay,
     pendingKind,
     protein,
     preview,
@@ -91,6 +92,7 @@ export function OnboardingScreen() {
           <OnboardingFoodStep
             protein={protein}
             preview={preview}
+            replay={replay}
             fromWorkoutPack={pendingKind === "workouts"}
             onProteinChange={onProteinChange}
           />
@@ -180,10 +182,10 @@ function StepDots({
 
 function titleForStep(step: OnboardingStep): string {
   if (step === "food") {
-    return "Еда";
+    return "Белок";
   }
   if (step === "circle") {
-    return "Зал";
+    return "Программа";
   }
   return "Веса";
 }

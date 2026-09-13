@@ -208,6 +208,7 @@ export function useOnboardingScreen() {
     stepIndex,
     isLast,
     saving,
+    replay,
     pendingKind,
     protein,
     preview,
