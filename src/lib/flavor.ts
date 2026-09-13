@@ -169,7 +169,6 @@ export const PROTEIN_CLOSED_LABEL = "закрыт";
 export const PROTEIN_ALMOST_LINE = "Почти.";
 export const MACROS_CLOSED_LINE = "Три из трёх.";
 export const HUNDRED_WEIGHT_LINE = "Сотня.";
-export const LATE_NIGHT_LINE = "Поздновато. Нормально.";
 export const LIGHT_WEIGHT_LINE = "Легкий вес.";
 export const YEAH_BUDDY_LINE = "Yeah buddy.";
 export const STEADY_WEIGHT_DAYS = 14;
@@ -222,13 +221,6 @@ export function hundredWeightLine(weight: number | null): string | null {
     return null;
   }
   return HUNDRED_WEIGHT_LINE;
-}
-
-export function lateNightLine(hour: number): string | null {
-  if (hour >= 22 || hour < 5) {
-    return LATE_NIGHT_LINE;
-  }
-  return null;
 }
 
 export function foodSearchEasterEgg(query: string): string | null {

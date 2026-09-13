@@ -5,7 +5,6 @@ import {
   firstPhaseLine,
   foodSearchEasterEgg,
   hundredWeightLine,
-  lateNightLine,
   loadingFlavor,
   loadingLine,
   macrosClosedLine,
@@ -254,9 +253,6 @@ assertEqual(
 assertEqual(hundredWeightLine(100), "Сотня.", "even hundred");
 assertEqual(hundredWeightLine(100.04), "Сотня.", "scale jitter");
 assertEqual(hundredWeightLine(99.8), null, "not yet a hundred");
-assertEqual(lateNightLine(22), "Поздновато. Нормально.", "late evening");
-assertEqual(lateNightLine(4), "Поздновато. Нормально.", "before dawn");
-assertEqual(lateNightLine(12), null, "noon is quiet");
 assertEqual(foodSearchEasterEgg("Ронни"), "Yeah buddy.", "ronnie search");
 assertEqual(foodSearchEasterEgg("yeah buddy."), "Yeah buddy.", "full yeah");
 assertEqual(foodSearchEasterEgg("овсянка"), null, "real food");

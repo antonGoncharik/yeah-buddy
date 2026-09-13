@@ -121,7 +121,6 @@ export function TodayDayView({
           bodyWeight={shownDay.body_weight}
           lastBodyWeight={lastBodyWeight}
           weightSteady={weightSteady}
-          lateNight={date === today}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
           bodyWeightBusy={busy}
