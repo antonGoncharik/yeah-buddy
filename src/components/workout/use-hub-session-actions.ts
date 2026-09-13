@@ -94,21 +94,6 @@ export function useHubSessionActions({
     }
   }
 
-  async function skipTemplate(templateId: string) {
-    setSkipping(true);
-    setError(null);
-
-    try {
-      await postJson("/api/rotation/skip", { template_id: templateId });
-      await load();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSkipping(false);
-    }
-  }
-
   async function unskipLast() {
     setSkipping(true);
     setError(null);
@@ -143,5 +128,5 @@ export function useHubSessionActions({
     void createOnDate(template.id, date);
   }
 
-  return { createOnDate, skipTemplate, unskipLast, pickTemplate };
+  return { createOnDate, unskipLast, pickTemplate };
 }

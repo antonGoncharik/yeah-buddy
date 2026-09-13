@@ -46,14 +46,14 @@ export function sessionDoneHeadline(feel: SessionFeel | null): string {
   return "Готово";
 }
 
-export function sessionDoneLead(feel: SessionFeel | null): string {
+export function sessionDoneLead(feel: SessionFeel | null): string | null {
   if (feel === "close") {
     return "Так и надо.";
   }
   if (feel === "miss") {
     return "Бывает. Записано как было.";
   }
-  return "Записано как в плане. Другой вес — поправь.";
+  return null;
 }
 
 export function sessionRaiseLine(

@@ -21,7 +21,16 @@ export function WorkoutsHubRecent({
       className="animate-rise flex flex-col gap-2 px-1"
       style={{ animationDelay: "80ms" }}
     >
-      <h2 className="text-sm font-medium text-muted-foreground">Недавние</h2>
+      <Link
+        href="/workouts/history"
+        className="flex items-center justify-between gap-3"
+      >
+        <h2 className="text-sm font-medium text-muted-foreground">Недавние</h2>
+        <ChevronRight
+          className="size-4 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+      </Link>
       <ul className="flex flex-col gap-1">
         {recent.map((item) => (
           <li key={item.session.id}>
@@ -42,7 +51,6 @@ export function WorkoutsHubRecent({
               </span>
               <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
                 {formatSessionDay(item.session.session_date)}
-                <ChevronRight className="size-4" aria-hidden />
               </span>
             </Link>
           </li>

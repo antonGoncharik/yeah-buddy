@@ -20,11 +20,9 @@ export function SessionExerciseList({
   restActive,
   openSetIds,
   warmupOpen,
-  workOpen,
   drafts,
   setOpenSetIds,
   setWarmupOpen,
-  setWorkOpen,
   setDrafts,
   onRemove,
   onReorder,
@@ -38,11 +36,9 @@ export function SessionExerciseList({
   restActive: boolean;
   openSetIds: string[];
   warmupOpen: Record<string, boolean>;
-  workOpen: Record<string, boolean>;
   drafts: Record<string, SetDraft>;
   setOpenSetIds: Dispatch<SetStateAction<string[]>>;
   setWarmupOpen: Dispatch<SetStateAction<Record<string, boolean>>>;
-  setWorkOpen: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDrafts: Dispatch<SetStateAction<Record<string, SetDraft>>>;
   onRemove: (sessionExerciseId: string) => void;
   onReorder?: (exerciseIds: string[]) => void;
@@ -73,13 +69,6 @@ export function SessionExerciseList({
 
   return (
     <section className="card-surface animate-rise">
-      {session.status === "planned" ? (
-        <p className="border-b border-border/70 px-5 py-3 text-sm text-muted-foreground">
-          {canReorder && detail.exercises.length > 1
-            ? "Вес не тот — нажми подход. Потяни номер — порядок."
-            : "Вес не тот — нажми подход. Потом «Готово»."}
-        </p>
-      ) : null}
       <SortableList
         items={detail.exercises}
         disabled={busy || !canReorder}
@@ -89,8 +78,7 @@ export function SessionExerciseList({
             item={item}
             compact
             openSetIds={openSetIds}
-            warmupOpen={warmupOpen[item.id] !== false}
-            workOpen={workOpen[item.id] !== false}
+            warmupOpen={warmupOpen[item.id] === true}
             disabled={busy || !canEditSets}
             showActual={session.status === "completed"}
             drafts={drafts}
@@ -108,13 +96,7 @@ export function SessionExerciseList({
             onToggleWarmup={() =>
               setWarmupOpen((current) => ({
                 ...current,
-                [item.id]: current[item.id] === false,
-              }))
-            }
-            onToggleWork={() =>
-              setWorkOpen((current) => ({
-                ...current,
-                [item.id]: current[item.id] === false,
+                [item.id]: current[item.id] !== true,
               }))
             }
             onDraft={(setId, patch) =>

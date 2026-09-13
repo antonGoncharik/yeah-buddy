@@ -21,14 +21,14 @@ export function SessionNoteField({
         id="session-note"
         value={note}
         disabled={busy || !canEditSets}
-        placeholder="Как прошло"
+        placeholder="Заметка"
         onChange={(event) => onChange(event.target.value)}
         onBlur={() => {
           if (canEditSets) {
             onSave();
           }
         }}
-        className="min-h-20 text-base"
+        className="min-h-12 text-base"
         aria-label="Заметка"
       />
     </div>

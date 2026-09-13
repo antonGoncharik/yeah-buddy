@@ -48,8 +48,7 @@ export function MacroPhaseHeader({
         {phaseLabel(state.phase.phase_type, state.phase.name)}
       </h2>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Тренировки те же, что в очереди. Этап меняет веса. Закрываешь кнопкой
-        ниже.
+        Этап меняет веса. Закрыть — кнопкой ниже.
       </p>
       {steps.length > 0 ? <CycleTimeline steps={steps} /> : null}
       <FlavorNote line={phaseLine} />

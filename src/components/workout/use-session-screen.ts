@@ -27,7 +27,6 @@ export function useSessionScreen() {
   const [busy, setBusy] = useState(false);
   const [openSetIds, setOpenSetIds] = useState<string[]>([]);
   const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
-  const [workOpen, setWorkOpen] = useState<Record<string, boolean>>({});
   const [nextName, setNextName] = useState<string | null>(null);
   const [phaseHint, setPhaseHint] = useState<string | null>(null);
   const [holdHint, setHoldHint] = useState<string | null>(null);
@@ -194,8 +193,6 @@ export function useSessionScreen() {
     setOpenSetIds,
     warmupOpen,
     setWarmupOpen,
-    workOpen,
-    setWorkOpen,
     drafts,
     setDrafts,
     removeExercise,

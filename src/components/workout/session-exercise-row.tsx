@@ -6,16 +6,14 @@ import {
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
-import {
-  SessionSetEditor,
-  setCountWord,
-} from "@/components/workout/session-set-editor";
-import type { SessionExerciseDetail } from "@/lib/types";
+import { SessionSetEditor } from "@/components/workout/session-set-editor";
+import type { SessionExerciseDetail, WorkoutSet } from "@/lib/types";
 import {
   formatRestClock,
   WORK_REST_SECONDS,
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
+import { formatSetLine } from "@/lib/workout/session-format";
 import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
 
 export function SessionExerciseRow({
@@ -23,13 +21,11 @@ export function SessionExerciseRow({
   compact = false,
   openSetIds,
   warmupOpen,
-  workOpen,
   disabled,
   showActual,
   drafts,
   onOpenSets,
   onToggleWarmup,
-  onToggleWork,
   onDraft,
   onRemove,
   restActive,
@@ -40,13 +36,11 @@ export function SessionExerciseRow({
   compact?: boolean;
   openSetIds: string[];
   warmupOpen: boolean;
-  workOpen: boolean;
   disabled: boolean;
   showActual: boolean;
   drafts: Record<string, SetDraft>;
   onOpenSets: (ids: string[]) => void;
   onToggleWarmup: () => void;
-  onToggleWork: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
   onRemove?: () => void;
   restActive?: boolean;
@@ -67,7 +61,7 @@ export function SessionExerciseRow({
     ? leadGroup.findIndex((set) => set.id === leadSet.id) + 1
     : 0;
   const editorOpen =
-    leadSet != null && (leadSet.set_type === "warmup" ? warmupOpen : workOpen);
+    leadSet != null && (leadSet.set_type !== "warmup" || warmupOpen);
   const previousLine = item.previous
     ? formatPreviousWorkLine(item.previous)
     : null;
@@ -97,12 +91,12 @@ export function SessionExerciseRow({
           <div className="flex w-full flex-col items-start gap-1">
             <button
               type="button"
-              className="text-sm text-muted-foreground"
+              className="text-left text-sm leading-snug text-muted-foreground"
               onClick={onToggleWarmup}
             >
               {warmupOpen
                 ? "Скрыть разминку"
-                : `Разминка · ${warmup.length} ${setCountWord(warmup.length)}`}
+                : `Разминка ${warmupSummary(warmup, showActual)}`}
             </button>
             {warmupOpen ? (
               <SessionSetButtons
@@ -117,40 +111,27 @@ export function SessionExerciseRow({
         ) : null}
         {work.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1">
-            <button
-              type="button"
-              className="text-sm text-muted-foreground"
-              onClick={onToggleWork}
-            >
-              {workOpen
-                ? "Скрыть рабочие"
-                : `Рабочие · ${work.length} ${setCountWord(work.length)}`}
-            </button>
             {previousLine ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {previousLine}
               </p>
             ) : null}
-            {workOpen ? (
-              <>
-                <SessionSetButtons
-                  sets={work}
-                  showActual={showActual}
-                  disabled={disabled}
-                  tone="work"
-                  onPick={onOpenSets}
-                />
-                {onStartRest && !restActive && workSetsNeedRest(work) ? (
-                  <button
-                    type="button"
-                    className="mt-1 h-11 w-full rounded-lg bg-muted/60 text-base font-medium disabled:opacity-50"
-                    disabled={disabled}
-                    onClick={onStartRest}
-                  >
-                    Отдых {formatRestClock(restSeconds ?? WORK_REST_SECONDS)}
-                  </button>
-                ) : null}
-              </>
+            <SessionSetButtons
+              sets={work}
+              showActual={showActual}
+              disabled={disabled}
+              tone="work"
+              onPick={onOpenSets}
+            />
+            {onStartRest && !restActive && workSetsNeedRest(work) ? (
+              <button
+                type="button"
+                className="mt-1 h-11 w-full rounded-lg bg-muted/60 text-base font-medium disabled:opacity-50"
+                disabled={disabled}
+                onClick={onStartRest}
+              >
+                Отдых {formatRestClock(restSeconds ?? WORK_REST_SECONDS)}
+              </button>
             ) : null}
           </div>
         ) : null}
@@ -172,4 +153,10 @@ export function SessionExerciseRow({
       ) : null}
     </div>
   );
+}
+
+function warmupSummary(sets: WorkoutSet[], showActual: boolean): string {
+  return sets
+    .map((set) => formatSetLine(set, { showActual, compact: true }))
+    .join(" · ");
 }

@@ -16,11 +16,7 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import {
-  phaseEndHint,
-  templateHasPlanMaxes,
-  todayWeightsHint,
-} from "@/lib/workout/hints";
+import { phaseEndHint, templateHasPlanMaxes } from "@/lib/workout/hints";
 import {
   readExercises,
   readHubSessionState,
@@ -142,32 +138,28 @@ export function useWorkoutsHub() {
     return () => setMood(null);
   }, [loading, macro?.phase?.phase_type, setMood]);
 
-  const { createOnDate, skipTemplate, unskipLast, pickTemplate } =
-    useHubSessionActions({
-      date,
-      templates,
-      exercises,
-      session,
-      nextTemplate,
-      load,
-      setCreating,
-      setSkipping,
-      setError,
-    });
+  const { createOnDate, unskipLast, pickTemplate } = useHubSessionActions({
+    date,
+    templates,
+    exercises,
+    session,
+    nextTemplate,
+    load,
+    setCreating,
+    setSkipping,
+    setError,
+  });
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =
-    session?.status === "completed"
-      ? "Открыть"
+    session?.status === "planned"
+      ? "Продолжить"
       : session?.status === "skipped"
         ? SESSION_STATUS_LABELS.skipped
-        : "Открыть";
+        : session?.status === "completed"
+          ? "Готово"
+          : null;
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
-  const weightsHint = todayWeightsHint(
-    macro?.phase?.phase_type ?? null,
-    macro?.macro?.number ?? null,
-    macro?.phase?.name,
-  );
   const nextHasPlanMaxes =
     nextTemplate != null && templateHasPlanMaxes(nextTemplate, exercises);
 
@@ -193,10 +185,8 @@ export function useWorkoutsHub() {
     skipping,
     sessionAction,
     phaseHint,
-    weightsHint,
     nextHasPlanMaxes,
     createOnDate,
-    skipTemplate,
     unskipLast,
     pickTemplate,
   };

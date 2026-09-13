@@ -58,18 +58,6 @@ export function cycleSequenceLabel(planned: PlannedCyclePhase[]): string {
   return planned.map((phase) => phase.name).join(" → ");
 }
 
-export function todayWeightsHint(
-  phaseType: PhaseType | null,
-  macroNumber: number | null,
-  phaseName?: string | null,
-): string {
-  if (phaseType == null || macroNumber == null) {
-    return "План от рабочего веса.";
-  }
-
-  return `Сегодня «${phaseLabel(phaseType, phaseName)}», цикл №${macroNumber}.`;
-}
-
 export function queueItemMark(options: {
   templateId: string;
   sessionTemplateId: string | null;

@@ -3,6 +3,7 @@
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
+import { NavRow } from "@/components/layout/nav-row";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { reviewHref } from "@/lib/ai/review-nav";
 import type {
@@ -12,11 +13,7 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  cycleTimeline,
-  phaseLinkLabel,
-  queueItemMark,
-} from "@/lib/workout/hints";
+import { cycleTimeline, phaseLinkLabel } from "@/lib/workout/hints";
 import {
   CYCLE_LABEL,
   FORMULAS_LABEL,
@@ -47,58 +44,43 @@ export function WorkoutsHubNavSections({
   skipping: boolean;
   onPickTemplate: (template: WorkoutTemplateDetail) => void;
 }) {
+  const highlightId =
+    session?.status === "planned" ? sessionTemplate?.id : nextTemplate?.id;
+
   return (
     <div
       className="animate-rise flex flex-col gap-6"
       style={{ animationDelay: "40ms" }}
     >
       {macro?.macro && macro.phase ? (
-        <section className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3 px-1">
-            <h2 className="text-lg font-semibold">{CYCLE_LABEL}</h2>
-            <Link
-              href="/workouts/macro"
-              className="text-sm font-medium text-primary"
-            >
-              Открыть
-            </Link>
-          </div>
-          <Link
-            href="/workouts/macro"
-            className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
-          >
-            <p className="text-xl font-semibold tracking-tight">
-              {phaseLinkLabel(
-                macro.macro.number,
-                phaseCircle ?? macro.phase_circle,
+        <Link
+          href="/workouts/macro"
+          className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
+        >
+          <p className="text-sm font-medium text-muted-foreground">
+            {CYCLE_LABEL}
+          </p>
+          <p className="text-xl font-semibold tracking-tight">
+            {phaseLinkLabel(
+              macro.macro.number,
+              phaseCircle ?? macro.phase_circle,
+              macro.phase.phase_type,
+              macro.phase.name,
+            )}
+          </p>
+          {macro.planned_cycle.length > 0 ? (
+            <CycleTimeline
+              steps={cycleTimeline(
+                macro.planned_cycle,
                 macro.phase.phase_type,
                 macro.phase.name,
               )}
-            </p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {session
-                ? "Тренировки те же. Этап задаёт сегодняшние веса."
-                : "Тренировки те же, что в очереди. Этап задаёт веса."}
-            </p>
-            {macro.planned_cycle.length > 0 ? (
-              <CycleTimeline
-                steps={cycleTimeline(
-                  macro.planned_cycle,
-                  macro.phase.phase_type,
-                  macro.phase.name,
-                )}
-              />
-            ) : null}
-            {phaseHint ? (
-              <p className="text-base leading-snug">
-                {phaseHint}
-                {phaseCircle?.last_in_cycle
-                  ? " Можно закрыть цикл."
-                  : " Можно закрыть этап."}
-              </p>
-            ) : null}
-          </Link>
-        </section>
+            />
+          ) : null}
+          {phaseHint ? (
+            <p className="text-base leading-snug">{phaseHint}</p>
+          ) : null}
+        </Link>
       ) : null}
 
       {activeTemplates.length > 0 ? (
@@ -115,25 +97,19 @@ export function WorkoutsHubNavSections({
           </Link>
           <ol className="flex flex-col gap-1 px-1">
             {activeTemplates.map((template, index) => {
-              const mark = queueItemMark({
-                templateId: template.id,
-                sessionTemplateId: sessionTemplate?.id ?? null,
-                nextTemplateId: nextTemplate?.id ?? null,
-              });
+              const current = highlightId === template.id;
               const label = `${index + 1}. ${template.name}`;
-              const emphasized = mark !== "";
               if (session) {
                 return (
                   <li
                     key={template.id}
                     className={
-                      emphasized
+                      current
                         ? "text-base font-medium"
                         : "text-base text-muted-foreground"
                     }
                   >
                     {label}
-                    {mark}
                   </li>
                 );
               }
@@ -144,13 +120,12 @@ export function WorkoutsHubNavSections({
                     type="button"
                     className={cn(
                       "w-full py-1 text-left text-base disabled:opacity-50",
-                      emphasized ? "font-medium" : "text-muted-foreground",
+                      current ? "font-medium" : "text-muted-foreground",
                     )}
                     disabled={creating || skipping}
                     onClick={() => onPickTemplate(template)}
                   >
                     {label}
-                    {mark}
                   </button>
                 </li>
               );
@@ -167,40 +142,28 @@ export function WorkoutsHubNavSections({
         </Link>
       ) : null}
 
-      <div className="flex flex-col gap-2">
-        <nav className="grid grid-cols-2 gap-2">
-          <Link
-            href={reviewHref("workouts")}
-            className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-          >
-            {REVIEW_LABEL}
-          </Link>
-          <Link
-            href="/workouts/history"
-            className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-          >
-            История
-          </Link>
-          <Link
-            href="/workouts/progress"
-            className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-          >
-            Рабочие веса
-          </Link>
-          <Link
-            href="/workouts/exercises"
-            className="card-surface px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-          >
-            Упражнения
-          </Link>
-          <Link
-            href="/settings/formulas"
-            className="card-surface col-span-2 px-2 py-3 text-center text-sm font-medium transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40 active:scale-[0.97]"
-          >
-            {FORMULAS_LABEL}
-          </Link>
-        </nav>
-      </div>
+      <section className="card-surface divide-y divide-border/70 px-5 py-2">
+        <NavRow
+          href="/workouts/progress"
+          title="Рабочие веса"
+          hint="Как растут"
+        />
+        <NavRow
+          href="/workouts/exercises"
+          title="Упражнения"
+          hint="Состав и максимумы"
+        />
+        <NavRow
+          href="/settings/formulas"
+          title={FORMULAS_LABEL}
+          hint="Откуда берутся подходы"
+        />
+        <NavRow
+          href={reviewHref("workouts")}
+          title={REVIEW_LABEL}
+          hint="За 14 или 30 дней"
+        />
+      </section>
     </div>
   );
 }

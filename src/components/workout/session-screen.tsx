@@ -44,8 +44,6 @@ export function SessionScreen() {
     setOpenSetIds,
     warmupOpen,
     setWarmupOpen,
-    workOpen,
-    setWorkOpen,
     drafts,
     setDrafts,
     removeExercise,
@@ -91,11 +89,9 @@ export function SessionScreen() {
               restActive={rest.left != null}
               openSetIds={openSetIds}
               warmupOpen={warmupOpen}
-              workOpen={workOpen}
               drafts={drafts}
               setOpenSetIds={setOpenSetIds}
               setWarmupOpen={setWarmupOpen}
-              setWorkOpen={setWorkOpen}
               setDrafts={setDrafts}
               onRemove={(id) => void removeExercise(id)}
               onReorder={

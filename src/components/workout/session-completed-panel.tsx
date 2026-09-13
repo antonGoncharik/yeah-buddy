@@ -27,7 +27,6 @@ import type {
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
-import { QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function SessionCompletedPanel({
   abovePlan,
@@ -165,9 +164,10 @@ export function SessionCompletedPanel({
           </Doodle>
         </button>
       </div>
-      <p className="text-base leading-relaxed text-muted-foreground">
-        {sessionDoneLead(feel)}
-      </p>
+      <FlavorNote
+        line={sessionDoneLead(feel)}
+        className="text-muted-foreground"
+      />
       <FlavorNote
         line={lightWeight ? LIGHT_WEIGHT_LINE : null}
         className="text-foreground"
@@ -176,9 +176,9 @@ export function SessionCompletedPanel({
       <FlavorNote line={phase} className="text-foreground" />
       <FlavorNote line={comeback} className="text-foreground" />
       <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
-      {canRaise ? (
+      {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
-          {sessionRaiseLine(abovePlan, feel)}
+          {sessionRaiseLine(true, feel)}
         </p>
       ) : null}
       {holdHint ? (
@@ -195,18 +195,20 @@ export function SessionCompletedPanel({
         </Button>
       ) : null}
       {nextName ? (
-        <p className="text-base text-muted-foreground">Дальше: {nextName}</p>
+        <p className="text-base text-muted-foreground">Дальше {nextName}</p>
       ) : null}
       {phaseHint ? (
         <p className="text-base text-muted-foreground">{phaseHint}</p>
       ) : null}
       <div className="flex flex-col gap-2">
-        <Link
-          href={phaseHint ? "/workouts/macro" : "/workouts"}
-          className="text-base font-medium text-primary"
-        >
-          {phaseHint ? "К циклу" : QUEUE_LABEL}
-        </Link>
+        {phaseHint ? (
+          <Link
+            href="/workouts/macro"
+            className="text-base font-medium text-primary"
+          >
+            К циклу
+          </Link>
+        ) : null}
         <Button
           type="button"
           variant="outline"
@@ -214,7 +216,7 @@ export function SessionCompletedPanel({
           disabled={busy}
           onClick={onCorrect}
         >
-          Поправить записанное
+          Поправить
         </Button>
       </div>
     </section>

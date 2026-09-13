@@ -24,7 +24,7 @@ export function WorkoutsHubSessionCard({
   sessionTemplate: WorkoutTemplateDetail | null;
   nextTemplate: WorkoutTemplateDetail | null;
   followingTemplate: WorkoutTemplateDetail | null;
-  sessionAction: string;
+  sessionAction: string | null;
 }) {
   return (
     <>
@@ -45,7 +45,7 @@ export function WorkoutsHubSessionCard({
                       WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </h2>
                   <p className="mt-2 text-base text-muted-foreground">
-                    Открыть: доделать или убрать.
+                    Доделать
                   </p>
                 </span>
                 <ChevronRight
@@ -64,22 +64,22 @@ export function WorkoutsHubSessionCard({
           className="card-surface animate-rise flex items-center gap-3 px-5 py-6 transition-colors hover:bg-muted/40"
         >
           <span className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-muted-foreground">
-              {session.status === "planned" ? "Сегодня в зале" : "Сегодня"}
-            </p>
+            <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
             </h2>
-            <p
-              className={
-                session.status === "planned"
-                  ? "mt-3 text-base font-medium text-primary"
-                  : "mt-3 text-base text-muted-foreground"
-              }
-            >
-              {sessionAction}
-            </p>
+            {sessionAction ? (
+              <p
+                className={
+                  session.status === "planned"
+                    ? "mt-3 text-base font-medium text-primary"
+                    : "mt-3 text-base text-muted-foreground"
+                }
+              >
+                {sessionAction}
+              </p>
+            ) : null}
             {session.status === "completed" && nextTemplate ? (
               <p className="mt-2 text-base text-muted-foreground">
                 Дальше {nextTemplate.name}

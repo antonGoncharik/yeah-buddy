@@ -29,9 +29,6 @@ export function ScheduleActiveList({
 
   return (
     <section className="animate-rise flex flex-col gap-2">
-      <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-        Нажми имя — упражнения.
-      </p>
       <SortableList
         items={active}
         disabled={saving}

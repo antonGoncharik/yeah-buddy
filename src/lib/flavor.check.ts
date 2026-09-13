@@ -67,11 +67,8 @@ assertEqual(sessionDoneHeadline(null), "Готово", "no feel yet");
 assertEqual(sessionDoneHeadline("easy"), "Yeah buddy.", "easy headline");
 assertEqual(sessionDoneHeadline("close"), "Впритык.", "close headline");
 assertEqual(sessionDoneHeadline("miss"), "Не пошло.", "miss headline");
-assertEqual(
-  sessionDoneLead(null),
-  "Записано как в плане. Другой вес — поправь.",
-  "default lead",
-);
+assertEqual(sessionDoneLead(null), null, "no lead until feel");
+assertEqual(sessionDoneLead("easy"), null, "easy lead stays in the headline");
 assertEqual(sessionDoneLead("close"), "Так и надо.", "close lead");
 assertEqual(sessionDoneLead("miss"), "Бывает. Записано как было.", "miss lead");
 assertEqual(

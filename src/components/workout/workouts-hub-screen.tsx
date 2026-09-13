@@ -33,10 +33,8 @@ export function WorkoutsHubScreen() {
     skipping,
     sessionAction,
     phaseHint,
-    weightsHint,
     nextHasPlanMaxes,
     createOnDate,
-    skipTemplate,
     unskipLast,
     pickTemplate,
   } = useWorkoutsHub();
@@ -76,15 +74,12 @@ export function WorkoutsHubScreen() {
             session={session}
             nextTemplate={nextTemplate}
             followingTemplate={followingTemplate}
-            activeTemplatesCount={activeTemplates.length}
             nextHasPlanMaxes={nextHasPlanMaxes}
-            weightsHint={weightsHint}
             creating={creating}
             skipping={skipping}
             canUnskip={canUnskip}
             canBackfillYesterday={canBackfillYesterday}
             onStart={() => void createOnDate(nextTemplate?.id ?? "", date)}
-            onSkip={() => void skipTemplate(nextTemplate?.id ?? "")}
             onUnskip={() => void unskipLast()}
             onBackfill={() =>
               void createOnDate(nextTemplate?.id ?? "", previousIsoDate(date))
