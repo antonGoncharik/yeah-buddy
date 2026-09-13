@@ -109,10 +109,6 @@ export function ReviewScreen() {
                 hint="С первых записей"
               />
             </section>
-
-            <p className="text-sm text-muted-foreground">
-              По записям. Не врач.
-            </p>
           </>
         ) : null}
       </div>
