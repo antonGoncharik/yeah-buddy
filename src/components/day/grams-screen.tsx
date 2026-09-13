@@ -72,7 +72,7 @@ export function GramsScreen({
 
   return (
     <form
-      className="animate-rise flex flex-col gap-5 px-4 pb-28"
+      className="animate-rise flex flex-col gap-5 px-4 pb-[var(--app-field-scroll-pad)]"
       onSubmit={(event) => {
         event.preventDefault();
         if (!readOnly) {
@@ -116,14 +116,6 @@ export function GramsScreen({
         />
       ) : null}
 
-      {grams.totals ? (
-        <div className="card-surface px-5 py-4 text-lg">
-          Итого: Б {formatMacro(grams.totals.protein)} · Ж{" "}
-          {formatMacro(grams.totals.fat)} · У {formatMacro(grams.totals.carbs)}{" "}
-          · {formatKcal(grams.totals.kcal)} ккал
-        </div>
-      ) : null}
-
       {readOnly ? null : (
         <GramChips
           onPick={(value) => grams.setGramsInput(formatYieldGrams(value))}
@@ -131,6 +123,14 @@ export function GramsScreen({
           defaultPortionLabel={grams.chip.label ?? null}
         />
       )}
+
+      {grams.totals ? (
+        <div className="card-surface px-5 py-4 text-lg">
+          Итого: Б {formatMacro(grams.totals.protein)} · Ж{" "}
+          {formatMacro(grams.totals.fat)} · У {formatMacro(grams.totals.carbs)}{" "}
+          · {formatKcal(grams.totals.kcal)} ккал
+        </div>
+      ) : null}
 
       {grams.error ? (
         <p className="text-sm text-destructive">{grams.error}</p>

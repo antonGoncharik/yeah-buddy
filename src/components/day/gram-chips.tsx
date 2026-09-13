@@ -15,6 +15,21 @@ export function GramChips({
 }) {
   return (
     <div className="flex flex-col gap-2">
+      {defaultPortionG ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-14 text-base"
+          onClick={() => {
+            haptic("tick");
+            onPick(defaultPortionG);
+          }}
+        >
+          {defaultPortionLabel
+            ? `Стандартная порция · ${defaultPortionLabel}`
+            : "Стандартная порция"}
+        </Button>
+      ) : null}
       <div className="grid grid-cols-4 gap-2">
         {QUICK_GRAMS.map((value) => (
           <Button
@@ -31,21 +46,6 @@ export function GramChips({
           </Button>
         ))}
       </div>
-      {defaultPortionG ? (
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-14 text-base"
-          onClick={() => {
-            haptic("tick");
-            onPick(defaultPortionG);
-          }}
-        >
-          {defaultPortionLabel
-            ? `Стандартная порция · ${defaultPortionLabel}`
-            : "Стандартная порция"}
-        </Button>
-      ) : null}
     </div>
   );
 }
