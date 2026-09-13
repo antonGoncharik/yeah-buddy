@@ -133,10 +133,6 @@ export function usePlateScreen({
       void analyzeBlob(lastBlobRef.current, previewRef.current);
       return;
     }
-    if (camera.htmlCamera) {
-      void camera.startCamera(true);
-      return;
-    }
     void camera.startLiveCamera();
   }
 
@@ -177,12 +173,13 @@ export function usePlateScreen({
     unavailable: view.status === "unavailable",
     liveCamera: camera.liveCamera,
     liveStream: camera.liveStream,
-    htmlCamera: camera.htmlCamera,
     picker: draft.picker,
-    canAddFood: view.status === "draft" || view.status === "empty",
+    canAddFood:
+      view.status === "draft" ||
+      view.status === "empty" ||
+      view.status === "idle",
     canRetryLast: view.status === "error" && lastBlobRef.current != null,
     workingTitle: view.status === "working" ? view.title : null,
-    watchCamera: camera.watchCamera,
     retry,
     onFile,
     setGrams: draft.setGrams,
@@ -195,6 +192,8 @@ export function usePlateScreen({
     startLiveCamera: camera.startLiveCamera,
     setPicker: draft.setPicker,
     pickFood: draft.pickFood,
+    addLump: draft.addLump,
+    toLump: draft.toLump,
     captureLive: camera.captureLive,
   };
 }

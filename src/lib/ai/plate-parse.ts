@@ -133,6 +133,7 @@ function parsePlateModelItem(
 
   return {
     catalog_i: readCatalogIndex(value.catalog_i),
+    match: readMatch(value.match),
     name: name.slice(0, 80),
     grams: Number.isFinite(grams) && grams > 0 ? grams : 0,
     state: parseFoodState(value.state),
@@ -143,6 +144,16 @@ function parsePlateModelItem(
     fat_per_100: readOptionalMacro(value.fat_per_100),
     carbs_per_100: readOptionalMacro(value.carbs_per_100),
   };
+}
+
+function readMatch(value: unknown): boolean | null {
+  if (value === true) {
+    return true;
+  }
+  if (value === false) {
+    return false;
+  }
+  return null;
 }
 
 function readCatalogIndex(value: unknown): number {

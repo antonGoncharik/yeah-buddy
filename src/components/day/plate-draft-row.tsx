@@ -31,6 +31,7 @@ export function PlateDraftRow({
   onGramsModeChange,
   onRemove,
   onChangeFood,
+  onToLump,
   onPatchLump,
 }: {
   item: PlateDraftItem;
@@ -44,6 +45,7 @@ export function PlateDraftRow({
   onGramsModeChange: (mode: GramsMode) => void;
   onRemove: () => void;
   onChangeFood: () => void;
+  onToLump?: () => void;
   onPatchLump?: (patch: {
     name?: string;
     proteinInput?: string;
@@ -86,17 +88,21 @@ export function PlateDraftRow({
     <div className="card-surface flex flex-col gap-3 px-4 py-4">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
+          <p className="text-sm text-muted-foreground">
+            {item.kind === "lump" ? "Быстрая запись" : "Из базы"}
+          </p>
           {item.kind === "lump" && onPatchLump ? (
-            <div className="flex flex-col gap-2">
+            <div className="mt-1 flex flex-col gap-2">
               <Label className="text-base">Что это</Label>
               <Input
                 value={item.name}
+                placeholder="Картофель фри, шаурма…"
                 onChange={(event) => onPatchLump({ name: event.target.value })}
                 className="h-12 text-lg"
               />
             </div>
           ) : (
-            <p className="text-lg font-medium">{item.name}</p>
+            <p className="mt-1 text-lg font-medium">{item.name}</p>
           )}
           {item.kind === "food" ? (
             <p className="mt-1 text-sm text-muted-foreground">
@@ -154,14 +160,26 @@ export function PlateDraftRow({
         </>
       ) : null}
 
-      <Button
-        type="button"
-        variant="ghost"
-        className="h-11 self-start px-0 text-base"
-        onClick={onChangeFood}
-      >
-        {item.kind === "lump" ? "Это из базы" : "Другой продукт"}
-      </Button>
+      <div className="flex flex-wrap gap-x-4">
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-11 self-start px-0 text-base"
+          onClick={onChangeFood}
+        >
+          {item.kind === "lump" ? "Это из базы" : "Другой продукт"}
+        </Button>
+        {item.kind === "food" && onToLump ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 self-start px-0 text-base"
+            onClick={onToLump}
+          >
+            Не из базы
+          </Button>
+        ) : null}
+      </div>
 
       {item.kind === "food" && totals ? (
         <p className="text-base tabular-nums">

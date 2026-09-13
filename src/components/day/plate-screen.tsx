@@ -65,11 +65,11 @@ export function PlateScreen({
 
       <div className="flex flex-col gap-4 px-4 pb-40">
         {plate.previewUrl ? (
-          <div
-            role="img"
-            aria-label="Фото тарелки"
-            className="h-48 w-full rounded-2xl bg-muted bg-cover bg-center"
-            style={{ backgroundImage: `url(${plate.previewUrl})` }}
+          // biome-ignore lint/performance/noImgElement: local object URL, not a remote asset
+          <img
+            src={plate.previewUrl}
+            alt="Фото тарелки"
+            className="max-h-80 w-full rounded-2xl bg-muted object-contain"
           />
         ) : null}
 
@@ -102,6 +102,11 @@ export function PlateScreen({
                 onChangeFood={() =>
                   plate.setPicker({ mode: "replace", rowId: item.rowId })
                 }
+                onToLump={
+                  item.kind === "food"
+                    ? () => plate.toLump(item.rowId)
+                    : undefined
+                }
                 onPatchLump={
                   item.kind === "lump"
                     ? (patch) => plate.patchLump(item.rowId, patch)
@@ -113,16 +118,28 @@ export function PlateScreen({
         ) : null}
 
         {plate.canAddFood ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 w-full gap-2 text-base"
-            disabled={plate.busy}
-            onClick={() => plate.setPicker({ mode: "add" })}
-          >
-            <Plus className="size-4" aria-hidden />
-            Из своей базы
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full gap-2 text-base"
+              disabled={plate.busy}
+              onClick={plate.addLump}
+            >
+              <Plus className="size-4" aria-hidden />
+              Быстрая запись
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full gap-2 text-base"
+              disabled={plate.busy}
+              onClick={() => plate.setPicker({ mode: "add" })}
+            >
+              <Plus className="size-4" aria-hidden />
+              Из своей базы
+            </Button>
+          </>
         ) : null}
 
         {totals ? (
@@ -163,14 +180,12 @@ export function PlateScreen({
           <div data-keyboard-secondary>
             <PlateCameraBar
               busy={plate.busy}
-              htmlCamera={plate.htmlCamera}
               cameraPrimary={cameraPrimary}
               status={plate.view.status}
               cameraId={plate.cameraId}
               galleryId={plate.galleryId}
               cameraRef={plate.cameraRef}
               galleryRef={plate.galleryRef}
-              onWatchCamera={plate.watchCamera}
               onStartLiveCamera={() => void plate.startLiveCamera()}
               onFile={(file) => void plate.onFile(file)}
             />

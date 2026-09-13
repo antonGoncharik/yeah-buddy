@@ -170,6 +170,48 @@ export function foodRowFromPick(food: Food): PlateRow {
   return foodToPlateRow(food, grams);
 }
 
+export function emptyLumpRow(): PlateRow {
+  return {
+    kind: "lump",
+    name: "",
+    protein: 0,
+    fat: 0,
+    carbs: 0,
+    kcal: 0,
+    rowId: crypto.randomUUID(),
+    gramsInput: "",
+    gramsMode: "native",
+    proteinInput: "",
+    fatInput: "",
+    carbsInput: "",
+  };
+}
+
+export function foodRowToLump(item: PlateRow): PlateRow {
+  if (item.kind !== "food") {
+    return item;
+  }
+
+  const grams = rowNativeGrams(item) ?? item.grams;
+  const macros = macrosFromLump({
+    protein: (item.protein_per_100 * grams) / 100,
+    fat: (item.fat_per_100 * grams) / 100,
+    carbs: (item.carbs_per_100 * grams) / 100,
+  });
+
+  return {
+    ...toPlateRow({
+      kind: "lump",
+      name: item.name,
+      protein: macros.protein,
+      fat: macros.fat,
+      carbs: macros.carbs,
+      kcal: macros.kcal,
+    }),
+    rowId: item.rowId,
+  };
+}
+
 export function withGramsMode(item: PlateRow, next: GramsMode): PlateRow {
   const pair = rowYield(item);
   if (next === item.gramsMode || !pair) {

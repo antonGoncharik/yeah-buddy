@@ -41,7 +41,8 @@ export function resolvePlateItems(
       break;
     }
 
-    const matched = matchCatalogFood(row, catalog, allFoods);
+    const matched =
+      row.match === false ? null : matchCatalogFood(row, catalog, allFoods);
     const item = matched
       ? draftFromFood(preferSourceFood(matched, allFoods), row.grams)
       : draftFromLump(row);
@@ -70,8 +71,11 @@ function matchCatalogFood(
   catalog: PlateFoodRef[],
   allFoods: PlateFoodRef[],
 ): PlateFoodRef | null {
-  if (Number.isInteger(row.catalog_i) && catalog[row.catalog_i]) {
-    return catalog[row.catalog_i];
+  const indexed = Number.isInteger(row.catalog_i)
+    ? catalog[row.catalog_i]
+    : undefined;
+  if (indexed) {
+    return trustedCatalogFood(row, indexed);
   }
 
   const needle = normalizeFoodName(row.name);
@@ -82,11 +86,26 @@ function matchCatalogFood(
   const exact = allFoods.filter(
     (food) => normalizeFoodName(food.name) === needle,
   );
-  if (exact.length === 1) {
-    return exact[0];
+  const exactHit = exact.length === 1 ? exact[0] : undefined;
+  if (exactHit) {
+    return trustedCatalogFood(row, exactHit);
   }
 
   return null;
+}
+
+const DISTINCT_FORM = ["фри", "пюре", "жарен", "гриль", "вок"];
+
+function trustedCatalogFood(
+  row: PlateModelItem,
+  food: PlateFoodRef,
+): PlateFoodRef | null {
+  const model = normalizeFoodName(row.name);
+  const catalogName = normalizeFoodName(food.name);
+  const conflicts = DISTINCT_FORM.some(
+    (token) => model.includes(token) && !catalogName.includes(token),
+  );
+  return conflicts ? null : food;
 }
 
 function draftFromFood(

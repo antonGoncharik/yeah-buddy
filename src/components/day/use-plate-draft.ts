@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import {
+  emptyLumpRow,
   foodRowFromPick,
+  foodRowToLump,
   mergeFoodRows,
   type PlateLumpPatch,
   type PlatePicker,
@@ -87,11 +89,41 @@ export function usePlateDraft({
     });
   }
 
+  function addLump() {
+    haptic("tick");
+    setView((current) => {
+      if (current.status === "idle") {
+        return { status: "draft", previewUrl: "", items: [emptyLumpRow()] };
+      }
+      if (current.status !== "draft" && current.status !== "empty") {
+        return current;
+      }
+      const next = emptyLumpRow();
+      if (current.status === "empty") {
+        return {
+          status: "draft",
+          previewUrl: current.previewUrl,
+          items: [next],
+        };
+      }
+      return { ...current, items: [...current.items, next] };
+    });
+  }
+
+  function toLump(rowId: string) {
+    haptic("tick");
+    patchDraftItem(rowId, (item) => foodRowToLump(item));
+  }
+
   function pickFood(food: Food) {
     haptic("tick");
     setPicker(null);
     setView((current) => {
-      if (current.status !== "draft" && current.status !== "empty") {
+      if (
+        current.status !== "draft" &&
+        current.status !== "empty" &&
+        current.status !== "idle"
+      ) {
         return current;
       }
       const previewUrl =
@@ -100,7 +132,7 @@ export function usePlateDraft({
           : "";
       const next = foodRowFromPick(food);
 
-      if (current.status === "empty") {
+      if (current.status === "empty" || current.status === "idle") {
         return { status: "draft", previewUrl, items: [next] };
       }
 
@@ -170,6 +202,8 @@ export function usePlateDraft({
     removeItem,
     reorderItems,
     pickFood,
+    addLump,
+    toLump,
     save,
   };
 }

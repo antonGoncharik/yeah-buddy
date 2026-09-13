@@ -16,6 +16,7 @@ export type PlateCatalogEntry = {
 
 export type PlateModelItem = {
   catalog_i: number;
+  match: boolean | null;
   name: string;
   grams: number;
   state: FoodState;

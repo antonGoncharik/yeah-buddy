@@ -4,11 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { haptic } from "@/lib/telegram/haptic";
 import { watchHtmlCapture } from "@/lib/telegram/html-capture";
-import {
-  openLiveStream,
-  preferLiveCamera,
-  telegramPlatform,
-} from "@/lib/telegram/platform";
+import { openLiveStream } from "@/lib/telegram/platform";
 
 export function usePlateCamera({
   busy,
@@ -23,15 +19,9 @@ export function usePlateCamera({
   const galleryRef = useRef<HTMLInputElement>(null);
   const liveStreamRef = useRef<MediaStream | null>(null);
   const watchRef = useRef(0);
+  const htmlFallbackRef = useRef(false);
   const [liveCamera, setLiveCamera] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
-  const [htmlCamera, setHtmlCamera] = useState(guessHtmlCamera);
-
-  useEffect(() => {
-    void telegramPlatform().then((platform) => {
-      setHtmlCamera(!preferLiveCamera(platform));
-    });
-  }, []);
 
   useEffect(() => {
     liveStreamRef.current = liveStream;
@@ -48,7 +38,6 @@ export function usePlateCamera({
     if (!input || busy) {
       return;
     }
-    haptic("tap");
     const watch = ++watchRef.current;
     const pending = watchHtmlCapture(input);
     if (clickInput) {
@@ -60,6 +49,10 @@ export function usePlateCamera({
     }
     if (result instanceof File) {
       onFile(result);
+      return;
+    }
+    if (result === "live" && !htmlFallbackRef.current) {
+      void startLiveCamera();
     }
   }
 
@@ -68,15 +61,14 @@ export function usePlateCamera({
       return;
     }
     haptic("tap");
+    htmlFallbackRef.current = false;
     try {
       const stream = await openLiveStream();
       liveStreamRef.current = stream;
       setLiveStream(stream);
       setLiveCamera(true);
     } catch {
-      if (htmlCamera) {
-        return;
-      }
+      htmlFallbackRef.current = true;
       void startCamera(true);
     }
   }
@@ -86,10 +78,6 @@ export function usePlateCamera({
     liveStreamRef.current = null;
     setLiveStream(null);
     setLiveCamera(false);
-  }
-
-  function watchCamera() {
-    void startCamera(false);
   }
 
   function captureLive(file: File) {
@@ -104,20 +92,10 @@ export function usePlateCamera({
     galleryRef,
     liveCamera,
     liveStream,
-    htmlCamera,
-    startCamera,
     startLiveCamera,
     closeLiveCamera,
-    watchCamera,
     captureLive,
   };
-}
-
-function guessHtmlCamera(): boolean {
-  if (typeof navigator === "undefined") {
-    return true;
-  }
-  return /android/i.test(navigator.userAgent);
 }
 
 function stopMedia(stream: MediaStream | null) {

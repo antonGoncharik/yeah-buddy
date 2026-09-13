@@ -42,6 +42,7 @@ function raw(
 ): PlateModelItem {
   return {
     catalog_i: input.catalog_i ?? -1,
+    match: input.match ?? null,
     name: input.name,
     grams: input.grams ?? 0,
     state: input.state ?? "as_is",
@@ -352,5 +353,43 @@ assertEqual(
   true,
   "commit food",
 );
+
+const potato = food("potato-boiled", "Картофель варёный", {
+  state: "cooked",
+  protein_per_100: 2,
+  fat_per_100: 0,
+  carbs_per_100: 16,
+  kcal_per_100: 72,
+});
+const friesRejected = resolvePlateItems(
+  [
+    raw({
+      catalog_i: 0,
+      match: true,
+      name: "Картофель фри",
+      grams: 150,
+    }),
+  ],
+  [potato],
+);
+assertEqual(friesRejected.length, 0, "fries vs boiled dropped without macros");
+
+const friesLump = resolvePlateItems(
+  [
+    raw({
+      catalog_i: 0,
+      match: false,
+      name: "Картофель фри",
+      protein: 6,
+      fat: 22,
+      carbs: 48,
+    }),
+  ],
+  [potato],
+);
+assertEqual(friesLump[0]?.kind, "lump", "match false stays lump");
+if (friesLump[0]?.kind === "lump") {
+  assertEqual(friesLump[0].name, "Картофель фри", "lump keeps seen name");
+}
 
 console.log("ai plate ok");

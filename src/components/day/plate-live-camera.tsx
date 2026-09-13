@@ -77,7 +77,7 @@ export function PlateLiveCamera({
     }
     context.drawImage(video, 0, 0);
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/jpeg", 0.72);
+      canvas.toBlob(resolve, "image/jpeg", 0.85);
     });
     if (!blob || blob.size < 32) {
       setError(AI_PLATE_PHOTO_FAILED);
@@ -91,7 +91,7 @@ export function PlateLiveCamera({
     <div className="fixed inset-0 z-40 flex flex-col bg-black">
       <video
         ref={videoRef}
-        className="min-h-0 flex-1 bg-black object-cover"
+        className="min-h-0 flex-1 bg-black object-contain"
         playsInline
         muted
         autoPlay

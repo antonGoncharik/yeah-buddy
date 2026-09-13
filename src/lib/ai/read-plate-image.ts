@@ -1,40 +1,51 @@
-export const PLATE_CLIENT_MAX_SIDE = 1280;
+export const PLATE_CLIENT_MAX_SIDE = 1600;
 export const PLATE_CLIENT_MAX_BYTES = 900_000;
+export const PLATE_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
 
 export async function compressPlateImage(file: File): Promise<Blob> {
   if (file.size < 32) {
     throw new Error("empty");
   }
 
-  const source = await loadImage(file);
-  const scale = Math.min(
-    1,
-    PLATE_CLIENT_MAX_SIDE / Math.max(source.width, source.height),
-  );
-  const width = Math.max(1, Math.round(source.width * scale));
-  const height = Math.max(1, Math.round(source.height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-  if (!context) {
+  try {
+    const source = await loadImage(file);
+    const scale = Math.min(
+      1,
+      PLATE_CLIENT_MAX_SIDE / Math.max(source.width, source.height),
+    );
+    const width = Math.max(1, Math.round(source.width * scale));
+    const height = Math.max(1, Math.round(source.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      source.close();
+      throw new Error("canvas");
+    }
+
+    context.drawImage(source.image, 0, 0, width, height);
     source.close();
-    throw new Error("canvas");
+
+    const high = await canvasToJpeg(canvas, 0.85);
+    if (high.size <= PLATE_CLIENT_MAX_BYTES) {
+      return high;
+    }
+
+    const low = await canvasToJpeg(canvas, 0.62);
+    if (low.size <= PLATE_CLIENT_MAX_BYTES * 1.2) {
+      return low;
+    }
+  } catch {
+    if (file.size <= PLATE_UPLOAD_MAX_BYTES) {
+      return file;
+    }
+    throw new Error("decode");
   }
 
-  context.drawImage(source.image, 0, 0, width, height);
-  source.close();
-
-  const high = await canvasToJpeg(canvas, 0.72);
-  if (high.size <= PLATE_CLIENT_MAX_BYTES) {
-    return high;
+  if (file.size <= PLATE_UPLOAD_MAX_BYTES) {
+    return file;
   }
-
-  const low = await canvasToJpeg(canvas, 0.52);
-  if (low.size <= PLATE_CLIENT_MAX_BYTES * 1.2) {
-    return low;
-  }
-
   throw new Error("too-heavy");
 }
 
@@ -45,7 +56,7 @@ async function loadImage(file: File): Promise<{
   close: () => void;
 }> {
   if (typeof createImageBitmap === "function") {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await decodeBitmap(file);
     return {
       image: bitmap,
       width: bitmap.width,
@@ -68,6 +79,14 @@ async function loadImage(file: File): Promise<{
     height: image.naturalHeight,
     close: () => URL.revokeObjectURL(url),
   };
+}
+
+async function decodeBitmap(file: File): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    return createImageBitmap(file);
+  }
 }
 
 function canvasToJpeg(

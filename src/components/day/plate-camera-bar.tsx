@@ -8,26 +8,22 @@ import { AI_PLATE_RETRY } from "@/lib/messages";
 
 export function PlateCameraBar({
   busy,
-  htmlCamera,
   cameraPrimary,
   status,
   cameraId,
   galleryId,
   cameraRef,
   galleryRef,
-  onWatchCamera,
   onStartLiveCamera,
   onFile,
 }: {
   busy: boolean;
-  htmlCamera: boolean;
   cameraPrimary: boolean;
   status: string;
   cameraId: string;
   galleryId: string;
   cameraRef: RefObject<HTMLInputElement | null>;
   galleryRef: RefObject<HTMLInputElement | null>;
-  onWatchCamera: () => void;
   onStartLiveCamera: () => void;
   onFile: (file: File | undefined) => void;
 }) {
@@ -38,55 +34,26 @@ export function PlateCameraBar({
 
   return (
     <>
-      {htmlCamera ? (
-        <div className="relative">
-          <Button
-            type="button"
-            variant={cameraVariant}
-            className="pointer-events-none h-14 w-full gap-2 text-lg"
-            disabled={busy}
-            tabIndex={-1}
-            aria-hidden
-          >
-            <Camera className="size-5" aria-hidden />
-            {cameraLabel(status, cameraPrimary)}
-          </Button>
-          <input
-            id={cameraId}
-            ref={cameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            disabled={busy}
-            aria-label={cameraLabel(status, cameraPrimary)}
-            className="absolute inset-0 z-10 cursor-pointer opacity-0 disabled:pointer-events-none"
-            onPointerDown={() => onWatchCamera()}
-          />
-        </div>
-      ) : (
-        <>
-          <input
-            id={cameraId}
-            ref={cameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            tabIndex={-1}
-            aria-hidden
-            className="sr-only"
-          />
-          <Button
-            type="button"
-            variant={cameraVariant}
-            className="h-14 w-full gap-2 text-lg"
-            disabled={busy}
-            onClick={() => onStartLiveCamera()}
-          >
-            <Camera className="size-5" aria-hidden />
-            {cameraLabel(status, cameraPrimary)}
-          </Button>
-        </>
-      )}
+      <input
+        id={cameraId}
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        tabIndex={-1}
+        aria-hidden
+        className="sr-only"
+      />
+      <Button
+        type="button"
+        variant={cameraVariant}
+        className="h-14 w-full gap-2 text-lg"
+        disabled={busy}
+        onClick={() => onStartLiveCamera()}
+      >
+        <Camera className="size-5" aria-hidden />
+        {cameraLabel(status, cameraPrimary)}
+      </Button>
 
       <div className="relative">
         <Button
