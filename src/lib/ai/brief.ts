@@ -14,6 +14,7 @@ import { reviewCoverage } from "@/lib/ai/coverage";
 import { round1 } from "@/lib/ai/format";
 import type { ReviewSource } from "@/lib/ai/review-source";
 import { buildSignals } from "@/lib/ai/signal-lines";
+import { halfWindow } from "@/lib/ai/signal-nutrition-window";
 import type { ReviewBrief } from "@/lib/ai/types";
 import { nutritionHits, splitAverages } from "@/lib/nutrition-stats";
 import {
@@ -57,6 +58,9 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   }));
   const signals = buildSignals({
     days,
+    from: source.from,
+    to: source.to,
+    windowDays: source.range,
     rest,
     training,
     proteinHit: hits.proteinHit,
@@ -75,7 +79,10 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       feels: compactFeels(sessionRows),
     },
     phase: source.macro,
-    maxes,
+    maxes: {
+      grown: maxes.grown.slice(0, 4),
+      stalled: maxes.stalled.slice(0, 4),
+    },
     categories,
     avgPercent:
       progress.avg_percent == null ? null : round1(progress.avg_percent),
@@ -99,6 +106,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       kcal_hit: hits.kcalHit,
       kcal_total: hits.kcalTotal,
       weight,
+      halves: halfWindow(days),
       days: days.map(compactDay),
       foods: source.foods,
     },

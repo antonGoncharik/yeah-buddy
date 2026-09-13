@@ -6,6 +6,7 @@ import type {
   StrengthProgress,
 } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { CATEGORY_SHORT_LABELS } from "@/lib/workout/progress-stats";
 
 const WEAK_PLAN_RATIO = 0.75;
 const WEAK_PLAN_MIN_SETS = 3;
@@ -61,7 +62,7 @@ export function sessionNotes(
         },
       ];
     })
-    .slice(0, 5);
+    .slice(0, 8);
 }
 
 export function compactFeels(sessions: ReviewSessionRow[]): {
@@ -122,8 +123,8 @@ export function compactMaxes(progress: StrengthProgress): {
     .sort((left, right) => maxChange(left) - maxChange(right));
 
   return {
-    grown: grown.slice(0, 4),
-    stalled: stalled.slice(0, 4),
+    grown,
+    stalled,
     grownCount: grown.length,
   };
 }
@@ -131,6 +132,7 @@ export function compactMaxes(progress: StrengthProgress): {
 function toMaxRow(item: ExerciseProgress): ReviewMaxRow {
   return {
     name: item.name,
+    category: CATEGORY_SHORT_LABELS[item.category] ?? null,
     percent: item.percent == null ? null : round1(item.percent),
     relative_percent:
       item.relative_percent == null ? null : round1(item.relative_percent),

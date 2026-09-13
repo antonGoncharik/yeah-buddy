@@ -1,16 +1,82 @@
 import { roundMacros } from "@/lib/ai/compact-nutrition";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewAverages } from "@/lib/ai/types";
-import { averageMacros } from "@/lib/nutrition-stats";
+import { shiftIsoDate } from "@/lib/day/dates";
+import { averageMacros, KCAL_HIT_RATIO } from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
 const PROTEIN_MISS_G = 20;
+const KCAL_MISS = 150;
+const LOG_GAP_DAYS = 3;
 
 export function formatAverageLine(
   label: string,
   stats: ReviewAverages,
 ): string {
-  return `${label} · ${stats.count}: ${formatKcalPlain(stats.fact.kcal)}/${formatKcalPlain(stats.target.kcal)} ккал, белок ${formatG(stats.fact.protein)}/${formatG(stats.target.protein)} г.`;
+  return `${label} · ${stats.count}: ${formatKcalPlain(stats.fact.kcal)}/${formatKcalPlain(stats.target.kcal)} ккал, белок ${formatG(stats.fact.protein)}/${formatG(stats.target.protein)} г, жир ${formatG(stats.fact.fat)}/${formatG(stats.target.fat)} г, углеводы ${formatG(stats.fact.carbs)}/${formatG(stats.target.carbs)} г.`;
+}
+
+export function inclusiveDayCount(from: string, to: string): number {
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return 0;
+  }
+  return Math.round((end - start) / 86_400_000) + 1;
+}
+
+export function longestLogGap(
+  from: string,
+  to: string,
+  dates: string[],
+): number {
+  const sorted = [...new Set(dates)].sort((left, right) =>
+    left.localeCompare(right),
+  );
+  if (sorted.length === 0) {
+    return inclusiveDayCount(from, to);
+  }
+
+  let longest = 0;
+  let cursor = from;
+  for (const date of sorted) {
+    if (date > cursor) {
+      longest = Math.max(
+        longest,
+        inclusiveDayCount(cursor, shiftIsoDate(date, -1)),
+      );
+    }
+    cursor = shiftIsoDate(date, 1);
+  }
+  if (cursor <= to) {
+    longest = Math.max(longest, inclusiveDayCount(cursor, to));
+  }
+  return longest;
+}
+
+export function logCoverageLine(
+  windowDays: number,
+  logged: number,
+  from: string,
+  to: string,
+  dates: string[],
+): string | null {
+  if (windowDays < 7 || logged <= 0) {
+    return null;
+  }
+
+  const parts: string[] = [];
+  if (logged < windowDays - 1) {
+    parts.push(`записана ${logged} из ${windowDays} дней`);
+  }
+  const gap = longestLogGap(from, to, dates);
+  if (gap >= LOG_GAP_DAYS) {
+    parts.push(`дыра ${gap} дн.`);
+  }
+  if (parts.length === 0) {
+    return null;
+  }
+  return `Еда: ${parts.join(", ")}.`;
 }
 
 export function halfWindow(days: DayHistoryRow[]): {
@@ -55,6 +121,33 @@ export function worstProteinDays(
       }
       const miss = item.target_protein - item.fact_protein;
       if (miss < PROTEIN_MISS_G) {
+        return [];
+      }
+      return [
+        {
+          date: item.date,
+          miss,
+          training: item.is_training_day,
+        },
+      ];
+    })
+    .sort((left, right) => right.miss - left.miss)
+    .slice(0, 3);
+}
+
+export function worstKcalDays(
+  days: DayHistoryRow[],
+): Array<{ date: string; miss: number; training: boolean }> {
+  return [...days]
+    .flatMap((item) => {
+      if (item.target_kcal <= 0) {
+        return [];
+      }
+      const miss = item.target_kcal - item.fact_kcal;
+      if (
+        miss < KCAL_MISS ||
+        item.fact_kcal >= item.target_kcal * (1 - KCAL_HIT_RATIO)
+      ) {
         return [];
       }
       return [

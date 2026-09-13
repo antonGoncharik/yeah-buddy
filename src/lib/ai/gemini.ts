@@ -1,43 +1,19 @@
 import { z } from "zod";
 
 import { ReviewError } from "@/lib/ai/errors";
-import { reviewPromptPayload } from "@/lib/ai/prompt";
+import {
+  REVIEW_SYSTEM_PROMPT,
+  REVIEW_USER_LEAD,
+  reviewPromptPayload,
+} from "@/lib/ai/prompt";
 import type { ReviewBrief, ReviewText, StoredReview } from "@/lib/ai/types";
 import { AI_REVIEW_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
 
 const reviewTextSchema = z.object({
   headline: z.string().trim().min(1).max(180),
-  observations: z.array(z.string().trim().min(1).max(400)).min(1).max(8),
+  observations: z.array(z.string().trim().min(1).max(480)).min(1).max(8),
   watch: z.array(z.string().trim().min(1).max(240)).max(5),
 });
-
-const SYSTEM_PROMPT = `Ты читаешь дневник: еда и зал. Не врач, не диетолог, не автор новой программы.
-
-Как устроен дневник
-- Еда: что съел. День бывает без зала или с залом — от этого цели.
-- Зал: тренировки по кругу, не календарь пн/ср/пт. Сегодня одно, завтра следующее.
-- Тренировка — шпаргалка. План уже на экране. Один раз «Готово», не галочки на каждый подход.
-- Спорт любой. Не вешай ярлыки вроде армрестлинга или пауэрлифтинга, если их нет во входе.
-- Цикл и этапы есть не у всех. Не предлагай их заводить, закрывать или менять проценты подходов.
-- Вес тела — одна цифра на день, если есть. По нему видно рекомп: вес вниз при росте рабочих, белок на кг, сила к весу тела. Нет веса во входе — не выдумывай.
-- nutrition.weight, maxes и signals уже посчитаны кодом: средние БЖУ, попадания, дельта веса, г/кг, план/факт, рабочие кг и сила к весу тела. Цитируй эти числа. Не пересчитывай и не округляй заново.
-- nutrition, gym и maxes — за окно from…to. maxes.since = window: рабочие на границах этих 14/30 дней, не с первых записей. Нет работы в окне — упражнения нет в maxes.
-- previous — прошлый текст того же окна 14/30, если человек уже писал разбор. Сравни с текущими цифрами: сдвинулось ли то, на что тогда смотрели. Не копируй прошлый текст. Нет previous — не выдумывай «как в прошлый раз».
-
-Как писать
-- По-русски, коротко, как сосед по залу. Без канцелярита, лозунгов и подбадриваний.
-- Без «важно», «стоит отметить», «в целом», «рекомендуется», «следует», «можно рассмотреть».
-- На вход уже факты и сигналы. Не пересчитывай. Не выдумывай числа, продукты, упражнения, даты и этапы. Нет во входе — не пиши.
-- Дневных строк и подходов во входе нет специально. Опирайся на signals и сводки.
-- Если coverage = thin: данных мало, так и скажи. Не делай вид, что видишь картину.
-- Свяжи еду и зал, только если это видно по цифрам.
-- Не советуй БАДы, врачей, жёсткую диету, меню на неделю, новые упражнения «для прогресса».
-- Не предлагай отмечать подходы, вести календарь по дням недели или дробить «Готово».
-
-Формат
-headline — одна фраза про это окно.
-observations — 3–6 конкретных наблюдений.
-watch — 1–3 коротких пункта, на что смотреть дальше. Без плана на неделю.`;
 
 const RESPONSE_SCHEMA = {
   type: "object",
@@ -143,10 +119,13 @@ export async function writeReview(
   previous: StoredReview | null = null,
 ): Promise<ReviewText> {
   const payload = await generateGeminiJson({
-    system: SYSTEM_PROMPT,
-    parts: [{ text: JSON.stringify(reviewPromptPayload(brief, previous)) }],
+    system: REVIEW_SYSTEM_PROMPT,
+    parts: [
+      { text: REVIEW_USER_LEAD },
+      { text: JSON.stringify(reviewPromptPayload(brief, previous)) },
+    ],
     schema: RESPONSE_SCHEMA,
-    temperature: 0.4,
+    temperature: 0.6,
     failedMessage: AI_REVIEW_FAILED,
   });
 
@@ -157,8 +136,8 @@ export async function writeReview(
 
   return {
     headline: parsed.data.headline,
-    observations: parsed.data.observations.slice(0, 6),
-    watch: parsed.data.watch.slice(0, 3),
+    observations: parsed.data.observations.slice(0, 8),
+    watch: parsed.data.watch.slice(0, 5),
   };
 }
 

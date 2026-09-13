@@ -66,6 +66,7 @@ const brief = {
       protein_per_kg: null,
       protein_per_kg_target: null,
     },
+    halves: null,
     days: [],
     foods: [],
   },

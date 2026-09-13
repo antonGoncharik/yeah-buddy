@@ -15,6 +15,8 @@ export function compactDay(item: DayHistoryRow): ReviewDayRow {
     training: item.is_training_day,
     protein: round1(item.fact_protein),
     protein_target: round1(item.target_protein),
+    fat: round1(item.fact_fat),
+    fat_target: round1(item.target_fat),
     carbs: round1(item.fact_carbs),
     carbs_target: round1(item.target_carbs),
     kcal: round0(item.fact_kcal),

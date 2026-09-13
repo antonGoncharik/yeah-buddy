@@ -11,6 +11,9 @@ import type { CurrentMacroState, DayHistoryRow } from "@/lib/types";
 
 export function buildSignals(input: {
   days: DayHistoryRow[];
+  from?: string;
+  to?: string;
+  windowDays?: number;
   rest: ReviewAverages | null;
   training: ReviewAverages | null;
   proteinHit: number;

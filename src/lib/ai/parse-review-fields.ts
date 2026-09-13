@@ -94,6 +94,7 @@ export function parseMaxRow(row: Record<string, unknown>): ReviewMaxRow | null {
 
   return {
     name: row.name,
+    category: typeof row.category === "string" ? row.category : null,
     percent: toNullableNumber(row.percent),
     relative_percent: toNullableNumber(row.relative_percent),
     delta: toNullableNumber(row.delta),
@@ -145,6 +146,22 @@ export function parseFeels(value: unknown): {
   };
 }
 
+export function parseHalves(
+  value: unknown,
+): { first: ReviewAverages; second: ReviewAverages } | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const first = parseAverages(value.first);
+  const second = parseAverages(value.second);
+  if (!first || !second) {
+    return null;
+  }
+
+  return { first, second };
+}
+
 export function parseAverages(value: unknown): ReviewAverages | null {
   if (!isRecord(value)) {
     return null;
@@ -180,6 +197,8 @@ export function parseDayRow(row: Record<string, unknown>): ReviewDayRow | null {
     training: row.training === true,
     protein: toNumber(row.protein),
     protein_target: toNumber(row.protein_target),
+    fat: toNumber(row.fat),
+    fat_target: toNumber(row.fat_target),
     carbs: toNumber(row.carbs),
     carbs_target: toNumber(row.carbs_target),
     kcal: toNumber(row.kcal),

@@ -1,7 +1,7 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
 import { reviewCoverage } from "@/lib/ai/coverage";
 import { formatG } from "@/lib/ai/format";
-import { reviewPromptPayload } from "@/lib/ai/prompt";
+import { REVIEW_SYSTEM_PROMPT, reviewPromptPayload } from "@/lib/ai/prompt";
 import { buildSignals, reviewDetailSignals } from "@/lib/ai/signal-lines";
 import type { ReviewMaxRow } from "@/lib/ai/types";
 import type { DayHistoryRow } from "@/lib/types";
@@ -17,6 +17,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 function maxRow(input: Partial<ReviewMaxRow> & { name: string }): ReviewMaxRow {
   return {
     name: input.name,
+    category: input.category ?? null,
     percent: input.percent ?? null,
     relative_percent: input.relative_percent ?? null,
     delta: input.delta ?? null,
@@ -69,7 +70,7 @@ const lines = buildSignals({
   days: proteinDays,
   rest: {
     count: 2,
-    fact: { protein: 180, fat: 70, carbs: 130, kcal: 2000 },
+    fact: { protein: 180, fat: 50, carbs: 130, kcal: 2000 },
     target: { protein: 200, fat: 70, carbs: 130, kcal: 2000 },
   },
   training: {
@@ -97,6 +98,7 @@ const lines = buildSignals({
     planTotal: 20,
     templates: [{ name: "Молот", count: 2 }],
     weak: ["Молот"],
+    feels: { easy: 2, close: 0, miss: 0 },
   },
   phase: {
     macro: null,
@@ -163,6 +165,16 @@ assertEqual(
   "training carbs",
 );
 assertEqual(
+  lines.some((line) => line.includes("На отдыхе жира не хватало на 20 г")),
+  true,
+  "rest fat",
+);
+assertEqual(
+  lines.some((line) => line.includes("Легко 2, без роста: Молот")),
+  true,
+  "easy but stalled",
+);
+assertEqual(
   lines.some((line) => line.includes("Топ белка: Творог 80 г")),
   true,
   "foods",
@@ -186,7 +198,9 @@ assertEqual(
 );
 assertEqual(
   lines.some((line) =>
-    line.includes("Отдых · 2: 2000/2000 ккал, белок 180/200 г."),
+    line.includes(
+      "Отдых · 2: 2000/2000 ккал, белок 180/200 г, жир 50/70 г, углеводы 130/130 г.",
+    ),
   ),
   true,
   "rest averages",
@@ -402,10 +416,24 @@ assertEqual(
   true,
   "relative-only lift",
 );
+assertEqual(seedBrief.nutrition.days[0]?.fat, 70, "day keeps fat");
+assertEqual(seedBrief.nutrition.halves, null, "one day has no halves");
+assertEqual(
+  seedBrief.maxes.grown_list[0]?.category,
+  "База",
+  "max row category",
+);
+assertEqual(
+  seedBrief.signals.some((line) => line.includes("записана 1 из 14")),
+  true,
+  "food log coverage",
+);
 
 const prompt = reviewPromptPayload(seedBrief);
-assertEqual("days" in prompt.nutrition, false, "prompt drops days");
-assertEqual("sessions" in prompt.gym, false, "prompt drops sessions");
+assertEqual(prompt.nutrition.days.length, 1, "prompt keeps days");
+assertEqual(prompt.nutrition.days[0]?.fat, 70, "prompt keeps day fat");
+assertEqual(prompt.nutrition.halves, null, "prompt keeps halves");
+assertEqual(Array.isArray(prompt.gym.sessions), true, "prompt keeps sessions");
 assertEqual(prompt.nutrition.weight.delta, -3, "prompt keeps weight");
 assertEqual(prompt.maxes.since, "window", "prompt labels maxes window");
 assertEqual(prompt.maxes.grown_list[0]?.current, 175, "prompt keeps kg");
@@ -416,6 +444,16 @@ assertEqual(
   prompt.signals.some((line) => line.includes("84 → 81")),
   true,
   "prompt keeps signals",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("Не копируй табло"),
+  true,
+  "prompt forbids scoreboard copy",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("Хорошо:"),
+  true,
+  "prompt shows a good observation",
 );
 
 console.log("ai signals ok");

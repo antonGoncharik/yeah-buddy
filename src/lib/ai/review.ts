@@ -109,7 +109,7 @@ async function loadReviewBrief(
       listFoodSharesInRange(userId, start, end),
       listSessionHistory(userId, {
         since: start,
-        limit: 40,
+        limit: 50,
         statuses: ["completed", "skipped"],
       }),
       getCurrentMacroState(userId),

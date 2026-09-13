@@ -15,6 +15,8 @@ export type ReviewDayRow = {
   training: boolean;
   protein: number;
   protein_target: number;
+  fat: number;
+  fat_target: number;
   carbs: number;
   carbs_target: number;
   kcal: number;
@@ -44,6 +46,7 @@ export type ReviewSessionRow = {
 
 export type ReviewMaxRow = {
   name: string;
+  category: string | null;
   percent: number | null;
   relative_percent: number | null;
   delta: number | null;
@@ -67,6 +70,7 @@ export type ReviewBrief = {
     kcal_hit: number;
     kcal_total: number;
     weight: ReviewWeight;
+    halves: { first: ReviewAverages; second: ReviewAverages } | null;
     days: ReviewDayRow[];
     foods: FoodShare[];
   };

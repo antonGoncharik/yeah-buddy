@@ -12,6 +12,7 @@ export function maxesSignalLines(input: {
   categories?: Array<{ name: string; percent: number }>;
   avgPercent?: number | null;
   avgRelativePercent?: number | null;
+  gym?: { feels?: { easy: number; close: number; miss: number } };
 }): string[] {
   const lines: string[] = [];
 
@@ -21,6 +22,16 @@ export function maxesSignalLines(input: {
   if (input.maxes.stalled.length > 0) {
     lines.push(
       `Без роста: ${input.maxes.stalled.map((item) => item.name).join(", ")}.`,
+    );
+  }
+
+  const easy = input.gym?.feels?.easy ?? 0;
+  if (easy >= 2 && input.maxes.stalled.length > 0) {
+    lines.push(
+      `Легко ${easy}, без роста: ${input.maxes.stalled
+        .slice(0, 4)
+        .map((item) => item.name)
+        .join(", ")}.`,
     );
   }
 
