@@ -6,7 +6,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ApiError, postJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/day/map";
-import { LOAD_FAILED } from "@/lib/messages";
+import { mealsMatchRecipe, type RecipeLine } from "@/lib/day/remaining";
+import { LOAD_FAILED, switchRestToTrainingMessage } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import { readTodaySession } from "@/lib/workout/hub-payload";
 
@@ -14,6 +15,7 @@ export function useTodayWorkoutStart({
   viewOnly,
   date,
   shownDay,
+  restRecipe,
   setBusy,
   setActionError,
   load,
@@ -21,6 +23,7 @@ export function useTodayWorkoutStart({
   viewOnly: boolean;
   date: string;
   shownDay: DayWithMeals | null;
+  restRecipe: RecipeLine[];
   setBusy: Dispatch<SetStateAction<boolean>>;
   setActionError: Dispatch<SetStateAction<string | null>>;
   load: () => Promise<void>;
@@ -35,8 +38,10 @@ export function useTodayWorkoutStart({
 
     if (shownDay && !shownDay.is_training_day) {
       const ok = await confirm({
-        message:
-          "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся. Записи полдника не тронем.",
+        message: switchRestToTrainingMessage({
+          isToday: true,
+          swapMeals: mealsMatchRecipe(shownDay.meals, restRecipe),
+        }),
         confirmLabel: "Сделать тренировочным",
         cancelLabel: "Отмена",
       });

@@ -220,3 +220,63 @@ export function recipeFromTemplate(
     mealType: item.meal_type,
   }));
 }
+
+const GRAM_MATCH = 0.5;
+
+export function mealsMatchRecipe(
+  meals: RemainingMeal[],
+  recipe: RecipeLine[],
+): boolean {
+  const expected = recipeTotals(recipe);
+  const actual = mealTotals(meals);
+  if (!actual) {
+    return false;
+  }
+  if (expected.size !== actual.size) {
+    return false;
+  }
+  for (const [key, grams] of expected) {
+    const got = actual.get(key);
+    if (got === undefined || Math.abs(got - grams) > GRAM_MATCH) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function recipeTotals(recipe: RecipeLine[]): Map<string, number> {
+  const totals = new Map<string, number>();
+  for (const line of recipe) {
+    if (!(line.grams > 0) || line.foodId === "") {
+      continue;
+    }
+    addGrams(totals, line.mealType, line.foodId, line.grams);
+  }
+  return totals;
+}
+
+function mealTotals(meals: RemainingMeal[]): Map<string, number> | null {
+  const totals = new Map<string, number>();
+  for (const meal of meals) {
+    for (const item of meal.items) {
+      if (!(item.grams > 0)) {
+        continue;
+      }
+      if (!item.food_id) {
+        return null;
+      }
+      addGrams(totals, meal.meal_type, item.food_id, item.grams);
+    }
+  }
+  return totals;
+}
+
+function addGrams(
+  totals: Map<string, number>,
+  mealType: MealType,
+  foodId: string,
+  grams: number,
+): void {
+  const key = `${mealType}|${foodId}`;
+  totals.set(key, (totals.get(key) ?? 0) + grams);
+}

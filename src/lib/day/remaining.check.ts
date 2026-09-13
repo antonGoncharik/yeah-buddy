@@ -1,6 +1,7 @@
 import {
   formatRemainingLine,
   isFullTemplateGap,
+  mealsMatchRecipe,
   remainingFills,
   remainingRecipe,
 } from "@/lib/day/remaining";
@@ -248,5 +249,82 @@ assertEqual(
   true,
   "custom-only is full gap",
 );
+
+assertEqual(mealsMatchRecipe([], []), true, "empty matches empty");
+assertEqual(
+  mealsMatchRecipe(
+    [
+      meal("breakfast", [
+        { food_id: "oats", name_snapshot: "Овсянка сухая", grams: 50 },
+      ]),
+      meal("lunch", [
+        { food_id: "fillet", name_snapshot: "Куриное филе сырое", grams: 150 },
+        { food_id: "rice", name_snapshot: "Рис сухой", grams: 80 },
+      ]),
+      meal("snack", [{ food_id: "snack", name_snapshot: "Банан", grams: 120 }]),
+    ],
+    recipe,
+  ),
+  true,
+  "logged rest template matches",
+);
+assertEqual(
+  mealsMatchRecipe(
+    [
+      meal("breakfast", [
+        { food_id: "oats", name_snapshot: "Овсянка сухая", grams: 50 },
+      ]),
+    ],
+    recipe,
+  ),
+  false,
+  "missing meals is edited",
+);
+assertEqual(
+  mealsMatchRecipe(
+    [
+      meal("breakfast", [
+        { food_id: "oats", name_snapshot: "Овсянка сухая", grams: 40 },
+      ]),
+      meal("lunch", [
+        { food_id: "fillet", name_snapshot: "Куриное филе сырое", grams: 150 },
+        { food_id: "rice", name_snapshot: "Рис сухой", grams: 80 },
+      ]),
+      meal("snack", [{ food_id: "snack", name_snapshot: "Банан", grams: 120 }]),
+    ],
+    recipe,
+  ),
+  false,
+  "gram change is edited",
+);
+assertEqual(
+  mealsMatchRecipe(
+    [meal("lunch", [{ food_id: null, name_snapshot: "Каша", grams: 200 }])],
+    [],
+  ),
+  false,
+  "lump is edited",
+);
+assertEqual(
+  mealsMatchRecipe(
+    [
+      meal("breakfast", [
+        { food_id: "oats", name_snapshot: "Овсянка сухая", grams: 50 },
+      ]),
+      meal("lunch", [
+        { food_id: "fillet", name_snapshot: "Куриное филе сырое", grams: 150 },
+        { food_id: "rice", name_snapshot: "Рис сухой", grams: 80 },
+      ]),
+      meal("snack", [{ food_id: "snack", name_snapshot: "Банан", grams: 120 }]),
+      meal("dinner", [
+        { food_id: "extra", name_snapshot: "Творог", grams: 100 },
+      ]),
+    ],
+    recipe,
+  ),
+  false,
+  "extra food is edited",
+);
+assertEqual(mealsMatchRecipe([], recipe), false, "cleared day is edited");
 
 console.log("remaining recipe ok");

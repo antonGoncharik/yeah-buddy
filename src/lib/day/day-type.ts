@@ -1,13 +1,15 @@
-import { getTargets } from "@/lib/day/create";
+import { getTargets, writeTemplateItems } from "@/lib/day/create";
 import { isWritableDayDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
+import { mealsMatchRecipe, recipeFromTemplate } from "@/lib/day/remaining";
 import { getDayByDate } from "@/lib/day/store";
 import {
   assertUserDayWritable,
   getUserCalendarToday,
 } from "@/lib/day/writable";
+import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { DayType } from "@/lib/types";
+import type { DayType, MealType } from "@/lib/types";
 
 export async function setDayType(
   userId: string,
@@ -30,7 +32,24 @@ export async function setDayType(
     throw new Error("Day not found");
   }
 
-  await assertUserDayWritable(userId, String(existing.data.date).slice(0, 10));
+  const date = String(existing.data.date).slice(0, 10);
+  await assertUserDayWritable(userId, date);
+
+  const current = await getDayByDate(userId, date);
+  if (!current) {
+    throw new Error("Day not found");
+  }
+
+  if (current.is_training_day === (dayType === "training")) {
+    return current;
+  }
+
+  const oldType: DayType = current.is_training_day ? "training" : "rest";
+  const oldTemplate = await getActiveMealTemplate(userId, oldType);
+  const swapMeals = mealsMatchRecipe(
+    current.meals,
+    recipeFromTemplate(oldTemplate),
+  );
 
   const targets = await getTargets(userId, dayType);
   const updated = await supabase
@@ -54,7 +73,11 @@ export async function setDayType(
     throw new Error("Day not found");
   }
 
-  const day = await getDayByDate(userId, String(updated.data.date));
+  if (swapMeals) {
+    await replaceMealsFromTemplate(userId, current, dayType);
+  }
+
+  const day = await getDayByDate(userId, date);
   if (!day) {
     throw new Error("Day lookup failed");
   }
@@ -77,4 +100,35 @@ export async function markDateAsTrainingIfExists(
   }
 
   await setDayType(userId, day.id, "training");
+}
+
+async function replaceMealsFromTemplate(
+  userId: string,
+  day: DayWithMeals,
+  dayType: DayType,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const mealIds = new Map<MealType, string>();
+  for (const meal of day.meals) {
+    mealIds.set(meal.meal_type, meal.id);
+  }
+
+  const ids = [...mealIds.values()];
+  if (ids.length > 0) {
+    const deleted = await supabase
+      .from("meal_items")
+      .delete()
+      .in("meal_id", ids)
+      .eq("user_id", userId);
+    if (deleted.error) {
+      throw deleted.error;
+    }
+  }
+
+  await writeTemplateItems(
+    supabase,
+    userId,
+    mealIds,
+    await getActiveMealTemplate(userId, dayType),
+  );
 }

@@ -49,6 +49,7 @@ export {
 export {
   formatRemainingLine,
   isFullTemplateGap,
+  mealsMatchRecipe,
   type RecipeLine,
   recipeFromTemplate,
   remainingFills,

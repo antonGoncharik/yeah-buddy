@@ -14,7 +14,7 @@ import {
 } from "@/lib/nutrition";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { DayType, MealType } from "@/lib/types";
+import type { DayType, MealTemplateDetail, MealType } from "@/lib/types";
 
 export async function createDayFromTemplate(
   userId: string,
@@ -51,40 +51,12 @@ export async function createDayFromTemplate(
 
   const dayId = String(created.data.id);
   const mealIds = await insertEmptyMeals(supabase, userId, dayId);
-  const template = await getActiveMealTemplate(userId, dayType);
-
-  if (template && template.items.length > 0) {
-    const rows = [];
-    for (const item of template.items) {
-      const mealId = mealIds.get(item.meal_type);
-      if (!mealId) {
-        continue;
-      }
-
-      rows.push(
-        buildMealItemRow({
-          userId,
-          mealId,
-          foodId: item.food.id,
-          name: item.food.name,
-          grams: item.grams,
-          per100: {
-            protein: item.food.protein_per_100,
-            fat: item.food.fat_per_100,
-            carbs: item.food.carbs_per_100,
-            kcal: item.food.kcal_per_100,
-          },
-        }),
-      );
-    }
-
-    if (rows.length > 0) {
-      const insertedItems = await supabase.from("meal_items").insert(rows);
-      if (insertedItems.error) {
-        throw insertedItems.error;
-      }
-    }
-  }
+  await writeTemplateItems(
+    supabase,
+    userId,
+    mealIds,
+    await getActiveMealTemplate(userId, dayType),
+  );
 
   const day = await getDayByDate(userId, date);
   if (!day) {
@@ -92,6 +64,50 @@ export async function createDayFromTemplate(
   }
 
   return day;
+}
+
+export async function writeTemplateItems(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+  userId: string,
+  mealIds: Map<MealType, string>,
+  template: MealTemplateDetail | null,
+): Promise<void> {
+  if (!template || template.items.length === 0) {
+    return;
+  }
+
+  const rows = [];
+  for (const item of template.items) {
+    const mealId = mealIds.get(item.meal_type);
+    if (!mealId || !(item.grams > 0)) {
+      continue;
+    }
+
+    rows.push(
+      buildMealItemRow({
+        userId,
+        mealId,
+        foodId: item.food.id,
+        name: item.food.name,
+        grams: item.grams,
+        per100: {
+          protein: item.food.protein_per_100,
+          fat: item.food.fat_per_100,
+          carbs: item.food.carbs_per_100,
+          kcal: item.food.kcal_per_100,
+        },
+      }),
+    );
+  }
+
+  if (rows.length === 0) {
+    return;
+  }
+
+  const inserted = await supabase.from("meal_items").insert(rows);
+  if (inserted.error) {
+    throw inserted.error;
+  }
 }
 
 export async function insertEmptyMeals(

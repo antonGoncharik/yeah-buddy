@@ -130,6 +130,7 @@ export function useTodayScreen({
     viewOnly,
     date,
     shownDay,
+    restRecipe: data.recipes.rest,
     setBusy,
     setActionError,
     load: data.load,

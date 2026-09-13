@@ -7,6 +7,19 @@ export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
+
+export function switchRestToTrainingMessage(input: {
+  isToday: boolean;
+  swapMeals: boolean;
+}): string {
+  const prefix = input.isToday
+    ? "Этот день уже как отдых."
+    : "За этот день еда уже как отдых.";
+  const suffix = input.swapMeals
+    ? "Еда станет из шаблона тренировки."
+    : "Цели еды сменятся. Записи не тронем.";
+  return `${prefix} Сделать тренировочным? ${suffix}`;
+}
 export const YESTERDAY_MISSING = "Вчера пусто.";
 export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
 export const SOURCE_MEAL_EMPTY = "В выбранный день этот приём пустой.";

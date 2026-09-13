@@ -5,7 +5,9 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { mutateJson, postJson } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
+import { mealsMatchRecipe } from "@/lib/day/remaining";
+import { readDay, readRecipes } from "@/lib/day/today-payload";
+import { LOAD_FAILED, switchRestToTrainingMessage } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
   ExerciseWithMax,
@@ -60,11 +62,14 @@ export function useHubSessionActions({
         dayData = null;
       }
       if (dayData && isRestFoodDay(dayData)) {
+        const day = readDay(dayData);
         const ok = await confirm({
-          message:
-            sessionDate === date
-              ? "Этот день уже как отдых. Сделать тренировочным? Цели еды сменятся. Записи полдника не тронем."
-              : "За этот день еда уже как отдых. Сделать тренировочным? Цели еды сменятся. Записи полдника не тронем.",
+          message: switchRestToTrainingMessage({
+            isToday: sessionDate === date,
+            swapMeals: day
+              ? mealsMatchRecipe(day.meals, readRecipes(dayData).rest)
+              : false,
+          }),
           confirmLabel: "Сделать тренировочным",
           cancelLabel: "Отмена",
         });
