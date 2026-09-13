@@ -83,7 +83,7 @@ export function ReviewScreen() {
                 disabled={writing}
                 onClick={() => void writeReview()}
               >
-                {writing ? "Пишу…" : review ? "Написать ещё раз" : "Написать"}
+                {writing ? "Разбираю…" : review ? "Ещё раз" : "Разобрать"}
               </Button>
             ) : (
               <p className="text-base text-muted-foreground">

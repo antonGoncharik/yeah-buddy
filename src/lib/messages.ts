@@ -46,9 +46,9 @@ export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
   "Нет рабочего веса. Напиши его в упражнении и зайди ещё раз.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём не для такого дня.";
-export const AI_REVIEW_EMPTY = "Пока мало записей. Не из чего писать.";
+export const AI_REVIEW_EMPTY = "Пока мало записей. Не из чего разбирать.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";
-export const AI_REVIEW_FAILED = "Не получилось написать.";
+export const AI_REVIEW_FAILED = "Не получилось разобрать.";
 export const AI_PLATE_FAILED = "Не получилось разобрать.";
 export const AI_PLATE_EMPTY = "На фото не видно еды.";
 export const AI_PLATE_PHOTO_FAILED = "Не получилось прочитать фото.";
