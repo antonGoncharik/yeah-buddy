@@ -41,7 +41,7 @@ export function OnboardingScreen() {
     skipFoodStep,
     finish,
     leaveTour,
-    fromSettings,
+    tour,
     onProteinChange,
     onMaxChange,
   } = useOnboardingScreen();
@@ -68,11 +68,11 @@ export function OnboardingScreen() {
   if (step === "guide") {
     return (
       <GuideTour
-        mode={fromSettings ? "settings" : "onboarding"}
+        mode={tour ? "settings" : "onboarding"}
         error={error}
-        onBackFromStart={fromSettings ? leaveTour : undefined}
-        onDone={leaveTour}
-        onSkip={leaveTour}
+        onBackFromStart={tour ? leaveTour : undefined}
+        onDone={tour ? leaveTour : goNext}
+        onSkip={tour ? leaveTour : goNext}
       />
     );
   }
@@ -92,7 +92,10 @@ export function OnboardingScreen() {
           </button>
         ) : null}
         <div className="min-w-0 flex-1">
-          <StepDots steps={steps} current={step} />
+          <StepDots
+            steps={steps.filter((id) => id !== "guide")}
+            current={step}
+          />
           <h1
             key={step}
             className="mt-1 truncate text-2xl font-semibold tracking-tight animate-fade"

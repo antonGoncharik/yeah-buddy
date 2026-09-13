@@ -18,13 +18,13 @@ const empty = {
 
 assertEqual(
   onboardingSteps(empty).join(),
-  "food,circle",
-  "first run setup has no guide step",
+  "guide,food,circle",
+  "first run explains the diary before protein",
 );
 assertEqual(
   onboardingSteps({ ...empty, tour: true }).join(),
   "guide",
-  "tour after setup is the full walkthrough",
+  "settings replay is the walkthrough only",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
@@ -38,8 +38,8 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  "food",
-  "workout pack skips program",
+  "guide,food",
+  "workout pack skips program after the walkthrough",
 );
 assertEqual(
   onboardingSteps({
@@ -52,8 +52,8 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals" }).join(),
-  "circle",
-  "meal pack skips protein",
+  "guide,circle",
+  "meal pack skips protein after the walkthrough",
 );
 
 console.log("onboarding steps ok");

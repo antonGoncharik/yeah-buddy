@@ -36,8 +36,7 @@ export function GuideScreen() {
 
       <div className="flex flex-col gap-4 px-4 pb-36">
         <p className="text-base leading-relaxed text-muted-foreground">
-          Тот же текст, что после настройки. Можно листать или пройти по
-          экранам.
+          Тот же текст, что в начале. Можно листать или пройти по экранам.
         </p>
 
         <nav className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">

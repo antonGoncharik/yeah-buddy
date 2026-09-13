@@ -26,6 +26,9 @@ export function onboardingSteps({
     ? onboardingWeightExercises(circle, state.exercises)
     : [];
   const next: OnboardingStep[] = [];
+  if (!replay) {
+    next.push("guide");
+  }
   if (pendingKind !== "meals") {
     next.push("food");
   }

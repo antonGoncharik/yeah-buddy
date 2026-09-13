@@ -10,30 +10,18 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
   }
 }
 
+assertEqual(onboardingExitHref(null), "/today", "after setup the diary opens");
 assertEqual(
-  onboardingExitHref({ replay: false, pendingToken: null }),
-  "/onboarding?tour=1",
-  "first run opens the walkthrough",
-);
-assertEqual(
-  onboardingExitHref({ replay: true, pendingToken: null }),
+  onboardingExitHref("??"),
   "/today",
-  "protein replay skips the walkthrough",
-);
-assertEqual(
-  onboardingExitHref({
-    replay: false,
-    pendingToken: "??",
-  }),
-  "/onboarding?tour=1",
-  "junk token does not steal the walkthrough",
+  "junk token does not steal today",
 );
 
 const token = createPackToken();
 assertEqual(
-  onboardingExitHref({ replay: false, pendingToken: token }),
+  onboardingExitHref(token),
   packPath(token),
-  "pending pack comes before the walkthrough",
+  "pending pack comes before today",
 );
 
 console.log("onboarding finish ok");

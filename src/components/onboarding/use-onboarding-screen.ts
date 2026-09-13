@@ -79,7 +79,9 @@ export function useOnboardingScreen() {
           ]),
         ),
       );
-      setStep(nextTour ? "guide" : "food");
+      setStep(
+        nextTour || (!onboarding.completed && !replay) ? "guide" : "food",
+      );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
@@ -232,6 +234,7 @@ export function useOnboardingScreen() {
     finish,
     leaveTour,
     fromSettings,
+    tour,
     onProteinChange,
     onMaxChange,
   };

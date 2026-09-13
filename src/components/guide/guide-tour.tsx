@@ -54,7 +54,7 @@ export function GuideTour({
 
   function goNext() {
     if (last) {
-      haptic("success");
+      haptic(mode === "settings" ? "success" : "tick");
       onDone();
       return;
     }
@@ -103,7 +103,7 @@ export function GuideTour({
         </section>
         {last && mode !== "settings" ? (
           <p className="animate-rise mt-4 px-1 text-base leading-relaxed text-muted-foreground">
-            Потом это будет в Настройках → «{GUIDE_LABEL}».
+            {`Дальше — белок и программа. Этот текст останется в Настройках → «${GUIDE_LABEL}».`}
           </p>
         ) : null}
         {error ? (
@@ -132,7 +132,13 @@ export function GuideTour({
           disabled={saving}
           onClick={goNext}
         >
-          {saving ? "Сохранение…" : last ? "Понятно" : "Дальше"}
+          {saving
+            ? "Сохранение…"
+            : last
+              ? mode === "settings"
+                ? "Понятно"
+                : "Дальше"
+              : "Дальше"}
         </Button>
       </StickyActions>
     </div>
