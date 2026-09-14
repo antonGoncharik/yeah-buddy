@@ -7,7 +7,11 @@ import type {
 } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { mapWorkoutSession } from "@/lib/workout/map-rows";
-import { ensureStarterExercises } from "@/lib/workout/seed";
+import {
+  getLastTemplateId,
+  pickNextTemplate,
+  templateAfter,
+} from "@/lib/workout/rotation";
 import {
   countCompletedSessions,
   getLastCompletedDateBefore,
@@ -15,12 +19,7 @@ import {
 } from "@/lib/workout/session-history";
 import { templateNamesById } from "@/lib/workout/session-names";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
-import {
-  getNextTemplate,
-  getTemplate,
-  listActiveTemplates,
-  templateAfter,
-} from "@/lib/workout/templates";
+import { listTemplates } from "@/lib/workout/templates";
 
 export async function listSessionsOnDate(
   userId: string,
@@ -78,32 +77,51 @@ export async function getTodayWorkoutState(
   userId: string,
   date: string,
 ): Promise<TodayWorkoutState> {
-  const settings = await ensureWorkoutSettings(userId);
-  await ensureStarterExercises(createSupabaseServerClient(), userId);
-  const onDate = await listSessionsOnDate(userId, date);
+  // Everything that does not depend on another answer goes out at once:
+  // the hub used to wait on a dozen sequential round-trips.
+  const [
+    settings,
+    onDate,
+    macro,
+    templates,
+    yesterdayGym,
+    unfinished,
+    recent,
+    completed_sessions,
+    last_completed_before,
+  ] = await Promise.all([
+    ensureWorkoutSettings(userId),
+    listSessionsOnDate(userId, date),
+    getCurrentMacroState(userId),
+    listTemplates(userId),
+    getSessionOnDate(userId, previousIsoDate(date)),
+    listUnfinishedGym(userId, date),
+    listSessionHistory(userId, {
+      limit: 5,
+      statuses: ["completed"],
+    }).then((page) => page.items),
+    countCompletedSessions(userId),
+    getLastCompletedDateBefore(userId, date),
+  ]);
+
   const gym = onDate[0] ?? null;
-  const macro = await getCurrentMacroState(userId);
-  const nextTemplate = await getNextTemplate(userId, macro.phase?.id ?? null);
-  const active = await listActiveTemplates(userId);
+  const active = templates.filter((template) => template.is_active);
+  const lastTemplateId = await getLastTemplateId(
+    userId,
+    macro.phase?.id ?? null,
+  );
+  const nextTemplate = pickNextTemplate(
+    active,
+    settings.skip_template_ids,
+    lastTemplateId,
+  );
   const followingTemplate =
     nextTemplate && active.length > 1
       ? templateAfter(active, nextTemplate.id)
       : null;
   const sessionTemplate = gym?.template_id
-    ? await getTemplate(userId, gym.template_id)
+    ? (templates.find((template) => template.id === gym.template_id) ?? null)
     : null;
-
-  const yesterdayGym = await getSessionOnDate(userId, previousIsoDate(date));
-  const [unfinished, recent, completed_sessions, last_completed_before] =
-    await Promise.all([
-      listUnfinishedGym(userId, date),
-      listSessionHistory(userId, {
-        limit: 5,
-        statuses: ["completed"],
-      }).then((page) => page.items),
-      countCompletedSessions(userId),
-      getLastCompletedDateBefore(userId, date),
-    ]);
 
   return {
     session: gym,

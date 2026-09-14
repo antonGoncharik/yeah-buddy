@@ -14,12 +14,14 @@ export function WorkoutHistoryStats({
   days: WorkoutHistoryRange;
   stats: WorkoutHistoryStatsData;
 }) {
-  const kinds = [
-    stats.dynamic > 0
-      ? `${WORKOUT_KIND_LABELS.dynamic} · ${stats.dynamic}`
-      : null,
-    stats.static > 0 ? `${WORKOUT_KIND_LABELS.static} · ${stats.static}` : null,
-  ].filter((value): value is string => value != null);
+  // Kind split only says something when both kinds happened.
+  const kinds =
+    stats.dynamic > 0 && stats.static > 0
+      ? [
+          `${WORKOUT_KIND_LABELS.dynamic} · ${stats.dynamic}`,
+          `${WORKOUT_KIND_LABELS.static} · ${stats.static}`,
+        ]
+      : [];
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">

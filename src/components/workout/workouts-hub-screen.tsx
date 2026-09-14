@@ -82,6 +82,7 @@ export function WorkoutsHubScreen() {
             session={session}
             nextTemplate={nextTemplate}
             followingTemplate={followingTemplate}
+            exercises={exercises}
             nextCanStart={nextCanStart}
             nextMissingMaxes={nextMissingMaxes}
             creating={creating}

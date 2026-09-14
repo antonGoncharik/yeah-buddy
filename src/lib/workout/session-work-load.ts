@@ -22,18 +22,16 @@ export async function loadSessionDetail(
   session: WorkoutSession,
 ): Promise<SessionDetail> {
   const supabase = createSupabaseServerClient();
-  const phase = session.phase_id
-    ? await getPhase(userId, session.phase_id)
-    : null;
-  const template = session.template_id
-    ? await getTemplate(userId, session.template_id)
-    : null;
-  const exerciseRows = await supabase
-    .from("session_exercises")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("session_id", session.id)
-    .order("sort_order", { ascending: true });
+  const [phase, template, exerciseRows] = await Promise.all([
+    session.phase_id ? getPhase(userId, session.phase_id) : null,
+    session.template_id ? getTemplate(userId, session.template_id) : null,
+    supabase
+      .from("session_exercises")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("session_id", session.id)
+      .order("sort_order", { ascending: true }),
+  ]);
 
   if (exerciseRows.error) {
     throw exerciseRows.error;

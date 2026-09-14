@@ -1,6 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import type { WorkoutSet } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { formatSetLine, workSetDiffers } from "@/lib/workout/session-format";
 
 export function SessionSetButtons({
@@ -8,48 +11,78 @@ export function SessionSetButtons({
   showActual,
   disabled,
   tone,
+  openIds = [],
   onPick,
+  renderAfter,
 }: {
   sets: WorkoutSet[];
   showActual: boolean;
   disabled: boolean;
   tone: "warmup" | "work";
+  /** Sets whose editor is open; drawn as selected. */
+  openIds?: string[];
   onPick: (ids: string[]) => void;
+  /** Rendered right under a set, e.g. the editor for the tapped one. */
+  renderAfter?: (set: WorkoutSet) => ReactNode;
 }) {
   const labels = sets.map((set) => formatSetLine(set, { showActual }));
 
   return (
-    <div className="flex w-full flex-col gap-1">
-      <ol className="flex flex-col gap-1.5">
-        {sets.map((set, index) => (
-          <li key={set.id}>
-            <button
-              type="button"
-              className="flex w-full items-baseline gap-2.5 text-left disabled:opacity-60"
-              disabled={disabled}
-              onClick={() => onPick([set.id])}
+    <ol className="flex w-full flex-col gap-1">
+      {sets.map((set, index) => {
+        const open = openIds.includes(set.id);
+        const line = (
+          <>
+            <span
+              className={cn(
+                "w-5 shrink-0 text-sm tabular-nums",
+                open ? "text-primary" : "text-muted-foreground",
+              )}
             >
-              <span className="w-5 shrink-0 text-sm tabular-nums text-muted-foreground">
-                {index + 1}
-              </span>
-              <span
-                className={
-                  tone === "work"
-                    ? "text-2xl font-semibold tracking-tight tabular-nums"
-                    : "text-base tabular-nums text-muted-foreground"
-                }
+              {index + 1}
+            </span>
+            <span
+              className={cn(
+                "tabular-nums",
+                tone === "work"
+                  ? "text-2xl font-semibold tracking-tight"
+                  : "text-base text-muted-foreground",
+                open && "text-primary",
+              )}
+            >
+              {labels[index]}
+            </span>
+          </>
+        );
+
+        return (
+          <li key={set.id} className="flex flex-col gap-1">
+            {disabled ? (
+              <div className="flex w-full items-baseline gap-2.5 rounded-lg py-0.5">
+                {line}
+              </div>
+            ) : (
+              <button
+                type="button"
+                aria-expanded={open}
+                className={cn(
+                  "-mx-2 flex items-baseline gap-2.5 rounded-lg px-2 py-0.5 text-left transition-colors",
+                  open ? "bg-primary/8" : "hover:bg-muted/50",
+                )}
+                onClick={() => onPick([set.id])}
               >
-                {labels[index]}
-              </span>
-            </button>
+                {line}
+              </button>
+            )}
             {showActual && workSetDiffers(set) ? (
-              <p className="mt-0.5 pl-7 text-sm text-muted-foreground">
+              <p className="-mt-1 pl-7 text-sm text-muted-foreground">
                 план {formatSetLine(set, { compact: true })}
               </p>
             ) : null}
+            {open ? renderAfter?.(set) : null}
           </li>
-        ))}
-      </ol>
-    </div>
+        );
+      })}
+    </ol>
   );
 }

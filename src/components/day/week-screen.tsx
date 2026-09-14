@@ -26,7 +26,7 @@ export function WeekScreen() {
         backHref={fromSettings ? "/settings" : "/today"}
       />
 
-      <div className="flex flex-col gap-2 px-4 pb-4">
+      <div className="flex flex-col gap-3 px-4 pb-4">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && week == null ? (
@@ -46,7 +46,7 @@ export function WeekScreen() {
               className="px-1 text-muted-foreground"
             />
             <ReviewCta from="week" />
-            <ul className="animate-rise flex flex-col gap-2">
+            <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
               {week.items.map((item) => (
                 <li key={item.date}>
                   <WeekDayRow

@@ -2,39 +2,66 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { patchJson } from "@/lib/api-cache";
+import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import { isRecord } from "@/lib/read";
-import type { ExerciseWithMax } from "@/lib/types";
-import { readExercises } from "@/lib/workout/hub-payload";
-import { parseExerciseWithMax } from "@/lib/workout/map-rows";
+import type { ExerciseWithMax, WorkoutTemplateDetail } from "@/lib/types";
+import { useFirstLoad } from "@/lib/use-first-load";
+import { readExercises, readTemplates } from "@/lib/workout/hub-payload";
+
+export interface ExerciseGroups {
+  /** Active exercises that appear in a queued workout. */
+  queued: ExerciseWithMax[];
+  /** Active exercises not in any queued workout. */
+  rest: ExerciseWithMax[];
+  /** Archived exercises («не делаю»). */
+  idle: ExerciseWithMax[];
+}
 
 export function useExercisesScreen() {
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
+  const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
+    begin();
     setError(null);
+    const showCached = () => done(true);
 
-    try {
-      const response = await fetch("/api/exercises?filter=all");
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
+    const [exercisesOk] = await Promise.all([
+      cachedGet(
+        "/api/exercises?filter=all",
+        (data) => {
+          setExercises(readExercises(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
+        "/api/templates",
+        (data) => {
+          setTemplates(readTemplates(data));
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+    ]);
 
-      const data: unknown = await response.json();
-      setExercises(readExercises(data));
-    } catch {
+    if (!exercisesOk) {
       setError(LOAD_FAILED);
-      setExercises([]);
-    } finally {
-      setLoading(false);
+      done(false);
+      return;
     }
-  }, []);
+
+    done(true);
+  }, [begin, done]);
 
   useEffect(() => {
     void load();
@@ -52,52 +79,42 @@ export function useExercisesScreen() {
     });
   }, [exercises, query]);
 
-  const active = useMemo(
-    () => filtered.filter((exercise) => exercise.is_active),
-    [filtered],
-  );
-  const idle = useMemo(
-    () => filtered.filter((exercise) => !exercise.is_active),
-    [filtered],
-  );
-
-  async function toggleActive(exercise: ExerciseWithMax) {
-    setBusyId(exercise.id);
-    setError(null);
-
-    try {
-      const data = await patchJson(`/api/exercises/${exercise.id}`, {
-        archived: exercise.is_active,
-      });
-      const updated = parseExerciseWithMax(
-        isRecord(data) ? data.exercise : null,
-      );
-      if (!updated) {
-        await load();
-        return;
+  const groups = useMemo<ExerciseGroups>(() => {
+    // Queue order, not alphabet: the list should read like the workouts do.
+    const queuedOrder = new Map<string, number>();
+    for (const template of templates) {
+      if (!template.is_active) {
+        continue;
       }
-
-      setExercises((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusyId(null);
+      for (const exercise of template.exercises) {
+        if (!queuedOrder.has(exercise.id)) {
+          queuedOrder.set(exercise.id, queuedOrder.size);
+        }
+      }
     }
-  }
+    return {
+      queued: filtered
+        .filter(
+          (exercise) => exercise.is_active && queuedOrder.has(exercise.id),
+        )
+        .sort(
+          (a, b) => (queuedOrder.get(a.id) ?? 0) - (queuedOrder.get(b.id) ?? 0),
+        ),
+      rest: filtered.filter(
+        (exercise) => exercise.is_active && !queuedOrder.has(exercise.id),
+      ),
+      idle: filtered.filter((exercise) => !exercise.is_active),
+    };
+  }, [filtered, templates]);
 
   return {
     exercises,
     loading,
     error,
     load,
-    busyId,
     query,
     setQuery,
     filtered,
-    active,
-    idle,
-    toggleActive,
+    groups,
   };
 }

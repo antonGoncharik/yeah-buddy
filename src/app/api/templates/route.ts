@@ -2,8 +2,6 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ensureStarterExercises } from "@/lib/workout/seed";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import {
   createTemplate,
@@ -21,10 +19,6 @@ export async function GET(): Promise<NextResponse> {
 
   try {
     await ensureWorkoutSettings(auth.session.userId);
-    await ensureStarterExercises(
-      createSupabaseServerClient(),
-      auth.session.userId,
-    );
     const templates = await listTemplates(auth.session.userId);
     return jsonOk({ templates });
   } catch (error) {

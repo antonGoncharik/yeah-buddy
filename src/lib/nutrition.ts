@@ -9,6 +9,7 @@ export {
   DEFAULT_REST_MACRO_GOALS,
   DEFAULT_TRAINING_MACRO_GOALS,
   defaultMacroGoals,
+  formatGrams,
   formatKcal,
   formatMacro,
   type Macros,

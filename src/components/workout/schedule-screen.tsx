@@ -1,13 +1,13 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ScheduleActiveList } from "@/components/workout/schedule-active-list";
 import { ScheduleInactiveList } from "@/components/workout/schedule-inactive-list";
 import { ScheduleProgramsSection } from "@/components/workout/schedule-programs-section";
@@ -42,15 +42,7 @@ export function ScheduleScreen() {
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
         {!loading && active.length === 0 && inactive.length === 0 ? (
@@ -93,10 +85,21 @@ export function ScheduleScreen() {
           ) : (
             <button
               type="button"
-              className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="card-surface flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/40"
               onClick={() => setShowPrograms(true)}
             >
-              Другие программы
+              <span className="min-w-0 flex-1">
+                <span className="block text-lg font-medium">
+                  Готовые программы
+                </span>
+                <span className="mt-0.5 block text-sm text-muted-foreground">
+                  Поставить в очередь вместо своих
+                </span>
+              </span>
+              <ChevronDown
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             </button>
           )
         ) : null}

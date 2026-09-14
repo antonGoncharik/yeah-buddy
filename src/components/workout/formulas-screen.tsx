@@ -45,7 +45,7 @@ export function FormulasScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={FORMULAS_LABEL}
-        subtitle="Сколько подходов и с каким весом от рабочего"
+        subtitle="Подходы и веса от рабочего"
         backHref="/workouts"
       />
 

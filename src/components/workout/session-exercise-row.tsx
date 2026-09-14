@@ -51,20 +51,30 @@ export function SessionExerciseRow({
   const work = item.sets.filter((set) => set.set_type === "work");
   const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
   const leadSet = openSets[0] ?? null;
-  const leadGroup =
-    leadSet?.set_type === "warmup"
-      ? warmup
-      : leadSet?.set_type === "work"
-        ? work
-        : [];
-  const leadNumber = leadSet
-    ? leadGroup.findIndex((set) => set.id === leadSet.id) + 1
-    : 0;
-  const editorOpen =
-    leadSet != null && (leadSet.set_type !== "warmup" || warmupOpen);
   const previousLine = item.previous
     ? formatPreviousWorkLine(item.previous)
     : null;
+
+  function renderEditor(set: WorkoutSet) {
+    if (!leadSet || set.id !== leadSet.id) {
+      return null;
+    }
+    const group = set.set_type === "warmup" ? warmup : work;
+    return (
+      <SessionSetEditor
+        set={set}
+        draft={drafts[set.id] ?? draftFromSet(set)}
+        disabled={disabled}
+        groupCount={openSets.length}
+        setNumber={group.findIndex((entry) => entry.id === set.id) + 1}
+        onDraft={(patch) => {
+          for (const open of openSets) {
+            onDraft(open.id, patch);
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <div
@@ -79,7 +89,7 @@ export function SessionExerciseRow({
             : "flex flex-col items-start gap-2.5 px-5 py-4"
         }
       >
-        <div className="flex w-full items-start gap-2">
+        <div className="flex w-full items-center gap-2">
           <h3 className="min-w-0 flex-1 text-xl font-semibold tracking-tight">
             {item.exercise.short_name || item.exercise.name}
           </h3>
@@ -104,13 +114,15 @@ export function SessionExerciseRow({
                 showActual={showActual}
                 disabled={disabled}
                 tone="warmup"
+                openIds={openSetIds}
                 onPick={onOpenSets}
+                renderAfter={renderEditor}
               />
             ) : null}
           </div>
         ) : null}
         {work.length > 0 ? (
-          <div className="flex w-full flex-col items-start gap-1">
+          <div className="flex w-full flex-col items-start gap-1.5">
             {previousLine ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {previousLine}
@@ -121,7 +133,9 @@ export function SessionExerciseRow({
               showActual={showActual}
               disabled={disabled}
               tone="work"
+              openIds={openSetIds}
               onPick={onOpenSets}
+              renderAfter={renderEditor}
             />
             {onStartRest && !restActive && workSetsNeedRest(work) ? (
               <button
@@ -136,21 +150,6 @@ export function SessionExerciseRow({
           </div>
         ) : null}
       </div>
-
-      {editorOpen && leadSet ? (
-        <SessionSetEditor
-          set={leadSet}
-          draft={drafts[leadSet.id] ?? draftFromSet(leadSet)}
-          disabled={disabled}
-          groupCount={openSets.length}
-          setNumber={leadNumber}
-          onDraft={(patch) => {
-            for (const set of openSets) {
-              onDraft(set.id, patch);
-            }
-          }}
-        />
-      ) : null}
     </div>
   );
 }

@@ -34,18 +34,18 @@ export function WorkoutsHubSessionCard({
             <li key={item.session.id}>
               <Link
                 href={`/workouts/sessions/${item.session.id}`}
-                className="card-surface flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
+                className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
               >
                 <span className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-primary">
                     Не закончена · {formatSessionDay(item.session.session_date)}
                   </p>
-                  <h2 className="mt-1 text-xl font-semibold tracking-tight">
+                  <h2 className="mt-0.5 text-xl font-semibold tracking-tight">
                     {item.template_name ??
                       WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </h2>
-                  <p className="mt-2 text-base text-muted-foreground">
-                    Доделать
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Открыть и доделать или убрать
                   </p>
                 </span>
                 <ChevronRight
@@ -61,11 +61,11 @@ export function WorkoutsHubSessionCard({
       {session ? (
         <Link
           href={`/workouts/sessions/${session.id}`}
-          className="card-surface animate-rise flex items-center gap-3 px-5 py-6 transition-colors hover:bg-muted/40"
+          className="card-surface animate-rise flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
         >
           <span className="min-w-0 flex-1">
             <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+            <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">
               {sessionTemplate?.name ??
                 WORKOUT_KIND_LABELS[session.workout_type]}
             </h2>
@@ -73,20 +73,20 @@ export function WorkoutsHubSessionCard({
               <p
                 className={
                   session.status === "planned"
-                    ? "mt-3 text-base font-medium text-primary"
-                    : "mt-3 text-base text-muted-foreground"
+                    ? "mt-2 text-base font-medium text-primary"
+                    : "mt-2 text-base text-muted-foreground"
                 }
               >
                 {sessionAction}
               </p>
             ) : null}
             {session.status === "completed" && nextTemplate ? (
-              <p className="mt-2 text-base text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Дальше {nextTemplate.name}
               </p>
             ) : null}
             {session.status === "planned" && followingTemplate ? (
-              <p className="mt-2 text-base text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Потом {followingTemplate.name}
               </p>
             ) : null}

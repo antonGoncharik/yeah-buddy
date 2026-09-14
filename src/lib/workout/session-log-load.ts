@@ -37,11 +37,13 @@ export async function loadWorkBySession(
   const exerciseIds = [
     ...new Set(sessionExercises.map((row) => String(row.exercise_id))),
   ];
-  const names = await exerciseNamesById(userId, exerciseIds);
-  const setsByExercise = await listWorkSetsBySessionExercise(
-    userId,
-    sessionExercises.map((row) => String(row.id)),
-  );
+  const [names, setsByExercise] = await Promise.all([
+    exerciseNamesById(userId, exerciseIds),
+    listWorkSetsBySessionExercise(
+      userId,
+      sessionExercises.map((row) => String(row.id)),
+    ),
+  ]);
 
   for (const row of sessionExercises) {
     const sessionId = String(row.session_id);

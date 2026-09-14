@@ -34,14 +34,26 @@ export async function getNextTemplate(
   userId: string,
   phaseId: string | null,
 ): Promise<WorkoutTemplateDetail | null> {
-  const templates = await listActiveTemplates(userId);
+  const [templates, settings, lastId] = await Promise.all([
+    listActiveTemplates(userId),
+    ensureWorkoutSettings(userId),
+    getLastTemplateId(userId, phaseId),
+  ]);
+
+  return pickNextTemplate(templates, settings.skip_template_ids, lastId);
+}
+
+/** Next template in the queue after `lastId`, hopping over skipped ones. */
+export function pickNextTemplate<T extends { id: string }>(
+  templates: T[],
+  skipTemplateIds: readonly string[],
+  lastId: string | null,
+): T | null {
   if (templates.length === 0) {
     return null;
   }
 
-  const settings = await ensureWorkoutSettings(userId);
-  const skipped = new Set(settings.skip_template_ids);
-  const lastId = await getLastTemplateId(userId, phaseId);
+  const skipped = new Set(skipTemplateIds);
   let current = templateAfter(templates, lastId);
 
   for (let step = 0; step < templates.length; step += 1) {
@@ -77,7 +89,7 @@ export function templateAfter<T extends { id: string }>(
   return templates[(index + 1) % templates.length] ?? null;
 }
 
-async function getLastTemplateId(
+export async function getLastTemplateId(
   userId: string,
   phaseId: string | null,
 ): Promise<string | null> {

@@ -4,9 +4,9 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ExercisesList } from "@/components/workout/exercises-list";
 import { useExercisesScreen } from "@/components/workout/use-exercises-screen";
@@ -14,19 +14,9 @@ import { EXERCISES_EMPTY } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
 export function ExercisesScreen() {
-  const {
-    exercises,
-    loading,
-    error,
-    load,
-    busyId,
-    query,
-    setQuery,
-    filtered,
-    active,
-    idle,
-    toggleActive,
-  } = useExercisesScreen();
+  const { exercises, loading, error, load, query, setQuery, filtered, groups } =
+    useExercisesScreen();
+  const searching = query.trim() !== "";
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,19 +26,11 @@ export function ExercisesScreen() {
         backHref="/workouts"
       />
 
-      <div className="px-4 pb-24">
+      <div className="px-4 pb-28">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && exercises.length === 0 ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center text-lg font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
         {!loading && !error && exercises.length === 0 ? (
@@ -58,7 +40,7 @@ export function ExercisesScreen() {
         ) : null}
 
         {!loading && exercises.length > 0 ? (
-          <div className="animate-rise flex flex-col gap-8">
+          <div className="animate-rise flex flex-col gap-6">
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -75,12 +57,7 @@ export function ExercisesScreen() {
                 Ничего не нашлось.
               </p>
             ) : (
-              <ExercisesList
-                active={active}
-                idle={idle}
-                busyId={busyId}
-                onToggle={(exercise) => void toggleActive(exercise)}
-              />
+              <ExercisesList groups={groups} searching={searching} />
             )}
           </div>
         ) : null}

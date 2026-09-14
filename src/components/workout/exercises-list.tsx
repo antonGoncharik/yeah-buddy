@@ -1,115 +1,129 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { SectionHeading } from "@/components/layout/section-heading";
+import type { ExerciseGroups } from "@/components/workout/use-exercises-screen";
 import type { ExerciseWithMax } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 export function ExercisesList({
-  active,
-  idle,
-  busyId,
-  onToggle,
+  groups,
+  searching,
 }: {
-  active: ExerciseWithMax[];
-  idle: ExerciseWithMax[];
-  busyId: string | null;
-  onToggle: (exercise: ExerciseWithMax) => void;
+  groups: ExerciseGroups;
+  searching: boolean;
 }) {
+  const [idleOpen, setIdleOpen] = useState(false);
+  const showIdle = groups.idle.length > 0 && (idleOpen || searching);
+
   return (
     <>
-      <ExerciseGroup
-        title="Делаю"
-        hint="Эти будут в тренировках."
-        empty="Включи из списка ниже."
-        exercises={active}
-        busyId={busyId}
-        actionLabel="Не делаю"
-        onToggle={onToggle}
-      />
-      <ExerciseGroup
-        title="Не делаю"
-        hint="В тренировки не попадёт."
-        empty="Все упражнения в работе."
-        exercises={idle}
-        busyId={busyId}
-        actionLabel="Делаю"
-        onToggle={onToggle}
-      />
+      {groups.queued.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <SectionHeading
+            title="В тренировках"
+            hint="Рабочий вес справа — от него считаются подходы."
+          />
+          <ExerciseRows exercises={groups.queued} />
+        </section>
+      ) : null}
+
+      {groups.rest.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <SectionHeading
+            title={groups.queued.length > 0 ? "Остальные" : "Упражнения"}
+            hint={
+              groups.queued.length > 0
+                ? "Не в очереди, но можно добавить в тренировку."
+                : undefined
+            }
+          />
+          <ExerciseRows exercises={groups.rest} />
+        </section>
+      ) : null}
+
+      {groups.idle.length > 0 ? (
+        <section className="flex flex-col gap-2">
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 px-1 text-left"
+            aria-expanded={showIdle}
+            onClick={() => setIdleOpen((current) => !current)}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-semibold">
+                Не делаю
+                <span className="ml-2 text-base font-medium text-muted-foreground tabular-nums">
+                  {groups.idle.length}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">
+                В тренировки не попадают. Вернуть можно внутри упражнения.
+              </span>
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-5 shrink-0 text-muted-foreground transition-transform duration-200 ease-[var(--ease-out-soft)]",
+                showIdle && "rotate-180",
+              )}
+              aria-hidden
+            />
+          </button>
+          {showIdle ? <ExerciseRows exercises={groups.idle} muted /> : null}
+        </section>
+      ) : null}
     </>
   );
 }
 
-function ExerciseGroup({
-  title,
-  hint,
-  empty,
+function ExerciseRows({
   exercises,
-  busyId,
-  actionLabel,
-  onToggle,
+  muted = false,
 }: {
-  title: string;
-  hint: string;
-  empty: string;
   exercises: ExerciseWithMax[];
-  busyId: string | null;
-  actionLabel: string;
-  onToggle: (exercise: ExerciseWithMax) => void;
+  muted?: boolean;
 }) {
   return (
-    <section className="flex flex-col gap-2">
-      <div className="px-1">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="text-sm leading-relaxed text-muted-foreground">{hint}</p>
-      </div>
-      {exercises.length === 0 ? (
-        <p className="px-1 py-2 text-base text-muted-foreground">{empty}</p>
-      ) : (
-        <ul className="flex flex-col">
-          {exercises.map((exercise) => (
-            <li
-              key={exercise.id}
-              className="border-b border-border/70 last:border-b-0"
+    <ul className="card-surface divide-y divide-border/70 px-5 py-1">
+      {exercises.map((exercise) => {
+        const max = exercise.current_max?.max_weight ?? 0;
+        return (
+          <li key={exercise.id}>
+            <Link
+              href={`/workouts/exercises/${exercise.id}`}
+              className="flex items-center gap-3 py-3 transition-colors hover:bg-muted/40"
             >
-              <div className="flex items-center gap-2 py-2.5">
-                <Link
-                  href={`/workouts/exercises/${exercise.id}`}
-                  className="flex min-w-0 flex-1 items-center justify-between gap-3 py-1"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-base font-medium">
-                      {exercise.short_name || exercise.name}
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1">
-                    <span className="text-lg tabular-nums font-semibold tracking-tight">
-                      {exercise.current_max
-                        ? formatWeight(exercise.current_max.max_weight)
-                        : "—"}
-                    </span>
-                    <ChevronRight
-                      className="size-5 text-muted-foreground"
-                      aria-hidden
-                    />
-                  </span>
-                </Link>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-10 shrink-0 px-2.5 text-sm"
-                  disabled={busyId === exercise.id}
-                  onClick={() => onToggle(exercise)}
-                >
-                  {actionLabel}
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate text-base font-medium",
+                  muted && "text-muted-foreground",
+                )}
+              >
+                {exerciseShortLabel(exercise.short_name, exercise.name)}
+              </span>
+              <span className="shrink-0 text-base tabular-nums">
+                {max > 0 ? (
+                  <>
+                    <span className="font-semibold">{formatWeight(max)}</span>
+                    <span className="text-sm text-muted-foreground"> кг</span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </span>
+              <ChevronRight
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

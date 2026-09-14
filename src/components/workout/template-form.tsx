@@ -58,16 +58,10 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
               ]}
               onChange={(id) => setIsActive(id === "on")}
             />
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              В очереди или отложить.
-            </p>
           </Field>
 
           <Field label="Тип">
             <Segmented value={kind} options={KIND_OPTIONS} onChange={setKind} />
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Повторы или на время.
-            </p>
           </Field>
 
           <TemplateExercisePicker

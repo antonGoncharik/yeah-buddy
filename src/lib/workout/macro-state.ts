@@ -10,18 +10,21 @@ export async function getCurrentMacroState(
   userId: string,
 ): Promise<CurrentMacroState> {
   const supabase = createSupabaseServerClient();
-  const macros = await supabase
-    .from("macro_cycles")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "current")
-    .maybeSingle();
+  const [macros, settings, last_recap] = await Promise.all([
+    supabase
+      .from("macro_cycles")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "current")
+      .maybeSingle(),
+    ensureWorkoutSettings(userId),
+    getLatestCompletedMacroRecap(userId),
+  ]);
 
   if (macros.error) {
     throw macros.error;
   }
 
-  const settings = await ensureWorkoutSettings(userId);
   const planned_cycle = settings.formulas.cycle.map((phase) => ({
     key: phase.key,
     name: phase.name,
@@ -35,7 +38,7 @@ export async function getCurrentMacroState(
       maxes: [],
       planned_cycle,
       phase_circle: null,
-      last_recap: await getLatestCompletedMacroRecap(userId),
+      last_recap,
     };
   }
 
@@ -55,9 +58,10 @@ export async function getCurrentMacroState(
     mapWorkoutPhase(row as Record<string, unknown>),
   );
   const phase = phases.find((item) => item.status === "current") ?? null;
-  const maxes = phase ? await listPhaseMaxRows(userId, phase.id) : [];
-  const phase_circle = await getPhaseCircleProgress(userId, phase);
-  const last_recap = await getLatestCompletedMacroRecap(userId);
+  const [maxes, phase_circle] = await Promise.all([
+    phase ? listPhaseMaxRows(userId, phase.id) : [],
+    getPhaseCircleProgress(userId, phase),
+  ]);
 
   return {
     macro,

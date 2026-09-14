@@ -41,9 +41,9 @@ export function FormulaWorkCard({
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-      <div className="flex items-baseline justify-between gap-3">
+      <div>
         <h2 className="text-xl font-semibold">Рабочие подходы</h2>
-        <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
+        <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">
           {workSummary(work)}
         </p>
       </div>

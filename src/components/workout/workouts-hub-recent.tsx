@@ -3,6 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/layout/section-heading";
 import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
@@ -18,30 +19,30 @@ export function WorkoutsHubRecent({
 
   return (
     <section
-      className="animate-rise flex flex-col gap-2 px-1"
+      className="animate-rise flex flex-col gap-2"
       style={{ animationDelay: "80ms" }}
     >
-      <Link
+      <SectionHeading
+        title="Недавние"
         href="/workouts/history"
-        className="flex items-center justify-between gap-3"
-      >
-        <h2 className="text-sm font-medium text-muted-foreground">Недавние</h2>
-        <ChevronRight
-          className="size-4 shrink-0 text-muted-foreground"
-          aria-hidden
-        />
-      </Link>
-      <ul className="flex flex-col gap-1">
+        linkLabel="Все"
+      />
+      <ul className="card-surface divide-y divide-border/70 px-5 py-1">
         {recent.map((item) => (
           <li key={item.session.id}>
             <Link
               href={`/workouts/sessions/${item.session.id}`}
-              className="flex items-center justify-between gap-3 py-1"
+              className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted/40"
             >
-              <span className="min-w-0">
-                <span className="truncate text-base">
-                  {item.template_name ??
-                    WORKOUT_KIND_LABELS[item.session.workout_type]}
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="truncate text-base font-medium">
+                    {item.template_name ??
+                      WORKOUT_KIND_LABELS[item.session.workout_type]}
+                  </span>
+                  <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+                    {formatSessionDay(item.session.session_date)}
+                  </span>
                 </span>
                 {item.summary ? (
                   <span className="mt-0.5 block truncate text-sm text-muted-foreground">
@@ -49,9 +50,10 @@ export function WorkoutsHubRecent({
                   </span>
                 ) : null}
               </span>
-              <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
-                {formatSessionDay(item.session.session_date)}
-              </span>
+              <ChevronRight
+                className="size-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             </Link>
           </li>
         ))}

@@ -39,36 +39,39 @@ export function WeekDayRow({
       ? null
       : `${formatBodyWeight(slot.day.body_weight)} кг`;
 
+  // One line of facts under the date; what's missing is muted, not hidden,
+  // so an empty day still reads as a day.
+  const facts = [
+    { key: "food", label: foodLabel, muted: !dayHasFood(slot.day) },
+    { key: "gym", label: gymLabel, muted: slot.session == null },
+    weightLabel ? { key: "weight", label: weightLabel, muted: false } : null,
+  ].filter((item) => item != null);
+
   const body = (
     <>
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-3">
           <span className="text-base font-medium">
             {formatIsoDate(slot.date, "EEEEEE, d MMMM")}
           </span>
           {typeLabel ? (
-            <span className="text-sm text-muted-foreground">{typeLabel}</span>
+            <span className="shrink-0 text-sm text-muted-foreground">
+              {typeLabel}
+            </span>
           ) : null}
         </span>
-        <span
-          className={cn(
-            "text-sm",
-            dayHasFood(slot.day) ? null : "text-muted-foreground",
-          )}
-        >
-          {foodLabel}
+        <span className="truncate text-sm">
+          {facts.map((item, index) => (
+            <span key={item.key}>
+              {index > 0 ? (
+                <span className="text-muted-foreground"> · </span>
+              ) : null}
+              <span className={cn(item.muted && "text-muted-foreground")}>
+                {item.label}
+              </span>
+            </span>
+          ))}
         </span>
-        <span
-          className={cn(
-            "truncate text-sm",
-            slot.session ? null : "text-muted-foreground",
-          )}
-        >
-          {gymLabel}
-        </span>
-        {weightLabel ? (
-          <span className="text-sm text-muted-foreground">{weightLabel}</span>
-        ) : null}
       </span>
       {href ? (
         <ChevronRight
@@ -80,17 +83,13 @@ export function WeekDayRow({
   );
 
   if (!href) {
-    return (
-      <div className="card-surface flex items-center gap-3 px-5 py-4">
-        {body}
-      </div>
-    );
+    return <div className="flex items-center gap-3 py-3">{body}</div>;
   }
 
   return (
     <Link
       href={href}
-      className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+      className="flex items-center gap-3 py-3 transition-colors hover:bg-muted/40"
     >
       {body}
     </Link>
@@ -98,5 +97,5 @@ export function WeekDayRow({
 }
 
 function formatWeekProtein(fact: number, target: number): string {
-  return `${Math.round(fact).toLocaleString("ru-RU")} / ${Math.round(target).toLocaleString("ru-RU")} г`;
+  return `белок ${Math.round(fact).toLocaleString("ru-RU")} / ${Math.round(target).toLocaleString("ru-RU")} г`;
 }

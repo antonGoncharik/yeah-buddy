@@ -63,7 +63,7 @@ export function ProgressExerciseCard({
               ? ` · ${formatRelative(item.current_relative)}`
               : null}
             {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
-            {item.delta != null && item.percent != null ? (
+            {item.delta != null && item.percent != null && item.delta !== 0 ? (
               <span
                 className={cn(
                   "ml-2 font-medium",

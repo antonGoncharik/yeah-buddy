@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/layout/section-heading";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SortableList } from "@/components/workout/sortable-list";
 import type { WorkoutTemplateDetail } from "@/lib/types";
@@ -29,30 +30,41 @@ export function ScheduleActiveList({
 
   return (
     <section className="animate-rise flex flex-col gap-2">
-      <SortableList
-        items={active}
-        disabled={saving}
-        onReorder={(nextActive) => onPersist(nextActive, inactive)}
-        renderItem={(template) => (
-          <>
-            <Link
-              href={`/workouts/templates/${template.id}`}
-              className="min-w-0 flex-1 rounded-xl px-2 py-2"
-            >
-              <p className="text-base font-medium leading-snug">
-                {template.name}
-              </p>
-              <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                {templateExerciseLine(template)}
-              </p>
-            </Link>
-            <RemoveRowButton
-              disabled={saving}
-              onClick={() => onSetInCircle(template.id, false)}
-            />
-          </>
-        )}
+      <SectionHeading
+        title="В очереди"
+        hint={
+          active.length > 1
+            ? "Тяни за номер, чтобы поменять порядок. Крестик откладывает."
+            : "Крестик откладывает, не удаляет."
+        }
       />
+      <div className="card-surface px-3 py-1">
+        <SortableList
+          items={active}
+          disabled={saving}
+          onReorder={(nextActive) => onPersist(nextActive, inactive)}
+          renderItem={(template) => (
+            <>
+              <Link
+                href={`/workouts/templates/${template.id}`}
+                className="min-w-0 flex-1 rounded-xl px-2 py-2"
+              >
+                <p className="text-base font-medium leading-snug">
+                  {template.name}
+                </p>
+                <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                  {templateExerciseLine(template)}
+                </p>
+              </Link>
+              <RemoveRowButton
+                label="Отложить"
+                disabled={saving}
+                onClick={() => onSetInCircle(template.id, false)}
+              />
+            </>
+          )}
+        />
+      </div>
     </section>
   );
 }

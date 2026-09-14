@@ -125,10 +125,18 @@ export function GramsScreen({
       )}
 
       {grams.totals ? (
-        <div className="card-surface px-5 py-4 text-lg">
-          Итого: Б {formatMacro(grams.totals.protein)} · Ж{" "}
-          {formatMacro(grams.totals.fat)} · У {formatMacro(grams.totals.carbs)}{" "}
-          · {formatKcal(grams.totals.kcal)} ккал
+        <div className="card-surface flex items-baseline justify-between gap-3 px-5 py-4">
+          <p className="text-sm text-muted-foreground tabular-nums">
+            Б {formatMacro(grams.totals.protein)} · Ж{" "}
+            {formatMacro(grams.totals.fat)} · У{" "}
+            {formatMacro(grams.totals.carbs)}
+          </p>
+          <p className="shrink-0 text-lg font-semibold tabular-nums">
+            {formatKcal(grams.totals.kcal)}
+            <span className="ml-1 text-sm font-medium text-muted-foreground">
+              ккал
+            </span>
+          </p>
         </div>
       ) : null}
 

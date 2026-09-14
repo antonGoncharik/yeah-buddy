@@ -30,8 +30,8 @@ export function SessionSetEditor({
       : `${kind} ${setNumber}`;
 
   return (
-    <div className="grid grid-cols-2 gap-2 px-5 pb-4" data-field-group>
-      <div className="col-span-2 grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
+    <div className="w-full pt-1 pb-1" data-field-group>
+      <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
         <p className="col-span-2 text-sm text-muted-foreground">{title}</p>
         <FieldInput
           label="кг"

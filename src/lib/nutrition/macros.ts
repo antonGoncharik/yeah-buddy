@@ -101,6 +101,14 @@ export function formatMacro(value: number): string {
   });
 }
 
+/** Portion size: whole grams stay whole, «80 г» rather than «80,0 г». */
+export function formatGrams(value: number): string {
+  return value.toLocaleString("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  });
+}
+
 export function formatKcal(value: number): string {
   return Math.round(value).toLocaleString("ru-RU");
 }

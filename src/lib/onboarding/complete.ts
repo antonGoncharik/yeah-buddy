@@ -24,7 +24,6 @@ import {
   matchProgramPresetId,
   PROGRAM_PRESET_IDS,
 } from "@/lib/workout/program-presets";
-import { ensureStarterExercises } from "@/lib/workout/seed";
 import {
   applyProgramPreset,
   listTemplates,
@@ -54,7 +53,6 @@ export async function getOnboardingState(
     throw new Error("Настройки не нашлись.");
   }
 
-  await ensureStarterExercises(createSupabaseServerClient(), userId);
   const [exercises, templates, macro] = await Promise.all([
     listExercises(userId, "active"),
     listTemplates(userId),

@@ -35,11 +35,11 @@ export function SessionMissingMaxes({
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
-        <p className="text-lg font-medium">Без рабочего веса</p>
+        <p className="text-xl font-semibold tracking-tight">Ещё без плана</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           {exercises.length === 1
-            ? "Это упражнение тоже в тренировке, но веса для него ещё нет — поэтому плана нет. Напиши обычный рабочий вес, и подходы посчитаются."
-            : "Эти упражнения тоже в тренировке, но весов для них ещё нет — поэтому плана нет. Напиши обычный рабочий вес, и подходы посчитаются."}
+            ? "Напиши обычный рабочий вес — подходы посчитаются."
+            : "Напиши обычные рабочие веса — подходы посчитаются."}
           {inCycle ? " Вес пойдёт в текущий этап цикла." : ""}
         </p>
       </div>

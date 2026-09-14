@@ -112,6 +112,11 @@ function navActiveHref(pathname: string, from: string | null): string {
   ) {
     return "/settings";
   }
+  // The set scheme lives under /settings in the URL but is only reachable
+  // from the gym, so the gym tab stays lit.
+  if (pathname.startsWith("/settings/formulas")) {
+    return "/workouts";
+  }
   if (
     pathname.startsWith("/settings") ||
     pathname.startsWith("/foods") ||

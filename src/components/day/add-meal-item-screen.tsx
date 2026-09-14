@@ -7,9 +7,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
@@ -115,15 +115,10 @@ export function AddMealItemScreen({
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <p className="text-center font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load(listFilter, true)}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError
+            message={error}
+            onRetry={() => void load(listFilter, true)}
+          />
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 ? (

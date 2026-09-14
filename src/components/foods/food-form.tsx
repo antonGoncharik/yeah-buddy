@@ -91,12 +91,12 @@ export function FoodForm({
       {food ? (
         <Button
           type="button"
-          variant="destructive"
-          className="h-12 text-base"
+          variant="ghost"
+          className="mt-2 h-12 text-base text-destructive"
           disabled={saving || deleting}
           onClick={() => void onDelete()}
         >
-          {deleting ? "Удаление…" : "Удалить"}
+          {deleting ? "Удаление…" : "Удалить продукт"}
         </Button>
       ) : null}
 

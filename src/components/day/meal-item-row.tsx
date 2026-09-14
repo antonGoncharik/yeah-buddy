@@ -6,7 +6,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { lumpHref } from "@/lib/day/lump";
-import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { formatGrams, formatKcal, formatMacro } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
 export interface MealLine {
@@ -35,7 +35,7 @@ export function MealItemRow({
       <p className="text-sm text-muted-foreground">
         {item.lump
           ? `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`
-          : `${formatMacro(item.grams)} г · ${formatKcal(item.kcal)} ккал`}
+          : `${formatGrams(item.grams)} г · ${formatKcal(item.kcal)} ккал`}
       </p>
     </>
   );

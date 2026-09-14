@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,10 @@ import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/**
+ * Foods as one card of rows, like every other list in the app: name and
+ * macros on the left, kcal per 100 g on the right, star to favourite.
+ */
 export function FoodList({
   foods,
   hrefForFood,
@@ -24,58 +28,50 @@ export function FoodList({
   onToggleFavorite?: (food: Food) => void;
 }) {
   const favoriteVisible = showFavorite && onToggleFavorite;
+  const rowClass =
+    "flex min-w-0 flex-1 items-center gap-3 py-3 text-left transition-colors hover:bg-muted/40";
 
   return (
-    <ul className="flex flex-col gap-2">
-      {foods.map((food, index) => (
-        <li
-          key={food.id}
-          className="animate-rise"
-          style={{ animationDelay: `${Math.min(index, 10) * 35}ms` }}
-        >
-          <div className="card-surface flex items-stretch overflow-hidden">
-            {onSelectFood ? (
-              <button
-                type="button"
-                className="flex min-w-0 flex-1 items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-muted/40"
-                onClick={() => onSelectFood(food)}
-              >
-                <FoodListBody food={food} />
-              </button>
-            ) : (
-              <Link
-                href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
-                className="flex min-w-0 flex-1 items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-              >
-                <FoodListBody food={food} />
-                <ChevronRight
-                  className="size-5 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
-              </Link>
-            )}
-            {favoriteVisible ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                className="h-auto min-w-14 rounded-none rounded-r-2xl"
-                aria-label={
-                  food.is_favorite
-                    ? "Убрать из избранного"
-                    : "Добавить в избранное"
-                }
-                onClick={() => onToggleFavorite(food)}
-              >
-                <Star
-                  className={cn(
-                    "size-5 transition-[transform,fill,color] duration-300 ease-[var(--ease-out-soft)]",
-                    food.is_favorite && "scale-110 fill-current text-primary",
-                  )}
-                />
-              </Button>
-            ) : null}
-          </div>
+    <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
+      {foods.map((food) => (
+        <li key={food.id} className="flex items-stretch">
+          {onSelectFood ? (
+            <button
+              type="button"
+              className={rowClass}
+              onClick={() => onSelectFood(food)}
+            >
+              <FoodListBody food={food} />
+            </button>
+          ) : (
+            <Link
+              href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
+              className={rowClass}
+            >
+              <FoodListBody food={food} />
+            </Link>
+          )}
+          {favoriteVisible ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="-mr-3 h-auto w-12 self-stretch rounded-lg"
+              aria-label={
+                food.is_favorite
+                  ? "Убрать из избранного"
+                  : "Добавить в избранное"
+              }
+              onClick={() => onToggleFavorite(food)}
+            >
+              <Star
+                className={cn(
+                  "size-5 transition-[transform,fill,color] duration-300 ease-[var(--ease-out-soft)]",
+                  food.is_favorite && "scale-110 fill-current text-primary",
+                )}
+              />
+            </Button>
+          ) : null}
         </li>
       ))}
     </ul>
@@ -85,7 +81,6 @@ export function FoodList({
 function FoodListBody({ food }: { food: Food }) {
   const yieldPair = parseFoodYield(food);
   const subtitle = [
-    food.state !== "as_is" ? FOOD_STATE_LABELS[food.state] : null,
     yieldPair
       ? `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
       : null,
@@ -93,18 +88,28 @@ function FoodListBody({ food }: { food: Food }) {
   ]
     .filter(Boolean)
     .join(" · ");
+  // State sits under the kcal so the macro line never gets pushed off-screen.
+  const state =
+    food.state !== "as_is" ? FOOD_STATE_LABELS[food.state].toLowerCase() : null;
 
   return (
-    <span className="min-w-0 flex-1">
-      <p className="truncate text-lg font-medium">{food.name}</p>
-      {subtitle ? (
-        <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-      ) : null}
-      <p className="mt-1 text-sm text-muted-foreground">
-        Б {formatMacro(food.protein_per_100)} · Ж{" "}
-        {formatMacro(food.fat_per_100)} · У {formatMacro(food.carbs_per_100)} ·{" "}
-        {formatKcal(food.kcal_per_100)} ккал
-      </p>
-    </span>
+    <>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-base font-medium">
+          {food.name}
+        </span>
+        <span className="block truncate text-sm text-muted-foreground">
+          {subtitle ? `${subtitle} · ` : null}Б{" "}
+          {formatMacro(food.protein_per_100)} · Ж{" "}
+          {formatMacro(food.fat_per_100)} · У {formatMacro(food.carbs_per_100)}
+        </span>
+      </span>
+      <span className="shrink-0 text-right text-sm text-muted-foreground">
+        <span className="block tabular-nums">
+          {formatKcal(food.kcal_per_100)} ккал
+        </span>
+        {state ? <span className="block text-xs">{state}</span> : null}
+      </span>
+    </>
   );
 }

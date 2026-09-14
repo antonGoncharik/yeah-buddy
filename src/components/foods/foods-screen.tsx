@@ -7,9 +7,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, patchJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
@@ -120,15 +120,7 @@ export function FoodsScreen() {
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <div className="animate-rise flex flex-col items-center gap-3 py-12">
-            <p className="text-center text-lg font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load(filter)}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load(filter)} />
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 ? (

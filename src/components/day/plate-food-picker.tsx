@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
-import { ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEasterEgg } from "@/lib/flavor";
@@ -109,15 +109,7 @@ export function PlateFoodPicker({
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <p className="text-center font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load(filter)}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={error} onRetry={() => void load(filter)} />
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 ? (

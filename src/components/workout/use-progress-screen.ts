@@ -46,16 +46,31 @@ export function useProgressScreen() {
     void load();
   }, [load]);
 
+  // Exercises without a single recorded weight have nothing to chart; they
+  // live in «Упражнения», not here.
+  const tracked = useMemo(
+    () =>
+      (progress?.exercises ?? []).filter(
+        (item) => item.current_weight != null || item.points.length > 0,
+      ),
+    [progress],
+  );
+  const mixedCategories = useMemo(
+    () =>
+      tracked.some((item) => item.category === "isolation") &&
+      tracked.some((item) => item.category !== "isolation"),
+    [tracked],
+  );
+
   const visible = useMemo(() => {
-    const list = progress?.exercises ?? [];
-    if (filter === "all") {
-      return list;
+    if (filter === "all" || !mixedCategories) {
+      return tracked;
     }
     if (filter === "isolation") {
-      return list.filter((item) => item.category === "isolation");
+      return tracked.filter((item) => item.category === "isolation");
     }
-    return list.filter((item) => item.category !== "isolation");
-  }, [filter, progress]);
+    return tracked.filter((item) => item.category !== "isolation");
+  }, [filter, mixedCategories, tracked]);
 
   return {
     progress,
@@ -66,6 +81,8 @@ export function useProgressScreen() {
     setFilter,
     openId,
     setOpenId,
+    tracked,
+    mixedCategories,
     visible,
   };
 }

@@ -4,6 +4,7 @@ import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { NavRow } from "@/components/layout/nav-row";
+import { SectionHeading } from "@/components/layout/section-heading";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { reviewHref } from "@/lib/ai/review-nav";
 import type {
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { cycleTimeline, phaseLinkLabel } from "@/lib/workout/hints";
 import {
   CYCLE_LABEL,
+  exerciseShortLabel,
   FORMULAS_LABEL,
   QUEUE_LABEL,
   REVIEW_LABEL,
@@ -46,6 +48,7 @@ export function WorkoutsHubNavSections({
 }) {
   const highlightId =
     session?.status === "planned" ? sessionTemplate?.id : nextTemplate?.id;
+  const highlightMark = session?.status === "planned" ? "идёт" : "дальше";
 
   return (
     <div
@@ -57,9 +60,15 @@ export function WorkoutsHubNavSections({
           href="/workouts/macro"
           className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
         >
-          <p className="text-sm font-medium text-muted-foreground">
-            {CYCLE_LABEL}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              {CYCLE_LABEL}
+            </p>
+            <ChevronRight
+              className="size-4 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
+          </div>
           <p className="text-xl font-semibold tracking-tight">
             {phaseLinkLabel(
               macro.macro.number,
@@ -85,48 +94,70 @@ export function WorkoutsHubNavSections({
 
       {activeTemplates.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <Link
+          <SectionHeading
+            title={QUEUE_LABEL}
             href="/workouts/schedule"
-            className="flex items-center justify-between gap-3 px-1"
-          >
-            <h2 className="text-lg font-semibold">{QUEUE_LABEL}</h2>
-            <ChevronRight
-              className="size-5 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </Link>
-          <ol className="flex flex-col gap-1 px-1">
+            linkLabel="Настроить"
+          />
+          <ol className="card-surface divide-y divide-border/70 px-5 py-1">
             {activeTemplates.map((template, index) => {
               const current = highlightId === template.id;
-              const label = `${index + 1}. ${template.name}`;
-              if (session) {
-                return (
-                  <li
-                    key={template.id}
-                    className={
+              const summary = template.exercises
+                .map((exercise) =>
+                  exerciseShortLabel(exercise.short_name, exercise.name),
+                )
+                .join(" · ");
+              const body = (
+                <>
+                  <span
+                    className={cn(
+                      "flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums",
                       current
-                        ? "text-base font-medium"
-                        : "text-base text-muted-foreground"
-                    }
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
                   >
-                    {label}
-                  </li>
-                );
-              }
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline gap-2">
+                      <span
+                        className={cn(
+                          "truncate text-base",
+                          current ? "font-semibold" : "font-medium",
+                        )}
+                      >
+                        {template.name}
+                      </span>
+                      {current ? (
+                        <span className="shrink-0 text-sm font-medium text-primary">
+                          {highlightMark}
+                        </span>
+                      ) : null}
+                    </span>
+                    {summary ? (
+                      <span className="block truncate text-sm text-muted-foreground">
+                        {summary}
+                      </span>
+                    ) : null}
+                  </span>
+                </>
+              );
 
               return (
                 <li key={template.id}>
-                  <button
-                    type="button"
-                    className={cn(
-                      "w-full py-1 text-left text-base disabled:opacity-50",
-                      current ? "font-medium" : "text-muted-foreground",
-                    )}
-                    disabled={creating || skipping}
-                    onClick={() => onPickTemplate(template)}
-                  >
-                    {label}
-                  </button>
+                  {session ? (
+                    <div className="flex items-center gap-3 py-2.5">{body}</div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 py-2.5 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+                      disabled={creating || skipping}
+                      onClick={() => onPickTemplate(template)}
+                    >
+                      {body}
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -135,7 +166,7 @@ export function WorkoutsHubNavSections({
       ) : session ? (
         <Link
           href="/workouts/schedule"
-          className="flex items-center gap-1 text-sm font-medium text-primary"
+          className="flex items-center gap-1 px-1 text-sm font-medium text-primary"
         >
           <Plus className="size-4" aria-hidden />
           Поставить программу
@@ -144,14 +175,14 @@ export function WorkoutsHubNavSections({
 
       <section className="card-surface divide-y divide-border/70 px-5 py-2">
         <NavRow
-          href="/workouts/progress"
-          title="Рабочие веса"
-          hint="Как менялись"
-        />
-        <NavRow
           href="/workouts/exercises"
           title="Упражнения"
           hint="Список и рабочие веса"
+        />
+        <NavRow
+          href="/workouts/progress"
+          title="Рабочие веса"
+          hint="Как менялись"
         />
         <NavRow
           href="/settings/formulas"

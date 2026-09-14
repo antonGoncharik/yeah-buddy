@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { SectionHeading } from "@/components/layout/section-heading";
 import { AddRowButton } from "@/components/ui/add-row-button";
 import { templateExerciseLine } from "@/components/workout/schedule-active-list";
 import type { WorkoutTemplateDetail } from "@/lib/types";
@@ -21,11 +22,11 @@ export function ScheduleInactiveList({
 
   return (
     <section className="animate-rise flex flex-col gap-2">
-      <h2 className="px-1 text-lg font-semibold">Отложены</h2>
-      <p className="px-1 text-sm leading-relaxed text-muted-foreground">
-        Сейчас не в очереди. Можно вернуть или поправить.
-      </p>
-      <div className="overflow-hidden">
+      <SectionHeading
+        title="Отложены"
+        hint="Не в очереди. Плюс возвращает, нажатие открывает."
+      />
+      <div className="card-surface px-3 py-1">
         {inactive.map((template) => (
           <div
             key={template.id}

@@ -121,7 +121,10 @@ export function useWorkoutsHub() {
       ),
     ]);
 
-    if (!results.some((ok) => ok)) {
+    // Templates and today's queue state decide what the hub shows; without
+    // them an "empty queue" card would be a lie, so treat that as a failure.
+    const [, templatesOk, , sessionOk] = results;
+    if (!templatesOk || !sessionOk) {
       setError(LOAD_FAILED);
       done(false);
       return;

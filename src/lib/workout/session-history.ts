@@ -92,13 +92,15 @@ export async function listSessionHistory(
   );
   const hasMore = rows.length > limit;
   const sessions = hasMore ? rows.slice(0, limit) : rows;
-  const names = await templateNamesById(
-    userId,
-    sessions.flatMap((session) =>
-      session.template_id ? [session.template_id] : [],
+  const [names, work] = await Promise.all([
+    templateNamesById(
+      userId,
+      sessions.flatMap((session) =>
+        session.template_id ? [session.template_id] : [],
+      ),
     ),
-  );
-  const work = await listSessionWorkInfo(userId, sessions);
+    listSessionWorkInfo(userId, sessions),
+  ]);
 
   return {
     items: sessions.map((session) => {
