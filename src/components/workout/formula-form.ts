@@ -7,24 +7,34 @@ import type {
 } from "@/lib/types";
 import { patchKindBaseWork } from "@/lib/workout/cycle";
 import { WARMUP_PRESET_IDS } from "@/lib/workout/labels";
-import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { parseDecimal } from "@/lib/workout/numbers";
 
 export const MAX_SETS = 8;
 export const MAX_PHASES = 8;
 
-export function phaseWorkHint(
-  phase: CyclePhaseDef,
-  exampleMax: number,
-  phaseMax: number,
-): string {
-  const raised =
-    exampleMax > 0 && phaseMax > 0 && phaseMax !== exampleMax
-      ? ` · от ${formatWeight(phaseMax)} кг`
-      : "";
-  if (phase.skip_warmup) {
-    return `Рабочие, без разминки${raised}`;
+/** `50 · 70 · 80 %` or «нет». */
+export function warmupSummary(sets: FormulaSetSpec[]): string {
+  if (sets.length === 0) {
+    return "нет";
   }
-  return `Рабочие${raised}`;
+  return `${sets.map((set) => set.percent).join(" · ")} %`;
+}
+
+/** Hint under the «Разминка» row: both presets in one line. */
+export function warmupsHint(
+  formulas: WorkoutFormulas,
+  kind: WorkoutKind,
+): string {
+  const warmups = formulas.warmups[kind];
+  return `Штанга ${warmupSummary(warmups.barbell)} · Блок ${warmupSummary(warmups.cable)}`;
+}
+
+/** Hint under the «Этапы цикла» row. */
+export function cycleHint(cycle: CyclePhaseDef[]): string {
+  if (cycle.length === 0) {
+    return "Не настроены. Вес всегда считается одинаково";
+  }
+  return cycle.map((phase) => phase.name).join(" → ");
 }
 
 export function patchBaseWork(

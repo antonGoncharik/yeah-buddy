@@ -12,7 +12,7 @@ import {
   phaseHoldHint,
   phaseLinkLabel,
 } from "@/lib/workout/hints";
-import { FORMULAS_LABEL, phaseLabel } from "@/lib/workout/labels";
+import { phaseLabel } from "@/lib/workout/labels";
 
 export function MacroPhaseHeader({
   state,
@@ -55,10 +55,10 @@ export function MacroPhaseHeader({
       {holdHint ? <p className="text-base leading-snug">{holdHint}</p> : null}
       {endHint ? <p className="text-base leading-snug">{endHint}</p> : null}
       <Link
-        href="/settings/formulas"
+        href="/settings/formulas/cycle"
         className="text-base font-medium text-primary"
       >
-        {FORMULAS_LABEL}
+        Схема этапов
       </Link>
     </section>
   );

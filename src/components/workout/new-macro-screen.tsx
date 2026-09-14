@@ -93,10 +93,10 @@ export function NewMacroScreen() {
                   </button>
                 ))}
                 <Link
-                  href="/settings/formulas"
+                  href="/settings/formulas/cycle"
                   className="text-base font-medium text-primary"
                 >
-                  Собрать свой в плане подходов
+                  Собрать свои этапы
                 </Link>
               </section>
             ) : (

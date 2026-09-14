@@ -1,34 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useFormulasActions } from "@/components/workout/use-formulas-actions";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { WorkoutFormulas, WorkoutKind } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import { raisedMaxForPhase } from "@/lib/workout/cycle";
 import { cloneFormulas } from "@/lib/workout/default-formulas";
-import { previewMaxForPhase } from "@/lib/workout/formulas";
+import { readTemplates } from "@/lib/workout/hub-payload";
 import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { parseDecimal } from "@/lib/workout/numbers";
 
 const SETTINGS_URL = "/api/workout-settings";
 
+/** Example working weight for the kg column; only for display. */
+const EXAMPLE_MAX: Record<WorkoutKind, string> = {
+  dynamic: "100",
+  static: "60",
+};
+const EXAMPLE_STEP: Record<WorkoutKind, number> = { dynamic: 2.5, static: 1 };
+
+/**
+ * Shared state for the set-scheme screens (main, warmup, cycle phases).
+ * Each screen loads, edits and saves the whole `formulas` object.
+ */
 export function useFormulasScreen() {
   const [kind, setKind] = useState<WorkoutKind>("dynamic");
   const [maxIncrease, setMaxIncrease] = useState("5");
   const [formulas, setFormulas] = useState<WorkoutFormulas | null>(null);
-  const [previewMax, setPreviewMax] = useState({
-    dynamic: "220",
-    static: "76",
-  });
-  const [previewStep, setPreviewStep] = useState({ dynamic: 2.5, static: 1 });
+  const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [hasStaticTemplates, setHasStaticTemplates] = useState(false);
+  const [previewMax, setPreviewMax] = useState(EXAMPLE_MAX);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [advanced, setAdvanced] = useState(false);
 
   const load = useCallback(async () => {
     begin();
@@ -36,20 +43,31 @@ export function useFormulasScreen() {
     setSaved(false);
 
     try {
-      await cachedGet(
-        SETTINGS_URL,
-        (data) => {
-          const settings = readWorkoutSettingsPayload(data);
-          if (!settings) {
-            return false;
-          }
-          setFormulas(cloneFormulas(settings.formulas));
-          setMaxIncrease(String(settings.max_increase_percent));
-          setAdvanced(settings.formulas.cycle.length > 0);
+      await Promise.all([
+        cachedGet(
+          SETTINGS_URL,
+          (data) => {
+            const settings = readWorkoutSettingsPayload(data);
+            if (!settings) {
+              return false;
+            }
+            const next = cloneFormulas(settings.formulas);
+            const increase = String(settings.max_increase_percent);
+            setFormulas(next);
+            setMaxIncrease(increase);
+            setSnapshot(serialize(next, increase));
+            return true;
+          },
+          () => done(true),
+        ),
+        // Templates only decide whether the «На время» switch is shown.
+        cachedGet("/api/templates", (data) => {
+          setHasStaticTemplates(
+            readTemplates(data).some((template) => template.kind === "static"),
+          );
           return true;
-        },
-        () => done(true),
-      );
+        }).catch(() => undefined),
+      ]);
       done(true);
     } catch {
       setError(LOAD_FAILED);
@@ -70,51 +88,47 @@ export function useFormulasScreen() {
     setError,
     setSaved,
     setSaving,
+    onSaved: (next, increase) => setSnapshot(serialize(next, increase)),
   });
 
-  const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
-  const exampleStep = previewStep[kind];
-  const increasePercent = parseDecimal(maxIncrease) ?? 0;
-  const showsIncrease = Boolean(
-    formulas?.cycle.some((phase) => phase.increase_on_end),
+  const dirty = useMemo(
+    () =>
+      formulas != null &&
+      snapshot != null &&
+      serialize(formulas, maxIncrease) !== snapshot,
+    [formulas, maxIncrease, snapshot],
   );
-  const raisedExample =
-    exampleMax > 0 && showsIncrease
-      ? previewMaxForPhase(
-          formulas?.cycle ?? [],
-          formulas?.cycle.find((phase) =>
-            raisedMaxForPhase(formulas.cycle, phase.key),
-          )?.key ?? "peak",
-          exampleMax,
-          increasePercent,
-          exampleStep,
-        )
-      : exampleMax;
+
+  const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
+  const exampleStep = EXAMPLE_STEP[kind];
+  const increasePercent = parseDecimal(maxIncrease) ?? 0;
 
   return {
     kind,
     setKind,
+    showKindSwitch: hasStaticTemplates || kind === "static",
     maxIncrease,
     setMaxIncrease,
     formulas,
     setFormulas,
     previewMax,
     setPreviewMax,
-    previewStep,
-    setPreviewStep,
+    exampleMax,
+    exampleStep,
+    increasePercent,
     loading,
     error,
     saved,
     saving,
-    advanced,
-    setAdvanced,
+    dirty,
     load,
-    ...actions,
-    exampleMax,
-    exampleStep,
-    increasePercent,
-    showsIncrease,
-    raisedExample,
     setSaved,
+    ...actions,
   };
+}
+
+export type FormulasScreenState = ReturnType<typeof useFormulasScreen>;
+
+function serialize(formulas: WorkoutFormulas, maxIncrease: string): string {
+  return JSON.stringify({ formulas, maxIncrease: maxIncrease.trim() });
 }

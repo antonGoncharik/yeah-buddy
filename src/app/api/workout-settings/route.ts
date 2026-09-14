@@ -2,6 +2,7 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 import {
   ensureWorkoutSettings,
   saveWorkoutSettings,
@@ -43,6 +44,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       auth.session.userId,
       parsed.data,
     );
+    // Today's planned (not started) workout follows the new scheme right away.
+    await rebuildTodaysPlannedSession(auth.session.userId);
     return jsonOk({
       settings: {
         max_increase_percent: settings.max_increase_percent,

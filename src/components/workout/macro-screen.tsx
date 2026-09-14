@@ -14,7 +14,7 @@ import { MacroTransitionPanel } from "@/components/workout/macro-transition-pane
 import { useMacroScreen } from "@/components/workout/use-macro-screen";
 import { cn } from "@/lib/utils";
 import { completePhaseHint, cycleSequenceLabel } from "@/lib/workout/hints";
-import { CYCLE_LABEL, FORMULAS_LABEL, phaseLabel } from "@/lib/workout/labels";
+import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
 
 export function MacroScreen() {
   const {
@@ -93,10 +93,10 @@ export function MacroScreen() {
                 Создать цикл
               </Link>
               <Link
-                href="/settings/formulas"
+                href="/settings/formulas/cycle"
                 className="text-center text-base font-medium text-primary"
               >
-                {FORMULAS_LABEL}
+                Схема этапов
               </Link>
             </section>
           </>

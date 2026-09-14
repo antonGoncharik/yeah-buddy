@@ -9,7 +9,8 @@ export function FormulaCycleTemplates({
   onCustom,
 }: {
   onApply: (cycle: CyclePhaseDef[], name: string) => void;
-  onCustom: () => void;
+  /** Start from a blank phase instead of a template; hidden when absent. */
+  onCustom?: () => void;
 }) {
   return (
     <>
@@ -26,14 +27,16 @@ export function FormulaCycleTemplates({
           </p>
         </button>
       ))}
-      <Button
-        type="button"
-        variant="secondary"
-        className="h-12 text-base"
-        onClick={onCustom}
-      >
-        Свой цикл
-      </Button>
+      {onCustom ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-12 text-base"
+          onClick={onCustom}
+        >
+          Собрать свои этапы
+        </Button>
+      ) : null}
     </>
   );
 }

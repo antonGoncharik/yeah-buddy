@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { toPayload } from "@/components/workout/formula-form";
 import { patchJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { CyclePhaseDef, WorkoutFormulas } from "@/lib/types";
 import { applyWorkPattern, withCycle } from "@/lib/workout/cycle";
 import {
@@ -25,6 +26,7 @@ export function useFormulasActions({
   setError,
   setSaved,
   setSaving,
+  onSaved,
 }: {
   formulas: WorkoutFormulas | null;
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
@@ -33,19 +35,22 @@ export function useFormulasActions({
   setError: Dispatch<SetStateAction<string | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
   setSaving: Dispatch<SetStateAction<boolean>>;
+  onSaved: (formulas: WorkoutFormulas, maxIncrease: string) => void;
 }) {
   const confirm = useConfirm();
 
-  async function onSave() {
+  /** Saves the whole scheme. Returns true when the server accepted it. */
+  async function onSave(): Promise<boolean> {
     if (!formulas) {
-      return;
+      return false;
     }
 
     const payload = toPayload(maxIncrease, formulas);
     if (!payload) {
+      haptic("warn");
       setError("Проверь проценты, подходы и повторы.");
       setSaved(false);
-      return;
+      return false;
     }
 
     setError(null);
@@ -56,68 +61,72 @@ export function useFormulasActions({
       const data = await patchJson(SETTINGS_URL, payload);
       const settings = readWorkoutSettingsPayload(data);
       if (settings) {
-        setFormulas(cloneFormulas(settings.formulas));
-        setMaxIncrease(String(settings.max_increase_percent));
+        const next = cloneFormulas(settings.formulas);
+        const increase = String(settings.max_increase_percent);
+        setFormulas(next);
+        setMaxIncrease(increase);
+        onSaved(next, increase);
         writeJson(SETTINGS_URL, data);
+      } else {
+        onSaved(formulas, maxIncrease);
       }
+      haptic("success");
       setSaved(true);
+      return true;
     } catch (caught) {
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
     } finally {
       setSaving(false);
     }
   }
 
+  function touch(next: WorkoutFormulas) {
+    setFormulas(next);
+    setSaved(false);
+    setError(null);
+  }
+
   async function restoreDefaults() {
     const ok = await confirm({
-      message: "Вернуть 3×5 без цикла? Сейчас всё заменится.",
+      message:
+        "Вернуть всё как было в начале: 3×5, обычная разминка, без этапов цикла?",
       confirmLabel: "Вернуть",
       cancelLabel: "Оставить",
     });
     if (!ok) {
       return;
     }
-    setFormulas(cloneFormulas(DEFAULT_WORKOUT_FORMULAS));
+    touch(cloneFormulas(DEFAULT_WORKOUT_FORMULAS));
     setMaxIncrease("5");
-    setSaved(false);
-    setError(null);
   }
 
-  async function applySystem(id: (typeof FORMULA_SYSTEMS)[number]["id"]) {
+  function applySystem(id: (typeof FORMULA_SYSTEMS)[number]["id"]) {
     const system = FORMULA_SYSTEMS.find((item) => item.id === id);
     if (!system || !formulas) {
       return;
     }
-    const ok = await confirm({
-      message: formulas.cycle.length
-        ? `Поставить «${system.name}»? Рабочие подходы обновятся. Этапы без своих подходов — тоже.`
-        : `Поставить «${system.name}»? Текущие подходы заменятся.`,
-      confirmLabel: "Поставить",
-      cancelLabel: "Оставить",
-    });
-    if (!ok) {
-      return;
-    }
-    setFormulas(applyWorkPattern(formulas, system.formulas));
-    setSaved(false);
-    setError(null);
+    haptic("tap");
+    touch(applyWorkPattern(formulas, system.formulas));
   }
 
   async function applyCycleTemplate(cycle: CyclePhaseDef[], name: string) {
     if (!formulas) {
       return;
     }
-    const ok = await confirm({
-      message: `Поставить цикл «${name}»? Этапы сменятся, свои подходы в них сбросятся.`,
-      confirmLabel: "Поставить",
-      cancelLabel: "Оставить",
-    });
-    if (!ok) {
-      return;
+    if (formulas.cycle.length > 0) {
+      const ok = await confirm({
+        message: `Поставить «${name}» вместо текущих этапов? Свои подходы в этапах сбросятся.`,
+        confirmLabel: "Поставить",
+        cancelLabel: "Оставить",
+      });
+      if (!ok) {
+        return;
+      }
     }
-    setFormulas(withCycle(formulas, cycle));
-    setSaved(false);
-    setError(null);
+    haptic("tap");
+    touch(withCycle(formulas, cycle));
   }
 
   async function clearCycle() {
@@ -125,16 +134,15 @@ export function useFormulasActions({
       return;
     }
     const ok = await confirm({
-      message: "Убрать цикл? Веса всегда будут как в рабочих подходах.",
+      message: "Убрать этапы? Вес всегда будет считаться от рабочих подходов.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
+      destructive: true,
     });
     if (!ok) {
       return;
     }
-    setFormulas(withCycle(formulas, []));
-    setSaved(false);
-    setError(null);
+    touch(withCycle(formulas, []));
   }
 
   return {
