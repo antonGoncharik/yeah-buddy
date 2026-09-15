@@ -195,6 +195,7 @@ uniqueNames(
 );
 for (const template of CYCLE_TEMPLATES) {
   assert(template.cycle.length > 0, `empty cycle: ${template.id}`);
+  assert(template.cycle.length <= 8, `cycle too long: ${template.id}`);
 }
 
 console.log("starter catalog ok");

@@ -1,4 +1,4 @@
-import type { CyclePhaseDef } from "@/lib/types";
+import type { CyclePhaseDef, FormulaSetSpec } from "@/lib/types";
 
 function phase(
   key: string,
@@ -7,6 +7,7 @@ function phase(
     skip_warmup?: boolean;
     increase_on_end?: boolean;
     percent_scale?: number;
+    work?: FormulaSetSpec[];
   } = {},
 ): CyclePhaseDef {
   return {
@@ -15,7 +16,16 @@ function phase(
     skip_warmup: extra.skip_warmup ?? false,
     increase_on_end: extra.increase_on_end ?? false,
     percent_scale: extra.percent_scale,
+    work: extra.work,
   };
+}
+
+function set(percent: number, reps: number): FormulaSetSpec {
+  return { percent, reps, seconds: null };
+}
+
+function times(percent: number, reps: number, sets: number): FormulaSetSpec[] {
+  return Array.from({ length: sets }, () => set(percent, reps));
 }
 
 export const FOUR_PHASE_CYCLE: CyclePhaseDef[] = [
@@ -70,6 +80,26 @@ export const FOUR_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
+/** Wave of set/rep schemes on the shared plan. For days without their own slots. */
+export const TENS_TO_TRIPLES_CYCLE: CyclePhaseDef[] = [
+  phase("tens", "5×10", { work: times(60, 10, 5) }),
+  phase("eights", "5×8", { work: times(70, 8, 5) }),
+  phase("fives", "5×5", { work: times(80, 5, 5) }),
+  phase("triples", "3×3", { increase_on_end: true, work: times(87, 3, 3) }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
+/** 5/3/1 week wave on the shared plan. Do not stack on the 5/3/1 program. */
+export const FIVES_TO_ONES_CYCLE: CyclePhaseDef[] = [
+  phase("w5s", "5s", { work: [set(65, 5), set(75, 5), set(85, 5)] }),
+  phase("w3s", "3s", { work: [set(70, 3), set(80, 3), set(90, 3)] }),
+  phase("w1s", "1s", {
+    increase_on_end: true,
+    work: [set(75, 5), set(85, 3), set(95, 1)],
+  }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
 export const CYCLE_TEMPLATES: Array<{
   id:
     | "four_phase"
@@ -79,7 +109,9 @@ export const CYCLE_TEMPLATES: Array<{
     | "linear"
     | "volume_strength"
     | "three_week_deload"
-    | "four_week_deload";
+    | "four_week_deload"
+    | "tens_to_triples"
+    | "fives_to_ones";
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
@@ -131,5 +163,17 @@ export const CYCLE_TEMPLATES: Array<{
     name: "Четыре недели + сброс",
     hint: "Программа та же. После четвёртой недели можно поднять рабочие веса.",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
+  },
+  {
+    id: "tens_to_triples",
+    name: "10 → 3",
+    hint: "Программа та же. Подходы меняются: 10, 8, 5, 3, сброс. Для дней без своей схемы.",
+    cycle: TENS_TO_TRIPLES_CYCLE,
+  },
+  {
+    id: "fives_to_ones",
+    name: "5s → 1s",
+    hint: "Волна 5s → 3s → 1s, потом сброс. Не ставь, если 5/3/1 уже зашит в днях.",
+    cycle: FIVES_TO_ONES_CYCLE,
   },
 ];

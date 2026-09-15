@@ -17,7 +17,7 @@ export function withCycle(
   cycle: CyclePhaseDef[],
 ): WorkoutFormulas {
   const next = cloneFormulas(formulas);
-  next.cycle = cycle.map((phase) => ({ ...phase }));
+  next.cycle = structuredClone(cycle);
   next.dynamic.phases = {};
   next.static.phases = {};
   for (const phase of next.cycle) {
@@ -234,7 +234,7 @@ export function reorderCycle(
   }
 
   const next = cloneFormulas(formulas);
-  next.cycle = cycle.map((phase) => ({ ...phase }));
+  next.cycle = structuredClone(cycle);
   return next;
 }
 
@@ -243,6 +243,9 @@ export function workForPhase(
   phase: CyclePhaseDef,
   deload: FormulaSetSpec[],
 ): FormulaPhaseSpec {
+  if (phase.work != null && phase.work.length > 0 && setsUseReps(base.work)) {
+    return { warmup: [], work: structuredClone(phase.work) };
+  }
   if (phase.percent_scale != null) {
     return {
       warmup: [],
@@ -253,6 +256,10 @@ export function workForPhase(
     return { warmup: [], work: structuredClone(deload) };
   }
   return structuredClone(base);
+}
+
+function setsUseReps(work: FormulaSetSpec[]): boolean {
+  return work.some((set) => set.reps != null);
 }
 
 function deloadFor(kind: WorkoutKind): FormulaSetSpec[] {

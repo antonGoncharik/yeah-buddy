@@ -1,11 +1,13 @@
 import { nextPhaseType, withCycle } from "@/lib/workout/cycle";
 import {
   DEFAULT_WORKOUT_FORMULAS,
+  FIVES_TO_ONES_CYCLE,
   FOUR_PHASE_CYCLE,
   LIGHT_HEAVY_CYCLE,
   LIGHT_MEDIUM_HEAVY_CYCLE,
   LINEAR_CYCLE,
   TEN_WORKOUT_FORMULAS,
+  TENS_TO_TRIPLES_CYCLE,
   VOLUME_STRENGTH_CYCLE,
 } from "@/lib/workout/default-formulas";
 import {
@@ -357,6 +359,41 @@ assert(
 assert(
   !shouldIncreaseMax("deload", null, LINEAR_CYCLE),
   "deload does not raise into the next cycle",
+);
+
+const tens = withCycle(DEFAULT_WORKOUT_FORMULAS, TENS_TO_TRIPLES_CYCLE);
+assertEqual(tens.dynamic.phases.tens?.work.length ?? 0, 5, "10s are 5 sets");
+assertEqual(
+  tens.dynamic.phases.tens?.work[0]?.reps ?? 0,
+  10,
+  "10s are 10 reps",
+);
+assertEqual(
+  tens.dynamic.phases.triples?.work[0]?.reps ?? 0,
+  3,
+  "triples are 3",
+);
+assert(
+  tens.static.phases.tens?.work[0]?.seconds != null,
+  "static days keep holds, not 10s",
+);
+assert(tens.cycle[3]?.increase_on_end === true, "triples raise max");
+
+const fivesToOnes = withCycle(DEFAULT_WORKOUT_FORMULAS, FIVES_TO_ONES_CYCLE);
+assertEqual(
+  fivesToOnes.dynamic.phases.w5s?.work.length ?? 0,
+  3,
+  "5s week is three sets",
+);
+assertEqual(
+  fivesToOnes.dynamic.phases.w1s?.work[2]?.reps ?? 0,
+  1,
+  "1s week ends with a single",
+);
+assertEqual(
+  fivesToOnes.dynamic.phases.w1s?.work[2]?.percent ?? 0,
+  95,
+  "1s top set is 95%",
 );
 
 console.log("workout formulas ok");

@@ -48,6 +48,9 @@ export function phaseSchemeHint(
   if (custom) {
     return `Свои · ${summary}`;
   }
+  if (phase.work != null && phase.work.length > 0) {
+    return summary;
+  }
   if (phase.skip_warmup && phase.percent_scale == null) {
     return `Лёгкие · ${summary}`;
   }
