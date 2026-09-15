@@ -4,11 +4,23 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import type { CatalogFood } from "@/lib/food/catalog-map";
 import { formatYieldGrams, parseFoodYield } from "@/lib/food/yield";
 import { FOOD_STATE_LABELS } from "@/lib/foods";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+export type FoodRowData = Pick<
+  Food,
+  | "name"
+  | "brand"
+  | "protein_per_100"
+  | "fat_per_100"
+  | "carbs_per_100"
+  | "kcal_per_100"
+> &
+  Partial<Pick<Food, "state" | "yield_from_g" | "yield_to_g">>;
 
 /**
  * Foods as one card of rows, like every other list in the app: name and
@@ -78,8 +90,39 @@ export function FoodList({
   );
 }
 
-function FoodListBody({ food }: { food: Food }) {
-  const yieldPair = parseFoodYield(food);
+export function CatalogFoodList({
+  foods,
+  pendingId,
+  onSelectFood,
+}: {
+  foods: CatalogFood[];
+  pendingId?: string | null;
+  onSelectFood: (food: CatalogFood) => void;
+}) {
+  return (
+    <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
+      {foods.map((food) => (
+        <li key={food.id}>
+          <button
+            type="button"
+            className="flex min-w-0 w-full items-center gap-3 py-3 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+            disabled={pendingId === food.id}
+            onClick={() => onSelectFood(food)}
+          >
+            <FoodListBody food={food} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function FoodListBody({ food }: { food: FoodRowData }) {
+  const yieldPair = parseFoodYield({
+    state: food.state ?? "as_is",
+    yield_from_g: food.yield_from_g ?? null,
+    yield_to_g: food.yield_to_g ?? null,
+  });
   const subtitle = [
     yieldPair
       ? `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
@@ -90,7 +133,9 @@ function FoodListBody({ food }: { food: Food }) {
     .join(" · ");
   // State sits under the kcal so the macro line never gets pushed off-screen.
   const state =
-    food.state !== "as_is" ? FOOD_STATE_LABELS[food.state].toLowerCase() : null;
+    food.state != null && food.state !== "as_is"
+      ? FOOD_STATE_LABELS[food.state].toLowerCase()
+      : null;
 
   return (
     <>

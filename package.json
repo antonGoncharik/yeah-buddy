@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "catalog:import": "tsx --env-file=.env.local scripts/import-catalog.ts",
     "test": "tsx scripts/run-checks.ts"
   },
   "dependencies": {

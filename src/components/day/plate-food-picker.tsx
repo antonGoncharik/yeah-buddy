@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  CatalogFoodSection,
+  catalogSearchActive,
+} from "@/components/foods/catalog-food-section";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -35,6 +39,8 @@ export function PlateFoodPicker({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const search = query.trim();
+  const listFilter = search ? "all" : filter;
 
   const load = useCallback(async (nextFilter: Filter) => {
     const requestId = ++requestIdRef.current;
@@ -67,8 +73,8 @@ export function PlateFoodPicker({
   }, []);
 
   useEffect(() => {
-    void load(filter);
-  }, [filter, load]);
+    void load(listFilter);
+  }, [listFilter, load]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -102,29 +108,51 @@ export function PlateFoodPicker({
       <div className="flex flex-col gap-3 px-4 pt-4">
         <p className="text-xl font-semibold tracking-tight">{title}</p>
         <FoodSearch value={query} onChange={setQuery} />
-        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        {search ? null : (
+          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 pb-28">
-        {loading ? <ScreenLoading /> : null}
+        <div className="flex flex-col gap-4">
+          {loading ? <ScreenLoading /> : null}
 
-        {!loading && error ? (
-          <ScreenError message={error} onRetry={() => void load(filter)} />
-        ) : null}
+          {!loading && error ? (
+            <ScreenError
+              message={error}
+              onRetry={() => void load(listFilter)}
+            />
+          ) : null}
 
-        {!loading && !error && visibleFoods.length === 0 ? (
-          <p className="py-10 text-center text-muted-foreground">
-            {emptyMessage(filter, query)}
-          </p>
-        ) : null}
+          {!loading &&
+          !error &&
+          visibleFoods.length === 0 &&
+          !catalogSearchActive(query) ? (
+            <p className="py-10 text-center text-muted-foreground">
+              {emptyMessage(filter, query)}
+            </p>
+          ) : null}
 
-        {!loading && !error && visibleFoods.length > 0 ? (
-          <FoodList
-            foods={visibleFoods}
-            showFavorite={false}
-            onSelectFood={onPick}
-          />
-        ) : null}
+          {!loading && !error && visibleFoods.length > 0 ? (
+            <FoodList
+              foods={visibleFoods}
+              showFavorite={false}
+              onSelectFood={onPick}
+            />
+          ) : null}
+
+          {!loading && !error ? (
+            <CatalogFoodSection
+              query={query}
+              emptyLabel={
+                visibleFoods.length === 0
+                  ? emptyMessage(filter, query)
+                  : undefined
+              }
+              onAdded={onPick}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className="app-fixed-bottom app-sticky-actions pointer-events-none mx-auto w-full max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[max(1.25rem,var(--app-safe-bottom))]">

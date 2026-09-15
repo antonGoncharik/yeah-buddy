@@ -4,6 +4,10 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import {
+  CatalogFoodSection,
+  catalogSearchActive,
+} from "@/components/foods/catalog-food-section";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
@@ -11,7 +15,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet, patchJson } from "@/lib/api-cache";
+import { cachedGet, patchJson, writeJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
@@ -33,6 +37,8 @@ export function FoodsScreen() {
   const [foods, setFoods] = useState<Food[]>([]);
   const { loading, begin, done, reset } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
+  const search = query.trim();
+  const listFilter = search ? "all" : filter;
 
   const load = useCallback(
     async (nextFilter: Filter) => {
@@ -66,6 +72,12 @@ export function FoodsScreen() {
     reset();
     void load(filter);
   }, [filter, load, reset]);
+
+  useEffect(() => {
+    if (listFilter !== filter) {
+      void load(listFilter);
+    }
+  }, [filter, listFilter, load]);
 
   const visibleFoods = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -113,17 +125,22 @@ export function FoodsScreen() {
       <div className="animate-rise flex flex-col gap-3 px-4">
         <FoodSearch value={query} onChange={setQuery} />
 
-        <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        {search ? null : (
+          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        )}
       </div>
 
-      <div className="px-4 pb-24">
+      <div className="flex flex-col gap-4 px-4 pb-24">
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
-          <ScreenError message={error} onRetry={() => void load(filter)} />
+          <ScreenError message={error} onRetry={() => void load(listFilter)} />
         ) : null}
 
-        {!loading && !error && visibleFoods.length === 0 ? (
+        {!loading &&
+        !error &&
+        visibleFoods.length === 0 &&
+        !catalogSearchActive(query) ? (
           <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
             {emptyMessage(filter, query)}
           </p>
@@ -133,6 +150,27 @@ export function FoodsScreen() {
           <FoodList
             foods={visibleFoods}
             onToggleFavorite={(food) => void onToggleFavorite(food)}
+          />
+        ) : null}
+
+        {!loading && !error ? (
+          <CatalogFoodSection
+            query={query}
+            emptyLabel={
+              visibleFoods.length === 0
+                ? emptyMessage(filter, query)
+                : undefined
+            }
+            onAdded={(food) => {
+              setFoods((current) => {
+                const next = [
+                  food,
+                  ...current.filter((item) => item.id !== food.id),
+                ];
+                writeJson("/api/foods", { foods: next });
+                return next;
+              });
+            }}
           />
         ) : null}
       </div>

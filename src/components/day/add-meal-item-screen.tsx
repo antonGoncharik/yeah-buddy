@@ -2,9 +2,14 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
+import {
+  CatalogFoodSection,
+  catalogSearchActive,
+} from "@/components/foods/catalog-food-section";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -36,6 +41,7 @@ export function AddMealItemScreen({
   lumpHrefBase?: string;
   plateHref?: string;
 }) {
+  const router = useRouter();
   const [filter, setFilter] = useState<Filter>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
@@ -111,7 +117,13 @@ export function AddMealItemScreen({
         {plateHref && !search ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
-      <div className={search && lumpHrefBase ? "px-4 pb-4" : "px-4 pb-24"}>
+      <div
+        className={
+          search && lumpHrefBase
+            ? "flex flex-col gap-4 px-4 pb-4"
+            : "flex flex-col gap-4 px-4 pb-24"
+        }
+      >
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error ? (
@@ -121,7 +133,10 @@ export function AddMealItemScreen({
           />
         ) : null}
 
-        {!loading && !error && visibleFoods.length === 0 ? (
+        {!loading &&
+        !error &&
+        visibleFoods.length === 0 &&
+        !catalogSearchActive(query) ? (
           <p className="py-10 text-center text-muted-foreground">
             {emptyMessage(filter, search, Boolean(lumpHrefBase))}
           </p>
@@ -132,6 +147,20 @@ export function AddMealItemScreen({
             foods={visibleFoods}
             showFavorite={false}
             hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
+          />
+        ) : null}
+
+        {!loading && !error ? (
+          <CatalogFoodSection
+            query={query}
+            emptyLabel={
+              visibleFoods.length === 0
+                ? emptyMessage(filter, search, Boolean(lumpHrefBase))
+                : undefined
+            }
+            onAdded={(food) => {
+              router.push(appendPathSegment(foodHrefBase, food.id));
+            }}
           />
         ) : null}
       </div>
