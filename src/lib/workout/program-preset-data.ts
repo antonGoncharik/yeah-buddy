@@ -54,8 +54,8 @@ export interface ProgramPreset {
 export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "full_body",
-    name: "Всё тело",
-    hint: "Два разных дня на всё тело.",
+    name: "Всё тело A/B",
+    hint: "Две разные тренировки на всё тело. Дальше по кругу.",
     level: "beginner",
     templates: [
       day("Тело A", [
@@ -74,8 +74,8 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   },
   {
     id: "one_day",
-    name: "Один день",
-    hint: "Одна тренировка, её и повторяешь.",
+    name: "Всё тело · повтор",
+    hint: "Один состав, его и повторяешь.",
     level: "beginner",
     templates: [
       day("Зал", [
@@ -89,8 +89,8 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   },
   {
     id: "strength",
-    name: "Сила",
-    hint: "Два дня, присед каждый раз.",
+    name: "Сила A/B",
+    hint: "Две тренировки, присед каждый раз.",
     level: "beginner",
     templates: [
       day("Сила A", [
@@ -104,7 +104,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "upper_lower",
     name: "Верх / Низ",
-    hint: "Два дня: жимы с тягами, потом ноги.",
+    hint: "Сначала жимы и тяги, потом ноги.",
     level: "intermediate",
     templates: [
       day("Верх", [
@@ -126,7 +126,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl",
     name: "Жим / Тяга / Ноги",
-    hint: "Три тренировки подряд.",
+    hint: "Жимы, потом тяги, потом ноги.",
     level: "intermediate",
     templates: [
       day("Жим", [
@@ -182,8 +182,8 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   },
   {
     id: "four_day",
-    name: "Четыре дня",
-    hint: "Спина, ноги, грудь, плечи. По группе в день.",
+    name: "Спина / Ноги / Грудь / Плечи",
+    hint: "По группе мышц за тренировку.",
     level: "advanced",
     templates: [
       day("Спина+трицепс", [

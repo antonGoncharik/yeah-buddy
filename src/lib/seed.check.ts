@@ -122,12 +122,13 @@ assert(
   "first program is the recommended start",
 );
 assert(
-  recommended != null && programPresetSummary(recommended).startsWith("2 дня"),
+  recommended != null &&
+    programPresetSummary(recommended).startsWith("2 тренировки"),
   "full body summary",
 );
 const oneDay = PROGRAM_PRESETS.find((preset) => preset.id === "one_day");
 assert(
-  oneDay != null && programPresetSummary(oneDay).startsWith("1 день"),
+  oneDay != null && programPresetSummary(oneDay).startsWith("1 тренировка"),
   "one day summary",
 );
 const fourDay = PROGRAM_PRESETS.find((preset) => preset.id === "four_day");
