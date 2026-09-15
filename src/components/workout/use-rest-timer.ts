@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { haptic, holdTimerStepHaptic } from "@/lib/telegram/haptic";
+import { haptic, playTimerStepHaptic } from "@/lib/telegram/haptic";
 import {
   clearStoredRest,
   nextRestLeft,
@@ -65,7 +65,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       const next = nextRestLeft(current, delta);
       persist(Date.now() + next * 1000, id);
       if (next === 0 && current > 0) {
-        haptic("success");
+        playTimerStepHaptic(0);
       }
       return next;
     });
@@ -117,10 +117,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
         if (next === prev) {
           return prev;
         }
-        const kind = holdTimerStepHaptic(next);
-        if (kind) {
-          haptic(kind);
-        }
+        playTimerStepHaptic(next);
         if (next === 0 && sessionId) {
           writeStoredRestState(sessionId, {
             endsAt,

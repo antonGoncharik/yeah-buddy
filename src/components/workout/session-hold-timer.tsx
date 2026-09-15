@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { haptic, holdTimerStepHaptic } from "@/lib/telegram/haptic";
+import { haptic, playTimerStepHaptic } from "@/lib/telegram/haptic";
 
 export function SessionHoldTimer({
   seconds,
@@ -20,10 +20,7 @@ export function SessionHoldTimer({
     }
     const id = window.setTimeout(() => {
       const next = left - 1;
-      const kind = holdTimerStepHaptic(next);
-      if (kind) {
-        haptic(kind);
-      }
+      playTimerStepHaptic(next);
       setLeft(next);
     }, 1000);
     return () => window.clearTimeout(id);

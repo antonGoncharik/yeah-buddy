@@ -1,4 +1,9 @@
-import { hapticCommand, holdTimerStepHaptic } from "@/lib/telegram/haptic";
+import {
+  hapticCommand,
+  holdTimerStepHaptic,
+  TIMER_DONE_HAPTICS,
+  TIMER_DONE_VIBRATE,
+} from "@/lib/telegram/haptic";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);
@@ -14,6 +19,11 @@ assertEqual(
   hapticCommand("commit"),
   { type: "impact", style: "medium" },
   "commit",
+);
+assertEqual(
+  hapticCommand("heavy"),
+  { type: "impact", style: "heavy" },
+  "heavy",
 );
 assertEqual(
   hapticCommand("success"),
@@ -37,5 +47,18 @@ assertEqual(holdTimerStepHaptic(3), "commit", "last three start");
 assertEqual(holdTimerStepHaptic(1), "commit", "last second");
 assertEqual(holdTimerStepHaptic(0), "success", "hold done");
 assertEqual(holdTimerStepHaptic(-1), null, "invalid leftover");
+
+assertEqual(TIMER_DONE_VIBRATE.length, 5, "timer done vibrate pulses");
+assertEqual(TIMER_DONE_HAPTICS.length, 3, "timer done haptic pulses");
+assertEqual(TIMER_DONE_HAPTICS[0]?.kind, "heavy", "first done pulse");
+assertEqual(TIMER_DONE_HAPTICS[2]?.kind, "heavy", "last done pulse");
+assertEqual(
+  TIMER_DONE_HAPTICS.every((step, index) => {
+    const prev = TIMER_DONE_HAPTICS[index - 1];
+    return prev == null || step.delay > prev.delay;
+  }),
+  true,
+  "done pulses are staggered",
+);
 
 console.log("telegram haptic ok");
