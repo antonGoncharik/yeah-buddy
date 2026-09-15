@@ -6,6 +6,7 @@ import type {
   PhaseType,
   WorkoutKind,
 } from "@/lib/types/workout-core";
+import type { TemplateSlot } from "@/lib/types/workout-plan";
 
 export interface MacroCycle {
   id: string;
@@ -64,6 +65,8 @@ export interface WorkoutTemplateExercise {
 
 export interface WorkoutTemplateDetail extends WorkoutTemplate {
   exercises: Exercise[];
+  /** Тот же порядок, что `exercises`; схема каждого слота. */
+  slots: TemplateSlot[];
 }
 
 export interface PhaseMaxRow {

@@ -212,6 +212,7 @@ function exercise(
             created_at: "",
           },
     max_history: [],
+    track: null,
   };
 }
 

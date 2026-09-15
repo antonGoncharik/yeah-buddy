@@ -1,15 +1,22 @@
 import { isIsoDate } from "@/lib/day/dates";
-import type { Exercise, ExerciseWithMax, GlobalMax } from "@/lib/types";
+import type {
+  Exercise,
+  ExerciseTrack,
+  ExerciseWithMax,
+  GlobalMax,
+} from "@/lib/types";
 
 export function attachMaxes(
   exercise: Exercise,
   maxes: Map<string, GlobalMax[]>,
+  tracks: Map<string, ExerciseTrack> = new Map(),
 ): ExerciseWithMax {
   const history = maxes.get(exercise.id) ?? [];
   return {
     ...exercise,
     current_max: pickCurrentMax(history),
     max_history: history,
+    track: tracks.get(exercise.id) ?? null,
   };
 }
 

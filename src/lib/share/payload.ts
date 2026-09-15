@@ -25,6 +25,8 @@ import {
   FORMULA_PRESETS,
 } from "@/lib/workout/labels";
 import { formulasSchema } from "@/lib/workout/map-settings";
+import { slotFor } from "@/lib/workout/slot-plan";
+import { slotPlanSchema } from "@/lib/workout/slot-plan-schema";
 
 export const SHARE_PACK_KINDS = ["meals", "workouts"] as const;
 
@@ -99,6 +101,8 @@ export const packWorkoutDaySchema = z.object({
   name: z.string().trim().min(1).max(60),
   kind: z.enum(["dynamic", "static"]),
   exercises: z.array(z.string().trim().min(1).max(80)).min(1).max(20),
+  /** Same order as `exercises`; missing in packs made before slot schemes. */
+  plans: z.array(slotPlanSchema.nullable()).max(20).optional(),
 });
 
 export const workoutsPackPayloadSchema = z.object({
@@ -200,6 +204,9 @@ export function buildWorkoutsPayload(
   const exercisesByName = new Map<string, PackExercise>();
   const days = active.map((template) => {
     const names: string[] = [];
+    const plans = template.exercises.map((exercise) =>
+      slotFor(template.slots, exercise.id),
+    );
     for (const exercise of template.exercises) {
       if (!exercisesByName.has(exercise.name)) {
         exercisesByName.set(exercise.name, {
@@ -218,6 +225,7 @@ export function buildWorkoutsPayload(
       name: template.name,
       kind: template.kind,
       exercises: names,
+      plans: plans.some((plan) => plan != null) ? plans : undefined,
     };
   });
 

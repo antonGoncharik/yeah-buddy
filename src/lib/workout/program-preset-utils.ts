@@ -3,6 +3,7 @@ import {
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,
   PROGRAM_PRESETS,
+  type ProgramDay,
   type ProgramLevel,
   type ProgramPreset,
   type ProgramPresetId,
@@ -31,6 +32,10 @@ export function programPresetById(
   return PROGRAM_PRESETS.find((preset) => preset.id === id);
 }
 
+export function programDayExerciseNames(day: ProgramDay): string[] {
+  return day.exercises.map((slot) => slot.name);
+}
+
 export function programPresetExerciseNames(
   presetId?: ProgramPresetId,
 ): string[] {
@@ -40,7 +45,7 @@ export function programPresetExerciseNames(
   return [
     ...new Set(
       presets.flatMap((preset) =>
-        preset.templates.flatMap((day) => day.exercises),
+        preset.templates.flatMap(programDayExerciseNames),
       ),
     ),
   ];
@@ -81,7 +86,7 @@ export function presetExerciseLine(names: string[]): string {
 const SUMMARY_LIFT_LIMIT = 5;
 
 export function programPresetSummary(preset: ProgramPreset): string {
-  const names = [...new Set(preset.templates.flatMap((day) => day.exercises))];
+  const names = [...new Set(preset.templates.flatMap(programDayExerciseNames))];
   const shown = names.slice(0, SUMMARY_LIFT_LIMIT);
   const line = presetExerciseLine(shown);
   const suffix = names.length > SUMMARY_LIFT_LIMIT ? "…" : "";

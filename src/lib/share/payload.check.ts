@@ -215,6 +215,7 @@ const workouts = buildWorkoutsPayload(
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
       exercises: [squat],
+      slots: [{ exercise_id: squat.id, plan: null }],
     },
     {
       id: "w2",
@@ -226,6 +227,7 @@ const workouts = buildWorkoutsPayload(
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
       exercises: [squat],
+      slots: [{ exercise_id: squat.id, plan: null }],
     },
   ],
 );

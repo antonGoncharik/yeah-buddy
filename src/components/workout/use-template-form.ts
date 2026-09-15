@@ -8,6 +8,8 @@ import { CHECK_FIELDS, LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type {
   ExerciseWithMax,
+  SlotPlan,
+  TemplateSlot,
   WorkoutKind,
   WorkoutTemplateDetail,
 } from "@/lib/types";
@@ -15,13 +17,19 @@ import {
   readExercises as hubReadExercises,
   parseTemplateDetail,
 } from "@/lib/workout/hub-payload";
+import { normalizeSlotPlan } from "@/lib/workout/slot-plan";
+
+export interface TemplateFormSlot {
+  exercise: ExerciseWithMax;
+  plan: SlotPlan | null;
+}
 
 export function useTemplateForm({ templateId }: { templateId?: string }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [kind, setKind] = useState<WorkoutKind>("dynamic");
   const [isActive, setIsActive] = useState(true);
-  const [exerciseIds, setExerciseIds] = useState<string[]>([]);
+  const [slots, setSlots] = useState<TemplateSlot[]>([]);
   const [catalog, setCatalog] = useState<ExerciseWithMax[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,7 +77,7 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
         setName(template.name);
         setKind(template.kind);
         setIsActive(template.is_active);
-        setExerciseIds(template.exercises.map((exercise) => exercise.id));
+        setSlots(template.slots);
       } catch {
         if (!cancelled) {
           setError(LOAD_FAILED);
@@ -89,10 +97,27 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
   }, [templateId]);
 
   function toggleExercise(id: string) {
-    setExerciseIds((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id],
+    setSlots((current) =>
+      current.some((slot) => slot.exercise_id === id)
+        ? current.filter((slot) => slot.exercise_id !== id)
+        : [...current, { exercise_id: id, plan: null }],
+    );
+  }
+
+  function reorder(exerciseIds: string[]) {
+    setSlots((current) =>
+      exerciseIds.flatMap((id) => {
+        const slot = current.find((item) => item.exercise_id === id);
+        return slot ? [slot] : [];
+      }),
+    );
+  }
+
+  function setSlotPlan(exerciseId: string, plan: SlotPlan | null) {
+    setSlots((current) =>
+      current.map((slot) =>
+        slot.exercise_id === exerciseId ? { ...slot, plan } : slot,
+      ),
     );
   }
 
@@ -112,7 +137,10 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
         name: trimmed,
         kind,
         is_active: isActive,
-        exercise_ids: exerciseIds,
+        slots: slots.map((slot) => ({
+          exercise_id: slot.exercise_id,
+          plan: normalizeSlotPlan(slot.plan),
+        })),
       };
       if (templateId) {
         await patchJson(`/api/templates/${templateId}`, payload);
@@ -129,13 +157,12 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
     }
   }
 
-  const selected = exerciseIds.flatMap((id) => {
-    const exercise = catalog.find((item) => item.id === id);
-    return exercise ? [exercise] : [];
+  const selected = slots.flatMap<TemplateFormSlot>((slot) => {
+    const exercise = catalog.find((item) => item.id === slot.exercise_id);
+    return exercise ? [{ exercise, plan: slot.plan }] : [];
   });
-  const available = catalog.filter(
-    (exercise) => !exerciseIds.includes(exercise.id),
-  );
+  const selectedIds = new Set(slots.map((slot) => slot.exercise_id));
+  const available = catalog.filter((exercise) => !selectedIds.has(exercise.id));
 
   return {
     name,
@@ -150,7 +177,8 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
     selected,
     available,
     toggleExercise,
-    setExerciseIds,
+    reorder,
+    setSlotPlan,
     onSubmit,
   };
 }

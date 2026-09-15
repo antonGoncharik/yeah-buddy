@@ -8,6 +8,7 @@ import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
+import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
@@ -50,6 +51,7 @@ export function SessionScreen() {
     removeExercise,
     reorderExercises,
     saveMissingMaxes,
+    saveMissingTracks,
   } = useSessionScreen();
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
@@ -109,6 +111,15 @@ export function SessionScreen() {
                 busy={busy}
                 inCycle={Boolean(session.phase_id)}
                 onSave={saveMissingMaxes}
+              />
+            ) : null}
+
+            {session.status === "planned" &&
+            detail.missing_tracks.length > 0 ? (
+              <SessionMissingTracks
+                exercises={detail.missing_tracks}
+                busy={busy}
+                onSave={saveMissingTracks}
               />
             ) : null}
 

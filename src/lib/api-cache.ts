@@ -91,6 +91,14 @@ export async function patchJson(url: string, body: unknown): Promise<unknown> {
   });
 }
 
+export async function putJson(url: string, body: unknown): Promise<unknown> {
+  return mutateJson(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function deleteJson(url: string): Promise<unknown> {
   return mutateJson(url, { method: "DELETE" });
 }

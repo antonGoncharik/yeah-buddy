@@ -12,6 +12,7 @@ import {
   toWorkoutType,
 } from "@/lib/workout/map-enums";
 import { toNullableString, toNumber } from "@/lib/workout/numbers";
+import { parseExerciseTrack } from "@/lib/workout/track-line";
 
 export function mapExercise(row: Record<string, unknown>): Exercise {
   return {
@@ -61,6 +62,7 @@ export function parseExerciseWithMax(value: unknown): ExerciseWithMax | null {
     ...mapExercise(value),
     current_max: currentMax,
     max_history: history,
+    track: parseExerciseTrack(value.track),
   };
 }
 

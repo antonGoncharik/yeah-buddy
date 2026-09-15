@@ -7,6 +7,11 @@ import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SortableList } from "@/components/workout/sortable-list";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { exerciseShortLabel } from "@/lib/workout/labels";
+import {
+  formatSlotGroup,
+  SLOT_INTENSITY_LABELS,
+  slotFor,
+} from "@/lib/workout/slot-plan";
 
 export function ScheduleActiveList({
   active,
@@ -75,6 +80,17 @@ export function templateExerciseLine(template: WorkoutTemplateDetail): string {
   }
 
   return template.exercises
-    .map((exercise) => exerciseShortLabel(exercise.short_name, exercise.name))
+    .map((exercise) => {
+      const label = exerciseShortLabel(exercise.short_name, exercise.name);
+      const plan = slotFor(template.slots, exercise.id);
+      const scheme = plan?.groups
+        ? plan.groups.map(formatSlotGroup).join(", ")
+        : null;
+      const tag = plan?.intensity
+        ? SLOT_INTENSITY_LABELS[plan.intensity].toLowerCase()
+        : null;
+      const extra = [scheme, tag].filter(Boolean).join(" · ");
+      return extra ? `${label} (${extra})` : label;
+    })
     .join(" · ");
 }

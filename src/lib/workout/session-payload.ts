@@ -4,6 +4,7 @@ import type {
   SessionExerciseDetail,
   SessionMaxRaiseOffer,
   SessionPreviousWork,
+  SessionTrackInfo,
 } from "@/lib/types";
 import { toSessionFeel } from "@/lib/workout/map-enums";
 import {
@@ -34,7 +35,30 @@ export function readSessionDetail(data: unknown): SessionDetail | null {
     missing_maxes: mapRecordList(data.missing_maxes, (row) =>
       typeof row.id === "string" ? mapExercise(row) : null,
     ),
+    missing_tracks: mapRecordList(data.missing_tracks, (row) =>
+      typeof row.id === "string" ? mapExercise(row) : null,
+    ),
+    tracks: mapRecordList(data.tracks, parseTrackInfo),
     raise_offers: mapRecordList(data.raise_offers, parseRaiseOffer),
+  };
+}
+
+function parseTrackInfo(row: Record<string, unknown>): SessionTrackInfo | null {
+  if (typeof row.exercise_id !== "string" || typeof row.name !== "string") {
+    return null;
+  }
+  const total = toNumber(row.total);
+  if (total <= 0) {
+    return null;
+  }
+  return {
+    exercise_id: row.exercise_id,
+    name: row.name,
+    step: Math.max(1, toNumber(row.step)),
+    total,
+    weight: toNullableNumber(row.weight),
+    next_weight: toNullableNumber(row.next_weight),
+    finished: row.finished === true,
   };
 }
 

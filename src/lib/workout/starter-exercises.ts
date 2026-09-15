@@ -101,6 +101,7 @@ export const STARTER_EXERCISES: StarterExercise[] = [
   lift("Концентрированный подъём", "концентрированный", "c", {
     category: "isolation",
   }),
+  lift("Пресс", "пресс", "c", { category: "isolation", weight_step: 1 }),
 ];
 
 function lift(

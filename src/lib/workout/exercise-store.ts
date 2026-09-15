@@ -5,6 +5,7 @@ import type {
   ExerciseCreateInput,
   ExerciseUpdateInput,
 } from "@/lib/workout/exercise-schema";
+import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
 import {
   attachMaxes,
   copyMaxToCurrentPhase,
@@ -41,12 +42,13 @@ export async function listExercises(
   const exercises = (result.data ?? []).map((row) =>
     mapExercise(row as Record<string, unknown>),
   );
-  const maxes = await listGlobalMaxes(
-    userId,
-    exercises.map((exercise) => exercise.id),
-  );
+  const ids = exercises.map((exercise) => exercise.id);
+  const [maxes, tracks] = await Promise.all([
+    listGlobalMaxes(userId, ids),
+    listTracksByExercise(userId, ids),
+  ]);
 
-  return exercises.map((exercise) => attachMaxes(exercise, maxes));
+  return exercises.map((exercise) => attachMaxes(exercise, maxes, tracks));
 }
 
 export async function getExercise(
@@ -70,8 +72,11 @@ export async function getExercise(
   }
 
   const exercise = mapExercise(result.data as Record<string, unknown>);
-  const maxes = await listGlobalMaxes(userId, [exercise.id]);
-  return attachMaxes(exercise, maxes);
+  const [maxes, tracks] = await Promise.all([
+    listGlobalMaxes(userId, [exercise.id]),
+    listTracksByExercise(userId, [exercise.id]),
+  ]);
+  return attachMaxes(exercise, maxes, tracks);
 }
 
 export async function ensureNamedExercise(

@@ -11,6 +11,7 @@ import type {
   WorkoutTemplate,
   WorkoutTemplateDetail,
 } from "@/lib/types/workout-macro";
+import type { SessionTrackInfo, SlotIntensity } from "@/lib/types/workout-plan";
 
 export interface WorkoutSession {
   id: string;
@@ -61,7 +62,12 @@ export interface SessionExercise {
   session_id: string;
   exercise_id: string;
   sort_order: number;
-  max_weight: number;
+  /** Рабочий вес, от которого считались проценты; null для линейки/кг/по самочувствию. */
+  max_weight: number | null;
+  intensity: SlotIntensity | null;
+  note: string | null;
+  track_id: string | null;
+  track_step: number | null;
   created_at: string;
 }
 
@@ -73,10 +79,13 @@ export interface WorkoutSet {
   set_number: number;
   planned_weight: number | null;
   planned_reps: number | null;
+  planned_reps_to: number | null;
   planned_seconds: number | null;
+  planned_rir: number | null;
   actual_weight: number | null;
   actual_reps: number | null;
   actual_seconds: number | null;
+  actual_rir: number | null;
   is_completed: boolean;
   created_at: string;
 }
@@ -101,5 +110,8 @@ export interface SessionDetail {
   exercises: SessionExerciseDetail[];
   /** Template exercises left out of the plan because they have no working weight yet. */
   missing_maxes: Exercise[];
+  /** Template exercises whose slot goes by a weight line that is not set yet. */
+  missing_tracks: Exercise[];
+  tracks: SessionTrackInfo[];
   raise_offers: SessionMaxRaiseOffer[];
 }

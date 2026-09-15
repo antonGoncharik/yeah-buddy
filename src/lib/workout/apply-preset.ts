@@ -1,10 +1,15 @@
-import type { WorkoutTemplateDetail } from "@/lib/types";
-import { archiveExercise, listExercises } from "@/lib/workout/exercises";
+import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
+import {
+  archiveExercise,
+  ensureNamedExercise,
+  listExercises,
+} from "@/lib/workout/exercises";
 import {
   type ProgramPresetId,
   programPresetById,
 } from "@/lib/workout/program-presets";
 import { saveRotation } from "@/lib/workout/rotation";
+import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 import {
   createTemplate,
   listTemplates,
@@ -22,7 +27,10 @@ export async function applyProgramPreset(
 
   const catalog = await listExercises(userId, "all");
   const byName = new Map(
-    catalog.map((exercise) => [exercise.name, exercise] as const),
+    catalog.map((exercise) => [exercise.name, exercise.id] as const),
+  );
+  const archived = new Set(
+    catalog.filter((exercise) => !exercise.is_active).map((item) => item.id),
   );
   const existing = await listTemplates(userId);
   const byTemplateName = new Map(
@@ -31,16 +39,33 @@ export async function applyProgramPreset(
   const activeIds: string[] = [];
 
   for (const day of preset.templates) {
-    const exerciseIds: string[] = [];
-    for (const name of day.exercises) {
-      const exercise = byName.get(name);
-      if (!exercise) {
-        continue;
+    const slots: TemplateSlot[] = [];
+    for (const slot of day.exercises) {
+      let exerciseId = byName.get(slot.name);
+      if (!exerciseId) {
+        // A lift the user never had (e.g. added to the starter list later).
+        const starter = STARTER_EXERCISES.find(
+          (item) => item.name === slot.name,
+        );
+        if (!starter) {
+          continue;
+        }
+        const created = await ensureNamedExercise(userId, {
+          name: starter.name,
+          short_name: starter.short_name,
+          category: starter.category,
+          workout_type: starter.workout_type,
+          unit: starter.workout_type === "static" ? "seconds" : "reps",
+          weight_step: starter.weight_step,
+          formula_preset: starter.formula_preset,
+        });
+        exerciseId = created.id;
+        byName.set(slot.name, exerciseId);
+      } else if (archived.has(exerciseId)) {
+        await archiveExercise(userId, exerciseId, false);
+        archived.delete(exerciseId);
       }
-      if (!exercise.is_active) {
-        await archiveExercise(userId, exercise.id, false);
-      }
-      exerciseIds.push(exercise.id);
+      slots.push({ exercise_id: exerciseId, plan: slot.plan });
     }
 
     const current = byTemplateName.get(day.name);
@@ -49,7 +74,7 @@ export async function applyProgramPreset(
         name: day.name,
         kind: day.kind,
         is_active: true,
-        exercise_ids: exerciseIds,
+        slots,
       });
       activeIds.push(current.id);
       continue;
@@ -59,7 +84,7 @@ export async function applyProgramPreset(
       name: day.name,
       kind: day.kind,
       is_active: true,
-      exercise_ids: exerciseIds,
+      slots,
     });
     activeIds.push(created.id);
   }

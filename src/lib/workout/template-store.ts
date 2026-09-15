@@ -25,14 +25,15 @@ export async function listTemplates(
   const templates = (result.data ?? []).map((row) =>
     mapWorkoutTemplate(row as Record<string, unknown>),
   );
-  const exercisesByTemplate = await listTemplateExerciseMap(
+  const rowsByTemplate = await listTemplateExerciseMap(
     userId,
     templates.map((item) => item.id),
   );
 
   return templates.map((template) => ({
     ...template,
-    exercises: exercisesByTemplate.get(template.id) ?? [],
+    exercises: rowsByTemplate.get(template.id)?.exercises ?? [],
+    slots: rowsByTemplate.get(template.id)?.slots ?? [],
   }));
 }
 
@@ -64,10 +65,11 @@ export async function getTemplate(
   }
 
   const template = mapWorkoutTemplate(result.data as Record<string, unknown>);
-  const exercises = await listTemplateExerciseMap(userId, [template.id]);
+  const rows = await listTemplateExerciseMap(userId, [template.id]);
   return {
     ...template,
-    exercises: exercises.get(template.id) ?? [],
+    exercises: rows.get(template.id)?.exercises ?? [],
+    slots: rows.get(template.id)?.slots ?? [],
   };
 }
 
@@ -110,12 +112,7 @@ export async function createTemplate(
   }
 
   const template = mapWorkoutTemplate(inserted.data as Record<string, unknown>);
-  await replaceTemplateExercises(
-    supabase,
-    userId,
-    template.id,
-    input.exercise_ids,
-  );
+  await replaceTemplateExercises(supabase, userId, template.id, input.slots);
   const created = await getTemplate(userId, template.id);
   if (!created) {
     throw new Error("Template lookup failed");
@@ -155,6 +152,6 @@ export async function updateTemplate(
     return null;
   }
 
-  await replaceTemplateExercises(supabase, userId, id, input.exercise_ids);
+  await replaceTemplateExercises(supabase, userId, id, input.slots);
   return getTemplate(userId, id);
 }

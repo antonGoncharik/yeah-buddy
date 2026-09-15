@@ -6,7 +6,7 @@ import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
-import { setUsesSeconds } from "@/lib/workout/session-format";
+import { setRirLabel, setUsesSeconds } from "@/lib/workout/session-format";
 
 export function SessionSetEditor({
   set,
@@ -28,11 +28,17 @@ export function SessionSetEditor({
     groupCount > 1
       ? `${kind} · ${groupCount} ${setCountWord(groupCount)}`
       : `${kind} ${setNumber}`;
+  const plannedRir = setRirLabel(set, false);
+  const withRir = set.set_type === "work";
+  const columns = withRir ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <div className="w-full pt-1 pb-1" data-field-group>
-      <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/60 px-3 py-3">
-        <p className="col-span-2 text-sm text-muted-foreground">{title}</p>
+      <div className={`grid ${columns} gap-2 rounded-xl bg-muted/60 px-3 py-3`}>
+        <p className="col-span-full text-sm text-muted-foreground">
+          {title}
+          {plannedRir ? ` · план: ${plannedRir}` : ""}
+        </p>
         <FieldInput
           label="кг"
           value={draft.weight}
@@ -62,10 +68,21 @@ export function SessionSetEditor({
             value={draft.reps}
             disabled={disabled}
             inputMode="numeric"
-            enterKeyHint="done"
+            enterKeyHint={withRir ? "next" : "done"}
             onChange={(value) => onDraft({ reps: value })}
           />
         )}
+        {withRir ? (
+          <FieldInput
+            label="запас"
+            value={draft.rir}
+            disabled={disabled}
+            inputMode="numeric"
+            enterKeyHint="done"
+            placeholder="RIR"
+            onChange={(value) => onDraft({ rir: value })}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -89,6 +106,7 @@ function FieldInput({
   disabled,
   inputMode,
   enterKeyHint,
+  placeholder,
   onChange,
 }: {
   label: string;
@@ -96,6 +114,7 @@ function FieldInput({
   disabled: boolean;
   inputMode: "decimal" | "numeric";
   enterKeyHint: "next" | "done";
+  placeholder?: string;
   onChange: (value: string) => void;
 }) {
   return (
@@ -105,6 +124,7 @@ function FieldInput({
         inputMode={inputMode}
         enterKeyHint={enterKeyHint}
         value={value}
+        placeholder={placeholder}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={handleNumericEnter}

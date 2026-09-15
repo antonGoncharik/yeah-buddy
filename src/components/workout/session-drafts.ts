@@ -8,6 +8,8 @@ export type SetDraft = {
   weight: string;
   reps: string;
   seconds: string;
+  /** Reps in reserve; empty when not logged. */
+  rir: string;
 };
 
 export function formatSessionDate(isoDate: string): string {
@@ -36,7 +38,18 @@ export function draftFromSet(set: WorkoutSet): SetDraft {
     weight: toDraft(set.actual_weight ?? set.planned_weight),
     reps: toDraft(set.actual_reps ?? set.planned_reps),
     seconds: toDraft(set.actual_seconds ?? set.planned_seconds),
+    rir: toDraft(set.actual_rir),
   };
+}
+
+/** RIR is a small whole number; anything else means «not logged». */
+export function parseRir(raw: string): number | null {
+  const value = parseDecimal(raw);
+  if (value == null) {
+    return null;
+  }
+  const rounded = Math.round(value);
+  return rounded >= 0 && rounded <= 10 ? rounded : null;
 }
 
 export function toDraft(value: number | null): string {

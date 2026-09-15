@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ExerciseIdentityFields } from "@/components/workout/exercise-identity-fields";
 import { ExerciseMaxHistory } from "@/components/workout/exercise-max-history";
+import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
 import { ExerciseTypeFields } from "@/components/workout/exercise-type-fields";
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
 import { handleNumericEnter } from "@/lib/form/field-nav";
@@ -75,6 +76,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           ) : null}
         </Field>
       )}
+
+      {exercise ? <ExerciseTrackCard exercise={exercise} /> : null}
 
       {exercise ? <ExerciseMaxHistory exercise={exercise} /> : null}
 

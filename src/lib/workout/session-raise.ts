@@ -108,13 +108,24 @@ export function sessionRaiseOffers(
     feel: detail.session.feel,
     increasePercent,
     currentMaxByExercise,
-    exercises: detail.exercises.map((item) => ({
-      exercise_id: item.exercise_id,
-      name: exerciseShortLabel(item.exercise.short_name, item.exercise.name),
-      max_weight: item.max_weight,
-      weight_step: item.exercise.weight_step,
-      sets: item.sets,
-    })),
+    // Only exercises planned from a working weight can raise it; lines,
+    // fixed kilograms and «по самочувствию» have nothing to scale.
+    exercises: detail.exercises.flatMap((item) =>
+      item.max_weight != null
+        ? [
+            {
+              exercise_id: item.exercise_id,
+              name: exerciseShortLabel(
+                item.exercise.short_name,
+                item.exercise.name,
+              ),
+              max_weight: item.max_weight,
+              weight_step: item.exercise.weight_step,
+              sets: item.sets,
+            },
+          ]
+        : [],
+    ),
   });
 }
 

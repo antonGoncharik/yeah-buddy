@@ -32,8 +32,26 @@ export function formatSetLine(
   const reps = showActual
     ? (set.actual_reps ?? set.planned_reps)
     : set.planned_reps;
-  const repsLabel = reps ?? "—";
+  // The planned range («6–8») is shown until a real rep count is logged.
+  const range =
+    !showActual || set.actual_reps == null ? set.planned_reps_to : null;
+  const repsLabel =
+    reps == null ? "—" : range != null ? `${reps}–${range}` : String(reps);
   return compact ? `${weight}×${repsLabel}` : `${weight} × ${repsLabel}`;
+}
+
+/** «до отказа» / «запас 2» for the set, actual first, planned as fallback. */
+export function setRirLabel(
+  set: Pick<WorkoutSet, "planned_rir" | "actual_rir">,
+  showActual: boolean,
+): string | null {
+  const rir = showActual
+    ? (set.actual_rir ?? set.planned_rir)
+    : set.planned_rir;
+  if (rir == null) {
+    return null;
+  }
+  return rir <= 0 ? "до отказа" : `запас ${rir}`;
 }
 
 export function firstWorkSet(sets: WorkoutSet[]): WorkoutSet | null {

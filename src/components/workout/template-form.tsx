@@ -30,7 +30,8 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     selected,
     available,
     toggleExercise,
-    setExerciseIds,
+    reorder,
+    setSlotPlan,
     onSubmit,
   } = useTemplateForm({ templateId });
 
@@ -65,12 +66,12 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
           </Field>
 
           <TemplateExercisePicker
+            kind={kind}
             selected={selected}
             available={available}
-            onReorder={(next) =>
-              setExerciseIds(next.map((exercise) => exercise.id))
-            }
+            onReorder={(next) => reorder(next.map((slot) => slot.exercise.id))}
             onToggle={toggleExercise}
+            onPlanChange={setSlotPlan}
           />
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

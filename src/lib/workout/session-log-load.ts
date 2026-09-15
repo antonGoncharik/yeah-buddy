@@ -129,10 +129,13 @@ function mapWorkSet(row: Record<string, unknown>): WorkoutSet {
     set_number: toNumber(row.set_number),
     planned_weight: toNullableNumber(row.planned_weight),
     planned_reps: toNullableNumber(row.planned_reps),
+    planned_reps_to: toNullableNumber(row.planned_reps_to),
     planned_seconds: toNullableNumber(row.planned_seconds),
+    planned_rir: toNullableNumber(row.planned_rir),
     actual_weight: toNullableNumber(row.actual_weight),
     actual_reps: toNullableNumber(row.actual_reps),
     actual_seconds: toNullableNumber(row.actual_seconds),
+    actual_rir: toNullableNumber(row.actual_rir),
     is_completed: Boolean(row.is_completed),
     created_at: String(row.created_at),
   };

@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import {
   parseInteger,
+  parseRir,
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
@@ -84,6 +85,7 @@ export function useSessionActions({
               detail.session.workout_type === "static"
                 ? parseDecimal(draft.seconds)
                 : null,
+            actual_rir: parseRir(draft.rir),
           })),
         },
       );

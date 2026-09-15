@@ -154,6 +154,23 @@ export function useSessionEdits({
     });
   }
 
+  async function saveMissingTracks(
+    tracks: Array<{ exercise_id: string; start_weight: number }>,
+  ) {
+    if (!detail || tracks.length === 0) {
+      return;
+    }
+
+    await runBusy(async () => {
+      const data = await postJson(`/api/sessions/${detail.session.id}/tracks`, {
+        tracks,
+      });
+      if (applyPayload(data)) {
+        haptic("commit");
+      }
+    });
+  }
+
   async function cancelToday() {
     if (!detail) {
       return;
@@ -183,6 +200,7 @@ export function useSessionEdits({
     removeExercise,
     reorderExercises,
     saveMissingMaxes,
+    saveMissingTracks,
     cancelToday,
   };
 }

@@ -4,7 +4,11 @@ import type { ReactNode } from "react";
 
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { formatSetLine, workSetDiffers } from "@/lib/workout/session-format";
+import {
+  formatSetLine,
+  setRirLabel,
+  workSetDiffers,
+} from "@/lib/workout/session-format";
 
 export function SessionSetButtons({
   sets,
@@ -26,6 +30,9 @@ export function SessionSetButtons({
   renderAfter?: (set: WorkoutSet) => ReactNode;
 }) {
   const labels = sets.map((set) => formatSetLine(set, { showActual }));
+  const rirLabels = sets.map((set) =>
+    tone === "work" ? setRirLabel(set, showActual) : null,
+  );
 
   return (
     <ol className="flex w-full flex-col gap-1">
@@ -52,6 +59,11 @@ export function SessionSetButtons({
             >
               {labels[index]}
             </span>
+            {rirLabels[index] ? (
+              <span className="text-sm text-muted-foreground">
+                {rirLabels[index]}
+              </span>
+            ) : null}
           </>
         );
 

@@ -5,6 +5,7 @@ import {
   type ProgramPreset,
   type ProgramPresetId,
   presetExerciseLine,
+  programDayExerciseNames,
   programPresetSummary,
   programPresetsByLevel,
 } from "@/lib/workout/program-presets";
@@ -107,7 +108,7 @@ function ProgramPresetCard({
               <span className="font-medium">{day.name}</span>
               <span className="text-muted-foreground">
                 {" "}
-                · {presetExerciseLine(day.exercises)}
+                · {presetExerciseLine(programDayExerciseNames(day))}
               </span>
             </p>
           ))}

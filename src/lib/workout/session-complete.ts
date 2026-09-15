@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
+import { advanceTrack } from "@/lib/workout/exercise-tracks";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { getSessionDetail } from "@/lib/workout/session-detail";
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
@@ -44,6 +45,8 @@ export async function patchWorkoutSet(
       input.actual_seconds === undefined
         ? current.actual_seconds
         : input.actual_seconds,
+    actual_rir:
+      input.actual_rir === undefined ? current.actual_rir : input.actual_rir,
     is_completed:
       input.is_completed === undefined
         ? current.is_completed
@@ -130,7 +133,12 @@ export async function completeSessionAsPlanned(
         override?.actual_seconds !== undefined
           ? override.actual_seconds
           : (set.actual_seconds ?? set.planned_seconds);
+      const actual_rir =
+        override?.actual_rir !== undefined
+          ? override.actual_rir
+          : set.actual_rir;
 
+      // «По самочувствию» sets may have no planned weight; the lifter fills it in.
       if (
         (actual_weight == null || actual_weight <= 0) &&
         set.planned_weight != null
@@ -144,6 +152,7 @@ export async function completeSessionAsPlanned(
           actual_weight,
           actual_reps,
           actual_seconds,
+          actual_rir,
           is_completed: true,
         })
         .eq("user_id", userId)
@@ -155,12 +164,21 @@ export async function completeSessionAsPlanned(
     }
   }
 
+  const firstCompletion = session.status !== "completed";
   await patchSession(userId, session.id, {
     status: "completed",
     note: input.note !== undefined ? input.note : undefined,
     feel: input.feel !== undefined ? input.feel : undefined,
   });
   await clearSkipTemplateIds(userId);
+  if (firstCompletion) {
+    // A line moves once per session, no matter how often the log is corrected.
+    for (const item of detail.exercises) {
+      if (item.track_id && item.track_step != null) {
+        await advanceTrack(userId, item.track_id, item.track_step);
+      }
+    }
+  }
   const refreshed = await getSession(userId, sessionId);
   if (!refreshed) {
     return null;

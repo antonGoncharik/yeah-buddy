@@ -8,6 +8,7 @@ import type {
   PhaseType,
   SessionFeel,
   SessionStatus,
+  SlotIntensity,
   WorkoutKind,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
@@ -54,6 +55,14 @@ export function toSessionStatus(value: unknown): SessionStatus {
 
 export function toSessionFeel(value: unknown): SessionFeel | null {
   if (value === "easy" || value === "close" || value === "miss") {
+    return value;
+  }
+
+  return null;
+}
+
+export function toSlotIntensity(value: unknown): SlotIntensity | null {
+  if (value === "heavy" || value === "light") {
     return value;
   }
 

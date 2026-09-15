@@ -7,12 +7,14 @@ export {
   type ProgramLevel,
   type ProgramPreset,
   type ProgramPresetId,
+  type ProgramSlot,
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-preset-data";
 export {
   isProgramPresetId,
   matchProgramPresetId,
   presetExerciseLine,
+  programDayExerciseNames,
   programPresetById,
   programPresetExerciseNames,
   programPresetSummary,

@@ -1,3 +1,5 @@
+import type { ExerciseTrack } from "@/lib/types/workout-plan";
+
 export type ExerciseCategory = "base" | "isolation";
 
 export type ExerciseWorkoutType = "dynamic" | "static" | "both";
@@ -97,4 +99,5 @@ export interface GlobalMax {
 export interface ExerciseWithMax extends Exercise {
   current_max: GlobalMax | null;
   max_history: GlobalMax[];
+  track: ExerciseTrack | null;
 }

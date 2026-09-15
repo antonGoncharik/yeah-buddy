@@ -1,5 +1,6 @@
 import { PACK_EMPTY_WORKOUTS } from "@/lib/messages";
 import { PackEmptyError, type WorkoutsPackPayload } from "@/lib/share/payload";
+import type { TemplateSlot } from "@/lib/types";
 import { ensureNamedExercise } from "@/lib/workout/exercises";
 import {
   clearSkipTemplateIds,
@@ -29,11 +30,11 @@ export async function applyWorkoutsPack(
   const activeIds: string[] = [];
 
   for (const day of payload.templates) {
-    const exerciseIds = day.exercises.flatMap((name) => {
+    const slots = day.exercises.flatMap<TemplateSlot>((name, index) => {
       const id = byName.get(name);
-      return id ? [id] : [];
+      return id ? [{ exercise_id: id, plan: day.plans?.[index] ?? null }] : [];
     });
-    if (exerciseIds.length === 0) {
+    if (slots.length === 0) {
       continue;
     }
 
@@ -43,7 +44,7 @@ export async function applyWorkoutsPack(
         name: day.name,
         kind: day.kind,
         is_active: true,
-        exercise_ids: exerciseIds,
+        slots,
       });
       activeIds.push(current.id);
       continue;
@@ -53,7 +54,7 @@ export async function applyWorkoutsPack(
       name: day.name,
       kind: day.kind,
       is_active: true,
-      exercise_ids: exerciseIds,
+      slots,
     });
     activeIds.push(created.id);
   }

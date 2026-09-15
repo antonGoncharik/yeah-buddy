@@ -3,6 +3,7 @@ import type { SessionExercise, WorkoutSession, WorkoutSet } from "@/lib/types";
 import {
   toSessionFeel,
   toSessionStatus,
+  toSlotIntensity,
   toWorkoutKind,
 } from "@/lib/workout/map-enums";
 import {
@@ -40,13 +41,19 @@ export function parseWorkoutSession(value: unknown): WorkoutSession | null {
 export function mapSessionExercise(
   row: Record<string, unknown>,
 ): SessionExercise {
+  const maxWeight = toNullableNumber(row.max_weight);
+  const trackStep = toNullableNumber(row.track_step);
   return {
     id: String(row.id),
     user_id: String(row.user_id),
     session_id: String(row.session_id),
     exercise_id: String(row.exercise_id),
     sort_order: toNumber(row.sort_order),
-    max_weight: toNumber(row.max_weight),
+    max_weight: maxWeight != null && maxWeight > 0 ? maxWeight : null,
+    intensity: toSlotIntensity(row.intensity),
+    note: toNullableString(row.note),
+    track_id: toNullableString(row.track_id),
+    track_step: trackStep != null && trackStep >= 0 ? trackStep : null,
     created_at: String(row.created_at),
   };
 }
@@ -60,10 +67,13 @@ export function mapWorkoutSet(row: Record<string, unknown>): WorkoutSet {
     set_number: toNumber(row.set_number),
     planned_weight: toNullableNumber(row.planned_weight),
     planned_reps: toNullableNumber(row.planned_reps),
+    planned_reps_to: toNullableNumber(row.planned_reps_to),
     planned_seconds: toNullableNumber(row.planned_seconds),
+    planned_rir: toNullableNumber(row.planned_rir),
     actual_weight: toNullableNumber(row.actual_weight),
     actual_reps: toNullableNumber(row.actual_reps),
     actual_seconds: toNullableNumber(row.actual_seconds),
+    actual_rir: toNullableNumber(row.actual_rir),
     is_completed: Boolean(row.is_completed),
     created_at: String(row.created_at),
   };

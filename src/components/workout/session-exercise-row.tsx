@@ -7,7 +7,13 @@ import {
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
 import { SessionSetEditor } from "@/components/workout/session-set-editor";
-import type { SessionExerciseDetail, WorkoutSet } from "@/lib/types";
+import type {
+  SessionExerciseDetail,
+  SessionTrackInfo,
+  WorkoutSet,
+} from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { formatWeight } from "@/lib/workout/numbers";
 import {
   formatRestClock,
   WORK_REST_SECONDS,
@@ -15,6 +21,10 @@ import {
 } from "@/lib/workout/rest-timer";
 import { formatSetLine } from "@/lib/workout/session-format";
 import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
+import {
+  SLOT_INTENSITY_HINTS,
+  SLOT_INTENSITY_LABELS,
+} from "@/lib/workout/slot-plan";
 
 export function SessionExerciseRow({
   item,
@@ -31,9 +41,12 @@ export function SessionExerciseRow({
   restActive,
   onStartRest,
   restSeconds,
+  track = null,
 }: {
   item: SessionExerciseDetail;
   compact?: boolean;
+  /** Where the exercise's weight line stands for this session. */
+  track?: SessionTrackInfo | null;
   openSetIds: string[];
   warmupOpen: boolean;
   disabled: boolean;
@@ -54,6 +67,13 @@ export function SessionExerciseRow({
   const previousLine = item.previous
     ? formatPreviousWorkLine(item.previous)
     : null;
+  const slotLine = [
+    item.intensity ? SLOT_INTENSITY_HINTS[item.intensity] : null,
+    track ? trackInfoLine(track, showActual) : null,
+    item.note,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   function renderEditor(set: WorkoutSet) {
     if (!leadSet || set.id !== leadSet.id) {
@@ -93,10 +113,27 @@ export function SessionExerciseRow({
           <h3 className="min-w-0 flex-1 text-xl font-semibold tracking-tight">
             {item.exercise.short_name || item.exercise.name}
           </h3>
+          {item.intensity ? (
+            <span
+              className={cn(
+                "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                item.intensity === "heavy"
+                  ? "bg-destructive/12 text-destructive"
+                  : "bg-primary/12 text-primary",
+              )}
+            >
+              {SLOT_INTENSITY_LABELS[item.intensity].toLowerCase()}
+            </span>
+          ) : null}
           {onRemove ? (
             <RemoveRowButton disabled={disabled} onClick={onRemove} />
           ) : null}
         </div>
+        {slotLine ? (
+          <p className="-mt-1 text-sm leading-snug text-muted-foreground">
+            {slotLine}
+          </p>
+        ) : null}
         {warmup.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1">
             <button
@@ -158,4 +195,18 @@ function warmupSummary(sets: WorkoutSet[], showActual: boolean): string {
   return sets
     .map((set) => formatSetLine(set, { showActual, compact: true }))
     .join(" · ");
+}
+
+function trackInfoLine(track: SessionTrackInfo, done: boolean): string {
+  const step = `линейка ${track.step}/${track.total}`;
+  // A finished session is history: the line may have moved on since.
+  if (done) {
+    return step;
+  }
+  if (track.finished) {
+    return `${step} · последний шаг, дальше новая линейка`;
+  }
+  return track.next_weight != null
+    ? `${step} · дальше ${formatWeight(track.next_weight)} кг`
+    : step;
 }

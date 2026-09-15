@@ -2,13 +2,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Exercise,
   SessionDetail,
+  SessionExercise,
+  SessionTrackInfo,
   WorkoutPhase,
   WorkoutSession,
   WorkoutSet,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { listTracksById } from "@/lib/workout/exercise-tracks";
 import { listExercises, mapExercise } from "@/lib/workout/exercises";
-import { templateMissingMaxes } from "@/lib/workout/hints";
+import {
+  templateMissingMaxes,
+  templateMissingTracks,
+} from "@/lib/workout/hints";
+import { exerciseShortLabel } from "@/lib/workout/labels";
 import {
   mapSessionExercise,
   mapWorkoutPhase,
@@ -16,6 +23,7 @@ import {
 } from "@/lib/workout/map-rows";
 import { loadPreviousWork } from "@/lib/workout/session-memory-load";
 import { getTemplate } from "@/lib/workout/templates";
+import { trackWeightAt } from "@/lib/workout/track-line";
 
 export async function loadSessionDetail(
   userId: string,
@@ -41,7 +49,7 @@ export async function loadSessionDetail(
     mapSessionExercise(row as Record<string, unknown>),
   );
   const exerciseIds = sessionExercises.map((item) => item.exercise_id);
-  const [exercisesById, setsByExercise, previousByExercise, missingMaxes] =
+  const [exercisesById, setsByExercise, previousByExercise, missing, tracks] =
     await Promise.all([
       mapExercisesById(userId, exerciseIds),
       listSetsBySessionExercises(
@@ -49,14 +57,27 @@ export async function loadSessionDetail(
         sessionExercises.map((item) => item.id),
       ),
       loadPreviousWork(userId, session, exerciseIds),
-      listMissingMaxes(userId, session, template, exerciseIds),
+      listMissing(userId, session, template, exerciseIds),
+      listTrackInfo(userId, sessionExercises),
     ]);
 
   return {
     session,
     template,
     phase,
-    missing_maxes: missingMaxes,
+    missing_maxes: missing.maxes,
+    missing_tracks: missing.tracks,
+    tracks: tracks.flatMap((info) => {
+      const exercise = exercisesById.get(info.exercise_id);
+      return exercise
+        ? [
+            {
+              ...info,
+              name: exerciseShortLabel(exercise.short_name, exercise.name),
+            },
+          ]
+        : [];
+    }),
     exercises: sessionExercises.flatMap((item) => {
       const exercise = exercisesById.get(item.exercise_id);
       if (!exercise) {
@@ -103,23 +124,70 @@ export async function getPhase(
   return mapWorkoutPhase(result.data as Record<string, unknown>);
 }
 
-async function listMissingMaxes(
+async function listMissing(
   userId: string,
   session: WorkoutSession,
   template: WorkoutTemplateDetail | null,
   plannedExerciseIds: string[],
-): Promise<Exercise[]> {
+): Promise<{ maxes: Exercise[]; tracks: Exercise[] }> {
   if (session.status !== "planned" || !template) {
-    return [];
+    return { maxes: [], tracks: [] };
   }
 
-  const missing = templateMissingMaxes(template, [], plannedExerciseIds);
-  if (missing.length === 0) {
-    return [];
+  // Cheap pre-check with an empty catalog: no candidates → no query.
+  const maxCandidates = templateMissingMaxes(template, [], plannedExerciseIds);
+  const trackCandidates = templateMissingTracks(
+    template,
+    [],
+    plannedExerciseIds,
+  );
+  if (maxCandidates.length === 0 && trackCandidates.length === 0) {
+    return { maxes: [], tracks: [] };
   }
 
   const catalog = await listExercises(userId, "active");
-  return templateMissingMaxes(template, catalog, plannedExerciseIds);
+  return {
+    maxes: templateMissingMaxes(template, catalog, plannedExerciseIds),
+    tracks: templateMissingTracks(template, catalog, plannedExerciseIds),
+  };
+}
+
+async function listTrackInfo(
+  userId: string,
+  sessionExercises: SessionExercise[],
+): Promise<SessionTrackInfo[]> {
+  const tracked = sessionExercises.filter(
+    (item) => item.track_id != null && item.track_step != null,
+  );
+  if (tracked.length === 0) {
+    return [];
+  }
+
+  const tracks = await listTracksById(
+    userId,
+    tracked.flatMap((item) => (item.track_id ? [item.track_id] : [])),
+  );
+
+  return tracked.flatMap((item) => {
+    const track = item.track_id ? tracks.get(item.track_id) : null;
+    const step = item.track_step;
+    if (!track || step == null || track.steps.length === 0) {
+      return [];
+    }
+    const total = track.steps.length;
+    const finished = step + 1 >= total;
+    return [
+      {
+        exercise_id: item.exercise_id,
+        name: "",
+        step: Math.min(step + 1, total),
+        total,
+        weight: trackWeightAt(track, step),
+        next_weight: finished ? null : trackWeightAt(track, step + 1),
+        finished,
+      },
+    ];
+  });
 }
 
 async function mapExercisesById(userId: string, ids: string[]) {

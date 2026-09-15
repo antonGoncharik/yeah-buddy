@@ -121,5 +121,6 @@ function exercise(
     archived_at: null,
     current_max: null,
     max_history: [],
+    track: null,
   };
 }

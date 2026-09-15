@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import type { SessionDetail } from "@/lib/types";
-import { correctStartingMax } from "@/lib/workout/global-maxes";
-import { setPhaseMax } from "@/lib/workout/macro-maxes";
+import { saveExerciseTrack } from "@/lib/workout/exercise-tracks";
 import {
   insertSessionExercise,
   loadPlanContext,
@@ -12,29 +11,34 @@ import { getSession } from "@/lib/workout/session-read";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { slotFor } from "@/lib/workout/slot-plan";
 import { getTemplate } from "@/lib/workout/templates";
+import {
+  DEFAULT_TRACK_LENGTH,
+  generateTrackSteps,
+} from "@/lib/workout/track-line";
 
-export const sessionMaxesSchema = z.object({
-  maxes: z
+export const sessionTracksSchema = z.object({
+  tracks: z
     .array(
       z.object({
         exercise_id: z.string().uuid(),
-        max_weight: z.number().finite().positive(),
+        start_weight: z.number().finite().positive(),
+        step: z.number().finite().positive().optional(),
+        count: z.number().int().min(1).max(24).optional(),
       }),
     )
     .min(1),
 });
 
-export type SessionMaxesInput = z.infer<typeof sessionMaxesSchema>;
+export type SessionTracksInput = z.infer<typeof sessionTracksSchema>;
 
 /**
- * Sets working weights for exercises that were left out of a planned session
- * and adds them to the plan. Inside a cycle the weight becomes a phase max;
- * outside it corrects the starting weight.
+ * Starts weight lines for slots that go «по линейке» but have none yet and
+ * adds those exercises to the planned session.
  */
-export async function setSessionMaxes(
+export async function setSessionTracks(
   userId: string,
   sessionId: string,
-  input: SessionMaxesInput,
+  input: SessionTracksInput,
 ): Promise<SessionDetail | null> {
   const session = await getSession(userId, sessionId);
   if (!session) {
@@ -47,29 +51,26 @@ export async function setSessionMaxes(
 
   const detail = await loadSessionDetail(userId, session);
   const missingById = new Map(
-    detail.missing_maxes.map((item) => [item.id, item]),
+    detail.missing_tracks.map((item) => [item.id, item]),
   );
-  const targets = input.maxes.flatMap((item) => {
+  const targets = input.tracks.flatMap((item) => {
     const exercise = missingById.get(item.exercise_id);
-    return exercise ? [{ exercise, maxWeight: item.max_weight }] : [];
+    return exercise ? [{ exercise, input: item }] : [];
   });
   if (targets.length === 0) {
     return withSessionRaiseOffers(userId, detail);
   }
 
   for (const target of targets) {
-    if (session.phase_id) {
-      await setPhaseMax(userId, session.phase_id, {
-        exercise_id: target.exercise.id,
-        max_weight: target.maxWeight,
-      });
-    } else {
-      await correctStartingMax({
-        userId,
-        exerciseId: target.exercise.id,
-        maxWeight: target.maxWeight,
-      });
-    }
+    await saveExerciseTrack(userId, target.exercise.id, {
+      steps: generateTrackSteps({
+        start: target.input.start_weight,
+        step: target.input.step ?? target.exercise.weight_step,
+        count: target.input.count ?? DEFAULT_TRACK_LENGTH,
+        weightStep: target.exercise.weight_step,
+      }),
+      position: 0,
+    });
   }
 
   const template = session.template_id
@@ -80,7 +81,6 @@ export async function setSessionMaxes(
     Math.max(0, ...detail.exercises.map((item) => item.sort_order)) + 10;
 
   for (const target of targets) {
-    ctx.maxByExercise.set(target.exercise.id, target.maxWeight);
     const inserted = await insertSessionExercise(
       userId,
       session,

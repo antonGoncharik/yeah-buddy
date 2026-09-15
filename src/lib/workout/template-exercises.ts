@@ -1,12 +1,14 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Exercise } from "@/lib/types";
+import type { Exercise, TemplateSlot } from "@/lib/types";
 import { mapExercise } from "@/lib/workout/map-rows";
+import { normalizeSlotPlan } from "@/lib/workout/slot-plan";
+import { parseSlotPlan } from "@/lib/workout/slot-plan-schema";
 
 export async function replaceTemplateExercises(
   supabase: ReturnType<typeof createSupabaseServerClient>,
   userId: string,
   templateId: string,
-  exerciseIds: string[],
+  slots: TemplateSlot[],
 ): Promise<void> {
   const deleted = await supabase
     .from("workout_template_exercises")
@@ -18,16 +20,18 @@ export async function replaceTemplateExercises(
     throw deleted.error;
   }
 
-  if (exerciseIds.length === 0) {
+  const unique = dedupeSlots(slots);
+  if (unique.length === 0) {
     return;
   }
 
   const inserted = await supabase.from("workout_template_exercises").insert(
-    exerciseIds.map((exerciseId, index) => ({
+    unique.map((slot, index) => ({
       user_id: userId,
       template_id: templateId,
-      exercise_id: exerciseId,
+      exercise_id: slot.exercise_id,
       sort_order: (index + 1) * 10,
+      plan: normalizeSlotPlan(slot.plan),
     })),
   );
 
@@ -36,11 +40,16 @@ export async function replaceTemplateExercises(
   }
 }
 
+export interface TemplateSlotRows {
+  exercises: Exercise[];
+  slots: TemplateSlot[];
+}
+
 export async function listTemplateExerciseMap(
   userId: string,
   templateIds: string[],
-): Promise<Map<string, Exercise[]>> {
-  const map = new Map<string, Exercise[]>();
+): Promise<Map<string, TemplateSlotRows>> {
+  const map = new Map<string, TemplateSlotRows>();
   if (templateIds.length === 0) {
     return map;
   }
@@ -87,10 +96,25 @@ export async function listTemplateExerciseMap(
       continue;
     }
 
-    const current = map.get(templateId) ?? [];
-    current.push(exercise);
+    const current = map.get(templateId) ?? { exercises: [], slots: [] };
+    current.exercises.push(exercise);
+    current.slots.push({
+      exercise_id: exercise.id,
+      plan: parseSlotPlan(row.plan),
+    });
     map.set(templateId, current);
   }
 
   return map;
+}
+
+function dedupeSlots(slots: TemplateSlot[]): TemplateSlot[] {
+  const seen = new Set<string>();
+  return slots.filter((slot) => {
+    if (seen.has(slot.exercise_id)) {
+      return false;
+    }
+    seen.add(slot.exercise_id);
+    return true;
+  });
 }

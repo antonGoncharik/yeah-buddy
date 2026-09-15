@@ -6,23 +6,32 @@ import { useState } from "react";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import { SlotPlanEditor } from "@/components/workout/slot-plan-editor";
 import { SortableList } from "@/components/workout/sortable-list";
-import type { ExerciseWithMax } from "@/lib/types";
+import type { TemplateFormSlot } from "@/components/workout/use-template-form";
+import type { ExerciseWithMax, SlotPlan, WorkoutKind } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
+import { slotPlanSummary } from "@/lib/workout/slot-plan";
 
 export function TemplateExercisePicker({
+  kind,
   selected,
   available,
   onReorder,
   onToggle,
+  onPlanChange,
 }: {
-  selected: ExerciseWithMax[];
+  kind: WorkoutKind;
+  selected: TemplateFormSlot[];
   available: ExerciseWithMax[];
-  onReorder: (next: ExerciseWithMax[]) => void;
+  onReorder: (next: TemplateFormSlot[]) => void;
   onToggle: (id: string) => void;
+  onPlanChange: (exerciseId: string, plan: SlotPlan | null) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
   const needle = query.trim().toLowerCase();
   const matches = needle
     ? available.filter((exercise) =>
@@ -40,6 +49,7 @@ export function TemplateExercisePicker({
     }
     return 0;
   });
+  const rows = selected.map((slot) => ({ id: slot.exercise.id, ...slot }));
 
   return (
     <>
@@ -48,8 +58,8 @@ export function TemplateExercisePicker({
           title="Упражнения"
           hint={
             selected.length > 1
-              ? "Порядок в списке — порядок в зале. Тяни за номер."
-              : "Порядок в списке — порядок в зале."
+              ? "Порядок в списке — порядок в зале. Тяни за номер. Нажми на упражнение — своя схема подходов."
+              : "Порядок в списке — порядок в зале. Нажми на упражнение — своя схема подходов."
           }
         />
         {selected.length === 0 ? (
@@ -59,16 +69,50 @@ export function TemplateExercisePicker({
         ) : (
           <div className="card-surface px-3 py-1">
             <SortableList
-              items={selected}
-              onReorder={onReorder}
-              renderItem={(exercise) => (
-                <>
-                  <p className="min-w-0 flex-1 px-1 text-base font-medium leading-snug">
-                    {exerciseShortLabel(exercise.short_name, exercise.name)}
-                  </p>
-                  <RemoveRowButton onClick={() => onToggle(exercise.id)} />
-                </>
-              )}
+              items={rows}
+              onReorder={(next) =>
+                onReorder(
+                  next.map(({ exercise, plan }) => ({ exercise, plan })),
+                )
+              }
+              renderItem={(row) => {
+                const open = openId === row.id;
+                const summary = slotPlanSummary(row.plan);
+                return (
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        className={cn(
+                          "min-w-0 flex-1 rounded-lg px-1 py-1 text-left",
+                          open && "text-primary",
+                        )}
+                        onClick={() => setOpenId(open ? null : row.id)}
+                      >
+                        <p className="text-base font-medium leading-snug">
+                          {exerciseShortLabel(
+                            row.exercise.short_name,
+                            row.exercise.name,
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                          {summary ?? "по общему плану"}
+                        </p>
+                      </button>
+                      <RemoveRowButton onClick={() => onToggle(row.id)} />
+                    </div>
+                    {open ? (
+                      <SlotPlanEditor
+                        kind={kind}
+                        exercise={row.exercise}
+                        plan={row.plan}
+                        onChange={(plan) => onPlanChange(row.id, plan)}
+                      />
+                    ) : null}
+                  </div>
+                );
+              }}
             />
           </div>
         )}

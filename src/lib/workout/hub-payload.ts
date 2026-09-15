@@ -19,6 +19,7 @@ import {
   parseWorkoutSession,
 } from "@/lib/workout/map-rows";
 import { toNumber } from "@/lib/workout/numbers";
+import { parseTemplateSlot } from "@/lib/workout/slot-plan-schema";
 
 export function readExercises(data: unknown): ExerciseWithMax[] {
   if (!isRecord(data)) {
@@ -156,11 +157,21 @@ export function parseTemplateDetail(
     return null;
   }
 
+  const exercises = mapRecordList(value.exercises, (row) =>
+    typeof row.id === "string" ? mapExercise(row) : null,
+  );
+  const slots = mapRecordList(value.slots, parseTemplateSlot);
   return {
     ...mapWorkoutTemplate(value),
-    exercises: mapRecordList(value.exercises, (row) =>
-      typeof row.id === "string" ? mapExercise(row) : null,
-    ),
+    exercises,
+    // Older payloads have no slots: every exercise goes by the shared scheme.
+    slots:
+      slots.length === exercises.length
+        ? slots
+        : exercises.map((exercise) => ({
+            exercise_id: exercise.id,
+            plan: null,
+          })),
   };
 }
 

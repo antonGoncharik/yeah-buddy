@@ -5,10 +5,17 @@ import type {
   PhaseCircleProgress,
   PhaseType,
   PlannedCyclePhase,
+  TemplateSlot,
   TransitionPreview,
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
 import { phaseLabel } from "@/lib/workout/labels";
+import {
+  slotCanPlan,
+  slotFor,
+  slotNeedsMax,
+  slotNeedsTrack,
+} from "@/lib/workout/slot-plan";
 
 export type CycleTimelineState = "completed" | "current" | "upcoming";
 
@@ -72,8 +79,14 @@ export function queueItemMark(options: {
   return "";
 }
 
+interface TemplateLike {
+  exercises: Exercise[];
+  /** Absent for old payloads: every exercise goes by the shared scheme. */
+  slots?: TemplateSlot[];
+}
+
 export function templateHasPlanMaxes(
-  template: { exercises: Exercise[] },
+  template: TemplateLike,
   catalog: ExerciseWithMax[],
 ): boolean {
   const maxById = new Map(
@@ -84,23 +97,27 @@ export function templateHasPlanMaxes(
   );
 
   return template.exercises.some((exercise) => {
-    if (exercise.formula_preset === "none") {
+    const plan = slotFor(template.slots, exercise.id);
+    if (!slotCanPlan(plan, exercise)) {
       return false;
+    }
+    if (!slotNeedsMax(plan, exercise)) {
+      return true;
     }
     return (maxById.get(exercise.id) ?? 0) > 0;
   });
 }
 
 /** A workout can start when at least one exercise gets a plan of sets. */
-export function templateCanPlan(template: { exercises: Exercise[] }): boolean {
-  return template.exercises.some(
-    (exercise) => exercise.formula_preset !== "none",
+export function templateCanPlan(template: TemplateLike): boolean {
+  return template.exercises.some((exercise) =>
+    slotCanPlan(slotFor(template.slots, exercise.id), exercise),
   );
 }
 
 /** Template exercises that need a working weight before they can get a plan. */
 export function templateMissingMaxes(
-  template: { exercises: Exercise[] },
+  template: TemplateLike,
   catalog: ExerciseWithMax[],
   plannedExerciseIds: Iterable<string> = [],
 ): Exercise[] {
@@ -113,10 +130,35 @@ export function templateMissingMaxes(
   );
 
   return template.exercises.filter((exercise) => {
-    if (exercise.formula_preset === "none" || planned.has(exercise.id)) {
+    if (planned.has(exercise.id)) {
+      return false;
+    }
+    const plan = slotFor(template.slots, exercise.id);
+    if (!slotCanPlan(plan, exercise) || !slotNeedsMax(plan, exercise)) {
       return false;
     }
     return (maxById.get(exercise.id) ?? 0) <= 0;
+  });
+}
+
+/** Template exercises whose slot goes by a weight line that is not set yet. */
+export function templateMissingTracks(
+  template: TemplateLike,
+  catalog: Array<Pick<ExerciseWithMax, "id" | "track">>,
+  plannedExerciseIds: Iterable<string> = [],
+): Exercise[] {
+  const planned = new Set(plannedExerciseIds);
+  const hasTrack = new Set(
+    catalog
+      .filter((exercise) => exercise.track && exercise.track.steps.length > 0)
+      .map((exercise) => exercise.id),
+  );
+
+  return template.exercises.filter((exercise) => {
+    if (planned.has(exercise.id) || hasTrack.has(exercise.id)) {
+      return false;
+    }
+    return slotNeedsTrack(slotFor(template.slots, exercise.id));
   });
 }
 
