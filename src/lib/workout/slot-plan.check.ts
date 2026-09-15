@@ -52,7 +52,7 @@ function line(rows: ReturnType<typeof plannedSetsForSlot>): string[] {
   });
 }
 
-// ---------- Vlad's bench: top 2×2 by the line, back-off 3×6 ten kilos lighter ----------
+// ---------- Bench: top 2×2 by the line, back-off 3×6 ten kilos lighter ----------
 
 const bench: SlotPlan = {
   groups: [
