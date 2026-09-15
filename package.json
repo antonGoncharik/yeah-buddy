@@ -9,6 +9,7 @@
     "lint": "biome check",
     "format": "biome format --write",
     "catalog:import": "tsx --env-file=.env.local scripts/import-catalog.ts",
+    "user:delete": "tsx --env-file=.env.local scripts/delete-user.ts",
     "test": "tsx scripts/run-checks.ts"
   },
   "dependencies": {
