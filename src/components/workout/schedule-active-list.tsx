@@ -36,7 +36,7 @@ export function ScheduleActiveList({
   return (
     <section className="animate-rise flex flex-col gap-2">
       <SectionHeading
-        title="В очереди"
+        title="В программе"
         hint={
           active.length > 1
             ? "Тяни за номер, чтобы поменять порядок. Крестик откладывает."

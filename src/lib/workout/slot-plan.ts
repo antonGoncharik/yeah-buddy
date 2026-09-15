@@ -408,7 +408,7 @@ export function formatSlotGroup(group: SlotSetGroup): string {
   return `${group.sets}×${formatGroupReps(group)} ${formatSlotLoad(group.load)}`;
 }
 
-/** One line under the exercise in the template editor and the queue. */
+/** One line under the exercise in the template editor and the program. */
 export function slotPlanSummary(plan: SlotPlan | null): string | null {
   if (!plan) {
     return null;

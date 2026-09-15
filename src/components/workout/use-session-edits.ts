@@ -178,7 +178,7 @@ export function useSessionEdits({
 
     const ok = await confirm({
       message:
-        "Убрать эту тренировку? Она останется следующей в очереди, ничего не потеряется.",
+        "Убрать эту тренировку? Она останется следующей в программе, ничего не потеряется.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,

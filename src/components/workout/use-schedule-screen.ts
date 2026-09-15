@@ -90,7 +90,7 @@ export function useScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? Очередь станет этой программой. Свои тренировки не удалятся — отложатся.`,
+      message: `Поставить «${preset.name}»? Программа станет этой. Свои дни не удалятся — отложатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });

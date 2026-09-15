@@ -34,7 +34,7 @@ export function OnboardingCircleStep({
       <p className="animate-rise text-base text-muted-foreground">
         {fromMealPack
           ? "Еда на день возьмётся из ссылки. Осталось выбрать программу тренировок."
-          : "Какие тренировки будут идти по очереди. Потом их можно менять как угодно."}
+          : "Какие дни будут в программе. Потом их можно менять как угодно."}
       </p>
       <ProgramPresetList
         value={isProgramPresetId(value) ? value : null}

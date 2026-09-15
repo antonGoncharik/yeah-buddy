@@ -24,7 +24,7 @@ export function ScheduleInactiveList({
     <section className="animate-rise flex flex-col gap-2">
       <SectionHeading
         title="Отложены"
-        hint="Не в очереди. Плюс возвращает, нажатие открывает."
+        hint="Не в программе. Плюс возвращает, нажатие открывает."
       />
       <div className="card-surface px-3 py-1">
         {inactive.map((template) => (
@@ -44,7 +44,7 @@ export function ScheduleInactiveList({
               </p>
             </Link>
             <AddRowButton
-              label="В очередь"
+              label="В программу"
               disabled={saving}
               onClick={() => onSetInCircle(template.id, true)}
             />

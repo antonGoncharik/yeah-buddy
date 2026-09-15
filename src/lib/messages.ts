@@ -43,9 +43,9 @@ export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение и его рабочий вес — без этого план подходов не посчитать.";
 export const WORKOUTS_NEED_EXERCISES = "Сначала добавь упражнения.";
 export const WORKOUTS_NEED_TEMPLATES =
-  "Очередь пустая. Поставь готовую программу или собери тренировку сам.";
+  "Программа пустая. Поставь готовую или собери тренировку сам.";
 export const WORKOUT_TEMPLATE_EMPTY =
-  "В этой тренировке нет упражнений с планом подходов. Добавь их в очереди.";
+  "В этой тренировке нет упражнений с планом подходов. Добавь их в программе.";
 export const NEED_ALL_WORKING_WEIGHTS =
   "Нужен рабочий вес у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
@@ -74,7 +74,7 @@ export const REVIEW_CTA_HINT = "Еда, зал и вес за эти дни";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
 export const PACK_EMPTY_MEALS = "Сначала собери еду на день.";
-export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в очередь.";
+export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в программу.";
 
 export function readApiError(data: unknown): string | null {
   if (

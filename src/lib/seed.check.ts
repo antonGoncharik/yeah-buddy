@@ -104,6 +104,21 @@ uniqueNames(
   PROGRAM_PRESETS.map((preset) => preset.name),
   "program preset name",
 );
+uniqueNames(
+  PROGRAM_PRESETS.map((preset) =>
+    [...preset.templates.map((day) => day.name)].sort().join("|"),
+  ),
+  "program day set",
+);
+
+assert(
+  PROGRAM_PRESETS.some((preset) =>
+    preset.templates.some((day) =>
+      day.exercises.some((slot) => slot.plan != null),
+    ),
+  ),
+  "some programs ship slot plans",
+);
 
 for (const preset of PROGRAM_PRESETS) {
   assert(preset.templates.length > 0, `empty program: ${preset.id}`);
@@ -173,6 +188,10 @@ for (const system of FORMULA_SYSTEMS) {
 uniqueNames(
   CYCLE_TEMPLATES.map((template) => template.id),
   "cycle template id",
+);
+uniqueNames(
+  CYCLE_TEMPLATES.map((template) => template.name),
+  "cycle template name",
 );
 for (const template of CYCLE_TEMPLATES) {
   assert(template.cycle.length > 0, `empty cycle: ${template.id}`);

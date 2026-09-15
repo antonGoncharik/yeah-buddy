@@ -61,7 +61,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "Тренировки",
         short_name: "Зал",
-        description: "Очередь и рабочие веса",
+        description: "Программа и рабочие веса",
         url: "/workouts",
         icons: [SHORTCUT_ICON],
       },
@@ -86,7 +86,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "390x844",
         type: "image/png",
         form_factor: "narrow",
-        label: "Очередь тренировок",
+        label: "Программа тренировок",
       },
       {
         src: "/screenshots/settings.png",

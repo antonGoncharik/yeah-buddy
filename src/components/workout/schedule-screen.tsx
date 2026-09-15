@@ -34,7 +34,7 @@ export function ScheduleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={QUEUE_LABEL}
-        subtitle="Тренировки идут по очереди"
+        subtitle="Дни идут друг за другом, не по календарю"
         backHref="/workouts"
       />
 
@@ -48,8 +48,7 @@ export function ScheduleScreen() {
         {!loading && active.length === 0 && inactive.length === 0 ? (
           <>
             <p className="animate-fade px-1 text-base leading-relaxed text-muted-foreground">
-              Очередь пока пустая. Поставь готовую программу или собери
-              тренировку сам.
+              Программа пока пустая. Поставь готовую или собери тренировку сам.
             </p>
             <ScheduleProgramsSection
               saving={saving}
@@ -93,7 +92,7 @@ export function ScheduleScreen() {
                   Готовые программы
                 </span>
                 <span className="mt-0.5 block text-sm text-muted-foreground">
-                  Поставить в очередь вместо своих
+                  Поставить вместо своих дней
                 </span>
               </span>
               <ChevronDown

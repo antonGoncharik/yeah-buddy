@@ -50,11 +50,11 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             />
           </Field>
 
-          <Field label="Очередь">
+          <Field label="Программа">
             <Segmented
               value={isActive ? "on" : "off"}
               options={[
-                { id: "on", label: "В очереди" },
+                { id: "on", label: "В программе" },
                 { id: "off", label: "Отложить" },
               ]}
               onChange={(id) => setIsActive(id === "on")}

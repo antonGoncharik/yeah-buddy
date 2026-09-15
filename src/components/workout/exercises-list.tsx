@@ -39,7 +39,7 @@ export function ExercisesList({
             title={groups.queued.length > 0 ? "Остальные" : "Упражнения"}
             hint={
               groups.queued.length > 0
-                ? "Не в очереди, но можно добавить в тренировку."
+                ? "Не в программе, но можно добавить в тренировку."
                 : undefined
             }
           />

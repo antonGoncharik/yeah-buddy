@@ -142,7 +142,7 @@ export function WorkoutsHubQueueCta({
       {!nextCanStart ? (
         <p className="text-sm leading-snug text-muted-foreground">
           В этой тренировке нет упражнений с планом подходов. Добавь их в
-          очереди.
+          программе.
         </p>
       ) : null}
 

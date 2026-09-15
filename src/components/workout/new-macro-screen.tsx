@@ -55,16 +55,16 @@ export function NewMacroScreen() {
 
         {queueEmpty ? (
           <section className="card-surface flex flex-col gap-3 px-5 py-5">
-            <p className="text-lg font-medium">Очередь пустая</p>
+            <p className="text-lg font-medium">Программа пустая</p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Цикл меняет вес в тех тренировках, что стоят в очереди. Сначала
-              поставь программу или собери тренировку.
+              Цикл меняет вес в тех тренировках, что стоят в программе. Сначала
+              поставь готовую или собери день.
             </p>
             <Link
               href="/workouts/schedule"
               className={cn(buttonVariants(), "h-14 text-lg")}
             >
-              К очереди
+              К программе
             </Link>
           </section>
         ) : null}
@@ -75,7 +75,7 @@ export function NewMacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировки те же, что в очереди. Выбери цикл — он только
+                  Тренировки те же, что в программе. Выбери цикл — он только
                   меняет вес по неделям.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
@@ -102,7 +102,7 @@ export function NewMacroScreen() {
             ) : (
               <>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  {`${cycle.map((phase) => phase.name).join(" → ")}. Тренировки те же, что в очереди. Начнётся с «${cycle[0]?.name}».`}
+                  {`${cycle.map((phase) => phase.name).join(" → ")}. Тренировки те же, что в программе. Начнётся с «${cycle[0]?.name}».`}
                 </p>
                 <div className="flex flex-col gap-2">
                   <Label className="text-base">Дата начала</Label>

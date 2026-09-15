@@ -55,6 +55,21 @@ export const VOLUME_STRENGTH_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
+export const THREE_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
+  phase("w1", "Неделя 1"),
+  phase("w2", "Неделя 2"),
+  phase("w3", "Неделя 3", { increase_on_end: true }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
+export const FOUR_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
+  phase("w1", "Неделя 1"),
+  phase("w2", "Неделя 2"),
+  phase("w3", "Неделя 3"),
+  phase("w4", "Неделя 4", { increase_on_end: true }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
 export const CYCLE_TEMPLATES: Array<{
   id:
     | "four_phase"
@@ -62,7 +77,9 @@ export const CYCLE_TEMPLATES: Array<{
     | "light_medium_heavy"
     | "light_heavy"
     | "linear"
-    | "volume_strength";
+    | "volume_strength"
+    | "three_week_deload"
+    | "four_week_deload";
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
@@ -93,8 +110,8 @@ export const CYCLE_TEMPLATES: Array<{
   },
   {
     id: "linear",
-    name: "Линейный",
-    hint: "70 → 75 → 80 → 85, потом сброс. После 85% можно поднять веса.",
+    name: "70 → 85%",
+    hint: "Проценты от рабочего веса: 70 → 75 → 80 → 85, потом сброс. Это не линейка килограммов.",
     cycle: LINEAR_CYCLE,
   },
   {
@@ -102,5 +119,17 @@ export const CYCLE_TEMPLATES: Array<{
     name: "Объём → сила",
     hint: "Неделя объёма, неделя силы, сброс. После силы можно поднять веса.",
     cycle: VOLUME_STRENGTH_CYCLE,
+  },
+  {
+    id: "three_week_deload",
+    name: "Три недели + сброс",
+    hint: "Программа та же. После третьей недели можно поднять рабочие веса.",
+    cycle: THREE_WEEK_DELOAD_CYCLE,
+  },
+  {
+    id: "four_week_deload",
+    name: "Четыре недели + сброс",
+    hint: "Программа та же. После четвёртой недели можно поднять рабочие веса.",
+    cycle: FOUR_WEEK_DELOAD_CYCLE,
   },
 ];
