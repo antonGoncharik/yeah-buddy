@@ -12,7 +12,7 @@ import { plannedSetsForSlot, slotPhaseKeys } from "@/lib/workout/slot-plan";
 import { parseSlotPlan } from "@/lib/workout/slot-plan-schema";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
-function assert(condition: boolean, label: string) {
+function assert(condition: unknown, label: string): asserts condition {
   if (!condition) {
     throw new Error(label);
   }
