@@ -101,11 +101,11 @@ export function SlotPlanEditor({
         options={[
           {
             id: "shared",
-            label: phase ? "Как обычно" : "Общий план",
+            label: phase ? "Обычно" : "Общий план",
           },
           {
             id: "custom",
-            label: phase ? "Своя схема на этап" : "Своя схема",
+            label: phase ? "Своя" : "Своя схема",
           },
         ]}
         onChange={(id) =>
@@ -122,7 +122,7 @@ export function SlotPlanEditor({
       {phase && !custom ? (
         <p className="px-1 text-sm leading-snug text-muted-foreground">
           На этапе «{phase.name}» подходы как обычно. Другой вес на эту неделю —
-          в «Своя схема на этап».
+          включи «Своя».
         </p>
       ) : null}
 
@@ -164,8 +164,8 @@ export function SlotPlanEditor({
             <Segmented
               value={current.warmup ? "on" : "off"}
               options={[
-                { id: "on", label: "С разминкой" },
-                { id: "off", label: "Без разминки" },
+                { id: "on", label: "Разминка" },
+                { id: "off", label: "Без" },
               ]}
               onChange={(id) => update({ warmup: id === "on" })}
             />
@@ -183,7 +183,7 @@ export function SlotPlanEditor({
             <Segmented<IntensityOption>
               value={current.intensity ?? "none"}
               options={[
-                { id: "none", label: "Как обычно" },
+                { id: "none", label: "Обычно" },
                 ...SLOT_INTENSITIES.map((intensity) => ({
                   id: intensity,
                   label: SLOT_INTENSITY_LABELS[intensity],
@@ -248,8 +248,8 @@ function PhaseChips({
         ))}
       </div>
       <p className="px-1 text-sm leading-snug text-muted-foreground">
-        На этапе — свои подходы на эту неделю: другие повторы, % от 1ПМ или
-        линейка кг. Точка — схема уже стоит.
+        На этапе — свои подходы: другие повторы или другой вес. Точка — схема
+        уже стоит.
       </p>
     </div>
   );
@@ -271,14 +271,14 @@ function Chip({
       type="button"
       aria-pressed={selected}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+        "flex max-w-[11rem] shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         selected
           ? "bg-primary text-primary-foreground"
           : "bg-card text-muted-foreground hover:text-foreground",
       )}
       onClick={onClick}
     >
-      {label}
+      <span className="truncate">{label}</span>
       {marked ? (
         <span
           aria-hidden

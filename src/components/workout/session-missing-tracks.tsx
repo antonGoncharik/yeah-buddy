@@ -9,10 +9,6 @@ import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { Exercise } from "@/lib/types";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
-import {
-  DEFAULT_TRACK_LENGTH,
-  generateTrackSteps,
-} from "@/lib/workout/track-line";
 
 export interface MissingTrackInput {
   exercise_id: string;
@@ -41,26 +37,16 @@ export function SessionMissingTracks({
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
         <p className="text-xl font-semibold tracking-tight">
-          Линейка ещё не начата
+          Первый рабочий вес
         </p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Это не 1ПМ и не цикл: ряд килограммов, каждую тренировку следующий
-          шаг. Напиши вес первого шага — дальше {DEFAULT_TRACK_LENGTH}{" "}
-          тренировок пойдут сами. Поправить можно в упражнении.
+          Напиши килограммы на первый раз. Дальше вес пойдёт сам: после недели,
+          если в цикле стоит прибавка, или после тренировки.
         </p>
       </div>
       <div className="divide-y divide-border/70" data-field-group>
         {exercises.map((exercise, index) => {
           const start = parseDecimal(values[exercise.id] ?? "");
-          const preview =
-            start != null && start > 0
-              ? generateTrackSteps({
-                  start,
-                  step: exercise.weight_step,
-                  count: DEFAULT_TRACK_LENGTH,
-                  weightStep: exercise.weight_step,
-                })
-              : null;
           return (
             <div key={exercise.id} className="flex flex-col gap-1 py-3">
               <div className="flex items-center gap-3">
@@ -90,9 +76,10 @@ export function SessionMissingTracks({
                   className="h-12 w-24 shrink-0 text-base tabular-nums"
                 />
               </div>
-              {preview ? (
+              {start != null && start > 0 ? (
                 <p className="text-sm tabular-nums text-muted-foreground">
-                  {preview.map(formatWeight).join(" → ")} кг
+                  {formatWeight(start)} кг · шаг{" "}
+                  {formatWeight(exercise.weight_step)}
                 </p>
               ) : null}
             </div>

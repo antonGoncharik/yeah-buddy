@@ -13,12 +13,10 @@ import { parseDecimal } from "@/lib/workout/numbers";
 export function SessionMissingMaxes({
   exercises,
   busy,
-  inCycle,
   onSave,
 }: {
   exercises: Exercise[];
   busy: boolean;
-  inCycle: boolean;
   onSave: (
     maxes: Array<{ exercise_id: string; max_weight: number }>,
   ) => Promise<void>;
@@ -37,8 +35,7 @@ export function SessionMissingMaxes({
       <div>
         <p className="text-xl font-semibold tracking-tight">Ещё без плана</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Напиши 1ПМ — подходы посчитаются от него.
-          {inCycle ? " Проценты пойдут в текущий этап цикла." : ""}
+          Напиши 1ПМ — подходы с процентами посчитаются от него.
         </p>
       </div>
       <div className="divide-y divide-border/70" data-field-group>

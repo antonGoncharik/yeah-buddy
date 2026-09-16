@@ -47,7 +47,7 @@ export function ExerciseTypeFields({
           }
         />
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Сколько раз или сколько секунд. «И то и то» — оба.
+          Сколько раз или сколько секунд. «Оба» — можно и то и то.
         </p>
       </Field>
 

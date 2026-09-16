@@ -21,10 +21,10 @@ export function MacroPhaseMaxes({
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-semibold">1ПМ на этом этапе</h2>
+      <h2 className="text-xl font-semibold">1ПМ на этой неделе</h2>
       <p className="text-sm text-muted-foreground">
-        От этих цифр считается план подходов. Здесь только упражнения, которые
-        ты делаешь — остальные отмечены «Не делаю» в списке упражнений.
+        Для упражнений, где вес считается процентом. Линейка килограммов живёт в
+        карточке упражнения.
       </p>
       {maxes.map((row) => (
         <div

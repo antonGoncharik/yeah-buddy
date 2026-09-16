@@ -177,7 +177,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"
-          hint="Список и 1ПМ"
+          hint="Список и веса"
         />
         <NavRow
           href="/workouts/progress"

@@ -44,8 +44,8 @@ export function FormulaWorkCard({
       <div>
         <h2 className="text-xl font-semibold">Рабочие подходы</h2>
         <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-          Общая схема, проценты от 1ПМ. В дне можно заменить на свою, в том
-          числе линейку кг.
+          Общая схема на день без своей. Проценты — от 1ПМ, либо в дне поставишь
+          килограммы.
         </p>
         <p className="text-sm tabular-nums text-muted-foreground">
           {workSummary(work)}

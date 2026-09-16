@@ -54,9 +54,9 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
   percent: "% от 1ПМ",
   orm: "% от 1ПМ",
-  track: "Линейка, кг",
-  fixed: "Килограммы",
-  feel: "По самочувствию",
+  track: "Линейка",
+  fixed: "Один вес",
+  feel: "Сам",
 };
 
 export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
@@ -64,7 +64,7 @@ export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
     "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   orm: "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   track:
-    "Ряд кг в упражнении. Если в цикле стоит прибавка — вес растёт после недели. Если нет — после тренировки.",
+    "Рабочий вес в кг. После недели, если в цикле стоит прибавка, иначе — после тренировки.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
   feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
 };

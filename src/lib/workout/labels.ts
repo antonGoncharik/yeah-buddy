@@ -51,7 +51,7 @@ export const EXERCISE_WORKOUT_TYPE_LABELS: Record<ExerciseWorkoutType, string> =
   {
     dynamic: "Повторы",
     static: "На время",
-    both: "И то и то",
+    both: "Оба",
   };
 
 export const WORKOUT_KIND_LABELS: Record<WorkoutKind, string> = {

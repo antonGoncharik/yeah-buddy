@@ -131,7 +131,7 @@ export function FormulaCyclePhaseRow({
             <Toggle
               on={(phase.kg_increase_on_end ?? 0) > 0}
               label="В конце прибавить кг"
-              hint="Линейка килограммов, не процент от 1ПМ"
+              hint="Рабочий вес в кг, когда этап закроется"
               onClick={() =>
                 patch({
                   kg_increase_on_end:

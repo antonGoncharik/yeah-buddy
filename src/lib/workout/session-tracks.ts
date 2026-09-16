@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { SessionDetail } from "@/lib/types";
+import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { saveExerciseTrack } from "@/lib/workout/exercise-tracks";
 import {
   insertSessionExercise,
@@ -9,6 +10,7 @@ import {
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import { getSession } from "@/lib/workout/session-read";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { slotFor } from "@/lib/workout/slot-plan";
 import { getTemplate } from "@/lib/workout/templates";
 import {
@@ -61,12 +63,15 @@ export async function setSessionTracks(
     return withSessionRaiseOffers(userId, detail);
   }
 
+  const weekly = cycleDrivesTracks(
+    (await ensureWorkoutSettings(userId)).formulas.cycle,
+  );
   for (const target of targets) {
     await saveExerciseTrack(userId, target.exercise.id, {
       steps: generateTrackSteps({
         start: target.input.start_weight,
         step: target.input.step ?? target.exercise.weight_step,
-        count: target.input.count ?? DEFAULT_TRACK_LENGTH,
+        count: weekly ? 1 : (target.input.count ?? DEFAULT_TRACK_LENGTH),
         weightStep: target.exercise.weight_step,
       }),
       position: 0,

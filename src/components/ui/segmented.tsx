@@ -25,7 +25,7 @@ export function Segmented<T extends string>({
 
   return (
     <div
-      className="relative grid auto-cols-fr grid-flow-col gap-1 rounded-2xl bg-muted/80 p-1"
+      className="relative grid auto-cols-fr grid-flow-col gap-1 overflow-hidden rounded-2xl bg-muted/80 p-1"
       style={{
         gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`,
       }}
@@ -48,7 +48,7 @@ export function Segmented<T extends string>({
             variant="ghost"
             disabled={disabled}
             className={cn(
-              "relative z-10 h-11 gap-2 rounded-xl text-base shadow-none hover:bg-transparent",
+              "relative z-10 h-auto min-h-11 min-w-0 w-full shrink gap-1 rounded-xl px-1.5 py-1.5 text-center text-sm leading-tight whitespace-normal shadow-none hover:bg-transparent",
               selected
                 ? "bg-transparent text-foreground"
                 : "text-muted-foreground hover:text-foreground",

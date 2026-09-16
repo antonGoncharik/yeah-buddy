@@ -109,7 +109,6 @@ export function SessionScreen() {
               <SessionMissingMaxes
                 exercises={detail.missing_maxes}
                 busy={busy}
-                inCycle={Boolean(session.phase_id)}
                 onSave={saveMissingMaxes}
               />
             ) : null}

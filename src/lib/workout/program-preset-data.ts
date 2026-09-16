@@ -131,7 +131,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "five_by_five",
     name: "5×5 A/B",
-    hint: "Присед каждый раз, пятёрки на 80%. Становая — один подход на 5. Цикл не нужен.",
+    hint: "Присед каждый раз, пятёрки на 80%. Становая — один подход на 5. Недели не ставит.",
     level: "beginner",
     templates: [
       day("5×5 A", [
@@ -152,7 +152,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "starting_strength",
     name: "3×5 A/B",
-    hint: "Присед каждый раз, тройки на 80%. Становая — один подход на 5. Цикл не нужен.",
+    hint: "Присед каждый раз, тройки на 80%. Становая — один подход на 5. Недели не ставит.",
     level: "beginner",
     templates: [
       day("3×5 A", [
@@ -358,7 +358,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gzclp",
     name: "T1 / T2 / T3",
-    hint: "Три этажа: T1 по линейке, T2 от 1ПМ, T3 около отказа. Цикл не нужен.",
+    hint: "Три этажа: T1 по линейке, T2 от 1ПМ, T3 около отказа. Недели не ставит.",
     level: "intermediate",
     templates: [
       day("T1 присед", [
@@ -384,7 +384,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "upper_lower_hl",
     name: "Верх / Низ · тяжело-легко",
-    hint: "Четыре дня: тяжёлые и лёгкие верх и низ меняются. Цикл не нужен — метки уже в днях.",
+    hint: "Четыре дня: тяжёлые и лёгкие верх и низ меняются. Недели не ставит — метки уже в днях.",
     level: "intermediate",
     templates: [
       day("Верх тяжело", [
@@ -418,7 +418,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "phul",
     name: "Верх / Низ · сила-объём",
-    hint: "Силовые дни 3–5, объём 8–12. Цикл не нужен — уже в днях.",
+    hint: "Силовые дни 3–5, объём 8–12. Недели не ставит — уже в днях.",
     level: "intermediate",
     templates: [
       day("Верх сила", [
@@ -490,7 +490,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gvt",
     name: "10×10",
-    hint: "Главное упражнение дня — десять по десять на 60%. Цикл не нужен.",
+    hint: "Главное упражнение дня — десять по десять на 60%. Недели не ставит.",
     level: "advanced",
     templates: [
       day("10×10 ноги", [
@@ -513,7 +513,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "five_three_one",
     name: "5/3/1",
-    hint: "Главный лифт 65–75–85%, потом 5×10 на 50%. Цикл и линейка не нужны — схема уже в днях.",
+    hint: "Главный лифт 65–75–85%, потом 5×10 на 50%. Схема уже в днях.",
     level: "advanced",
     templates: [
       day("5/3/1 · жим стоя", [
