@@ -3,6 +3,7 @@ import type {
   ExerciseCategory,
   ExerciseProgress,
   ProgressPoint,
+  WorkoutKind,
 } from "@/lib/types";
 
 export type ProgressMetric = "weight" | "seconds" | "relative";
@@ -90,6 +91,51 @@ export function metricValues(
   }
 
   return points.map((point) => point.weight);
+}
+
+export function progressKinds(points: ProgressPoint[]): WorkoutKind[] {
+  const seen: WorkoutKind[] = [];
+  for (const point of points) {
+    if (
+      (point.kind === "dynamic" || point.kind === "static") &&
+      !seen.includes(point.kind)
+    ) {
+      seen.push(point.kind);
+    }
+  }
+  return seen;
+}
+
+export function lastProgressKind(points: ProgressPoint[]): WorkoutKind | null {
+  for (let index = points.length - 1; index >= 0; index -= 1) {
+    const kind = points[index]?.kind;
+    if (kind === "dynamic" || kind === "static") {
+      return kind;
+    }
+  }
+  return null;
+}
+
+export function pointsForKind(
+  points: ProgressPoint[],
+  kind: WorkoutKind | null,
+): ProgressPoint[] {
+  if (kind == null) {
+    return points;
+  }
+  const filtered = points.filter((point) => point.kind === kind);
+  return filtered.length > 0 ? filtered : points;
+}
+
+/** Last session's kind, so a heavy static hold is not compared to a later dynamic set. */
+export function primaryProgressPoints(
+  points: ProgressPoint[],
+): ProgressPoint[] {
+  const kinds = progressKinds(points);
+  if (kinds.length <= 1) {
+    return points;
+  }
+  return pointsForKind(points, lastProgressKind(points));
 }
 
 export function withRelativePoints(

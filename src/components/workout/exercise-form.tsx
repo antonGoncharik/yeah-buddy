@@ -41,20 +41,20 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {exercise && !canCorrectMax ? (
         <div className="card-surface flex scroll-mb-36 flex-col gap-2 px-5 py-4">
-          <p className="text-base font-medium">Рабочий вес</p>
+          <p className="text-base font-medium">1ПМ</p>
           <p className="text-2xl font-semibold tracking-tight">
             {exercise.current_max
               ? `${formatWeight(exercise.current_max.max_weight)} кг`
               : "не задан"}
           </p>
           <p className="text-sm text-muted-foreground">
-            От этого веса считаются подходы. Идёт цикл, поэтому здесь он не
-            меняется: поднять можно на смене этапа, а поправить на текущий этап
-            — в разделе «Цикл».
+            От этого максимума считаются проценты. Идёт цикл, поэтому здесь он
+            не меняется: поднять можно на смене этапа, а поправить на текущий
+            этап — в разделе «Цикл».
           </p>
         </div>
       ) : (
-        <Field label="Рабочий вес, кг">
+        <Field label="1ПМ, кг">
           <Input
             required
             inputMode="decimal"
@@ -71,34 +71,11 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           />
           {exercise ? (
             <p className="text-sm text-muted-foreground">
-              От этого веса считаются подходы. Без цикла меняй здесь.
+              От этого максимума считаются подходы. Без цикла меняй здесь.
             </p>
           ) : null}
         </Field>
       )}
-
-      {form.workout_type !== "static" && form.formula_preset !== "none" ? (
-        <Field label="Максимум на один раз, кг">
-          <Input
-            inputMode="decimal"
-            enterKeyHint="done"
-            placeholder="не обязательно"
-            value={form.one_rm}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                one_rm: event.target.value,
-              }))
-            }
-            onKeyDown={handleNumericEnter}
-            className="h-12 text-base"
-          />
-          <p className="text-sm text-muted-foreground">
-            Нужен только схемам «% от 1ПМ» — это силовые таблицы. Пусто —
-            посчитаем от рабочего веса.
-          </p>
-        </Field>
-      ) : null}
 
       {exercise ? <ExerciseTrackCard exercise={exercise} /> : null}
 

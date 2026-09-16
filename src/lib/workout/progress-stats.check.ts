@@ -1,4 +1,7 @@
+import { measureProgress } from "@/lib/workout/progress-build";
 import {
+  lastProgressKind,
+  primaryProgressPoints,
   tonnageOverlayValues,
   withRelativePoints,
 } from "@/lib/workout/progress-stats";
@@ -126,6 +129,49 @@ assertEqual(
   tonnageOverlayValues(points),
   [2625, 2625],
   "overlay needs tonnage on every point",
+);
+
+function workPoint(
+  date: string,
+  weight: number,
+  kind: "dynamic" | "static",
+  seconds: number | null = null,
+) {
+  return {
+    date,
+    weight,
+    seconds,
+    tonnage: kind === "dynamic" ? weight * 5 : null,
+    circle_tonnage: null,
+    body_weight: null,
+    relative: null,
+    phase_type: null,
+    macro_number: null,
+    kind,
+    label: date,
+  };
+}
+
+const mixed = [
+  workPoint("2026-09-01", 115, "static", 6),
+  workPoint("2026-09-08", 80, "dynamic"),
+  workPoint("2026-09-15", 82, "dynamic"),
+];
+assertEqual(lastProgressKind(mixed), "dynamic", "latest session kind");
+assertEqual(
+  primaryProgressPoints(mixed).map((point) => point.weight),
+  [80, 82],
+  "static holds do not sit on the dynamic series",
+);
+assertEqual(
+  measureProgress(primaryProgressPoints(mixed)).delta,
+  2,
+  "delta is last dynamic minus first dynamic, not minus the heavier hold",
+);
+assertEqual(
+  measureProgress(mixed).delta,
+  82 - 115,
+  "ungated mix would look like a drop",
 );
 
 console.log("progress relative ok");

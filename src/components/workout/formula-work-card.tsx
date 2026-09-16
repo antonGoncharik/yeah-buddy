@@ -88,14 +88,14 @@ export function FormulaWorkCard({
 
       <div className="flex items-center gap-2 border-t border-border/60 pt-3 text-sm text-muted-foreground">
         <span className="min-w-0 flex-1">
-          Килограммы справа — пример при рабочем весе
+          Килограммы справа — пример при 1ПМ
         </span>
         <Input
           inputMode="decimal"
           value={previewMax}
           onChange={(event) => setPreviewMax(event.target.value)}
           className="h-10 w-16 px-2 text-center text-sm tabular-nums"
-          aria-label="Пример рабочего веса, кг"
+          aria-label="Пример 1ПМ, кг"
         />
         <span>кг</span>
       </div>

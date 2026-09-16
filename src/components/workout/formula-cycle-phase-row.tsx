@@ -61,7 +61,7 @@ export function FormulaCyclePhaseRow({
   );
   const tags = [
     phase.skip_warmup ? "без разминки" : null,
-    phase.increase_on_end ? "в конце поднять веса" : null,
+    phase.increase_on_end ? "в конце поднять 1ПМ" : null,
   ].filter(Boolean);
 
   function patch(next: Partial<Omit<CyclePhaseDef, "key">>) {
@@ -121,7 +121,7 @@ export function FormulaCyclePhaseRow({
             />
             <Toggle
               on={phase.increase_on_end}
-              label="В конце поднять рабочие веса"
+              label="В конце поднять 1ПМ"
               hint="На шаг вверх, когда этап закрывается"
               onClick={() => patch({ increase_on_end: !phase.increase_on_end })}
             />

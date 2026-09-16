@@ -167,6 +167,12 @@ function parseProgressPoint(
     relative: toNullableNumber(row.relative),
     phase_type: isPhaseType(phaseType) ? phaseType : null,
     macro_number: toNullableNumber(row.macro_number),
+    kind:
+      row.kind === "static"
+        ? "static"
+        : row.kind === "dynamic"
+          ? "dynamic"
+          : null,
     label: String(row.label ?? ""),
   };
 }

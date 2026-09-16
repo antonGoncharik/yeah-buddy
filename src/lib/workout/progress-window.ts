@@ -3,9 +3,11 @@ import type {
   ProgressPoint,
   StrengthProgress,
 } from "@/lib/types";
-import { percentChange } from "@/lib/workout/numbers";
-import { summarizeProgress } from "@/lib/workout/progress-build";
-import { relativeSeries } from "@/lib/workout/progress-stats";
+import {
+  measureProgress,
+  summarizeProgress,
+} from "@/lib/workout/progress-build";
+import { lastProgressKind, pointsForKind } from "@/lib/workout/progress-stats";
 
 export function windowStrengthProgress(
   progress: StrengthProgress,
@@ -47,9 +49,18 @@ function windowExerciseProgress(
     return null;
   }
 
-  const baseline = lastBefore(points, from);
-  const series = baseline ? [baseline, ...inWindow] : inWindow;
-  return progressFromSeries(item, series);
+  const kind = lastProgressKind(inWindow);
+  const comparable = pointsForKind(points, kind);
+  const inWindowKind = comparable.filter(
+    (point) => point.date >= from && point.date <= to,
+  );
+  const baseline = lastBefore(comparable, from);
+  const series = baseline ? [baseline, ...inWindowKind] : inWindowKind;
+  return {
+    ...item,
+    ...measureProgress(series),
+    points: inWindow,
+  };
 }
 
 function lastBefore(
@@ -64,53 +75,4 @@ function lastBefore(
     found = point;
   }
   return found;
-}
-
-function progressFromSeries(
-  item: ExerciseProgress,
-  points: ProgressPoint[],
-): ExerciseProgress {
-  const start_weight = points[0]?.weight ?? null;
-  const current_weight = points.at(-1)?.weight ?? null;
-  const delta =
-    start_weight == null || current_weight == null
-      ? null
-      : current_weight - start_weight;
-  const percent =
-    start_weight == null || current_weight == null
-      ? null
-      : percentChange(start_weight, current_weight);
-  const relatives = relativeSeries(points);
-  const start_relative = relatives[0]?.relative ?? null;
-  const current_relative = relatives.at(-1)?.relative ?? null;
-  const relative_percent =
-    start_relative == null || current_relative == null
-      ? null
-      : percentChange(start_relative, current_relative);
-  const start_tonnage = points[0]?.tonnage ?? null;
-  const current_tonnage = points.at(-1)?.tonnage ?? null;
-  const tonnage_delta =
-    start_tonnage == null || current_tonnage == null
-      ? null
-      : current_tonnage - start_tonnage;
-  const tonnage_percent =
-    start_tonnage == null || current_tonnage == null
-      ? null
-      : percentChange(start_tonnage, current_tonnage);
-
-  return {
-    ...item,
-    current_weight,
-    start_weight,
-    delta,
-    percent,
-    current_relative,
-    start_relative,
-    relative_percent,
-    current_tonnage,
-    start_tonnage,
-    tonnage_delta,
-    tonnage_percent,
-    points,
-  };
 }

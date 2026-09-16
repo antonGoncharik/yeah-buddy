@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { SlotPlan, TemplateSlot } from "@/lib/types";
+import { collapseOrmPlan } from "@/lib/workout/slot-plan";
 
 export const MAX_SLOT_GROUPS = 6;
 export const MAX_GROUP_SETS = 12;
@@ -92,10 +93,19 @@ export function parseSlotPlan(value: unknown): SlotPlan | null {
     return null;
   }
   const parsed = slotPlanSchema.safeParse(value);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) {
+    return null;
+  }
+  return collapseOrmPlan(parsed.data);
 }
 
 export function parseTemplateSlot(value: unknown): TemplateSlot | null {
   const parsed = templateSlotSchema.safeParse(value);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) {
+    return null;
+  }
+  return {
+    ...parsed.data,
+    plan: parsed.data.plan ? collapseOrmPlan(parsed.data.plan) : null,
+  };
 }

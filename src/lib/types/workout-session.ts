@@ -62,7 +62,7 @@ export interface SessionExercise {
   session_id: string;
   exercise_id: string;
   sort_order: number;
-  /** Рабочий вес, от которого считались проценты; null для линейки/кг/по самочувствию. */
+  /** 1ПМ, от которого считались проценты; null для линейки/кг/по самочувствию. */
   max_weight: number | null;
   intensity: SlotIntensity | null;
   note: string | null;

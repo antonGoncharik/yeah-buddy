@@ -17,6 +17,7 @@ interface SessionPointSource {
   id: string;
   session_date: string;
   phase_id: string | null;
+  workout_type: "dynamic" | "static";
 }
 
 export async function listExerciseWorkPoints(
@@ -26,7 +27,7 @@ export async function listExerciseWorkPoints(
   const [sessionsResult, active] = await Promise.all([
     supabase
       .from("workout_sessions")
-      .select("id, session_date, phase_id")
+      .select("id, session_date, phase_id, workout_type")
       .eq("user_id", userId)
       .eq("status", "completed")
       .not("template_id", "is", null)
@@ -49,6 +50,7 @@ export async function listExerciseWorkPoints(
         typeof row.phase_id === "string" && row.phase_id !== ""
           ? row.phase_id
           : null,
+      workout_type: row.workout_type === "static" ? "static" : "dynamic",
     })),
     Math.max(active.length, 1),
   );
@@ -113,6 +115,7 @@ async function pointsFromSessions(
         relative: null,
         phase_type: meta?.phase_type ?? null,
         macro_number: meta?.macro_number ?? null,
+        kind: session.workout_type,
         label,
       });
     }
@@ -135,6 +138,7 @@ async function pointsFromSessions(
       relative: row.relative,
       phase_type: row.phase_type,
       macro_number: row.macro_number,
+      kind: row.kind,
       label: row.label,
     });
     points.set(row.exerciseId, list);

@@ -7,12 +7,7 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 import { FOUR_WEEK_DELOAD_CYCLE } from "@/lib/workout/cycle-templates";
-import {
-  feelLoad,
-  ormLoad,
-  percentLoad,
-  trackLoad,
-} from "@/lib/workout/slot-plan";
+import { feelLoad, percentLoad, trackLoad } from "@/lib/workout/slot-plan";
 
 export interface ProgramSlot {
   name: string;
@@ -358,7 +353,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gzclp",
     name: "T1 / T2 / T3",
-    hint: "Три этажа: T1 по линейке, T2 от рабочего, T3 около отказа. Цикл не нужен.",
+    hint: "Три этажа: T1 по линейке, T2 от 1ПМ, T3 около отказа. Цикл не нужен.",
     level: "intermediate",
     templates: [
       day("T1 присед", [
@@ -756,16 +751,16 @@ function table(
 ): ProgramSlot {
   const [first, ...rest] = percents;
   const weeks = ["w2", "w3", "w4"] as const;
-  return slot(name, [group(sets, reps, ormLoad(first))], {
+  return slot(name, [group(sets, reps, percentLoad(first))], {
     note: "таблица: проценты от 1ПМ",
     phases: {
       ...Object.fromEntries(
         weeks.map((key, index) => [
           key,
-          [group(sets, reps, ormLoad(rest[index] ?? first))],
+          [group(sets, reps, percentLoad(rest[index] ?? first))],
         ]),
       ),
-      deload: [group(3, 5, ormLoad(55))],
+      deload: [group(3, 5, percentLoad(55))],
     },
   });
 }

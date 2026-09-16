@@ -549,7 +549,7 @@ assertEqual(
   "summary names the phases with their own scheme",
 );
 
-// ---------- percent of a one-rep max ----------
+// ---------- percent of 1ПМ (legacy `orm` load is the same max) ----------
 
 const ormPlan: SlotPlan = {
   groups: [
@@ -572,38 +572,43 @@ assertEqual(
       ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: 100 }),
     ),
   ),
-  ["w1:160×3", "w2:160×3", "w3:160×3", "w4:160×3", "w5:160×3"],
-  "percent of the one-rep max ignores the working weight",
+  ["w1:80×3", "w2:80×3", "w3:80×3", "w4:80×3", "w5:80×3"],
+  "legacy percent-of-1RM uses the exercise max, not a second number",
 );
 assertEqual(
   line(plannedSetsForSlot(ormPlan, ctx({ maxWeight: 100 }))),
-  ["w1:100×3", "w2:100×3", "w3:100×3", "w4:100×3", "w5:100×3"],
-  "without a one-rep max the working weight stands in for 80 % of it",
+  ["w1:80×3", "w2:80×3", "w3:80×3", "w4:80×3", "w5:80×3"],
+  "without a leftover one-rep field the max still plans the slot",
 );
 assertEqual(
   plannedSetsForSlot(ormPlan, ctx({ maxWeight: null })),
   null,
-  "no one-rep max and no working weight: nothing to plan",
+  "no max: nothing to plan",
 );
 assertEqual(
   slotNeedsMax(ormPlan, barbell),
   true,
-  "percent of a max needs a weight to lean on while the max is empty",
+  "percent of a max needs the exercise max",
 );
 assertEqual(
   slotNeedsMax(ormPlan, { ...barbell, one_rm: 200 }),
-  false,
-  "with a one-rep max the working weight is not needed",
+  true,
+  "a leftover one-rep field does not replace the max",
+);
+assertEqual(
+  parseSlotPlan(ormPlan)?.groups?.[0]?.load,
+  { type: "percent", percent: 80 },
+  "stored orm loads collapse to percent",
 );
 assertEqual(
   line(
     plannedSetsForSlot(
       { ...ormPlan, warmup: true },
-      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: null }),
+      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: 200 }),
     ),
   ).filter((row) => row.startsWith("w1")),
-  ["w1:80×5"],
-  "warmup for a table slot is counted from the working equivalent of the max",
+  ["w1:100×5"],
+  "warmup for a table slot is counted from 1ПМ",
 );
 
 console.log("slot plans ok");

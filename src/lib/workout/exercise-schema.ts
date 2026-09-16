@@ -21,7 +21,7 @@ const optionalText = z
     return trimmed === "" ? null : trimmed;
   });
 
-/** Максимум на один раз: пусто — считаем от рабочего веса. */
+/** 1ПМ: пусто — колонка не пишется, план считается от максимума упражнения. */
 const oneRm = z
   .union([z.number().finite().positive().max(1000), z.null()])
   .optional();

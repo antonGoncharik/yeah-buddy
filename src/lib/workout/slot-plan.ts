@@ -21,8 +21,8 @@ import {
 import { formatSignedWeight, formatWeight } from "@/lib/workout/numbers";
 
 /**
- * Work sets in the default scheme sit at 80 % of the working weight, so a
- * kilogram-based top set is treated as that 80 % when warmups are derived.
+ * Work sets in the default scheme sit at 80 % of 1ПМ, so a kilogram-based
+ * top set is treated as that 80 % when warmups are derived.
  */
 export const WORK_REFERENCE_PERCENT = 80;
 
@@ -46,14 +46,13 @@ export const SLOT_INTENSITY_HINTS: Record<SlotIntensity, string> = {
 
 export const SLOT_LOAD_TYPES: SlotLoadType[] = [
   "percent",
-  "orm",
   "track",
   "fixed",
   "feel",
 ];
 
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
-  percent: "% от рабочего",
+  percent: "% от 1ПМ",
   orm: "% от 1ПМ",
   track: "Линейка",
   fixed: "Килограммы",
@@ -61,8 +60,8 @@ export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
 };
 
 export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
-  percent: "Как в общем плане: процент от рабочего веса упражнения.",
-  orm: "Для таблиц: процент от максимума на один раз. Нет 1ПМ — посчитаем от рабочего веса.",
+  percent: "Процент от 1ПМ упражнения — того максимума, что в карточке.",
+  orm: "Процент от 1ПМ упражнения — того максимума, что в карточке.",
   track: "Вес по линейке упражнения: каждую тренировку следующий шаг.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
   feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
@@ -83,7 +82,7 @@ export interface SlotPlanContext {
   exercise: Pick<Exercise, "weight_step" | "formula_preset" | "one_rm">;
   formulas: WorkoutFormulas;
   phaseKey: string | null;
-  /** Working weight of the exercise (phase max inside a cycle). */
+  /** 1ПМ of the exercise (phase max inside a cycle). */
   maxWeight: number | null;
   /** Current step of the exercise's weight line. */
   trackWeight: number | null;
@@ -171,8 +170,9 @@ export function percentLoad(percent: number): SlotLoad {
   return { type: "percent", percent };
 }
 
+/** @deprecated Same as percentLoad: there is one max, and it is 1ПМ. */
 export function ormLoad(percent: number): SlotLoad {
-  return { type: "orm", percent };
+  return percentLoad(percent);
 }
 
 export function trackLoad(offset = 0, percent = 100): SlotLoad {
@@ -198,9 +198,8 @@ export function switchLoadType(
   }
   switch (type) {
     case "percent":
-      return percentLoad(80);
     case "orm":
-      return ormLoad(75);
+      return percentLoad(80);
     case "track":
       return trackLoad();
     case "fixed":
@@ -223,29 +222,51 @@ export function normalizeSlotPlan(plan: SlotPlan | null): SlotPlan | null {
   if (!plan) {
     return null;
   }
-  const keys = slotPhaseKeys(plan);
+  const collapsed = collapseOrmPlan(plan);
+  const keys = slotPhaseKeys(collapsed);
   const phases =
     keys.length > 0
       ? Object.fromEntries(
-          keys.map((key) => [key, plan.phases?.[key] ?? []] as const),
+          keys.map((key) => [key, collapsed.phases?.[key] ?? []] as const),
         )
       : undefined;
   if (
-    plan.groups == null &&
+    collapsed.groups == null &&
     phases == null &&
-    plan.intensity == null &&
-    plan.note == null &&
-    plan.warmup
+    collapsed.intensity == null &&
+    collapsed.note == null &&
+    collapsed.warmup
   ) {
     return null;
   }
-  return { ...plan, phases };
+  return { ...collapsed, phases };
 }
 
-/**
- * Рабочий вес нужен для процентов от рабочего, а для процентов от 1ПМ —
- * только пока сам 1ПМ не задан: тогда считаем от рабочего веса.
- */
+/** Old «% от 1ПМ» was a second max. Same number now — rewrite to percent. */
+export function collapseOrmLoad(load: SlotLoad): SlotLoad {
+  return load.type === "orm" ? percentLoad(load.percent) : load;
+}
+
+function collapseOrmGroup(group: SlotSetGroup): SlotSetGroup {
+  return { ...group, load: collapseOrmLoad(group.load) };
+}
+
+export function collapseOrmPlan(plan: SlotPlan): SlotPlan {
+  return {
+    ...plan,
+    groups: plan.groups?.map(collapseOrmGroup) ?? plan.groups,
+    phases: plan.phases
+      ? Object.fromEntries(
+          Object.entries(plan.phases).map(([key, groups]) => [
+            key,
+            groups.map(collapseOrmGroup),
+          ]),
+        )
+      : plan.phases,
+  };
+}
+
+/** 1ПМ нужен, если схема считает подходы процентом от максимума. */
 export function slotNeedsMax(
   plan: SlotPlan | null,
   exercise: Pick<Exercise, "formula_preset" | "one_rm">,
@@ -256,9 +277,7 @@ export function slotNeedsMax(
     return exercise.formula_preset !== "none";
   }
   return groups.some(
-    (group) =>
-      group.load.type === "percent" ||
-      (group.load.type === "orm" && exercise.one_rm == null),
+    (group) => group.load.type === "percent" || group.load.type === "orm",
   );
 }
 
@@ -302,7 +321,7 @@ export function slotFor(
 
 /**
  * Planned sets for one slot. `null` means the slot cannot be planned yet:
- * a percent load without a working weight or a track load without a line.
+ * a percent load without 1ПМ or a track load without a line.
  */
 export function plannedSetsForSlot(
   plan: SlotPlan | null,
@@ -379,23 +398,13 @@ function groupWeight(
   scale: number,
 ): number | null | undefined {
   switch (load.type) {
-    case "percent": {
+    case "percent":
+    case "orm": {
       if (ctx.maxWeight == null || ctx.maxWeight <= 0) {
         return undefined;
       }
       return calcPlannedWeight(
         ctx.maxWeight,
-        load.percent * scale,
-        ctx.exercise.weight_step,
-      );
-    }
-    case "orm": {
-      const anchor = oneRmAnchor(ctx);
-      if (anchor == null) {
-        return undefined;
-      }
-      return calcPlannedWeight(
-        anchor,
         load.percent * scale,
         ctx.exercise.weight_step,
       );
@@ -414,18 +423,6 @@ function groupWeight(
         ? ctx.feelWeight
         : null;
   }
-}
-
-/** 1ПМ упражнения; не задан — считаем от рабочего веса (он ≈ 80 % максимума). */
-function oneRmAnchor(ctx: SlotPlanContext): number | null {
-  const own = ctx.exercise.one_rm;
-  if (own != null && own > 0) {
-    return own;
-  }
-  if (ctx.maxWeight == null || ctx.maxWeight <= 0) {
-    return null;
-  }
-  return (ctx.maxWeight * 100) / WORK_REFERENCE_PERCENT;
 }
 
 function warmupRows(
@@ -471,21 +468,21 @@ function warmupRows(
 }
 
 /**
- * От чего считать разминку: проценты от рабочего — от рабочего веса,
- * проценты от 1ПМ — от рабочего эквивалента максимума, остальное
- * (линейка, килограммы, самочувствие) — от верхнего рабочего подхода.
+ * От чего считать разминку: проценты от 1ПМ — от максимума упражнения,
+ * остальное (линейка, килограммы, самочувствие) — от верхнего рабочего
+ * подхода, как от 80 % этого максимума.
  */
 function warmupReference(
   groups: SlotSetGroup[],
   top: number | null,
   ctx: SlotPlanContext,
 ): number | null {
-  if (groups.some((group) => group.load.type === "percent")) {
+  if (
+    groups.some(
+      (group) => group.load.type === "percent" || group.load.type === "orm",
+    )
+  ) {
     return ctx.maxWeight;
-  }
-  if (groups.some((group) => group.load.type === "orm")) {
-    const anchor = oneRmAnchor(ctx);
-    return anchor == null ? null : (anchor * WORK_REFERENCE_PERCENT) / 100;
   }
   return top == null ? null : (top * 100) / WORK_REFERENCE_PERCENT;
 }
@@ -533,9 +530,8 @@ export function formatGroupReps(
 export function formatSlotLoad(load: SlotLoad): string {
   switch (load.type) {
     case "percent":
-      return `${formatWeight(load.percent)} %`;
     case "orm":
-      return `${formatWeight(load.percent)} % от 1ПМ`;
+      return `${formatWeight(load.percent)} %`;
     case "track": {
       const parts = ["линейка"];
       if (load.percent !== 100) {

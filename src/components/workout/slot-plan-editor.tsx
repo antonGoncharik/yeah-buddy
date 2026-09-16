@@ -423,10 +423,10 @@ function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
       ? `Линейка: ${trackSummary(exercise.track)}.`
       : "Линейки ещё нет — спросим стартовый вес перед первой тренировкой.";
   }
-  if (load.type === "orm") {
-    return exercise.one_rm != null
-      ? `1ПМ: ${formatWeight(exercise.one_rm)} кг.`
-      : "1ПМ не задан — посчитаем от рабочего веса. Вписать можно в карточке упражнения.";
+  if (load.type === "percent" || load.type === "orm") {
+    return exercise.current_max
+      ? `1ПМ: ${formatWeight(exercise.current_max.max_weight)} кг.`
+      : SLOT_LOAD_HINTS.percent;
   }
   return SLOT_LOAD_HINTS[load.type];
 }

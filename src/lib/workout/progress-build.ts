@@ -8,6 +8,7 @@ import type {
 import { phaseLabel } from "@/lib/workout/labels";
 import { percentChange } from "@/lib/workout/numbers";
 import {
+  primaryProgressPoints,
   relativeSeries,
   withRelativePoints,
 } from "@/lib/workout/progress-stats";
@@ -66,54 +67,19 @@ export function buildExerciseProgress({
         ? phasePoints
         : (globalPoints.get(exercise.id) ?? []);
     const from_work = workPoints.length > 0;
-    const points = withRelativePoints(
+    const allPoints = withRelativePoints(
       from_work ? workPoints : fallback,
       weights,
     );
-    const start_weight = points[0]?.weight ?? null;
-    const current_weight = points.at(-1)?.weight ?? null;
-    const delta =
-      start_weight == null || current_weight == null
-        ? null
-        : current_weight - start_weight;
-    const percent =
-      start_weight == null || current_weight == null
-        ? null
-        : percentChange(start_weight, current_weight);
-    const relatives = relativeSeries(points);
-    const start_relative = relatives[0]?.relative ?? null;
-    const current_relative = relatives.at(-1)?.relative ?? null;
-    const relative_percent =
-      start_relative == null || current_relative == null
-        ? null
-        : percentChange(start_relative, current_relative);
-    const start_tonnage = points[0]?.tonnage ?? null;
-    const current_tonnage = points.at(-1)?.tonnage ?? null;
-    const tonnage_delta =
-      start_tonnage == null || current_tonnage == null
-        ? null
-        : current_tonnage - start_tonnage;
-    const tonnage_percent =
-      start_tonnage == null || current_tonnage == null
-        ? null
-        : percentChange(start_tonnage, current_tonnage);
+    const points = primaryProgressPoints(allPoints);
+    const measured = measureProgress(points);
 
     return {
       exercise_id: exercise.id,
       name: exercise.short_name || exercise.name,
       category: exercise.category,
-      current_weight,
-      start_weight,
-      delta,
-      percent,
-      current_relative,
-      start_relative,
-      relative_percent,
-      current_tonnage,
-      start_tonnage,
-      tonnage_delta,
-      tonnage_percent,
-      points,
+      ...measured,
+      points: allPoints,
       from_work,
     };
   });
@@ -128,6 +94,65 @@ export function buildExerciseProgress({
   });
 
   return progress;
+}
+
+export function measureProgress(
+  points: ProgressPoint[],
+): Pick<
+  ExerciseProgress,
+  | "current_weight"
+  | "start_weight"
+  | "delta"
+  | "percent"
+  | "current_relative"
+  | "start_relative"
+  | "relative_percent"
+  | "current_tonnage"
+  | "start_tonnage"
+  | "tonnage_delta"
+  | "tonnage_percent"
+> {
+  const start_weight = points[0]?.weight ?? null;
+  const current_weight = points.at(-1)?.weight ?? null;
+  const delta =
+    start_weight == null || current_weight == null
+      ? null
+      : current_weight - start_weight;
+  const percent =
+    start_weight == null || current_weight == null
+      ? null
+      : percentChange(start_weight, current_weight);
+  const relatives = relativeSeries(points);
+  const start_relative = relatives[0]?.relative ?? null;
+  const current_relative = relatives.at(-1)?.relative ?? null;
+  const relative_percent =
+    start_relative == null || current_relative == null
+      ? null
+      : percentChange(start_relative, current_relative);
+  const start_tonnage = points[0]?.tonnage ?? null;
+  const current_tonnage = points.at(-1)?.tonnage ?? null;
+  const tonnage_delta =
+    start_tonnage == null || current_tonnage == null
+      ? null
+      : current_tonnage - start_tonnage;
+  const tonnage_percent =
+    start_tonnage == null || current_tonnage == null
+      ? null
+      : percentChange(start_tonnage, current_tonnage);
+
+  return {
+    current_weight,
+    start_weight,
+    delta,
+    percent,
+    current_relative,
+    start_relative,
+    relative_percent,
+    current_tonnage,
+    start_tonnage,
+    tonnage_delta,
+    tonnage_percent,
+  };
 }
 
 export function summarizeProgress(

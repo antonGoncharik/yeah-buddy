@@ -1,4 +1,8 @@
-import type { ExerciseCategory, PhaseType } from "@/lib/types/workout-core";
+import type {
+  ExerciseCategory,
+  PhaseType,
+  WorkoutKind,
+} from "@/lib/types/workout-core";
 
 export interface ProgressPoint {
   date: string;
@@ -10,6 +14,8 @@ export interface ProgressPoint {
   relative: number | null;
   phase_type: PhaseType | null;
   macro_number: number | null;
+  /** Dynamic vs static session. Null on 1ПМ history without a session. */
+  kind?: WorkoutKind | null;
   label: string;
 }
 
