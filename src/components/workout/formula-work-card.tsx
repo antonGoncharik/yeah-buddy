@@ -45,7 +45,7 @@ export function FormulaWorkCard({
         <h2 className="text-xl font-semibold">Рабочие подходы</h2>
         <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
           Общая схема на день без своей. Проценты — от 1ПМ, либо в дне поставишь
-          килограммы.
+          килограммы. Несколько подходов — потяни за номер слева.
         </p>
         <p className="text-sm tabular-nums text-muted-foreground">
           {workSummary(work)}

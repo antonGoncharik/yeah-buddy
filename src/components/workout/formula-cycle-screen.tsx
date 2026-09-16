@@ -117,11 +117,13 @@ export function FormulaCycleScreen() {
                 ) : null}
 
                 <p className="px-1 text-sm text-muted-foreground">
-                  Порядок — потяни за номер. Нажми на этап, чтобы настроить.
+                  Порядок — потяни за номер слева. Нажми на этап, чтобы
+                  настроить.
                 </p>
 
                 <SortableList
                   variant="cards"
+                  disabled={openKey != null}
                   items={formulas.cycle.map((phase) => ({
                     ...phase,
                     id: phase.key,

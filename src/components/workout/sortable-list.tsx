@@ -5,7 +5,12 @@ import {
   DndContext,
   type DragEndEvent,
   type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  type DropAnimation,
+  defaultDropAnimationSideEffects,
   KeyboardSensor,
+  type Modifier,
   MouseSensor,
   TouchSensor,
   useSensor,
@@ -19,10 +24,22 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { type ReactNode, useRef } from "react";
+import { GripVertical } from "lucide-react";
+import { type ReactNode, useRef, useState } from "react";
 
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
+
+const dropAnimation: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: { active: { opacity: "0.4" } },
+  }),
+};
+
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({
+  ...transform,
+  x: 0,
+});
 
 export function SortableList<T extends { id: string }>({
   items,
@@ -49,9 +66,15 @@ export function SortableList<T extends { id: string }>({
     }),
   );
   const canSort = !disabled && items.length > 1;
+  const [activeId, setActiveId] = useState<string | null>(null);
   const lastOverId = useRef<string | number | null>(null);
+  const activeIndex = activeId
+    ? items.findIndex((item) => item.id === activeId)
+    : -1;
+  const activeItem = activeIndex >= 0 ? items[activeIndex] : undefined;
 
-  function onDragStart() {
+  function onDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
     lastOverId.current = null;
     haptic("tap");
   }
@@ -70,6 +93,8 @@ export function SortableList<T extends { id: string }>({
 
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    setActiveId(null);
+    lastOverId.current = null;
     if (!over || active.id === over.id) {
       return;
     }
@@ -88,9 +113,14 @@ export function SortableList<T extends { id: string }>({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      modifiers={[restrictToVerticalAxis]}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
+      onDragCancel={() => {
+        setActiveId(null);
+        lastOverId.current = null;
+      }}
     >
       <SortableContext
         items={items.map((item) => item.id)}
@@ -113,6 +143,26 @@ export function SortableList<T extends { id: string }>({
           ))}
         </div>
       </SortableContext>
+      <DragOverlay dropAnimation={dropAnimation}>
+        {activeItem ? (
+          <div
+            className={cn(
+              "flex items-start gap-1 rounded-xl bg-card shadow-lg ring-1 ring-border/80",
+              variant === "rows" && "px-1 py-1",
+            )}
+          >
+            <HandleSlot index={activeIndex} variant={variant} />
+            <div
+              className={cn(
+                "min-w-0 flex-1",
+                variant === "rows" && "flex items-center",
+              )}
+            >
+              {renderItem(activeItem, activeIndex)}
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
@@ -154,36 +204,24 @@ function SortableRow({
         "flex items-start gap-1",
         variant === "rows" &&
           "border-b border-border/70 px-1 py-1 last:border-b-0",
-        isDragging && "relative z-10 rounded-xl bg-card shadow-lg",
+        isDragging && "z-10 opacity-40",
       )}
     >
-      {showHandle ? (
+      {showHandle && !disabled ? (
         <button
           type="button"
           className={cn(
-            "flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl active:cursor-grabbing disabled:opacity-50",
+            "flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl active:cursor-grabbing",
             variant === "cards" && "mt-1",
           )}
-          aria-label="Перетащить"
-          disabled={disabled}
+          aria-label={`Перетащить, ${index + 1}`}
           {...attributes}
           {...listeners}
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
-            {index + 1}
-          </span>
+          <HandleFace index={index} />
         </button>
       ) : (
-        <span
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center",
-            variant === "cards" && "mt-1",
-          )}
-        >
-          <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold tabular-nums">
-            {index + 1}
-          </span>
-        </span>
+        <HandleSlot index={index} variant={variant} />
       )}
       <div
         className={cn(
@@ -194,5 +232,33 @@ function SortableRow({
         {children}
       </div>
     </div>
+  );
+}
+
+function HandleSlot({
+  index,
+  variant,
+}: {
+  index: number;
+  variant: "rows" | "cards";
+}) {
+  return (
+    <span
+      className={cn(
+        "flex size-11 shrink-0 items-center justify-center",
+        variant === "cards" && "mt-1",
+      )}
+    >
+      <HandleFace index={index} />
+    </span>
+  );
+}
+
+function HandleFace({ index }: { index: number }) {
+  return (
+    <span className="flex h-8 items-center gap-0.5 rounded-full bg-muted pl-1 pr-2">
+      <GripVertical className="size-3.5 text-muted-foreground" aria-hidden />
+      <span className="text-sm font-semibold tabular-nums">{index + 1}</span>
+    </span>
   );
 }

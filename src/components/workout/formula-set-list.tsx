@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { MAX_SETS } from "@/components/workout/formula-form";
 import { FormulaSetRow } from "@/components/workout/formula-set-row";
+import { SortableList } from "@/components/workout/sortable-list";
 import { haptic } from "@/lib/telegram/haptic";
 import type { FormulaSetSpec } from "@/lib/types";
 
@@ -73,19 +74,28 @@ export function FormulaSetList({
       {sets.length === 0 ? (
         <p className="py-2 text-base text-muted-foreground">{emptyLabel}</p>
       ) : (
-        <div className="-mx-2 divide-y divide-border/60">
-          {sets.map((set, index) => (
-            <FormulaSetRow
-              key={rowIds.current[index] ?? `set-${index}`}
-              index={index}
-              set={set}
-              exampleMax={exampleMax}
-              exampleStep={exampleStep}
-              canRemove={allowEmpty || sets.length > 1}
-              onUpdate={(patch) => updateAt(index, patch)}
-              onRemove={() => removeAt(index)}
-            />
-          ))}
+        <div className="-mx-2">
+          <SortableList
+            items={sets.map((set, index) => ({
+              id: rowIds.current[index] ?? `set-${index}`,
+              set,
+            }))}
+            onReorder={(next) => {
+              rowIds.current = next.map((item) => item.id);
+              onChange(next.map((item) => item.set));
+            }}
+            renderItem={(item, index) => (
+              <FormulaSetRow
+                index={index}
+                set={item.set}
+                exampleMax={exampleMax}
+                exampleStep={exampleStep}
+                canRemove={allowEmpty || sets.length > 1}
+                onUpdate={(patch) => updateAt(index, patch)}
+                onRemove={() => removeAt(index)}
+              />
+            )}
+          />
         </div>
       )}
       <Button

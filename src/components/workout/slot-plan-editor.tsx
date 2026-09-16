@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AddRowButton } from "@/components/ui/add-row-button";
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
+import { SortableList } from "@/components/workout/sortable-list";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import type {
   CyclePhaseDef,
@@ -60,6 +61,12 @@ export function SlotPlanEditor({
   const edited = phase ? (current.phases?.[phase.key] ?? null) : current.groups;
   const custom = edited != null;
   const groups = edited ?? [];
+  const groupIds = useRef<string[]>([]);
+  if (groupIds.current.length !== groups.length) {
+    groupIds.current = groups.map(
+      (_, index) => groupIds.current[index] ?? crypto.randomUUID(),
+    );
+  }
 
   function update(patch: Partial<SlotPlan>) {
     onChange({ ...current, ...patch });
@@ -127,20 +134,32 @@ export function SlotPlanEditor({
 
       {custom ? (
         <div className="flex flex-col gap-2">
-          {groups.map((group, index) => (
-            <GroupRow
-              // biome-ignore lint/suspicious/noArrayIndexKey: groups have no identity beyond their position
-              key={index}
-              kind={kind}
-              exercise={exercise}
-              group={group}
-              canRemove={groups.length > 1}
-              onChange={(patch) => updateGroup(index, patch)}
-              onRemove={() =>
-                setGroups(groups.filter((_, position) => position !== index))
-              }
-            />
-          ))}
+          <SortableList
+            variant="cards"
+            items={groups.map((group, index) => ({
+              id: groupIds.current[index] ?? `group-${index}`,
+              group,
+            }))}
+            onReorder={(next) => {
+              groupIds.current = next.map((item) => item.id);
+              setGroups(next.map((item) => item.group));
+            }}
+            renderItem={(item, index) => (
+              <GroupRow
+                kind={kind}
+                exercise={exercise}
+                group={item.group}
+                canRemove={groups.length > 1}
+                onChange={(patch) => updateGroup(index, patch)}
+                onRemove={() => {
+                  groupIds.current = groupIds.current.filter(
+                    (_, position) => position !== index,
+                  );
+                  setGroups(groups.filter((_, position) => position !== index));
+                }}
+              />
+            )}
+          />
           {groups.length < MAX_SLOT_GROUPS ? (
             <div className="flex items-center gap-2">
               <AddRowButton

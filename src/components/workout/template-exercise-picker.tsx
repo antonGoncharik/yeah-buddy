@@ -65,7 +65,7 @@ export function TemplateExercisePicker({
           title="Упражнения"
           hint={[
             "Порядок в списке — порядок в зале.",
-            selected.length > 1 ? "Тяни за номер." : null,
+            selected.length > 1 ? "Потяни за номер слева." : null,
             cycle.length > 0
               ? "Нажми на упражнение — свои подходы и вес, можно отдельно на неделю."
               : "Нажми на упражнение — свои подходы и вес.",
@@ -81,6 +81,7 @@ export function TemplateExercisePicker({
           <div className="card-surface px-3 py-1">
             <SortableList
               items={rows}
+              disabled={openId != null}
               onReorder={(next) =>
                 onReorder(
                   next.map(({ exercise, plan }) => ({ exercise, plan })),
