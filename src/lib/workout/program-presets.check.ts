@@ -69,7 +69,7 @@ assert(squatTable?.cycle != null, "the squat table carries its own cycle");
 function planWeights(plan: SlotPlan | null, phaseKey: string): number[] {
   const rows = plannedSetsForSlot(plan, {
     kind: "dynamic",
-    exercise: { weight_step: 2.5, formula_preset: "barbell", one_rm: null },
+    exercise: { weight_step: 2.5, formula_preset: "barbell" },
     formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: squatTable?.cycle ?? [] },
     phaseKey,
     maxWeight: 200,

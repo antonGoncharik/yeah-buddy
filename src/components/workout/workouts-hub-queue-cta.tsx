@@ -7,6 +7,10 @@ import type {
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import {
+  templateExerciseLoadPreview,
+  templateMissingTracks,
+} from "@/lib/workout/hints";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -82,11 +86,11 @@ export function WorkoutsHubQueueCta({
     return null;
   }
 
-  const maxById = new Map(
-    exercises.map((exercise) => [
-      exercise.id,
-      exercise.current_max?.max_weight ?? 0,
-    ]),
+  const catalog = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+  const missingTracks = templateMissingTracks(nextTemplate, exercises);
+  const missingHint = loadMissingHint(
+    nextMissingMaxes.length,
+    missingTracks.length,
   );
 
   return (
@@ -106,8 +110,10 @@ export function WorkoutsHubQueueCta({
       {nextTemplate.exercises.length > 0 ? (
         <ul className="flex flex-col divide-y divide-border/60">
           {nextTemplate.exercises.map((exercise) => {
-            const max = maxById.get(exercise.id) ?? 0;
-            const planned = exercise.formula_preset !== "none";
+            const full = catalog.get(exercise.id);
+            const preview = full
+              ? templateExerciseLoadPreview(nextTemplate, full)
+              : null;
             return (
               <li
                 key={exercise.id}
@@ -117,10 +123,14 @@ export function WorkoutsHubQueueCta({
                   {exerciseShortLabel(exercise.short_name, exercise.name)}
                 </span>
                 <span className="shrink-0 text-base tabular-nums">
-                  {planned && max > 0 ? (
+                  {preview ? (
                     <>
-                      <span className="font-semibold">{formatWeight(max)}</span>
-                      <span className="text-sm text-muted-foreground"> кг</span>
+                      <span className="font-semibold">
+                        {formatWeight(preview.value)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {preview.kind === "max" ? " 1ПМ" : " кг"}
+                      </span>
                     </>
                   ) : (
                     <span className="text-muted-foreground">—</span>
@@ -132,11 +142,9 @@ export function WorkoutsHubQueueCta({
         </ul>
       ) : null}
 
-      {nextCanStart && nextMissingMaxes.length > 0 ? (
+      {nextCanStart && missingHint ? (
         <p className="text-sm leading-snug text-muted-foreground">
-          {nextMissingMaxes.length === 1
-            ? "Где прочерк — 1ПМ спросим в тренировке."
-            : "Где прочерки — 1ПМ спросим в тренировке."}
+          {missingHint}
         </p>
       ) : null}
       {!nextCanStart ? (
@@ -175,4 +183,21 @@ export function WorkoutsHubQueueCta({
       ) : null}
     </section>
   );
+}
+
+function loadMissingHint(maxes: number, tracks: number): string | null {
+  if (maxes === 0 && tracks === 0) {
+    return null;
+  }
+  if (maxes > 0 && tracks > 0) {
+    return "Где прочерк — спросим 1ПМ или первый кг линейки.";
+  }
+  if (tracks > 0) {
+    return tracks === 1
+      ? "Где прочерк — линейку начнём в тренировке."
+      : "Где прочерки — линейку начнём в тренировке.";
+  }
+  return maxes === 1
+    ? "Где прочерк — 1ПМ спросим в тренировке."
+    : "Где прочерки — 1ПМ спросим в тренировке.";
 }

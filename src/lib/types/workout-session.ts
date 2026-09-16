@@ -108,7 +108,7 @@ export interface SessionDetail {
   template: WorkoutTemplate | null;
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
-  /** Template exercises left out of the plan because they have no working weight yet. */
+  /** Template exercises left out of the plan because they have no 1ПМ yet. */
   missing_maxes: Exercise[];
   /** Template exercises whose slot goes by a weight line that is not set yet. */
   missing_tracks: Exercise[];

@@ -34,7 +34,6 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 const barbell = {
   weight_step: 2.5,
   formula_preset: "barbell" as const,
-  one_rm: null,
 };
 
 function ctx(patch: Partial<SlotPlanContext> = {}): SlotPlanContext {
@@ -97,7 +96,7 @@ assertEqual(
     "w7:70×6",
     "w8:70×6",
   ],
-  "bench by the line: warmup derived from the top set, no working weight needed",
+  "bench by the line: warmup derived from the top set, no 1ПМ needed",
 );
 
 assertEqual(
@@ -143,7 +142,7 @@ assertEqual(
 assertEqual(
   plannedSetsForSlot(heavyPulls, ctx({ maxWeight: null })),
   null,
-  "percent slot without a working weight cannot be planned",
+  "percent slot without 1ПМ cannot be planned",
 );
 
 assertEqual(
@@ -240,7 +239,7 @@ assertEqual(
 assertEqual(
   plannedSetsForSlot(
     null,
-    ctx({ exercise: { weight_step: 1, formula_preset: "none", one_rm: null } }),
+    ctx({ exercise: { weight_step: 1, formula_preset: "none" } }),
   ),
   null,
   "no-formula exercise without a custom scheme has no plan",
@@ -267,7 +266,7 @@ assertEqual(
     plannedSetsForSlot(
       fixedNone,
       ctx({
-        exercise: { weight_step: 1, formula_preset: "none", one_rm: null },
+        exercise: { weight_step: 1, formula_preset: "none" },
       }),
     ),
   ),
@@ -566,19 +565,9 @@ const ormPlan: SlotPlan = {
   note: null,
 };
 assertEqual(
-  line(
-    plannedSetsForSlot(
-      ormPlan,
-      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: 100 }),
-    ),
-  ),
-  ["w1:80×3", "w2:80×3", "w3:80×3", "w4:80×3", "w5:80×3"],
-  "legacy percent-of-1RM uses the exercise max, not a second number",
-);
-assertEqual(
   line(plannedSetsForSlot(ormPlan, ctx({ maxWeight: 100 }))),
   ["w1:80×3", "w2:80×3", "w3:80×3", "w4:80×3", "w5:80×3"],
-  "without a leftover one-rep field the max still plans the slot",
+  "legacy percent-of-1RM uses the exercise max",
 );
 assertEqual(
   plannedSetsForSlot(ormPlan, ctx({ maxWeight: null })),
@@ -591,21 +580,13 @@ assertEqual(
   "percent of a max needs the exercise max",
 );
 assertEqual(
-  slotNeedsMax(ormPlan, { ...barbell, one_rm: 200 }),
-  true,
-  "a leftover one-rep field does not replace the max",
-);
-assertEqual(
   parseSlotPlan(ormPlan)?.groups?.[0]?.load,
   { type: "percent", percent: 80 },
   "stored orm loads collapse to percent",
 );
 assertEqual(
   line(
-    plannedSetsForSlot(
-      { ...ormPlan, warmup: true },
-      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: 200 }),
-    ),
+    plannedSetsForSlot({ ...ormPlan, warmup: true }, ctx({ maxWeight: 200 })),
   ).filter((row) => row.startsWith("w1")),
   ["w1:100×5"],
   "warmup for a table slot is counted from 1ПМ",

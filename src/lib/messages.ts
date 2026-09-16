@@ -46,8 +46,7 @@ export const WORKOUTS_NEED_TEMPLATES =
   "Программа пустая. Поставь готовую или собери тренировку сам.";
 export const WORKOUT_TEMPLATE_EMPTY =
   "В этой тренировке нет упражнений с планом подходов. Добавь их в программе.";
-export const NEED_ALL_WORKING_WEIGHTS =
-  "Нужен 1ПМ у каждого упражнения.";
+export const NEED_ALL_WORKING_WEIGHTS = "Нужен 1ПМ у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
 export const CYCLE_RAISE_LATER =
   "Идёт цикл: 1ПМ поднимается на смене этапа, а не после одной тренировки.";
@@ -61,7 +60,7 @@ export const WEEK_EMPTY =
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
-  "Нет 1ПМ — план не посчитать. Укажи его в упражнении.";
+  "Нет 1ПМ или линейки — план не посчитать. Укажи в упражнении.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
 export const AI_REVIEW_EMPTY = "Пока мало записей, чтобы разобрать.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";

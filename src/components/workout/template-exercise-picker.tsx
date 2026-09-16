@@ -47,7 +47,7 @@ export function TemplateExercisePicker({
           .includes(needle),
       )
     : available;
-  // Exercises with a working weight are the ones actually in use — first.
+  // Exercises with a 1ПМ are the ones actually in use — first.
   const ordered = [...matches].sort((a, b) => {
     const aMax = a.current_max?.max_weight ?? 0;
     const bMax = b.current_max?.max_weight ?? 0;

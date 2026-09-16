@@ -6,6 +6,7 @@ import {
   phaseHoldHint,
   queueItemMark,
   templateCanPlan,
+  templateExerciseLoadPreview,
   templateMissingMaxes,
 } from "@/lib/workout/hints";
 
@@ -80,11 +81,7 @@ const circle: PhaseCircleProgress = {
   suggest_end: true,
 };
 
-assertEqual(
-  phaseHoldHint(circle),
-  "Не пошло — 1ПМ не трогаем.",
-  "hold copy",
-);
+assertEqual(phaseHoldHint(circle), "Не пошло — 1ПМ не трогаем.", "hold copy");
 
 assertEqual(
   completePhaseHint(circle),
@@ -193,7 +190,6 @@ function exercise(
     unit: "reps",
     weight_step: 2.5,
     formula_preset: preset,
-    one_rm: null,
     slot: null,
     is_active: true,
     created_at: "",
@@ -243,6 +239,60 @@ assertEqual(
   templateMissingMaxes(template, [squat, press, plank], ["press"]).length,
   0,
   "exercises already in the session are not missing",
+);
+assertEqual(
+  JSON.stringify(templateExerciseLoadPreview({ slots: [] }, squat)),
+  JSON.stringify({ value: 100, kind: "max" }),
+  "shared percent plan previews 1ПМ",
+);
+assertEqual(
+  templateExerciseLoadPreview({ slots: [] }, plank),
+  null,
+  "a no-plan lift has nothing to preview",
+);
+
+const squatOnTrack: ExerciseWithMax = {
+  ...squat,
+  track: {
+    id: "t",
+    user_id: "u",
+    exercise_id: "squat",
+    name: null,
+    steps: [80, 82.5, 85],
+    position: 1,
+    created_at: "",
+    updated_at: "",
+  },
+};
+assertEqual(
+  JSON.stringify(
+    templateExerciseLoadPreview(
+      {
+        slots: [
+          {
+            exercise_id: "squat",
+            plan: {
+              groups: [
+                {
+                  sets: 1,
+                  reps: 5,
+                  reps_to: null,
+                  seconds: null,
+                  load: { type: "track", percent: 100, offset: 0 },
+                },
+              ],
+              intensity: null,
+              warmup: true,
+              note: null,
+            },
+          },
+        ],
+      },
+      squatOnTrack,
+    ),
+  ),
+  JSON.stringify({ value: 82.5, kind: "track" }),
+  "a track slot previews the next kilogram, not 1ПМ",
 );
 
 console.log("workout hints ok");

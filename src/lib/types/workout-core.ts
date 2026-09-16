@@ -82,8 +82,6 @@ export interface Exercise {
   unit: ExerciseUnit;
   weight_step: number;
   formula_preset: FormulaPreset;
-  /** Максимум на один раз (1ПМ). Не участвует в плане: проценты считаются от рабочего/фазового максимума, он и есть 1ПМ. */
-  one_rm: number | null;
   slot: ExerciseSlot | null;
   is_active: boolean;
   created_at: string;

@@ -16,6 +16,7 @@ import {
   slotNeedsMax,
   slotNeedsTrack,
 } from "@/lib/workout/slot-plan";
+import { trackCurrentWeight } from "@/lib/workout/track-line";
 
 export type CycleTimelineState = "completed" | "current" | "upcoming";
 
@@ -116,7 +117,29 @@ export function templateCanPlan(template: TemplateLike): boolean {
 }
 
 /**
- * Template exercises that need a working weight before they can get a plan.
+ * Number shown next to a lift on the hub: 1ПМ, or the next kilogram on a
+ * track. Null means a dash — we'll ask in the session.
+ */
+export function templateExerciseLoadPreview(
+  template: { slots: TemplateSlot[] },
+  exercise: ExerciseWithMax,
+): { value: number; kind: "max" | "track" } | null {
+  const plan = slotFor(template.slots, exercise.id);
+  if (slotNeedsTrack(plan)) {
+    const weight = exercise.track ? trackCurrentWeight(exercise.track) : null;
+    return weight != null && weight > 0
+      ? { value: weight, kind: "track" }
+      : null;
+  }
+  if (slotNeedsMax(plan, exercise)) {
+    const max = exercise.current_max?.max_weight ?? 0;
+    return max > 0 ? { value: max, kind: "max" } : null;
+  }
+  return null;
+}
+
+/**
+ * Template exercises that need 1ПМ before they can get a plan.
  * `phaseKey` omitted — «где угодно в цикле»: спросим вес заранее.
  */
 export function templateMissingMaxes(

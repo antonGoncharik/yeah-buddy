@@ -81,7 +81,7 @@ export interface PlannedSetRow {
 
 export interface SlotPlanContext {
   kind: WorkoutKind;
-  exercise: Pick<Exercise, "weight_step" | "formula_preset" | "one_rm">;
+  exercise: Pick<Exercise, "weight_step" | "formula_preset">;
   formulas: WorkoutFormulas;
   phaseKey: string | null;
   /** 1ПМ of the exercise (phase max inside a cycle). */
@@ -271,7 +271,7 @@ export function collapseOrmPlan(plan: SlotPlan): SlotPlan {
 /** 1ПМ нужен, если схема считает подходы процентом от максимума. */
 export function slotNeedsMax(
   plan: SlotPlan | null,
-  exercise: Pick<Exercise, "formula_preset" | "one_rm">,
+  exercise: Pick<Exercise, "formula_preset">,
   phaseKey?: string | null,
 ): boolean {
   const groups = groupsOf(plan, phaseKey);
@@ -472,7 +472,7 @@ function warmupRows(
 /**
  * От чего считать разминку: проценты от 1ПМ — от максимума упражнения,
  * остальное (линейка, килограммы, самочувствие) — от верхнего рабочего
- * подхода, как от 80 % этого максимума.
+ * подхода, как от 80 % 1ПМ.
  */
 function warmupReference(
   groups: SlotSetGroup[],

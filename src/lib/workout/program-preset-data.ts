@@ -765,7 +765,7 @@ function table(
   });
 }
 
-/** Heavy day works at 80 % of the working weight, light at 70 %. */
+/** Heavy day works at 80 % of 1ПМ, light at 70 %. */
 function intensityPercent(intensity: SlotIntensity): number {
   return intensity === "heavy" ? 80 : 70;
 }

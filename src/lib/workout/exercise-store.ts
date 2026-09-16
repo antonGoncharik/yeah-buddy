@@ -142,7 +142,6 @@ export async function createExercise(
       unit: input.unit,
       weight_step: input.weight_step,
       formula_preset: input.formula_preset,
-      one_rm: input.one_rm,
       slot: input.slot,
     })
     .select("*")
@@ -189,7 +188,6 @@ export async function updateExercise(
       ...(input.formula_preset != null
         ? { formula_preset: input.formula_preset }
         : {}),
-      ...(input.one_rm !== undefined ? { one_rm: input.one_rm } : {}),
       ...(input.slot !== undefined ? { slot: input.slot } : {}),
     })
     .eq("user_id", userId)

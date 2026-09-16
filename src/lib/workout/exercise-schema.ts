@@ -21,11 +21,6 @@ const optionalText = z
     return trimmed === "" ? null : trimmed;
   });
 
-/** 1ПМ: пусто — колонка не пишется, план считается от максимума упражнения. */
-const oneRm = z
-  .union([z.number().finite().positive().max(1000), z.null()])
-  .optional();
-
 export const exerciseCreateSchema = z
   .object({
     name: z.string().trim().min(1, "Название обязательно."),
@@ -36,7 +31,6 @@ export const exerciseCreateSchema = z
     weight_step: z.number().finite().positive().optional(),
     formula_preset: z.enum(FORMULA_PRESETS).optional(),
     slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
-    one_rm: oneRm,
     max_weight: z.number().finite().positive(),
     achieved_at: z.string().optional(),
   })
@@ -49,14 +43,13 @@ export const exerciseCreateSchema = z
     weight_step: value.weight_step ?? 2.5,
     formula_preset: value.formula_preset ?? "barbell",
     slot: value.slot ?? null,
-    one_rm: value.one_rm ?? null,
     max_weight: value.max_weight,
     achieved_at: value.achieved_at,
   }));
 
 export class StartingMaxLockedError extends Error {
   constructor() {
-    super("Пока идёт цикл, вес поднимается на смене этапа.");
+    super("Пока идёт цикл, 1ПМ поднимается на смене этапа.");
   }
 }
 
@@ -69,7 +62,6 @@ export const exerciseUpdateSchema = z.object({
   weight_step: z.number().finite().positive().optional(),
   formula_preset: z.enum(FORMULA_PRESETS).optional(),
   slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
-  one_rm: oneRm,
   max_weight: z.number().finite().positive().optional(),
 });
 

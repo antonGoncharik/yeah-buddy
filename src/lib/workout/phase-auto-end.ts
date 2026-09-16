@@ -9,7 +9,7 @@ import { ensureWorkoutSettings } from "@/lib/workout/settings";
 /**
  * Закрывает этап сам, когда пройден круг дней программы — если так
  * настроен цикл. Последний этап не трогаем: там закрывается весь цикл и
- * поднимаются рабочие веса, это решает человек.
+ * поднимается 1ПМ, это решает человек.
  */
 export async function maybeAutoEndPhase(userId: string): Promise<void> {
   const settings = await ensureWorkoutSettings(userId);

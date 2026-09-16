@@ -108,7 +108,7 @@ export function sessionRaiseOffers(
     feel: detail.session.feel,
     increasePercent,
     currentMaxByExercise,
-    // Only exercises planned from a working weight can raise it; lines,
+    // Only exercises planned from 1ПМ can raise it; lines,
     // fixed kilograms and «по самочувствию» have nothing to scale.
     exercises: detail.exercises.flatMap((item) =>
       item.max_weight != null

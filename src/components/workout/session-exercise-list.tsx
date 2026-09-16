@@ -65,7 +65,7 @@ export function SessionExerciseList({
             href="/workouts/exercises"
             className={cn(buttonVariants(), "h-14 text-lg")}
           >
-            Указать веса
+            Указать 1ПМ
           </Link>
         ) : null}
       </section>

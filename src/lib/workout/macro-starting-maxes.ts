@@ -8,8 +8,8 @@ export interface StartingPhaseMax {
 }
 
 /**
- * Starting weights for the first phase of a cycle. Exercises in the queue must
- * have a weight: from the form, or the current working weight as a fallback.
+ * Starting 1ПМ for the first phase of a cycle. Exercises in the program must
+ * have a max: from the form, or the current 1ПМ as a fallback.
  * Other exercises get a phase max only when the form provided one.
  */
 export function resolveStartingPhaseMaxes(
