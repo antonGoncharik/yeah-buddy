@@ -57,8 +57,8 @@ export function NewMacroScreen() {
           <section className="card-surface flex flex-col gap-3 px-5 py-5">
             <p className="text-lg font-medium">Программа пустая</p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Цикл меняет вес в тех тренировках, что стоят в программе. Сначала
-              поставь готовую или собери день.
+              Цикл меняет % от 1ПМ в тех тренировках, что стоят в программе.
+              Сначала поставь готовую или собери день.
             </p>
             <Link
               href="/workouts/schedule"
@@ -75,8 +75,8 @@ export function NewMacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировки те же, что в программе. Выбери цикл — он только
-                  меняет вес по неделям.
+                  Тренировки те же, что в программе. Цикл меняет % от 1ПМ по
+                  неделям — не линейку килограммов.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
                   <button

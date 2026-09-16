@@ -187,7 +187,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/settings/formulas"
           title={FORMULAS_LABEL}
-          hint="Сколько подходов и с каким весом"
+          hint="Подходы и % от 1ПМ"
         />
         <NavRow
           href={reviewHref("workouts")}

@@ -55,9 +55,9 @@ export function phaseSchemeHint(
     return `Лёгкие · ${summary}`;
   }
   if (phase.percent_scale != null && phase.percent_scale !== 1) {
-    return `От рабочих · ${summary}`;
+    return `От плана · ${summary}`;
   }
-  return `Как рабочие · ${summary}`;
+  return `Как в плане · ${summary}`;
 }
 
 function setCountLabel(set: FormulaSetSpec): string {

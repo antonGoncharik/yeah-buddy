@@ -49,8 +49,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           </p>
           <p className="text-sm text-muted-foreground">
             От этого максимума считаются проценты. Идёт цикл, поэтому здесь он
-            не меняется: поднять можно на смене этапа, а поправить на текущий
-            этап — в разделе «Цикл».
+            не меняется: поднять — на смене этапа, поправить текущий — в «Цикл».
           </p>
         </div>
       ) : (
@@ -69,11 +68,11 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
-          {exercise ? (
-            <p className="text-sm text-muted-foreground">
-              От этого максимума считаются подходы. Без цикла меняй здесь.
-            </p>
-          ) : null}
+          <p className="text-sm text-muted-foreground">
+            {exercise
+              ? "От этого максимума считаются проценты. Без цикла меняй здесь."
+              : "От этого максимума считаются проценты в подходах."}
+          </p>
         </Field>
       )}
 

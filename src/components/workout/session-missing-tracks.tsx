@@ -44,9 +44,9 @@ export function SessionMissingTracks({
           Линейка ещё не начата
         </p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Эти упражнения идут по линейке: каждую тренировку на шаг тяжелее.
-          Напиши вес первого шага — дальше {DEFAULT_TRACK_LENGTH} тренировок
-          пойдут сами. Поправить линейку можно в упражнении.
+          Это не 1ПМ и не цикл: ряд килограммов, каждую тренировку следующий
+          шаг. Напиши вес первого шага — дальше {DEFAULT_TRACK_LENGTH}{" "}
+          тренировок пойдут сами. Поправить можно в упражнении.
         </p>
       </div>
       <div className="divide-y divide-border/70" data-field-group>

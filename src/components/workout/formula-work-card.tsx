@@ -43,7 +43,11 @@ export function FormulaWorkCard({
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
         <h2 className="text-xl font-semibold">Рабочие подходы</h2>
-        <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">
+        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+          Общая схема, проценты от 1ПМ. В дне можно заменить на свою, в том
+          числе линейку кг.
+        </p>
+        <p className="text-sm tabular-nums text-muted-foreground">
           {workSummary(work)}
         </p>
       </div>

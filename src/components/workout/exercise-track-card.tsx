@@ -72,7 +72,7 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
   async function remove() {
     const ok = await confirm({
       message:
-        "Убрать линейку? Слоты «по линейке» снова спросят стартовый вес.",
+        "Убрать линейку? Подходы с типом «Линейка» снова спросят стартовый вес.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -98,10 +98,11 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <div>
-        <p className="text-base font-medium">Линейка весов</p>
+        <p className="text-base font-medium">Линейка</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Для слотов «по линейке»: ряд весов, каждую тренировку следующий шаг.
-          После последнего шага вес держится, пока не задашь новую линейку.
+          {track && !editing
+            ? "Ряд килограммов. Каждую тренировку следующий шаг. Не 1ПМ и не цикл: цикл этот ряд не двигает."
+            : "Не 1ПМ и не цикл. Ряд килограммов: 80, 82.5, 85… Включается в дне, если у подхода выбрать «Линейка». Иначе список ничего не делает."}
         </p>
       </div>
 
@@ -190,7 +191,7 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
             );
           }}
         >
-          Задать линейку
+          Задать ряд кг
         </Button>
       ) : null}
 

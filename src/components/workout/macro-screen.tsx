@@ -42,7 +42,7 @@ export function MacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={CYCLE_LABEL}
-        subtitle="Меняется вес, тренировки те же"
+        subtitle="Меняется % от 1ПМ, тренировки те же"
         backHref="/workouts"
       />
 
@@ -74,8 +74,8 @@ export function MacroScreen() {
               <p className="text-lg font-medium">Цикла ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 {state.planned_cycle.length > 0
-                  ? `Этапы: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — меняется только вес.`
-                  : "Сначала выбери этапы, потом запусти цикл. Тренировки те же — меняется только вес."}
+                  ? `Этапы: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — по неделям меняется % от 1ПМ.`
+                  : "Сначала выбери этапы, потом запусти цикл. Тренировки те же — меняется % от 1ПМ, не линейка кг."}
               </p>
               {state.planned_cycle.length > 0 ? (
                 <CycleTimeline

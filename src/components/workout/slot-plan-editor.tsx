@@ -121,7 +121,8 @@ export function SlotPlanEditor({
 
       {phase && !custom ? (
         <p className="px-1 text-sm leading-snug text-muted-foreground">
-          На этапе «{phase.name}» подходы такие же, как в «Обычно».
+          На этапе «{phase.name}» подходы как в «Обычно». Линейку или другие %
+          на эту неделю — в «Своя схема на этап».
         </p>
       ) : null}
 
@@ -247,8 +248,8 @@ function PhaseChips({
         ))}
       </div>
       <p className="px-1 text-sm leading-snug text-muted-foreground">
-        Нажми на этап — можно задать свои подходы именно на него. Точка значит,
-        что своя схема уже стоит.
+        На этапе — свои подходы на эту неделю: другие повторы, % от 1ПМ или
+        линейка кг. Точка — схема уже стоит.
       </p>
     </div>
   );
@@ -420,12 +421,12 @@ function GroupRow({
 function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   if (load.type === "track") {
     return exercise.track
-      ? `Линейка: ${trackSummary(exercise.track)}.`
-      : "Линейки ещё нет — спросим стартовый вес перед первой тренировкой.";
+      ? `Следующий шаг линейки: ${trackSummary(exercise.track)}. Не цикл и не 1ПМ.`
+      : "Линейки ещё нет — спросим первый кг на тренировке.";
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max
-      ? `1ПМ: ${formatWeight(exercise.current_max.max_weight)} кг.`
+      ? `От 1ПМ ${formatWeight(exercise.current_max.max_weight)} кг. Цикл может сменить % на другой неделе.`
       : SLOT_LOAD_HINTS.percent;
   }
   return SLOT_LOAD_HINTS[load.type];

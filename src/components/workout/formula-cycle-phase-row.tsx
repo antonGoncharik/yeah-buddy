@@ -139,7 +139,7 @@ export function FormulaCyclePhaseRow({
             <Segmented
               value={custom ? "custom" : "auto"}
               options={[
-                { id: "auto", label: "Как рабочие" },
+                { id: "auto", label: "Как в плане" },
                 { id: "custom", label: "Свои" },
               ]}
               onChange={(mode) => {
@@ -184,8 +184,8 @@ export function FormulaCyclePhaseRow({
               />
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {phaseSchemeHint(phase, false, work)}. Меняются вместе с
-                рабочими подходами.
+                {phaseSchemeHint(phase, false, work)}. Меняются вместе с общим
+                планом подходов.
               </p>
             )}
           </div>

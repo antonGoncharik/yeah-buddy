@@ -58,7 +58,7 @@ export function FormulaCycleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Этапы цикла"
-        subtitle="Как меняется вес от этапа к этапу"
+        subtitle="Недели % от 1ПМ. Не линейка кг"
         backHref="/settings/formulas"
       />
 
@@ -72,9 +72,9 @@ export function FormulaCycleScreen() {
         {!loading && formulas ? (
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
-              Тренировки те же, что в программе — по этапам меняется только вес.
-              Здесь схема; запустить по ней цикл — на вкладке «Тренировки» →
-              «Цикл». Без этапов вес всегда считается одинаково.
+              Цикл меняет неделю: другие проценты или повторы. Линейка
+              килограммов — в упражнении, включается в дне. Сюда её не
+              переносят. Запустить цикл — «Тренировки» → «Цикл».
             </p>
 
             {showTemplates ? (

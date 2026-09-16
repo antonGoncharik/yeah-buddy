@@ -32,7 +32,7 @@ export function warmupsHint(
 export function cycleHint(formulas: WorkoutFormulas): string {
   const cycle = formulas.cycle;
   if (cycle.length === 0) {
-    return "Не настроены. Вес всегда считается одинаково";
+    return "Не настроены. Проценты от 1ПМ всегда одни и те же";
   }
   const names = cycle.map((phase) => phase.name).join(" → ");
   return formulas.cycle_auto_end ? `${names} · меняется после круга` : names;
