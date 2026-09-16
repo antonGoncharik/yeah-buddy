@@ -1,9 +1,11 @@
 import { roundMacros } from "@/lib/ai/compact-nutrition";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewAverages } from "@/lib/ai/types";
-import { shiftIsoDate } from "@/lib/day/dates";
+import { inclusiveDayCount, shiftIsoDate } from "@/lib/day/dates";
 import { averageMacros, KCAL_HIT_RATIO } from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
+
+export { inclusiveDayCount };
 
 const PROTEIN_MISS_G = 20;
 const KCAL_MISS = 150;
@@ -14,15 +16,6 @@ export function formatAverageLine(
   stats: ReviewAverages,
 ): string {
   return `${label} · ${stats.count}: ${formatKcalPlain(stats.fact.kcal)}/${formatKcalPlain(stats.target.kcal)} ккал, белок ${formatG(stats.fact.protein)}/${formatG(stats.target.protein)} г, жир ${formatG(stats.fact.fat)}/${formatG(stats.target.fat)} г, углеводы ${formatG(stats.fact.carbs)}/${formatG(stats.target.carbs)} г.`;
-}
-
-export function inclusiveDayCount(from: string, to: string): number {
-  const start = Date.parse(`${from}T00:00:00Z`);
-  const end = Date.parse(`${to}T00:00:00Z`);
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
-    return 0;
-  }
-  return Math.round((end - start) / 86_400_000) + 1;
 }
 
 export function longestLogGap(

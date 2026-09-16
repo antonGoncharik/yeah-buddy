@@ -1,11 +1,12 @@
 import { shiftIsoDate } from "@/lib/day/dates";
+import { DIARY_RANGES, type DiaryRange, isDiaryRange } from "@/lib/diary-range";
 
-export const REVIEW_RANGES = [14, 30] as const;
+export const REVIEW_RANGES = DIARY_RANGES;
 
-export type ReviewRange = (typeof REVIEW_RANGES)[number];
+export type ReviewRange = DiaryRange;
 
 export function isReviewRange(value: unknown): value is ReviewRange {
-  return value === 14 || value === 30;
+  return typeof value === "number" && isDiaryRange(value);
 }
 
 export function reviewWindow(

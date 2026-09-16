@@ -12,6 +12,7 @@ import {
   buildExerciseProgress,
   summarizeProgress,
 } from "@/lib/workout/progress-build";
+import { listActiveTemplates } from "@/lib/workout/templates";
 
 export async function getStrengthProgress(
   userId: string,
@@ -25,6 +26,7 @@ export async function getStrengthProgress(
     globalsResult,
     workByExercise,
     weights,
+    active,
   ] = await Promise.all([
     supabase
       .from("macro_cycles")
@@ -51,6 +53,7 @@ export async function getStrengthProgress(
       .order("created_at", { ascending: true }),
     listExerciseWorkPoints(userId),
     listBodyWeights(userId),
+    listActiveTemplates(userId),
   ]);
 
   if (macrosResult.error) {
@@ -114,6 +117,7 @@ export async function getStrengthProgress(
   return {
     exercises: progress,
     weights,
+    circle_size: active.length,
     ...summarizeProgress(progress),
   };
 }

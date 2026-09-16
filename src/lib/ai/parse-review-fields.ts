@@ -3,7 +3,9 @@ import type {
   ReviewBrief,
   ReviewDayRow,
   ReviewMaxRow,
+  ReviewRecord,
   ReviewSessionRow,
+  ReviewWeekTonnage,
 } from "@/lib/ai/types";
 import type { Macros } from "@/lib/nutrition";
 import { isRecord } from "@/lib/read";
@@ -128,6 +130,51 @@ export function parseLastRecap(
     avg_percent: toNullableNumber(value.avg_percent),
     grown: toNumber(value.grown),
   };
+}
+
+export function parseRecord(row: Record<string, unknown>): ReviewRecord | null {
+  if (typeof row.name !== "string" || typeof row.date !== "string") {
+    return null;
+  }
+
+  const weight = toNullableNumber(row.weight);
+  const previous = toNullableNumber(row.previous);
+  if (weight == null || previous == null) {
+    return null;
+  }
+
+  return { name: row.name, date: row.date, weight, previous };
+}
+
+export function parseWeekTonnage(
+  row: Record<string, unknown>,
+): ReviewWeekTonnage | null {
+  if (typeof row.start !== "string") {
+    return null;
+  }
+
+  const tonnage = toNullableNumber(row.tonnage);
+  if (tonnage == null || tonnage <= 0) {
+    return null;
+  }
+
+  return { start: row.start, tonnage };
+}
+
+export function parseRateHalves(
+  value: unknown,
+): { first: number; second: number } | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const first = toNullableNumber(value.first);
+  const second = toNullableNumber(value.second);
+  if (first == null || second == null) {
+    return null;
+  }
+
+  return { first, second };
 }
 
 export function parseFeels(value: unknown): {

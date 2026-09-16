@@ -1,8 +1,10 @@
 "use client";
 
 import {
-  formatWorkoutsPerWeek,
+  formatFrequencyVsProgram,
+  formatSessionRateHalves,
   pluralWorkouts,
+  sessionRateHalves,
   type WorkoutHistoryRange,
   type WorkoutHistoryStats as WorkoutHistoryStatsData,
 } from "@/lib/workout/history-stats";
@@ -11,11 +13,18 @@ import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 export function WorkoutHistoryStats({
   days,
   stats,
+  from,
+  to,
+  dates,
 }: {
   days: WorkoutHistoryRange;
   stats: WorkoutHistoryStatsData;
+  from: string;
+  to: string;
+  dates: string[];
 }) {
-  const perWeek = formatWorkoutsPerWeek(stats.count, days);
+  const perWeek = formatFrequencyVsProgram(stats.count, days, 0);
+  const halves = sessionRateHalves(dates, from, to);
   // Kind split only says something when both kinds happened.
   const kinds =
     stats.dynamic > 0 && stats.static > 0
@@ -38,7 +47,10 @@ export function WorkoutHistoryStats({
           </span>
         </p>
         {perWeek ? (
-          <p className="mt-2 text-sm text-muted-foreground">{perWeek}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {perWeek}
+            {halves ? ` · ${formatSessionRateHalves(halves)}` : ""}
+          </p>
         ) : null}
         {kinds.length > 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">

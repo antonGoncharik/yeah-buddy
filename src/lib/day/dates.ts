@@ -86,6 +86,27 @@ export function shiftIsoDate(date: string, days: number): string {
   return shifted.toISOString().slice(0, 10);
 }
 
+export function inclusiveDayCount(from: string, to: string): number {
+  const start = Date.parse(`${from}T00:00:00Z`);
+  const end = Date.parse(`${to}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return 0;
+  }
+  return Math.round((end - start) / 86_400_000) + 1;
+}
+
+/** Calendar week starting Monday, from an ISO date. */
+export function weekStartMonday(isoDate: string): string {
+  if (!isIsoDate(isoDate)) {
+    return isoDate;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const offset = weekday === 0 ? 6 : weekday - 1;
+  return shiftIsoDate(isoDate, -offset);
+}
+
 export function calendarToday(): string {
   return calendarDateInTimeZone(
     Intl.DateTimeFormat().resolvedOptions().timeZone,

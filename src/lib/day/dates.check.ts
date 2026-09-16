@@ -2,6 +2,7 @@ import {
   assertWritableDayDate,
   calendarDateInTimeZone,
   calendarToday,
+  inclusiveDayCount,
   isIsoDate,
   isPastDayDate,
   isWritableDayDate,
@@ -13,6 +14,7 @@ import {
   shiftIsoDate,
   todayHistoryDayHref,
   todayHomeHref,
+  weekStartMonday,
   withDateQuery,
 } from "@/lib/day/dates";
 
@@ -31,6 +33,10 @@ assertEqual(isIsoDate("2026-02-31"), false, "impossible day");
 assertEqual(isIsoDate("2026-13-01"), false, "impossible month");
 assertEqual(isIsoDate("2026-02-29"), false, "non-leap feb 29");
 assertEqual(isIsoDate("2024-02-29"), true, "leap feb 29");
+assertEqual(inclusiveDayCount("2026-09-04", "2026-09-17"), 14, "14 inclusive");
+assertEqual(weekStartMonday("2026-09-14"), "2026-09-14", "monday stays");
+assertEqual(weekStartMonday("2026-09-17"), "2026-09-14", "thursday to monday");
+assertEqual(weekStartMonday("2026-09-13"), "2026-09-07", "sunday to monday");
 assertEqual(previousIsoDate("2026-03-01"), "2026-02-28", "month rollover");
 assertEqual(previousIsoDate("2026-01-01"), "2025-12-31", "year rollover back");
 assertEqual(nextIsoDate("2026-12-31"), "2027-01-01", "year rollover forward");

@@ -117,7 +117,7 @@ export function SettingsScreen() {
             <NavRow
               href={reviewHref("settings")}
               title={REVIEW_LABEL}
-              hint="Еда, зал и вес за 14 или 30 дней"
+              hint="Еда, зал и вес за 14, 30 или 90 дней"
             />
             <NavRow
               href="/today/week?from=settings"

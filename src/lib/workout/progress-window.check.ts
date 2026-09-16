@@ -5,7 +5,10 @@ import {
   bodyWeightSpan,
   controlLifts,
   isNewPeak,
+  peakRecords,
+  uniqueWorkDates,
   viewedProgress,
+  weeklyTonnage,
 } from "@/lib/workout/progress-control";
 import { windowStrengthProgress } from "@/lib/workout/progress-window";
 
@@ -34,6 +37,10 @@ function point(
     macro_number: null,
     label: date,
   };
+}
+
+function work(date: string, weight: number, tonnage: number): ProgressPoint {
+  return { ...point(date, weight), tonnage, kind: "dynamic" };
 }
 
 function exercise(name: string, points: ProgressPoint[]): ExerciseProgress {
@@ -79,6 +86,7 @@ const windowed = windowStrengthProgress(
     avg_percent: null,
     avg_relative_percent: null,
     weights: [],
+    circle_size: 0,
   },
   "2026-09-01",
   "2026-09-14",
@@ -111,6 +119,7 @@ const once = windowStrengthProgress(
     avg_percent: null,
     avg_relative_percent: null,
     weights: [],
+    circle_size: 0,
   },
   "2026-09-01",
   "2026-09-14",
@@ -130,6 +139,7 @@ const recomp = windowStrengthProgress(
     avg_percent: null,
     avg_relative_percent: null,
     weights: [],
+    circle_size: 0,
   },
   "2026-09-01",
   "2026-09-14",
@@ -207,6 +217,7 @@ const quarter = viewedProgress(
     avg_percent: null,
     avg_relative_percent: null,
     weights: [],
+    circle_size: 0,
   },
   "2026-09-14",
   "30",
@@ -227,6 +238,45 @@ assertEqual(
     .join(),
   "Присед,Жим,Тяга",
   "base lifts in summary",
+);
+
+const records = peakRecords([squat, bench, row], "2026-09-01", "2026-09-14");
+assertEqual(
+  records.map((row) => `${row.name}:${row.date}:${row.weight}`).join(),
+  "Присед:2026-09-12:180,Присед:2026-09-05:175",
+  "PR feed skips the first point",
+);
+assertEqual(records[0]?.previous, 175, "second jump remembers last peak");
+
+const lifetimeRecords = peakRecords([squat, bench], null, "2026-09-14");
+assertEqual(
+  lifetimeRecords.some((row) => row.name === "Жим" && row.weight === 105),
+  true,
+  "all-time feed includes bench jump",
+);
+
+const weeks = weeklyTonnage(
+  [
+    exercise("Жим", [
+      work("2026-09-08", 100, 4000),
+      work("2026-09-15", 105, 4200),
+    ]),
+    exercise("Присед", [work("2026-09-09", 180, 8000)]),
+  ],
+  "2026-09-01",
+  "2026-09-17",
+);
+assertEqual(
+  weeks.map((week) => `${week.start}:${week.tonnage}`).join(),
+  "2026-09-07:12000,2026-09-14:4200",
+  "tonnage sums to calendar weeks",
+);
+assertEqual(
+  uniqueWorkDates([
+    exercise("Жим", [work("2026-09-08", 100, 4000), point("2026-09-01", 95)]),
+  ]).join(),
+  "2026-09-08",
+  "1RM-only dates are not sessions",
 );
 
 console.log("progress window ok");

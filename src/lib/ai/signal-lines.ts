@@ -8,6 +8,7 @@ import type {
 } from "@/lib/ai/types";
 import type { FoodShare } from "@/lib/days";
 import type { CurrentMacroState, DayHistoryRow } from "@/lib/types";
+import type { PeakRecord, WeekTonnage } from "@/lib/workout/progress-control";
 
 export function buildSignals(input: {
   days: DayHistoryRow[];
@@ -30,6 +31,11 @@ export function buildSignals(input: {
     templates: Array<{ name: string; count: number }>;
     weak: string[];
     feels?: { easy: number; close: number; miss: number };
+    perWeek?: number | null;
+    circleSize?: number;
+    records?: PeakRecord[];
+    tonnageWeeks?: WeekTonnage[];
+    rateHalves?: { first: number; second: number } | null;
   };
   phase: CurrentMacroState;
   maxes: { grown: ReviewMaxRow[]; stalled: ReviewMaxRow[] };
@@ -56,6 +62,14 @@ function isScoreboardSignal(line: string): boolean {
     line.startsWith("Зал:") ||
     line.startsWith("К весу тела") ||
     line.startsWith("По группам:")
+  ) {
+    return true;
+  }
+  if (
+    line.startsWith("Частота:") ||
+    line.startsWith("Тоннаж по неделям:") ||
+    line.startsWith("Тоннаж за неделю:") ||
+    line.startsWith("Рекорды:")
   ) {
     return true;
   }

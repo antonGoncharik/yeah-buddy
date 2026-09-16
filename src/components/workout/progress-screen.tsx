@@ -19,18 +19,31 @@ import {
 } from "@/lib/day/body-weight";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import {
+  formatFrequencyVsProgram,
+  formatSessionRateHalves,
+  sessionRateHalves,
+} from "@/lib/workout/history-stats";
 import { EXERCISE_CATEGORY_LABELS } from "@/lib/workout/labels";
 import {
   formatSignedPercent,
   formatSignedWeight,
+  formatTonnage,
   formatWeight,
 } from "@/lib/workout/numbers";
 import {
   bodyWeightSpan,
   controlLifts,
+  formatPeakRecord,
+  formatWeeklyTonnageLine,
+  horizonDayCount,
   isNewPeak,
   PROGRESS_HORIZON_OPTIONS,
   type ProgressHorizon,
+  peakRecords,
+  totalTonnage,
+  uniqueWorkDates,
+  weeklyTonnage,
 } from "@/lib/workout/progress-control";
 import {
   CATEGORY_SHORT_LABELS,
@@ -197,12 +210,19 @@ function SummaryCard({
     weight.delta != null &&
     Math.abs(weight.delta) >= WEIGHT_DELTA_KG;
   const lifts = controlLifts(tracked);
-  const records = tracked.filter((item) => {
-    const row = lifetime.exercises.find(
-      (entry) => entry.exercise_id === item.exercise_id,
-    );
-    return row ? isNewPeak(row, item) : false;
-  });
+  const records = peakRecords(lifetime.exercises, from, to).slice(0, 8);
+  const weeks = weeklyTonnage(lifetime.exercises, from, to);
+  const tonnage = totalTonnage(weeks);
+  const tonnageLine = formatWeeklyTonnageLine(weeks);
+  const workDates = uniqueWorkDates(tracked);
+  const spanDays = horizonDayCount(from, to, workDates[0]);
+  const frequency = formatFrequencyVsProgram(
+    workDates.length,
+    spanDays,
+    lifetime.circle_size,
+  );
+  const spanFrom = from ?? workDates[0];
+  const halves = spanFrom ? sessionRateHalves(workDates, spanFrom, to) : null;
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
@@ -233,6 +253,12 @@ function SummaryCard({
             : ` · к весу тела ${formatSignedPercent(viewed.avg_relative_percent)}`}
         </p>
         {moved ? <CategoryLine exercises={tracked} /> : null}
+        {frequency ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {frequency}
+            {halves ? ` · ${formatSessionRateHalves(halves)}` : ""}
+          </p>
+        ) : null}
       </div>
 
       {showWeight ? (
@@ -242,6 +268,13 @@ function SummaryCard({
           <span className="text-muted-foreground">
             ({formatSignedBodyWeight(weight.delta ?? 0)} кг)
           </span>
+        </p>
+      ) : null}
+
+      {tonnage > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Тоннаж {formatTonnage(tonnage)}
+          {tonnageLine ? ` · ${tonnageLine}` : ""}
         </p>
       ) : null}
 
@@ -262,9 +295,16 @@ function SummaryCard({
       ) : null}
 
       {records.length > 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Рекорд: {records.map((item) => item.name).join(", ")}
-        </p>
+        <ul className="flex flex-col gap-1 border-t border-border/70 pt-4">
+          {records.map((row) => (
+            <li
+              key={`${row.exercise_id}:${row.date}:${row.weight}`}
+              className="text-sm text-muted-foreground"
+            >
+              {formatPeakRecord(row)}
+            </li>
+          ))}
+        </ul>
       ) : null}
     </section>
   );

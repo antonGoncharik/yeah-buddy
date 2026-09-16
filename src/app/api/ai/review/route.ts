@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const bodySchema = z.object({
-  days: z.union([z.literal(14), z.literal(30)]),
+  days: z.union([z.literal(14), z.literal(30), z.literal(90)]),
 });
 
 export async function GET(request: Request): Promise<NextResponse> {

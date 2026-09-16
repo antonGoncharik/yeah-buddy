@@ -18,10 +18,17 @@ import { halfWindow } from "@/lib/ai/signal-nutrition-window";
 import type { ReviewBrief } from "@/lib/ai/types";
 import { nutritionHits, splitAverages } from "@/lib/nutrition-stats";
 import {
+  sessionRateHalves,
   summarizeWorkoutHistory,
   windowGymSessions,
+  workoutsPerWeek,
 } from "@/lib/workout/history-stats";
 import { phaseLabel } from "@/lib/workout/labels";
+import {
+  peakRecords,
+  totalTonnage,
+  weeklyTonnage,
+} from "@/lib/workout/progress-control";
 import {
   CATEGORY_SHORT_LABELS,
   categoryAverages,
@@ -56,6 +63,27 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     name: CATEGORY_SHORT_LABELS[row.id],
     percent: round1(row.avg_percent),
   }));
+  const perWeek = workoutsPerWeek(gymStats.count, source.range);
+  const circleSize =
+    source.progress.circle_size > 0
+      ? source.progress.circle_size
+      : (source.macro.phase_circle?.circle_size ?? 0);
+  const records = peakRecords(
+    source.progress.exercises,
+    source.from,
+    source.to,
+  ).slice(0, 12);
+  const tonnageWeeks = weeklyTonnage(
+    source.progress.exercises,
+    source.from,
+    source.to,
+  );
+  const tonnageSum = totalTonnage(tonnageWeeks);
+  const rateHalves = sessionRateHalves(
+    gymWindow.map((item) => item.session.session_date),
+    source.from,
+    source.to,
+  );
   const signals = buildSignals({
     days,
     from: source.from,
@@ -77,6 +105,11 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       templates: gymStats.templates,
       weak: weakTemplates(gymWindow),
       feels: compactFeels(sessionRows),
+      perWeek: perWeek > 0 ? perWeek : null,
+      circleSize,
+      records,
+      tonnageWeeks,
+      rateHalves,
     },
     phase: source.macro,
     maxes: {
@@ -122,6 +155,12 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       notes: sessionNotes(sessionRows),
       sessions: sessionRows,
       feels: compactFeels(sessionRows),
+      per_week: perWeek > 0 ? perWeek : null,
+      circle_size: circleSize,
+      tonnage: tonnageSum > 0 ? tonnageSum : null,
+      tonnage_weeks: tonnageWeeks,
+      records,
+      rate_halves: rateHalves,
     },
     phase: {
       type: source.macro.phase

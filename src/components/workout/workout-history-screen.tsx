@@ -11,7 +11,7 @@ import { WorkoutHistoryRow } from "@/components/workout/workout-history-row";
 import { WorkoutHistoryStats } from "@/components/workout/workout-history-stats";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
-import { historyNeedsOlder } from "@/lib/diary-range";
+import { diaryRangeStart, historyNeedsOlder } from "@/lib/diary-range";
 import { SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   HISTORY_RANGE_OPTIONS,
@@ -91,7 +91,13 @@ export function WorkoutHistoryScreen() {
         ) : null}
 
         {showStats ? (
-          <WorkoutHistoryStats days={rangeDays} stats={stats} />
+          <WorkoutHistoryStats
+            days={rangeDays}
+            stats={stats}
+            from={diaryRangeStart(today, rangeDays) ?? today}
+            to={today}
+            dates={windowed.map((item) => item.session.session_date)}
+          />
         ) : null}
 
         {showStats ? <ReviewCta from="gym" /> : null}

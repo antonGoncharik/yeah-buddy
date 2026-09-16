@@ -92,6 +92,7 @@ export function parseStrengthProgress(data: unknown): StrengthProgress | null {
     avg_percent: toNullableNumber(data.avg_percent),
     avg_relative_percent: toNullableNumber(data.avg_relative_percent),
     weights: mapRecordList(data.weights, parseWeightPoint),
+    circle_size: toNumber(data.circle_size),
   };
 }
 

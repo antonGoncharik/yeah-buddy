@@ -385,6 +385,7 @@ const seedBrief = buildReviewBrief({
     avg_percent: 0,
     avg_relative_percent: 3.8,
     weights: [],
+    circle_size: 0,
   },
   seedWeight: 84,
 });
@@ -457,5 +458,13 @@ assertEqual(
   true,
   "prompt shows a good observation",
 );
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("90 дней"),
+  true,
+  "prompt knows the quarter window",
+);
+assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
+assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
+assertEqual(prompt.gym.circle_size, 0, "prompt keeps circle size");
 
 console.log("ai signals ok");

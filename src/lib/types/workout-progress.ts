@@ -45,4 +45,6 @@ export interface StrengthProgress {
   avg_relative_percent: number | null;
   /** Logged weigh-ins, oldest first. Empty if the user never logged weight. */
   weights: Array<{ date: string; weight: number }>;
+  /** Active program days (templates). 0 if there is no program. */
+  circle_size: number;
 }

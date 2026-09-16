@@ -44,6 +44,18 @@ export type ReviewSessionRow = {
   feel: "easy" | "close" | "miss" | null;
 };
 
+export type ReviewRecord = {
+  name: string;
+  date: string;
+  weight: number;
+  previous: number;
+};
+
+export type ReviewWeekTonnage = {
+  start: string;
+  tonnage: number;
+};
+
 export type ReviewMaxRow = {
   name: string;
   category: string | null;
@@ -86,6 +98,12 @@ export type ReviewBrief = {
     notes: Array<{ date: string; name: string; note: string }>;
     sessions: ReviewSessionRow[];
     feels: { easy: number; close: number; miss: number };
+    per_week: number | null;
+    circle_size: number;
+    tonnage: number | null;
+    tonnage_weeks: ReviewWeekTonnage[];
+    records: ReviewRecord[];
+    rate_halves: { first: number; second: number } | null;
   };
   phase: {
     type: string | null;

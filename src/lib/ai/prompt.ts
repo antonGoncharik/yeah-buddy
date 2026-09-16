@@ -38,6 +38,12 @@ export type ReviewPromptPayload = {
     notes: ReviewBrief["gym"]["notes"];
     sessions: ReviewBrief["gym"]["sessions"];
     feels: ReviewBrief["gym"]["feels"];
+    per_week: ReviewBrief["gym"]["per_week"];
+    circle_size: ReviewBrief["gym"]["circle_size"];
+    tonnage: ReviewBrief["gym"]["tonnage"];
+    tonnage_weeks: ReviewBrief["gym"]["tonnage_weeks"];
+    records: ReviewBrief["gym"]["records"];
+    rate_halves: ReviewBrief["gym"]["rate_halves"];
   };
   phase: ReviewBrief["phase"];
   maxes: ReviewBrief["maxes"];
@@ -56,8 +62,12 @@ export const REVIEW_SYSTEM_PROMPT = `Ты описываешь, как прош�
 - Спорт любой. Ярлык вроде пауэрлифтинга — только если он есть во входе.
 - Цикл и этапы есть не у всех. Не предлагай заводить, закрывать или крутить проценты.
 - Вес тела — одна цифра на день, если есть. weight.logged — сколько взвешиваний в окне. Одно — дельта от прошлого веса, не кривая. Нет веса — не выдумывай.
-- Цифры уже посчитал код: средние БЖУ, попадания, halves (первая/вторая половина окна), дельта веса, г/кг, план/факт, рабочие кг и к весу тела, signals. Бери как есть. Не пересчитывай и не округляй заново.
-- nutrition, gym, days, sessions, halves и maxes — за окно from…to. maxes.since = window. Нет работы в окне — упражнения нет в maxes.
+- Цифры уже посчитал код: средние БЖУ, попадания, halves (первая/вторая половина окна), дельта веса, г/кг, план/факт, рабочие кг и к весу тела, рекорды, тоннаж по неделям, частота vs круг программы, signals. Бери как есть. Не пересчитывай и не округляй заново.
+- nutrition, gym, days, sessions, halves и maxes — за окно from…to. range 14, 30 или 90. maxes.since = window. Нет работы в окне — упражнения нет в maxes.
+- 90 дней — длинное окно: смотри halves, gym.tonnage_weeks, gym.records и gym.rate_halves. Не перечисляй недели и даты подряд.
+- gym.records — новые максимумы штанги в окне (дата, кг, предыдущий). Первая точка упражнения — не рекорд.
+- gym.tonnage_weeks — сумма рабочих подходов по календарным неделям (пн–вс). Не советуй «добавить объём».
+- gym.per_week и gym.circle_size — сколько вышло в неделю и сколько дней в круге программы. Не говори «надо ходить N раз».
 - previous — прошлый текст того же окна. Сравни с текущими цифрами: закрылось ли то, на что тогда смотрели. Нет previous — не выдумывай «как в прошлый раз».
 
 Что выжать
@@ -65,7 +75,9 @@ export const REVIEW_SYSTEM_PROMPT = `Ты описываешь, как прош�
 - Rest vs training — топливо зала: углеводы, ккал, белок. Если в зальные дни ел как на отдыхе или меньше — это наблюдение.
 - Вес + рабочие + г/кг: рекомп, просто минус на весах, или рабочие едут за весом вверх. К весу тела vs штанга — разные истории.
 - feels.easy при stalled — рабочие уже не кусались. notes — слова человека, вплети, если есть.
-- halves — сдвиг внутри окна, не только среднее за все дни.
+- halves — сдвиг внутри окна, не только среднее за все дни. gym.rate_halves — то же для частоты зала.
+- gym.records vs maxes.grown: рекорд — новый максимум штанги, grown — просто плюс к точке до окна.
+- gym.tonnage_weeks — объём жил или просел по неделям. Свяжи с частотой и весом, если цифры есть.
 - foods — чем реально набирался белок, не меню.
 - maxes.category и categories — база vs изоляция, если разъехались.
 - Пропуски и слабее плана — по sessions и weak, кучностью, не списком дат.
@@ -125,6 +137,12 @@ export function reviewPromptPayload(
       notes: brief.gym.notes,
       sessions: brief.gym.sessions,
       feels: brief.gym.feels,
+      per_week: brief.gym.per_week,
+      circle_size: brief.gym.circle_size,
+      tonnage: brief.gym.tonnage,
+      tonnage_weeks: brief.gym.tonnage_weeks,
+      records: brief.gym.records,
+      rate_halves: brief.gym.rate_halves,
     },
     phase: brief.phase,
     maxes: brief.maxes,

@@ -11,9 +11,15 @@ import {
 import { pluralDays } from "@/lib/nutrition-stats";
 import { cn } from "@/lib/utils";
 import {
-  formatWorkoutsPerWeek,
+  formatFrequencyVsProgram,
+  formatSessionRateHalves,
   pluralWorkouts,
 } from "@/lib/workout/history-stats";
+import { formatTonnage } from "@/lib/workout/numbers";
+import {
+  formatPeakRecord,
+  formatWeeklyTonnageLine,
+} from "@/lib/workout/progress-control";
 
 export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
   const gymLine =
@@ -61,6 +67,20 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         value={liftsValue(brief)}
         hint={liftsHint(brief)}
       />
+      {brief.gym.tonnage != null ? (
+        <FactRow
+          label="Тоннаж"
+          value={formatTonnage(brief.gym.tonnage)}
+          hint={formatWeeklyTonnageLine(brief.gym.tonnage_weeks)}
+        />
+      ) : null}
+      {brief.gym.records.length > 0 ? (
+        <FactRow
+          label="Рекорды"
+          value={String(brief.gym.records.length)}
+          hint={brief.gym.records.slice(0, 4).map(formatPeakRecord).join("; ")}
+        />
+      ) : null}
     </section>
   );
 }
@@ -80,9 +100,16 @@ function proteinHint(brief: ReviewBrief): string | null {
 
 function gymHint(brief: ReviewBrief): string | null {
   const parts: string[] = [];
-  const perWeek = formatWorkoutsPerWeek(brief.gym.completed, brief.range);
+  const perWeek = formatFrequencyVsProgram(
+    brief.gym.completed,
+    brief.range,
+    brief.gym.circle_size,
+  );
   if (perWeek) {
     parts.push(perWeek);
+  }
+  if (brief.gym.rate_halves) {
+    parts.push(formatSessionRateHalves(brief.gym.rate_halves));
   }
   if (
     brief.phase.type &&

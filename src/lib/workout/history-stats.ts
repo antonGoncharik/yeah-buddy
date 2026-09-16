@@ -1,3 +1,4 @@
+import { inclusiveDayCount, shiftIsoDate } from "@/lib/day/dates";
 import {
   type DiaryRange,
   diaryRangeStart,
@@ -126,6 +127,12 @@ export function workoutsPerWeek(count: number, days: number): number {
   return Math.round((count / (days / 7)) * 10) / 10;
 }
 
+export function formatWeekRate(value: number): string {
+  return Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(1).replace(".", ",");
+}
+
 export function formatWorkoutsPerWeek(
   count: number,
   days: number,
@@ -135,10 +142,68 @@ export function formatWorkoutsPerWeek(
     return null;
   }
 
-  const text = Number.isInteger(value)
-    ? String(value)
-    : value.toFixed(1).replace(".", ",");
-  return `${text} в неделю`;
+  return `${formatWeekRate(value)} в неделю`;
+}
+
+export function formatFrequencyVsProgram(
+  count: number,
+  days: number,
+  circleSize: number,
+): string | null {
+  const perWeek = formatWorkoutsPerWeek(count, days);
+  if (!perWeek) {
+    return null;
+  }
+  if (circleSize <= 0) {
+    return perWeek;
+  }
+
+  return `${perWeek} · ${circleSize} в круге`;
+}
+
+export function sessionRateHalves(
+  dates: string[],
+  from: string,
+  to: string,
+): { first: number; second: number } | null {
+  const days = inclusiveDayCount(from, to);
+  if (days < 14) {
+    return null;
+  }
+
+  const mid = shiftIsoDate(from, Math.floor(days / 2));
+  const firstEnd = shiftIsoDate(mid, -1);
+  if (firstEnd < from) {
+    return null;
+  }
+
+  let firstCount = 0;
+  let secondCount = 0;
+  for (const date of new Set(dates)) {
+    if (date < from || date > to) {
+      continue;
+    }
+    if (date < mid) {
+      firstCount += 1;
+    } else {
+      secondCount += 1;
+    }
+  }
+
+  const first = workoutsPerWeek(firstCount, inclusiveDayCount(from, firstEnd));
+  const second = workoutsPerWeek(secondCount, inclusiveDayCount(mid, to));
+  if ((first <= 0 && second <= 0) || first === second) {
+    return null;
+  }
+
+  return { first, second };
+}
+
+export function formatSessionRateHalves(halves: {
+  first: number;
+  second: number;
+}): string {
+  return `сначала ${formatWeekRate(halves.first)}, потом ${formatWeekRate(halves.second)} в неделю`;
 }
 
 function rangeStart(

@@ -1,7 +1,19 @@
 import { formatPct } from "@/lib/ai/format";
 import type { CurrentMacroState } from "@/lib/types";
-import { pluralWorkouts } from "@/lib/workout/history-stats";
+import {
+  formatFrequencyVsProgram,
+  formatSessionRateHalves,
+  formatWeekRate,
+  pluralWorkouts,
+} from "@/lib/workout/history-stats";
 import { phaseLabel, SESSION_FEEL_LABELS } from "@/lib/workout/labels";
+import { formatTonnage } from "@/lib/workout/numbers";
+import {
+  formatPeakRecord,
+  formatWeeklyTonnageLine,
+  type PeakRecord,
+  type WeekTonnage,
+} from "@/lib/workout/progress-control";
 
 export function gymSignalLines(input: {
   gym: {
@@ -12,8 +24,14 @@ export function gymSignalLines(input: {
     templates: Array<{ name: string; count: number }>;
     weak: string[];
     feels?: { easy: number; close: number; miss: number };
+    perWeek?: number | null;
+    circleSize?: number;
+    records?: PeakRecord[];
+    tonnageWeeks?: WeekTonnage[];
+    rateHalves?: { first: number; second: number } | null;
   };
   phase: CurrentMacroState;
+  windowDays?: number;
 }): string[] {
   const lines: string[] = [];
 
@@ -25,6 +43,20 @@ export function gymSignalLines(input: {
     lines.push(
       `Зал: ${input.gym.completed} ${pluralWorkouts(input.gym.completed)}${plan}.`,
     );
+  }
+
+  const frequency = formatFrequencyVsProgram(
+    input.gym.completed,
+    input.windowDays ?? 0,
+    input.gym.circleSize ?? 0,
+  );
+  if (frequency) {
+    lines.push(`Частота: ${frequency}.`);
+  } else if (input.gym.perWeek != null && input.gym.perWeek > 0) {
+    lines.push(`Частота: ${formatWeekRate(input.gym.perWeek)} в неделю.`);
+  }
+  if (input.gym.rateHalves) {
+    lines.push(`Темп зала: ${formatSessionRateHalves(input.gym.rateHalves)}.`);
   }
   if (input.gym.skipped > 0) {
     lines.push(`Пропусков: ${input.gym.skipped}.`);
@@ -63,6 +95,21 @@ export function gymSignalLines(input: {
         ? `Прошлый цикл «${from}» → «${to}», выросли ${recap.grown_count}.`
         : `Прошлый цикл «${from}» → «${to}»: рабочие ${pct}, выросли ${recap.grown_count}.`,
     );
+  }
+
+  const records = input.gym.records ?? [];
+  if (records.length > 0) {
+    lines.push(
+      `Рекорды: ${records.slice(0, 6).map(formatPeakRecord).join("; ")}.`,
+    );
+  }
+
+  const weeks = input.gym.tonnageWeeks ?? [];
+  const tonnageLine = formatWeeklyTonnageLine(weeks);
+  if (tonnageLine) {
+    lines.push(`Тоннаж по неделям: ${tonnageLine}.`);
+  } else if (weeks.length === 1 && weeks[0]) {
+    lines.push(`Тоннаж за неделю: ${formatTonnage(weeks[0].tonnage)}.`);
   }
 
   return lines;

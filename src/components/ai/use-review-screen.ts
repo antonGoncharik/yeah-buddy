@@ -9,7 +9,7 @@ import type { ReviewSnapshot } from "@/lib/ai/types";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import { AI_REVIEW_FAILED, LOAD_FAILED } from "@/lib/messages";
 
-export type ReviewRangeId = "14" | "30";
+export type ReviewRangeId = "14" | "30" | "90";
 
 export function useReviewScreen() {
   const from = useSearchParams().get("from");

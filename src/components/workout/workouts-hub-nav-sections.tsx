@@ -214,7 +214,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href={reviewHref("workouts")}
           title={REVIEW_LABEL}
-          hint="За 14 или 30 дней"
+          hint="За 14, 30 или 90 дней"
         />
       </section>
     </div>

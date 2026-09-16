@@ -3,23 +3,16 @@
 import { ReviewFactsCard } from "@/components/ai/review-facts-card";
 import { ReviewSignalsCard } from "@/components/ai/review-signals-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
-import {
-  type ReviewRangeId,
-  useReviewScreen,
-} from "@/components/ai/use-review-screen";
+import { useReviewScreen } from "@/components/ai/use-review-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewDetailSignals } from "@/lib/ai/signal-lines";
+import { DIARY_RANGE_OPTIONS } from "@/lib/diary-range";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
 import { REVIEW_LABEL } from "@/lib/workout/labels";
-
-const RANGE_OPTIONS: Array<{ id: ReviewRangeId; label: string }> = [
-  { id: "14", label: "14 дней" },
-  { id: "30", label: "30 дней" },
-];
 
 export function ReviewScreen() {
   const {
@@ -48,7 +41,7 @@ export function ReviewScreen() {
         <div className="animate-rise">
           <Segmented
             value={range}
-            options={RANGE_OPTIONS}
+            options={DIARY_RANGE_OPTIONS}
             onChange={changeRange}
           />
         </div>

@@ -1,4 +1,8 @@
-import { parseReviewSnapshot, parseStoredReview } from "@/lib/ai/parse-review";
+import {
+  parseReviewBrief,
+  parseReviewSnapshot,
+  parseStoredReview,
+} from "@/lib/ai/parse-review";
 import { reviewPromptPayload } from "@/lib/ai/prompt";
 import type { ReviewBrief, StoredReview } from "@/lib/ai/types";
 
@@ -82,6 +86,12 @@ const brief = {
     notes: [],
     sessions: [],
     feels: { easy: 0, close: 0, miss: 0 },
+    per_week: null,
+    circle_size: 0,
+    tonnage: null,
+    tonnage_weeks: [],
+    records: [],
+    rate_halves: null,
   },
   phase: {
     type: null,
@@ -119,6 +129,32 @@ assertEqual(
   })?.previous?.from,
   "2026-08-02",
   "snapshot previous",
+);
+
+assertEqual(
+  parseReviewBrief({ ...brief, range: 90 })?.range,
+  90,
+  "90-day review parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    gym: {
+      completed: 0,
+      skipped: 0,
+      dynamic: 0,
+      static: 0,
+      plan_hit: 0,
+      plan_total: 0,
+      templates: [],
+      weak: [],
+      notes: [],
+      sessions: [],
+      feels: { easy: 0, close: 0, miss: 0 },
+    },
+  })?.gym.records.length,
+  0,
+  "old brief without records still reads",
 );
 
 console.log("ai review store parse ok");

@@ -11,6 +11,7 @@ import {
   listFoodSharesInRange,
 } from "@/lib/days";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
+import type { RecentWorkoutSession } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { getStrengthProgress } from "@/lib/workout/progress";
 import { listSessionHistory } from "@/lib/workout/sessions";
@@ -103,24 +104,15 @@ async function loadReviewBrief(
   today: string,
 ) {
   const { start, end } = reviewWindow(today, range);
-  const [days, foods, sessionsPage, macro, progress, seedWeight] =
+  const [days, foods, sessions, macro, progress, seedWeight] =
     await Promise.all([
       listDaysInRange(userId, start, end),
       listFoodSharesInRange(userId, start, end),
-      listSessionHistory(userId, {
-        since: start,
-        limit: 50,
-        statuses: ["completed", "skipped"],
-      }),
+      loadReviewSessions(userId, start, end),
       getCurrentMacroState(userId),
       getStrengthProgress(userId),
       getLastBodyWeight(userId, start),
     ]);
-
-  const sessions = sessionsPage.items.filter(
-    (item) =>
-      item.session.session_date >= start && item.session.session_date <= end,
-  );
 
   return buildReviewBrief({
     range,
@@ -133,4 +125,28 @@ async function loadReviewBrief(
     progress,
     seedWeight,
   });
+}
+
+async function loadReviewSessions(userId: string, start: string, end: string) {
+  const items: RecentWorkoutSession[] = [];
+  let before: string | undefined;
+  for (let page = 0; page < 3; page += 1) {
+    const result = await listSessionHistory(userId, {
+      since: start,
+      until: end,
+      before,
+      limit: 120,
+      statuses: ["completed", "skipped"],
+    });
+    items.push(...result.items);
+    if (!result.next_before) {
+      break;
+    }
+    before = result.next_before;
+  }
+
+  return items.filter(
+    (item) =>
+      item.session.session_date >= start && item.session.session_date <= end,
+  );
 }
