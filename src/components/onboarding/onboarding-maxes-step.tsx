@@ -21,8 +21,9 @@ export function OnboardingMaxesStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        1ПМ — рекорд на один раз. От него посчитается план подходов. Веса для
-        остальных упражнений спросим прямо в тренировке.
+        1ПМ — рекорд на один раз. От него посчитается план подходов. Цикл и
+        линейку кг можно включить позже. Веса для остальных упражнений спросим
+        прямо в тренировке.
       </p>
       <div
         className="card-surface animate-rise divide-y divide-border/70 px-5"
