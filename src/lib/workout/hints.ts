@@ -215,50 +215,50 @@ export function completePhaseHint(
   progress: PhaseCircleProgress | null,
 ): string {
   if (!progress) {
-    return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
+    return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
   }
   if (progress.hold_weights) {
-    return "Не пошло — рабочие веса не трогаем.";
+    return "Не пошло — 1ПМ не трогаем.";
   }
   if (progress.last_in_cycle) {
     if (progress.increases_on_end) {
-      return "Цикл закроется и начнётся новый. Можно поднять рабочие веса — не всем сразу.";
+      return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
     }
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели.";
   }
   if (progress.increases_on_end) {
-    return `Дальше «${progress.next_phase_name}». Можно поднять рабочие веса — не всем сразу.`;
+    return `Дальше «${progress.next_phase_name}». Можно поднять 1ПМ — не всем сразу.`;
   }
   if (progress.next_phase_name) {
     return `Дальше «${progress.next_phase_name}». Веса те же, можно поправить.`;
   }
-  return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
+  return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
 }
 
 export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
   if (!progress.hold_weights) {
     return null;
   }
-  return "Не пошло — рабочие веса не трогаем.";
+  return "Не пошло — 1ПМ не трогаем.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
-    return "Не пошло — рабочие веса не трогаем, можно поправить.";
+    return "Не пошло — 1ПМ не трогаем, можно поправить.";
   }
   if (preview.new_macro && preview.increased) {
-    return "Цикл закроется и начнётся новый. Можно поднять рабочие веса — не всем сразу.";
+    return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
   }
   if (preview.new_macro) {
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели, можно поправить.";
   }
   if (preview.increased) {
-    return `На «${preview.to_name}» можно поднять рабочие веса. Не всем сразу.`;
+    return `На «${preview.to_name}» можно поднять 1ПМ. Не всем сразу.`;
   }
   if (preview.to_name) {
     return `Дальше «${preview.to_name}». Веса те же, можно поправить.`;
   }
-  return "Рабочие веса перейдут как есть. Перед подтверждением можно поправить.";
+  return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
 }
 
 export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {

@@ -61,8 +61,8 @@ export function ProgressScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
             <p className="text-lg font-medium">Пока нечего сравнивать</p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Здесь появятся упражнения с рабочим весом: сначала одна точка,
-              потом линия. Веса задаются в упражнениях или в первой тренировке.
+              Здесь появятся упражнения с записью из зала: сначала одна точка,
+              потом линия. 1ПМ задаётся в упражнениях или в первой тренировке.
             </p>
             <Link
               href="/workouts/exercises"

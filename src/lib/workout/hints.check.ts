@@ -82,19 +82,19 @@ const circle: PhaseCircleProgress = {
 
 assertEqual(
   phaseHoldHint(circle),
-  "Не пошло — рабочие веса не трогаем.",
+  "Не пошло — 1ПМ не трогаем.",
   "hold copy",
 );
 
 assertEqual(
   completePhaseHint(circle),
-  "Не пошло — рабочие веса не трогаем.",
+  "Не пошло — 1ПМ не трогаем.",
   "hold beats raise on close",
 );
 
 assertEqual(
   completePhaseHint({ ...circle, hold_weights: false }),
-  "Дальше «Рывок». Можно поднять рабочие веса — не всем сразу.",
+  "Дальше «Рывок». Можно поднять 1ПМ — не всем сразу.",
   "raise when not holding",
 );
 
@@ -105,7 +105,7 @@ assertEqual(
     next_phase_type: null,
     next_phase_name: null,
   }),
-  "Не пошло — рабочие веса не трогаем.",
+  "Не пошло — 1ПМ не трогаем.",
   "hold beats new cycle",
 );
 
@@ -117,7 +117,7 @@ assertEqual(
     next_phase_type: null,
     next_phase_name: null,
   }),
-  "Цикл закроется и начнётся новый. Можно поднять рабочие веса — не всем сразу.",
+  "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.",
   "last stage still raises",
 );
 

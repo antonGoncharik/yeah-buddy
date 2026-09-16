@@ -61,9 +61,9 @@ export function sessionRaiseLine(
   _feel: SessionFeel | null,
 ): string {
   if (abovePlan) {
-    return "Где-то взял больше плана. Рабочий вес сам не вырастет.";
+    return "Где-то взял больше плана. 1ПМ сам не вырастет.";
   }
-  return "Можно поднять рабочий вес.";
+  return "Можно поднять 1ПМ.";
 }
 
 export function sessionMilestoneLine(count: number): string | null {
@@ -96,7 +96,7 @@ export function firstPhaseLine(
     return `${name || "Рывок"}. Не плюсуй сгоряча.`;
   }
   if (circle.phase_type === "volume") {
-    return `${name || "Набор"}. Тот же рабочий, больше работы.`;
+    return `${name || "Набор"}. Тот же 1ПМ, больше работы.`;
   }
   return null;
 }

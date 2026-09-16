@@ -135,7 +135,7 @@ assertEqual(
   raiseMaxConfirmMessage([
     { exercise_id: "squat", name: "Присед", from_weight: 100, to_weight: 105 },
   ]),
-  "Поднять рабочий вес: Присед 100 → 105 кг?",
+  "Поднять 1ПМ: Присед 100 → 105 кг?",
   "one offer confirm",
 );
 
@@ -144,7 +144,7 @@ assertEqual(
     { exercise_id: "squat", name: "Присед", from_weight: 100, to_weight: 105 },
     { exercise_id: "bench", name: "Жим", from_weight: 80, to_weight: 82.5 },
   ]),
-  "Поднять рабочие веса: Присед 100 → 105, Жим 80 → 82.5?",
+  "Поднять 1ПМ: Присед 100 → 105, Жим 80 → 82.5?",
   "several offers confirm",
 );
 

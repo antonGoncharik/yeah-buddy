@@ -198,5 +198,5 @@ function titleForStep(step: OnboardingStep): string {
   if (step === "guide") {
     return "Как это устроено";
   }
-  return "Рабочие веса";
+  return "1ПМ";
 }

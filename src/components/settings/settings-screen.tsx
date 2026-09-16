@@ -138,7 +138,7 @@ export function SettingsScreen() {
             <ShareAppRow />
             <NavRow
               href="/onboarding?again=1"
-              title="Белок и рабочие веса"
+              title="Белок и 1ПМ"
               hint="Задать заново. Еда на день и программа не изменятся"
             />
           </div>

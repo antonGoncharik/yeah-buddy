@@ -135,8 +135,8 @@ export function WorkoutsHubQueueCta({
       {nextCanStart && nextMissingMaxes.length > 0 ? (
         <p className="text-sm leading-snug text-muted-foreground">
           {nextMissingMaxes.length === 1
-            ? "Где прочерк — рабочий вес спросим в тренировке."
-            : "Где прочерки — рабочие веса спросим в тренировке."}
+            ? "Где прочерк — 1ПМ спросим в тренировке."
+            : "Где прочерки — 1ПМ спросим в тренировке."}
         </p>
       ) : null}
       {!nextCanStart ? (

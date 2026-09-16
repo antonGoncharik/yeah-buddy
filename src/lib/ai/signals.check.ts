@@ -269,7 +269,7 @@ assertEqual(
   "feel summary",
 );
 assertEqual(
-  recompLines.some((line) => line.includes("можно поднять рабочий")),
+  recompLines.some((line) => line.includes("можно поднять 1ПМ")),
   true,
   "easy without cycle suggests raise",
 );

@@ -88,6 +88,6 @@ function gymFeelLine(
   }
 
   const raise =
-    withoutCycle && feels.easy > 0 ? " Без цикла можно поднять рабочий." : "";
+    withoutCycle && feels.easy > 0 ? " Без цикла можно поднять 1ПМ." : "";
   return `Как прошло: ${parts.join(", ")}.${raise}`;
 }

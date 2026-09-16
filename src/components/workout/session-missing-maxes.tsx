@@ -37,9 +37,7 @@ export function SessionMissingMaxes({
       <div>
         <p className="text-xl font-semibold tracking-tight">Ещё без плана</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          {exercises.length === 1
-            ? "Напиши обычный рабочий вес — подходы посчитаются."
-            : "Напиши обычные рабочие веса — подходы посчитаются."}
+          Напиши 1ПМ — подходы посчитаются.
           {inCycle ? " Вес пойдёт в текущий этап цикла." : ""}
         </p>
       </div>

@@ -71,7 +71,7 @@ export function ProgressExerciseCard({
           <p className="truncate text-base font-medium">{item.name}</p>
           <p className="text-sm text-muted-foreground">
             {stats.current_weight == null
-              ? "Нет рабочего веса"
+              ? "Нет записи"
               : `${formatWeight(stats.current_weight)} кг`}
             {stats.current_tonnage != null
               ? ` · тоннаж ${formatTonnage(stats.current_tonnage)}`

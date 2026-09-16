@@ -135,7 +135,7 @@ export function raiseMaxConfirmMessage(offers: SessionMaxRaiseOffer[]): string {
       `${item.name} ${formatWeight(item.from_weight)} → ${formatWeight(item.to_weight)}`,
   );
   if (parts.length === 1) {
-    return `Поднять рабочий вес: ${parts[0]} кг?`;
+    return `Поднять 1ПМ: ${parts[0]} кг?`;
   }
-  return `Поднять рабочие веса: ${parts.join(", ")}?`;
+  return `Поднять 1ПМ: ${parts.join(", ")}?`;
 }
