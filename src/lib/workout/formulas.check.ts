@@ -403,11 +403,11 @@ assertEqual(
 
 assert(
   cycleDrivesTracks(TWO_WEEK_KG_CYCLE),
-  "two-week kg cycle moves linear tracks",
+  "two-week kg cycle moves working kilograms",
 );
 assert(
   !cycleDrivesTracks(FOUR_PHASE_CYCLE),
-  "percent cycles do not move linear tracks",
+  "percent cycles do not move working kilograms",
 );
 assert(
   nextPhaseType("w2", TWO_WEEK_KG_CYCLE) == null,
@@ -428,6 +428,20 @@ assertEqual(
   kgCycle.cycle[0]?.kg_increase_on_end ?? 0,
   2.5,
   "week 1 adds 2.5 kg",
+);
+
+const dropped = withCycle(kgCycle, []);
+assert(
+  dropped.cycle.length === 0,
+  "a program without weeks clears leftover weeks",
+);
+assert(
+  dropped.cycle_loop == null,
+  "loop does not linger after weeks are cleared",
+);
+assert(
+  dropped.cycle_auto_end == null,
+  "auto-end does not linger after weeks are cleared",
 );
 
 console.log("workout formulas ok");

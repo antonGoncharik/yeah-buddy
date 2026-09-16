@@ -104,7 +104,7 @@ export function nextPhaseType(
   return LEGACY_NEXT[current] ?? null;
 }
 
-/** Linear kg lines move on week end, not after each session. */
+/** Working kg moves on week end, not after each session. */
 export function cycleDrivesTracks(cycle: CyclePhaseDef[]): boolean {
   return cycle.some((phase) => (phase.kg_increase_on_end ?? 0) > 0);
 }

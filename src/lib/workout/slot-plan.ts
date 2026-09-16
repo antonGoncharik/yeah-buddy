@@ -54,7 +54,7 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
   percent: "% от 1ПМ",
   orm: "% от 1ПМ",
-  track: "Линейка",
+  track: "Кг",
   fixed: "Один вес",
   feel: "Сам",
 };
@@ -64,7 +64,7 @@ export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
     "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   orm: "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   track:
-    "Рабочий вес в кг. После недели, если в цикле стоит прибавка, иначе — после тренировки.",
+    "Рабочий кг в карточке упражнения. После недели, если в цикле стоит прибавка, иначе — после тренировки.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
   feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
 };
@@ -86,7 +86,7 @@ export interface SlotPlanContext {
   phaseKey: string | null;
   /** 1ПМ of the exercise (phase max inside a cycle). */
   maxWeight: number | null;
-  /** Current step of the exercise's weight line. */
+  /** Current working kilograms on the exercise. */
   trackWeight: number | null;
   /** Last weight actually lifted, for «по самочувствию». */
   feelWeight: number | null;
@@ -281,6 +281,24 @@ export function slotNeedsMax(
   return groups.some(
     (group) => group.load.type === "percent" || group.load.type === "orm",
   );
+}
+
+/** Working kg is needed by every slot whose plan uses kilograms. */
+export function exerciseIdsNeedingTrack(
+  templates: Array<{
+    exercises: Array<Pick<Exercise, "id">>;
+    slots: TemplateSlot[];
+  }>,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const template of templates) {
+    for (const [index, exercise] of template.exercises.entries()) {
+      if (slotNeedsTrack(template.slots[index]?.plan ?? null)) {
+        ids.add(exercise.id);
+      }
+    }
+  }
+  return ids;
 }
 
 /** 1ПМ нужен только тем упражнениям в программе, у которых вес считается процентом. */
@@ -490,7 +508,7 @@ function warmupRows(
 
 /**
  * От чего считать разминку: проценты от 1ПМ — от максимума упражнения,
- * остальное (линейка, килограммы, самочувствие) — от верхнего рабочего
+ * остальное (рабочий кг, один вес, самочувствие) — от верхнего рабочего
  * подхода, как от 80 % 1ПМ.
  */
 function warmupReference(
@@ -554,7 +572,7 @@ export function formatSlotLoad(load: SlotLoad): string {
     case "orm":
       return `${formatWeight(load.percent)} %`;
     case "track": {
-      const parts = ["линейка"];
+      const parts = ["кг"];
       if (load.percent !== 100) {
         parts.push(`${formatWeight(load.percent)} %`);
       }

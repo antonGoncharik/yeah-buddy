@@ -53,7 +53,7 @@ export interface CyclePhaseDef {
   percent_scale?: number;
   /** Own work sets. Used on dynamic days; static keeps base / deload. */
   work?: FormulaSetSpec[];
-  /** After this week, add kilograms to every linear track in the program. */
+  /** After this week, add kilograms to working kg on track slots. */
   kg_increase_on_end?: number;
 }
 

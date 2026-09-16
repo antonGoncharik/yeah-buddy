@@ -94,8 +94,8 @@ export function SessionMissingTracks({
         onClick={() => void onSave(filled)}
       >
         {filled.length > 0 && filled.length < exercises.length
-          ? "Начать заполненные линейки"
-          : "Начать линейку"}
+          ? "Сохранить заполненные"
+          : "Сохранить кг"}
       </Button>
     </section>
   );

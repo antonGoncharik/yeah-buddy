@@ -421,8 +421,8 @@ function GroupRow({
 function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   if (load.type === "track") {
     return exercise.track
-      ? `Следующий шаг линейки: ${trackSummary(exercise.track)}.`
-      : "Линейки ещё нет — спросим первый кг на тренировке.";
+      ? `Рабочий кг: ${trackSummary(exercise.track)}.`
+      : "Рабочего кг ещё нет — спросим на тренировке.";
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max

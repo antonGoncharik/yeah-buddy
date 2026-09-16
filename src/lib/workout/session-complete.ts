@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
-import { advanceTrack } from "@/lib/workout/exercise-tracks";
+import { bumpTracksByKg } from "@/lib/workout/exercise-tracks";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
 import { getSessionDetail } from "@/lib/workout/session-detail";
@@ -178,12 +178,20 @@ export async function completeSessionAsPlanned(
   await clearSkipTemplateIds(userId);
   if (firstCompletion) {
     const settings = await ensureWorkoutSettings(userId);
-    // A line moves once per session unless the cycle itself adds kilograms.
+    // Working kg grows after the session unless the week itself adds kilograms.
     if (!cycleDrivesTracks(settings.formulas.cycle)) {
+      const byStep = new Map<number, string[]>();
       for (const item of detail.exercises) {
-        if (item.track_id && item.track_step != null) {
-          await advanceTrack(userId, item.track_id, item.track_step);
+        if (!item.track_id) {
+          continue;
         }
+        const step = item.exercise.weight_step;
+        const ids = byStep.get(step) ?? [];
+        ids.push(item.exercise_id);
+        byStep.set(step, ids);
+      }
+      for (const [kg, ids] of byStep) {
+        await bumpTracksByKg(userId, ids, kg);
       }
     }
     await maybeAutoEndPhase(userId);

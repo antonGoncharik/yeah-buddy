@@ -17,7 +17,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-/** Starts weight lines for «по линейке» slots that have none and plans them. */
+/** Sets working kilograms for slots that use kg but have none yet. */
 export async function POST(
   request: Request,
   context: RouteContext,

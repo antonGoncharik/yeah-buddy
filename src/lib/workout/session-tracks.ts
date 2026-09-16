@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import type { SessionDetail } from "@/lib/types";
-import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { saveExerciseTrack } from "@/lib/workout/exercise-tracks";
 import {
   insertSessionExercise,
@@ -10,13 +9,8 @@ import {
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import { getSession } from "@/lib/workout/session-read";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
-import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { slotFor } from "@/lib/workout/slot-plan";
 import { getTemplate } from "@/lib/workout/templates";
-import {
-  DEFAULT_TRACK_LENGTH,
-  generateTrackSteps,
-} from "@/lib/workout/track-line";
 
 export const sessionTracksSchema = z.object({
   tracks: z
@@ -24,8 +18,6 @@ export const sessionTracksSchema = z.object({
       z.object({
         exercise_id: z.string().uuid(),
         start_weight: z.number().finite().positive(),
-        step: z.number().finite().positive().optional(),
-        count: z.number().int().min(1).max(24).optional(),
       }),
     )
     .min(1),
@@ -34,7 +26,7 @@ export const sessionTracksSchema = z.object({
 export type SessionTracksInput = z.infer<typeof sessionTracksSchema>;
 
 /**
- * Starts weight lines for slots that go «по линейке» but have none yet and
+ * Sets working kilograms for slots that use kg but have none yet and
  * adds those exercises to the planned session.
  */
 export async function setSessionTracks(
@@ -63,18 +55,9 @@ export async function setSessionTracks(
     return withSessionRaiseOffers(userId, detail);
   }
 
-  const weekly = cycleDrivesTracks(
-    (await ensureWorkoutSettings(userId)).formulas.cycle,
-  );
   for (const target of targets) {
     await saveExerciseTrack(userId, target.exercise.id, {
-      steps: generateTrackSteps({
-        start: target.input.start_weight,
-        step: target.input.step ?? target.exercise.weight_step,
-        count: weekly ? 1 : (target.input.count ?? DEFAULT_TRACK_LENGTH),
-        weightStep: target.exercise.weight_step,
-      }),
-      position: 0,
+      weight: target.input.start_weight,
     });
   }
 

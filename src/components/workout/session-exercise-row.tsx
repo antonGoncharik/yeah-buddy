@@ -45,7 +45,7 @@ export function SessionExerciseRow({
 }: {
   item: SessionExerciseDetail;
   compact?: boolean;
-  /** Where the exercise's weight line stands for this session. */
+  /** Working kilograms used for this session. */
   track?: SessionTrackInfo | null;
   openSetIds: string[];
   warmupOpen: boolean;
@@ -198,15 +198,15 @@ function warmupSummary(sets: WorkoutSet[], showActual: boolean): string {
 }
 
 function trackInfoLine(track: SessionTrackInfo, done: boolean): string {
-  const step = `линейка ${track.step}/${track.total}`;
-  // A finished session is history: the line may have moved on since.
+  if (track.weight == null) {
+    return "";
+  }
+  const now = `${formatWeight(track.weight)} кг`;
   if (done) {
-    return step;
+    return now;
   }
-  if (track.finished) {
-    return `${step} · последний шаг, дальше новая линейка`;
+  if (track.next_weight != null) {
+    return `${now} · дальше ${formatWeight(track.next_weight)} кг`;
   }
-  return track.next_weight != null
-    ? `${step} · дальше ${formatWeight(track.next_weight)} кг`
-    : step;
+  return `${now} · дальше после недели`;
 }

@@ -4,6 +4,7 @@ import {
   confirmTransition,
   previewTransition,
 } from "@/lib/workout/macro-transition";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-rebuild";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 /**
@@ -37,4 +38,5 @@ export async function maybeAutoEndPhase(userId: string): Promise<void> {
       max_weight: item.proposed_weight,
     })),
   });
+  await rebuildTodaysPlannedSession(userId);
 }

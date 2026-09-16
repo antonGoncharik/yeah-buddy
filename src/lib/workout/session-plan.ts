@@ -145,8 +145,7 @@ export async function insertSessionExercise(
     return false;
   }
 
-  // Снимок линейки — только по схеме текущего этапа: иначе линейка
-  // сдвинется в ту неделю, где она не используется.
+  // Snapshot working kg only for this week's scheme.
   const usesTrack = track != null && slotNeedsTrack(plan, ctx.phaseKey);
 
   const supabase = createSupabaseServerClient();

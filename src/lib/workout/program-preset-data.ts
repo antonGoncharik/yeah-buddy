@@ -332,7 +332,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "power_three",
     name: "Присед / Жим / Тяга",
-    hint: "Три соревновательных. Главный лифт — верх по линейке и откат легче, помощь по самочувствию.",
+    hint: "Три соревновательных. Главный лифт — верх в кг и откат легче, помощь по самочувствию.",
     level: "intermediate",
     templates: [
       day("День приседа", [
@@ -358,7 +358,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gzclp",
     name: "T1 / T2 / T3",
-    hint: "Три этажа: T1 по линейке, T2 от 1ПМ, T3 около отказа. Недели не ставит.",
+    hint: "Три этажа: T1 в кг, T2 от 1ПМ, T3 около отказа. Недели не ставит.",
     level: "intermediate",
     templates: [
       day("T1 присед", [
@@ -545,7 +545,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "texas",
     name: "Объём / Лёгкая / Интенсив",
-    hint: "Три дня: пятёрки на объёме, легче на восстановлении, в интенсив — один подход по линейке.",
+    hint: "Три дня: пятёрки на объёме, легче на восстановлении, в интенсив — один подход в кг.",
     level: "advanced",
     templates: [
       day("Объём", [
@@ -829,14 +829,14 @@ function topBack(
       group(topSets, topReps, trackLoad()),
       group(backSets, backReps, trackLoad(offset)),
     ],
-    { note: "линейка: верх, потом откат" },
+    { note: "кг: верх, потом откат" },
   );
 }
 
 function t1(name: string): ProgramSlot {
   return slot(name, [group(5, 3, trackLoad())], {
     intensity: "heavy",
-    note: "T1 · линейка, последний подход можно больше",
+    note: "T1 · кг, последний подход можно больше",
   });
 }
 
@@ -870,7 +870,7 @@ function wave531(name: string): ProgramSlot {
 function prSet(name: string): ProgramSlot {
   return slot(name, [group(1, 5, trackLoad())], {
     intensity: "heavy",
-    note: "линейка: один тяжёлый на 5",
+    note: "кг: один тяжёлый на 5",
   });
 }
 
@@ -879,7 +879,7 @@ function bench(): ProgramSlot {
   return slot(
     "Жим лёжа",
     [group(2, 2, trackLoad()), group(3, 6, trackLoad(-10))],
-    { note: "линейка +2.5 кг после каждой недели, отказ только в конце" },
+    { note: "+2.5 кг после каждой недели, отказ только в конце" },
   );
 }
 

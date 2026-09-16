@@ -310,11 +310,7 @@ assertEqual(
 );
 assertEqual(parseRepsRange("abc"), null, "garbage is not reps");
 
-assertEqual(
-  slotPlanSummary(bench),
-  "2×2 линейка · 3×6 линейка −10 кг",
-  "bench summary",
-);
+assertEqual(slotPlanSummary(bench), "2×2 кг · 3×6 кг −10 кг", "bench summary");
 assertEqual(
   slotPlanSummary({ ...feel }),
   "4×15 по самочувствию · без разминки · около отказа",
@@ -380,13 +376,13 @@ assertEqual(
 );
 assertEqual(
   trackSummary({ steps, position: 0 }),
-  "80 → 92.5 кг · шаг 1 из 6",
-  "summary at start",
+  "80 кг",
+  "summary is the current working kilogram",
 );
 assertEqual(
   trackSummary({ steps, position: 6 }),
-  "80 → 92.5 кг · пройдена",
-  "summary when done",
+  "92.5 кг",
+  "past the end still names the last kilogram",
 );
 
 // ---------- table: own scheme per cycle phase ----------

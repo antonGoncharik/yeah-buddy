@@ -27,6 +27,7 @@ import {
   toTransitionMaxes,
 } from "@/lib/workout/macro-transition-maxes";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { exerciseIdsNeedingTrack } from "@/lib/workout/slot-plan";
 import { listActiveTemplates } from "@/lib/workout/template-store";
 
 export async function previewTransition(
@@ -209,8 +210,9 @@ async function applyEndedPhaseKg(
     return;
   }
   const templates = await listActiveTemplates(userId);
-  const exerciseIds = templates.flatMap((template) =>
-    template.exercises.map((exercise) => exercise.id),
+  await bumpTracksByKg(
+    userId,
+    [...exerciseIdsNeedingTrack(templates)],
+    preview.kg_increase,
   );
-  await bumpTracksByKg(userId, exerciseIds, preview.kg_increase);
 }

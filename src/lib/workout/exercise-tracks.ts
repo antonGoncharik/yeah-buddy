@@ -1,7 +1,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ExerciseTrack } from "@/lib/types";
 import type { TrackWriteInput } from "@/lib/workout/slot-plan-schema";
-import { mapExerciseTrack, shiftTrackByKg } from "@/lib/workout/track-line";
+import {
+  asWorkingKg,
+  mapExerciseTrack,
+  shiftWorkingKg,
+  trackCurrentWeight,
+} from "@/lib/workout/track-line";
 
 export async function listTracksByExercise(
   userId: string,
@@ -62,13 +67,16 @@ export async function listTracksById(
   return map;
 }
 
-/** Creates or replaces the exercise's line. A new line starts from step 0. */
+/** Creates or replaces the exercise's working kilograms. */
 export async function saveExerciseTrack(
   userId: string,
   exerciseId: string,
   input: TrackWriteInput,
 ): Promise<ExerciseTrack> {
-  const position = Math.min(input.position ?? 0, input.steps.length);
+  const kg = workingKgFromWrite(input);
+  if (kg == null) {
+    throw new Error("Нужен рабочий вес.");
+  }
   const supabase = createSupabaseServerClient();
   const saved = await supabase
     .from("exercise_tracks")
@@ -76,8 +84,8 @@ export async function saveExerciseTrack(
       {
         user_id: userId,
         exercise_id: exerciseId,
-        steps: input.steps,
-        position,
+        steps: asWorkingKg(kg),
+        position: 0,
         name: input.name ?? null,
       },
       { onConflict: "user_id,exercise_id" },
@@ -108,48 +116,7 @@ export async function deleteExerciseTrack(
   }
 }
 
-/**
- * Moves the line forward after a completed session. Idempotent: a session
- * planned at step N only ever pushes the position to N + 1, never further.
- */
-export async function advanceTrack(
-  userId: string,
-  trackId: string,
-  plannedStep: number,
-): Promise<void> {
-  const supabase = createSupabaseServerClient();
-  const current = await supabase
-    .from("exercise_tracks")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("id", trackId)
-    .maybeSingle();
-
-  if (current.error) {
-    throw current.error;
-  }
-  if (!current.data) {
-    return;
-  }
-
-  const track = mapExerciseTrack(current.data as Record<string, unknown>);
-  const next = Math.min(plannedStep + 1, track.steps.length);
-  if (next <= track.position) {
-    return;
-  }
-
-  const updated = await supabase
-    .from("exercise_tracks")
-    .update({ position: next })
-    .eq("user_id", userId)
-    .eq("id", trackId);
-
-  if (updated.error) {
-    throw updated.error;
-  }
-}
-
-/** Adds kilograms to every matching line. Current step stays current. */
+/** Adds kilograms to the working weight. Leftover ladder steps collapse. */
 export async function bumpTracksByKg(
   userId: string,
   exerciseIds: string[],
@@ -165,13 +132,13 @@ export async function bumpTracksByKg(
 
   const supabase = createSupabaseServerClient();
   for (const track of tracks.values()) {
-    const steps = shiftTrackByKg(track.steps, kg);
+    const steps = shiftWorkingKg(track, kg);
     if (steps.length === 0) {
       continue;
     }
     const updated = await supabase
       .from("exercise_tracks")
-      .update({ steps })
+      .update({ steps, position: 0 })
       .eq("user_id", userId)
       .eq("id", track.id);
 
@@ -179,4 +146,17 @@ export async function bumpTracksByKg(
       throw updated.error;
     }
   }
+}
+
+function workingKgFromWrite(input: TrackWriteInput): number | null {
+  if (input.weight != null && input.weight > 0) {
+    return input.weight;
+  }
+  if (input.steps && input.steps.length > 0) {
+    return trackCurrentWeight({
+      steps: input.steps,
+      position: input.position ?? 0,
+    });
+  }
+  return null;
 }

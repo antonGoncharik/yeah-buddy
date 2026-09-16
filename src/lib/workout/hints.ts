@@ -172,7 +172,7 @@ export function templateMissingMaxes(
   });
 }
 
-/** Template exercises whose slot goes by a weight line that is not set yet. */
+/** Template exercises whose slot uses working kg that is not set yet. */
 export function templateMissingTracks(
   template: TemplateLike,
   catalog: Array<Pick<ExerciseWithMax, "id" | "track">>,
@@ -242,7 +242,7 @@ export function completePhaseHint(
     return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
   }
   if (progress.hold_weights) {
-    return "Не пошло — 1ПМ не трогаем.";
+    return "Не пошло — 1ПМ и рабочий кг не трогаем.";
   }
   const kg = kgBumpLabel(progress.kg_increase_on_end);
   if (progress.last_in_cycle) {
@@ -276,12 +276,12 @@ export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
   if (!progress.hold_weights) {
     return null;
   }
-  return "Не пошло — 1ПМ не трогаем.";
+  return "Не пошло — 1ПМ и рабочий кг не трогаем.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
-    return "Не пошло — 1ПМ не трогаем, можно поправить.";
+    return "Не пошло — 1ПМ и рабочий кг не трогаем, можно поправить.";
   }
   const kg = kgBumpLabel(preview.kg_increase);
   if (preview.new_macro && preview.increased && kg) {
@@ -315,7 +315,7 @@ function kgBumpLabel(kg: number | null | undefined): string | null {
   if (kg == null || !(kg > 0)) {
     return null;
   }
-  return `линейка +${formatWeight(kg)} кг`;
+  return `рабочий вес +${formatWeight(kg)} кг`;
 }
 
 function capitalize(value: string): string {

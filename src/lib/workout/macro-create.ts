@@ -1,3 +1,4 @@
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   CurrentMacroState,
@@ -168,4 +169,44 @@ export async function createPhase(
   }
 
   return phase;
+}
+
+/** Closes the running weeks so a new program can start its own, or none. */
+export async function closeCurrentMacro(userId: string): Promise<void> {
+  const current = await getCurrentMacroState(userId);
+  if (!current.macro) {
+    return;
+  }
+
+  const endDate = await getUserCalendarToday(userId);
+  const supabase = createSupabaseServerClient();
+  if (current.phase) {
+    const closedPhase = await supabase
+      .from("workout_phases")
+      .update({
+        status: "completed",
+        end_date: endDate,
+      })
+      .eq("id", current.phase.id)
+      .eq("user_id", userId)
+      .eq("status", "current");
+
+    if (closedPhase.error) {
+      throw closedPhase.error;
+    }
+  }
+
+  const closedMacro = await supabase
+    .from("macro_cycles")
+    .update({
+      status: "completed",
+      end_date: endDate,
+    })
+    .eq("id", current.macro.id)
+    .eq("user_id", userId)
+    .eq("status", "current");
+
+  if (closedMacro.error) {
+    throw closedMacro.error;
+  }
 }

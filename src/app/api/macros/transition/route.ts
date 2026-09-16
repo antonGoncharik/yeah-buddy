@@ -12,6 +12,7 @@ import {
   confirmTransitionSchema,
   previewTransition,
 } from "@/lib/workout/macros";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 
 export async function GET(): Promise<NextResponse> {
   const auth = await requireSession();
@@ -40,6 +41,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const state = await confirmTransition(auth.session.userId, parsed.data);
+    await rebuildTodaysPlannedSession(auth.session.userId);
     return jsonOk(state);
   } catch (error) {
     return failRoute(error, [

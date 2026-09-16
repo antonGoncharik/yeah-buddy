@@ -6,13 +6,16 @@ import {
   ensureNamedExercise,
   listExercises,
 } from "@/lib/workout/exercises";
-import { createFirstMacro } from "@/lib/workout/macro-create";
-import { getCurrentMacroState } from "@/lib/workout/macro-state";
+import {
+  closeCurrentMacro,
+  createFirstMacro,
+} from "@/lib/workout/macro-create";
 import {
   type ProgramPresetId,
   programPresetById,
 } from "@/lib/workout/program-presets";
 import { saveRotation } from "@/lib/workout/rotation";
+import { rebuildTodaysPlannedSession } from "@/lib/workout/session-rebuild";
 import {
   ensureWorkoutSettings,
   saveWorkoutSettings,
@@ -97,16 +100,14 @@ export async function applyProgramPreset(
     activeIds.push(created.id);
   }
 
-  // Программа с неделями ставит свой цикл вместе с днями.
-  if (preset.cycle) {
-    const settings = await ensureWorkoutSettings(userId);
-    await saveWorkoutSettings(userId, {
-      formulas: withCycle(settings.formulas, preset.cycle, {
-        auto_end: preset.cycle_auto_end,
-        loop: preset.cycle_loop,
-      }),
-    });
-  }
+  // The program owns the weeks: its cycle, or none.
+  const settings = await ensureWorkoutSettings(userId);
+  await saveWorkoutSettings(userId, {
+    formulas: withCycle(settings.formulas, preset.cycle ?? [], {
+      auto_end: preset.cycle_auto_end,
+      loop: preset.cycle_loop,
+    }),
+  });
 
   const all = await listTemplates(userId);
   const templates = await saveRotation(userId, {
@@ -119,18 +120,20 @@ export async function applyProgramPreset(
     })),
   });
 
-  if (preset.cycle) {
-    await startPresetCycle(userId);
-  }
+  await restartPresetCycle(userId, Boolean(preset.cycle));
+  await rebuildTodaysPlannedSession(userId);
 
   return templates;
 }
 
-/** Starts the weeks if none are running. Missing 1ПМ can wait for the gym. */
-async function startPresetCycle(userId: string): Promise<void> {
+/** Closes leftover weeks, then starts this program's weeks if it has any. */
+async function restartPresetCycle(
+  userId: string,
+  start: boolean,
+): Promise<void> {
   try {
-    const current = await getCurrentMacroState(userId);
-    if (current.macro) {
+    await closeCurrentMacro(userId);
+    if (!start) {
       return;
     }
     await createFirstMacro(userId, {

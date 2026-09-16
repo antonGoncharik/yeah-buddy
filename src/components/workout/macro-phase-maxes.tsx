@@ -23,8 +23,8 @@ export function MacroPhaseMaxes({
     <section className="flex flex-col gap-3">
       <h2 className="text-xl font-semibold">1ПМ на этой неделе</h2>
       <p className="text-sm text-muted-foreground">
-        Для упражнений, где вес считается процентом. Линейка килограммов живёт в
-        карточке упражнения.
+        Для упражнений, где вес считается процентом. Рабочий кг живёт в карточке
+        упражнения.
       </p>
       {maxes.map((row) => (
         <div

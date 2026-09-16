@@ -6,6 +6,15 @@ import { MAX_TRACK_STEPS } from "@/lib/workout/slot-plan-schema";
 
 export const DEFAULT_TRACK_LENGTH = 6;
 
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/** The kilogram the next session will put on the bar. */
+export function asWorkingKg(kg: number): number[] {
+  return kg > 0 ? [round2(kg)] : [];
+}
+
 export function mapExerciseTrack(row: Record<string, unknown>): ExerciseTrack {
   return {
     id: String(row.id),
@@ -119,29 +128,26 @@ export function trackIncrement(
 export function trackSummary(
   track: Pick<ExerciseTrack, "steps" | "position">,
 ): string {
-  if (track.steps.length === 0) {
-    return "нет";
-  }
-  const first = track.steps[0];
-  const last = track.steps[track.steps.length - 1];
-  const range =
-    first != null && last != null && first !== last
-      ? `${formatWeight(first)} → ${formatWeight(last)} кг`
-      : `${formatWeight(first ?? 0)} кг`;
-  if (trackFinished(track)) {
-    return `${range} · пройдена`;
-  }
-  return `${range} · шаг ${track.position + 1} из ${track.steps.length}`;
+  const kg = trackCurrentWeight(track);
+  return kg != null ? `${formatWeight(kg)} кг` : "нет";
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-/** Shift every step by kilograms. Position stays; the current weight moves. */
+/** Old multi-step lines: shift every stored weight. Prefer shiftWorkingKg. */
 export function shiftTrackByKg(steps: number[], kg: number): number[] {
   if (!(kg > 0) || steps.length === 0) {
     return steps;
   }
   return steps.map((step) => round2(step + kg)).filter((step) => step > 0);
+}
+
+/** One working kilogram, raised. Leftover ladder steps are dropped. */
+export function shiftWorkingKg(
+  track: Pick<ExerciseTrack, "steps" | "position">,
+  kg: number,
+): number[] {
+  const current = trackCurrentWeight(track);
+  if (current == null || !(kg > 0)) {
+    return track.steps;
+  }
+  return asWorkingKg(current + kg);
 }

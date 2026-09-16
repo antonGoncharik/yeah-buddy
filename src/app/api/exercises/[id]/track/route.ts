@@ -19,7 +19,7 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-/** Sets (or replaces) the exercise's weight line. */
+/** Sets (or replaces) the exercise's working kilograms. */
 export async function PUT(
   request: Request,
   context: RouteContext,

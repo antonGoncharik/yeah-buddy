@@ -76,7 +76,7 @@ export function NewMacroScreen() {
                 <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
                   Тренировки те же, что в программе. Цикл меняет вес по неделям:
-                  проценты от 1ПМ или килограммы на линейке.
+                  проценты от 1ПМ или рабочие килограммы.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
                   <button

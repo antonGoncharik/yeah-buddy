@@ -114,4 +114,9 @@ assert(
   "short key list is ignored",
 );
 
+const cleared = withCycle(four, []);
+assert(cleared.cycle.length === 0, "an empty cycle wipes leftover weeks");
+assert(cleared.cycle_loop == null, "clearing weeks drops the loop");
+assert(cleared.cycle_auto_end == null, "clearing weeks drops auto-end");
+
 console.log("cycle edit ok");

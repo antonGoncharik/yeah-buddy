@@ -9,6 +9,7 @@ import type {
   WorkoutSet,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { listTracksById } from "@/lib/workout/exercise-tracks";
 import { listExercises, mapExercise } from "@/lib/workout/exercises";
 import {
@@ -22,6 +23,7 @@ import {
   mapWorkoutSet,
 } from "@/lib/workout/map-rows";
 import { loadPreviousWork } from "@/lib/workout/session-memory-load";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { getTemplate } from "@/lib/workout/templates";
 import { trackWeightAt } from "@/lib/workout/track-line";
 
@@ -49,23 +51,32 @@ export async function loadSessionDetail(
     mapSessionExercise(row as Record<string, unknown>),
   );
   const exerciseIds = sessionExercises.map((item) => item.exercise_id);
-  const [exercisesById, setsByExercise, previousByExercise, missing, tracks] =
-    await Promise.all([
-      mapExercisesById(userId, exerciseIds),
-      listSetsBySessionExercises(
-        userId,
-        sessionExercises.map((item) => item.id),
-      ),
-      loadPreviousWork(userId, session, exerciseIds),
-      listMissing(
-        userId,
-        session,
-        template,
-        exerciseIds,
-        phase?.phase_type ?? null,
-      ),
-      listTrackInfo(userId, sessionExercises),
-    ]);
+  const [
+    exercisesById,
+    setsByExercise,
+    previousByExercise,
+    missing,
+    tracks,
+    settings,
+  ] = await Promise.all([
+    mapExercisesById(userId, exerciseIds),
+    listSetsBySessionExercises(
+      userId,
+      sessionExercises.map((item) => item.id),
+    ),
+    loadPreviousWork(userId, session, exerciseIds),
+    listMissing(
+      userId,
+      session,
+      template,
+      exerciseIds,
+      phase?.phase_type ?? null,
+    ),
+    listTrackInfo(userId, sessionExercises),
+    ensureWorkoutSettings(userId),
+  ]);
+
+  const weekly = cycleDrivesTracks(settings.formulas.cycle);
 
   return {
     session,
@@ -75,14 +86,21 @@ export async function loadSessionDetail(
     missing_tracks: missing.tracks,
     tracks: tracks.flatMap((info) => {
       const exercise = exercisesById.get(info.exercise_id);
-      return exercise
-        ? [
-            {
-              ...info,
-              name: exerciseShortLabel(exercise.short_name, exercise.name),
-            },
-          ]
-        : [];
+      if (!exercise) {
+        return [];
+      }
+      const next =
+        info.weight != null && !weekly
+          ? Math.round((info.weight + exercise.weight_step) * 100) / 100
+          : null;
+      return [
+        {
+          ...info,
+          name: exerciseShortLabel(exercise.short_name, exercise.name),
+          next_weight: next,
+          finished: false,
+        },
+      ];
     }),
     exercises: sessionExercises.flatMap((item) => {
       const exercise = exercisesById.get(item.exercise_id);
@@ -197,17 +215,16 @@ async function listTrackInfo(
     if (!track || step == null || track.steps.length === 0) {
       return [];
     }
-    const total = track.steps.length;
-    const finished = step + 1 >= total;
+    const weight = trackWeightAt(track, step);
     return [
       {
         exercise_id: item.exercise_id,
         name: "",
-        step: Math.min(step + 1, total),
-        total,
-        weight: trackWeightAt(track, step),
-        next_weight: finished ? null : trackWeightAt(track, step + 1),
-        finished,
+        step: 1,
+        total: 1,
+        weight,
+        next_weight: null,
+        finished: false,
       },
     ];
   });

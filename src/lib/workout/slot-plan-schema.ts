@@ -79,11 +79,16 @@ export const templateSlotSchema = z.object({
 
 export const trackStepsSchema = z.array(weight).min(1).max(MAX_TRACK_STEPS);
 
-export const trackWriteSchema = z.object({
-  steps: trackStepsSchema,
-  position: z.number().int().min(0).optional(),
-  name: z.string().trim().max(40).nullable().optional(),
-});
+export const trackWriteSchema = z
+  .object({
+    weight: weight.optional(),
+    steps: trackStepsSchema.optional(),
+    position: z.number().int().min(0).optional(),
+    name: z.string().trim().max(40).nullable().optional(),
+  })
+  .refine((value) => value.weight != null || (value.steps?.length ?? 0) > 0, {
+    message: "Нужен рабочий вес.",
+  });
 
 export type TrackWriteInput = z.infer<typeof trackWriteSchema>;
 
