@@ -94,7 +94,7 @@ export function FormulasScreen() {
 
             <FormulasNavRow
               href="/settings/formulas/cycle"
-              title="Этапы цикла"
+              title="Недели"
               hint={cycleHint(formulas)}
               dirty={dirty}
               busy={saving}

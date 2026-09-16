@@ -14,6 +14,7 @@ import {
   useOnboardingScreen,
 } from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
+import { GUIDE_LABEL } from "@/lib/guide";
 import { LOAD_FAILED } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
@@ -196,7 +197,7 @@ function titleForStep(step: OnboardingStep): string {
     return "Программа тренировок";
   }
   if (step === "guide") {
-    return "Как это устроено";
+    return GUIDE_LABEL;
   }
   return "1ПМ";
 }

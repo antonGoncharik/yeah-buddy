@@ -82,7 +82,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "full_body",
     name: "Всё тело A/B",
-    hint: "Две разные тренировки на всё тело. Дальше по кругу.",
+    hint: "Два разных дня на всё тело по кругу. Вес от 1ПМ, как в общем плане.",
     level: "beginner",
     templates: [
       day("Тело A", [
@@ -102,7 +102,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "one_day",
     name: "Всё тело · повтор",
-    hint: "Один состав, его и повторяешь.",
+    hint: "Один состав, его и повторяешь. Вес от 1ПМ, как в общем плане.",
     level: "beginner",
     templates: [
       day("Зал", [
@@ -117,7 +117,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "strength",
     name: "Сила A/B",
-    hint: "Две тренировки, присед каждый раз. Подходы — как в общем плане.",
+    hint: "Два дня, присед каждый раз. Вес от 1ПМ, как в общем плане.",
     level: "beginner",
     templates: [
       day("Сила A", [
@@ -131,7 +131,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "five_by_five",
     name: "5×5 A/B",
-    hint: "Присед каждый раз, пятёрки на 80%. Становая — один подход на 5. Недели не ставит.",
+    hint: "Присед каждый раз, пятёрки на 80% от 1ПМ. Становая — один подход на 5.",
     level: "beginner",
     templates: [
       day("5×5 A", [
@@ -152,7 +152,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "starting_strength",
     name: "3×5 A/B",
-    hint: "Присед каждый раз, тройки на 80%. Становая — один подход на 5. Недели не ставит.",
+    hint: "Присед каждый раз, тройки на 80% от 1ПМ. Становая — один подход на 5.",
     level: "beginner",
     templates: [
       day("3×5 A", [
@@ -173,7 +173,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "upper_lower",
     name: "Верх / Низ",
-    hint: "Сначала жимы и тяги, потом ноги. Подходы — как в общем плане.",
+    hint: "Сначала жимы и тяги, потом ноги. Вес от 1ПМ, как в общем плане.",
     level: "intermediate",
     templates: [
       day("Верх", [
@@ -195,7 +195,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl",
     name: "Жим / Тяга / Ноги",
-    hint: "Жимы, потом тяги, потом ноги. Подходы — как в общем плане.",
+    hint: "Жимы, потом тяги, потом ноги. Вес от 1ПМ, как в общем плане.",
     level: "intermediate",
     templates: [
       day("Жим", [
@@ -223,7 +223,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "ppl_twice",
     name: "Жим / Тяга / Ноги · A/B",
-    hint: "Шесть дней: два круга жим-тяга-ноги, второй чуть другой состав. Подходы — как в общем плане.",
+    hint: "Шесть дней: два круга жим-тяга-ноги, второй чуть другой состав. Вес от 1ПМ.",
     level: "intermediate",
     templates: [
       day("Жим A", [
@@ -272,7 +272,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "three_day",
     name: "Спина / Ноги / Грудь",
-    hint: "Спина с бицепсом, ноги с плечами, грудь с трицепсом.",
+    hint: "Спина с бицепсом, ноги с плечами, грудь с трицепсом. Вес от 1ПМ.",
     level: "intermediate",
     templates: [
       day("Спина", [
@@ -301,7 +301,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "arnold",
     name: "Грудь-спина / Плечи-руки / Ноги",
-    hint: "Три дня Арнольда. Если ходишь шесть раз — круг просто пройдёт дважды.",
+    hint: "Три дня Арнольда. Если ходишь шесть раз — круг просто пройдёт дважды. Вес от 1ПМ.",
     level: "intermediate",
     templates: [
       day("Грудь / спина", [
@@ -332,7 +332,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "power_three",
     name: "Присед / Жим / Тяга",
-    hint: "Три соревновательных. Главный лифт — верх в кг и откат легче, помощь по самочувствию.",
+    hint: "Три соревновательных. Главный лифт — верх в кг и откат легче. Помощь по самочувствию.",
     level: "intermediate",
     templates: [
       day("День приседа", [
@@ -358,7 +358,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gzclp",
     name: "T1 / T2 / T3",
-    hint: "Три этажа: T1 в кг, T2 от 1ПМ, T3 около отказа. Недели не ставит.",
+    hint: "Три этажа: T1 в кг после каждой тренировки, T2 от 1ПМ, T3 около отказа.",
     level: "intermediate",
     templates: [
       day("T1 присед", [
@@ -384,7 +384,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "upper_lower_hl",
     name: "Верх / Низ · тяжело-легко",
-    hint: "Четыре дня: тяжёлые и лёгкие верх и низ меняются. Недели не ставит — метки уже в днях.",
+    hint: "Четыре дня: тяжёлые и лёгкие верх и низ уже в составе. Вес от 1ПМ.",
     level: "intermediate",
     templates: [
       day("Верх тяжело", [
@@ -418,7 +418,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "phul",
     name: "Верх / Низ · сила-объём",
-    hint: "Силовые дни 3–5, объём 8–12. Недели не ставит — уже в днях.",
+    hint: "Силовые дни 3–5, объём 8–12 — уже в составе. Вес от 1ПМ.",
     level: "intermediate",
     templates: [
       day("Верх сила", [
@@ -454,7 +454,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "four_day",
     name: "Спина / Ноги / Грудь / Плечи",
-    hint: "По группе мышц за тренировку.",
+    hint: "По группе мышц за тренировку. Вес от 1ПМ, как в общем плане.",
     level: "advanced",
     templates: [
       day("Спина+трицепс", [
@@ -490,7 +490,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "gvt",
     name: "10×10",
-    hint: "Главное упражнение дня — десять по десять на 60%. Недели не ставит.",
+    hint: "Главное упражнение дня — десять по десять на 60% от 1ПМ.",
     level: "advanced",
     templates: [
       day("10×10 ноги", [
@@ -513,7 +513,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "five_three_one",
     name: "5/3/1",
-    hint: "Главный лифт 65–75–85%, потом 5×10 на 50%. Схема уже в днях.",
+    hint: "Главный лифт 65–75–85% от 1ПМ, потом 5×10 на 50%. Схема уже в днях.",
     level: "advanced",
     templates: [
       day("5/3/1 · жим стоя", [
@@ -545,7 +545,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "texas",
     name: "Объём / Лёгкая / Интенсив",
-    hint: "Три дня: пятёрки на объёме, легче на восстановлении, в интенсив — один подход в кг.",
+    hint: "Три дня: пятёрки от 1ПМ, легче на восстановлении, в интенсив — рабочий кг после тренировки.",
     level: "advanced",
     templates: [
       day("Объём", [
@@ -568,13 +568,13 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "press_two_week",
     name: "Жимовая · 2 недели",
-    hint: "Три дня, две недели по кругу. Жим и наклон — в килограммах, +2.5 после каждой недели. Тяжёлые и лёгкие дни меняются местами.",
+    hint: "Три дня по кругу. Жим и наклон — в кг, +2.5 после каждой недели. Остальное от 1ПМ, тяжёлое и лёгкое меняются местами.",
     level: "advanced",
     cycle: TWO_WEEK_KG_CYCLE,
     cycle_auto_end: true,
     cycle_loop: true,
     templates: [
-      day("Пн", [
+      day("Жим", [
         bench(),
         flippingBase("Подтягивания", 4, 6, "heavy", 8),
         flippingBase("Румынская тяга", 4, 10, "light"),
@@ -582,14 +582,14 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
         near("Махи в наклоне", 4, 15),
         near("Пресс", 3, 15),
       ]),
-      day("Ср", [
+      day("Присед", [
         flippingBase("Отжимания на брусьях", 4, 8, "light"),
         flippingBase("Приседания со штангой", 4, 6, "heavy"),
         flippingBase("Тяга горизонтального блока", 4, 8, "light"),
         near("Разведение гантелей в стороны", 4, 15),
         near("Подъём гантелей на бицепс", 4, 12),
       ]),
-      day("Пт", [
+      day("Наклон", [
         incline(),
         flippingBase("Тяга штанги в наклоне", 3, 8, "heavy"),
         flippingBase("Пуловер", 3, 10, "light"),
@@ -601,7 +601,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "table_squat",
     name: "Присед по таблице",
-    hint: "Присед четыре раза в неделю: 4×9, 5×7, 7×5, 10×3 — проценты от 1ПМ. Четыре недели, каждая тяжелее. Поставит свой цикл на четыре недели и сброс.",
+    hint: "Присед четыре раза в неделю: 4×9, 5×7, 7×5, 10×3 от 1ПМ. Поставит четыре недели и сброс, каждая тяжелее.",
     level: "advanced",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
     templates: [
@@ -630,7 +630,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "table_bench",
     name: "Жим по таблице",
-    hint: "Жим три раза в неделю: тяжёлый, объёмный и быстрый — проценты от 1ПМ. Четыре недели, каждая тяжелее. Поставит свой цикл на четыре недели и сброс.",
+    hint: "Жим три раза в неделю: тяжёлый, объёмный и быстрый — от 1ПМ. Поставит четыре недели и сброс, каждая тяжелее.",
     level: "advanced",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
     templates: [
@@ -657,7 +657,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "table_three_lifts",
     name: "Присед / Жим / Тяга по таблице",
-    hint: "Три тренировки, в каждой присед и жим — у каждого лифта свои проценты от 1ПМ и своя неделя. Поставит свой цикл на четыре недели и сброс.",
+    hint: "Три тренировки: присед и жим в каждой, свои проценты от 1ПМ. Поставит четыре недели и сброс.",
     level: "advanced",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
     templates: [

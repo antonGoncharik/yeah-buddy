@@ -28,7 +28,7 @@ export function warmupsHint(
   return `Штанга ${warmupSummary(warmups.barbell)} · Блок ${warmupSummary(warmups.cable)}`;
 }
 
-/** Hint under the «Этапы цикла» row. */
+/** Hint under the «Недели» row. */
 export function cycleHint(formulas: WorkoutFormulas): string {
   const cycle = formulas.cycle;
   if (cycle.length === 0) {

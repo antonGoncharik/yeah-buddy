@@ -42,7 +42,7 @@ export function MacroScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={CYCLE_LABEL}
-        subtitle="Недели программы. Веса считаются сами"
+        subtitle="Какой сейчас круг. Веса считаются сами"
         backHref="/workouts"
       />
 
@@ -71,11 +71,11 @@ export function MacroScreen() {
               />
             ) : null}
             <section className="card-surface flex flex-col gap-3 px-5 py-5">
-              <p className="text-lg font-medium">Цикла ещё нет</p>
+              <p className="text-lg font-medium">Недель ещё нет</p>
               <p className="text-base leading-relaxed text-muted-foreground">
                 {state.planned_cycle.length > 0
-                  ? `Этапы: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — по неделям меняется вес.`
-                  : "Сначала выбери этапы, потом запусти цикл. Тренировки те же — по неделям меняется вес: проценты от 1ПМ или рабочие килограммы."}
+                  ? `Круг: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — по неделям меняется вес.`
+                  : "Сначала выбери недели, потом запусти. Тренировки те же — меняется вес: проценты от 1ПМ или рабочие килограммы."}
               </p>
               {state.planned_cycle.length > 0 ? (
                 <CycleTimeline
@@ -90,13 +90,13 @@ export function MacroScreen() {
                 href="/workouts/macro/new"
                 className={cn(buttonVariants(), "h-14 text-lg")}
               >
-                Создать цикл
+                Запустить недели
               </Link>
               <Link
                 href="/settings/formulas/cycle"
                 className="text-center text-base font-medium text-primary"
               >
-                Схема этапов
+                Выбрать недели
               </Link>
             </section>
           </>

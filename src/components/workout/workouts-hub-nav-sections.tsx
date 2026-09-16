@@ -90,6 +90,28 @@ export function WorkoutsHubNavSections({
             <p className="text-base leading-snug">{phaseHint}</p>
           ) : null}
         </Link>
+      ) : macro && macro.planned_cycle.length > 0 ? (
+        <Link
+          href="/workouts/macro"
+          className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              {CYCLE_LABEL}
+            </p>
+            <ChevronRight
+              className="size-4 shrink-0 text-muted-foreground"
+              aria-hidden
+            />
+          </div>
+          <p className="text-xl font-semibold tracking-tight">
+            Ещё не запущены
+          </p>
+          <p className="text-base leading-snug text-muted-foreground">
+            {macro.planned_cycle.map((phase) => phase.name).join(" → ")}. Те же
+            дни, другой вес по кругу.
+          </p>
+        </Link>
       ) : null}
 
       {activeTemplates.length > 0 ? (
@@ -177,7 +199,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"
-          hint="Список и веса"
+          hint="1ПМ и рабочий кг"
         />
         <NavRow
           href="/workouts/progress"

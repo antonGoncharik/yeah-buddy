@@ -147,7 +147,7 @@ assert(
 const mondayPull = press.templates[0]?.exercises.find(
   (slot) => slot.name === "Подтягивания",
 )?.plan;
-assert(mondayPull != null, "monday has pull-ups");
+assert(mondayPull != null, "press day 1 has pull-ups");
 const pullW1 = plannedSetsForSlot(mondayPull, {
   kind: "dynamic",
   exercise: { weight_step: 2.5, formula_preset: "barbell" },

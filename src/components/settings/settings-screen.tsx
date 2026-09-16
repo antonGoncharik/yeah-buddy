@@ -52,6 +52,12 @@ export function SettingsScreen() {
         ) : null}
 
         <section className="flex flex-col gap-2">
+          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+            <NavRow href={GUIDE_HREF} title={GUIDE_LABEL} hint={GUIDE_HINT} />
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-2">
           <SectionHeading title="Еда" />
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
             {!loading && form ? (
@@ -129,7 +135,6 @@ export function SettingsScreen() {
         <section className="flex flex-col gap-2">
           <SectionHeading title="Ещё" />
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow href={GUIDE_HREF} title={GUIDE_LABEL} hint={GUIDE_HINT} />
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}

@@ -26,7 +26,7 @@ export type LegacyPhaseKey = (typeof PHASE_TYPES)[number];
 
 export const QUEUE_LABEL = "Программа";
 export const FORMULAS_LABEL = "План подходов";
-export const CYCLE_LABEL = "Цикл";
+export const CYCLE_LABEL = "Недели";
 export const REVIEW_LABEL = "Как прошло";
 export const MEAL_TEMPLATES_LABEL = "Еда на день";
 export const PACKS_LABEL = "Для друзей";

@@ -57,8 +57,8 @@ export function NewMacroScreen() {
           <section className="card-surface flex flex-col gap-3 px-5 py-5">
             <p className="text-lg font-medium">Программа пустая</p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Цикл меняет вес в тех тренировках, что стоят в программе. Сначала
-              поставь готовую или собери день.
+              Недели меняют вес в тех тренировках, что стоят в программе.
+              Сначала поставь готовую или собери день.
             </p>
             <Link
               href="/workouts/schedule"
@@ -73,9 +73,9 @@ export function NewMacroScreen() {
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             {cycle.length === 0 ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
-                <h2 className="text-xl font-semibold">Сначала этапы</h2>
+                <h2 className="text-xl font-semibold">Сначала недели</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировки те же, что в программе. Цикл меняет вес по неделям:
+                  Тренировки те же, что в программе. Недели меняют вес:
                   проценты от 1ПМ или рабочие килограммы.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
@@ -151,7 +151,7 @@ export function NewMacroScreen() {
                   className="h-14 text-lg"
                   disabled={saving}
                 >
-                  {saving ? "Создание…" : "Создать цикл"}
+                  {saving ? "Запуск…" : "Запустить недели"}
                 </Button>
               </StickyActions>
             ) : null}

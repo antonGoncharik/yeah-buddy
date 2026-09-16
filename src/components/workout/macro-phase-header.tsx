@@ -36,7 +36,7 @@ export function MacroPhaseHeader({
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">
       <p className="text-sm text-muted-foreground">
-        Цикл{" "}
+        Круг{" "}
         {phaseLinkLabel(
           state.macro.number,
           state.phase_circle,
@@ -58,7 +58,7 @@ export function MacroPhaseHeader({
         href="/settings/formulas/cycle"
         className="text-base font-medium text-primary"
       >
-        Схема этапов
+        Изменить недели
       </Link>
     </section>
   );

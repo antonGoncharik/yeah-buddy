@@ -119,7 +119,7 @@ function ProgramPresetCard({
           ))}
           {preset.cycle ? (
             <p className="text-sm leading-snug text-muted-foreground">
-              Этапы: {preset.cycle.map((phase) => phase.name).join(" → ")}
+              Недели: {preset.cycle.map((phase) => phase.name).join(" → ")}
             </p>
           ) : null}
         </div>

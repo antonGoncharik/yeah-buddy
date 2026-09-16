@@ -57,8 +57,8 @@ export function FormulaCycleScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Этапы цикла"
-        subtitle="Недели программы. Вес — в % или в кг"
+        title="Недели"
+        subtitle="Те же дни, другой вес по кругу"
         backHref="/settings/formulas"
       />
 
@@ -72,9 +72,9 @@ export function FormulaCycleScreen() {
         {!loading && formulas ? (
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
-              Цикл — это недели: те же тренировки, другой вес. Можно менять
-              проценты от 1ПМ или прибавлять рабочие килограммы. Запустить —
-              «Тренировки» → «Цикл», либо вместе с готовой программой.
+              Недели — те же тренировки, другой вес. Можно менять проценты от
+              1ПМ или прибавлять рабочие килограммы. Запустить — «Тренировки» →
+              «Недели», либо вместе с готовой программой.
             </p>
 
             {showTemplates ? (

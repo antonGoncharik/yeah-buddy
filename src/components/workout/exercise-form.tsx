@@ -49,7 +49,8 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           </p>
           <p className="text-sm text-muted-foreground">
             От этого максимума считаются проценты. Идёт цикл, поэтому здесь он
-            не меняется: поднять — на смене этапа, поправить текущий — в «Цикл».
+            не меняется: поднять — на смене недели, поправить текущий — в
+            «Недели».
           </p>
         </div>
       ) : (
