@@ -64,7 +64,7 @@ export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
     "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   orm: "Процент от 1ПМ в карточке. Цикл может сменить процент на другой неделе.",
   track:
-    "Ряд кг в упражнении. После тренировки — следующий шаг. Цикл этот ряд не двигает.",
+    "Ряд кг в упражнении. Если в цикле стоит прибавка — вес растёт после недели. Если нет — после тренировки.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
   feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
 };
@@ -281,6 +281,25 @@ export function slotNeedsMax(
   return groups.some(
     (group) => group.load.type === "percent" || group.load.type === "orm",
   );
+}
+
+/** 1ПМ нужен только тем упражнениям в программе, у которых вес считается процентом. */
+export function exerciseIdsNeedingMax(
+  templates: Array<{
+    exercises: Array<Pick<Exercise, "id" | "formula_preset">>;
+    slots: TemplateSlot[];
+  }>,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const template of templates) {
+    for (const [index, exercise] of template.exercises.entries()) {
+      const slot = template.slots[index];
+      if (slotNeedsMax(slot?.plan ?? null, exercise)) {
+        ids.add(exercise.id);
+      }
+    }
+  }
+  return ids;
 }
 
 export function slotNeedsTrack(

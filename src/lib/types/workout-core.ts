@@ -53,6 +53,8 @@ export interface CyclePhaseDef {
   percent_scale?: number;
   /** Own work sets. Used on dynamic days; static keeps base / deload. */
   work?: FormulaSetSpec[];
+  /** After this week, add kilograms to every linear track in the program. */
+  kg_increase_on_end?: number;
 }
 
 export interface WorkoutFormulas {
@@ -62,6 +64,8 @@ export interface WorkoutFormulas {
   cycle: CyclePhaseDef[];
   /** Этап закрывается сам, когда пройден круг дней программы. */
   cycle_auto_end?: boolean;
+  /** After the last week, start the first week again in the same cycle. */
+  cycle_loop?: boolean;
 }
 
 export interface WorkoutSettings {

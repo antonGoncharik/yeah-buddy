@@ -111,7 +111,11 @@ export function useFormulasActions({
     touch(applyWorkPattern(formulas, system.formulas));
   }
 
-  async function applyCycleTemplate(cycle: CyclePhaseDef[], name: string) {
+  async function applyCycleTemplate(
+    cycle: CyclePhaseDef[],
+    name: string,
+    extra?: { auto_end?: boolean; loop?: boolean },
+  ) {
     if (!formulas) {
       return;
     }
@@ -126,7 +130,7 @@ export function useFormulasActions({
       }
     }
     haptic("tap");
-    touch(withCycle(formulas, cycle));
+    touch(withCycle(formulas, cycle, extra));
   }
 
   async function clearCycle() {

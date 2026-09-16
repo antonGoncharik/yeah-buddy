@@ -75,6 +75,7 @@ const circle: PhaseCircleProgress = {
   next_phase_name: "Рывок",
   last_in_cycle: false,
   increases_on_end: true,
+  kg_increase_on_end: null,
   hold_weights: true,
   completed_count: 4,
   circle_size: 2,
@@ -129,6 +130,17 @@ assertEqual(
   }),
   "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели.",
   "last stage without raise keeps recap copy",
+);
+
+assertEqual(
+  completePhaseHint({
+    ...circle,
+    hold_weights: false,
+    increases_on_end: false,
+    kg_increase_on_end: 2.5,
+  }),
+  "Дальше «Рывок». Линейка +2.5 кг.",
+  "week end can raise kilograms instead of 1ПМ",
 );
 
 const planned = [

@@ -121,8 +121,8 @@ export function SlotPlanEditor({
 
       {phase && !custom ? (
         <p className="px-1 text-sm leading-snug text-muted-foreground">
-          На этапе «{phase.name}» подходы как в «Обычно». Линейку или другие %
-          на эту неделю — в «Своя схема на этап».
+          На этапе «{phase.name}» подходы как обычно. Другой вес на эту неделю —
+          в «Своя схема на этап».
         </p>
       ) : null}
 
@@ -421,7 +421,7 @@ function GroupRow({
 function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   if (load.type === "track") {
     return exercise.track
-      ? `Следующий шаг линейки: ${trackSummary(exercise.track)}. Не цикл и не 1ПМ.`
+      ? `Следующий шаг линейки: ${trackSummary(exercise.track)}.`
       : "Линейки ещё нет — спросим первый кг на тренировке.";
   }
   if (load.type === "percent" || load.type === "orm") {

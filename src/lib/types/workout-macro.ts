@@ -105,6 +105,8 @@ export interface PhaseCircleProgress {
   next_phase_name: string | null;
   last_in_cycle: boolean;
   increases_on_end: boolean;
+  /** Kilograms added to linear tracks when this week ends. */
+  kg_increase_on_end: number | null;
   hold_weights: boolean;
   completed_count: number;
   circle_size: number;
@@ -140,6 +142,8 @@ export interface TransitionPreview {
   to_name: string | null;
   new_macro: boolean;
   increased: boolean;
+  /** Kilograms added to linear tracks on this transition. */
+  kg_increase: number;
   hold_weights: boolean;
   maxes: TransitionMaxRow[];
 }

@@ -57,8 +57,8 @@ export function NewMacroScreen() {
           <section className="card-surface flex flex-col gap-3 px-5 py-5">
             <p className="text-lg font-medium">Программа пустая</p>
             <p className="text-base leading-relaxed text-muted-foreground">
-              Цикл меняет % от 1ПМ в тех тренировках, что стоят в программе.
-              Сначала поставь готовую или собери день.
+              Цикл меняет вес в тех тренировках, что стоят в программе. Сначала
+              поставь готовую или собери день.
             </p>
             <Link
               href="/workouts/schedule"
@@ -75,8 +75,8 @@ export function NewMacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <h2 className="text-xl font-semibold">Сначала этапы</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировки те же, что в программе. Цикл меняет % от 1ПМ по
-                  неделям — не линейку килограммов.
+                  Тренировки те же, что в программе. Цикл меняет вес по неделям:
+                  проценты от 1ПМ или килограммы на линейке.
                 </p>
                 {CYCLE_TEMPLATES.map((template) => (
                   <button
@@ -84,7 +84,12 @@ export function NewMacroScreen() {
                     type="button"
                     disabled={applying || !formulas}
                     className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40 disabled:opacity-60"
-                    onClick={() => void applyCycle(template.cycle)}
+                    onClick={() =>
+                      void applyCycle(template.cycle, {
+                        auto_end: template.auto_end,
+                        loop: template.loop,
+                      })
+                    }
                   >
                     <p className="text-base font-medium">{template.name}</p>
                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">

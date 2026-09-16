@@ -91,16 +91,22 @@ export function cycleDef(
 export function nextPhaseType(
   current: string,
   cycle: CyclePhaseDef[],
+  loop = false,
 ): string | null {
   if (cycle.length > 0) {
     const index = cycle.findIndex((phase) => phase.key === current);
     if (index < 0) {
       return null;
     }
-    return cycle[index + 1]?.key ?? null;
+    return cycle[index + 1]?.key ?? (loop ? (cycle[0]?.key ?? null) : null);
   }
 
   return LEGACY_NEXT[current] ?? null;
+}
+
+/** Linear kg lines move on week end, not after each session. */
+export function cycleDrivesTracks(cycle: CyclePhaseDef[]): boolean {
+  return cycle.some((phase) => (phase.kg_increase_on_end ?? 0) > 0);
 }
 
 export function shouldIncreaseMax(

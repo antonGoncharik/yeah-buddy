@@ -52,27 +52,42 @@ const squat = exercise("squat", 100);
 const bench = exercise("bench", 80);
 const curl = exercise("curl", null);
 const plank = exercise("plank", null, "none");
-const queue = new Set(["squat", "bench", "plank"]);
+const needsMax = new Set(["squat", "bench"]);
 
-const resolved = resolveStartingPhaseMaxes([squat, bench, curl, plank], queue, [
-  { exercise_id: "squat", max_weight: 90 },
-]);
+const resolved = resolveStartingPhaseMaxes(
+  [squat, bench, curl, plank],
+  needsMax,
+  [{ exercise_id: "squat", max_weight: 90 }],
+);
 assertEqual(
   resolved.map((item) => `${item.exercise_id}:${item.max_weight}`).join(","),
   "squat:90,bench:80",
-  "form weight wins, queue exercise falls back to current max, others skipped",
+  "form weight wins, percent lift falls back to current max, linear/feel skipped",
+);
+
+assertEqual(
+  resolveStartingPhaseMaxes([squat, curl], new Set(["squat", "curl"]), [])
+    .map((item) => item.exercise_id)
+    .join(","),
+  "squat",
+  "missing 1ПМ is skipped so the cycle can still start",
 );
 
 let thrown: string | null = null;
 try {
-  resolveStartingPhaseMaxes([squat, curl], new Set(["squat", "curl"]), []);
+  resolveStartingPhaseMaxes(
+    [squat, curl],
+    new Set(["squat", "curl"]),
+    [],
+    true,
+  );
 } catch (error) {
   thrown = error instanceof Error ? error.message : String(error);
 }
 assertEqual(
   thrown,
   NEED_ALL_WORKING_WEIGHTS,
-  "queue exercise without any weight blocks the cycle",
+  "the form can still require every percent lift",
 );
 
 assertEqual(
@@ -80,7 +95,7 @@ assertEqual(
     { exercise_id: "curl", max_weight: 20 },
   ]).length,
   1,
-  "an exercise outside the queue still gets a phase max when provided",
+  "an exercise outside the percent lifts still gets a phase max when provided",
 );
 
 console.log("macro starting maxes ok");

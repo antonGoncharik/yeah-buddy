@@ -1,5 +1,8 @@
 import type { SlotPlan } from "@/lib/types";
-import { CYCLE_TEMPLATES } from "@/lib/workout/cycle-templates";
+import {
+  CYCLE_TEMPLATES,
+  TWO_WEEK_KG_CYCLE,
+} from "@/lib/workout/cycle-templates";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 import {
   PROGRAM_PRESET_IDS,
@@ -127,5 +130,46 @@ for (const template of CYCLE_TEMPLATES) {
     `${template.id}: phase keys are storable`,
   );
 }
+
+const press = PROGRAM_PRESETS.find((preset) => preset.id === "press_two_week");
+assert(press != null, "press two week exists");
+assert(press.templates.length === 3, "press two week is three days, not six");
+assert(press.cycle != null, "press two week carries a two-week cycle");
+assert(
+  press.cycle_loop === true && press.cycle_auto_end === true,
+  "press two week loops the weeks by itself",
+);
+assert(
+  press.cycle.every((phase) => (phase.kg_increase_on_end ?? 0) === 2.5),
+  "press two week adds 2.5 kg after each week",
+);
+
+const mondayPull = press.templates[0]?.exercises.find(
+  (slot) => slot.name === "Подтягивания",
+)?.plan;
+assert(mondayPull != null, "monday has pull-ups");
+const pullW1 = plannedSetsForSlot(mondayPull, {
+  kind: "dynamic",
+  exercise: { weight_step: 2.5, formula_preset: "barbell" },
+  formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: TWO_WEEK_KG_CYCLE },
+  phaseKey: "w1",
+  maxWeight: 100,
+  trackWeight: null,
+  feelWeight: null,
+});
+const pullW2 = plannedSetsForSlot(mondayPull, {
+  kind: "dynamic",
+  exercise: { weight_step: 2.5, formula_preset: "barbell" },
+  formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: TWO_WEEK_KG_CYCLE },
+  phaseKey: "w2",
+  maxWeight: 100,
+  trackWeight: null,
+  feelWeight: null,
+});
+assert(
+  (pullW1?.find((row) => row.set_type === "work")?.planned_weight ?? 0) >
+    (pullW2?.find((row) => row.set_type === "work")?.planned_weight ?? 0),
+  "week 2 flips the heavy monday pull to a lighter percent",
+);
 
 console.log("program presets ok");

@@ -38,7 +38,8 @@ export async function getPhaseCircleProgress(
 
   const settings = await ensureWorkoutSettings(userId);
   const cycle = settings.formulas.cycle;
-  const next = nextPhaseType(phase.phase_type, cycle);
+  const loop = settings.formulas.cycle_loop === true;
+  const next = nextPhaseType(phase.phase_type, cycle, loop);
   const current = cycleDef(cycle, phase.phase_type);
   const feels = (result.data ?? []).map((row) => toSessionFeel(row.feel));
   const completedCount = feels.length;
@@ -51,6 +52,7 @@ export async function getPhaseCircleProgress(
       : null,
     last_in_cycle: next == null,
     increases_on_end: Boolean(current?.increase_on_end),
+    kg_increase_on_end: current?.kg_increase_on_end ?? null,
     hold_weights: shouldHoldWeights(feels),
     completed_count: completedCount,
     circle_size: circleSize,

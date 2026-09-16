@@ -17,6 +17,7 @@ import { resolveStartingPhaseMaxes } from "@/lib/workout/macro-starting-maxes";
 import { getCurrentMacroState } from "@/lib/workout/macro-state";
 import { mapMacroCycle, mapWorkoutPhase } from "@/lib/workout/map-rows";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { exerciseIdsNeedingMax } from "@/lib/workout/slot-plan";
 import { listActiveTemplates } from "@/lib/workout/template-store";
 
 interface CreatePhaseInput {
@@ -112,12 +113,8 @@ export async function startingPhaseMaxes(
 ): Promise<CreatePhaseInput["maxes"]> {
   const catalog = exercises ?? (await listExercises(userId, "active"));
   const templates = await listActiveTemplates(userId);
-  const queueExerciseIds = new Set(
-    templates.flatMap((template) =>
-      template.exercises.map((exercise) => exercise.id),
-    ),
-  );
-  return resolveStartingPhaseMaxes(catalog, queueExerciseIds, provided);
+  const needsMaxIds = exerciseIdsNeedingMax(templates);
+  return resolveStartingPhaseMaxes(catalog, needsMaxIds, provided);
 }
 
 export async function createPhase(

@@ -35,6 +35,9 @@ export function cycleHint(formulas: WorkoutFormulas): string {
     return "Не настроены. Проценты от 1ПМ всегда одни и те же";
   }
   const names = cycle.map((phase) => phase.name).join(" → ");
+  if (formulas.cycle_loop) {
+    return `${names} · по кругу`;
+  }
   return formulas.cycle_auto_end ? `${names} · меняется после круга` : names;
 }
 

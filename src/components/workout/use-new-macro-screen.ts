@@ -21,23 +21,29 @@ import { withCycle } from "@/lib/workout/cycle";
 import { readExercises, readTemplates } from "@/lib/workout/hub-payload";
 import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { slotNeedsMax } from "@/lib/workout/slot-plan";
 
 type MaxDraft = Record<string, string>;
 
-/** Exercises that appear in the queue and get a plan — the cycle needs weights only for them. */
+/** Exercises in the queue whose plan uses a percent of 1ПМ. */
 function queueExercises(
   exercises: ExerciseWithMax[],
   templates: WorkoutTemplateDetail[],
 ): ExerciseWithMax[] {
-  const inQueue = new Set(
-    templates
-      .filter((template) => template.is_active)
-      .flatMap((template) => template.exercises.map((exercise) => exercise.id)),
+  const catalog = new Map(
+    exercises.map((exercise) => [exercise.id, exercise] as const),
   );
-  return exercises.filter(
-    (exercise) =>
-      inQueue.has(exercise.id) && exercise.formula_preset !== "none",
-  );
+  const needsMax = new Set<string>();
+  for (const template of templates.filter((item) => item.is_active)) {
+    for (const [index, exercise] of template.exercises.entries()) {
+      const slot = template.slots[index];
+      const full = catalog.get(exercise.id) ?? exercise;
+      if (slotNeedsMax(slot?.plan ?? null, full)) {
+        needsMax.add(exercise.id);
+      }
+    }
+  }
+  return exercises.filter((exercise) => needsMax.has(exercise.id));
 }
 
 export function useNewMacroScreen() {
@@ -106,13 +112,16 @@ export function useNewMacroScreen() {
     void load();
   }, [load]);
 
-  async function applyCycle(cycle: CyclePhaseDef[]) {
+  async function applyCycle(
+    cycle: CyclePhaseDef[],
+    extra?: { auto_end?: boolean; loop?: boolean },
+  ) {
     if (!formulas) {
       return;
     }
     setApplying(true);
     setError(null);
-    const next = withCycle(formulas, cycle);
+    const next = withCycle(formulas, cycle, extra);
     try {
       const data = await patchJson("/api/workout-settings", {
         max_increase_percent: maxIncrease,

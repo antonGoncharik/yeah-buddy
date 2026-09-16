@@ -137,3 +137,11 @@ export function trackSummary(
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
+
+/** Shift every step by kilograms. Position stays; the current weight moves. */
+export function shiftTrackByKg(steps: number[], kg: number): number[] {
+  if (!(kg > 0) || steps.length === 0) {
+    return steps;
+  }
+  return steps.map((step) => round2(step + kg)).filter((step) => step > 0);
+}

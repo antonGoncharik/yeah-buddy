@@ -70,6 +70,12 @@ export function parseTransitionPreview(
           : phaseLabel(toPhase),
     new_macro: preview.new_macro === true,
     increased: preview.increased === true,
+    kg_increase:
+      typeof preview.kg_increase === "number" &&
+      Number.isFinite(preview.kg_increase) &&
+      preview.kg_increase > 0
+        ? preview.kg_increase
+        : 0,
     hold_weights: preview.hold_weights === true,
     maxes: mapRecordList(preview.maxes, parseTransitionMaxRow),
   };

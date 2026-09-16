@@ -20,7 +20,7 @@ import {
   resetPhaseWork,
 } from "@/lib/workout/cycle";
 import { previewMaxForPhase } from "@/lib/workout/formulas";
-import { formatWeight } from "@/lib/workout/numbers";
+import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 /** One phase of the cycle. Collapsed: name + how the weight is derived. Expanded: editing. */
 export function FormulaCyclePhaseRow({
@@ -62,6 +62,9 @@ export function FormulaCyclePhaseRow({
   const tags = [
     phase.skip_warmup ? "без разминки" : null,
     phase.increase_on_end ? "в конце поднять 1ПМ" : null,
+    phase.kg_increase_on_end
+      ? `в конце +${formatWeight(phase.kg_increase_on_end)} кг`
+      : null,
   ].filter(Boolean);
 
   function patch(next: Partial<Omit<CyclePhaseDef, "key">>) {
@@ -125,6 +128,31 @@ export function FormulaCyclePhaseRow({
               hint="На шаг вверх, когда этап закрывается"
               onClick={() => patch({ increase_on_end: !phase.increase_on_end })}
             />
+            <Toggle
+              on={(phase.kg_increase_on_end ?? 0) > 0}
+              label="В конце прибавить кг"
+              hint="Линейка килограммов, не процент от 1ПМ"
+              onClick={() =>
+                patch({
+                  kg_increase_on_end:
+                    (phase.kg_increase_on_end ?? 0) > 0 ? undefined : 2.5,
+                })
+              }
+            />
+            {(phase.kg_increase_on_end ?? 0) > 0 ? (
+              <Input
+                inputMode="decimal"
+                value={formatWeight(phase.kg_increase_on_end ?? 2.5)}
+                onChange={(event) => {
+                  const kg = parseDecimal(event.target.value);
+                  if (kg != null && kg > 0) {
+                    patch({ kg_increase_on_end: kg });
+                  }
+                }}
+                className="h-12 text-base"
+                aria-label="Сколько кг прибавить"
+              />
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2">

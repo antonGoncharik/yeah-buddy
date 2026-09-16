@@ -28,6 +28,7 @@ const cyclePhaseSchema = z.object({
   increase_on_end: z.boolean(),
   percent_scale: z.number().finite().positive().max(3).optional(),
   work: z.array(formulaSetSchema).min(1).optional(),
+  kg_increase_on_end: z.number().finite().positive().max(50).optional(),
 });
 
 const warmupPresetsSchema = z.object({
@@ -47,6 +48,8 @@ export const formulasSchema = z.object({
   cycle: z.array(cyclePhaseSchema).max(8),
   /** Этап закрывается сам после круга дней программы. */
   cycle_auto_end: z.boolean().optional(),
+  /** After the last week, the first week starts again. */
+  cycle_loop: z.boolean().optional(),
 });
 
 export const legacyKindSchema = z.object({

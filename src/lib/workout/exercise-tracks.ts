@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ExerciseTrack } from "@/lib/types";
 import type { TrackWriteInput } from "@/lib/workout/slot-plan-schema";
-import { mapExerciseTrack } from "@/lib/workout/track-line";
+import { mapExerciseTrack, shiftTrackByKg } from "@/lib/workout/track-line";
 
 export async function listTracksByExercise(
   userId: string,
@@ -146,5 +146,37 @@ export async function advanceTrack(
 
   if (updated.error) {
     throw updated.error;
+  }
+}
+
+/** Adds kilograms to every matching line. Current step stays current. */
+export async function bumpTracksByKg(
+  userId: string,
+  exerciseIds: string[],
+  kg: number,
+): Promise<void> {
+  if (!(kg > 0)) {
+    return;
+  }
+  const tracks = await listTracksByExercise(userId, exerciseIds);
+  if (tracks.size === 0) {
+    return;
+  }
+
+  const supabase = createSupabaseServerClient();
+  for (const track of tracks.values()) {
+    const steps = shiftTrackByKg(track.steps, kg);
+    if (steps.length === 0) {
+      continue;
+    }
+    const updated = await supabase
+      .from("exercise_tracks")
+      .update({ steps })
+      .eq("user_id", userId)
+      .eq("id", track.id);
+
+    if (updated.error) {
+      throw updated.error;
+    }
   }
 }

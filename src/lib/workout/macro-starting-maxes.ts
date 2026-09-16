@@ -8,34 +8,41 @@ export interface StartingPhaseMax {
 }
 
 /**
- * Starting 1ПМ for the first phase of a cycle. Exercises in the program must
- * have a max: from the form, or the current 1ПМ as a fallback.
- * Other exercises get a phase max only when the form provided one.
+ * Starting 1ПМ for the first phase of a cycle. Only lifts whose plan uses
+ * a percent of 1ПМ must have a max. Linear kg and feel slots are skipped.
+ * Missing weights are omitted so the cycle can still start; the session
+ * will ask later.
  */
 export function resolveStartingPhaseMaxes(
   exercises: ExerciseWithMax[],
-  queueExerciseIds: Set<string>,
+  needsMaxIds: Set<string>,
   provided: Array<{ exercise_id: string; max_weight: number }>,
+  requireQueueWeights = false,
 ): StartingPhaseMax[] {
   const byExercise = new Map(
     provided.map((item) => [item.exercise_id, item.max_weight]),
   );
 
-  return exercises.flatMap((exercise) => {
-    const inQueue =
-      queueExerciseIds.has(exercise.id) && exercise.formula_preset !== "none";
+  const resolved: StartingPhaseMax[] = [];
+  for (const exercise of exercises) {
+    const needsMax = needsMaxIds.has(exercise.id);
     const weight =
       byExercise.get(exercise.id) ??
-      (inQueue ? exercise.current_max?.max_weight : null) ??
+      (needsMax ? exercise.current_max?.max_weight : null) ??
       null;
 
     if (weight == null || weight <= 0) {
-      if (inQueue) {
+      if (needsMax && requireQueueWeights) {
         throw new Error(NEED_ALL_WORKING_WEIGHTS);
       }
-      return [];
+      continue;
     }
 
-    return [{ exercise_id: exercise.id, max_weight: weight, source: "manual" }];
-  });
+    resolved.push({
+      exercise_id: exercise.id,
+      max_weight: weight,
+      source: "manual",
+    });
+  }
+  return resolved;
 }

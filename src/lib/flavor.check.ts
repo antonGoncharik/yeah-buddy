@@ -37,6 +37,7 @@ const deload: PhaseCircleProgress = {
   next_phase_name: null,
   last_in_cycle: true,
   increases_on_end: false,
+  kg_increase_on_end: null,
   hold_weights: false,
   completed_count: 1,
   circle_size: 3,

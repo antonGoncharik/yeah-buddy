@@ -111,8 +111,9 @@ export function setUsesHold(set: FormulaSetSpec): boolean {
 export function nextPhaseType(
   phase: string,
   cycle: CyclePhaseDef[] = [],
+  loop = false,
 ): string | null {
-  return nextCyclePhase(phase, cycle);
+  return nextCyclePhase(phase, cycle, loop);
 }
 
 export function shouldIncreaseMax(

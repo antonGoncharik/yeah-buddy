@@ -18,6 +18,7 @@ export {
 } from "@/lib/workout/cycle-legacy";
 export {
   cycleDef,
+  cycleDrivesTracks,
   firstCyclePhase,
   isLastCyclePhase,
   nextPhaseType,

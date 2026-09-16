@@ -58,7 +58,7 @@ export function FormulaCycleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Этапы цикла"
-        subtitle="Недели % от 1ПМ. Не линейка кг"
+        subtitle="Недели программы. Вес — в % или в кг"
         backHref="/settings/formulas"
       />
 
@@ -72,9 +72,9 @@ export function FormulaCycleScreen() {
         {!loading && formulas ? (
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
-              Цикл меняет неделю: другие проценты или повторы. Линейка
-              килограммов — в упражнении, включается в дне. Сюда её не
-              переносят. Запустить цикл — «Тренировки» → «Цикл».
+              Цикл — это недели: те же тренировки, другой вес. Можно менять
+              проценты от 1ПМ или прибавлять килограммы на линейке. Запустить —
+              «Тренировки» → «Цикл», либо вместе с готовой программой.
             </p>
 
             {showTemplates ? (
@@ -83,8 +83,8 @@ export function FormulaCycleScreen() {
                   {hasCycle ? "Другая схема" : "Выбрать схему"}
                 </h2>
                 <FormulaCycleTemplates
-                  onApply={(cycle, name) => {
-                    void applyCycleTemplate(cycle, name).then(() =>
+                  onApply={(cycle, name, extra) => {
+                    void applyCycleTemplate(cycle, name, extra).then(() =>
                       setPicking(false),
                     );
                   }}
@@ -171,10 +171,17 @@ export function FormulaCycleScreen() {
                 <section className="card-surface flex flex-col gap-2 px-5 py-4">
                   <h2 className="text-base font-medium">Когда менять этап</h2>
                   <Segmented
-                    value={formulas.cycle_auto_end ? "auto" : "manual"}
+                    value={
+                      formulas.cycle_loop
+                        ? "loop"
+                        : formulas.cycle_auto_end
+                          ? "auto"
+                          : "manual"
+                    }
                     options={[
-                      { id: "manual", label: "Сам решу" },
+                      { id: "manual", label: "Сам" },
                       { id: "auto", label: "После круга" },
+                      { id: "loop", label: "По кругу" },
                     ]}
                     onChange={(id) => {
                       setSaved(false);
@@ -182,16 +189,20 @@ export function FormulaCycleScreen() {
                         current
                           ? {
                               ...current,
-                              cycle_auto_end: id === "auto" ? true : undefined,
+                              cycle_auto_end:
+                                id === "manual" ? undefined : true,
+                              cycle_loop: id === "loop" ? true : undefined,
                             }
                           : current,
                       );
                     }}
                   />
                   <p className="text-sm leading-snug text-muted-foreground">
-                    {formulas.cycle_auto_end
-                      ? "Прошёл все дни программы — этап сменится сам, и где положена прибавка, 1ПМ поднимется. Последний этап всё равно закрывается руками: там начинается новый цикл."
-                      : "После круга дней подскажем, а закроешь этап сам — когда восстановился."}
+                    {formulas.cycle_loop
+                      ? "Прошёл все дни — следующая неделя сама. После последней круг начнётся сначала, и где положена прибавка в кг — линейка вырастет."
+                      : formulas.cycle_auto_end
+                        ? "Прошёл все дни — этап сменится сам. Где положена прибавка, поднимется 1ПМ или линейка. Последний этап закрывается руками: там новый цикл."
+                        : "После круга дней подскажем, а закроешь этап сам — когда восстановился."}
                   </p>
                 </section>
 

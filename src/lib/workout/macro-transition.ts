@@ -5,6 +5,7 @@ import {
   isLastCyclePhase,
   sortOrderForPhase,
 } from "@/lib/workout/cycle";
+import { bumpTracksByKg } from "@/lib/workout/exercise-tracks";
 import {
   increaseMax,
   nextPhaseType,
@@ -26,6 +27,7 @@ import {
   toTransitionMaxes,
 } from "@/lib/workout/macro-transition-maxes";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { listActiveTemplates } from "@/lib/workout/template-store";
 
 export async function previewTransition(
   userId: string,
@@ -37,11 +39,15 @@ export async function previewTransition(
 
   const settings = await ensureWorkoutSettings(userId);
   const cycle = settings.formulas.cycle;
-  const nextType = nextPhaseType(state.phase.phase_type, cycle);
+  const loop = settings.formulas.cycle_loop === true;
+  const nextType = nextPhaseType(state.phase.phase_type, cycle, loop);
   const fromName = phaseLabel(state.phase.phase_type, state.phase.name);
   const holdWeights = state.phase_circle?.hold_weights === true;
   const increased =
     !holdWeights && shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
+  const kgIncrease = holdWeights
+    ? 0
+    : (cycleDef(cycle, state.phase.phase_type)?.kg_increase_on_end ?? 0);
 
   if (!nextType) {
     const peak = await getRecapEndMaxes(userId, state.macro.id, cycle);
@@ -53,6 +59,7 @@ export async function previewTransition(
       to_name: null,
       new_macro: true,
       increased,
+      kg_increase: kgIncrease,
       hold_weights: holdWeights,
       maxes: toTransitionMaxes(source, (weight, step) =>
         increased
@@ -68,6 +75,7 @@ export async function previewTransition(
     to_name: phaseLabel(nextType, cycleDef(cycle, nextType)?.name),
     new_macro: false,
     increased,
+    kg_increase: kgIncrease,
     hold_weights: holdWeights,
     maxes: toTransitionMaxes(state.maxes, (weight, step) =>
       increased
@@ -131,6 +139,8 @@ export async function confirmTransition(
     })),
   });
 
+  await applyEndedPhaseKg(userId, preview);
+
   return getCurrentMacroState(userId);
 }
 
@@ -181,5 +191,26 @@ export async function completeMacroAndStartNext(
     throw closedMacro.error;
   }
 
+  await applyEndedPhaseKg(userId, {
+    hold_weights: current.phase_circle?.hold_weights === true,
+    kg_increase:
+      cycleDef(settings.formulas.cycle, current.phase.phase_type)
+        ?.kg_increase_on_end ?? 0,
+  });
+
   return createFirstMacro(userId, input);
+}
+
+async function applyEndedPhaseKg(
+  userId: string,
+  preview: Pick<TransitionPreview, "hold_weights" | "kg_increase">,
+): Promise<void> {
+  if (preview.hold_weights || !(preview.kg_increase > 0)) {
+    return;
+  }
+  const templates = await listActiveTemplates(userId);
+  const exerciseIds = templates.flatMap((template) =>
+    template.exercises.map((exercise) => exercise.id),
+  );
+  await bumpTracksByKg(userId, exerciseIds, preview.kg_increase);
 }

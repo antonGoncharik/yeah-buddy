@@ -11,6 +11,7 @@ export {
   TENS_TO_TRIPLES_CYCLE,
   THREE_WEEK_DELOAD_CYCLE,
   TWO_WEEK_DELOAD_CYCLE,
+  TWO_WEEK_KG_CYCLE,
   VOLUME_STRENGTH_CYCLE,
 } from "@/lib/workout/cycle-templates";
 export {

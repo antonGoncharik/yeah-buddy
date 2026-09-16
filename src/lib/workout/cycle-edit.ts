@@ -15,6 +15,7 @@ import {
 export function withCycle(
   formulas: WorkoutFormulas,
   cycle: CyclePhaseDef[],
+  extra: { auto_end?: boolean; loop?: boolean } = {},
 ): WorkoutFormulas {
   const next = cloneFormulas(formulas);
   next.cycle = structuredClone(cycle);
@@ -22,6 +23,14 @@ export function withCycle(
   next.static.phases = {};
   if (next.cycle.length === 0) {
     next.cycle_auto_end = undefined;
+    next.cycle_loop = undefined;
+  } else {
+    if (extra.auto_end === true || extra.loop === true) {
+      next.cycle_auto_end = true;
+    } else if (extra.auto_end === false) {
+      next.cycle_auto_end = undefined;
+    }
+    next.cycle_loop = extra.loop === true ? true : undefined;
   }
   for (const phase of next.cycle) {
     next.dynamic.phases[phase.key] = workForPhase(

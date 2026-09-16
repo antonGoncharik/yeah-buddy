@@ -6,7 +6,10 @@ import type {
   SlotSetGroup,
   WorkoutKind,
 } from "@/lib/types";
-import { FOUR_WEEK_DELOAD_CYCLE } from "@/lib/workout/cycle-templates";
+import {
+  FOUR_WEEK_DELOAD_CYCLE,
+  TWO_WEEK_KG_CYCLE,
+} from "@/lib/workout/cycle-templates";
 import { feelLoad, percentLoad, trackLoad } from "@/lib/workout/slot-plan";
 
 export interface ProgramSlot {
@@ -71,6 +74,8 @@ export interface ProgramPreset {
    * этапам. Ставится вместе с днями, старые этапы заменяются.
    */
   cycle?: CyclePhaseDef[];
+  cycle_auto_end?: boolean;
+  cycle_loop?: boolean;
 }
 
 export const PROGRAM_PRESETS: ProgramPreset[] = [
@@ -563,51 +568,32 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "press_two_week",
     name: "Жимовая · 2 недели",
-    hint: "Верх и жимы, ног мало. Тяжёлые и лёгкие дни меняются местами через неделю, жим лёжа и наклон идут по линейке.",
+    hint: "Три дня, две недели по кругу. Жим и наклон — в килограммах, +2.5 после каждой недели. Тяжёлые и лёгкие дни меняются местами.",
     level: "advanced",
+    cycle: TWO_WEEK_KG_CYCLE,
+    cycle_auto_end: true,
+    cycle_loop: true,
     templates: [
-      day("Неделя 1 · Пн", [
+      day("Пн", [
         bench(),
-        base("Подтягивания", 4, 6, "heavy", 8),
-        base("Румынская тяга", 4, 10, "light"),
+        flippingBase("Подтягивания", 4, 6, "heavy", 8),
+        flippingBase("Румынская тяга", 4, 10, "light"),
         near("Жим гантелей сидя", 3, 10),
         near("Махи в наклоне", 4, 15),
         near("Пресс", 3, 15),
       ]),
-      day("Неделя 1 · Ср", [
-        base("Отжимания на брусьях", 4, 8, "light"),
-        base("Приседания со штангой", 4, 6, "heavy"),
-        base("Тяга горизонтального блока", 4, 8, "light"),
+      day("Ср", [
+        flippingBase("Отжимания на брусьях", 4, 8, "light"),
+        flippingBase("Приседания со штангой", 4, 6, "heavy"),
+        flippingBase("Тяга горизонтального блока", 4, 8, "light"),
         near("Разведение гантелей в стороны", 4, 15),
         near("Подъём гантелей на бицепс", 4, 12),
       ]),
-      day("Неделя 1 · Пт", [
+      day("Пт", [
         incline(),
-        base("Тяга штанги в наклоне", 3, 8, "heavy"),
-        base("Пуловер", 3, 10, "light"),
-        base("Жим узким хватом", 3, 8, "heavy"),
-        near("Гиперэкстензия", 3, 15),
-      ]),
-      day("Неделя 2 · Пн", [
-        bench(),
-        base("Подтягивания", 4, 6, "light", 8),
-        base("Румынская тяга", 4, 10, "heavy"),
-        near("Жим гантелей сидя", 3, 10),
-        near("Махи в наклоне", 4, 15),
-        near("Пресс", 3, 15),
-      ]),
-      day("Неделя 2 · Ср", [
-        base("Отжимания на брусьях", 4, 8, "heavy"),
-        base("Приседания со штангой", 4, 6, "light"),
-        base("Тяга горизонтального блока", 4, 8, "heavy"),
-        near("Разведение гантелей в стороны", 4, 15),
-        near("Подъём гантелей на бицепс", 4, 12),
-      ]),
-      day("Неделя 2 · Пт", [
-        incline(),
-        base("Тяга штанги в наклоне", 3, 8, "light"),
-        base("Пуловер", 3, 10, "heavy"),
-        base("Жим узким хватом", 3, 8, "light"),
+        flippingBase("Тяга штанги в наклоне", 3, 8, "heavy"),
+        flippingBase("Пуловер", 3, 10, "light"),
+        flippingBase("Жим узким хватом", 3, 8, "heavy"),
         near("Гиперэкстензия", 3, 15),
       ]),
     ],
@@ -785,6 +771,27 @@ function base(
   );
 }
 
+/** Same as base, but week 2 of the cycle swaps heavy and light percents. */
+function flippingBase(
+  name: string,
+  sets: number,
+  reps: number,
+  intensity: SlotIntensity,
+  repsTo: number | null = null,
+): ProgramSlot {
+  const flipped: SlotIntensity = intensity === "heavy" ? "light" : "heavy";
+  return slot(
+    name,
+    [group(sets, reps, percentLoad(intensityPercent(intensity)), repsTo)],
+    {
+      intensity,
+      phases: {
+        w2: [group(sets, reps, percentLoad(intensityPercent(flipped)), repsTo)],
+      },
+    },
+  );
+}
+
 function fives(name: string): ProgramSlot {
   return base(name, 5, 5, "heavy");
 }
@@ -872,7 +879,7 @@ function bench(): ProgramSlot {
   return slot(
     "Жим лёжа",
     [group(2, 2, trackLoad()), group(3, 6, trackLoad(-10))],
-    { note: "линейка +2.5 в неделю, отказ только в конце" },
+    { note: "линейка +2.5 кг после каждой недели, отказ только в конце" },
   );
 }
 

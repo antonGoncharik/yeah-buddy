@@ -129,6 +129,7 @@ const lines = buildSignals({
       next_phase_name: "Рывок",
       last_in_cycle: false,
       increases_on_end: true,
+      kg_increase_on_end: null,
       hold_weights: false,
       completed_count: 4,
       circle_size: 6,

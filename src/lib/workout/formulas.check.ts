@@ -1,4 +1,8 @@
-import { nextPhaseType, withCycle } from "@/lib/workout/cycle";
+import {
+  cycleDrivesTracks,
+  nextPhaseType,
+  withCycle,
+} from "@/lib/workout/cycle";
 import {
   DEFAULT_WORKOUT_FORMULAS,
   FIVES_TO_ONES_CYCLE,
@@ -8,6 +12,7 @@ import {
   LINEAR_CYCLE,
   TEN_WORKOUT_FORMULAS,
   TENS_TO_TRIPLES_CYCLE,
+  TWO_WEEK_KG_CYCLE,
   VOLUME_STRENGTH_CYCLE,
 } from "@/lib/workout/default-formulas";
 import {
@@ -394,6 +399,35 @@ assertEqual(
   fivesToOnes.dynamic.phases.w1s?.work[2]?.percent ?? 0,
   95,
   "1s top set is 95%",
+);
+
+assert(
+  cycleDrivesTracks(TWO_WEEK_KG_CYCLE),
+  "two-week kg cycle moves linear tracks",
+);
+assert(
+  !cycleDrivesTracks(FOUR_PHASE_CYCLE),
+  "percent cycles do not move linear tracks",
+);
+assert(
+  nextPhaseType("w2", TWO_WEEK_KG_CYCLE) == null,
+  "without a loop the second week ends the cycle",
+);
+assert(
+  nextPhaseType("w2", TWO_WEEK_KG_CYCLE, true) === "w1",
+  "a looping cycle starts the first week again",
+);
+
+const kgCycle = withCycle(DEFAULT_WORKOUT_FORMULAS, TWO_WEEK_KG_CYCLE, {
+  auto_end: true,
+  loop: true,
+});
+assert(kgCycle.cycle_loop === true, "kg cycle template loops");
+assert(kgCycle.cycle_auto_end === true, "kg cycle template auto-advances");
+assertEqual(
+  kgCycle.cycle[0]?.kg_increase_on_end ?? 0,
+  2.5,
+  "week 1 adds 2.5 kg",
 );
 
 console.log("workout formulas ok");

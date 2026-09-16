@@ -10,6 +10,7 @@ import type {
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
 import { phaseLabel } from "@/lib/workout/labels";
+import { formatWeight } from "@/lib/workout/numbers";
 import {
   slotCanPlan,
   slotFor,
@@ -243,14 +244,27 @@ export function completePhaseHint(
   if (progress.hold_weights) {
     return "Не пошло — 1ПМ не трогаем.";
   }
+  const kg = kgBumpLabel(progress.kg_increase_on_end);
   if (progress.last_in_cycle) {
+    if (progress.increases_on_end && kg) {
+      return `Цикл закроется и начнётся новый. Можно поднять 1ПМ, ${kg}.`;
+    }
     if (progress.increases_on_end) {
       return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
     }
+    if (kg) {
+      return `Цикл закроется и начнётся новый. ${capitalize(kg)}.`;
+    }
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели.";
+  }
+  if (progress.increases_on_end && kg) {
+    return `Дальше «${progress.next_phase_name}». Можно поднять 1ПМ, ${kg}.`;
   }
   if (progress.increases_on_end) {
     return `Дальше «${progress.next_phase_name}». Можно поднять 1ПМ — не всем сразу.`;
+  }
+  if (kg && progress.next_phase_name) {
+    return `Дальше «${progress.next_phase_name}». ${capitalize(kg)}.`;
   }
   if (progress.next_phase_name) {
     return `Дальше «${progress.next_phase_name}». Веса те же, можно поправить.`;
@@ -269,19 +283,43 @@ export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
     return "Не пошло — 1ПМ не трогаем, можно поправить.";
   }
+  const kg = kgBumpLabel(preview.kg_increase);
+  if (preview.new_macro && preview.increased && kg) {
+    return `Цикл закроется и начнётся новый. Можно поднять 1ПМ, ${kg}.`;
+  }
   if (preview.new_macro && preview.increased) {
     return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
+  }
+  if (preview.new_macro && kg) {
+    return `Цикл закроется и начнётся новый. ${capitalize(kg)}.`;
   }
   if (preview.new_macro) {
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели, можно поправить.";
   }
+  if (preview.increased && kg) {
+    return `На «${preview.to_name}» можно поднять 1ПМ, ${kg}.`;
+  }
   if (preview.increased) {
     return `На «${preview.to_name}» можно поднять 1ПМ. Не всем сразу.`;
+  }
+  if (kg && preview.to_name) {
+    return `Дальше «${preview.to_name}». ${capitalize(kg)}.`;
   }
   if (preview.to_name) {
     return `Дальше «${preview.to_name}». Веса те же, можно поправить.`;
   }
   return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
+}
+
+function kgBumpLabel(kg: number | null | undefined): string | null {
+  if (kg == null || !(kg > 0)) {
+    return null;
+  }
+  return `линейка +${formatWeight(kg)} кг`;
+}
+
+function capitalize(value: string): string {
+  return value.slice(0, 1).toUpperCase() + value.slice(1);
 }
 
 export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
@@ -333,6 +371,12 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     increases_on_end:
       row.increases_on_end === true ||
       (row.increases_on_end !== false && row.phase_type === "volume"),
+    kg_increase_on_end:
+      typeof row.kg_increase_on_end === "number" &&
+      Number.isFinite(row.kg_increase_on_end) &&
+      row.kg_increase_on_end > 0
+        ? row.kg_increase_on_end
+        : null,
     hold_weights: row.hold_weights === true,
     completed_count: row.completed_count,
     circle_size: row.circle_size,

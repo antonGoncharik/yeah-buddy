@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
+import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { advanceTrack } from "@/lib/workout/exercise-tracks";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
@@ -11,7 +12,10 @@ import type {
 } from "@/lib/workout/session-schema";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession, patchSession } from "@/lib/workout/sessions";
-import { clearSkipTemplateIds } from "@/lib/workout/settings";
+import {
+  clearSkipTemplateIds,
+  ensureWorkoutSettings,
+} from "@/lib/workout/settings";
 
 export async function patchWorkoutSet(
   userId: string,
@@ -173,10 +177,13 @@ export async function completeSessionAsPlanned(
   });
   await clearSkipTemplateIds(userId);
   if (firstCompletion) {
-    // A line moves once per session, no matter how often the log is corrected.
-    for (const item of detail.exercises) {
-      if (item.track_id && item.track_step != null) {
-        await advanceTrack(userId, item.track_id, item.track_step);
+    const settings = await ensureWorkoutSettings(userId);
+    // A line moves once per session unless the cycle itself adds kilograms.
+    if (!cycleDrivesTracks(settings.formulas.cycle)) {
+      for (const item of detail.exercises) {
+        if (item.track_id && item.track_step != null) {
+          await advanceTrack(userId, item.track_id, item.track_step);
+        }
       }
     }
     await maybeAutoEndPhase(userId);

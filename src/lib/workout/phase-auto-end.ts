@@ -29,9 +29,6 @@ export async function maybeAutoEndPhase(userId: string): Promise<void> {
   if (preview.new_macro || preview.to_phase == null) {
     return;
   }
-  if (preview.maxes.length === 0) {
-    return;
-  }
 
   await confirmTransition(userId, {
     end_date: await getUserCalendarToday(userId),

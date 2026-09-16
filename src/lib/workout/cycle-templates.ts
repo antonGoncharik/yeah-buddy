@@ -8,6 +8,7 @@ function phase(
     increase_on_end?: boolean;
     percent_scale?: number;
     work?: FormulaSetSpec[];
+    kg_increase_on_end?: number;
   } = {},
 ): CyclePhaseDef {
   return {
@@ -17,6 +18,7 @@ function phase(
     increase_on_end: extra.increase_on_end ?? false,
     percent_scale: extra.percent_scale,
     work: extra.work,
+    kg_increase_on_end: extra.kg_increase_on_end,
   };
 }
 
@@ -69,6 +71,12 @@ export const TWO_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
   phase("w1", "Неделя 1"),
   phase("w2", "Неделя 2", { increase_on_end: true }),
   phase("deload", "Сброс", { skip_warmup: true }),
+];
+
+/** Two working weeks that loop; linear kg lines grow after each week. */
+export const TWO_WEEK_KG_CYCLE: CyclePhaseDef[] = [
+  phase("w1", "Неделя 1", { kg_increase_on_end: 2.5 }),
+  phase("w2", "Неделя 2", { kg_increase_on_end: 2.5 }),
 ];
 
 export const THREE_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
@@ -127,6 +135,7 @@ export const CYCLE_TEMPLATES: Array<{
     | "linear"
     | "volume_strength"
     | "two_week_deload"
+    | "two_week_kg"
     | "three_week_deload"
     | "four_week_deload"
     | "tens_to_triples"
@@ -135,6 +144,8 @@ export const CYCLE_TEMPLATES: Array<{
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
+  auto_end?: boolean;
+  loop?: boolean;
 }> = [
   {
     id: "four_phase",
@@ -163,7 +174,7 @@ export const CYCLE_TEMPLATES: Array<{
   {
     id: "linear",
     name: "70 → 85%",
-    hint: "Проценты от 1ПМ: 70 → 75 → 80 → 85, потом сброс. Это не линейка килограммов.",
+    hint: "Проценты от 1ПМ: 70 → 75 → 80 → 85, потом сброс.",
     cycle: LINEAR_CYCLE,
   },
   {
@@ -179,15 +190,23 @@ export const CYCLE_TEMPLATES: Array<{
     cycle: TWO_WEEK_DELOAD_CYCLE,
   },
   {
+    id: "two_week_kg",
+    name: "Две недели · +2.5 кг",
+    hint: "Две недели по кругу. Линейка килограммов растёт на 2.5 после каждой недели.",
+    cycle: TWO_WEEK_KG_CYCLE,
+    auto_end: true,
+    loop: true,
+  },
+  {
     id: "three_week_deload",
     name: "Три недели + сброс",
-    hint: "Недели как номера этапов. Свои подходы на каждую неделю — в упражнении дня, там же линейка кг.",
+    hint: "Недели как номера этапов. Свои подходы на каждую неделю — в упражнении дня, там же можно поставить линейку кг.",
     cycle: THREE_WEEK_DELOAD_CYCLE,
   },
   {
     id: "four_week_deload",
     name: "Четыре недели + сброс",
-    hint: "Для таблиц: у каждого упражнения в дне своя сетка на каждую неделю, в том числе линейка кг.",
+    hint: "Для таблиц: у каждого упражнения в дне своя сетка на каждую неделю. Можно и в килограммах.",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
   },
   {

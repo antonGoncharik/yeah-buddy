@@ -1,3 +1,4 @@
+import { getUserCalendarToday } from "@/lib/day/writable";
 import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
 import { withCycle } from "@/lib/workout/cycle";
 import {
@@ -5,6 +6,8 @@ import {
   ensureNamedExercise,
   listExercises,
 } from "@/lib/workout/exercises";
+import { createFirstMacro } from "@/lib/workout/macro-create";
+import { getCurrentMacroState } from "@/lib/workout/macro-state";
 import {
   type ProgramPresetId,
   programPresetById,
@@ -94,17 +97,19 @@ export async function applyProgramPreset(
     activeIds.push(created.id);
   }
 
-  // Программа-таблица держит схемы на этапах своего цикла: без него
-  // недельные сетки указывали бы в пустоту.
+  // Программа с неделями ставит свой цикл вместе с днями.
   if (preset.cycle) {
     const settings = await ensureWorkoutSettings(userId);
     await saveWorkoutSettings(userId, {
-      formulas: withCycle(settings.formulas, preset.cycle),
+      formulas: withCycle(settings.formulas, preset.cycle, {
+        auto_end: preset.cycle_auto_end,
+        loop: preset.cycle_loop,
+      }),
     });
   }
 
   const all = await listTemplates(userId);
-  return saveRotation(userId, {
+  const templates = await saveRotation(userId, {
     rotation: all.map((template, index) => ({
       id: template.id,
       sort_order: activeIds.includes(template.id)
@@ -113,4 +118,27 @@ export async function applyProgramPreset(
       is_active: activeIds.includes(template.id),
     })),
   });
+
+  if (preset.cycle) {
+    await startPresetCycle(userId);
+  }
+
+  return templates;
+}
+
+/** Starts the weeks if none are running. Missing 1ПМ can wait for the gym. */
+async function startPresetCycle(userId: string): Promise<void> {
+  try {
+    const current = await getCurrentMacroState(userId);
+    if (current.macro) {
+      return;
+    }
+    await createFirstMacro(userId, {
+      start_date: await getUserCalendarToday(userId),
+      note: null,
+      maxes: [],
+    });
+  } catch {
+    // Days and weeks are saved; the cycle screen can start it later.
+  }
 }

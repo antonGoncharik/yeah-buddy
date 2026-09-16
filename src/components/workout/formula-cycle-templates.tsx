@@ -8,7 +8,11 @@ export function FormulaCycleTemplates({
   onApply,
   onCustom,
 }: {
-  onApply: (cycle: CyclePhaseDef[], name: string) => void;
+  onApply: (
+    cycle: CyclePhaseDef[],
+    name: string,
+    extra?: { auto_end?: boolean; loop?: boolean },
+  ) => void;
   /** Start from a blank phase instead of a template; hidden when absent. */
   onCustom?: () => void;
 }) {
@@ -19,7 +23,12 @@ export function FormulaCycleTemplates({
           key={template.id}
           type="button"
           className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40"
-          onClick={() => onApply(template.cycle, template.name)}
+          onClick={() =>
+            onApply(template.cycle, template.name, {
+              auto_end: template.auto_end,
+              loop: template.loop,
+            })
+          }
         >
           <p className="text-base font-medium">{template.name}</p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
