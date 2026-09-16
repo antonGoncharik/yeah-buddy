@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { AddRowButton } from "@/components/ui/add-row-button";
-import { Input, nativeSelectClassName } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { handleNumericEnter } from "@/lib/form/field-nav";
@@ -12,7 +12,6 @@ import type {
   ExerciseWithMax,
   SlotIntensity,
   SlotLoad,
-  SlotLoadType,
   SlotPlan,
   SlotSetGroup,
   WorkoutKind,
@@ -348,29 +347,19 @@ function GroupRow({
         {canRemove ? <RemoveRowButton onClick={onRemove} /> : null}
       </div>
 
-      <div className="flex items-end gap-2">
-        <label className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-xs text-muted-foreground">вес</span>
-          <select
-            className={nativeSelectClassName}
-            value={load.type}
-            onChange={(event) =>
-              onChange({
-                load: switchLoadType(
-                  load,
-                  event.target.value as SlotLoadType,
-                  exampleWeight,
-                ),
-              })
-            }
-          >
-            {SLOT_LOAD_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {SLOT_LOAD_LABELS[type]}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="flex flex-col gap-2">
+        <Segmented
+          value={load.type === "orm" ? "percent" : load.type}
+          options={SLOT_LOAD_TYPES.map((type) => ({
+            id: type,
+            label: SLOT_LOAD_LABELS[type],
+          }))}
+          onChange={(type) =>
+            onChange({
+              load: switchLoadType(load, type, exampleWeight),
+            })
+          }
+        />
         {load.type === "percent" || load.type === "orm" ? (
           <NumField
             label="%"

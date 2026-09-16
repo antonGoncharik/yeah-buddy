@@ -4,9 +4,6 @@ import type * as React from "react";
 import { revealField } from "@/lib/form/field-nav";
 import { cn } from "@/lib/utils";
 
-export const nativeSelectClassName =
-  "native-select field-control h-12 w-full rounded-xl border border-input/70 bg-input-bg pl-2.5 pr-10 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
-
 function Input({
   className,
   type,

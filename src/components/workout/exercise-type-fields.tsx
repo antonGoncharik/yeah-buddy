@@ -2,7 +2,6 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-import { nativeSelectClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
 import type { ExerciseFormState } from "@/components/workout/exercise-form-state";
@@ -15,7 +14,6 @@ import {
   FORMULA_PRESETS,
   WEIGHT_STEP_OPTIONS,
 } from "@/lib/workout/labels";
-import { isFormulaPreset } from "@/lib/workout/map-rows";
 
 export function ExerciseTypeFields({
   form,
@@ -84,26 +82,19 @@ export function ExerciseTypeFields({
       </Field>
 
       <Field label="Разминка">
-        <select
+        <Segmented
           value={form.formula_preset}
-          onChange={(event) => {
-            const preset = event.target.value;
-            if (!isFormulaPreset(preset)) {
-              return;
-            }
+          options={FORMULA_PRESETS.map((preset) => ({
+            id: preset,
+            label: FORMULA_PRESET_LABELS[preset],
+          }))}
+          onChange={(formula_preset) =>
             setForm((current) => ({
               ...current,
-              formula_preset: preset,
-            }));
-          }}
-          className={nativeSelectClassName}
-        >
-          {FORMULA_PRESETS.map((preset) => (
-            <option key={preset} value={preset}>
-              {FORMULA_PRESET_LABELS[preset]}
-            </option>
-          ))}
-        </select>
+              formula_preset,
+            }))
+          }
+        />
         <p className="text-base leading-relaxed text-muted-foreground">
           {warmupHint(form.formula_preset)}
         </p>
