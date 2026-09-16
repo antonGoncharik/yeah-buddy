@@ -25,7 +25,7 @@ export async function listDayHistory(
   userId: string,
   options: { before?: string; limit: number },
 ): Promise<{ items: DayHistoryRow[]; next_before: string | null }> {
-  const limit = Math.min(Math.max(options.limit, 1), 50);
+  const limit = Math.min(Math.max(options.limit, 1), 120);
   const supabase = createSupabaseServerClient();
   let query = supabase
     .from("days")

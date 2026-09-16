@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  formatWorkoutsPerWeek,
   pluralWorkouts,
   type WorkoutHistoryRange,
   type WorkoutHistoryStats as WorkoutHistoryStatsData,
@@ -14,6 +15,7 @@ export function WorkoutHistoryStats({
   days: WorkoutHistoryRange;
   stats: WorkoutHistoryStatsData;
 }) {
+  const perWeek = formatWorkoutsPerWeek(stats.count, days);
   // Kind split only says something when both kinds happened.
   const kinds =
     stats.dynamic > 0 && stats.static > 0
@@ -35,6 +37,9 @@ export function WorkoutHistoryStats({
             {pluralWorkouts(stats.count)}
           </span>
         </p>
+        {perWeek ? (
+          <p className="mt-2 text-sm text-muted-foreground">{perWeek}</p>
+        ) : null}
         {kinds.length > 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
             {kinds.join(" · ")}

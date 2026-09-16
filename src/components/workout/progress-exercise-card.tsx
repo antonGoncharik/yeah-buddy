@@ -30,10 +30,12 @@ export function ProgressExerciseCard({
   item,
   open,
   onToggle,
+  record = false,
 }: {
   item: ExerciseProgress;
   open: boolean;
   onToggle: () => void;
+  record?: boolean;
 }) {
   const kinds = progressKinds(item.points);
   const [kind, setKind] = useState<WorkoutKind | null>(() =>
@@ -68,7 +70,14 @@ export function ProgressExerciseCard({
         aria-expanded={open}
       >
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-medium">{item.name}</p>
+          <p className="truncate text-base font-medium">
+            {item.name}
+            {record ? (
+              <span className="ml-2 text-sm font-medium text-primary">
+                рекорд
+              </span>
+            ) : null}
+          </p>
           <p className="text-sm text-muted-foreground">
             {stats.current_weight == null
               ? "Нет записи"

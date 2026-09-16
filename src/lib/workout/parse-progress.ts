@@ -91,7 +91,23 @@ export function parseStrengthProgress(data: unknown): StrengthProgress | null {
     grown_count: toNumber(data.grown_count),
     avg_percent: toNullableNumber(data.avg_percent),
     avg_relative_percent: toNullableNumber(data.avg_relative_percent),
+    weights: mapRecordList(data.weights, parseWeightPoint),
   };
+}
+
+function parseWeightPoint(
+  row: Record<string, unknown>,
+): { date: string; weight: number } | null {
+  if (typeof row.date !== "string") {
+    return null;
+  }
+
+  const weight = toNullableNumber(row.weight);
+  if (weight == null || weight <= 0) {
+    return null;
+  }
+
+  return { date: row.date, weight };
 }
 
 function parseMacroGain(row: Record<string, unknown>): MacroGain | null {

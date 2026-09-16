@@ -127,7 +127,7 @@ export function SettingsScreen() {
             <NavRow
               href="/today/history?from=settings"
               title="История еды"
-              hint="По дням"
+              hint="14, 30 или 90 дней"
             />
           </div>
         </section>

@@ -30,6 +30,7 @@ export function windowStrengthProgress(
 
   return {
     exercises,
+    weights: progress.weights ?? [],
     ...summarizeProgress(exercises),
   };
 }

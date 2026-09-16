@@ -113,6 +113,7 @@ export async function getStrengthProgress(
 
   return {
     exercises: progress,
+    weights,
     ...summarizeProgress(progress),
   };
 }

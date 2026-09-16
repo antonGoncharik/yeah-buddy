@@ -1,10 +1,14 @@
-import { isIsoDate, shiftIsoDate } from "@/lib/day/dates";
+import {
+  type DiaryRange,
+  diaryRangeStart,
+  isDiaryRange,
+} from "@/lib/diary-range";
 import type { DayHistoryRow } from "@/lib/types";
 
-export type NutritionRange = 14 | 30;
+export type NutritionRange = DiaryRange;
 
 export function isNutritionRange(value: number): value is NutritionRange {
-  return value === 14 || value === 30;
+  return isDiaryRange(value);
 }
 
 export function windowDays(
@@ -12,7 +16,7 @@ export function windowDays(
   days: NutritionRange,
   todayIso: string,
 ): DayHistoryRow[] {
-  const start = rangeStart(todayIso, days);
+  const start = diaryRangeStart(todayIso, days);
   if (!start) {
     return [];
   }
@@ -25,7 +29,7 @@ export function hasOlderThanRange(
   days: NutritionRange,
   todayIso: string,
 ): boolean {
-  const start = rangeStart(todayIso, days);
+  const start = diaryRangeStart(todayIso, days);
   if (!start) {
     return false;
   }
@@ -35,12 +39,4 @@ export function hasOlderThanRange(
 
 export function chronological(items: DayHistoryRow[]): DayHistoryRow[] {
   return [...items].reverse();
-}
-
-function rangeStart(todayIso: string, days: NutritionRange): string | null {
-  if (!isIsoDate(todayIso)) {
-    return null;
-  }
-
-  return shiftIsoDate(todayIso, 1 - days);
 }

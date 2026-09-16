@@ -43,4 +43,6 @@ export interface StrengthProgress {
   grown_count: number;
   avg_percent: number | null;
   avg_relative_percent: number | null;
+  /** Logged weigh-ins, oldest first. Empty if the user never logged weight. */
+  weights: Array<{ date: string; weight: number }>;
 }

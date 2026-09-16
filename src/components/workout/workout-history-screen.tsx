@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
@@ -11,6 +11,7 @@ import { WorkoutHistoryRow } from "@/components/workout/workout-history-row";
 import { WorkoutHistoryStats } from "@/components/workout/workout-history-stats";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
+import { historyNeedsOlder } from "@/lib/diary-range";
 import { SESSION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   HISTORY_RANGE_OPTIONS,
@@ -24,7 +25,7 @@ import {
 } from "@/lib/workout/history-stats";
 import { parseRecentSession } from "@/lib/workout/hub-payload";
 
-type RangeId = "14" | "30";
+type RangeId = "14" | "30" | "90";
 
 export function WorkoutHistoryScreen() {
   const today = calendarToday();
@@ -38,6 +39,22 @@ export function WorkoutHistoryScreen() {
     () => windowGymSessions(items, rangeDays, today),
     [items, rangeDays, today],
   );
+
+  useEffect(() => {
+    if (loading || loadingMore || !nextBefore) {
+      return;
+    }
+    if (
+      historyNeedsOlder(
+        items.at(-1)?.session.session_date,
+        nextBefore,
+        today,
+        rangeDays,
+      )
+    ) {
+      void load(nextBefore);
+    }
+  }, [items, load, loading, loadingMore, nextBefore, rangeDays, today]);
   const stats = useMemo(() => summarizeWorkoutHistory(windowed), [windowed]);
   const groups = useMemo(
     () => groupByMonth(items, (item) => item.session.session_date),

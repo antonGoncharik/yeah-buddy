@@ -1,6 +1,12 @@
 "use client";
 
-import { formatProteinPerKg } from "@/lib/day/body-weight";
+import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
+import {
+  type BodyWeightWindow,
+  formatBodyWeight,
+  formatProteinPerKg,
+  formatSignedBodyWeight,
+} from "@/lib/day/body-weight";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   type MacroAverages,
@@ -18,6 +24,7 @@ export function NutritionHistoryStats({
   training,
   hits,
   perKg,
+  weight,
 }: {
   days: NutritionRange;
   count: number;
@@ -25,8 +32,14 @@ export function NutritionHistoryStats({
   training: MacroAverages | null;
   hits: NutritionHits;
   perKg: ReturnType<typeof proteinPerKgStats>;
+  weight: BodyWeightWindow | null;
 }) {
   const showHits = hits.proteinTotal > 0 || hits.kcalTotal > 0;
+  const showWeight =
+    weight?.start != null &&
+    weight.end != null &&
+    weight.delta != null &&
+    Math.abs(weight.delta) >= WEIGHT_DELTA_KG;
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
@@ -42,6 +55,15 @@ export function NutritionHistoryStats({
       {rest ? <TypeAverage label={DAY_TYPE_LABELS.rest} stats={rest} /> : null}
       {training ? (
         <TypeAverage label={DAY_TYPE_LABELS.training} stats={training} />
+      ) : null}
+      {showWeight ? (
+        <p className="text-base tabular-nums">
+          Вес {formatBodyWeight(weight.start ?? 0)} →{" "}
+          {formatBodyWeight(weight.end ?? 0)}{" "}
+          <span className="text-muted-foreground">
+            ({formatSignedBodyWeight(weight.delta ?? 0)} кг)
+          </span>
+        </p>
       ) : null}
       {showHits ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4">

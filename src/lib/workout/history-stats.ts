@@ -1,13 +1,17 @@
-import { isIsoDate, shiftIsoDate } from "@/lib/day/dates";
+import {
+  type DiaryRange,
+  diaryRangeStart,
+  isDiaryRange,
+} from "@/lib/diary-range";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
-export type WorkoutHistoryRange = 14 | 30;
+export type WorkoutHistoryRange = DiaryRange;
 
 export function isWorkoutHistoryRange(
   value: number,
 ): value is WorkoutHistoryRange {
-  return value === 14 || value === 30;
+  return isDiaryRange(value);
 }
 
 export type WorkoutHistoryStats = {
@@ -114,13 +118,32 @@ export function pluralWorkouts(count: number): string {
   return "тренировок";
 }
 
+export function workoutsPerWeek(count: number, days: number): number {
+  if (count <= 0 || days < 7) {
+    return 0;
+  }
+
+  return Math.round((count / (days / 7)) * 10) / 10;
+}
+
+export function formatWorkoutsPerWeek(
+  count: number,
+  days: number,
+): string | null {
+  const value = workoutsPerWeek(count, days);
+  if (value <= 0) {
+    return null;
+  }
+
+  const text = Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(1).replace(".", ",");
+  return `${text} в неделю`;
+}
+
 function rangeStart(
   todayIso: string,
   days: WorkoutHistoryRange,
 ): string | null {
-  if (!isIsoDate(todayIso)) {
-    return null;
-  }
-
-  return shiftIsoDate(todayIso, 1 - days);
+  return diaryRangeStart(todayIso, days);
 }

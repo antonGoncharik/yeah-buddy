@@ -10,7 +10,10 @@ import {
 } from "@/lib/day/body-weight";
 import { pluralDays } from "@/lib/nutrition-stats";
 import { cn } from "@/lib/utils";
-import { pluralWorkouts } from "@/lib/workout/history-stats";
+import {
+  formatWorkoutsPerWeek,
+  pluralWorkouts,
+} from "@/lib/workout/history-stats";
 
 export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
   const gymLine =
@@ -76,13 +79,23 @@ function proteinHint(brief: ReviewBrief): string | null {
 }
 
 function gymHint(brief: ReviewBrief): string | null {
-  if (!brief.phase.type) {
-    return null;
+  const parts: string[] = [];
+  const perWeek = formatWorkoutsPerWeek(brief.gym.completed, brief.range);
+  if (perWeek) {
+    parts.push(perWeek);
   }
-  if (brief.phase.completed != null && brief.phase.circle != null) {
-    return `${brief.phase.type} · ${brief.phase.completed} из ${brief.phase.circle}`;
+  if (
+    brief.phase.type &&
+    brief.phase.completed != null &&
+    brief.phase.circle != null
+  ) {
+    parts.push(
+      `${brief.phase.type} · ${brief.phase.completed} из ${brief.phase.circle}`,
+    );
+  } else if (brief.phase.type) {
+    parts.push(brief.phase.type);
   }
-  return brief.phase.type;
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function weightValue(brief: ReviewBrief): string {

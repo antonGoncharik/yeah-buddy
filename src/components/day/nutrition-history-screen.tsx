@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { NutritionHistoryDayRow } from "@/components/day/nutrition-history-day-row";
@@ -11,9 +11,11 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { bodyWeightWindow } from "@/lib/day/body-weight";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
 import { parseDayHistoryPayload } from "@/lib/day/map";
+import { historyNeedsOlder } from "@/lib/diary-range";
 import { NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
 import {
   chronological,
@@ -30,7 +32,7 @@ import {
   useCursorHistory,
 } from "@/lib/use-cursor-history";
 
-type RangeId = "14" | "30";
+type RangeId = "14" | "30" | "90";
 
 const METRIC_OPTIONS: Array<{ id: HistoryMetric; label: string }> = [
   { id: "protein", label: "Б" },
@@ -54,9 +56,19 @@ export function NutritionHistoryScreen() {
     () => windowDays(items, rangeDays, today),
     [items, rangeDays, today],
   );
+
+  useEffect(() => {
+    if (loading || loadingMore || !nextBefore) {
+      return;
+    }
+    if (historyNeedsOlder(items.at(-1)?.date, nextBefore, today, rangeDays)) {
+      void load(nextBefore);
+    }
+  }, [items, load, loading, loadingMore, nextBefore, rangeDays, today]);
   const averages = useMemo(() => splitAverages(windowed), [windowed]);
   const hits = useMemo(() => nutritionHits(windowed), [windowed]);
   const perKg = useMemo(() => proteinPerKgStats(windowed), [windowed]);
+  const weight = useMemo(() => bodyWeightWindow(windowed), [windowed]);
   const chartDays = useMemo(() => chronological(windowed), [windowed]);
   const groups = useMemo(
     () => groupByMonth(items, (item) => item.date),
@@ -103,6 +115,7 @@ export function NutritionHistoryScreen() {
             training={averages.training}
             hits={hits}
             perKg={perKg}
+            weight={weight}
           />
         ) : null}
 

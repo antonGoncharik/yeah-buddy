@@ -204,7 +204,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/progress"
           title="Рабочие веса"
-          hint="Как менялись"
+          hint="За 90 дней и с первой записи"
         />
         <NavRow
           href="/settings/formulas"

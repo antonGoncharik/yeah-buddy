@@ -1,16 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import { cachedGet, fetchJson } from "@/lib/api-cache";
+import { DIARY_RANGE_OPTIONS } from "@/lib/diary-range";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isRecord, mapRecordList } from "@/lib/read";
 
-export const HISTORY_RANGE_OPTIONS: Array<{ id: "14" | "30"; label: string }> =
-  [
-    { id: "14", label: "14 дней" },
-    { id: "30", label: "30 дней" },
-  ];
+export const HISTORY_RANGE_OPTIONS = DIARY_RANGE_OPTIONS;
 
 export function readCursorPage<T>(
   data: unknown,
@@ -50,7 +46,9 @@ export function useCursorHistory<T>(
       setError(null);
 
       try {
-        const query = before ? `?before=${encodeURIComponent(before)}` : "";
+        const query = before
+          ? `?before=${encodeURIComponent(before)}&limit=40`
+          : "?limit=90";
         const url = `${path}${query}`;
         if (appending) {
           const data = await fetchJson(url);

@@ -12,10 +12,26 @@ import {
   type ProgressFilter,
   useProgressScreen,
 } from "@/components/workout/use-progress-screen";
+import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
+import {
+  formatBodyWeight,
+  formatSignedBodyWeight,
+} from "@/lib/day/body-weight";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EXERCISE_CATEGORY_LABELS } from "@/lib/workout/labels";
-import { formatSignedPercent } from "@/lib/workout/numbers";
+import {
+  formatSignedPercent,
+  formatSignedWeight,
+  formatWeight,
+} from "@/lib/workout/numbers";
+import {
+  bodyWeightSpan,
+  controlLifts,
+  isNewPeak,
+  PROGRESS_HORIZON_OPTIONS,
+  type ProgressHorizon,
+} from "@/lib/workout/progress-control";
 import {
   CATEGORY_SHORT_LABELS,
   categoryAverages,
@@ -30,11 +46,16 @@ const FILTERS: Array<{ id: ProgressFilter; label: string }> = [
 export function ProgressScreen() {
   const {
     progress,
+    viewed,
     loading,
     error,
     load,
     filter,
     setFilter,
+    horizon,
+    setHorizon,
+    horizonStart,
+    today,
     openId,
     setOpenId,
     tracked,
@@ -46,7 +67,7 @@ export function ProgressScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Рабочие веса"
-        subtitle="Как менялись от записи к записи"
+        subtitle="Сильнее ли стал — за 90 дней или с первой записи"
         backHref="/workouts"
       />
 
@@ -57,7 +78,7 @@ export function ProgressScreen() {
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        {!loading && progress && tracked.length === 0 ? (
+        {!loading && progress && progress.exercises.length === 0 ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
             <p className="text-lg font-medium">Пока нечего сравнивать</p>
             <p className="text-base leading-relaxed text-muted-foreground">
@@ -76,9 +97,33 @@ export function ProgressScreen() {
           </section>
         ) : null}
 
-        {!loading && progress && tracked.length > 0 ? (
+        {!loading && progress && viewed && progress.exercises.length > 0 ? (
           <>
-            <SummaryCard progress={progress} tracked={tracked} />
+            <div className="animate-rise">
+              <Segmented
+                value={horizon}
+                options={PROGRESS_HORIZON_OPTIONS}
+                onChange={setHorizon}
+              />
+            </div>
+
+            {tracked.length === 0 ? (
+              <section className="card-surface animate-rise px-5 py-5">
+                <p className="text-lg font-medium">За эти дни зала не было</p>
+                <p className="mt-1 text-base text-muted-foreground">
+                  Поставь «Всё» — там кривые с первой записи.
+                </p>
+              </section>
+            ) : (
+              <SummaryCard
+                viewed={viewed}
+                lifetime={progress}
+                tracked={tracked}
+                horizon={horizon}
+                from={horizonStart}
+                to={today}
+              />
+            )}
 
             {mixedCategories ? (
               <div className="animate-rise">
@@ -90,27 +135,33 @@ export function ProgressScreen() {
               </div>
             ) : null}
 
-            {visible.length === 0 ? (
+            {visible.length === 0 && tracked.length > 0 ? (
               <p className="py-8 text-center text-muted-foreground">
                 Нет упражнений в этой категории.
               </p>
             ) : (
               <ul className="animate-rise flex flex-col gap-2">
-                {visible.map((item) => (
-                  <li key={item.exercise_id}>
-                    <ProgressExerciseCard
-                      item={item}
-                      open={openId === item.exercise_id}
-                      onToggle={() =>
-                        setOpenId((current) =>
-                          current === item.exercise_id
-                            ? null
-                            : item.exercise_id,
-                        )
-                      }
-                    />
-                  </li>
-                ))}
+                {visible.map((item) => {
+                  const lifetime = progress.exercises.find(
+                    (row) => row.exercise_id === item.exercise_id,
+                  );
+                  return (
+                    <li key={item.exercise_id}>
+                      <ProgressExerciseCard
+                        item={item}
+                        record={lifetime ? isNewPeak(lifetime, item) : false}
+                        open={openId === item.exercise_id}
+                        onToggle={() =>
+                          setOpenId((current) =>
+                            current === item.exercise_id
+                              ? null
+                              : item.exercise_id,
+                          )
+                        }
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
 
@@ -123,45 +174,112 @@ export function ProgressScreen() {
 }
 
 function SummaryCard({
-  progress,
+  viewed,
+  lifetime,
   tracked,
+  horizon,
+  from,
+  to,
 }: {
-  progress: StrengthProgress;
+  viewed: StrengthProgress;
+  lifetime: StrengthProgress;
   tracked: ExerciseProgress[];
+  horizon: ProgressHorizon;
+  from: string | null;
+  to: string;
 }) {
   const fromWork = tracked.some((item) => item.from_work);
-  const moved = progress.avg_percent != null && progress.avg_percent !== 0;
+  const moved = viewed.avg_percent != null && viewed.avg_percent !== 0;
+  const weight = bodyWeightSpan(lifetime.weights, from, to);
+  const showWeight =
+    weight.start != null &&
+    weight.end != null &&
+    weight.delta != null &&
+    Math.abs(weight.delta) >= WEIGHT_DELTA_KG;
+  const lifts = controlLifts(tracked);
+  const records = tracked.filter((item) => {
+    const row = lifetime.exercises.find(
+      (entry) => entry.exercise_id === item.exercise_id,
+    );
+    return row ? isNewPeak(row, item) : false;
+  });
 
   return (
-    <section className="card-surface animate-rise px-5 py-5">
-      <p className="text-sm font-medium text-muted-foreground">
-        С первой записи
-      </p>
-      <p className="mt-1 text-3xl font-semibold tracking-tight">
-        {moved && progress.avg_percent != null ? (
-          <>
-            {formatSignedPercent(progress.avg_percent)}
-            <span className="ml-2 text-lg font-medium text-muted-foreground">
-              в среднем
-            </span>
-          </>
-        ) : (
-          "Пока без изменений"
-        )}
-      </p>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {progress.grown_count > 0
-          ? `Выросли ${progress.grown_count} из ${tracked.length}`
-          : fromWork
-            ? `${trackedCountLabel(tracked.length)} из зала. Рост покажется после следующей записи.`
-            : `${trackedCountLabel(tracked.length)}. Рост покажется после зала.`}
-        {progress.avg_relative_percent == null || !moved
-          ? null
-          : ` · к весу тела ${formatSignedPercent(progress.avg_relative_percent)}`}
-      </p>
-      {moved ? <CategoryLine exercises={tracked} /> : null}
+    <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          {horizon === "all" ? "С первой записи" : `За ${horizon} дней`}
+        </p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight">
+          {moved && viewed.avg_percent != null ? (
+            <>
+              {formatSignedPercent(viewed.avg_percent)}
+              <span className="ml-2 text-lg font-medium text-muted-foreground">
+                в среднем
+              </span>
+            </>
+          ) : (
+            "Пока без изменений"
+          )}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {viewed.grown_count > 0
+            ? `Выросли ${viewed.grown_count} из ${tracked.length}`
+            : fromWork
+              ? `${trackedCountLabel(tracked.length)} из зала. Рост покажется после следующей записи.`
+              : `${trackedCountLabel(tracked.length)}. Рост покажется после зала.`}
+          {viewed.avg_relative_percent == null || !moved
+            ? null
+            : ` · к весу тела ${formatSignedPercent(viewed.avg_relative_percent)}`}
+        </p>
+        {moved ? <CategoryLine exercises={tracked} /> : null}
+      </div>
+
+      {showWeight ? (
+        <p className="text-base tabular-nums">
+          Вес {formatBodyWeight(weight.start ?? 0)} →{" "}
+          {formatBodyWeight(weight.end ?? 0)}{" "}
+          <span className="text-muted-foreground">
+            ({formatSignedBodyWeight(weight.delta ?? 0)} кг)
+          </span>
+        </p>
+      ) : null}
+
+      {lifts.length > 0 ? (
+        <ul className="flex flex-col gap-1.5 border-t border-border/70 pt-4">
+          {lifts.map((item) => (
+            <li
+              key={item.exercise_id}
+              className="flex items-baseline justify-between gap-3 text-sm"
+            >
+              <span className="min-w-0 truncate font-medium">{item.name}</span>
+              <span className="shrink-0 tabular-nums text-muted-foreground">
+                {liftLine(item)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {records.length > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Рекорд: {records.map((item) => item.name).join(", ")}
+        </p>
+      ) : null}
     </section>
   );
+}
+
+function liftLine(item: ExerciseProgress): string {
+  if (item.start_weight == null || item.current_weight == null) {
+    return item.current_weight == null
+      ? "—"
+      : `${formatWeight(item.current_weight)} кг`;
+  }
+  if (item.delta == null || item.delta === 0) {
+    return `${formatWeight(item.current_weight)} кг`;
+  }
+  return `${formatWeight(item.start_weight)} → ${formatWeight(item.current_weight)} · ${formatSignedWeight(item.delta)} кг`;
 }
 
 function trackedCountLabel(count: number): string {

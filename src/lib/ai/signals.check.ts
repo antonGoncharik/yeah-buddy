@@ -384,6 +384,7 @@ const seedBrief = buildReviewBrief({
     grown_count: 0,
     avg_percent: 0,
     avg_relative_percent: 3.8,
+    weights: [],
   },
   seedWeight: 84,
 });

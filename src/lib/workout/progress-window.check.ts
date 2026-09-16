@@ -1,4 +1,12 @@
+import { historyNeedsOlder } from "@/lib/diary-range";
 import type { ExerciseProgress, ProgressPoint } from "@/lib/types";
+import { formatWorkoutsPerWeek } from "@/lib/workout/history-stats";
+import {
+  bodyWeightSpan,
+  controlLifts,
+  isNewPeak,
+  viewedProgress,
+} from "@/lib/workout/progress-control";
 import { windowStrengthProgress } from "@/lib/workout/progress-window";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -70,6 +78,7 @@ const windowed = windowStrengthProgress(
     grown_count: 0,
     avg_percent: null,
     avg_relative_percent: null,
+    weights: [],
   },
   "2026-09-01",
   "2026-09-14",
@@ -101,6 +110,7 @@ const once = windowStrengthProgress(
     grown_count: 0,
     avg_percent: null,
     avg_relative_percent: null,
+    weights: [],
   },
   "2026-09-01",
   "2026-09-14",
@@ -119,6 +129,7 @@ const recomp = windowStrengthProgress(
     grown_count: 0,
     avg_percent: null,
     avg_relative_percent: null,
+    weights: [],
   },
   "2026-09-01",
   "2026-09-14",
@@ -128,6 +139,94 @@ assertEqual(
   Math.round((recomp.exercises[0]?.relative_percent ?? 0) * 10) / 10,
   3.8,
   "relative grew on same bar",
+);
+
+assertEqual(
+  historyNeedsOlder("2026-06-01", "2026-06-01", "2026-09-17", 90),
+  false,
+  "oldest already before 90-day start",
+);
+assertEqual(
+  historyNeedsOlder("2026-08-20", "2026-08-20", "2026-09-17", 90),
+  true,
+  "still inside 90 days, load more",
+);
+assertEqual(
+  historyNeedsOlder("2026-08-20", null, "2026-09-17", 90),
+  false,
+  "no next page",
+);
+
+assertEqual(formatWorkoutsPerWeek(12, 90), "0,9 в неделю", "sparse quarter");
+assertEqual(formatWorkoutsPerWeek(12, 30), "2,8 в неделю", "month of 3×");
+assertEqual(formatWorkoutsPerWeek(4, 14), "2 в неделю", "integer week rate");
+assertEqual(formatWorkoutsPerWeek(2, 5), null, "shorter than a week");
+
+const peak = isNewPeak(
+  exercise("Жим", [point("2026-06-01", 100), point("2026-09-10", 110)]),
+  {
+    ...exercise("Жим", [point("2026-09-10", 110)]),
+    start_weight: 100,
+    current_weight: 110,
+    delta: 10,
+    percent: 10,
+  },
+);
+assertEqual(peak, true, "new high in window");
+
+const notPeak = isNewPeak(
+  exercise("Жим", [point("2026-06-01", 110), point("2026-09-10", 105)]),
+  {
+    ...exercise("Жим", [point("2026-09-10", 105)]),
+    start_weight: 110,
+    current_weight: 105,
+    delta: -5,
+    percent: -4.5,
+  },
+);
+assertEqual(notPeak, false, "below old peak is not a record");
+
+const span = bodyWeightSpan(
+  [
+    { date: "2026-06-01", weight: 84 },
+    { date: "2026-08-01", weight: 82 },
+    { date: "2026-09-10", weight: 81 },
+  ],
+  "2026-06-20",
+  "2026-09-17",
+);
+assertEqual(span.start, 84, "carry weight from before window");
+assertEqual(span.end, 81, "last weigh-in in window");
+assertEqual(span.delta, -3, "quarter cut");
+assertEqual(span.logged, 2, "weigh-ins inside window");
+
+const quarter = viewedProgress(
+  {
+    exercises: [squat, bench, row, after],
+    grown_count: 0,
+    avg_percent: null,
+    avg_relative_percent: null,
+    weights: [],
+  },
+  "2026-09-14",
+  "30",
+);
+assertEqual(
+  quarter.exercises.map((item) => item.name).join(),
+  "Присед,Жим,Тяга",
+  "30-day horizon keeps work inside the month",
+);
+assertEqual(
+  quarter.exercises.find((item) => item.name === "Жим")?.delta,
+  5,
+  "bench uses pre-window baseline",
+);
+assertEqual(
+  controlLifts(quarter.exercises)
+    .map((item) => item.name)
+    .join(),
+  "Присед,Жим,Тяга",
+  "base lifts in summary",
 );
 
 console.log("progress window ok");
