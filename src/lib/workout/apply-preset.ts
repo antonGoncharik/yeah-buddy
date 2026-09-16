@@ -1,4 +1,5 @@
 import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
+import { withCycle } from "@/lib/workout/cycle";
 import {
   archiveExercise,
   ensureNamedExercise,
@@ -9,6 +10,10 @@ import {
   programPresetById,
 } from "@/lib/workout/program-presets";
 import { saveRotation } from "@/lib/workout/rotation";
+import {
+  ensureWorkoutSettings,
+  saveWorkoutSettings,
+} from "@/lib/workout/settings";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 import {
   createTemplate,
@@ -87,6 +92,15 @@ export async function applyProgramPreset(
       slots,
     });
     activeIds.push(created.id);
+  }
+
+  // Программа-таблица держит схемы на этапах своего цикла: без него
+  // недельные сетки указывали бы в пустоту.
+  if (preset.cycle) {
+    const settings = await ensureWorkoutSettings(userId);
+    await saveWorkoutSettings(userId, {
+      formulas: withCycle(settings.formulas, preset.cycle),
+    });
   }
 
   const all = await listTemplates(userId);

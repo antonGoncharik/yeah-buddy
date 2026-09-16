@@ -29,6 +29,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
     error,
     selected,
     available,
+    cycle,
     toggleExercise,
     reorder,
     setSlotPlan,
@@ -69,6 +70,7 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             kind={kind}
             selected={selected}
             available={available}
+            cycle={cycle}
             onReorder={(next) => reorder(next.map((slot) => slot.exercise.id))}
             onToggle={toggleExercise}
             onPlanChange={setSlotPlan}

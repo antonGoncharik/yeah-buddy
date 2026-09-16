@@ -7,6 +7,7 @@ import { patchJson, postJson } from "@/lib/api-cache";
 import { CHECK_FIELDS, LOAD_FAILED, WORKOUT_NOT_FOUND } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type {
+  CyclePhaseDef,
   ExerciseWithMax,
   SlotPlan,
   TemplateSlot,
@@ -17,6 +18,7 @@ import {
   readExercises as hubReadExercises,
   parseTemplateDetail,
 } from "@/lib/workout/hub-payload";
+import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
 import { normalizeSlotPlan } from "@/lib/workout/slot-plan";
 
 export interface TemplateFormSlot {
@@ -31,6 +33,7 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
   const [isActive, setIsActive] = useState(true);
   const [slots, setSlots] = useState<TemplateSlot[]>([]);
   const [catalog, setCatalog] = useState<ExerciseWithMax[]>([]);
+  const [cycle, setCycle] = useState<CyclePhaseDef[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +55,14 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
         if (!cancelled) {
           setCatalog(list);
         }
+
+        // Этапы цикла — только чтобы показать схему по этапам. Без них
+        // редактор слота выглядит как раньше.
+        void loadCycle().then((next) => {
+          if (!cancelled) {
+            setCycle(next);
+          }
+        });
 
         if (!templateId) {
           return;
@@ -176,6 +187,7 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
     error,
     selected,
     available,
+    cycle,
     toggleExercise,
     reorder,
     setSlotPlan,
@@ -185,4 +197,17 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
 
 function readTemplate(data: unknown): WorkoutTemplateDetail | null {
   return parseTemplateDetail(isRecord(data) ? data.template : null);
+}
+
+async function loadCycle(): Promise<CyclePhaseDef[]> {
+  try {
+    const response = await fetch("/api/workout-settings");
+    if (!response.ok) {
+      return [];
+    }
+    const data: unknown = await response.json();
+    return readWorkoutSettingsPayload(data)?.formulas.cycle ?? [];
+  } catch {
+    return [];
+  }
 }

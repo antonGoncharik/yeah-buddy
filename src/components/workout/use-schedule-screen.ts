@@ -90,7 +90,9 @@ export function useScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: `Поставить «${preset.name}»? Программа станет этой. Свои дни не удалятся — отложатся.`,
+      message: preset.cycle
+        ? `Поставить «${preset.name}»? Программа станет этой, а этапы цикла — её неделями: прежние этапы заменятся. Свои дни не удалятся — отложатся.`
+        : `Поставить «${preset.name}»? Программа станет этой. Свои дни не удалятся — отложатся.`,
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });

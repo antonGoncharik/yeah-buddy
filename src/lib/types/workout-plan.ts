@@ -3,14 +3,20 @@
  *
  * Слот = упражнение внутри одного дня программы. У него может быть своя
  * схема: список групп «N подходов × повторы @ нагрузка». Нагрузка берётся
- * от рабочего веса (процент), от линейки (явный ряд килограммов по неделям),
- * фиксированная или «по самочувствию» (вес прошлого раза, план не давит).
+ * от рабочего веса (процент), от максимума на один раз (1ПМ), от линейки
+ * (явный ряд килограммов по неделям), фиксированная или «по самочувствию»
+ * (вес прошлого раза, план не давит).
+ *
+ * Схема может меняться по этапам цикла: `phases` — свои группы на ключ
+ * этапа. Это даёт таблицы «день × неделя × упражнение»: в один день у
+ * приседа и жима свои сетки, и на третьей неделе они другие.
  */
 
-export type SlotLoadType = "percent" | "track" | "fixed" | "feel";
+export type SlotLoadType = "percent" | "orm" | "track" | "fixed" | "feel";
 
 export type SlotLoad =
   | { type: "percent"; percent: number }
+  | { type: "orm"; percent: number }
   | { type: "track"; percent: number; offset: number }
   | { type: "fixed"; weight: number }
   | { type: "feel" };
@@ -29,6 +35,8 @@ export type SlotIntensity = "heavy" | "light";
 export interface SlotPlan {
   /** null — подходы по общему плану, но интенсивность и заметка свои. */
   groups: SlotSetGroup[] | null;
+  /** Своя схема на этап цикла: ключ этапа → группы. Пусто — как обычно. */
+  phases?: Record<string, SlotSetGroup[]>;
   intensity: SlotIntensity | null;
   /** Разминка перед рабочими (только для своей схемы). */
   warmup: boolean;

@@ -25,6 +25,7 @@ function exercise(
     unit: "reps",
     weight_step: 2.5,
     formula_preset: preset,
+    one_rm: null,
     slot: null,
     is_active: true,
     created_at: "",

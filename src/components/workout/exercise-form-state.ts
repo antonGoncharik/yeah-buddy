@@ -14,6 +14,7 @@ export interface ExerciseFormState {
   weight_step: number;
   formula_preset: FormulaPreset;
   max_weight: string;
+  one_rm: string;
 }
 
 export function toFormState(exercise?: ExerciseWithMax): ExerciseFormState {
@@ -27,6 +28,7 @@ export function toFormState(exercise?: ExerciseWithMax): ExerciseFormState {
     max_weight: exercise?.current_max
       ? formatWeight(exercise.current_max.max_weight)
       : "",
+    one_rm: exercise?.one_rm != null ? formatWeight(exercise.one_rm) : "",
   };
 }
 
@@ -50,6 +52,7 @@ export function toPayload(
     unit,
     weight_step: form.weight_step,
     formula_preset: form.formula_preset,
+    one_rm: positiveOrNull(parseDecimal(form.one_rm)),
   };
 
   if (isEdit && !canCorrectMax) {
@@ -65,4 +68,8 @@ export function toPayload(
     ...shared,
     max_weight: maxWeight,
   };
+}
+
+function positiveOrNull(value: number | null): number | null {
+  return value != null && value > 0 ? value : null;
 }

@@ -9,7 +9,12 @@ import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SlotPlanEditor } from "@/components/workout/slot-plan-editor";
 import { SortableList } from "@/components/workout/sortable-list";
 import type { TemplateFormSlot } from "@/components/workout/use-template-form";
-import type { ExerciseWithMax, SlotPlan, WorkoutKind } from "@/lib/types";
+import type {
+  CyclePhaseDef,
+  ExerciseWithMax,
+  SlotPlan,
+  WorkoutKind,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
@@ -19,6 +24,7 @@ export function TemplateExercisePicker({
   kind,
   selected,
   available,
+  cycle,
   onReorder,
   onToggle,
   onPlanChange,
@@ -26,6 +32,7 @@ export function TemplateExercisePicker({
   kind: WorkoutKind;
   selected: TemplateFormSlot[];
   available: ExerciseWithMax[];
+  cycle: CyclePhaseDef[];
   onReorder: (next: TemplateFormSlot[]) => void;
   onToggle: (id: string) => void;
   onPlanChange: (exerciseId: string, plan: SlotPlan | null) => void;
@@ -56,11 +63,15 @@ export function TemplateExercisePicker({
       <section className="flex flex-col gap-2">
         <SectionHeading
           title="Упражнения"
-          hint={
-            selected.length > 1
-              ? "Порядок в списке — порядок в зале. Тяни за номер. Нажми на упражнение — своя схема подходов."
-              : "Порядок в списке — порядок в зале. Нажми на упражнение — своя схема подходов."
-          }
+          hint={[
+            "Порядок в списке — порядок в зале.",
+            selected.length > 1 ? "Тяни за номер." : null,
+            cycle.length > 0
+              ? "Нажми на упражнение — своя схема подходов, можно на каждый этап цикла."
+              : "Нажми на упражнение — своя схема подходов.",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         />
         {selected.length === 0 ? (
           <p className="card-surface px-5 py-4 text-base text-muted-foreground">
@@ -77,7 +88,7 @@ export function TemplateExercisePicker({
               }
               renderItem={(row) => {
                 const open = openId === row.id;
-                const summary = slotPlanSummary(row.plan);
+                const summary = slotPlanSummary(row.plan, cycle);
                 return (
                   <div className="flex min-w-0 flex-1 flex-col">
                     <div className="flex items-center gap-2">
@@ -107,6 +118,7 @@ export function TemplateExercisePicker({
                         kind={kind}
                         exercise={row.exercise}
                         plan={row.plan}
+                        cycle={cycle}
                         onChange={(plan) => onPlanChange(row.id, plan)}
                       />
                     ) : null}

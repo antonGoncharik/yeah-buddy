@@ -114,6 +114,7 @@ function exercise(
     unit: "reps",
     weight_step: 2.5,
     formula_preset: "barbell",
+    one_rm: null,
     slot: "a",
     is_active: true,
     created_at: "2026-01-01",

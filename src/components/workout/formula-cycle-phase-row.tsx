@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { type Dispatch, type SetStateAction, useState } from "react";
 
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
@@ -45,6 +46,7 @@ export function FormulaCyclePhaseRow({
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
 }) {
+  const confirm = useConfirm();
   const work =
     formulas[kind].phases[phase.key]?.work ?? formulas[kind].base.work;
   // «Свои» right after tapping equals the derived sets, so remember the choice.
@@ -193,10 +195,20 @@ export function FormulaCyclePhaseRow({
             variant="ghost"
             className="h-11 text-base text-destructive"
             onClick={() => {
-              setSaved(false);
-              setFormulas((current) =>
-                current ? removeCyclePhase(current, phase.key) : current,
-              );
+              void confirm({
+                message: `Убрать этап «${phase.name}»? Если у упражнений в днях были свои подходы на этот этап, они перестанут работать.`,
+                confirmLabel: "Убрать",
+                cancelLabel: "Оставить",
+                destructive: true,
+              }).then((ok) => {
+                if (!ok) {
+                  return;
+                }
+                setSaved(false);
+                setFormulas((current) =>
+                  current ? removeCyclePhase(current, phase.key) : current,
+                );
+              });
             }}
           >
             Убрать этап

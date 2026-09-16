@@ -20,6 +20,9 @@ export function withCycle(
   next.cycle = structuredClone(cycle);
   next.dynamic.phases = {};
   next.static.phases = {};
+  if (next.cycle.length === 0) {
+    next.cycle_auto_end = undefined;
+  }
   for (const phase of next.cycle) {
     next.dynamic.phases[phase.key] = workForPhase(
       next.dynamic.base,

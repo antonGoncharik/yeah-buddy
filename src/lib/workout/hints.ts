@@ -115,11 +115,15 @@ export function templateCanPlan(template: TemplateLike): boolean {
   );
 }
 
-/** Template exercises that need a working weight before they can get a plan. */
+/**
+ * Template exercises that need a working weight before they can get a plan.
+ * `phaseKey` omitted — «где угодно в цикле»: спросим вес заранее.
+ */
 export function templateMissingMaxes(
   template: TemplateLike,
   catalog: ExerciseWithMax[],
   plannedExerciseIds: Iterable<string> = [],
+  phaseKey?: string | null,
 ): Exercise[] {
   const planned = new Set(plannedExerciseIds);
   const maxById = new Map(
@@ -134,7 +138,10 @@ export function templateMissingMaxes(
       return false;
     }
     const plan = slotFor(template.slots, exercise.id);
-    if (!slotCanPlan(plan, exercise) || !slotNeedsMax(plan, exercise)) {
+    if (
+      !slotCanPlan(plan, exercise, phaseKey) ||
+      !slotNeedsMax(plan, exercise, phaseKey)
+    ) {
       return false;
     }
     return (maxById.get(exercise.id) ?? 0) <= 0;
@@ -146,6 +153,7 @@ export function templateMissingTracks(
   template: TemplateLike,
   catalog: Array<Pick<ExerciseWithMax, "id" | "track">>,
   plannedExerciseIds: Iterable<string> = [],
+  phaseKey?: string | null,
 ): Exercise[] {
   const planned = new Set(plannedExerciseIds);
   const hasTrack = new Set(
@@ -158,7 +166,7 @@ export function templateMissingTracks(
     if (planned.has(exercise.id) || hasTrack.has(exercise.id)) {
       return false;
     }
-    return slotNeedsTrack(slotFor(template.slots, exercise.id));
+    return slotNeedsTrack(slotFor(template.slots, exercise.id), phaseKey);
   });
 }
 

@@ -57,7 +57,13 @@ export async function loadSessionDetail(
         sessionExercises.map((item) => item.id),
       ),
       loadPreviousWork(userId, session, exerciseIds),
-      listMissing(userId, session, template, exerciseIds),
+      listMissing(
+        userId,
+        session,
+        template,
+        exerciseIds,
+        phase?.phase_type ?? null,
+      ),
       listTrackInfo(userId, sessionExercises),
     ]);
 
@@ -129,17 +135,24 @@ async function listMissing(
   session: WorkoutSession,
   template: WorkoutTemplateDetail | null,
   plannedExerciseIds: string[],
+  phaseKey: string | null,
 ): Promise<{ maxes: Exercise[]; tracks: Exercise[] }> {
   if (session.status !== "planned" || !template) {
     return { maxes: [], tracks: [] };
   }
 
   // Cheap pre-check with an empty catalog: no candidates → no query.
-  const maxCandidates = templateMissingMaxes(template, [], plannedExerciseIds);
+  const maxCandidates = templateMissingMaxes(
+    template,
+    [],
+    plannedExerciseIds,
+    phaseKey,
+  );
   const trackCandidates = templateMissingTracks(
     template,
     [],
     plannedExerciseIds,
+    phaseKey,
   );
   if (maxCandidates.length === 0 && trackCandidates.length === 0) {
     return { maxes: [], tracks: [] };
@@ -147,8 +160,18 @@ async function listMissing(
 
   const catalog = await listExercises(userId, "active");
   return {
-    maxes: templateMissingMaxes(template, catalog, plannedExerciseIds),
-    tracks: templateMissingTracks(template, catalog, plannedExerciseIds),
+    maxes: templateMissingMaxes(
+      template,
+      catalog,
+      plannedExerciseIds,
+      phaseKey,
+    ),
+    tracks: templateMissingTracks(
+      template,
+      catalog,
+      plannedExerciseIds,
+      phaseKey,
+    ),
   };
 }
 

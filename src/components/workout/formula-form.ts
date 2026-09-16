@@ -1,5 +1,4 @@
 import type {
-  CyclePhaseDef,
   FormulaSetSpec,
   WarmupPresetId,
   WorkoutFormulas,
@@ -30,11 +29,13 @@ export function warmupsHint(
 }
 
 /** Hint under the «Этапы цикла» row. */
-export function cycleHint(cycle: CyclePhaseDef[]): string {
+export function cycleHint(formulas: WorkoutFormulas): string {
+  const cycle = formulas.cycle;
   if (cycle.length === 0) {
     return "Не настроены. Вес всегда считается одинаково";
   }
-  return cycle.map((phase) => phase.name).join(" → ");
+  const names = cycle.map((phase) => phase.name).join(" → ");
+  return formulas.cycle_auto_end ? `${names} · меняется после круга` : names;
 }
 
 export function patchBaseWork(

@@ -95,6 +95,11 @@ function ProgramPresetCard({
             советуем для начала
           </span>
         ) : null}
+        {preset.cycle ? (
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            со своим циклом
+          </span>
+        ) : null}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{preset.hint}</p>
       {compact ? (
@@ -112,6 +117,11 @@ function ProgramPresetCard({
               </span>
             </p>
           ))}
+          {preset.cycle ? (
+            <p className="text-sm leading-snug text-muted-foreground">
+              Этапы: {preset.cycle.map((phase) => phase.name).join(" → ")}
+            </p>
+          ) : null}
         </div>
       )}
     </button>

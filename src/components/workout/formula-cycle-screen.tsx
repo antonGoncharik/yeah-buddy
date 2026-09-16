@@ -168,6 +168,33 @@ export function FormulaCycleScreen() {
                   Этап
                 </Button>
 
+                <section className="card-surface flex flex-col gap-2 px-5 py-4">
+                  <h2 className="text-base font-medium">Когда менять этап</h2>
+                  <Segmented
+                    value={formulas.cycle_auto_end ? "auto" : "manual"}
+                    options={[
+                      { id: "manual", label: "Сам решу" },
+                      { id: "auto", label: "После круга" },
+                    ]}
+                    onChange={(id) => {
+                      setSaved(false);
+                      setFormulas((current) =>
+                        current
+                          ? {
+                              ...current,
+                              cycle_auto_end: id === "auto" ? true : undefined,
+                            }
+                          : current,
+                      );
+                    }}
+                  />
+                  <p className="text-sm leading-snug text-muted-foreground">
+                    {formulas.cycle_auto_end
+                      ? "Прошёл все дни программы — этап сменится сам, и где положена прибавка, рабочие веса поднимутся. Последний этап всё равно закрывается руками: там начинается новый цикл."
+                      : "После круга дней подскажем, а закроешь этап сам — когда восстановился."}
+                  </p>
+                </section>
+
                 <div className="flex flex-col">
                   <Button
                     type="button"

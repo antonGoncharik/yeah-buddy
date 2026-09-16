@@ -45,6 +45,8 @@ export const formulasSchema = z.object({
   static: kindFormulasSchema,
   warmups: z.union([kindWarmupsSchema, warmupPresetsSchema]).optional(),
   cycle: z.array(cyclePhaseSchema).max(8),
+  /** Этап закрывается сам после круга дней программы. */
+  cycle_auto_end: z.boolean().optional(),
 });
 
 export const legacyKindSchema = z.object({

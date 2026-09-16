@@ -1,11 +1,18 @@
 import type {
+  CyclePhaseDef,
   SlotIntensity,
   SlotLoad,
   SlotPlan,
   SlotSetGroup,
   WorkoutKind,
 } from "@/lib/types";
-import { feelLoad, percentLoad, trackLoad } from "@/lib/workout/slot-plan";
+import { FOUR_WEEK_DELOAD_CYCLE } from "@/lib/workout/cycle-templates";
+import {
+  feelLoad,
+  ormLoad,
+  percentLoad,
+  trackLoad,
+} from "@/lib/workout/slot-plan";
 
 export interface ProgramSlot {
   name: string;
@@ -39,6 +46,9 @@ export const PROGRAM_PRESET_IDS = [
   "five_three_one",
   "texas",
   "press_two_week",
+  "table_squat",
+  "table_bench",
+  "table_three_lifts",
 ] as const;
 
 export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
@@ -61,6 +71,11 @@ export interface ProgramPreset {
   hint: string;
   level: ProgramLevel;
   templates: ProgramDay[];
+  /**
+   * Программы-таблицы несут свой цикл: схемы на слотах привязаны к его
+   * этапам. Ставится вместе с днями, старые этапы заменяются.
+   */
+  cycle?: CyclePhaseDef[];
 }
 
 export const PROGRAM_PRESETS: ProgramPreset[] = [
@@ -602,6 +617,89 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
       ]),
     ],
   },
+  {
+    id: "table_squat",
+    name: "Присед по таблице",
+    hint: "Присед четыре раза в неделю: 4×9, 5×7, 7×5, 10×3 — проценты от 1ПМ. Четыре недели, каждая тяжелее. Поставит свой цикл на четыре недели и сброс.",
+    level: "advanced",
+    cycle: FOUR_WEEK_DELOAD_CYCLE,
+    templates: [
+      day("Таблица · 9", [
+        table("Приседания со штангой", 4, 9, [70, 75, 77.5, 80]),
+        base("Жим лёжа", 3, 8, "light"),
+        near("Пресс", 3, 15),
+      ]),
+      day("Таблица · 7", [
+        table("Приседания со штангой", 5, 7, [75, 80, 82.5, 85]),
+        near("Подтягивания", 4, 8),
+        near("Гиперэкстензия", 3, 12),
+      ]),
+      day("Таблица · 5", [
+        table("Приседания со штангой", 7, 5, [80, 85, 87.5, 90]),
+        base("Жим стоя", 3, 8, "light"),
+        near("Пресс", 3, 15),
+      ]),
+      day("Таблица · 3", [
+        table("Приседания со штангой", 10, 3, [85, 87.5, 90, 92.5]),
+        near("Сгибание ног", 3, 12),
+        near("Гиперэкстензия", 3, 12),
+      ]),
+    ],
+  },
+  {
+    id: "table_bench",
+    name: "Жим по таблице",
+    hint: "Жим три раза в неделю: тяжёлый, объёмный и быстрый — проценты от 1ПМ. Четыре недели, каждая тяжелее. Поставит свой цикл на четыре недели и сброс.",
+    level: "advanced",
+    cycle: FOUR_WEEK_DELOAD_CYCLE,
+    templates: [
+      day("Таблица · жим тяжело", [
+        table("Жим лёжа", 5, 5, [70, 75, 77.5, 80]),
+        base("Приседания со штангой", 3, 5, "light"),
+        near("Подтягивания", 4, 8),
+        near("Жим узким хватом", 3, 10),
+      ]),
+      day("Таблица · жим объём", [
+        table("Жим лёжа", 5, 8, [65, 67.5, 70, 72.5]),
+        near("Жим гантелей сидя", 4, 10),
+        near("Тяга горизонтального блока", 4, 12),
+        near("Разгибание на блоке", 3, 12),
+      ]),
+      day("Таблица · жим быстро", [
+        table("Жим лёжа", 8, 3, [60, 62.5, 65, 67.5]),
+        base("Приседания со штангой", 3, 5, "light"),
+        near("Жим лёжа под наклоном", 3, 8),
+        near("Махи в наклоне", 4, 15),
+      ]),
+    ],
+  },
+  {
+    id: "table_three_lifts",
+    name: "Присед / Жим / Тяга по таблице",
+    hint: "Три тренировки, в каждой присед и жим — у каждого лифта свои проценты от 1ПМ и своя неделя. Поставит свой цикл на четыре недели и сброс.",
+    level: "advanced",
+    cycle: FOUR_WEEK_DELOAD_CYCLE,
+    templates: [
+      day("Таблица · день 1", [
+        table("Жим лёжа", 5, 5, [65, 70, 72.5, 75]),
+        table("Приседания со штангой", 4, 5, [70, 75, 77.5, 80]),
+        near("Жим узким хватом", 3, 10),
+        near("Пресс", 3, 15),
+      ]),
+      day("Таблица · день 2", [
+        table("Приседания со штангой", 4, 4, [75, 80, 82.5, 85]),
+        table("Становая тяга", 4, 4, [70, 75, 77.5, 80]),
+        near("Тяга штанги в наклоне", 4, 8),
+        near("Гиперэкстензия", 3, 12),
+      ]),
+      day("Таблица · день 3", [
+        table("Жим лёжа", 6, 3, [70, 75, 80, 85]),
+        table("Приседания со штангой", 3, 5, [65, 70, 70, 75]),
+        near("Подтягивания", 4, 8),
+        near("Разведение гантелей в стороны", 3, 15),
+      ]),
+    ],
+  },
 ];
 
 function day(name: string, exercises: Array<string | ProgramSlot>): ProgramDay {
@@ -630,17 +728,46 @@ function slot(
     intensity?: SlotIntensity | null;
     warmup?: boolean;
     note?: string | null;
+    phases?: Record<string, SlotSetGroup[]>;
   } = {},
 ): ProgramSlot {
   return {
     name,
     plan: {
       groups,
+      phases: extra.phases,
       intensity: extra.intensity ?? null,
       warmup: extra.warmup ?? true,
       note: extra.note ?? null,
     },
   };
+}
+
+/**
+ * Строка таблицы: сеты × повторы, свой процент от 1ПМ на каждую неделю.
+ * Первая неделя — обычная схема слота, дальше свои схемы на этапы цикла
+ * `w2`–`w4`; на сбросе легкие пятёрки.
+ */
+function table(
+  name: string,
+  sets: number,
+  reps: number,
+  percents: [number, number, number, number],
+): ProgramSlot {
+  const [first, ...rest] = percents;
+  const weeks = ["w2", "w3", "w4"] as const;
+  return slot(name, [group(sets, reps, ormLoad(first))], {
+    note: "таблица: проценты от 1ПМ",
+    phases: {
+      ...Object.fromEntries(
+        weeks.map((key, index) => [
+          key,
+          [group(sets, reps, ormLoad(rest[index] ?? first))],
+        ]),
+      ),
+      deload: [group(3, 5, ormLoad(55))],
+    },
+  });
 }
 
 /** Heavy day works at 80 % of the working weight, light at 70 %. */

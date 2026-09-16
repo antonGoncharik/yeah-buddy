@@ -14,6 +14,10 @@ export const slotLoadSchema = z.discriminatedUnion("type", [
     percent: z.number().finite().min(1).max(200),
   }),
   z.object({
+    type: z.literal("orm"),
+    percent: z.number().finite().min(1).max(200),
+  }),
+  z.object({
     type: z.literal("track"),
     percent: z.number().finite().min(1).max(200).default(100),
     offset: z.number().finite().min(-500).max(500).default(0),
@@ -41,8 +45,21 @@ export const slotSetGroupSchema = z
     "Верх диапазона больше низа.",
   );
 
+export const MAX_SLOT_PHASES = 8;
+
+export const slotPhaseGroupsSchema = z
+  .record(
+    z.string().regex(/^[a-z][a-z0-9_]*$/),
+    z.array(slotSetGroupSchema).min(1).max(MAX_SLOT_GROUPS),
+  )
+  .refine(
+    (map) => Object.keys(map).length <= MAX_SLOT_PHASES,
+    "Этапов не больше восьми.",
+  );
+
 export const slotPlanSchema = z.object({
   groups: z.array(slotSetGroupSchema).min(1).max(MAX_SLOT_GROUPS).nullable(),
+  phases: slotPhaseGroupsSchema.optional(),
   intensity: z.enum(["heavy", "light"]).nullable().default(null),
   warmup: z.boolean().default(true),
   note: z

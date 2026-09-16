@@ -32,6 +32,7 @@ export function fillFormulas(
     },
     warmups: normalizeWarmups(value.warmups),
     cycle: value.cycle ?? [],
+    cycle_auto_end: value.cycle_auto_end === true ? true : undefined,
   });
 }
 

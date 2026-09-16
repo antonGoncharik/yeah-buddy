@@ -11,7 +11,11 @@ import {
   toUnit,
   toWorkoutType,
 } from "@/lib/workout/map-enums";
-import { toNullableString, toNumber } from "@/lib/workout/numbers";
+import {
+  toNullableNumber,
+  toNullableString,
+  toNumber,
+} from "@/lib/workout/numbers";
 import { parseExerciseTrack } from "@/lib/workout/track-line";
 
 export function mapExercise(row: Record<string, unknown>): Exercise {
@@ -25,6 +29,7 @@ export function mapExercise(row: Record<string, unknown>): Exercise {
     unit: toUnit(row.unit),
     weight_step: toNumber(row.weight_step) || 2.5,
     formula_preset: toPreset(row.formula_preset),
+    one_rm: positiveOrNull(toNullableNumber(row.one_rm)),
     slot: toExerciseSlot(row.slot),
     is_active: Boolean(row.is_active),
     created_at: String(row.created_at),
@@ -76,6 +81,10 @@ export function toPreset(value: unknown): FormulaPreset {
   }
 
   return "barbell";
+}
+
+function positiveOrNull(value: number | null): number | null {
+  return value != null && value > 0 ? value : null;
 }
 
 export function isFormulaPreset(value: string): value is FormulaPreset {

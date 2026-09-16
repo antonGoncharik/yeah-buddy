@@ -60,6 +60,8 @@ export interface WorkoutFormulas {
   static: KindFormulas;
   warmups: Record<WorkoutKind, KindWarmups>;
   cycle: CyclePhaseDef[];
+  /** Этап закрывается сам, когда пройден круг дней программы. */
+  cycle_auto_end?: boolean;
 }
 
 export interface WorkoutSettings {
@@ -80,6 +82,8 @@ export interface Exercise {
   unit: ExerciseUnit;
   weight_step: number;
   formula_preset: FormulaPreset;
+  /** Максимум на один раз. Только для схем в % от 1ПМ; null — считаем от рабочего. */
+  one_rm: number | null;
   slot: ExerciseSlot | null;
   is_active: boolean;
   created_at: string;

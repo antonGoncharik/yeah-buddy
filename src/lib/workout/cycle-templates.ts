@@ -65,6 +65,12 @@ export const VOLUME_STRENGTH_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
+export const TWO_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
+  phase("w1", "Неделя 1"),
+  phase("w2", "Неделя 2", { increase_on_end: true }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
 export const THREE_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
   phase("w1", "Неделя 1"),
   phase("w2", "Неделя 2"),
@@ -89,6 +95,18 @@ export const TENS_TO_TRIPLES_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
+/** Volume down, weight up, last phase ends with a single. Shared plan only. */
+export const PEAKING_CYCLE: CyclePhaseDef[] = [
+  phase("w5", "5×5", { work: times(80, 5, 5) }),
+  phase("w4", "4×4", { work: times(88, 4, 4) }),
+  phase("w3", "3×3", { work: times(94, 3, 3) }),
+  phase("top", "Разовый", {
+    increase_on_end: true,
+    work: [set(80, 5), set(90, 3), set(100, 1)],
+  }),
+  phase("deload", "Сброс", { skip_warmup: true }),
+];
+
 /** 5/3/1 week wave on the shared plan. Do not stack on the 5/3/1 program. */
 export const FIVES_TO_ONES_CYCLE: CyclePhaseDef[] = [
   phase("w5s", "5s", { work: [set(65, 5), set(75, 5), set(85, 5)] }),
@@ -108,10 +126,12 @@ export const CYCLE_TEMPLATES: Array<{
     | "light_heavy"
     | "linear"
     | "volume_strength"
+    | "two_week_deload"
     | "three_week_deload"
     | "four_week_deload"
     | "tens_to_triples"
-    | "fives_to_ones";
+    | "fives_to_ones"
+    | "peaking";
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
@@ -153,15 +173,21 @@ export const CYCLE_TEMPLATES: Array<{
     cycle: VOLUME_STRENGTH_CYCLE,
   },
   {
+    id: "two_week_deload",
+    name: "Две недели + сброс",
+    hint: "Короткий круг: две недели и сброс. После второй можно поднять веса.",
+    cycle: TWO_WEEK_DELOAD_CYCLE,
+  },
+  {
     id: "three_week_deload",
     name: "Три недели + сброс",
-    hint: "Программа та же. После третьей недели можно поднять рабочие веса.",
+    hint: "Недели как номера этапов. Свои подходы на каждую неделю задаются в упражнениях дня.",
     cycle: THREE_WEEK_DELOAD_CYCLE,
   },
   {
     id: "four_week_deload",
     name: "Четыре недели + сброс",
-    hint: "Программа та же. После четвёртой недели можно поднять рабочие веса.",
+    hint: "Для таблиц: у каждого упражнения в дне своя сетка на каждую неделю.",
     cycle: FOUR_WEEK_DELOAD_CYCLE,
   },
   {
@@ -175,5 +201,11 @@ export const CYCLE_TEMPLATES: Array<{
     name: "5s → 1s",
     hint: "Волна 5s → 3s → 1s, потом сброс. Не ставь, если 5/3/1 уже зашит в днях.",
     cycle: FIVES_TO_ONES_CYCLE,
+  },
+  {
+    id: "peaking",
+    name: "Подводка к разовому",
+    hint: "Подходов меньше, вес больше: 5×5 → 4×4 → 3×3 → один на раз. Для дней без своей схемы.",
+    cycle: PEAKING_CYCLE,
   },
 ];

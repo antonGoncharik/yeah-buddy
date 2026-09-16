@@ -1,4 +1,5 @@
 import type {
+  CyclePhaseDef,
   Exercise,
   SlotIntensity,
   SlotLoad,
@@ -45,6 +46,7 @@ export const SLOT_INTENSITY_HINTS: Record<SlotIntensity, string> = {
 
 export const SLOT_LOAD_TYPES: SlotLoadType[] = [
   "percent",
+  "orm",
   "track",
   "fixed",
   "feel",
@@ -52,6 +54,7 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
   percent: "% от рабочего",
+  orm: "% от 1ПМ",
   track: "Линейка",
   fixed: "Килограммы",
   feel: "По самочувствию",
@@ -59,6 +62,7 @@ export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
 
 export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
   percent: "Как в общем плане: процент от рабочего веса упражнения.",
+  orm: "Для таблиц: процент от максимума на один раз. Нет 1ПМ — посчитаем от рабочего веса.",
   track: "Вес по линейке упражнения: каждую тренировку следующий шаг.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
   feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
@@ -76,7 +80,7 @@ export interface PlannedSetRow {
 
 export interface SlotPlanContext {
   kind: WorkoutKind;
-  exercise: Pick<Exercise, "weight_step" | "formula_preset">;
+  exercise: Pick<Exercise, "weight_step" | "formula_preset" | "one_rm">;
   formulas: WorkoutFormulas;
   phaseKey: string | null;
   /** Working weight of the exercise (phase max inside a cycle). */
@@ -91,6 +95,72 @@ export function defaultSlotPlan(): SlotPlan {
   return { groups: null, intensity: null, warmup: true, note: null };
 }
 
+/**
+ * Схема на конкретный этап цикла. Есть своя на этот этап — она; иначе
+ * обычная схема слота; иначе null — значит по общему плану подходов.
+ * `fromPhase` нужен планировщику: явная схема на этап не масштабируется
+ * процентом этапа, иначе проценты умножатся дважды.
+ */
+export function slotGroupsForPhase(
+  plan: SlotPlan | null,
+  phaseKey: string | null,
+): { groups: SlotSetGroup[] | null; fromPhase: boolean } {
+  if (!plan) {
+    return { groups: null, fromPhase: false };
+  }
+  const own = phaseKey ? plan.phases?.[phaseKey] : undefined;
+  return own && own.length > 0
+    ? { groups: own, fromPhase: true }
+    : { groups: plan.groups, fromPhase: false };
+}
+
+/** Все группы слота: обычная схема плюс все схемы этапов. */
+export function slotAllGroups(plan: SlotPlan | null): SlotSetGroup[] | null {
+  if (!plan) {
+    return null;
+  }
+  const phases = Object.values(plan.phases ?? {}).flat();
+  if (plan.groups == null && phases.length === 0) {
+    return null;
+  }
+  return [...(plan.groups ?? []), ...phases];
+}
+
+/** Ключи этапов, у которых на слоте своя схема. */
+export function slotPhaseKeys(plan: SlotPlan | null): string[] {
+  return Object.entries(plan?.phases ?? {})
+    .filter(([, groups]) => groups.length > 0)
+    .map(([key]) => key);
+}
+
+/** Ставит или убирает схему слота на этап. */
+export function setSlotPhaseGroups(
+  plan: SlotPlan | null,
+  phaseKey: string,
+  groups: SlotSetGroup[] | null,
+): SlotPlan {
+  const current = plan ?? defaultSlotPlan();
+  const phases = { ...(current.phases ?? {}) };
+  if (groups == null || groups.length === 0) {
+    delete phases[phaseKey];
+  } else {
+    phases[phaseKey] = groups;
+  }
+  return Object.keys(phases).length > 0
+    ? { ...current, phases }
+    : { ...current, phases: undefined };
+}
+
+/** `undefined` этап — «где угодно в цикле»: для подсказок и предзагрузки. */
+function groupsOf(
+  plan: SlotPlan | null,
+  phaseKey?: string | null,
+): SlotSetGroup[] | null {
+  return phaseKey === undefined
+    ? slotAllGroups(plan)
+    : slotGroupsForPhase(plan, phaseKey).groups;
+}
+
 export function defaultSlotGroup(kind: WorkoutKind): SlotSetGroup {
   return kind === "static"
     ? { sets: 3, reps: null, reps_to: null, seconds: 6, load: percentLoad(80) }
@@ -99,6 +169,10 @@ export function defaultSlotGroup(kind: WorkoutKind): SlotSetGroup {
 
 export function percentLoad(percent: number): SlotLoad {
   return { type: "percent", percent };
+}
+
+export function ormLoad(percent: number): SlotLoad {
+  return { type: "orm", percent };
 }
 
 export function trackLoad(offset = 0, percent = 100): SlotLoad {
@@ -125,6 +199,8 @@ export function switchLoadType(
   switch (type) {
     case "percent":
       return percentLoad(80);
+    case "orm":
+      return ormLoad(75);
     case "track":
       return trackLoad();
     case "fixed":
@@ -137,7 +213,9 @@ export function switchLoadType(
 }
 
 export function slotIsCustom(plan: SlotPlan | null): boolean {
-  return plan != null && plan.groups != null;
+  return (
+    plan != null && (plan.groups != null || slotPhaseKeys(plan).length > 0)
+  );
 }
 
 /** A plan that says nothing beyond the defaults is stored as null. */
@@ -145,44 +223,74 @@ export function normalizeSlotPlan(plan: SlotPlan | null): SlotPlan | null {
   if (!plan) {
     return null;
   }
+  const keys = slotPhaseKeys(plan);
+  const phases =
+    keys.length > 0
+      ? Object.fromEntries(
+          keys.map((key) => [key, plan.phases?.[key] ?? []] as const),
+        )
+      : undefined;
   if (
     plan.groups == null &&
+    phases == null &&
     plan.intensity == null &&
     plan.note == null &&
     plan.warmup
   ) {
     return null;
   }
-  return plan;
+  return { ...plan, phases };
 }
 
+/**
+ * Рабочий вес нужен для процентов от рабочего, а для процентов от 1ПМ —
+ * только пока сам 1ПМ не задан: тогда считаем от рабочего веса.
+ */
 export function slotNeedsMax(
   plan: SlotPlan | null,
-  exercise: Pick<Exercise, "formula_preset">,
+  exercise: Pick<Exercise, "formula_preset" | "one_rm">,
+  phaseKey?: string | null,
 ): boolean {
-  if (!plan || plan.groups == null) {
+  const groups = groupsOf(plan, phaseKey);
+  if (groups == null) {
     return exercise.formula_preset !== "none";
   }
-  return plan.groups.some((group) => group.load.type === "percent");
+  return groups.some(
+    (group) =>
+      group.load.type === "percent" ||
+      (group.load.type === "orm" && exercise.one_rm == null),
+  );
 }
 
-export function slotNeedsTrack(plan: SlotPlan | null): boolean {
-  return Boolean(plan?.groups?.some((group) => group.load.type === "track"));
+export function slotNeedsTrack(
+  plan: SlotPlan | null,
+  phaseKey?: string | null,
+): boolean {
+  return Boolean(
+    groupsOf(plan, phaseKey)?.some((group) => group.load.type === "track"),
+  );
 }
 
-export function slotNeedsFeel(plan: SlotPlan | null): boolean {
-  return Boolean(plan?.groups?.some((group) => group.load.type === "feel"));
+export function slotNeedsFeel(
+  plan: SlotPlan | null,
+  phaseKey?: string | null,
+): boolean {
+  return Boolean(
+    groupsOf(plan, phaseKey)?.some((group) => group.load.type === "feel"),
+  );
 }
 
 /** Whether this slot can produce a plan of sets at all (given the weights). */
 export function slotCanPlan(
   plan: SlotPlan | null,
   exercise: Pick<Exercise, "formula_preset">,
+  phaseKey?: string | null,
 ): boolean {
-  if (!plan || plan.groups == null) {
+  const groups = groupsOf(plan, phaseKey);
+  if (groups == null) {
     return exercise.formula_preset !== "none";
   }
-  return plan.groups.length > 0;
+  return groups.length > 0;
 }
 
 export function slotFor(
@@ -205,8 +313,9 @@ export function plannedSetsForSlot(
     : undefined;
   const skipWarmup = Boolean(phase?.skip_warmup);
   const intensity = plan?.intensity ?? null;
+  const { groups, fromPhase } = slotGroupsForPhase(plan, ctx.phaseKey);
 
-  if (!plan || plan.groups == null) {
+  if (!plan || groups == null) {
     if (ctx.exercise.formula_preset === "none") {
       return null;
     }
@@ -233,9 +342,10 @@ export function plannedSetsForSlot(
     return withIntensityRir(rows, intensity);
   }
 
-  const scale = phase?.percent_scale ?? 1;
+  // Своя схема на этап — явная: процент этапа к ней не применяется.
+  const scale = fromPhase ? 1 : (phase?.percent_scale ?? 1);
   const work: PlannedSetRow[] = [];
-  for (const group of plan.groups) {
+  for (const group of groups) {
     const weight = groupWeight(group.load, ctx, scale);
     if (weight === undefined) {
       return null;
@@ -253,7 +363,8 @@ export function plannedSetsForSlot(
     }
   }
 
-  const warmup = plan.warmup && !skipWarmup ? warmupRows(plan, work, ctx) : [];
+  const warmup =
+    plan.warmup && !skipWarmup ? warmupRows(groups, work, ctx) : [];
   const rows = [...warmup, ...work].map((row, index) => ({
     ...row,
     set_number: index + 1,
@@ -278,6 +389,17 @@ function groupWeight(
         ctx.exercise.weight_step,
       );
     }
+    case "orm": {
+      const anchor = oneRmAnchor(ctx);
+      if (anchor == null) {
+        return undefined;
+      }
+      return calcPlannedWeight(
+        anchor,
+        load.percent * scale,
+        ctx.exercise.weight_step,
+      );
+    }
     case "track": {
       if (ctx.trackWeight == null || ctx.trackWeight <= 0) {
         return undefined;
@@ -294,8 +416,20 @@ function groupWeight(
   }
 }
 
+/** 1ПМ упражнения; не задан — считаем от рабочего веса (он ≈ 80 % максимума). */
+function oneRmAnchor(ctx: SlotPlanContext): number | null {
+  const own = ctx.exercise.one_rm;
+  if (own != null && own > 0) {
+    return own;
+  }
+  if (ctx.maxWeight == null || ctx.maxWeight <= 0) {
+    return null;
+  }
+  return (ctx.maxWeight * 100) / WORK_REFERENCE_PERCENT;
+}
+
 function warmupRows(
-  plan: SlotPlan,
+  groups: SlotSetGroup[],
   work: PlannedSetRow[],
   ctx: SlotPlanContext,
 ): PlannedSetRow[] {
@@ -303,9 +437,6 @@ function warmupRows(
   if (preset === "none") {
     return [];
   }
-  const usesPercent = plan.groups?.some(
-    (group) => group.load.type === "percent",
-  );
   const top = work.reduce<number | null>((best, row) => {
     if (row.planned_weight == null || row.planned_weight <= 0) {
       return best;
@@ -314,11 +445,7 @@ function warmupRows(
       ? row.planned_weight
       : best;
   }, null);
-  const reference = usesPercent
-    ? ctx.maxWeight
-    : top != null
-      ? (top * 100) / WORK_REFERENCE_PERCENT
-      : null;
+  const reference = warmupReference(groups, top, ctx);
   if (reference == null || reference <= 0) {
     return [];
   }
@@ -341,6 +468,26 @@ function warmupRows(
     planned_seconds: set.seconds,
     planned_rir: null,
   }));
+}
+
+/**
+ * От чего считать разминку: проценты от рабочего — от рабочего веса,
+ * проценты от 1ПМ — от рабочего эквивалента максимума, остальное
+ * (линейка, килограммы, самочувствие) — от верхнего рабочего подхода.
+ */
+function warmupReference(
+  groups: SlotSetGroup[],
+  top: number | null,
+  ctx: SlotPlanContext,
+): number | null {
+  if (groups.some((group) => group.load.type === "percent")) {
+    return ctx.maxWeight;
+  }
+  if (groups.some((group) => group.load.type === "orm")) {
+    const anchor = oneRmAnchor(ctx);
+    return anchor == null ? null : (anchor * WORK_REFERENCE_PERCENT) / 100;
+  }
+  return top == null ? null : (top * 100) / WORK_REFERENCE_PERCENT;
 }
 
 function withIntensityRir(
@@ -387,6 +534,8 @@ export function formatSlotLoad(load: SlotLoad): string {
   switch (load.type) {
     case "percent":
       return `${formatWeight(load.percent)} %`;
+    case "orm":
+      return `${formatWeight(load.percent)} % от 1ПМ`;
     case "track": {
       const parts = ["линейка"];
       if (load.percent !== 100) {
@@ -409,16 +558,25 @@ export function formatSlotGroup(group: SlotSetGroup): string {
 }
 
 /** One line under the exercise in the template editor and the program. */
-export function slotPlanSummary(plan: SlotPlan | null): string | null {
+export function slotPlanSummary(
+  plan: SlotPlan | null,
+  cycle: CyclePhaseDef[] = [],
+): string | null {
   if (!plan) {
     return null;
   }
   const parts: string[] = [];
   if (plan.groups) {
     parts.push(plan.groups.map(formatSlotGroup).join(" · "));
-    if (!plan.warmup) {
-      parts.push("без разминки");
-    }
+  } else if (slotPhaseKeys(plan).length > 0) {
+    parts.push("по общему плану");
+  }
+  const phases = phaseNamesLabel(plan, cycle);
+  if (phases) {
+    parts.push(`свои подходы: ${phases}`);
+  }
+  if (plan.groups && !plan.warmup) {
+    parts.push("без разминки");
   }
   if (plan.intensity) {
     parts.push(SLOT_INTENSITY_LABELS[plan.intensity].toLowerCase());
@@ -427,6 +585,35 @@ export function slotPlanSummary(plan: SlotPlan | null): string | null {
     parts.push(plan.note);
   }
   return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function phaseNamesLabel(
+  plan: SlotPlan,
+  cycle: CyclePhaseDef[],
+): string | null {
+  const keys = slotPhaseKeys(plan);
+  if (keys.length === 0) {
+    return null;
+  }
+  if (cycle.length === 0) {
+    return `${keys.length} ${phaseWord(keys.length)}`;
+  }
+  return cycle
+    .filter((phase) => keys.includes(phase.key))
+    .map((phase) => phase.name)
+    .join(", ");
+}
+
+function phaseWord(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return "этап";
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "этапа";
+  }
+  return "этапов";
 }
 
 export function rirLabel(rir: number): string {

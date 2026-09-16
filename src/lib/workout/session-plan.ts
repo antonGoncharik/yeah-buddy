@@ -145,7 +145,9 @@ export async function insertSessionExercise(
     return false;
   }
 
-  const usesTrack = track != null && slotNeedsTrack(plan);
+  // Снимок линейки — только по схеме текущего этапа: иначе линейка
+  // сдвинется в ту неделю, где она не используется.
+  const usesTrack = track != null && slotNeedsTrack(plan, ctx.phaseKey);
 
   const supabase = createSupabaseServerClient();
   const inserted = await supabase
@@ -156,7 +158,7 @@ export async function insertSessionExercise(
       exercise_id: exercise.id,
       sort_order: sortOrder,
       // Only percent-based slots are anchored to a working weight.
-      max_weight: slotNeedsMax(plan, exercise) ? maxWeight : null,
+      max_weight: slotNeedsMax(plan, exercise, ctx.phaseKey) ? maxWeight : null,
       intensity: plan?.intensity ?? null,
       note: plan?.note ?? null,
       track_id: usesTrack && track ? track.id : null,

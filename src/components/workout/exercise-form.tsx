@@ -77,6 +77,29 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         </Field>
       )}
 
+      {form.workout_type !== "static" && form.formula_preset !== "none" ? (
+        <Field label="Максимум на один раз, кг">
+          <Input
+            inputMode="decimal"
+            enterKeyHint="done"
+            placeholder="не обязательно"
+            value={form.one_rm}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                one_rm: event.target.value,
+              }))
+            }
+            onKeyDown={handleNumericEnter}
+            className="h-12 text-base"
+          />
+          <p className="text-sm text-muted-foreground">
+            Нужен только схемам «% от 1ПМ» — это силовые таблицы. Пусто —
+            посчитаем от рабочего веса.
+          </p>
+        </Field>
+      ) : null}
+
       {exercise ? <ExerciseTrackCard exercise={exercise} /> : null}
 
       {exercise ? <ExerciseMaxHistory exercise={exercise} /> : null}

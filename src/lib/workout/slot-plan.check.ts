@@ -5,8 +5,13 @@ import {
   parseRepsRange,
   plannedSetsForSlot,
   type SlotPlanContext,
+  setSlotPhaseGroups,
+  slotAllGroups,
+  slotGroupsForPhase,
+  slotIsCustom,
   slotNeedsMax,
   slotNeedsTrack,
+  slotPhaseKeys,
   slotPlanSummary,
 } from "@/lib/workout/slot-plan";
 import { parseSlotPlan } from "@/lib/workout/slot-plan-schema";
@@ -26,7 +31,11 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   }
 }
 
-const barbell = { weight_step: 2.5, formula_preset: "barbell" as const };
+const barbell = {
+  weight_step: 2.5,
+  formula_preset: "barbell" as const,
+  one_rm: null,
+};
 
 function ctx(patch: Partial<SlotPlanContext> = {}): SlotPlanContext {
   return {
@@ -231,7 +240,7 @@ assertEqual(
 assertEqual(
   plannedSetsForSlot(
     null,
-    ctx({ exercise: { weight_step: 1, formula_preset: "none" } }),
+    ctx({ exercise: { weight_step: 1, formula_preset: "none", one_rm: null } }),
   ),
   null,
   "no-formula exercise without a custom scheme has no plan",
@@ -257,7 +266,9 @@ assertEqual(
   line(
     plannedSetsForSlot(
       fixedNone,
-      ctx({ exercise: { weight_step: 1, formula_preset: "none" } }),
+      ctx({
+        exercise: { weight_step: 1, formula_preset: "none", one_rm: null },
+      }),
     ),
   ),
   ["w1:10×15", "w2:10×15", "w3:10×15"],
@@ -377,6 +388,222 @@ assertEqual(
   trackSummary({ steps, position: 6 }),
   "80 → 92.5 кг · пройдена",
   "summary when done",
+);
+
+// ---------- table: own scheme per cycle phase ----------
+
+const weeklyCycle: WorkoutFormulas = {
+  ...DEFAULT_WORKOUT_FORMULAS,
+  cycle: [
+    { key: "w1", name: "Неделя 1", skip_warmup: false, increase_on_end: false },
+    {
+      key: "w2",
+      name: "Неделя 2",
+      skip_warmup: false,
+      increase_on_end: false,
+      percent_scale: 1.1,
+    },
+    { key: "deload", name: "Сброс", skip_warmup: true, increase_on_end: false },
+  ],
+};
+
+const squatTable: SlotPlan = {
+  groups: [
+    {
+      sets: 4,
+      reps: 9,
+      reps_to: null,
+      seconds: null,
+      load: { type: "percent", percent: 70 },
+    },
+  ],
+  phases: {
+    w2: [
+      {
+        sets: 5,
+        reps: 7,
+        reps_to: null,
+        seconds: null,
+        load: { type: "percent", percent: 75 },
+      },
+    ],
+  },
+  intensity: null,
+  warmup: false,
+  note: null,
+};
+
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      squatTable,
+      ctx({ formulas: weeklyCycle, phaseKey: "w1" }),
+    ),
+  ),
+  ["w1:70×9", "w2:70×9", "w3:70×9", "w4:70×9"],
+  "a phase without its own scheme uses the slot scheme",
+);
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      squatTable,
+      ctx({ formulas: weeklyCycle, phaseKey: "w2" }),
+    ),
+  ),
+  ["w1:75×7", "w2:75×7", "w3:75×7", "w4:75×7", "w5:75×7"],
+  "the scheme of the running phase wins, and its percent is taken as written",
+);
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      squatTable,
+      ctx({ formulas: weeklyCycle, phaseKey: "unknown" }),
+    ),
+  ),
+  ["w1:70×9", "w2:70×9", "w3:70×9", "w4:70×9"],
+  "an unknown phase falls back to the slot scheme",
+);
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      { ...squatTable, phases: undefined },
+      ctx({ formulas: weeklyCycle, phaseKey: "w2" }),
+    ),
+  ),
+  ["w1:75×9", "w2:75×9", "w3:75×9", "w4:75×9"],
+  "without its own scheme the slot still follows the phase percent",
+);
+
+assertEqual(
+  slotGroupsForPhase(squatTable, "w2").fromPhase,
+  true,
+  "the resolver reports a phase scheme",
+);
+assertEqual(
+  slotAllGroups(squatTable)?.length,
+  2,
+  "all groups: the slot scheme plus every phase scheme",
+);
+assertEqual(slotPhaseKeys(squatTable), ["w2"], "phases with their own scheme");
+assertEqual(
+  slotIsCustom({ ...squatTable, groups: null }),
+  true,
+  "a slot with only a phase scheme is custom",
+);
+
+const weekTrack: SlotPlan = {
+  groups: [
+    {
+      sets: 3,
+      reps: 5,
+      reps_to: null,
+      seconds: null,
+      load: { type: "percent", percent: 80 },
+    },
+  ],
+  phases: {
+    w2: [
+      {
+        sets: 1,
+        reps: 3,
+        reps_to: null,
+        seconds: null,
+        load: { type: "track", percent: 100, offset: 0 },
+      },
+    ],
+  },
+  intensity: null,
+  warmup: false,
+  note: null,
+};
+assertEqual(
+  [slotNeedsTrack(weekTrack), slotNeedsTrack(weekTrack, "w1")],
+  [true, false],
+  "the line is needed somewhere in the cycle, but not in week 1",
+);
+assertEqual(
+  slotNeedsTrack(weekTrack, "w2"),
+  true,
+  "in week 2 the slot goes by the line",
+);
+
+assertEqual(
+  normalizeSlotPlan({
+    groups: null,
+    phases: { w2: [] },
+    intensity: null,
+    warmup: true,
+    note: null,
+  }),
+  null,
+  "empty phase schemes are not stored",
+);
+assertEqual(
+  setSlotPhaseGroups(squatTable, "w2", null).phases,
+  undefined,
+  "removing the last phase scheme clears the map",
+);
+assertEqual(
+  slotPlanSummary(squatTable, weeklyCycle.cycle),
+  "4×9 70 % · свои подходы: Неделя 2 · без разминки",
+  "summary names the phases with their own scheme",
+);
+
+// ---------- percent of a one-rep max ----------
+
+const ormPlan: SlotPlan = {
+  groups: [
+    {
+      sets: 5,
+      reps: 3,
+      reps_to: null,
+      seconds: null,
+      load: { type: "orm", percent: 80 },
+    },
+  ],
+  intensity: null,
+  warmup: false,
+  note: null,
+};
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      ormPlan,
+      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: 100 }),
+    ),
+  ),
+  ["w1:160×3", "w2:160×3", "w3:160×3", "w4:160×3", "w5:160×3"],
+  "percent of the one-rep max ignores the working weight",
+);
+assertEqual(
+  line(plannedSetsForSlot(ormPlan, ctx({ maxWeight: 100 }))),
+  ["w1:100×3", "w2:100×3", "w3:100×3", "w4:100×3", "w5:100×3"],
+  "without a one-rep max the working weight stands in for 80 % of it",
+);
+assertEqual(
+  plannedSetsForSlot(ormPlan, ctx({ maxWeight: null })),
+  null,
+  "no one-rep max and no working weight: nothing to plan",
+);
+assertEqual(
+  slotNeedsMax(ormPlan, barbell),
+  true,
+  "percent of a max needs a weight to lean on while the max is empty",
+);
+assertEqual(
+  slotNeedsMax(ormPlan, { ...barbell, one_rm: 200 }),
+  false,
+  "with a one-rep max the working weight is not needed",
+);
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      { ...ormPlan, warmup: true },
+      ctx({ exercise: { ...barbell, one_rm: 200 }, maxWeight: null }),
+    ),
+  ).filter((row) => row.startsWith("w1")),
+  ["w1:80×5"],
+  "warmup for a table slot is counted from the working equivalent of the max",
 );
 
 console.log("slot plans ok");

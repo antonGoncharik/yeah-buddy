@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { advanceTrack } from "@/lib/workout/exercise-tracks";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
+import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
 import { getSessionDetail } from "@/lib/workout/session-detail";
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import type {
@@ -178,6 +179,7 @@ export async function completeSessionAsPlanned(
         await advanceTrack(userId, item.track_id, item.track_step);
       }
     }
+    await maybeAutoEndPhase(userId);
   }
   const refreshed = await getSession(userId, sessionId);
   if (!refreshed) {

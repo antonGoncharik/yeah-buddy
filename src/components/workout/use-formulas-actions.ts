@@ -117,7 +117,7 @@ export function useFormulasActions({
     }
     if (formulas.cycle.length > 0) {
       const ok = await confirm({
-        message: `Поставить «${name}» вместо текущих этапов? Свои подходы в этапах сбросятся.`,
+        message: `Поставить «${name}» вместо текущих этапов? Свои подходы в этапах сбросятся, а схемы упражнений на прежние этапы перестанут работать.`,
         confirmLabel: "Поставить",
         cancelLabel: "Оставить",
       });
@@ -134,7 +134,8 @@ export function useFormulasActions({
       return;
     }
     const ok = await confirm({
-      message: "Убрать этапы? Вес всегда будет считаться от рабочих подходов.",
+      message:
+        "Убрать этапы? Вес всегда будет считаться от рабочих подходов, а схемы упражнений по неделям перестанут работать.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
