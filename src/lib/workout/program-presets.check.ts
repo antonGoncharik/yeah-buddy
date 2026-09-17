@@ -1,6 +1,7 @@
 import type { SlotPlan } from "@/lib/types";
 import {
   CYCLE_TEMPLATES,
+  FIVES_TO_ONES_CYCLE,
   TWO_WEEK_KG_CYCLE,
 } from "@/lib/workout/cycle-templates";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
@@ -15,6 +16,14 @@ import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 function assert(condition: unknown, label: string): asserts condition {
   if (!condition) {
     throw new Error(label);
+  }
+}
+
+function assertEqual(actual: unknown, expected: unknown, label: string): void {
+  if (actual !== expected) {
+    throw new Error(
+      `${label}: got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`,
+    );
   }
 }
 
@@ -170,6 +179,62 @@ assert(
   (pullW1?.find((row) => row.set_type === "work")?.planned_weight ?? 0) >
     (pullW2?.find((row) => row.set_type === "work")?.planned_weight ?? 0),
   "week 2 flips the heavy monday pull to a lighter percent",
+);
+
+for (const id of ["table_squat", "table_bench", "table_three_lifts"] as const) {
+  const table = PROGRAM_PRESETS.find((preset) => preset.id === id);
+  assert(
+    table?.cycle_auto_end === true,
+    `${id} advances the week after a round`,
+  );
+}
+
+const fiveThreeOne = PROGRAM_PRESETS.find(
+  (preset) => preset.id === "five_three_one",
+);
+assert(fiveThreeOne?.cycle != null, "5/3/1 carries the 5 → 3 → 1 weeks");
+assert(
+  fiveThreeOne.cycle_auto_end === true,
+  "5/3/1 advances the week after a round",
+);
+
+const squat531 =
+  fiveThreeOne.templates.find((day) => day.name.includes("присед"))
+    ?.exercises[0]?.plan ?? null;
+
+function plan531(phaseKey: string): number[] {
+  const rows = plannedSetsForSlot(squat531, {
+    kind: "dynamic",
+    exercise: { weight_step: 2.5, formula_preset: "barbell" },
+    formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: FIVES_TO_ONES_CYCLE },
+    phaseKey,
+    maxWeight: 200,
+    trackWeight: null,
+    feelWeight: null,
+  });
+  assert(rows != null, `5/3/1 squat has no plan on «${phaseKey}»`);
+  return (rows ?? [])
+    .filter((row) => row.set_type === "work")
+    .map((row) => row.planned_weight ?? 0);
+}
+
+const week5s = plan531("w5s");
+const week3s = plan531("w3s");
+const week1s = plan531("w1s");
+const weekDeload = plan531("deload");
+assertEqual(week5s[0], 130, "5s week opens at 65%");
+assertEqual(week3s[0], 140, "3s week opens at 70%");
+assertEqual(week1s[0], 150, "1s week opens at 75%");
+assertEqual(week1s[2], 190, "1s week tops at 95%");
+assert(
+  weekDeload.length < week5s.length,
+  "5/3/1 deload drops the 5×10 backoff",
+);
+assertEqual(weekDeload[0], 80, "5/3/1 deload opens at 40%");
+
+assert(
+  CYCLE_TEMPLATES.filter((template) => template.scheme).length === 3,
+  "scheme templates are the three that rewrite sets",
 );
 
 console.log("program presets ok");

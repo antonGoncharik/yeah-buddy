@@ -15,7 +15,7 @@ export function ScheduleProgramsSection({
     <section className="animate-rise flex flex-col gap-2">
       <SectionHeading
         title="Готовые программы"
-        hint="Встанет как текущая программа. Свои дни отложатся, не пропадут."
+        hint="Встанет вместо текущей. Свои дни отложатся. Если у программы есть недели — встанут сами."
       />
       <ProgramPresetList disabled={saving} onPick={onPick} />
     </section>

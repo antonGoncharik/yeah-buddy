@@ -8,10 +8,10 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormulaCycleTemplates } from "@/components/workout/formula-cycle-templates";
 import { NewMacroMaxes } from "@/components/workout/new-macro-maxes";
 import { useNewMacroScreen } from "@/components/workout/use-new-macro-screen";
 import { cn } from "@/lib/utils";
-import { CYCLE_TEMPLATES } from "@/lib/workout/default-formulas";
 
 export function NewMacroScreen() {
   const {
@@ -75,34 +75,15 @@ export function NewMacroScreen() {
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <h2 className="text-xl font-semibold">Сначала недели</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
-                  Тренировки те же, что в программе. Недели меняют вес:
-                  проценты от 1ПМ или рабочие килограммы.
+                  Тренировки те же, что в программе. Недели меняют вес: проценты
+                  от 1ПМ или рабочие килограммы.
                 </p>
-                {CYCLE_TEMPLATES.map((template) => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    disabled={applying || !formulas}
-                    className="rounded-2xl border border-border/70 px-4 py-3 text-left transition-colors hover:bg-muted/40 disabled:opacity-60"
-                    onClick={() =>
-                      void applyCycle(template.cycle, {
-                        auto_end: template.auto_end,
-                        loop: template.loop,
-                      })
-                    }
-                  >
-                    <p className="text-base font-medium">{template.name}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      {template.hint}
-                    </p>
-                  </button>
-                ))}
-                <Link
-                  href="/settings/formulas/cycle"
-                  className="text-base font-medium text-primary"
-                >
-                  Собрать свои этапы
-                </Link>
+                <FormulaCycleTemplates
+                  disabled={applying || !formulas}
+                  onApply={(cycle, _name, extra) =>
+                    void applyCycle(cycle, extra)
+                  }
+                />
               </section>
             ) : (
               <>

@@ -16,9 +16,9 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 **Gym**
 
-- A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Optional macrocycle uses the same queue.
+- A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Programs with weeks (tables, 5/3/1, two-week press) start those weeks with the days; after a full round the next week starts itself. A 1ПМ bump and the last week still wait for a tap.
 - «Пропустить» on the hub moves the queue without taking the date; you can put the skipped day back. «Не сегодня» inside a started session just removes that entry; the day stays next in the queue.
-- Optional macrocycle: ramp → volume → peak → deload. Finishing a queue loop does not close the phase by itself. Starting a cycle needs working weights only for exercises in the queue; inside a cycle weights move on phase change, not after a single session.
+- Optional weeks can also be picked later: ramp → volume → peak → deload, or a percent/kg wave. Starting weeks can omit 1ПМ — the session asks. Weights move when the week changes, not after a single session.
 - A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово», actuals in history and on charts. Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
 - Progress (working weights and relative strength when body weight is logged), session history, exercise list.
 

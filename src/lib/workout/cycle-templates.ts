@@ -115,11 +115,11 @@ export const PEAKING_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
-/** 5/3/1 week wave on the shared plan. Do not stack on the 5/3/1 program. */
+/** 5/3/1 week wave on the shared plan. The 5/3/1 program also uses these keys. */
 export const FIVES_TO_ONES_CYCLE: CyclePhaseDef[] = [
-  phase("w5s", "5s", { work: [set(65, 5), set(75, 5), set(85, 5)] }),
-  phase("w3s", "3s", { work: [set(70, 3), set(80, 3), set(90, 3)] }),
-  phase("w1s", "1s", {
+  phase("w5s", "Пятёрки", { work: [set(65, 5), set(75, 5), set(85, 5)] }),
+  phase("w3s", "Тройки", { work: [set(70, 3), set(80, 3), set(90, 3)] }),
+  phase("w1s", "Единицы", {
     increase_on_end: true,
     work: [set(75, 5), set(85, 3), set(95, 1)],
   }),
@@ -144,6 +144,8 @@ export const CYCLE_TEMPLATES: Array<{
   name: string;
   hint: string;
   cycle: CyclePhaseDef[];
+  /** Changes set/rep scheme on the shared plan, not just the percent. */
+  scheme?: boolean;
   auto_end?: boolean;
   loop?: boolean;
 }> = [
@@ -214,17 +216,20 @@ export const CYCLE_TEMPLATES: Array<{
     name: "10 → 3",
     hint: "Дни те же. Подходы меняются: 10, 8, 5, 3, сброс. Для дней без своей схемы.",
     cycle: TENS_TO_TRIPLES_CYCLE,
+    scheme: true,
   },
   {
     id: "fives_to_ones",
     name: "Пятёрки → единицы",
-    hint: "Волна 5 → 3 → 1, потом сброс. Не ставь вместе с программой 5/3/1 — там это уже в днях.",
+    hint: "Волна 5 → 3 → 1, потом сброс. У программы 5/3/1 это уже в днях — не ставь сверху.",
     cycle: FIVES_TO_ONES_CYCLE,
+    scheme: true,
   },
   {
     id: "peaking",
     name: "Подводка к разовому",
     hint: "Подходов меньше, вес больше: 5×5 → 4×4 → 3×3 → один на раз. Для дней без своей схемы.",
     cycle: PEAKING_CYCLE,
+    scheme: true,
   },
 ];
