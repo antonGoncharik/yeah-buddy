@@ -7,11 +7,13 @@ import {
 } from "@/components/layout/boot-splash";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
 import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { readInvitePayload } from "@/lib/share/invite";
 import { rememberPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
+import { cn } from "@/lib/utils";
 
 type GateState = "loading" | "ready" | "outside" | "error";
 
@@ -51,6 +53,7 @@ export function TelegramGate({ children }: { children: React.ReactNode }) {
 function TelegramGateBody({ children }: { children: React.ReactNode }) {
   const boot = useBootSplash();
   const [state, setState] = useState<GateState>("loading");
+  const [openUrl, setOpenUrl] = useState<string | null>(null);
 
   const authenticate = useCallback(async () => {
     setState("loading");
@@ -75,6 +78,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         });
 
         if (response.status === 401) {
+          setOpenUrl(await loadOpenUrl());
           setState("outside");
           return;
         }
@@ -93,6 +97,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      setOpenUrl(await loadOpenUrl());
       setState("outside");
     } catch {
       setState("error");
@@ -118,9 +123,19 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       {state === "outside" || state === "error" ? (
         <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
           {state === "outside" ? (
-            <p className="animate-rise max-w-xs text-xl font-semibold leading-snug">
-              {OPEN_VIA_BOT}
-            </p>
+            <div className="animate-rise flex max-w-xs flex-col items-center gap-4">
+              <p className="text-xl font-semibold leading-snug">
+                {OPEN_VIA_BOT}
+              </p>
+              {openUrl ? (
+                <a
+                  href={openUrl}
+                  className={cn(buttonVariants(), "h-14 min-w-40 text-lg")}
+                >
+                  Открыть в Telegram
+                </a>
+              ) : null}
+            </div>
           ) : null}
           {state === "error" ? (
             <div className="animate-rise flex flex-col items-center gap-4">
@@ -138,6 +153,16 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       {showSplash ? <ScreenLoading splash title={APP_NAME} /> : null}
     </>
   );
+}
+
+async function loadOpenUrl(): Promise<string | null> {
+  try {
+    const response = await fetch("/api/open", { cache: "no-store" });
+    const invite = readInvitePayload(await response.json().catch(() => null));
+    return invite?.url ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function readStartParam(webApp: {

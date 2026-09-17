@@ -82,4 +82,4 @@ supabase/migrations/
 - UI is built for Telegram Mini App, Russian, narrow screen.
 - Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`.
 
-Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a Mini App `startapp` link. Apply replaces templates (and food/gym settings), not logged days or working weights. The app invite uses `startapp=open` so a bare bot URL opens the Mini App.
+Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a Mini App `startapp` link. Apply replaces templates (and food/gym settings), not logged days or working weights. The app invite uses `startapp=open` so a bare bot URL opens the Mini App. Opening the HTTPS app URL outside Telegram shows a button to the t.me Mini App link.
