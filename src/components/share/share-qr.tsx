@@ -2,8 +2,9 @@ import Image from "next/image";
 
 import { encodeShareQr } from "@/lib/share/qr";
 
-const LOGO_SRC = "/icons/icon-192.png";
-const LOGO_INSET = 0.1;
+const LOGO_SRC = "/icons/qr-logo.png";
+const LOGO_INSET = 0;
+const TREX_INK = "#cd4918";
 
 export function ShareQr({ url, caption }: { url: string; caption: string }) {
   const qr = encodeShareQr(url);
@@ -19,7 +20,8 @@ export function ShareQr({ url, caption }: { url: string; caption: string }) {
     <figure className="card-surface animate-rise flex flex-col items-center gap-4 px-5 py-6">
       <div className="relative w-full max-w-60">
         <svg
-          className="aspect-square w-full overflow-hidden rounded-2xl bg-white text-[color-mix(in_oklch,var(--primary)_58%,oklch(0.22_0.05_45))]"
+          className="aspect-square w-full overflow-hidden rounded-2xl bg-white"
+          style={{ color: TREX_INK }}
           viewBox={`0 0 ${qr.size} ${qr.size}`}
           role="img"
           aria-label={caption}
@@ -44,7 +46,7 @@ export function ShareQr({ url, caption }: { url: string; caption: string }) {
           ))}
         </svg>
         <div
-          className="absolute overflow-hidden rounded-[22%] bg-black shadow-[0_0_0_2px_#fff]"
+          className="absolute"
           style={{
             top: toPercent(qr.logo.y + badgeOffset),
             left: toPercent(qr.logo.x + badgeOffset),
@@ -56,9 +58,9 @@ export function ShareQr({ url, caption }: { url: string; caption: string }) {
             src={LOGO_SRC}
             alt=""
             fill
-            sizes="80px"
+            sizes="120px"
             draggable={false}
-            className="object-cover"
+            className="object-contain"
           />
         </div>
       </div>
