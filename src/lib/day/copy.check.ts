@@ -63,6 +63,11 @@ assertEqual(
 );
 assertEqual(
   readDayWritable({}, "2026-09-10", "2026-09-12"),
+  true,
+  "fallback keeps day before yesterday writable",
+);
+assertEqual(
+  readDayWritable({}, "2026-09-09", "2026-09-12"),
   false,
   "fallback locks older day",
 );

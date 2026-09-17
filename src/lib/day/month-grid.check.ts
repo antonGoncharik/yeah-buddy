@@ -66,7 +66,10 @@ assertEqual(selected?.writable, true, "today is writable");
 const yesterday = cells.find((cell) => cell.date === "2026-09-12");
 assertEqual(yesterday?.writable, true, "yesterday is writable");
 
-const locked = cells.find((cell) => cell.date === "2026-09-11");
+const dayBefore = cells.find((cell) => cell.date === "2026-09-11");
+assertEqual(dayBefore?.writable, true, "day before yesterday is writable");
+
+const locked = cells.find((cell) => cell.date === "2026-09-10");
 assertEqual(locked?.writable, false, "older day is locked");
 assertEqual(locked?.disabled, false, "older day is still selectable");
 

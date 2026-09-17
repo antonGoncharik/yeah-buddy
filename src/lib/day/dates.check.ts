@@ -5,7 +5,9 @@ import {
   inclusiveDayCount,
   isIsoDate,
   isPastDayDate,
+  earliestWritableDayDate,
   isWritableDayDate,
+  WRITABLE_DAY_LOOKBACK,
   longestDateGap,
   nextIsoDate,
   nutritionHistoryHref,
@@ -110,6 +112,12 @@ assertEqual(
 );
 
 const today = "2026-09-11";
+assertEqual(WRITABLE_DAY_LOOKBACK, 2, "two previous days stay open");
+assertEqual(
+  earliestWritableDayDate(today),
+  "2026-09-09",
+  "lookback starts two days back",
+);
 assertEqual(isWritableDayDate(today, today), true, "today is writable");
 assertEqual(
   isWritableDayDate("2026-09-10", today),
@@ -118,8 +126,13 @@ assertEqual(
 );
 assertEqual(
   isWritableDayDate("2026-09-09", today),
+  true,
+  "day before yesterday is writable",
+);
+assertEqual(
+  isWritableDayDate("2026-09-08", today),
   false,
-  "day before yesterday locked",
+  "three days back locked",
 );
 assertEqual(isWritableDayDate("2026-09-12", today), false, "future locked");
 assertEqual(
@@ -149,11 +162,12 @@ if (!locked) {
 let todayOk = true;
 try {
   assertWritableDayDate("2026-09-10", today);
+  assertWritableDayDate("2026-09-09", today);
 } catch {
   todayOk = false;
 }
 if (!todayOk) {
-  throw new Error("yesterday should stay writable");
+  throw new Error("yesterday and the day before should stay writable");
 }
 
 console.log("day dates ok");

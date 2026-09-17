@@ -154,12 +154,19 @@ export function isPastDayDate(date: string, today = calendarToday()): boolean {
   return isIsoDate(date) && date < today;
 }
 
+/** Today plus this many previous calendar days stay editable. */
+export const WRITABLE_DAY_LOOKBACK = 2;
+
+export function earliestWritableDayDate(today: string): string {
+  return shiftIsoDate(today, -WRITABLE_DAY_LOOKBACK);
+}
+
 export function isWritableDayDate(date: string, today: string): boolean {
   if (!isIsoDate(date) || !isIsoDate(today)) {
     return false;
   }
 
-  return date === today || date === previousIsoDate(today);
+  return date <= today && date >= earliestWritableDayDate(today);
 }
 
 export function assertWritableDayDate(date: string, today: string): void {
