@@ -464,6 +464,21 @@ assertEqual(
   true,
   "prompt knows the quarter window",
 );
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("хороший друг"),
+  true,
+  "prompt asks for a friend voice",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("короткий совет"),
+  true,
+  "prompt asks for grounded advice",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("2–4 предложения"),
+  true,
+  "prompt asks for longer observations",
+);
 assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
 assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
 assertEqual(seedBrief.gym.gap_days, null, "one gymless day is not a hole");

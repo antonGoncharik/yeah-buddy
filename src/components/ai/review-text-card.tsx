@@ -37,19 +37,19 @@ export function ReviewTextCard({
       >
         {review.headline}
       </h2>
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-4">
         {review.observations.map((item) => (
-          <li key={item} className="text-base leading-snug">
+          <li key={item} className="text-base leading-relaxed">
             {item}
           </li>
         ))}
       </ul>
       {review.watch.length > 0 ? (
-        <div className="flex flex-col gap-2 border-t border-border/70 pt-4">
+        <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
           <p className="text-sm font-medium text-muted-foreground">Дальше</p>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-3">
             {review.watch.map((item) => (
-              <li key={item} className="text-base leading-snug">
+              <li key={item} className="text-base leading-relaxed">
                 {item}
               </li>
             ))}

@@ -2,17 +2,27 @@ import { z } from "zod";
 
 import { ReviewError } from "@/lib/ai/errors";
 import {
+  REVIEW_HEADLINE_CHARS,
+  REVIEW_OBSERVATION_CHARS,
+  REVIEW_OBSERVATION_MAX,
   REVIEW_SYSTEM_PROMPT,
   REVIEW_USER_LEAD,
+  REVIEW_WATCH_CHARS,
+  REVIEW_WATCH_MAX,
   reviewPromptPayload,
 } from "@/lib/ai/prompt";
 import type { ReviewBrief, ReviewText, StoredReview } from "@/lib/ai/types";
 import { AI_REVIEW_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
 
 const reviewTextSchema = z.object({
-  headline: z.string().trim().min(1).max(180),
-  observations: z.array(z.string().trim().min(1).max(480)).min(1).max(8),
-  watch: z.array(z.string().trim().min(1).max(240)).max(5),
+  headline: z.string().trim().min(1).max(REVIEW_HEADLINE_CHARS),
+  observations: z
+    .array(z.string().trim().min(1).max(REVIEW_OBSERVATION_CHARS))
+    .min(1)
+    .max(REVIEW_OBSERVATION_MAX),
+  watch: z
+    .array(z.string().trim().min(1).max(REVIEW_WATCH_CHARS))
+    .max(REVIEW_WATCH_MAX),
 });
 
 const RESPONSE_SCHEMA = {
@@ -22,10 +32,13 @@ const RESPONSE_SCHEMA = {
     observations: {
       type: "array",
       items: { type: "string" },
+      minItems: 1,
+      maxItems: REVIEW_OBSERVATION_MAX,
     },
     watch: {
       type: "array",
       items: { type: "string" },
+      maxItems: REVIEW_WATCH_MAX,
     },
   },
   required: ["headline", "observations", "watch"],
@@ -53,6 +66,7 @@ export async function generateGeminiJson({
   schema,
   temperature,
   timeoutMs = 25_000,
+  maxOutputTokens,
   failedMessage,
 }: {
   system: string;
@@ -60,6 +74,7 @@ export async function generateGeminiJson({
   schema: object;
   temperature: number;
   timeoutMs?: number;
+  maxOutputTokens?: number;
   failedMessage: string;
 }): Promise<unknown> {
   const key = getGeminiApiKey();
@@ -88,6 +103,7 @@ export async function generateGeminiJson({
         ],
         generationConfig: {
           temperature,
+          maxOutputTokens,
           responseMimeType: "application/json",
           responseSchema: schema,
         },
@@ -125,7 +141,9 @@ export async function writeReview(
       { text: JSON.stringify(reviewPromptPayload(brief, previous)) },
     ],
     schema: RESPONSE_SCHEMA,
-    temperature: 0.6,
+    temperature: 0.7,
+    timeoutMs: 45_000,
+    maxOutputTokens: 8192,
     failedMessage: AI_REVIEW_FAILED,
   });
 
@@ -136,8 +154,8 @@ export async function writeReview(
 
   return {
     headline: parsed.data.headline,
-    observations: parsed.data.observations.slice(0, 8),
-    watch: parsed.data.watch.slice(0, 5),
+    observations: parsed.data.observations.slice(0, REVIEW_OBSERVATION_MAX),
+    watch: parsed.data.watch.slice(0, REVIEW_WATCH_MAX),
   };
 }
 
