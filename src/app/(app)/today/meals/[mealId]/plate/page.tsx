@@ -36,6 +36,7 @@ export default async function PlateMealPage({
       />
       <PlateScreen
         mealId={mealId}
+        date={date ?? today}
         doneHref={homeHref}
         configured={getGeminiApiKey() != null}
       />

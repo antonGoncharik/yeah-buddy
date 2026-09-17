@@ -99,9 +99,7 @@ export default function AddTemplateItemGramsPage() {
           defaultPortionLabel={food.default_portion_label}
           backHref={backHref}
           doneHref={doneHref}
-          save={(grams) =>
-            addTemplateItemGrams(dayType, mealType, food.id, grams)
-          }
+          save={(grams) => addTemplateItemGrams(dayType, mealType, food, grams)}
         />
       ) : null}
     </div>

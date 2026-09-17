@@ -3,25 +3,26 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { addLumpMealItem } from "@/components/day/grams-save";
 import { FoodFormField } from "@/components/foods/food-form-fields";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { postJson } from "@/lib/api-cache";
 import { LUMP_MACRO_MAX, LUMP_NAME_MAX } from "@/lib/day/lump";
 import { handleNumericEnter } from "@/lib/form/field-nav";
-import { LOAD_FAILED } from "@/lib/messages";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function LumpMacrosCreate({
   mealId,
+  date,
   initialName,
   backHref,
   doneHref,
 }: {
   mealId: string;
+  date: string;
   initialName: string;
   backHref: string;
   doneHref: string;
@@ -32,7 +33,7 @@ export function LumpMacrosCreate({
       backHref={backHref}
       doneHref={doneHref}
       save={async (input) => {
-        await postJson(`/api/meals/${mealId}/items`, input);
+        await addLumpMealItem({ mealId, date, input });
       }}
     />
   );
@@ -67,7 +68,6 @@ export function LumpMacrosScreen({
   const [fat, setFat] = useState(initialFat);
   const [carbs, setCarbs] = useState(initialCarbs);
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
   const parsed = useMemo(() => {
     const nextName = name.trim();
@@ -109,23 +109,15 @@ export function LumpMacrosScreen({
     }
 
     setError(null);
-    setSaving(true);
-    try {
-      await save({
-        name: parsed.name,
-        protein: parsed.protein,
-        fat: parsed.fat,
-        carbs: parsed.carbs,
-      });
-      haptic("success");
-      router.push(doneHref);
-      router.refresh();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSaving(false);
-    }
+    haptic("commit");
+    const pending = save({
+      name: parsed.name,
+      protein: parsed.protein,
+      fat: parsed.fat,
+      carbs: parsed.carbs,
+    });
+    router.push(doneHref);
+    void pending;
   }
 
   return (
@@ -197,11 +189,7 @@ export function LumpMacrosScreen({
 
       {readOnly || !save ? null : (
         <StickyActions>
-          <Button
-            type="submit"
-            className="h-14 w-full text-lg"
-            disabled={saving}
-          >
+          <Button type="submit" className="h-14 w-full text-lg">
             Записать
           </Button>
         </StickyActions>

@@ -7,6 +7,7 @@ import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action"
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import type { DayWithMeals } from "@/lib/day/map";
+import { isTempId } from "@/lib/day/optimistic";
 import { hiddenMealSlotsNote } from "@/lib/nutrition";
 import type {
   CopyDayHint,
@@ -109,7 +110,7 @@ export function TodayDayView({
         viewOnly={viewOnly}
         fromHistory={fromHistory}
         isTrainingDay={shownDay.is_training_day}
-        busy={busy}
+        busy={busy || isTempId(shownDay.id)}
         switchType={switchType}
       />
 
@@ -123,7 +124,7 @@ export function TodayDayView({
           weightSteady={weightSteady}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
-          bodyWeightBusy={busy}
+          bodyWeightBusy={busy || isTempId(shownDay.id)}
         />
       </div>
 

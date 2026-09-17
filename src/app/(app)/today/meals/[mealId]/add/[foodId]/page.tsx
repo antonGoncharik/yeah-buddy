@@ -54,6 +54,7 @@ function AddLumpMealItemPage({ mealId }: { mealId: string }) {
       <AppHeader title="Записать" backHref={backHref} />
       <LumpMacrosCreate
         mealId={mealId}
+        date={date ?? today}
         initialName={name}
         backHref={backHref}
         doneHref={homeHref}
@@ -180,7 +181,13 @@ function AddMealItemGramsPage({
           save={
             viewOnly
               ? undefined
-              : (grams) => addMealItemGrams(mealId, food.id, grams)
+              : (grams) =>
+                  addMealItemGrams({
+                    date: date ?? today ?? calendarToday(),
+                    mealId,
+                    food,
+                    grams,
+                  })
           }
         />
       ) : null}

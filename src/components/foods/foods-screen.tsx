@@ -93,11 +93,13 @@ export function FoodsScreen() {
 
   async function onToggleFavorite(food: Food) {
     const nextValue = !food.is_favorite;
-    setFoods((current) =>
-      current.map((item) =>
+    setFoods((current) => {
+      const next = current.map((item) =>
         item.id === food.id ? { ...item, is_favorite: nextValue } : item,
-      ),
-    );
+      );
+      writeJson(foodsUrl(listFilter), { foods: next });
+      return next;
+    });
 
     try {
       await patchJson(`/api/foods/${food.id}/favorite`, {
@@ -105,16 +107,22 @@ export function FoodsScreen() {
       });
 
       if (filter === "favorites" && !nextValue) {
-        setFoods((current) => current.filter((item) => item.id !== food.id));
+        setFoods((current) => {
+          const next = current.filter((item) => item.id !== food.id);
+          writeJson(foodsUrl("favorites"), { foods: next });
+          return next;
+        });
       }
     } catch {
-      setFoods((current) =>
-        current.map((item) =>
+      setFoods((current) => {
+        const next = current.map((item) =>
           item.id === food.id
             ? { ...item, is_favorite: food.is_favorite }
             : item,
-        ),
-      );
+        );
+        writeJson(foodsUrl(listFilter), { foods: next });
+        return next;
+      });
     }
   }
 
@@ -210,4 +218,8 @@ function emptyMessage(filter: Filter, query: string): string {
 
 function readFoods(data: unknown): Food[] {
   return parseFoodList(data);
+}
+
+function foodsUrl(filter: Filter): string {
+  return filter === "all" ? "/api/foods" : `/api/foods?filter=${filter}`;
 }

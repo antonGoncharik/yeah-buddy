@@ -3,6 +3,7 @@
 import { MealCard } from "@/components/day/meal-card";
 import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
+import { isTempId } from "@/lib/day/optimistic";
 import type {
   CopyDayHint,
   MealItem,
@@ -73,7 +74,7 @@ export function TodayDayMeals({
               : (item) => withDateQuery(`/today/items/${item.id}`, date, today)
           }
           addHref={
-            viewOnly
+            viewOnly || isTempId(meal.id)
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/add`, date, today)
           }

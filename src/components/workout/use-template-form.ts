@@ -160,7 +160,6 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
       }
 
       router.push("/workouts/schedule");
-      router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

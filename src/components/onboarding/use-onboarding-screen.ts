@@ -183,7 +183,6 @@ export function useOnboardingScreen() {
       });
       router.replace(href);
       haptic("success");
-      router.refresh();
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);

@@ -14,8 +14,10 @@ import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
 
 export {
+  addLumpMealItem,
   addMealItemGrams,
   addTemplateItemGrams,
+  saveLumpMealItem,
   saveMealItemGrams,
   saveTemplateItemGrams,
 } from "@/components/day/grams-save";
@@ -146,12 +148,8 @@ export function GramsScreen({
 
       {readOnly ? null : (
         <StickyActions>
-          <Button
-            type="submit"
-            className="h-14 text-lg"
-            disabled={grams.saving}
-          >
-            {grams.saving ? "Сохранение…" : "Сохранить"}
+          <Button type="submit" className="h-14 text-lg">
+            Сохранить
           </Button>
         </StickyActions>
       )}

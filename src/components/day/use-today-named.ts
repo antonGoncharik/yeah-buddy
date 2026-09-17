@@ -3,7 +3,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import { readNamedMealHint } from "@/components/day/today-copy-request";
 import { useConfirm, usePrompt } from "@/components/layout/confirm-provider";
+import { reportActionError } from "@/lib/action-error";
 import { deleteJson, postJson } from "@/lib/api-cache";
+import { writeCachedNamedMeals } from "@/lib/day/cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { getMealLabel } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
@@ -11,13 +13,11 @@ import type { MealType, NamedMealHint } from "@/lib/types";
 
 export function useTodayNamedMeals({
   viewOnly,
-  setBusy,
-  setActionError,
+  date,
   setNamedMeals,
 }: {
   viewOnly: boolean;
-  setBusy: Dispatch<SetStateAction<boolean>>;
-  setActionError: Dispatch<SetStateAction<string | null>>;
+  date: string;
   setNamedMeals: Dispatch<SetStateAction<NamedMealHint[]>>;
 }) {
   const confirm = useConfirm();
@@ -38,9 +38,6 @@ export function useTodayNamedMeals({
       return;
     }
 
-    setBusy(true);
-    setActionError(null);
-
     try {
       const data = await postJson("/api/named-meals", { name, mealId });
       const saved = readNamedMealHint(data);
@@ -51,15 +48,15 @@ export function useTodayNamedMeals({
               meal.id !== saved.id &&
               meal.name.toLowerCase() !== saved.name.toLowerCase(),
           );
-          return [...without, saved];
+          const next = [...without, saved];
+          writeCachedNamedMeals(date, next);
+          return next;
         });
       }
       haptic("success");
     } catch (caught) {
       haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }
 
@@ -78,19 +75,22 @@ export function useTodayNamedMeals({
       return;
     }
 
-    setBusy(true);
-    setActionError(null);
+    let previous: NamedMealHint[] = [];
+    setNamedMeals((current) => {
+      previous = current;
+      const next = current.filter((meal) => meal.id !== namedMealId);
+      writeCachedNamedMeals(date, next);
+      return next;
+    });
+    haptic("commit");
 
     try {
       await deleteJson(`/api/named-meals/${namedMealId}`);
-      setNamedMeals((current) =>
-        current.filter((meal) => meal.id !== namedMealId),
-      );
     } catch (caught) {
+      setNamedMeals(previous);
+      writeCachedNamedMeals(date, previous);
       haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }
 

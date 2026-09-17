@@ -2,13 +2,12 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import { saveLumpMealItem } from "@/components/day/grams-save";
 import { GramsScreen, saveMealItemGrams } from "@/components/day/grams-screen";
 import { LumpMacrosScreen } from "@/components/day/lump-macros-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
-import { patchJson } from "@/lib/api-cache";
-import { isIsoDate, todayHomeHref } from "@/lib/day/dates";
+import { calendarToday, isIsoDate, todayHomeHref } from "@/lib/day/dates";
 import { isLumpMealItem } from "@/lib/day/lump";
 import { readCalendarToday, readDayWritable } from "@/lib/day/today-payload";
 import { parseFoodYield } from "@/lib/food/yield";
@@ -129,7 +128,11 @@ export default function EditMealItemPage() {
           save={
             writable
               ? async (input) => {
-                  await patchJson(`/api/meal-items/${item.id}`, input);
+                  await saveLumpMealItem({
+                    date: dateParam ?? dayDate ?? calendarToday(),
+                    itemId: item.id,
+                    input,
+                  });
                 }
               : undefined
           }
@@ -152,7 +155,14 @@ export default function EditMealItemPage() {
           doneHref={homeHref}
           readOnly={!writable}
           save={
-            writable ? (grams) => saveMealItemGrams(item.id, grams) : undefined
+            writable
+              ? (grams) =>
+                  saveMealItemGrams({
+                    date: dateParam ?? dayDate ?? calendarToday(),
+                    item,
+                    grams,
+                  })
+              : undefined
           }
         />
       ) : null}

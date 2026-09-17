@@ -71,7 +71,6 @@ export function useExerciseForm(exercise?: ExerciseWithMax) {
       }
 
       router.push("/workouts/exercises");
-      router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

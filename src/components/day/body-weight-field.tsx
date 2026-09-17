@@ -24,7 +24,6 @@ export function BodyWeightField({
   const [draft, setDraft] = useState(() =>
     value == null ? "" : formatBodyWeight(value),
   );
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setDraft(value == null ? "" : formatBodyWeight(value));
@@ -50,7 +49,7 @@ export function BodyWeightField({
   }
 
   async function commit() {
-    if (!onSave || saving || disabled) {
+    if (!onSave || disabled) {
       return;
     }
 
@@ -59,16 +58,8 @@ export function BodyWeightField({
       if (value == null) {
         return;
       }
-      setSaving(true);
-      try {
-        await onSave(null);
-        haptic("commit");
-      } catch {
-        haptic("error");
-        setDraft(value == null ? "" : formatBodyWeight(value));
-      } finally {
-        setSaving(false);
-      }
+      haptic("commit");
+      void onSave(null);
       return;
     }
 
@@ -84,17 +75,9 @@ export function BodyWeightField({
       return;
     }
 
-    setSaving(true);
-    try {
-      await onSave(parsed);
-      setDraft(formatBodyWeight(parsed));
-      haptic("commit");
-    } catch {
-      haptic("error");
-      setDraft(value == null ? "" : formatBodyWeight(value));
-    } finally {
-      setSaving(false);
-    }
+    setDraft(formatBodyWeight(parsed));
+    haptic("commit");
+    void onSave(parsed);
   }
 
   return (
@@ -104,7 +87,7 @@ export function BodyWeightField({
         inputMode="decimal"
         autoComplete="off"
         aria-label="Вес тела"
-        disabled={disabled || saving}
+        disabled={disabled}
         value={draft}
         placeholder={placeholder != null ? formatBodyWeight(placeholder) : "—"}
         onChange={(event) => setDraft(event.target.value)}

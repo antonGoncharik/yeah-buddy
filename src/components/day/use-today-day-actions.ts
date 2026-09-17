@@ -1,18 +1,34 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import {
   ApiError,
   deleteJson,
-  fetchJson,
+  mutateJson,
   patchJson,
+  peekJson,
   postJson,
 } from "@/lib/api-cache";
+import {
+  daysUrl,
+  optimisticCreatedDay,
+  peekTemplate,
+  targetsFromCache,
+  withDayOptimistic,
+  writeDayResponse,
+} from "@/lib/day/cache";
 import type { DayWithMeals } from "@/lib/day/map";
-import { readDay } from "@/lib/day/today-payload";
+import {
+  isTempId,
+  replaceItemsFromTemplate,
+  withBodyWeight,
+  withDayType,
+  withRemovedItem,
+} from "@/lib/day/optimistic";
+import { mealsMatchRecipe } from "@/lib/day/remaining";
+import { readDay, readRecipes } from "@/lib/day/today-payload";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealItem } from "@/lib/types";
@@ -21,16 +37,10 @@ export function useTodayDayActions({
   viewOnly,
   date,
   day,
-  setBusy,
-  setActionError,
-  setDay,
 }: {
   viewOnly: boolean;
   date: string;
   day: DayWithMeals | null;
-  setBusy: Dispatch<SetStateAction<boolean>>;
-  setActionError: Dispatch<SetStateAction<string | null>>;
-  setDay: Dispatch<SetStateAction<DayWithMeals | null>>;
 }) {
   const confirm = useConfirm();
 
@@ -40,40 +50,37 @@ export function useTodayDayActions({
         return;
       }
 
-      setBusy(true);
-      setActionError(null);
-
-      try {
-        const data = await postJson("/api/days", { date, dayType });
-        const next = readDay(data);
-        if (!next) {
-          throw new Error(LOAD_FAILED);
-        }
-        setDay(next);
-        haptic("commit");
-      } catch (caught) {
-        if (caught instanceof ApiError && caught.status === 409) {
-          const data = await fetchJson(
-            `/api/days?date=${encodeURIComponent(date)}`,
-          );
-          const next = readDay(data);
-          if (!next) {
-            throw new Error(LOAD_FAILED);
+      haptic("commit");
+      await withDayOptimistic(
+        date,
+        optimisticCreatedDay(date, dayType),
+        async () => {
+          try {
+            const data = await postJson("/api/days", { date, dayType });
+            const next = writeDayResponse(date, data);
+            if (!next) {
+              throw new Error(LOAD_FAILED);
+            }
+            return "keep";
+          } catch (caught) {
+            if (caught instanceof ApiError && caught.status === 409) {
+              const data = await mutateJson(daysUrl(date));
+              const next = writeDayResponse(date, data);
+              if (!next) {
+                throw new Error(LOAD_FAILED);
+              }
+              return "keep";
+            }
+            throw caught;
           }
-          setDay(next);
-          return;
-        }
-        haptic("error");
-        setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-      } finally {
-        setBusy(false);
-      }
+        },
+      );
     },
-    [date, setActionError, setBusy, setDay, viewOnly],
+    [date, viewOnly],
   );
 
   async function switchType(dayType: DayType) {
-    if (viewOnly || !day) {
+    if (viewOnly || !day || isTempId(day.id)) {
       return;
     }
 
@@ -81,36 +88,41 @@ export function useTodayDayActions({
       return;
     }
 
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      const data = await patchJson(`/api/days/${day.id}`, { dayType });
-      setDay(readDay(data));
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
+    const recipes = readRecipes(peekJson(daysUrl(date)));
+    const currentRecipe = day.is_training_day ? recipes.training : recipes.rest;
+    const swap = mealsMatchRecipe(day.meals, currentRecipe);
+    const template = peekTemplate(dayType);
+    let optimistic = withDayType(day, dayType, targetsFromCache(dayType));
+    if (swap && template) {
+      optimistic = replaceItemsFromTemplate(optimistic, template);
     }
+
+    await withDayOptimistic(date, optimistic, async () => {
+      const data = await patchJson(`/api/days/${day.id}`, { dayType });
+      const next = writeDayResponse(date, data);
+      return next ?? "keep";
+    });
   }
 
   async function saveBodyWeight(value: number | null) {
-    if (viewOnly || !day) {
+    if (viewOnly || !day || isTempId(day.id)) {
       return;
     }
 
-    setActionError(null);
-    const data = await patchJson(`/api/days/${day.id}`, { bodyWeight: value });
-    const next = readDay(data);
-    if (!next) {
-      throw new Error(LOAD_FAILED);
-    }
-    setDay(next);
+    await withDayOptimistic(date, withBodyWeight(day, value), async () => {
+      const data = await patchJson(`/api/days/${day.id}`, {
+        bodyWeight: value,
+      });
+      const next = readDay(data);
+      if (!next) {
+        throw new Error(LOAD_FAILED);
+      }
+      return next;
+    });
   }
 
   async function deleteItem(item: MealItem) {
-    if (viewOnly) {
+    if (viewOnly || !day) {
       return;
     }
 
@@ -124,31 +136,13 @@ export function useTodayDayActions({
       return;
     }
 
-    setBusy(true);
-    setActionError(null);
-
-    try {
-      await deleteJson(`/api/meal-items/${item.id}`);
-
-      setDay((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-          meals: current.meals.map((meal) => ({
-            ...meal,
-            items: meal.items.filter((row) => row.id !== item.id),
-          })),
-        };
-      });
-    } catch (caught) {
-      haptic("error");
-      setActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
-    }
+    haptic("commit");
+    await withDayOptimistic(date, withRemovedItem(day, item.id), async () => {
+      if (!isTempId(item.id)) {
+        await deleteJson(`/api/meal-items/${item.id}`);
+      }
+      return "keep";
+    });
   }
 
   return { createDay, switchType, saveBodyWeight, deleteItem };

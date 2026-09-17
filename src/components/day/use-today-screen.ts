@@ -18,6 +18,7 @@ import {
 import { useTodayDayActions } from "@/components/day/use-today-day-actions";
 import { useTodayWorkoutStart } from "@/components/day/use-today-workout-start";
 import { useDayMood } from "@/components/layout/day-mood";
+import { subscribeActionError } from "@/lib/action-error";
 import {
   calendarToday,
   isWritableDayDate,
@@ -47,6 +48,8 @@ export function useTodayScreen({
   const clearActionError = useCallback(() => {
     setActionError(null);
   }, []);
+
+  useEffect(() => subscribeActionError(setActionError), []);
 
   const data = useTodayData(date, clearActionError);
   const isToday = date === data.today;
@@ -122,8 +125,6 @@ export function useTodayScreen({
     date,
     day: data.day,
     setBusy,
-    setActionError,
-    setDay: data.setDay,
     setNamedMeals: data.setNamedMeals,
   });
   const { startQueuedWorkout } = useTodayWorkoutStart({
@@ -140,9 +141,6 @@ export function useTodayScreen({
       viewOnly,
       date,
       day: data.day,
-      setBusy,
-      setActionError,
-      setDay: data.setDay,
     });
 
   const openedTodayRef = useRef<string | null>(null);

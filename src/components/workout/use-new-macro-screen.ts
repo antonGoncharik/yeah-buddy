@@ -174,7 +174,6 @@ export function useNewMacroScreen() {
       });
       haptic("success");
       router.push("/workouts/macro");
-      router.refresh();
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);

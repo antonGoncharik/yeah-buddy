@@ -4,8 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
+import { subscribeActionError } from "@/lib/action-error";
 import { cachedGet, deleteJson, patchJson, writeJson } from "@/lib/api-cache";
 import { readMealTemplatePayload } from "@/lib/meal/parse";
+import {
+  withRemovedTemplateItem,
+  writeCachedTemplate,
+} from "@/lib/meal/template-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import {
   calcKcalFromMacros,
@@ -15,6 +20,7 @@ import {
   visibleMealTypes,
 } from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings/map";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   DayType,
   MealTemplateDetail,
@@ -89,6 +95,8 @@ export function useMealTemplateScreen(dayType: DayType) {
     void load();
   }, [load]);
 
+  useEffect(() => subscribeActionError(setError), []);
+
   useEffect(() => {
     setMood(dayType);
     return () => setMood(null);
@@ -141,23 +149,23 @@ export function useMealTemplateScreen(dayType: DayType) {
       return;
     }
 
-    setBusy(true);
-    setError(null);
+    if (!template) {
+      return;
+    }
+
+    const previous = template;
+    const next = withRemovedTemplateItem(template, item.id);
+    setTemplate(next);
+    writeCachedTemplate(dayType, next);
+    haptic("commit");
 
     try {
       await deleteJson(`/api/meal-template-items/${item.id}`);
-      setTemplate((current) =>
-        current
-          ? {
-              ...current,
-              items: current.items.filter((row) => row.id !== item.id),
-            }
-          : current,
-      );
     } catch (caught) {
+      setTemplate(previous);
+      writeCachedTemplate(dayType, previous);
+      haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setBusy(false);
     }
   }
 

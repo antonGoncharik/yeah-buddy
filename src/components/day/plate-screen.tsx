@@ -27,14 +27,16 @@ import {
 
 export function PlateScreen({
   mealId,
+  date,
   doneHref,
   configured,
 }: {
   mealId: string;
+  date: string;
   doneHref: string;
   configured: boolean;
 }) {
-  const plate = usePlateScreen({ mealId, doneHref, configured });
+  const plate = usePlateScreen({ mealId, date, doneHref, configured });
   const totals = sumDraft(plate.items);
   const cameraPrimary =
     plate.view.status === "idle" ||

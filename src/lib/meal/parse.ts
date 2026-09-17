@@ -20,6 +20,13 @@ export function readMealItemPayload(data: unknown): MealItem | null {
   return isRecord(data) ? parseMealItem(data.item) : null;
 }
 
+export function readMealItemsPayload(data: unknown): MealItem[] {
+  if (!isRecord(data) || !Array.isArray(data.items)) {
+    return [];
+  }
+  return mapRecordList(data.items, parseMealItem);
+}
+
 export function parseMealTemplateItemView(
   value: unknown,
 ): MealTemplateItemView | null {

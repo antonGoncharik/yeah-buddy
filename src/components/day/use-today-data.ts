@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cachedGet, peekJson } from "@/lib/api-cache";
+import { subscribeDayCache } from "@/lib/day/cache";
 import { calendarToday, isIsoDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import type { RecipeLine } from "@/lib/day/remaining";
@@ -138,6 +139,15 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       reset();
     }
   }, [date, reset]);
+
+  useEffect(() => {
+    return subscribeDayCache((changed, next) => {
+      if (changed !== dateRef.current) {
+        return;
+      }
+      setDay(next);
+    });
+  }, []);
 
   useEffect(() => {
     void load();

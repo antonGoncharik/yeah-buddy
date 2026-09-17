@@ -19,21 +19,31 @@ import {
   commitItemsFromRows,
   toCommitItem,
 } from "@/components/day/plate-draft-commit";
+import type { PlateDraftItem } from "@/lib/ai/plate-types";
 import { postJson } from "@/lib/api-cache";
+import { readCachedDay, withDayOptimistic } from "@/lib/day/cache";
+import {
+  mealItemFromFood,
+  mealItemFromLump,
+  withAddedItems,
+  withReplacedItems,
+} from "@/lib/day/optimistic";
 import type { GramsMode } from "@/lib/food/yield";
-import { LOAD_FAILED } from "@/lib/messages";
+import { readMealItemsPayload } from "@/lib/meal/parse";
 import { haptic } from "@/lib/telegram/haptic";
-import type { Food } from "@/lib/types";
+import type { Food, MealItem } from "@/lib/types";
 
 export function usePlateDraft({
   view,
   setView,
   mealId,
+  date,
   doneHref,
 }: {
   view: PlateStatus;
   setView: Dispatch<SetStateAction<PlateStatus>>;
   mealId: string;
+  date: string;
   doneHref: string;
 }) {
   const router = useRouter();
@@ -166,29 +176,40 @@ export function usePlateDraft({
       return;
     }
 
-    setSaveError(null);
-    setView({
-      status: "saving",
-      previewUrl: view.previewUrl,
-      items: view.items,
-    });
-
-    try {
-      await postJson(`/api/meals/${mealId}/plate`, {
+    haptic("commit");
+    const current = readCachedDay(date);
+    if (current) {
+      const temps = prepared.items.map((item) =>
+        plateItemFromDraft(mealId, item),
+      );
+      void withDayOptimistic(
+        date,
+        withAddedItems(current, mealId, temps),
+        async () => {
+          const data = await postJson(`/api/meals/${mealId}/plate`, {
+            items: prepared.items.map(toCommitItem),
+          });
+          const saved = readMealItemsPayload(data);
+          const latest = readCachedDay(date);
+          if (latest && saved.length === temps.length) {
+            const replacements = new Map<string, MealItem>();
+            temps.forEach((temp, index) => {
+              const next = saved[index];
+              if (next) {
+                replacements.set(temp.id, next);
+              }
+            });
+            return withReplacedItems(latest, replacements);
+          }
+          return latest ?? "keep";
+        },
+      );
+    } else {
+      void postJson(`/api/meals/${mealId}/plate`, {
         items: prepared.items.map(toCommitItem),
       });
-      haptic("success");
-      router.push(doneHref);
-      router.refresh();
-    } catch (caught) {
-      haptic("error");
-      setView({
-        status: "draft",
-        previewUrl: view.previewUrl,
-        items: view.items,
-      });
-      setSaveError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
+    router.push(doneHref);
   }
 
   return {
@@ -206,4 +227,22 @@ export function usePlateDraft({
     toLump,
     save,
   };
+}
+
+function plateItemFromDraft(mealId: string, item: PlateDraftItem): MealItem {
+  if (item.kind === "lump") {
+    return mealItemFromLump(mealId, item);
+  }
+  return mealItemFromFood({
+    mealId,
+    food: {
+      id: item.foodId,
+      name: item.name,
+      protein_per_100: item.protein_per_100,
+      fat_per_100: item.fat_per_100,
+      carbs_per_100: item.carbs_per_100,
+      kcal_per_100: item.kcal_per_100,
+    },
+    grams: item.grams,
+  });
 }

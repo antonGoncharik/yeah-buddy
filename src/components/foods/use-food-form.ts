@@ -60,13 +60,11 @@ export function useFoodForm({
         const created = readFood(data);
         if (created) {
           router.push(afterCreateHref(created.id));
-          router.refresh();
           return;
         }
       }
 
       router.push("/foods");
-      router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
@@ -95,7 +93,6 @@ export function useFoodForm({
     try {
       await deleteJson(`/api/foods/${food.id}`);
       router.push("/foods");
-      router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

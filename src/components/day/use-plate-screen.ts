@@ -20,10 +20,12 @@ export type { PlatePicker, PlateRow } from "@/components/day/plate-draft";
 
 export function usePlateScreen({
   mealId,
+  date,
   doneHref,
   configured,
 }: {
   mealId: string;
+  date: string;
   doneHref: string;
   configured: boolean;
 }) {
@@ -35,7 +37,7 @@ export function usePlateScreen({
     configured ? { status: "idle" } : { status: "unavailable" },
   );
 
-  const draft = usePlateDraft({ view, setView, mealId, doneHref });
+  const draft = usePlateDraft({ view, setView, mealId, date, doneHref });
   const busy = view.status === "working" || view.status === "saving";
   const camera = usePlateCamera({
     busy,

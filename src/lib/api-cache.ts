@@ -21,6 +21,23 @@ interface CacheEntry {
   data: unknown;
 }
 
+const writeStamp = new Map<string, number>();
+const inflight = new Map<string, number>();
+let clock = 0;
+
+export function beginMutation(url: string): void {
+  inflight.set(url, (inflight.get(url) ?? 0) + 1);
+}
+
+export function endMutation(url: string): void {
+  const next = (inflight.get(url) ?? 1) - 1;
+  if (next <= 0) {
+    inflight.delete(url);
+  } else {
+    inflight.set(url, next);
+  }
+}
+
 export function peekJson(url: string): unknown | null {
   if (typeof localStorage === "undefined") {
     return null;
@@ -44,6 +61,7 @@ export function peekJson(url: string): unknown | null {
 }
 
 export function writeJson(url: string, data: unknown): void {
+  writeStamp.set(url, ++clock);
   if (typeof localStorage === "undefined") {
     return;
   }
@@ -104,7 +122,11 @@ export async function deleteJson(url: string): Promise<unknown> {
 }
 
 export async function fetchJson(url: string): Promise<unknown> {
+  const started = clock;
   const data = await mutateJson(url);
+  if ((inflight.get(url) ?? 0) > 0 || (writeStamp.get(url) ?? 0) > started) {
+    return peekJson(url) ?? data;
+  }
   writeJson(url, data);
   return data;
 }

@@ -67,15 +67,24 @@ export function useSessionEdits({
       return;
     }
 
+    setDetail((current) =>
+      current
+        ? { ...current, session: { ...current.session, note: trimmed } }
+        : current,
+    );
+
     try {
       await patchJson(`/api/sessions/${detail.session.id}`, { note: trimmed });
-      setDetail((current) =>
-        current
-          ? { ...current, session: { ...current.session, note: trimmed } }
-          : current,
-      );
     } catch (caught) {
       haptic("error");
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              session: { ...current.session, note: detail.session.note },
+            }
+          : current,
+      );
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }
@@ -95,12 +104,25 @@ export function useSessionEdits({
       return;
     }
 
-    await runBusy(async () => {
+    const previous = detail;
+    setDetail({
+      ...previous,
+      exercises: previous.exercises.filter(
+        (item) => item.id !== sessionExerciseId,
+      ),
+    });
+    haptic("commit");
+
+    try {
       const data = await deleteJson(
         `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}`,
       );
       applyPayload(data);
-    });
+    } catch (caught) {
+      haptic("error");
+      setDetail(previous);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
   }
 
   async function reorderExercises(exerciseIds: string[]) {

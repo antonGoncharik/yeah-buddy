@@ -12,7 +12,6 @@ import {
   toNativeGrams,
 } from "@/lib/food/yield";
 import { gramsChipForMode, yieldEquivalentLabel } from "@/lib/food/yield-copy";
-import { LOAD_FAILED } from "@/lib/messages";
 import { calcMacrosFromPer100 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { FoodState } from "@/lib/types";
@@ -52,7 +51,6 @@ export function useGramsScreen({
   const [gramsInput, setGramsInput] = useState(String(initialGrams));
   const [gramsMode, setGramsMode] = useState<GramsMode>("native");
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
 
   const pair = allowCooked && yieldPair != null ? yieldPair : null;
   const grams = parseGramsInput(gramsInput) ?? 0;
@@ -96,19 +94,10 @@ export function useGramsScreen({
     }
 
     setError(null);
-    setSaving(true);
-
-    try {
-      await save(nativeGrams);
-      haptic("success");
-      router.push(doneHref);
-      router.refresh();
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSaving(false);
-    }
+    haptic("commit");
+    const pending = save(nativeGrams);
+    router.push(doneHref);
+    void pending;
   }
 
   return {
@@ -124,7 +113,6 @@ export function useGramsScreen({
     chip,
     totals,
     error,
-    saving,
     changeMode,
     onSave,
     onCancel: () => router.push(readOnly ? doneHref : backHref),
