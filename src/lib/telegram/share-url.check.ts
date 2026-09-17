@@ -1,5 +1,7 @@
-import { createPackToken } from "@/lib/share/token";
+import { createPackToken, isPackToken } from "@/lib/share/token";
 import {
+  APP_INVITE_STARTAPP,
+  ensureMiniAppLaunchUrl,
   isTelegramMeUrl,
   resolveAppShareUrl,
   resolvePackShareUrl,
@@ -24,6 +26,7 @@ assert(isTelegramMeUrl("https://t.me/yeahbuddy"), "t.me https");
 assert(isTelegramMeUrl("https://www.t.me/yeahbuddy"), "www.t.me");
 assert(!isTelegramMeUrl("http://t.me/yeahbuddy"), "t.me needs https");
 assert(!isTelegramMeUrl("https://example.com"), "rejects app host");
+assert(!isPackToken(APP_INVITE_STARTAPP), "invite startapp is not a pack");
 
 assertEqual(
   resolveAppShareUrl({
@@ -36,10 +39,25 @@ assertEqual(
 
 assertEqual(
   resolveAppShareUrl({
+    miniAppUrl: "https://t.me/yeahbuddybot",
+    botUsername: "other",
+  }),
+  `https://t.me/yeahbuddybot?startapp=${APP_INVITE_STARTAPP}`,
+  "bare bot link opens mini app",
+);
+
+assertEqual(
+  ensureMiniAppLaunchUrl("https://t.me/yeahbuddy/app"),
+  "https://t.me/yeahbuddy/app",
+  "direct mini app unchanged",
+);
+
+assertEqual(
+  resolveAppShareUrl({
     miniAppUrl: "https://diary.example",
     botUsername: "yeahbuddybot",
   }),
-  "https://t.me/yeahbuddybot",
+  `https://t.me/yeahbuddybot?startapp=${APP_INVITE_STARTAPP}`,
   "bot username over https app",
 );
 
@@ -63,6 +81,14 @@ assertEqual(
   resolvePackShareUrl(token, "https://t.me/yeahbuddybot"),
   `https://t.me/yeahbuddybot?startapp=${token}`,
   "pack startapp",
+);
+assertEqual(
+  resolvePackShareUrl(
+    token,
+    `https://t.me/yeahbuddybot?startapp=${APP_INVITE_STARTAPP}`,
+  ),
+  `https://t.me/yeahbuddybot?startapp=${token}`,
+  "pack replaces invite startapp",
 );
 assertEqual(
   resolvePackShareUrl("nope", "https://t.me/yeahbuddybot"),

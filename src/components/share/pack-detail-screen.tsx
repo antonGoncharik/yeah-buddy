@@ -5,10 +5,12 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PackMealsPreview } from "@/components/share/pack-meals-preview";
 import { PackWorkoutsPreview } from "@/components/share/pack-workouts-preview";
+import { ShareQr } from "@/components/share/share-qr";
 import { usePackDetailScreen } from "@/components/share/use-pack-detail-screen";
 import { Button } from "@/components/ui/button";
 import { packBackHref } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
+import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 
 export function PackDetailScreen({ token }: { token: string }) {
   const {
@@ -44,6 +46,10 @@ export function PackDetailScreen({ token }: { token: string }) {
             <p className="animate-rise text-base text-muted-foreground">
               {packSubtitle(pack)}
             </p>
+
+            {ownLive && pack.share_url && isTelegramMeUrl(pack.share_url) ? (
+              <ShareQr url={pack.share_url} caption={packQrCaption(pack)} />
+            ) : null}
 
             {pack.kind === "meals" && pack.meals ? (
               <PackMealsPreview pack={pack} />
@@ -96,6 +102,12 @@ export function PackDetailScreen({ token }: { token: string }) {
       ) : null}
     </div>
   );
+}
+
+function packQrCaption(pack: SharePackDetail): string {
+  return pack.kind === "meals"
+    ? "Наведи камеру — откроется еда на день."
+    : "Наведи камеру — откроется программа.";
 }
 
 function packSubtitle(pack: SharePackDetail): string {

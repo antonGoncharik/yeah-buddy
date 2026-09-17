@@ -24,7 +24,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 **Share**
 
-- Meal templates and the gym queue share separately as snapshots. A friend saves the pack and applies it later. Logged days and working weights stay private.
+- Meal templates and the gym queue share separately as snapshots, as a QR or a t.me Mini App link. A friend saves the pack and applies it later. Logged days and working weights stay private. The app invite is the Mini App, not the bot chat.
 
 Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Offline, the last known data stays.
 
@@ -81,4 +81,4 @@ supabase/migrations/
 - The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
 - UI is built for Telegram Mini App, Russian, narrow screen.
 
-Share links: meal templates and gym queue are separate snapshots (`share_packs`). Open via Mini App `startapp`. Apply replaces templates (and food/gym settings), not logged days or working weights.
+Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a Mini App `startapp` link. Apply replaces templates (and food/gym settings), not logged days or working weights. The app invite uses `startapp=open` so a bare bot URL opens the Mini App.

@@ -9,7 +9,6 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
-import { ShareAppRow } from "@/components/share/share-app-row";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
@@ -140,7 +139,11 @@ export function SettingsScreen() {
               title={PACKS_LABEL}
               hint="Поделиться едой на день или программой тренировок"
             />
-            <ShareAppRow />
+            <NavRow
+              href="/settings/invite"
+              title="Показать дневник"
+              hint="QR и ссылка на приложение, без твоей еды и зала"
+            />
             <NavRow
               href="/onboarding?again=1"
               title="Белок и 1ПМ"
