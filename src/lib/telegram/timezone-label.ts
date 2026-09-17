@@ -1,17 +1,21 @@
 const FALLBACK_ZONE = "Europe/Moscow";
 
+export function timezoneZoneName(timeZone: string): string {
+  return resolveCaptionZone(timeZone).replaceAll("_", " ");
+}
+
 export function timezoneCaption(timeZone: string, now = new Date()): string {
-  const zone = resolveCaptionZone(timeZone);
+  const zone = timezoneZoneName(timeZone);
   try {
     const time = new Intl.DateTimeFormat("ru-RU", {
-      timeZone: zone,
+      timeZone: resolveCaptionZone(timeZone),
       hour: "2-digit",
       minute: "2-digit",
       hourCycle: "h23",
     }).format(now);
-    return `${zone.replaceAll("_", " ")} · сейчас ${time}`;
+    return `${zone} · сейчас ${time}`;
   } catch {
-    return zone.replaceAll("_", " ");
+    return zone;
   }
 }
 

@@ -15,7 +15,7 @@ import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
-import { timezoneCaption } from "@/lib/telegram/timezone-label";
+import { timezoneZoneName } from "@/lib/telegram/timezone-label";
 import { cn } from "@/lib/utils";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -180,7 +180,7 @@ export function SettingsScreen() {
             <p className="text-sm text-muted-foreground">
               Если к 20:00 день остался пустым — одно напоминание про еду и
               тренировку. Если всё записано — просто «Yeah buddy». Пояс:{" "}
-              {timezoneCaption(form.timezone)}.
+              {timezoneZoneName(form.timezone)}.
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

@@ -11,7 +11,10 @@ import {
   reminderText,
   resolveTimeZone,
 } from "@/lib/telegram/reminders";
-import { timezoneCaption } from "@/lib/telegram/timezone-label";
+import {
+  timezoneCaption,
+  timezoneZoneName,
+} from "@/lib/telegram/timezone-label";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const left = JSON.stringify(actual);
@@ -54,6 +57,11 @@ assertEqual(
   timezoneCaption("Europe/Moscow", new Date("2026-09-11T17:00:00.000Z")),
   "Europe/Moscow · сейчас 20:00",
   "moscow caption",
+);
+assertEqual(
+  timezoneZoneName("America/Los_Angeles"),
+  "America/Los Angeles",
+  "underscores become spaces",
 );
 
 const moscowEvening = localClock(
