@@ -1,10 +1,11 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ProgressPoint } from "@/lib/types";
+import type { ProgressPoint, SessionFeel } from "@/lib/types";
 import {
   formatWorkDate,
   loadPhaseMeta,
 } from "@/lib/workout/exercise-work-phase";
 import { phaseLabel } from "@/lib/workout/labels";
+import { toSessionFeel } from "@/lib/workout/map-enums";
 import { firstWorkSet } from "@/lib/workout/session-format";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 import {
@@ -18,16 +19,18 @@ interface SessionPointSource {
   session_date: string;
   phase_id: string | null;
   workout_type: "dynamic" | "static";
+  feel: SessionFeel | null;
 }
 
-export async function listExerciseWorkPoints(
-  userId: string,
-): Promise<Map<string, ProgressPoint[]>> {
+export async function listExerciseWorkPoints(userId: string): Promise<{
+  points: Map<string, ProgressPoint[]>;
+  sessions: Array<{ date: string; feel: SessionFeel | null }>;
+}> {
   const supabase = createSupabaseServerClient();
   const [sessionsResult, active] = await Promise.all([
     supabase
       .from("workout_sessions")
-      .select("id, session_date, phase_id, workout_type")
+      .select("id, session_date, phase_id, workout_type, feel")
       .eq("user_id", userId)
       .eq("status", "completed")
       .not("template_id", "is", null)
@@ -40,20 +43,30 @@ export async function listExerciseWorkPoints(
     throw sessionsResult.error;
   }
 
-  const sessions = sessionsResult.data ?? [];
-  return pointsFromSessions(
-    userId,
-    sessions.map((row) => ({
-      id: String(row.id),
-      session_date: String(row.session_date).slice(0, 10),
-      phase_id:
-        typeof row.phase_id === "string" && row.phase_id !== ""
-          ? row.phase_id
-          : null,
-      workout_type: row.workout_type === "static" ? "static" : "dynamic",
+  const sessions = (sessionsResult.data ?? []).map((row) => ({
+    id: String(row.id),
+    session_date: String(row.session_date).slice(0, 10),
+    phase_id:
+      typeof row.phase_id === "string" && row.phase_id !== ""
+        ? row.phase_id
+        : null,
+    workout_type: (row.workout_type === "static" ? "static" : "dynamic") as
+      | "dynamic"
+      | "static",
+    feel: toSessionFeel(row.feel),
+  }));
+
+  return {
+    points: await pointsFromSessions(
+      userId,
+      sessions,
+      Math.max(active.length, 1),
+    ),
+    sessions: sessions.map((session) => ({
+      date: session.session_date,
+      feel: session.feel,
     })),
-    Math.max(active.length, 1),
-  );
+  };
 }
 
 async function pointsFromSessions(

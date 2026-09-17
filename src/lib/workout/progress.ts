@@ -24,7 +24,7 @@ export async function getStrengthProgress(
     phasesResult,
     maxesResult,
     globalsResult,
-    workByExercise,
+    work,
     weights,
     active,
   ] = await Promise.all([
@@ -68,6 +68,8 @@ export async function getStrengthProgress(
   if (globalsResult.error) {
     throw globalsResult.error;
   }
+
+  const workByExercise = work.points;
 
   const macros = (macrosResult.data ?? []).map((row) =>
     mapMacroCycle(row as Record<string, unknown>),
@@ -118,6 +120,7 @@ export async function getStrengthProgress(
     exercises: progress,
     weights,
     circle_size: active.length,
+    sessions: work.sessions,
     ...summarizeProgress(progress),
   };
 }

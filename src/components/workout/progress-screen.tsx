@@ -20,7 +20,10 @@ import {
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
+  countSessionFeels,
   formatFrequencyVsProgram,
+  formatGymGap,
+  formatSessionFeels,
   formatSessionRateHalves,
   sessionRateHalves,
 } from "@/lib/workout/history-stats";
@@ -215,14 +218,22 @@ function SummaryCard({
   const tonnage = totalTonnage(weeks);
   const tonnageLine = formatWeeklyTonnageLine(weeks);
   const workDates = uniqueWorkDates(tracked);
-  const spanDays = horizonDayCount(from, to, workDates[0]);
+  const sessionDates =
+    viewed.sessions.length > 0
+      ? viewed.sessions.map((session) => session.date)
+      : workDates;
+  const spanDays = horizonDayCount(from, to, sessionDates[0] ?? workDates[0]);
   const frequency = formatFrequencyVsProgram(
-    workDates.length,
+    new Set(sessionDates).size,
     spanDays,
     lifetime.circle_size,
   );
-  const spanFrom = from ?? workDates[0];
-  const halves = spanFrom ? sessionRateHalves(workDates, spanFrom, to) : null;
+  const spanFrom = from ?? sessionDates[0] ?? workDates[0];
+  const halves = spanFrom
+    ? sessionRateHalves(sessionDates, spanFrom, to)
+    : null;
+  const gap = spanFrom ? formatGymGap(spanFrom, to, sessionDates) : null;
+  const feelLine = formatSessionFeels(countSessionFeels(viewed.sessions));
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
@@ -253,11 +264,15 @@ function SummaryCard({
             : ` · к весу тела ${formatSignedPercent(viewed.avg_relative_percent)}`}
         </p>
         {moved ? <CategoryLine exercises={tracked} /> : null}
-        {frequency ? (
+        {frequency || gap ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            {frequency}
-            {halves ? ` · ${formatSessionRateHalves(halves)}` : ""}
+            {[frequency, halves ? formatSessionRateHalves(halves) : null, gap]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
+        ) : null}
+        {feelLine ? (
+          <p className="mt-2 text-sm text-muted-foreground">{feelLine}</p>
         ) : null}
       </div>
 

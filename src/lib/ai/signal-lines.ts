@@ -36,6 +36,7 @@ export function buildSignals(input: {
     records?: PeakRecord[];
     tonnageWeeks?: WeekTonnage[];
     rateHalves?: { first: number; second: number } | null;
+    gapDays?: number | null;
   };
   phase: CurrentMacroState;
   maxes: { grown: ReviewMaxRow[]; stalled: ReviewMaxRow[] };
@@ -69,7 +70,9 @@ function isScoreboardSignal(line: string): boolean {
     line.startsWith("Частота:") ||
     line.startsWith("Тоннаж по неделям:") ||
     line.startsWith("Тоннаж за неделю:") ||
-    line.startsWith("Рекорды:")
+    line.startsWith("Рекорды:") ||
+    line.startsWith("Как прошло:") ||
+    line.startsWith("Дыра в зале:")
   ) {
     return true;
   }

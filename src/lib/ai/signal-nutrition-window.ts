@@ -1,7 +1,7 @@
 import { roundMacros } from "@/lib/ai/compact-nutrition";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewAverages } from "@/lib/ai/types";
-import { inclusiveDayCount, shiftIsoDate } from "@/lib/day/dates";
+import { inclusiveDayCount, longestDateGap } from "@/lib/day/dates";
 import { averageMacros, KCAL_HIT_RATIO } from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
@@ -23,28 +23,7 @@ export function longestLogGap(
   to: string,
   dates: string[],
 ): number {
-  const sorted = [...new Set(dates)].sort((left, right) =>
-    left.localeCompare(right),
-  );
-  if (sorted.length === 0) {
-    return inclusiveDayCount(from, to);
-  }
-
-  let longest = 0;
-  let cursor = from;
-  for (const date of sorted) {
-    if (date > cursor) {
-      longest = Math.max(
-        longest,
-        inclusiveDayCount(cursor, shiftIsoDate(date, -1)),
-      );
-    }
-    cursor = shiftIsoDate(date, 1);
-  }
-  if (cursor <= to) {
-    longest = Math.max(longest, inclusiveDayCount(cursor, to));
-  }
-  return longest;
+  return longestDateGap(from, to, dates);
 }
 
 export function logCoverageLine(

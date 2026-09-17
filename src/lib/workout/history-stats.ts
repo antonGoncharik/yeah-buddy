@@ -1,11 +1,19 @@
-import { inclusiveDayCount, shiftIsoDate } from "@/lib/day/dates";
+import {
+  inclusiveDayCount,
+  longestDateGap,
+  shiftIsoDate,
+} from "@/lib/day/dates";
 import {
   type DiaryRange,
   diaryRangeStart,
   isDiaryRange,
 } from "@/lib/diary-range";
-import type { RecentWorkoutSession } from "@/lib/types";
-import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import type { RecentWorkoutSession, SessionFeel } from "@/lib/types";
+import {
+  SESSION_FEEL_LABELS,
+  SESSION_FEELS,
+  WORKOUT_KIND_LABELS,
+} from "@/lib/workout/labels";
 
 export type WorkoutHistoryRange = DiaryRange;
 
@@ -22,7 +30,17 @@ export type WorkoutHistoryStats = {
   planHit: number;
   planTotal: number;
   templates: Array<{ name: string; count: number }>;
+  feels: SessionFeels;
 };
+
+export type SessionFeels = {
+  easy: number;
+  close: number;
+  miss: number;
+};
+
+/** A week without gym is a hole; rest days in a 3× week are not. */
+export const GYM_GAP_DAYS = 7;
 
 export function windowGymSessions(
   items: RecentWorkoutSession[],
@@ -50,6 +68,7 @@ export function summarizeWorkoutHistory(
   let staticCount = 0;
   let planHit = 0;
   let planTotal = 0;
+  const feels: SessionFeels = { easy: 0, close: 0, miss: 0 };
   const templateCounts = new Map<string, number>();
 
   for (const item of items) {
@@ -60,6 +79,10 @@ export function summarizeWorkoutHistory(
     }
     planHit += item.plan_hit ?? 0;
     planTotal += item.plan_total ?? 0;
+    const feel = item.session.feel;
+    if (feel) {
+      feels[feel] += 1;
+    }
 
     const name =
       item.template_name?.trim() ||
@@ -83,6 +106,7 @@ export function summarizeWorkoutHistory(
     planHit,
     planTotal,
     templates,
+    feels,
   };
 }
 
@@ -204,6 +228,49 @@ export function formatSessionRateHalves(halves: {
   second: number;
 }): string {
   return `сначала ${formatWeekRate(halves.first)}, потом ${formatWeekRate(halves.second)} в неделю`;
+}
+
+export function countSessionFeels(
+  items: Array<{ feel: SessionFeel | null }>,
+): SessionFeels {
+  const feels: SessionFeels = { easy: 0, close: 0, miss: 0 };
+  for (const item of items) {
+    if (item.feel == null) {
+      continue;
+    }
+    feels[item.feel] += 1;
+  }
+  return feels;
+}
+
+export function formatSessionFeels(feels: SessionFeels): string | null {
+  const parts = SESSION_FEELS.flatMap((key) => {
+    const count = feels[key];
+    if (count <= 0) {
+      return [];
+    }
+    return [`${SESSION_FEEL_LABELS[key].toLowerCase()} ${count}`];
+  });
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+export function gymGapDays(from: string, to: string, dates: string[]): number {
+  if (dates.length === 0) {
+    return 0;
+  }
+  return longestDateGap(from, to, dates);
+}
+
+export function formatGymGap(
+  from: string,
+  to: string,
+  dates: string[],
+): string | null {
+  const gap = gymGapDays(from, to, dates);
+  if (gap < GYM_GAP_DAYS) {
+    return null;
+  }
+  return `дыра ${gap} дн.`;
 }
 
 function rangeStart(

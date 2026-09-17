@@ -94,6 +94,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       tonnage_weeks: mapRecordList(value.gym.tonnage_weeks, parseWeekTonnage),
       records: mapRecordList(value.gym.records, parseRecord),
       rate_halves: parseRateHalves(value.gym.rate_halves),
+      gap_days: toNullableNumber(value.gym.gap_days),
     },
     phase: {
       type: typeof value.phase.type === "string" ? value.phase.type : null,

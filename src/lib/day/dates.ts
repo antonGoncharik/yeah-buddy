@@ -95,6 +95,36 @@ export function inclusiveDayCount(from: string, to: string): number {
   return Math.round((end - start) / 86_400_000) + 1;
 }
 
+/** Consecutive days in [from, to] with none of the given dates. */
+export function longestDateGap(
+  from: string,
+  to: string,
+  dates: string[],
+): number {
+  const sorted = [...new Set(dates)].sort((left, right) =>
+    left.localeCompare(right),
+  );
+  if (sorted.length === 0) {
+    return inclusiveDayCount(from, to);
+  }
+
+  let longest = 0;
+  let cursor = from;
+  for (const date of sorted) {
+    if (date > cursor) {
+      longest = Math.max(
+        longest,
+        inclusiveDayCount(cursor, shiftIsoDate(date, -1)),
+      );
+    }
+    cursor = shiftIsoDate(date, 1);
+  }
+  if (cursor <= to) {
+    longest = Math.max(longest, inclusiveDayCount(cursor, to));
+  }
+  return longest;
+}
+
 /** Calendar week starting Monday, from an ISO date. */
 export function weekStartMonday(isoDate: string): string {
   if (!isIsoDate(isoDate)) {

@@ -1,5 +1,7 @@
 import {
   formatFrequencyVsProgram,
+  formatGymGap,
+  formatSessionFeels,
   formatSessionRateHalves,
   sessionRateHalves,
 } from "@/lib/workout/history-stats";
@@ -40,6 +42,35 @@ assertEqual(
   formatSessionRateHalves({ first: 3, second: 1 }),
   "сначала 3, потом 1 в неделю",
   "half-rate copy",
+);
+assertEqual(
+  formatGymGap("2026-09-01", "2026-09-17", ["2026-09-01", "2026-09-06"]),
+  "дыра 11 дн.",
+  "week-plus without gym",
+);
+assertEqual(
+  formatGymGap("2026-09-01", "2026-09-17", [
+    "2026-09-04",
+    "2026-09-07",
+    "2026-09-11",
+  ]),
+  null,
+  "normal 3× rest is not a hole",
+);
+assertEqual(
+  formatGymGap("2026-09-01", "2026-09-17", []),
+  null,
+  "empty window has no hole line",
+);
+assertEqual(
+  formatSessionFeels({ easy: 3, close: 1, miss: 0 }),
+  "легко 3 · впритык 1",
+  "feel mix",
+);
+assertEqual(
+  formatSessionFeels({ easy: 0, close: 0, miss: 0 }),
+  null,
+  "no feels yet",
 );
 
 console.log("history stats ok");

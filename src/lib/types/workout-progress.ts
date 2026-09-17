@@ -1,6 +1,7 @@
 import type {
   ExerciseCategory,
   PhaseType,
+  SessionFeel,
   WorkoutKind,
 } from "@/lib/types/workout-core";
 
@@ -47,4 +48,6 @@ export interface StrengthProgress {
   weights: Array<{ date: string; weight: number }>;
   /** Active program days (templates). 0 if there is no program. */
   circle_size: number;
+  /** Completed sessions, oldest first. Used for feel counts and gym gaps. */
+  sessions: Array<{ date: string; feel: SessionFeel | null }>;
 }

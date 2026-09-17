@@ -386,6 +386,7 @@ const seedBrief = buildReviewBrief({
     avg_relative_percent: 3.8,
     weights: [],
     circle_size: 0,
+    sessions: [],
   },
   seedWeight: 84,
 });
@@ -465,6 +466,8 @@ assertEqual(
 );
 assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
 assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
+assertEqual(seedBrief.gym.gap_days, null, "one gymless day is not a hole");
 assertEqual(prompt.gym.circle_size, 0, "prompt keeps circle size");
+assertEqual(prompt.gym.gap_days, null, "prompt keeps gym gap");
 
 console.log("ai signals ok");

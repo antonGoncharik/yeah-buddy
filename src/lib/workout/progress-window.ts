@@ -32,6 +32,9 @@ export function windowStrengthProgress(
     exercises,
     weights: progress.weights ?? [],
     circle_size: progress.circle_size ?? 0,
+    sessions: (progress.sessions ?? []).filter(
+      (session) => session.date >= from && session.date <= to,
+    ),
     ...summarizeProgress(exercises),
   };
 }

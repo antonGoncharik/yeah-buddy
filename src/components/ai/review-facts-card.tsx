@@ -12,6 +12,7 @@ import { pluralDays } from "@/lib/nutrition-stats";
 import { cn } from "@/lib/utils";
 import {
   formatFrequencyVsProgram,
+  formatSessionFeels,
   formatSessionRateHalves,
   pluralWorkouts,
 } from "@/lib/workout/history-stats";
@@ -110,6 +111,13 @@ function gymHint(brief: ReviewBrief): string | null {
   }
   if (brief.gym.rate_halves) {
     parts.push(formatSessionRateHalves(brief.gym.rate_halves));
+  }
+  if (brief.gym.gap_days != null) {
+    parts.push(`дыра ${brief.gym.gap_days} дн.`);
+  }
+  const feels = formatSessionFeels(brief.gym.feels);
+  if (feels) {
+    parts.push(feels);
   }
   if (
     brief.phase.type &&

@@ -6,6 +6,7 @@ import {
   isIsoDate,
   isPastDayDate,
   isWritableDayDate,
+  longestDateGap,
   nextIsoDate,
   nutritionHistoryHref,
   nutritionWeekHref,
@@ -34,6 +35,16 @@ assertEqual(isIsoDate("2026-13-01"), false, "impossible month");
 assertEqual(isIsoDate("2026-02-29"), false, "non-leap feb 29");
 assertEqual(isIsoDate("2024-02-29"), true, "leap feb 29");
 assertEqual(inclusiveDayCount("2026-09-04", "2026-09-17"), 14, "14 inclusive");
+assertEqual(
+  longestDateGap("2026-09-01", "2026-09-17", ["2026-09-01", "2026-09-06"]),
+  11,
+  "trailing gym hole",
+);
+assertEqual(
+  longestDateGap("2026-09-01", "2026-09-17", ["2026-09-04", "2026-09-06"]),
+  11,
+  "leading rest then a hole after last session",
+);
 assertEqual(weekStartMonday("2026-09-14"), "2026-09-14", "monday stays");
 assertEqual(weekStartMonday("2026-09-17"), "2026-09-14", "thursday to monday");
 assertEqual(weekStartMonday("2026-09-13"), "2026-09-07", "sunday to monday");

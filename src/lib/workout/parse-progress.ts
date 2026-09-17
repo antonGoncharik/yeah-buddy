@@ -10,6 +10,7 @@ import type {
 } from "@/lib/types";
 import { isPhaseType } from "@/lib/workout/default-formulas";
 import { phaseLabel } from "@/lib/workout/labels";
+import { toSessionFeel } from "@/lib/workout/map-enums";
 import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
 
 export function parseMacroRecap(value: unknown): MacroRecap | null {
@@ -93,7 +94,18 @@ export function parseStrengthProgress(data: unknown): StrengthProgress | null {
     avg_relative_percent: toNullableNumber(data.avg_relative_percent),
     weights: mapRecordList(data.weights, parseWeightPoint),
     circle_size: toNumber(data.circle_size),
+    sessions: mapRecordList(data.sessions, parseProgressSession),
   };
+}
+
+function parseProgressSession(
+  row: Record<string, unknown>,
+): { date: string; feel: ReturnType<typeof toSessionFeel> } | null {
+  if (typeof row.date !== "string") {
+    return null;
+  }
+
+  return { date: row.date, feel: toSessionFeel(row.feel) };
 }
 
 function parseWeightPoint(

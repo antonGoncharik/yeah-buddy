@@ -87,6 +87,11 @@ const windowed = windowStrengthProgress(
     avg_relative_percent: null,
     weights: [],
     circle_size: 0,
+    sessions: [
+      { date: "2026-08-20", feel: "easy" },
+      { date: "2026-09-05", feel: "close" },
+      { date: "2026-09-20", feel: "miss" },
+    ],
   },
   "2026-09-01",
   "2026-09-14",
@@ -96,6 +101,11 @@ assertEqual(
   windowed.exercises.map((item) => item.name),
   ["Присед", "Тяга"],
   "only work in window",
+);
+assertEqual(
+  windowed.sessions.map((item) => item.date).join(),
+  "2026-09-05",
+  "session feels follow the window",
 );
 assertEqual(windowed.exercises[0]?.start_weight, 170, "baseline before window");
 assertEqual(windowed.exercises[0]?.current_weight, 180, "last in window");
@@ -120,6 +130,7 @@ const once = windowStrengthProgress(
     avg_relative_percent: null,
     weights: [],
     circle_size: 0,
+    sessions: [],
   },
   "2026-09-01",
   "2026-09-14",
@@ -140,6 +151,7 @@ const recomp = windowStrengthProgress(
     avg_relative_percent: null,
     weights: [],
     circle_size: 0,
+    sessions: [],
   },
   "2026-09-01",
   "2026-09-14",
@@ -218,6 +230,7 @@ const quarter = viewedProgress(
     avg_relative_percent: null,
     weights: [],
     circle_size: 0,
+    sessions: [],
   },
   "2026-09-14",
   "30",

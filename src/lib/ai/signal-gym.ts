@@ -29,6 +29,7 @@ export function gymSignalLines(input: {
     records?: PeakRecord[];
     tonnageWeeks?: WeekTonnage[];
     rateHalves?: { first: number; second: number } | null;
+    gapDays?: number | null;
   };
   phase: CurrentMacroState;
   windowDays?: number;
@@ -57,6 +58,9 @@ export function gymSignalLines(input: {
   }
   if (input.gym.rateHalves) {
     lines.push(`Темп зала: ${formatSessionRateHalves(input.gym.rateHalves)}.`);
+  }
+  if (input.gym.gapDays != null && input.gym.gapDays > 0) {
+    lines.push(`Дыра в зале: ${input.gym.gapDays} дн.`);
   }
   if (input.gym.skipped > 0) {
     lines.push(`Пропусков: ${input.gym.skipped}.`);

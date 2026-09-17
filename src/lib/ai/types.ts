@@ -104,6 +104,7 @@ export type ReviewBrief = {
     tonnage_weeks: ReviewWeekTonnage[];
     records: ReviewRecord[];
     rate_halves: { first: number; second: number } | null;
+    gap_days: number | null;
   };
   phase: {
     type: string | null;

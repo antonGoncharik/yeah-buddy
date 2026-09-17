@@ -2,6 +2,8 @@
 
 import {
   formatFrequencyVsProgram,
+  formatGymGap,
+  formatSessionFeels,
   formatSessionRateHalves,
   pluralWorkouts,
   sessionRateHalves,
@@ -25,6 +27,8 @@ export function WorkoutHistoryStats({
 }) {
   const perWeek = formatFrequencyVsProgram(stats.count, days, 0);
   const halves = sessionRateHalves(dates, from, to);
+  const gap = formatGymGap(from, to, dates);
+  const feelLine = formatSessionFeels(stats.feels);
   // Kind split only says something when both kinds happened.
   const kinds =
     stats.dynamic > 0 && stats.static > 0
@@ -46,11 +50,15 @@ export function WorkoutHistoryStats({
             {pluralWorkouts(stats.count)}
           </span>
         </p>
-        {perWeek ? (
+        {perWeek || gap ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            {perWeek}
-            {halves ? ` · ${formatSessionRateHalves(halves)}` : ""}
+            {[perWeek, halves ? formatSessionRateHalves(halves) : null, gap]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
+        ) : null}
+        {feelLine ? (
+          <p className="mt-2 text-sm text-muted-foreground">{feelLine}</p>
         ) : null}
         {kinds.length > 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">

@@ -18,6 +18,8 @@ import { halfWindow } from "@/lib/ai/signal-nutrition-window";
 import type { ReviewBrief } from "@/lib/ai/types";
 import { nutritionHits, splitAverages } from "@/lib/nutrition-stats";
 import {
+  GYM_GAP_DAYS,
+  gymGapDays,
   sessionRateHalves,
   summarizeWorkoutHistory,
   windowGymSessions,
@@ -79,11 +81,10 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     source.to,
   );
   const tonnageSum = totalTonnage(tonnageWeeks);
-  const rateHalves = sessionRateHalves(
-    gymWindow.map((item) => item.session.session_date),
-    source.from,
-    source.to,
-  );
+  const gymDates = gymWindow.map((item) => item.session.session_date);
+  const rateHalves = sessionRateHalves(gymDates, source.from, source.to);
+  const gapDays = gymGapDays(source.from, source.to, gymDates);
+  const gap = gapDays >= GYM_GAP_DAYS ? gapDays : null;
   const signals = buildSignals({
     days,
     from: source.from,
@@ -110,6 +111,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       records,
       tonnageWeeks,
       rateHalves,
+      gapDays: gap,
     },
     phase: source.macro,
     maxes: {
@@ -161,6 +163,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       tonnage_weeks: tonnageWeeks,
       records,
       rate_halves: rateHalves,
+      gap_days: gap,
     },
     phase: {
       type: source.macro.phase

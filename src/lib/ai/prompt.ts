@@ -44,6 +44,7 @@ export type ReviewPromptPayload = {
     tonnage_weeks: ReviewBrief["gym"]["tonnage_weeks"];
     records: ReviewBrief["gym"]["records"];
     rate_halves: ReviewBrief["gym"]["rate_halves"];
+    gap_days: ReviewBrief["gym"]["gap_days"];
   };
   phase: ReviewBrief["phase"];
   maxes: ReviewBrief["maxes"];
@@ -68,6 +69,7 @@ export const REVIEW_SYSTEM_PROMPT = `Ты описываешь, как прош�
 - gym.records — новые максимумы штанги в окне (дата, кг, предыдущий). Первая точка упражнения — не рекорд.
 - gym.tonnage_weeks — сумма рабочих подходов по календарным неделям (пн–вс). Не советуй «добавить объём».
 - gym.per_week и gym.circle_size — сколько вышло в неделю и сколько дней в круге программы. Не говори «надо ходить N раз».
+- gym.gap_days — самая длинная пауза без зала в окне, если ≥ 7 дней. Не советуй «надо чаще».
 - previous — прошлый текст того же окна. Сравни с текущими цифрами: закрылось ли то, на что тогда смотрели. Нет previous — не выдумывай «как в прошлый раз».
 
 Что выжать
@@ -143,6 +145,7 @@ export function reviewPromptPayload(
       tonnage_weeks: brief.gym.tonnage_weeks,
       records: brief.gym.records,
       rate_halves: brief.gym.rate_halves,
+      gap_days: brief.gym.gap_days,
     },
     phase: brief.phase,
     maxes: brief.maxes,

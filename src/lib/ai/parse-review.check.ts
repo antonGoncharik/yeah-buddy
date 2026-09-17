@@ -92,6 +92,7 @@ const brief = {
     tonnage_weeks: [],
     records: [],
     rate_halves: null,
+    gap_days: null,
   },
   phase: {
     type: null,
