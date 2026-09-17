@@ -10,7 +10,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 - A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover protein.
 - Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen: known foods get grams, unknown food becomes that same one-off row.
-- Your own food list: CRUD, search, favorites, recents. No external catalogs.
+- Your own food list: CRUD, search, favorites, recents. A shop catalog can copy a card into that list. No barcodes or live external food APIs.
 - Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Today plus the two previous calendar days stay writable in the user's timezone.
 - Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template.
 
@@ -77,7 +77,7 @@ supabase/migrations/
 
 ## Limits
 
-- Own food list only. No external APIs, barcodes, or parsers. A friend pack copies foods into your list.
+- The diary logs your food list. A shop catalog copies a card into it. No barcodes, parsers, or live external food APIs. A friend pack copies foods into your list.
 - The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
 - UI is built for Telegram Mini App, Russian, narrow screen.
 - Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`.
