@@ -13,7 +13,7 @@ export interface GuidePage {
   lead: string;
   paragraphs: string[];
   points?: string[];
-  remember: string;
+  remember?: string;
 }
 
 export interface GuideTip {

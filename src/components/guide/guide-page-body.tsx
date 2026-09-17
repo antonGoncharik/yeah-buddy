@@ -46,9 +46,11 @@ export function GuidePageBody({
           ))}
         </ul>
       ) : null}
-      <p className="rounded-2xl bg-muted/60 px-4 py-3 text-base leading-relaxed">
-        {page.remember}
-      </p>
+      {page.remember ? (
+        <p className="rounded-2xl bg-muted/60 px-4 py-3 text-base leading-relaxed">
+          {page.remember}
+        </p>
+      ) : null}
     </article>
   );
 }

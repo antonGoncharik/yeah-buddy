@@ -51,7 +51,9 @@ for (const page of GUIDE_INTRO_PAGES) {
     `${page.id} intro stays short`,
   );
   assert(text.length <= 900, `${page.id} intro fits one screen`);
-  assert(page.remember.trim().length >= 24, `${page.id} has a takeaway`);
+  if (page.remember) {
+    assert(page.remember.trim().length >= 24, `${page.id} has a takeaway`);
+  }
   assert(
     (GUIDE_DOODLES as readonly string[]).includes(page.doodle),
     `${page.id} doodle`,
@@ -64,7 +66,9 @@ for (const page of GUIDE_PAGES) {
   assert(page.lead.trim().length >= 40, `${page.id} lead is not a teaser`);
   assert(page.paragraphs.length >= 2, `${page.id} has body`);
   assert(text.length >= 280, `${page.id} is a real page, not a card teaser`);
-  assert(page.remember.trim().length >= 24, `${page.id} has a takeaway`);
+  if (page.remember) {
+    assert(page.remember.trim().length >= 24, `${page.id} has a takeaway`);
+  }
   assert(
     (GUIDE_DOODLES as readonly string[]).includes(page.doodle),
     `${page.id} doodle`,
@@ -72,7 +76,8 @@ for (const page of GUIDE_PAGES) {
 }
 
 for (const page of [...GUIDE_INTRO_PAGES, ...GUIDE_PAGES]) {
-  for (const line of [page.lead, ...page.paragraphs, page.remember]) {
+  for (const line of [page.lead, ...page.paragraphs, page.remember ?? ""]) {
+    if (!line) continue;
     assert(
       /[.!?…»)]$/.test(line.trim()),
       `${page.id} line ends as a sentence: ${line}`,
