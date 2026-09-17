@@ -1,8 +1,10 @@
+import { getReviewSnapshot } from "@/lib/ai/review";
 import { isRecord } from "@/lib/read";
 import { disableReminders } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
 import {
+  isoWeekdaySun0,
   localClock,
   reminderDateForClock,
   resolveTimeZone,
@@ -11,6 +13,10 @@ import {
   dateHasFoodRecord,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
+import {
+  composeReminderMessage,
+  weekRecapText,
+} from "@/lib/telegram/reminder-recap";
 import { reminderText } from "@/lib/telegram/reminder-text";
 import { getSessionOnDate } from "@/lib/workout/sessions";
 
@@ -48,12 +54,14 @@ export async function runEveningReminders(
       continue;
     }
 
-    const text = reminderText({
+    const nag = reminderText({
       foodLogged: await dateHasFoodRecord(candidate.userId, reminderDate),
       gymLogged:
         (await getSessionOnDate(candidate.userId, reminderDate)) != null,
       nextTemplateName: await nextCircleName(candidate.userId),
     });
+    const recap = await sundayRecap(candidate.userId, reminderDate);
+    const text = composeReminderMessage(nag, recap);
     if (!text) {
       result.skipped += 1;
       continue;
@@ -86,6 +94,26 @@ export async function runEveningReminders(
   }
 
   return result;
+}
+
+async function sundayRecap(
+  userId: string,
+  reminderDate: string,
+): Promise<string | null> {
+  if (isoWeekdaySun0(reminderDate) !== 0) {
+    return null;
+  }
+
+  try {
+    const snapshot = await getReviewSnapshot(userId, 14, reminderDate);
+    if (snapshot.brief.coverage === "empty") {
+      return null;
+    }
+    return weekRecapText(snapshot.brief.signals);
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 }
 
 async function listReminderCandidates(): Promise<ReminderCandidate[]> {

@@ -1,7 +1,11 @@
 import {
+  composeReminderMessage,
+  weekRecapText,
+} from "@/lib/telegram/reminder-recap";
+import {
   isCronAuthorized,
-  isReminderHour,
   isoWeekdaySun0,
+  isReminderHour,
   localClock,
   reminderDateForClock,
   reminderText,
@@ -158,5 +162,26 @@ assertEqual(
   false,
   "missing secret fails closed",
 );
+
+assertEqual(
+  composeReminderMessage(
+    "Yeah buddy.",
+    "За 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  ),
+  "Yeah buddy.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  "sunday recap sits under yeah buddy",
+);
+assertEqual(
+  composeReminderMessage(null, "За 14 дней:\nЗал: 4."),
+  "За 14 дней:\nЗал: 4.",
+  "recap alone when the day is already logged",
+);
+assertEqual(composeReminderMessage(null, null), null, "nothing to send");
+assertEqual(
+  weekRecapText(["Белок дотянули: 12 из 14 дней.", "Смотри ужин."]),
+  "За 14 дней:\nБелок дотянули: 12 из 14 дней.",
+  "only scoreboard lines",
+);
+assertEqual(weekRecapText(["Смотри ужин."]), null, "no scoreboard skips recap");
 
 console.log("telegram reminders ok");

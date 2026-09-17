@@ -51,6 +51,10 @@ export function buildSignals(input: {
   ];
 }
 
+export function reviewScoreboardSignals(signals: string[]): string[] {
+  return signals.filter((line) => isScoreboardSignal(line));
+}
+
 export function reviewDetailSignals(signals: string[]): string[] {
   return signals.filter((line) => !isScoreboardSignal(line));
 }
