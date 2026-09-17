@@ -14,6 +14,7 @@ import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
+import { timezoneCaption } from "@/lib/telegram/timezone-label";
 import { cn } from "@/lib/utils";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -176,8 +177,9 @@ export function SettingsScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
             <p className="text-sm text-muted-foreground">
-              Если к вечеру день остался пустым — одно напоминание про еду и
-              тренировку. Если всё записано — просто «Yeah buddy».
+              Если к 20:00 день остался пустым — одно напоминание про еду и
+              тренировку. Если всё записано — просто «Yeah buddy». Пояс:{" "}
+              {timezoneCaption(form.timezone)}.
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

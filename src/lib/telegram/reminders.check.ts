@@ -1,10 +1,13 @@
 import {
   isCronAuthorized,
   isReminderHour,
+  isoWeekdaySun0,
   localClock,
+  reminderDateForClock,
   reminderText,
   resolveTimeZone,
 } from "@/lib/telegram/reminders";
+import { timezoneCaption } from "@/lib/telegram/timezone-label";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const left = JSON.stringify(actual);
@@ -20,6 +23,34 @@ assertEqual(resolveTimeZone("UTC"), "UTC", "keeps valid tz");
 assertEqual(isReminderHour(20), true, "eight pm");
 assertEqual(isReminderHour(19), false, "too early");
 assertEqual(isReminderHour(21), false, "too late");
+
+assertEqual(
+  reminderDateForClock({ date: "2026-09-11", hour: 20 }),
+  "2026-09-11",
+  "20:00 is tonight",
+);
+assertEqual(
+  reminderDateForClock({ date: "2026-09-11", hour: 21 }),
+  "2026-09-11",
+  "after 20:00 still tonight",
+);
+assertEqual(
+  reminderDateForClock({ date: "2026-09-11", hour: 19 }),
+  "2026-09-10",
+  "before 20:00 catches last night",
+);
+assertEqual(
+  reminderDateForClock({ date: "2026-09-01", hour: 3 }),
+  "2026-08-31",
+  "early morning catches previous month",
+);
+assertEqual(isoWeekdaySun0("2026-09-13"), 0, "sunday");
+assertEqual(isoWeekdaySun0("2026-09-17"), 4, "thursday");
+assertEqual(
+  timezoneCaption("Europe/Moscow", new Date("2026-09-11T17:00:00.000Z")),
+  "Europe/Moscow · сейчас 20:00",
+  "moscow caption",
+);
 
 const moscowEvening = localClock(
   new Date("2026-09-11T17:00:00.000Z"),

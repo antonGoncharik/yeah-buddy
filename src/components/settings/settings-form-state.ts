@@ -10,11 +10,12 @@ export interface SettingsFormState {
   training_fat: string;
   training_carbs: string;
   reminders_enabled: boolean;
+  timezone: string;
 }
 
 export type MacroFieldKey = Exclude<
   keyof SettingsFormState,
-  "reminders_enabled"
+  "reminders_enabled" | "timezone"
 >;
 
 export function toFormState(settings: UserSettings): SettingsFormState {
@@ -26,6 +27,7 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     training_fat: String(settings.training_fat),
     training_carbs: String(settings.training_carbs),
     reminders_enabled: settings.reminders_enabled,
+    timezone: settings.timezone,
   };
 }
 

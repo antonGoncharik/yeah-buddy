@@ -3,8 +3,8 @@ import { disableReminders } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
 import {
-  isReminderHour,
   localClock,
+  reminderDateForClock,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
 import {
@@ -42,14 +42,16 @@ export async function runEveningReminders(
 
   for (const candidate of await listReminderCandidates()) {
     const clock = localClock(now, candidate.timezone);
-    if (!isReminderHour(clock.hour) || candidate.remindedOn === clock.date) {
+    const reminderDate = reminderDateForClock(clock);
+    if (candidate.remindedOn === reminderDate) {
       result.skipped += 1;
       continue;
     }
 
     const text = reminderText({
-      foodLogged: await dateHasFoodRecord(candidate.userId, clock.date),
-      gymLogged: (await getSessionOnDate(candidate.userId, clock.date)) != null,
+      foodLogged: await dateHasFoodRecord(candidate.userId, reminderDate),
+      gymLogged:
+        (await getSessionOnDate(candidate.userId, reminderDate)) != null,
       nextTemplateName: await nextCircleName(candidate.userId),
     });
     if (!text) {
@@ -57,7 +59,7 @@ export async function runEveningReminders(
       continue;
     }
 
-    const claimed = await claimReminderDay(candidate.userId, clock.date);
+    const claimed = await claimReminderDay(candidate.userId, reminderDate);
     if (!claimed) {
       result.skipped += 1;
       continue;
@@ -75,7 +77,11 @@ export async function runEveningReminders(
       continue;
     }
 
-    await revertReminderDay(candidate.userId, clock.date, candidate.remindedOn);
+    await revertReminderDay(
+      candidate.userId,
+      reminderDate,
+      candidate.remindedOn,
+    );
     result.failed += 1;
   }
 

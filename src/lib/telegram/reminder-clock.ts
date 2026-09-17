@@ -44,6 +44,29 @@ export function isReminderHour(hour: number): boolean {
   return hour === REMINDER_HOUR;
 }
 
+/** Local calendar date whose 20:00 has already arrived. */
+export function reminderDateForClock(clock: {
+  date: string;
+  hour: number;
+}): string {
+  if (clock.hour >= REMINDER_HOUR) {
+    return clock.date;
+  }
+
+  return previousIsoDate(clock.date);
+}
+
+export function isoWeekdaySun0(date: string): number {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function previousIsoDate(date: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, (day ?? 1) - 1));
+  return shifted.toISOString().slice(0, 10);
+}
+
 export function isCronAuthorized(
   request: Request,
   secret: string | undefined,
