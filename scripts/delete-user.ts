@@ -1,31 +1,8 @@
+import { deleteUserById } from "@/lib/account/delete";
+import { ACCOUNT_USER_ID_TABLES } from "@/lib/account/tables";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const USER_ID_TABLES = [
-  "user_settings",
-  "foods",
-  "days",
-  "meals",
-  "meal_items",
-  "meal_templates",
-  "meal_template_items",
-  "named_meals",
-  "named_meal_items",
-  "workout_settings",
-  "exercises",
-  "global_maxes",
-  "macro_cycles",
-  "workout_phases",
-  "phase_maxes",
-  "workout_templates",
-  "workout_template_exercises",
-  "workout_sessions",
-  "session_exercises",
-  "workout_sets",
-  "review_snapshots",
-] as const;
-
-const USAGE =
-  "usage: npm run user:delete -- <telegram-username>";
+const USAGE = "usage: npm run user:delete -- <telegram-username>";
 
 async function countEq(
   supabase: ReturnType<typeof createSupabaseServerClient>,
@@ -75,7 +52,7 @@ async function main() {
   }
 
   const counts: Record<string, number> = {};
-  for (const table of USER_ID_TABLES) {
+  for (const table of ACCOUNT_USER_ID_TABLES) {
     counts[table] = await countEq(supabase, table, "user_id", user.id);
   }
   counts.share_packs = await countEq(
@@ -87,22 +64,7 @@ async function main() {
 
   console.log(JSON.stringify({ user, counts }, null, 2));
 
-  const deleted = await supabase.from("users").delete().eq("id", user.id);
-  if (deleted.error) {
-    throw deleted.error;
-  }
-
-  const leftover = await supabase
-    .from("users")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (leftover.error) {
-    throw leftover.error;
-  }
-  if (leftover.data) {
-    throw new Error("user still present after delete");
-  }
+  await deleteUserById(user.id);
 
   console.log(`deleted user ${user.username} (${user.id})`);
 }

@@ -7,6 +7,7 @@ import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
+import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -192,6 +193,8 @@ export function SettingsScreen() {
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </section>
         ) : null}
+
+        {!loading && form ? <SettingsAccount /> : null}
       </div>
     </div>
   );

@@ -80,5 +80,6 @@ supabase/migrations/
 - Own food list only. No external APIs, barcodes, or parsers. A friend pack copies foods into your list.
 - The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
 - UI is built for Telegram Mini App, Russian, narrow screen.
+- Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`.
 
 Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a Mini App `startapp` link. Apply replaces templates (and food/gym settings), not logged days or working weights. The app invite uses `startapp=open` so a bare bot URL opens the Mini App.

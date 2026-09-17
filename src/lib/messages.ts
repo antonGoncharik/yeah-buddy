@@ -73,6 +73,8 @@ export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
 export const PACK_EMPTY_MEALS = "Сначала собери еду на день.";
 export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в программу.";
+export const ACCOUNT_DELETE_CONFIRM =
+  "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
 
 export function readApiError(data: unknown): string | null {
   if (

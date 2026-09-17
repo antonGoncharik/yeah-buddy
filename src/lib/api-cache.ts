@@ -77,6 +77,29 @@ export function writeJson(url: string, data: unknown): void {
   }
 }
 
+export function clearDiaryCache(): void {
+  writeStamp.clear();
+  inflight.clear();
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+
+  try {
+    const keys: string[] = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(PREFIX)) {
+        keys.push(key);
+      }
+    }
+    for (const key of keys) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // private mode, or disabled storage
+  }
+}
+
 export async function mutateJson(
   url: string,
   init: RequestInit = {},

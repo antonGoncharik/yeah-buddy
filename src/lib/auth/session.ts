@@ -77,3 +77,14 @@ export async function getSession(): Promise<SessionPayload | null> {
 
   return readSessionToken(token);
 }
+
+export async function clearSessionCookie(): Promise<void> {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}

@@ -1,0 +1,26 @@
+export const ACCOUNT_USER_ID_TABLES = [
+  "user_settings",
+  "foods",
+  "days",
+  "meals",
+  "meal_items",
+  "meal_templates",
+  "meal_template_items",
+  "named_meals",
+  "named_meal_items",
+  "workout_settings",
+  "exercises",
+  "exercise_tracks",
+  "global_maxes",
+  "macro_cycles",
+  "workout_phases",
+  "phase_maxes",
+  "workout_templates",
+  "workout_template_exercises",
+  "workout_sessions",
+  "session_exercises",
+  "workout_sets",
+  "review_snapshots",
+] as const;
+
+export type AccountUserIdTable = (typeof ACCOUNT_USER_ID_TABLES)[number];
