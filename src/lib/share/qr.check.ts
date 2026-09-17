@@ -27,6 +27,29 @@ if (!qr) {
   throw new Error("encodes invite url");
 }
 assert(qr.size >= 21, "qr has modules");
-assert(qr.path.includes("M"), "qr has a path");
+assert(qr.modules.includes("M"), "qr has a path");
+assert(qr.finders.length === 3, "qr has three finders");
+assert(qr.logo.size >= 5, "logo hole is visible");
+assert(
+  qr.logo.x >= 0 && qr.logo.x + qr.logo.size <= qr.size,
+  "logo stays in bounds",
+);
+assert(
+  qr.finders.every((finder) => !rectsOverlap(qr.logo, finder, 7)),
+  "logo misses finders",
+);
 
 console.log("share qr ok");
+
+function rectsOverlap(
+  logo: { x: number; y: number; size: number },
+  finder: { x: number; y: number },
+  finderSize: number,
+): boolean {
+  return !(
+    logo.x + logo.size <= finder.x ||
+    finder.x + finderSize <= logo.x ||
+    logo.y + logo.size <= finder.y ||
+    finder.y + finderSize <= logo.y
+  );
+}
