@@ -18,7 +18,6 @@ import {
   STEADY_WEIGHT_LINE,
 } from "@/lib/flavor";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
-import { haptic } from "@/lib/telegram/haptic";
 import type { Day } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +82,6 @@ export function DaySummary({
     wasClosed.current = true;
     setFlashClosed(true);
     wiggleCookie();
-    haptic("success");
     const timer = window.setTimeout(() => {
       setFlashClosed(false);
     }, PROTEIN_CLOSED_MS);
