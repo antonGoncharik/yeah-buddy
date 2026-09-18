@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { BodyWeightField } from "@/components/day/body-weight-field";
+import { CookieDoodle } from "@/components/layout/doodles";
+import { MeterBar } from "@/components/ui/meter-bar";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import {
   hundredWeightLine,
@@ -83,10 +85,11 @@ export function DaySummary({
   }, [closed]);
 
   return (
-    <section className="card-surface flex flex-col gap-4 px-4 py-4">
+    <section className="card-surface flex flex-col gap-5 px-5 py-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <CookieDoodle className="size-4 text-primary/80" />
             {overflowKcalLabel(overflow)}
           </p>
           <p
@@ -146,7 +149,7 @@ export function DaySummary({
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3.5">
         <MacroBar
           label="Белки"
           fact={fact.protein}
@@ -189,7 +192,7 @@ function MacroBar({
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-3 text-base">
         <p className="font-medium">{label}</p>
         <p
@@ -202,15 +205,7 @@ function MacroBar({
           <span> / {formatMacro(plan)}</span>
         </p>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width,background-color] duration-700 ease-[var(--ease-out-soft)]",
-            overflow ? "bg-destructive" : barClass,
-          )}
-          style={{ width: `${Math.round(ratio * 100)}%` }}
-        />
-      </div>
+      <MeterBar ratio={ratio} barClass={barClass} overflow={overflow} />
     </div>
   );
 }

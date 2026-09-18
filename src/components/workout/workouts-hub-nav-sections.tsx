@@ -3,6 +3,7 @@
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
+import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
@@ -200,21 +201,25 @@ export function WorkoutsHubNavSections({
           href="/workouts/exercises"
           title="Упражнения"
           hint="1ПМ и рабочий кг"
+          icon={<DumbbellDoodle />}
         />
         <NavRow
           href="/workouts/progress"
           title="Рабочие веса"
           hint="За 90 дней и с первой записи"
+          icon={<BarbellDoodle />}
         />
         <NavRow
           href="/settings/formulas"
           title={FORMULAS_LABEL}
           hint="Общая схема, если в дне нет своей"
+          icon={<DumbbellDoodle />}
         />
         <NavRow
           href={reviewHref("workouts")}
           title={REVIEW_LABEL}
           hint="За 14, 30 или 90 дней"
+          icon={<BarbellDoodle />}
         />
       </section>
     </div>

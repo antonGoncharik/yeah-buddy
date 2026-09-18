@@ -3,6 +3,12 @@
 import { ChevronDown, Moon, Sun } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import {
+  CookieDoodle,
+  DumbbellDoodle,
+  MugDoodle,
+} from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -54,7 +60,12 @@ export function SettingsScreen() {
 
         <section className="flex flex-col gap-2">
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow href={GUIDE_HREF} title={GUIDE_LABEL} hint={GUIDE_HINT} />
+            <NavRow
+              href={GUIDE_HREF}
+              title={GUIDE_LABEL}
+              hint={GUIDE_HINT}
+              icon={<MugDoodle />}
+            />
           </div>
         </section>
 
@@ -68,6 +79,9 @@ export function SettingsScreen() {
                 aria-expanded={showGoals}
                 onClick={() => setShowGoals((open) => !open)}
               >
+                <MarkBadge className="size-9 rounded-xl">
+                  <CookieDoodle />
+                </MarkBadge>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-lg font-medium">
                     Цели на день
@@ -91,11 +105,13 @@ export function SettingsScreen() {
               href="/settings/meals"
               title={MEAL_TEMPLATES_LABEL}
               hint="Что подставлять в новый день"
+              icon={<MugDoodle />}
             />
             <NavRow
               href="/foods"
               title="Продукты"
               hint="Свои продукты для записи еды"
+              icon={<CookieDoodle />}
             />
           </div>
           {!loading && form && showGoals ? (
@@ -119,16 +135,19 @@ export function SettingsScreen() {
               href={reviewHref("settings")}
               title={REVIEW_LABEL}
               hint="Еда, зал и вес за 14, 30 или 90 дней"
+              icon={<CookieDoodle />}
             />
             <NavRow
               href="/today/week?from=settings"
               title="Неделя"
               hint="Еда и зал за 7 дней"
+              icon={<CookieDoodle />}
             />
             <NavRow
               href="/today/history?from=settings"
               title="История еды"
               hint="14, 30 или 90 дней"
+              icon={<CookieDoodle />}
             />
           </div>
         </section>
@@ -140,16 +159,19 @@ export function SettingsScreen() {
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделиться едой на день или программой тренировок"
+              icon={<CookieDoodle />}
             />
             <NavRow
               href="/settings/invite"
               title="Показать дневник"
               hint="QR и ссылка на приложение, без твоей еды и зала"
+              icon={<MugDoodle />}
             />
             <NavRow
               href="/onboarding?again=1"
               title="Белок и 1ПМ"
               hint="Задать заново. Еда на день и программа не изменятся"
+              icon={<DumbbellDoodle />}
             />
           </div>
         </section>

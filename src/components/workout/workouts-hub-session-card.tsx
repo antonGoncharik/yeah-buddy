@@ -3,6 +3,9 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
+
 import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type {
   RecentWorkoutSession,
@@ -36,6 +39,9 @@ export function WorkoutsHubSessionCard({
                 href={`/workouts/sessions/${item.session.id}`}
                 className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
               >
+                <MarkBadge>
+                  <DumbbellDoodle />
+                </MarkBadge>
                 <span className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-primary">
                     Не закончена · {formatSessionDay(item.session.session_date)}
@@ -63,6 +69,9 @@ export function WorkoutsHubSessionCard({
           href={`/workouts/sessions/${session.id}`}
           className="card-surface animate-rise flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
         >
+          <MarkBadge>
+            <DumbbellDoodle />
+          </MarkBadge>
           <span className="min-w-0 flex-1">
             <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
             <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">

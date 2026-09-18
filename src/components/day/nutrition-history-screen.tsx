@@ -8,6 +8,8 @@ import { NutritionHistoryDayRow } from "@/components/day/nutrition-history-day-r
 import { NutritionHistoryStats } from "@/components/day/nutrition-history-stats";
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
 import { AppHeader } from "@/components/layout/app-header";
+import { CookieDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -92,9 +94,10 @@ export function NutritionHistoryScreen() {
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
-          <section className="card-surface animate-rise px-5 py-5">
-            <p className="text-lg font-medium">{NUTRITION_HISTORY_EMPTY}</p>
-          </section>
+          <EmptyNote
+            icon={<CookieDoodle className="size-6" />}
+            title={NUTRITION_HISTORY_EMPTY}
+          />
         ) : null}
 
         {showStats && showRange ? (

@@ -3,6 +3,8 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { formatBodyWeight } from "@/lib/day/body-weight";
 import { formatIsoDate } from "@/lib/day/format";
 import { dayHasFood, type WeekSlot, weekSlotHref } from "@/lib/day/week";
@@ -47,8 +49,17 @@ export function WeekDayRow({
     weightLabel ? { key: "weight", label: weightLabel, muted: false } : null,
   ].filter((item) => item != null);
 
+  const gym = slot.session != null;
+  const food = dayHasFood(slot.day);
+  const training = slot.day?.is_training_day === true || gym;
+
   const body = (
     <>
+      <MarkBadge
+        className={cn("size-9 rounded-xl", !food && !gym && "opacity-45")}
+      >
+        {training ? <DumbbellDoodle /> : <CookieDoodle />}
+      </MarkBadge>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-3">
           <span className="text-base font-medium">

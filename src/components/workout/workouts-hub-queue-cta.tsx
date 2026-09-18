@@ -1,5 +1,7 @@
 "use client";
 
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { Button } from "@/components/ui/button";
 import type {
   Exercise,
@@ -95,16 +97,21 @@ export function WorkoutsHubQueueCta({
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
-        <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">
-          {nextTemplate.name}
-        </h2>
-        {followingTemplate && followingTemplate.id !== nextTemplate.id ? (
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Потом {followingTemplate.name}
-          </p>
-        ) : null}
+      <div className="flex items-start gap-3">
+        <MarkBadge>
+          <DumbbellDoodle />
+        </MarkBadge>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-muted-foreground">Сегодня</p>
+          <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">
+            {nextTemplate.name}
+          </h2>
+          {followingTemplate && followingTemplate.id !== nextTemplate.id ? (
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Потом {followingTemplate.name}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {nextTemplate.exercises.length > 0 ? (

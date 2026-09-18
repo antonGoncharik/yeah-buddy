@@ -592,6 +592,24 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   animation: draw-line 0.9s var(--ease-out-soft) 0.05s both;
 }
 
+@keyframes chart-halo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.12;
+    transform: scale(1.55);
+  }
+}
+
+@utility animate-chart-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-halo 2.6s var(--ease-out-soft) infinite;
+}
+
 @utility animate-recap-glow {
   animation: recap-glow 1.2s var(--ease-out-soft) 1;
 }
@@ -629,6 +647,7 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   .animate-fade,
   .animate-loader-beat,
   .animate-draw-line,
+  .animate-chart-halo,
   .animate-recap-glow,
   .animate-dumbbell-wiggle,
   .animate-nav-wiggle {

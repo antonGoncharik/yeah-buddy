@@ -3,12 +3,14 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
+import { MeterBar } from "@/components/ui/meter-bar";
 import { formatBodyWeight } from "@/lib/day/body-weight";
 import { todayHistoryDayHref } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export function NutritionHistoryDayRow({
   item,
@@ -22,6 +24,9 @@ export function NutritionHistoryDayRow({
       href={todayHistoryDayHref(item.date, fromSettings)}
       className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
     >
+      <MarkBadge className="size-9 rounded-xl">
+        {item.is_training_day ? <DumbbellDoodle /> : <CookieDoodle />}
+      </MarkBadge>
       <span className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-base font-medium">
@@ -82,15 +87,11 @@ function MiniBar({
   const overflow = plan > 0 && fact > plan;
 
   return (
-    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-      <div
-        className={cn(
-          "h-full rounded-full transition-[width,opacity] duration-500 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
-          barClass,
-          overflow && "opacity-90",
-        )}
-        style={{ width: `${Math.max(ratio * 100, fact > 0 ? 4 : 0)}%` }}
-      />
-    </div>
+    <MeterBar
+      ratio={Math.max(ratio, fact > 0 ? 0.04 : 0)}
+      barClass={barClass}
+      overflow={overflow}
+      size="sm"
+    />
   );
 }

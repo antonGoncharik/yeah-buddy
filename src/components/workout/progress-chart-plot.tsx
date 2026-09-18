@@ -1,3 +1,9 @@
+import { ChartCaption, TrendPlot } from "@/components/chart/trend-plot";
+import {
+  Doodle,
+  DUMBBELL_VIEWBOX,
+  DumbbellMark,
+} from "@/components/layout/doodles";
 import type { phaseMarks } from "@/components/workout/progress-phase-marks";
 import type { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
 import { formatTonnage } from "@/lib/workout/numbers";
@@ -10,7 +16,6 @@ type PhaseMark = ReturnType<typeof phaseMarks>[number];
 
 export function ProgressChartPlot({
   metric,
-  width,
   height,
   shape,
   marks,
@@ -21,7 +26,6 @@ export function ProgressChartPlot({
   tonnageLayout,
 }: {
   metric: ProgressMetric;
-  width: number;
   height: number;
   shape: ChartShape;
   marks: PhaseMark[];
@@ -32,15 +36,24 @@ export function ProgressChartPlot({
   tonnageLayout: ChartLayout | null;
 }) {
   const showTonnage = tonnageShape != null && tonnageLayout != null;
+  const caption =
+    metric === "seconds"
+      ? "Как держал"
+      : metric === "relative"
+        ? "К весу тела"
+        : showTonnage
+          ? "Вес · тоннаж пунктиром"
+          : "Рабочий вес";
 
   return (
-    <>
-      <svg
-        key={metric}
-        viewBox={`0 0 ${width} ${height}`}
-        className="h-44 w-full overflow-visible"
-        role="img"
-        aria-label={
+    <div className="flex flex-col gap-3">
+      <TrendPlot
+        layout={shape}
+        series={shape}
+        overlay={showTonnage ? tonnageShape : undefined}
+        color="var(--primary)"
+        fillId={`gym-${metric}`}
+        ariaLabel={
           metric === "seconds"
             ? "Прогресс удержания"
             : metric === "relative"
@@ -49,133 +62,44 @@ export function ProgressChartPlot({
                 ? "Прогресс весов и тоннажа"
                 : "Прогресс весов"
         }
+        maxLabel={`${formatValue(shape.dataMax)}${unit ? ` ${unit}` : ""}`}
+        minLabel={`${formatValue(shape.dataMin)}${unit ? ` ${unit}` : ""}`}
+        endLabel={lastLabel}
+        extraMaxLabel={
+          showTonnage ? formatTonnage(tonnageLayout.dataMax) : undefined
+        }
       >
-        <defs>
-          <linearGradient
-            id={`progress-fill-${metric}`}
-            x1="0"
-            x2="0"
-            y1="0"
-            y2="1"
-          >
-            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {shape.gridY.map((y) => (
-          <line
-            key={y}
-            x1="16"
-            x2={width - 16}
-            y1={y}
-            y2={y}
-            className="stroke-border/80"
-            strokeWidth="1"
-          />
-        ))}
         {marks.map((mark) => (
-          <line
-            key={`phase-${mark.x}-${mark.label}`}
-            x1={mark.x}
-            x2={mark.x}
-            y1="28"
-            y2={height - 16}
-            className="stroke-muted-foreground/45"
-            strokeWidth="1"
-            strokeDasharray="4 3"
-          />
+          <g key={`phase-${mark.x}-${mark.label}`}>
+            <line
+              x1={mark.x}
+              x2={mark.x}
+              y1="28"
+              y2={height - 16}
+              className="stroke-muted-foreground/40"
+              strokeWidth="1"
+              strokeDasharray="4 3"
+            />
+            <text
+              x={mark.x}
+              y="22"
+              textAnchor={mark.anchor}
+              className="fill-muted-foreground text-[10px]"
+            >
+              {mark.label}
+            </text>
+          </g>
         ))}
-        <path
-          d={shape.area}
-          fill={`url(#progress-fill-${metric})`}
-          className="origin-bottom motion-safe:animate-fade"
-        />
-        <path
-          d={shape.line}
-          fill="none"
-          className="stroke-primary motion-safe:animate-draw-line"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          pathLength={1}
-        />
-        {showTonnage ? (
-          <path
-            d={tonnageShape.line}
-            fill="none"
-            className="stroke-muted-foreground motion-safe:animate-draw-line"
-            strokeWidth="1.75"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            strokeDasharray="5 4"
-            pathLength={1}
-          />
-        ) : null}
-        {shape.dots.map((dot, index) => (
-          <circle
-            key={`${dot.x}-${dot.y}`}
-            cx={dot.x}
-            cy={dot.y}
-            r={index === shape.dots.length - 1 ? 5 : 3.5}
-            className="fill-primary motion-safe:animate-fade"
-            style={{ animationDelay: `${120 + index * 40}ms` }}
-          />
-        ))}
-        {showTonnage
-          ? tonnageShape.dots.map((dot, index) => (
-              <circle
-                key={`t-${dot.x}-${dot.y}`}
-                cx={dot.x}
-                cy={dot.y}
-                r={index === tonnageShape.dots.length - 1 ? 3.5 : 2.5}
-                className="fill-muted-foreground motion-safe:animate-fade"
-                style={{ animationDelay: `${140 + index * 40}ms` }}
-              />
-            ))
-          : null}
-        {marks.map((mark) => (
-          <text
-            key={`label-${mark.x}-${mark.label}`}
-            x={mark.x}
-            y="22"
-            textAnchor={mark.anchor}
-            className="fill-muted-foreground text-[10px]"
-          >
-            {mark.label}
-          </text>
-        ))}
-        <text x="16" y="12" className="fill-muted-foreground text-[11px]">
-          {formatValue(shape.max)} {unit}
-        </text>
-        {showTonnage ? (
-          <text
-            x={width - 16}
-            y="12"
-            textAnchor="end"
-            className="fill-muted-foreground text-[11px]"
-          >
-            {formatTonnage(tonnageLayout.max)}
-          </text>
-        ) : null}
-        <text
-          x="16"
-          y={height - 4}
-          className="fill-muted-foreground text-[11px]"
-        >
-          {formatValue(shape.min)} {unit}
-        </text>
-        <text
-          x={width - 16}
-          y={height - 4}
-          textAnchor="end"
-          className="fill-muted-foreground text-[11px]"
-        >
-          {lastLabel}
-        </text>
-      </svg>
-      {showTonnage ? (
-        <p className="text-[11px] text-muted-foreground">кг · тоннаж</p>
-      ) : null}
-    </>
+      </TrendPlot>
+      <ChartCaption
+        icon={
+          <Doodle className="h-3.5 w-7" viewBox={DUMBBELL_VIEWBOX}>
+            <DumbbellMark />
+          </Doodle>
+        }
+      >
+        {caption}
+      </ChartCaption>
+    </div>
   );
 }

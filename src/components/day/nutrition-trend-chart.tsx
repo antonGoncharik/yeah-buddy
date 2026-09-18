@@ -1,3 +1,4 @@
+import { ChartEmpty } from "@/components/chart/trend-plot";
 import { NutritionTrendSvg } from "@/components/day/nutrition-trend-svg";
 import { chartLayout, chartSeries } from "@/lib/chart-shape";
 import { formatBodyWeight, historyWeightPoints } from "@/lib/day/body-weight";
@@ -64,11 +65,7 @@ function MacroTrendChart({
   const last = days[days.length - 1];
 
   if (!layout || !factSeries || !targetSeries || !last) {
-    return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Кривая появится после двух дней.
-      </p>
-    );
+    return <ChartEmpty>Ещё день — и будет линия.</ChartEmpty>;
   }
 
   return (
@@ -79,10 +76,10 @@ function MacroTrendChart({
       color={METRIC_COLOR[metric]}
       label={METRIC_LABEL[metric]}
       fillId={metric}
-      maxLabel={formatMetricValue(metric, layout.max)}
-      minLabel={formatMetricValue(metric, layout.min)}
+      maxLabel={formatMetricValue(metric, layout.dataMax)}
+      minLabel={formatMetricValue(metric, layout.dataMin)}
       lastDate={last.date}
-      caption="Факт · цель пунктиром"
+      caption="Съел · цель пунктиром"
     />
   );
 }
@@ -98,11 +95,7 @@ function WeightTrendChart({ days }: { days: DayHistoryRow[] }) {
   const last = points[points.length - 1];
 
   if (!layout || !factSeries || !last || points.length < 2) {
-    return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Кривая появится после двух взвешиваний.
-      </p>
-    );
+    return <ChartEmpty>Ещё одно взвешивание — и будет линия.</ChartEmpty>;
   }
 
   return (
@@ -112,9 +105,10 @@ function WeightTrendChart({ days }: { days: DayHistoryRow[] }) {
       color={METRIC_COLOR.weight}
       label={METRIC_LABEL.weight}
       fillId="weight"
-      maxLabel={`${formatBodyWeight(layout.max)} кг`}
-      minLabel={`${formatBodyWeight(layout.min)} кг`}
+      maxLabel={`${formatBodyWeight(layout.dataMax)} кг`}
+      minLabel={`${formatBodyWeight(layout.dataMin)} кг`}
       lastDate={last.date}
+      caption="Как весил"
     />
   );
 }

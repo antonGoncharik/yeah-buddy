@@ -1,10 +1,11 @@
 "use client";
 
-import { CalendarDays, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ComponentType, type MouseEvent, useState } from "react";
 import {
+  CookieDoodle,
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
@@ -25,7 +26,7 @@ const ITEMS: Array<{
   label: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
-  { href: "/today", label: "Сегодня", icon: CalendarDays },
+  { href: "/today", label: "Сегодня", icon: CookieDoodle },
   { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];

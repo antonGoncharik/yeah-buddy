@@ -3,6 +3,8 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { isRecord } from "@/lib/read";
 import {
   SESSION_STATUS_LABELS,
@@ -37,6 +39,9 @@ export function TodayWorkoutBanner({
 }) {
   const body = (
     <>
+      <MarkBadge>
+        <DumbbellDoodle />
+      </MarkBadge>
       <span className="min-w-0 flex-1">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <p className="mt-1 text-xl font-semibold tracking-tight">{title}</p>

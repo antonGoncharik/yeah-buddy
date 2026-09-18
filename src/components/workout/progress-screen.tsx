@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
+import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -12,6 +14,7 @@ import {
   type ProgressFilter,
   useProgressScreen,
 } from "@/components/workout/use-progress-screen";
+import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
 import {
   formatBodyWeight,
@@ -95,22 +98,22 @@ export function ProgressScreen() {
         ) : null}
 
         {!loading && progress && progress.exercises.length === 0 ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-            <p className="text-lg font-medium">Пока нечего сравнивать</p>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              Здесь появятся упражнения с записью из зала: сначала одна точка,
-              потом линия. 1ПМ задаётся в упражнениях или в первой тренировке.
-            </p>
-            <Link
-              href="/workouts/exercises"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-12 text-base",
-              )}
-            >
-              Открыть упражнения
-            </Link>
-          </section>
+          <EmptyNote
+            icon={<BarbellDoodle className="h-5 w-10" />}
+            title="Пока нечего сравнивать"
+            hint="Здесь появятся упражнения с записью из зала: сначала одна точка, потом линия. 1ПМ задаётся в упражнениях или в первой тренировке."
+            action={
+              <Link
+                href="/workouts/exercises"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-12 text-base",
+                )}
+              >
+                Открыть упражнения
+              </Link>
+            }
+          />
         ) : null}
 
         {!loading && progress && viewed && progress.exercises.length > 0 ? (
@@ -124,12 +127,11 @@ export function ProgressScreen() {
             </div>
 
             {tracked.length === 0 ? (
-              <section className="card-surface animate-rise px-5 py-5">
-                <p className="text-lg font-medium">За эти дни зала не было</p>
-                <p className="mt-1 text-base text-muted-foreground">
-                  Поставь «Всё» — там кривые с первой записи.
-                </p>
-              </section>
+              <EmptyNote
+                icon={<DumbbellDoodle className="h-5 w-10" />}
+                title="За эти дни зала не было"
+                hint="Поставь «Всё» — там кривые с первой записи."
+              />
             ) : (
               <SummaryCard
                 viewed={viewed}
@@ -287,10 +289,13 @@ function SummaryCard({
       ) : null}
 
       {tonnage > 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Тоннаж {formatTonnage(tonnage)}
-          {tonnageLine ? ` · ${tonnageLine}` : ""}
-        </p>
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            Тоннаж {formatTonnage(tonnage)}
+            {weeks.length < 2 && tonnageLine ? ` · ${tonnageLine}` : ""}
+          </p>
+          <WeekTonnageChart weeks={weeks} />
+        </div>
       ) : null}
 
       {lifts.length > 0 ? (

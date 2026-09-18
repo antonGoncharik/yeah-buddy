@@ -1,5 +1,6 @@
 "use client";
 
+import { MeterBar } from "@/components/ui/meter-bar";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
 import {
   type BodyWeightWindow,
@@ -15,7 +16,6 @@ import {
   pluralDays,
   type proteinPerKgStats,
 } from "@/lib/nutrition-stats";
-import { cn } from "@/lib/utils";
 
 export function NutritionHistoryStats({
   days,
@@ -144,12 +144,7 @@ function HitRow({
           {hit} из {total}
         </p>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn("h-full rounded-full", barClass)}
-          style={{ width: `${Math.round(ratio * 100)}%` }}
-        />
-      </div>
+      <MeterBar ratio={ratio} barClass={barClass} />
     </div>
   );
 }

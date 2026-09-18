@@ -1,3 +1,4 @@
+import { ChartEmpty } from "@/components/chart/trend-plot";
 import { ProgressChartPlot } from "@/components/workout/progress-chart-plot";
 import { phaseMarks } from "@/components/workout/progress-phase-marks";
 import { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
@@ -27,11 +28,7 @@ export function ProgressChart({
   const height = 168;
   const shape = chartShape(metricValues(series, metric), width, height, 16);
   if (!shape) {
-    return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Пока одна точка — кривая появится после следующих тренировок.
-      </p>
-    );
+    return <ChartEmpty>Ещё тренировка — и будет линия.</ChartEmpty>;
   }
 
   const last = series[series.length - 1];
@@ -61,7 +58,6 @@ export function ProgressChart({
     <div className="flex flex-col gap-3">
       <ProgressChartPlot
         metric={metric}
-        width={width}
         height={height}
         shape={shape}
         marks={marks}

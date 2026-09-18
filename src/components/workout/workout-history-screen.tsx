@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -75,9 +77,10 @@ export function WorkoutHistoryScreen() {
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
-          <section className="card-surface animate-rise px-5 py-5">
-            <p className="text-lg font-medium">{SESSION_HISTORY_EMPTY}</p>
-          </section>
+          <EmptyNote
+            icon={<DumbbellDoodle className="h-5 w-10" />}
+            title={SESSION_HISTORY_EMPTY}
+          />
         ) : null}
 
         {showStats && showRange ? (

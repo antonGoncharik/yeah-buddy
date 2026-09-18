@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
@@ -63,10 +65,11 @@ export function PacksLibraryScreen() {
         ) : null}
 
         {!loading && !error && packs.length === 0 ? (
-          <p className="animate-rise px-1 text-base leading-relaxed text-muted-foreground">
-            Пока пусто. Поделись едой на день или программой тренировок — ссылка
-            появится здесь.
-          </p>
+          <EmptyNote
+            icon={<CookieDoodle className="size-6" />}
+            title="Пока пусто."
+            hint="Поделись едой на день или программой тренировок — ссылка появится здесь."
+          />
         ) : null}
 
         {!loading && packs.length > 0 ? (
@@ -77,6 +80,13 @@ export function PacksLibraryScreen() {
                 href={packPath(pack.token, "packs")}
                 title={pack.title}
                 hint={packHint(pack)}
+                icon={
+                  pack.kind === "workouts" ? (
+                    <DumbbellDoodle />
+                  ) : (
+                    <CookieDoodle />
+                  )
+                }
               />
             ))}
           </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { MeterBar } from "@/components/ui/meter-bar";
 import {
   formatFrequencyVsProgram,
   formatGymGap,
@@ -103,12 +104,7 @@ function HitRow({
           {hit} из {total}
         </p>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${Math.round(ratio * 100)}%` }}
-        />
-      </div>
+      <MeterBar ratio={ratio} barClass="bg-primary" />
     </div>
   );
 }

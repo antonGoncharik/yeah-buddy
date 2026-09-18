@@ -11,6 +11,8 @@ import {
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
+import { CookieDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -149,9 +151,10 @@ export function FoodsScreen() {
         !error &&
         visibleFoods.length === 0 &&
         !catalogSearchActive(query) ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            {emptyMessage(filter, query)}
-          </p>
+          <EmptyNote
+            icon={<CookieDoodle className="size-6" />}
+            title={emptyMessage(filter, query)}
+          />
         ) : null}
 
         {!loading && !error && visibleFoods.length > 0 ? (

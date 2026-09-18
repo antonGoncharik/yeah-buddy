@@ -6,6 +6,8 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useWeekScreen } from "@/components/day/use-week-screen";
 import { WeekDayRow } from "@/components/day/week-day-row";
 import { AppHeader } from "@/components/layout/app-header";
+import { CookieDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { weekHasEntries } from "@/lib/day/week";
@@ -34,9 +36,10 @@ export function WeekScreen() {
         ) : null}
 
         {empty ? (
-          <section className="card-surface animate-rise px-5 py-5">
-            <p className="text-lg font-medium">{WEEK_EMPTY}</p>
-          </section>
+          <EmptyNote
+            icon={<CookieDoodle className="size-6" />}
+            title={WEEK_EMPTY}
+          />
         ) : null}
 
         {!loading && week && weekHasEntries(week.items) ? (

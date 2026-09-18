@@ -8,6 +8,7 @@ import {
   MealItemRow,
   type MealLine,
 } from "@/components/day/meal-item-row";
+import { MealTypeMark } from "@/components/day/meal-type-mark";
 import { Button } from "@/components/ui/button";
 import { SortableList } from "@/components/workout/sortable-list";
 import {
@@ -79,12 +80,13 @@ export function MealCard({
 
   return (
     <section
-      className={cn("card-surface flex flex-col gap-3 px-4 py-4", className)}
+      className={cn("card-surface flex flex-col gap-3 px-5 py-5", className)}
       style={style}
     >
       <div className="flex items-center justify-between gap-3">
-        <h2 className="min-w-0 truncate text-xl font-semibold">
-          {getMealLabel(mealType)}
+        <h2 className="flex min-w-0 items-center gap-2 text-xl font-semibold">
+          <MealTypeMark mealType={mealType} />
+          <span className="truncate">{getMealLabel(mealType)}</span>
         </h2>
         <div className="flex shrink-0 items-center gap-1">
           {items.length > 0 ? (
@@ -110,9 +112,7 @@ export function MealCard({
       </div>
 
       {items.length === 0 ? (
-        readOnly ? (
-          <p className="text-base text-muted-foreground">Пока пусто.</p>
-        ) : null
+        <p className="text-base text-muted-foreground">Пока пусто.</p>
       ) : onReorderItems && !readOnly ? (
         <SortableList
           items={items}

@@ -149,3 +149,43 @@ export function Doodle({
     </svg>
   );
 }
+
+export function CookieDoodle({ className = "size-4" }: { className?: string }) {
+  return (
+    <Doodle className={className} viewBox={COOKIE_VIEWBOX}>
+      <CookieMark />
+    </Doodle>
+  );
+}
+
+export function MugDoodle({ className = "h-5 w-4" }: { className?: string }) {
+  return (
+    <Doodle className={className} viewBox={MUG_VIEWBOX}>
+      <MugMark />
+    </Doodle>
+  );
+}
+
+export function DumbbellDoodle({
+  className = "h-3.5 w-7",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={DUMBBELL_VIEWBOX}>
+      <DumbbellMark />
+    </Doodle>
+  );
+}
+
+export function BarbellDoodle({
+  className = "h-3.5 w-8",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={BARBELL_VIEWBOX}>
+      <BarbellMark />
+    </Doodle>
+  );
+}

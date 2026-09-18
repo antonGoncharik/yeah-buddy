@@ -3,6 +3,8 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { formatIsoDate } from "@/lib/day/format";
 import type { RecentWorkoutSession } from "@/lib/types";
 import {
@@ -16,6 +18,9 @@ export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
       href={`/workouts/sessions/${item.session.id}`}
       className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
     >
+      <MarkBadge className="size-9 rounded-xl">
+        <DumbbellDoodle />
+      </MarkBadge>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-base font-medium">
           {item.template_name ?? WORKOUT_KIND_LABELS[item.session.workout_type]}

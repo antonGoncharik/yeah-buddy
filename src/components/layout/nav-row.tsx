@@ -2,12 +2,14 @@ import { ChevronRight, Share2 } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
+import { MarkBadge } from "@/components/layout/mark-badge";
 import { cn } from "@/lib/utils";
 
 interface NavRowBase {
   title: string;
   hint?: ReactNode;
   detail?: string;
+  icon?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }
@@ -24,6 +26,9 @@ export function NavRow(props: NavRowProps) {
   );
   const body = (
     <>
+      {props.icon ? (
+        <MarkBadge className="size-9 rounded-xl">{props.icon}</MarkBadge>
+      ) : null}
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-3">
           <span className="truncate text-lg font-medium">{props.title}</span>

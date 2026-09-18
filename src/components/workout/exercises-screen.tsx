@@ -4,6 +4,8 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { DumbbellDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,9 +36,10 @@ export function ExercisesScreen() {
         ) : null}
 
         {!loading && !error && exercises.length === 0 ? (
-          <p className="animate-fade py-12 text-center text-lg text-muted-foreground">
-            {EXERCISES_EMPTY}
-          </p>
+          <EmptyNote
+            icon={<DumbbellDoodle className="h-5 w-10" />}
+            title={EXERCISES_EMPTY}
+          />
         ) : null}
 
         {!loading && exercises.length > 0 ? (
