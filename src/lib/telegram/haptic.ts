@@ -12,6 +12,15 @@ export type HapticCommand =
   | { type: "impact"; style: "light" | "medium" | "heavy" }
   | { type: "notification"; style: "success" | "warning" | "error" };
 
+export type HapticEventData =
+  | { type: "selection_change" }
+  | { type: "impact"; impact_style: "light" | "medium" | "heavy" }
+  | {
+      type: "notification";
+      notification_type: "success" | "warning" | "error";
+    };
+
+export const HAPTIC_EVENT = "web_app_trigger_haptic_feedback";
 export const TIMER_DONE_VIBRATE = [240, 90, 240, 90, 420];
 export const TIMER_DONE_HAPTICS: ReadonlyArray<{
   delay: number;
@@ -28,6 +37,16 @@ type HapticApi = {
   selectionChanged: () => unknown;
 };
 
+type TelegramHapticHost = {
+  TelegramWebviewProxy?: { postEvent?: (name: string, data: string) => void };
+  webkit?: {
+    messageHandlers?: {
+      performAction?: { postMessage?: (message: unknown) => void };
+    };
+  };
+  Telegram?: { WebApp?: { HapticFeedback?: HapticApi } };
+};
+
 const COMMANDS: Record<HapticKind, HapticCommand> = {
   tick: { type: "selection" },
   tap: { type: "impact", style: "light" },
@@ -38,10 +57,22 @@ const COMMANDS: Record<HapticKind, HapticCommand> = {
   error: { type: "notification", style: "error" },
 };
 
+let hapticApi: HapticApi | null | undefined;
 let hapticLoad: Promise<HapticApi | null> | undefined;
 
 export function hapticCommand(kind: HapticKind): HapticCommand {
   return COMMANDS[kind];
+}
+
+export function hapticEventData(kind: HapticKind): HapticEventData {
+  const command = COMMANDS[kind];
+  if (command.type === "selection") {
+    return { type: "selection_change" };
+  }
+  if (command.type === "impact") {
+    return { type: "impact", impact_style: command.style };
+  }
+  return { type: "notification", notification_type: command.style };
 }
 
 export function holdTimerStepHaptic(next: number): HapticKind | null {
@@ -65,20 +96,13 @@ export function hapticTimerDone(): void {
     // iOS and some WebViews expose vibrate but reject the call.
   }
 
-  void loadHaptics().then((api) => {
-    if (!api) {
-      return;
+  for (const step of TIMER_DONE_HAPTICS) {
+    if (step.delay === 0) {
+      haptic(step.kind);
+      continue;
     }
-    for (const step of TIMER_DONE_HAPTICS) {
-      window.setTimeout(() => {
-        try {
-          play(api, hapticCommand(step.kind));
-        } catch {
-          // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
-        }
-      }, step.delay);
-    }
-  });
+    window.setTimeout(() => haptic(step.kind), step.delay);
+  }
 }
 
 export function playTimerStepHaptic(next: number): void {
@@ -97,17 +121,75 @@ export function haptic(kind: HapticKind): void {
     return;
   }
 
+  if (postNativeHaptic(hapticEventData(kind))) {
+    return;
+  }
+
   const command = COMMANDS[kind];
-  void loadHaptics().then((api) => {
-    if (!api) {
-      return;
-    }
-    try {
-      play(api, command);
-    } catch {
-      // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
+  const api = hapticApi ?? liveHapticApi();
+  if (api) {
+    tryPlay(api, command);
+    return;
+  }
+
+  void loadHaptics().then((loaded) => {
+    if (loaded) {
+      tryPlay(loaded, command);
     }
   });
+}
+
+function postNativeHaptic(data: HapticEventData): boolean {
+  const host = window as unknown as TelegramHapticHost;
+  const payload = JSON.stringify(data);
+
+  try {
+    const proxy = host.TelegramWebviewProxy;
+    if (typeof proxy?.postEvent === "function") {
+      proxy.postEvent(HAPTIC_EVENT, payload);
+      return true;
+    }
+  } catch {
+    // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
+  }
+
+  try {
+    const handler = host.webkit?.messageHandlers?.performAction;
+    if (typeof handler?.postMessage === "function") {
+      handler.postMessage({
+        eventName: HAPTIC_EVENT,
+        eventData: payload,
+      });
+      return true;
+    }
+  } catch {
+    // Safari outside Telegram has no performAction handler.
+  }
+
+  return false;
+}
+
+function liveHapticApi(): HapticApi | null {
+  const api = (window as unknown as TelegramHapticHost).Telegram?.WebApp
+    ?.HapticFeedback;
+  if (
+    api &&
+    typeof api.impactOccurred === "function" &&
+    typeof api.notificationOccurred === "function" &&
+    typeof api.selectionChanged === "function"
+  ) {
+    hapticApi = api;
+    return api;
+  }
+  return null;
+}
+
+function tryPlay(api: HapticApi, command: HapticCommand): void {
+  try {
+    play(api, command);
+  } catch {
+    // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
+  }
 }
 
 function play(api: HapticApi, command: HapticCommand): void {
@@ -128,9 +210,13 @@ function loadHaptics(): Promise<HapticApi | null> {
       .then((sdk) => {
         const api = (sdk.default as { HapticFeedback?: HapticApi })
           .HapticFeedback;
-        return api ?? null;
+        hapticApi = api ?? liveHapticApi();
+        return hapticApi ?? null;
       })
-      .catch(() => null);
+      .catch(() => {
+        hapticApi = liveHapticApi();
+        return hapticApi;
+      });
   }
   return hapticLoad;
 }

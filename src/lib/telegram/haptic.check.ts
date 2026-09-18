@@ -1,5 +1,6 @@
 import {
   hapticCommand,
+  hapticEventData,
   holdTimerStepHaptic,
   TIMER_DONE_HAPTICS,
   TIMER_DONE_VIBRATE,
@@ -39,6 +40,42 @@ assertEqual(
   hapticCommand("error"),
   { type: "notification", style: "error" },
   "error",
+);
+
+assertEqual(
+  hapticEventData("tick"),
+  { type: "selection_change" },
+  "native tick",
+);
+assertEqual(
+  hapticEventData("tap"),
+  { type: "impact", impact_style: "light" },
+  "native tap",
+);
+assertEqual(
+  hapticEventData("commit"),
+  { type: "impact", impact_style: "medium" },
+  "native commit",
+);
+assertEqual(
+  hapticEventData("heavy"),
+  { type: "impact", impact_style: "heavy" },
+  "native heavy",
+);
+assertEqual(
+  hapticEventData("success"),
+  { type: "notification", notification_type: "success" },
+  "native success",
+);
+assertEqual(
+  hapticEventData("warn"),
+  { type: "notification", notification_type: "warning" },
+  "native warn",
+);
+assertEqual(
+  hapticEventData("error"),
+  { type: "notification", notification_type: "error" },
+  "native error",
 );
 
 assertEqual(holdTimerStepHaptic(6), null, "early hold second is silent");
