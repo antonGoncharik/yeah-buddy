@@ -4,8 +4,6 @@ import { getServerEnv, type ServerEnv } from "@/lib/env";
 import { BOT_OPEN_DIARY, BOT_START, BOT_YEAH_BUDDY } from "@/lib/messages";
 import { isPackToken } from "@/lib/share/token";
 import {
-  ensureMiniAppLaunchUrl,
-  isTelegramMeUrl,
   resolveAppShareUrl,
   resolvePackShareUrl,
   withStartApp,
@@ -37,13 +35,8 @@ export { withStartApp } from "@/lib/telegram/share-url";
 export async function getAppShareUrl(
   env: ServerEnv = getServerEnv(),
 ): Promise<string | null> {
-  const mini = getMiniAppUrl(env);
-  if (mini && isTelegramMeUrl(mini)) {
-    return ensureMiniAppLaunchUrl(mini);
-  }
-
   return resolveAppShareUrl({
-    miniAppUrl: mini,
+    miniAppUrl: getMiniAppUrl(env),
     botUsername: await getBotUsername(),
   });
 }

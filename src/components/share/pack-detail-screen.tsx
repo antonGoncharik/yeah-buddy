@@ -154,8 +154,8 @@ function ApplyButton({
 
 function packQrCaption(pack: SharePackDetail): string {
   return pack.kind === "meals"
-    ? "Наведи камеру — откроется еда на день."
-    : "Наведи камеру — откроется программа.";
+    ? "Наведи камеру — откроется бот с едой на день."
+    : "Наведи камеру — откроется бот с программой.";
 }
 
 function packSubtitle(pack: SharePackDetail): string {

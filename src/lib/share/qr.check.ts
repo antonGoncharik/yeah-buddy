@@ -1,6 +1,4 @@
 import { encodeShareQr } from "@/lib/share/qr";
-import { isPackToken } from "@/lib/share/token";
-import { APP_INVITE_STARTAPP } from "@/lib/telegram/share-url";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -18,11 +16,8 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 
 assertEqual(encodeShareQr(""), null, "blank url");
 assertEqual(encodeShareQr("   "), null, "whitespace url");
-assert(!isPackToken(APP_INVITE_STARTAPP), "invite startapp is not a pack");
 
-const qr = encodeShareQr(
-  `https://t.me/yeahbuddybot?startapp=${APP_INVITE_STARTAPP}`,
-);
+const qr = encodeShareQr("https://t.me/yeahbuddybot");
 if (!qr) {
   throw new Error("encodes invite url");
 }

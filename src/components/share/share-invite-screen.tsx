@@ -81,12 +81,12 @@ export function ShareInviteScreen() {
             {showQr ? (
               <ShareQr
                 url={url}
-                caption="Наведи камеру — откроется дневник в Telegram."
+                caption="Наведи камеру — откроется бот. Нажми Start."
               />
             ) : null}
             <p className="text-base leading-relaxed text-muted-foreground">
               {showQr
-                ? "Если человек уже в Telegram — «Поделиться» отправит ссылку в чат."
+                ? "Если человек уже в Telegram — «Поделиться» отправит ссылку на бот."
                 : "«Поделиться» отправит ссылку."}
             </p>
             {copied ? (

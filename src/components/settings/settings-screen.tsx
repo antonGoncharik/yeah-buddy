@@ -159,7 +159,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/invite"
               title="Показать дневник"
-              hint="QR и ссылка на приложение, без твоей еды и зала"
+              hint="QR и ссылка на бот, без твоей еды и зала"
               icon={<MugDoodle />}
             />
             <NavRow
