@@ -5,7 +5,7 @@ import { ReviewSignalsCard } from "@/components/ai/review-signals-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
 import { useReviewScreen } from "@/components/ai/use-review-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { BarbellDoodle, CookieDoodle } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,7 @@ export function ReviewScreen() {
                 href="/workouts/progress"
                 title="Рабочие веса"
                 hint="Как менялись за 90 дней"
-                icon={<DumbbellDoodle />}
+                icon={<BarbellDoodle />}
               />
             </section>
           </>

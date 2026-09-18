@@ -1,9 +1,5 @@
 import { ChartCaption, TrendPlot } from "@/components/chart/trend-plot";
-import {
-  Doodle,
-  DUMBBELL_VIEWBOX,
-  DumbbellMark,
-} from "@/components/layout/doodles";
+import { BarbellDoodle } from "@/components/layout/doodles";
 import type { phaseMarks } from "@/components/workout/progress-phase-marks";
 import type { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
 import { formatTonnage } from "@/lib/workout/numbers";
@@ -92,11 +88,7 @@ export function ProgressChartPlot({
         ))}
       </TrendPlot>
       <ChartCaption
-        icon={
-          <Doodle className="h-3.5 w-7" viewBox={DUMBBELL_VIEWBOX}>
-            <DumbbellMark />
-          </Doodle>
-        }
+        icon={<BarbellDoodle />}
       >
         {caption}
       </ChartCaption>

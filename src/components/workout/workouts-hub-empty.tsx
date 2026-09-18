@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 
-import { DumbbellDoodle } from "@/components/layout/doodles";
+import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -43,7 +43,7 @@ export function WorkoutsHubEmpty({
   if (!session && !nextTemplate) {
     return (
       <EmptyNote
-        icon={<DumbbellDoodle className="h-5 w-10" />}
+        icon={<BarbellDoodle className="h-5 w-10" />}
         title={WORKOUTS_NEED_TEMPLATES}
         action={
           <Link

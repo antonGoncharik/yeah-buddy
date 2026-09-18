@@ -3,7 +3,11 @@
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
-import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import {
+  BarbellDoodle,
+  DumbbellDoodle,
+  MugDoodle,
+} from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
@@ -213,13 +217,13 @@ export function WorkoutsHubNavSections({
           href="/settings/formulas"
           title={FORMULAS_LABEL}
           hint="Общая схема, если в дне нет своей"
-          icon={<DumbbellDoodle />}
+          icon={<BarbellDoodle />}
         />
         <NavRow
           href={reviewHref("workouts")}
           title={REVIEW_LABEL}
           hint="За 14, 30 или 90 дней"
-          icon={<BarbellDoodle />}
+          icon={<MugDoodle />}
         />
       </section>
     </div>

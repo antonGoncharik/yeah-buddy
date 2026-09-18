@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import {
+  CookieDoodle,
+  DumbbellDoodle,
+  MugDoodle,
+} from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -66,7 +70,7 @@ export function PacksLibraryScreen() {
 
         {!loading && !error && packs.length === 0 ? (
           <EmptyNote
-            icon={<CookieDoodle className="size-6" />}
+            icon={<MugDoodle className="h-8 w-6" />}
             title="Пока пусто."
             hint="Поделись едой на день или программой тренировок — ссылка появится здесь."
           />

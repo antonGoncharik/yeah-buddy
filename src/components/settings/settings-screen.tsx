@@ -3,11 +3,7 @@
 import { ChevronDown, Moon, Sun } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import {
-  CookieDoodle,
-  DumbbellDoodle,
-  MugDoodle,
-} from "@/components/layout/doodles";
+import { CookieDoodle, MugDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -104,7 +100,7 @@ export function SettingsScreen() {
               href="/settings/meals"
               title={MEAL_TEMPLATES_LABEL}
               hint="Что подставлять в новый день"
-              icon={<MugDoodle />}
+              icon={<CookieDoodle />}
             />
             <NavRow
               href="/foods"
@@ -134,7 +130,7 @@ export function SettingsScreen() {
               href={reviewHref("settings")}
               title={REVIEW_LABEL}
               hint="Еда, зал и вес за 14, 30 или 90 дней"
-              icon={<CookieDoodle />}
+              icon={<MugDoodle />}
             />
             <NavRow
               href="/today/week?from=settings"
@@ -158,7 +154,7 @@ export function SettingsScreen() {
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделиться едой на день или программой тренировок"
-              icon={<CookieDoodle />}
+              icon={<MugDoodle />}
             />
             <NavRow
               href="/settings/invite"
@@ -170,7 +166,7 @@ export function SettingsScreen() {
               href="/onboarding?again=1"
               title="Белок и 1ПМ"
               hint="Задать заново. Еда на день и программа не изменятся"
-              icon={<DumbbellDoodle />}
+              icon={<CookieDoodle />}
             />
           </div>
         </section>

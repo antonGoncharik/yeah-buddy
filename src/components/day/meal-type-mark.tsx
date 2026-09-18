@@ -6,7 +6,7 @@ import {
 import type { MealType } from "@/lib/types";
 
 export function MealTypeMark({ mealType }: { mealType: MealType }) {
-  if (mealType === "breakfast" || mealType === "dinner") {
+  if (mealType === "breakfast") {
     return <MugDoodle className="h-5 w-4 shrink-0 text-primary/80" />;
   }
 
