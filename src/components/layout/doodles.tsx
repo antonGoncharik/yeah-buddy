@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 const STROKE = {
   fill: "none",
   strokeLinecap: "round",
@@ -99,6 +101,7 @@ function plates(side: 1 | -1, ink: string, count: 1 | 2 | 3, extra: boolean) {
       ) : null}
       {extra ? (
         <rect
+          className="doodle-plate-extra"
           x={side < 0 ? -bonus.x - bonus.w : bonus.x}
           y={-bonus.h / 2}
           width={bonus.w}
@@ -106,7 +109,12 @@ function plates(side: 1 | -1, ink: string, count: 1 | 2 | 3, extra: boolean) {
           rx={0.6}
         />
       ) : null}
-      <circle cx={side * cap} cy={0} r={1.25} />
+      <circle
+        className={extra ? "doodle-plate-extra" : undefined}
+        cx={side * cap}
+        cy={0}
+        r={1.25}
+      />
     </g>
   );
 }
@@ -160,7 +168,7 @@ export function CookieDoodle({ className = "size-4" }: { className?: string }) {
 
 export function MugDoodle({ className = "h-5 w-4" }: { className?: string }) {
   return (
-    <Doodle className={className} viewBox={MUG_VIEWBOX}>
+    <Doodle className={cn("doodle-mug", className)} viewBox={MUG_VIEWBOX}>
       <MugMark />
     </Doodle>
   );

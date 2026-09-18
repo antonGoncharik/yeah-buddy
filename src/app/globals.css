@@ -524,7 +524,6 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -538,7 +537,9 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
 }
 
 @utility animate-rise {
-  animation: rise 0.5s var(--ease-out-soft) both;
+  /* `backwards` keeps the delayed start pose. `both` would leave a
+     transform containing block and break position:fixed drag overlays. */
+  animation: rise 0.5s var(--ease-out-soft) backwards;
 }
 
 @utility animate-fade {
@@ -638,6 +639,66 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   animation: dumbbell-wiggle 0.42s var(--ease-out-soft);
 }
 
+@keyframes wallpaper-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-28px, -18px, 0);
+  }
+}
+
+@utility animate-wallpaper-drift {
+  animation: wallpaper-drift 56s linear infinite alternate;
+}
+
+@keyframes mug-steam {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1.8px);
+  }
+}
+
+.doodle-mug g > path:nth-child(-n + 3) {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mug-steam 2.4s var(--ease-out-soft) infinite;
+}
+
+.doodle-mug g > path:nth-child(2) {
+  animation-delay: 0.35s;
+}
+
+.doodle-mug g > path:nth-child(3) {
+  animation-delay: 0.7s;
+}
+
+@keyframes plate-pop {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.15) scaleY(0.55);
+  }
+  72% {
+    opacity: 1;
+    transform: scaleX(1.12) scaleY(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1) scaleY(1);
+  }
+}
+
+.doodle-plate-extra {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: plate-pop 0.38s var(--ease-out-soft) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --theme-duration: 0s;
@@ -650,7 +711,10 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   .animate-chart-halo,
   .animate-recap-glow,
   .animate-dumbbell-wiggle,
-  .animate-nav-wiggle {
+  .animate-nav-wiggle,
+  .animate-wallpaper-drift,
+  .doodle-mug g > path:nth-child(-n + 3),
+  .doodle-plate-extra {
     animation: none;
   }
 

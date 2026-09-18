@@ -169,6 +169,7 @@ export const MACROS_CLOSED_LINE = "Три из трёх.";
 export const HUNDRED_WEIGHT_LINE = "Сотня.";
 export const LIGHT_WEIGHT_LINE = "Лёгкий вес.";
 export const YEAH_BUDDY_LINE = "Yeah buddy.";
+export const LATE_NIGHT_LINE = "Ещё не спишь.";
 export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
 export const SPLASH_HOLD_MS = 480;
@@ -181,6 +182,19 @@ export const SPLASH_BEAT_ORDER = [
   "barbell",
 ] as const;
 export type SplashBeat = (typeof SPLASH_BEAT_ORDER)[number];
+
+const FOOD_SEARCH_EGGS: Record<string, string> = {
+  yeah: YEAH_BUDDY_LINE,
+  buddy: YEAH_BUDDY_LINE,
+  "yeah buddy": YEAH_BUDDY_LINE,
+  "yeah buddy.": YEAH_BUDDY_LINE,
+  ронни: YEAH_BUDDY_LINE,
+  ronnie: YEAH_BUDDY_LINE,
+  coleman: YEAH_BUDDY_LINE,
+  "light weight": LIGHT_WEIGHT_LINE,
+  lightweight: LIGHT_WEIGHT_LINE,
+  "легкий вес": LIGHT_WEIGHT_LINE,
+};
 
 export function proteinClosed(remaining: number, factProtein: number): boolean {
   return factProtein > 0 && remaining <= 0.5;
@@ -222,17 +236,16 @@ export function hundredWeightLine(weight: number | null): string | null {
 }
 
 export function foodSearchEasterEgg(query: string): string | null {
-  const value = query.trim().toLowerCase();
-  if (
-    value === "yeah" ||
-    value === "buddy" ||
-    value === "yeah buddy" ||
-    value === "yeah buddy." ||
-    value === "ронни"
-  ) {
-    return YEAH_BUDDY_LINE;
+  const value = query.trim().toLowerCase().replaceAll("ё", "е");
+  return FOOD_SEARCH_EGGS[value] ?? null;
+}
+
+export function nightLoadingLine(nowMs: number): string | null {
+  const hour = new Date(nowMs).getHours();
+  if (hour < 1 || hour >= 5) {
+    return null;
   }
-  return null;
+  return LATE_NIGHT_LINE;
 }
 
 export function splashBeatProgress(current: number, key: SplashBeat): number {

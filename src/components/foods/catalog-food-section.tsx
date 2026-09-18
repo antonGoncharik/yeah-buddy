@@ -5,8 +5,8 @@ import { useState } from "react";
 import { CatalogFoodList } from "@/components/foods/food-list";
 import { useCatalogSearch } from "@/components/foods/use-catalog-search";
 import { postJson } from "@/lib/api-cache";
-import type { CatalogFood } from "@/lib/food/catalog-map";
-import { CATALOG_SEARCH_MIN } from "@/lib/food/catalog-map";
+import { foodSearchEasterEgg } from "@/lib/flavor";
+import { CATALOG_SEARCH_MIN, type CatalogFood } from "@/lib/food/catalog-map";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -42,7 +42,7 @@ export function CatalogFoodSection({
     }
   }
 
-  if (query.trim().length < CATALOG_SEARCH_MIN) {
+  if (!catalogSearchActive(query)) {
     return null;
   }
 
@@ -72,5 +72,8 @@ export function CatalogFoodSection({
 }
 
 export function catalogSearchActive(query: string): boolean {
-  return query.trim().length >= CATALOG_SEARCH_MIN;
+  return (
+    query.trim().length >= CATALOG_SEARCH_MIN &&
+    foodSearchEasterEgg(query) == null
+  );
 }

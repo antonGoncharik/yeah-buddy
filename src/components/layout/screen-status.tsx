@@ -19,6 +19,7 @@ import {
   LOADING_LINES,
   loadingFlavor,
   loadingLine,
+  nightLoadingLine,
   SPLASH_BEAT_ORDER,
   SPLASH_HOLD_MS,
   type SplashBeat,
@@ -83,7 +84,11 @@ export function ScreenLoading({
     if (beatLine) {
       return;
     }
-    setLine(loadingLine(flavor, Date.now()));
+    setLine(
+      flavor === "boot"
+        ? (nightLoadingLine(Date.now()) ?? loadingLine(flavor, Date.now()))
+        : loadingLine(flavor, Date.now()),
+    );
   }, [beatLine, flavor]);
 
   useEffect(() => {
@@ -173,6 +178,7 @@ export function ScreenLoading({
               className={cn(
                 "animate-loader-beat block",
                 splash && "cursor-pointer",
+                item.key === "mug" && "doodle-mug",
                 "pull" in item && item.pull,
               )}
               style={{ animationDelay: `${index * 0.22}s` }}

@@ -1,6 +1,7 @@
 "use client";
 
 import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { WiggleTap } from "@/components/layout/wiggle-tap";
 import { Button } from "@/components/ui/button";
 import type { GuideTip } from "@/lib/guide";
 import { haptic } from "@/lib/telegram/haptic";
@@ -15,14 +16,18 @@ export function GuideTipCard({
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
-        <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           {tip.id === "workouts" ? (
-            <DumbbellDoodle className="h-3.5 w-7 text-primary/80" />
+            <WiggleTap>
+              <DumbbellDoodle className="h-3.5 w-7 text-primary/80" />
+            </WiggleTap>
           ) : (
-            <CookieDoodle className="size-4 text-primary/80" />
+            <WiggleTap>
+              <CookieDoodle className="size-4 text-primary/80" />
+            </WiggleTap>
           )}
           Подсказка
-        </p>
+        </div>
         <h2 className="mt-1 text-xl font-semibold tracking-tight">
           {tip.title}
         </h2>

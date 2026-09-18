@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { CookieDoodle } from "@/components/layout/doodles";
+import { useWiggle } from "@/components/layout/wiggle-tap";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import {
@@ -17,6 +18,7 @@ import {
   STEADY_WEIGHT_LINE,
 } from "@/lib/flavor";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { haptic } from "@/lib/telegram/haptic";
 import type { Day } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +60,8 @@ export function DaySummary({
   const closed = proteinClosed(remainingProtein, fact.protein);
   const [flashClosed, setFlashClosed] = useState(false);
   const wasClosed = useRef(false);
+  const cookie = useWiggle();
+  const wiggleCookie = cookie.play;
   const almost = flashClosed
     ? null
     : proteinAlmostLine(remainingProtein, fact.protein);
@@ -78,20 +82,35 @@ export function DaySummary({
     }
     wasClosed.current = true;
     setFlashClosed(true);
+    wiggleCookie();
+    haptic("success");
     const timer = window.setTimeout(() => {
       setFlashClosed(false);
     }, PROTEIN_CLOSED_MS);
     return () => window.clearTimeout(timer);
-  }, [closed]);
+  }, [closed, wiggleCookie]);
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <CookieDoodle className="size-4 text-primary/80" />
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <button
+              type="button"
+              aria-label="Печенье"
+              className="text-primary/80"
+              onClick={cookie.wiggle}
+            >
+              <span
+                key={cookie.token}
+                className={cn("inline-flex", cookie.className)}
+                onAnimationEnd={cookie.onAnimationEnd}
+              >
+                <CookieDoodle className="size-4" />
+              </span>
+            </button>
             {overflowKcalLabel(overflow)}
-          </p>
+          </div>
           <p
             className={cn(
               "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",

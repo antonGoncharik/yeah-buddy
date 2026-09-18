@@ -5,9 +5,12 @@ import {
   firstPhaseLine,
   foodSearchEasterEgg,
   hundredWeightLine,
+  LATE_NIGHT_LINE,
+  LIGHT_WEIGHT_LINE,
   loadingFlavor,
   loadingLine,
   macrosClosedLine,
+  nightLoadingLine,
   overflowKcalLabel,
   proteinAlmostLine,
   proteinClosed,
@@ -256,7 +259,34 @@ assertEqual(hundredWeightLine(100.04), "Сотня.", "scale jitter");
 assertEqual(hundredWeightLine(99.8), null, "not yet a hundred");
 assertEqual(foodSearchEasterEgg("Ронни"), "Yeah buddy.", "ronnie search");
 assertEqual(foodSearchEasterEgg("yeah buddy."), "Yeah buddy.", "full yeah");
+assertEqual(foodSearchEasterEgg("ronnie"), "Yeah buddy.", "latin ronnie");
+assertEqual(foodSearchEasterEgg("coleman"), "Yeah buddy.", "coleman");
+assertEqual(
+  foodSearchEasterEgg("light weight"),
+  LIGHT_WEIGHT_LINE,
+  "light weight search",
+);
+assertEqual(
+  foodSearchEasterEgg("лёгкий вес"),
+  LIGHT_WEIGHT_LINE,
+  "ё maps to е",
+);
 assertEqual(foodSearchEasterEgg("овсянка"), null, "real food");
+assertEqual(
+  nightLoadingLine(new Date(2026, 8, 18, 2).getTime()),
+  LATE_NIGHT_LINE,
+  "2am boot",
+);
+assertEqual(
+  nightLoadingLine(new Date(2026, 8, 18, 0).getTime()),
+  null,
+  "midnight keeps the usual line",
+);
+assertEqual(
+  nightLoadingLine(new Date(2026, 8, 18, 14).getTime()),
+  null,
+  "afternoon is quiet",
+);
 assertEqual(splashBeatProgress(0, "mug"), 1, "first beat");
 assertEqual(splashBeatProgress(1, "dumbbell"), 2, "second beat");
 assertEqual(splashBeatProgress(1, "cookie"), 0, "wrong resets");

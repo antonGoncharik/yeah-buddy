@@ -9,6 +9,7 @@ import {
   MUG_VIEWBOX,
   MugMark,
 } from "@/components/layout/doodles";
+import { WiggleTap } from "@/components/layout/wiggle-tap";
 import type { GuideDoodle, GuidePage } from "@/lib/guide";
 import { cn } from "@/lib/utils";
 
@@ -58,28 +59,39 @@ export function GuidePageBody({
 export function GuideDoodleIcon({ kind }: { kind: GuideDoodle }) {
   if (kind === "mug") {
     return (
-      <Doodle className="h-9 w-auto text-primary" viewBox={MUG_VIEWBOX}>
-        <MugMark />
-      </Doodle>
+      <WiggleTap>
+        <Doodle
+          className="doodle-mug h-9 w-auto text-primary"
+          viewBox={MUG_VIEWBOX}
+        >
+          <MugMark />
+        </Doodle>
+      </WiggleTap>
     );
   }
   if (kind === "cookie") {
     return (
-      <Doodle className="h-9 w-auto text-primary" viewBox={COOKIE_VIEWBOX}>
-        <CookieMark />
-      </Doodle>
+      <WiggleTap>
+        <Doodle className="h-9 w-auto text-primary" viewBox={COOKIE_VIEWBOX}>
+          <CookieMark />
+        </Doodle>
+      </WiggleTap>
     );
   }
   if (kind === "dumbbell") {
     return (
-      <Doodle className="h-8 w-auto text-primary" viewBox={DUMBBELL_VIEWBOX}>
-        <DumbbellMark />
-      </Doodle>
+      <WiggleTap>
+        <Doodle className="h-8 w-auto text-primary" viewBox={DUMBBELL_VIEWBOX}>
+          <DumbbellMark />
+        </Doodle>
+      </WiggleTap>
     );
   }
   return (
-    <Doodle className="h-8 w-auto text-primary" viewBox={BARBELL_VIEWBOX}>
-      <BarbellMark />
-    </Doodle>
+    <WiggleTap>
+      <Doodle className="h-8 w-auto text-primary" viewBox={BARBELL_VIEWBOX}>
+        <BarbellMark />
+      </Doodle>
+    </WiggleTap>
   );
 }

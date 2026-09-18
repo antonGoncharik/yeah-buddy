@@ -97,7 +97,10 @@ function RestBackdrop() {
     <>
       <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.03_132_/_0.42),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.42_0.035_140_/_0.38),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.84_0.03_145_/_0.16),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.32_0.03_145_/_0.28),transparent_62%)]" />
-      <svg aria-hidden className="absolute inset-0 h-full w-full">
+      <svg
+        aria-hidden
+        className="absolute inset-0 h-full w-full animate-wallpaper-drift"
+      >
         <defs>
           <pattern
             id="rest-wallpaper"
@@ -148,7 +151,10 @@ function TrainingBackdrop({ deload = false }: { deload?: boolean }) {
             : "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.82_0.05_42_/_0.14),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.3_0.05_32_/_0.3),transparent_62%)]"
         }
       />
-      <svg aria-hidden className="absolute inset-0 h-full w-full">
+      <svg
+        aria-hidden
+        className="absolute inset-0 h-full w-full animate-wallpaper-drift"
+      >
         <defs>
           <pattern
             id={patternId}
