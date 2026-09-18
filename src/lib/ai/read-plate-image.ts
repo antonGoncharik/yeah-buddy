@@ -2,6 +2,18 @@ export const PLATE_CLIENT_MAX_SIDE = 1600;
 export const PLATE_CLIENT_MAX_BYTES = 900_000;
 export const PLATE_UPLOAD_MAX_BYTES = 2 * 1024 * 1024;
 
+export function fitPlateCaptureSize(
+  width: number,
+  height: number,
+  maxSide = PLATE_CLIENT_MAX_SIDE,
+): { width: number; height: number } {
+  const scale = Math.min(1, maxSide / Math.max(width, height, 1));
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
+}
+
 export async function compressPlateImage(file: File): Promise<Blob> {
   if (file.size < 32) {
     throw new Error("empty");
@@ -9,12 +21,7 @@ export async function compressPlateImage(file: File): Promise<Blob> {
 
   try {
     const source = await loadImage(file);
-    const scale = Math.min(
-      1,
-      PLATE_CLIENT_MAX_SIDE / Math.max(source.width, source.height),
-    );
-    const width = Math.max(1, Math.round(source.width * scale));
-    const height = Math.max(1, Math.round(source.height * scale));
+    const { width, height } = fitPlateCaptureSize(source.width, source.height);
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;

@@ -1,7 +1,7 @@
 import { ReviewError } from "@/lib/ai/errors";
 import { generateGeminiJson, getGeminiApiKey } from "@/lib/ai/gemini";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
-import { resolvePlateItems } from "@/lib/ai/plate-match";
+import { takeReadyPlateItems } from "@/lib/ai/plate-match";
 import { parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateDraft, PlateFoodRef } from "@/lib/ai/plate-types";
 import { FOOD_STATES } from "@/lib/foods";
@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `Ты смотришь на фото еды. Каждая 
 - Если у продукта в catalog есть y: [сырое_или_сухое, готовое] — при match=true бери этот сырой/сухой продукт, граммы пиши готового (как на тарелке). Не заводи варёный дубль.
 - Смешанное блюдо из СВОИХ продуктов разбей на них, только если куски явно те продукты из catalog.
 - match=false если нет точного совпадения, ресторан/кафе/доставка, фри, смешанное одним пятном, не уверен: catalog_i = -1, name как на тарелке, protein/fat/carbs СЪЕДЕННОЙ порции, не на 100 г. Не подбирай «похожий» продукт. Не дроби на выдуманные ингредиенты. Не пиши protein_per_100.
-- Нет еды на фото — items: [].
+- items: [] только если съедобного не видно: пустая посуда, стол, меню, рука, упаковка. Еда на фото есть — не оставляй пустым, даже если не уверен: match=false и порция.
 - Не больше 8 позиций. Не пиши напитки, если их не видно.`;
 
 const RESPONSE_SCHEMA = {
@@ -82,6 +82,11 @@ export async function analyzePlate(
     throw new ReviewError("GEMINI", AI_PLATE_FAILED);
   }
 
+  const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
+  if (!items) {
+    throw new ReviewError("GEMINI", AI_PLATE_FAILED);
+  }
+
   lastWrite.set(userId, Date.now());
-  return { items: resolvePlateItems(raw, catalogFoods, allFoods) };
+  return { items };
 }

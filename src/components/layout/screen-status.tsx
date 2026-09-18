@@ -61,9 +61,11 @@ const BEATS = [
 export function ScreenLoading({
   title,
   splash = false,
+  cover = false,
 }: {
   title?: string;
   splash?: boolean;
+  cover?: boolean;
 }) {
   const boot = useBootSplash();
   const flavor = loadingFlavor({ splash, title });
@@ -141,9 +143,17 @@ export function ScreenLoading({
     <div
       role="status"
       aria-label="Загрузка"
-      className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center"
+      className={cn(
+        "pointer-events-none fixed inset-0 z-20 flex items-center justify-center",
+        cover && "bg-background/85",
+      )}
     >
-      <div className="flex flex-col items-center gap-4 text-muted-foreground">
+      <div
+        className={cn(
+          "flex flex-col items-center gap-4 text-muted-foreground",
+          cover && "text-foreground",
+        )}
+      >
         {title ? (
           <p
             className={cn(

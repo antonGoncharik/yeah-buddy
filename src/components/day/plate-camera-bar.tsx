@@ -4,7 +4,6 @@ import { Camera, Images } from "lucide-react";
 import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
-import { AI_PLATE_RETRY } from "@/lib/messages";
 
 export function PlateCameraBar({
   busy,
@@ -27,11 +26,6 @@ export function PlateCameraBar({
   onStartLiveCamera: () => void;
   onFile: (file: File | undefined) => void;
 }) {
-  const cameraVariant =
-    status === "idle" || status === "empty" || status === "error"
-      ? "default"
-      : "outline";
-
   return (
     <>
       <input
@@ -46,13 +40,13 @@ export function PlateCameraBar({
       />
       <Button
         type="button"
-        variant={cameraVariant}
+        variant={cameraPrimary ? "default" : "outline"}
         className="h-14 w-full gap-2 text-lg"
         disabled={busy}
         onClick={() => onStartLiveCamera()}
       >
         <Camera className="size-5" aria-hidden />
-        {cameraLabel(status, cameraPrimary)}
+        {status === "idle" ? "Сфотографировать" : "Другое фото"}
       </Button>
 
       <div className="relative">
@@ -84,14 +78,4 @@ export function PlateCameraBar({
       </div>
     </>
   );
-}
-
-function cameraLabel(status: string, cameraPrimary: boolean): string {
-  if (status === "idle") {
-    return "Сфотографировать";
-  }
-  if (cameraPrimary) {
-    return AI_PLATE_RETRY;
-  }
-  return "Другое фото";
 }

@@ -45,7 +45,9 @@ export function PlateScreen({
 
   return (
     <>
-      {plate.workingTitle ? <ScreenLoading title={plate.workingTitle} /> : null}
+      {plate.workingTitle ? (
+        <ScreenLoading title={plate.workingTitle} cover />
+      ) : null}
 
       {plate.liveCamera ? (
         <PlateLiveCamera

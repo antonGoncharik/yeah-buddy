@@ -20,6 +20,7 @@ export function usePlateCamera({
   const liveStreamRef = useRef<MediaStream | null>(null);
   const watchRef = useRef(0);
   const htmlFallbackRef = useRef(false);
+  const shotRef = useRef(false);
   const [liveCamera, setLiveCamera] = useState(false);
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
 
@@ -62,6 +63,7 @@ export function usePlateCamera({
     }
     haptic("tap");
     htmlFallbackRef.current = false;
+    shotRef.current = false;
     try {
       const stream = await openLiveStream();
       liveStreamRef.current = stream;
@@ -81,6 +83,10 @@ export function usePlateCamera({
   }
 
   function captureLive(file: File) {
+    if (shotRef.current) {
+      return;
+    }
+    shotRef.current = true;
     closeLiveCamera();
     onFile(file);
   }

@@ -66,6 +66,18 @@ export function resolvePlateItems(
   return items;
 }
 
+export function takeReadyPlateItems(
+  raw: PlateModelItem[],
+  catalog: PlateFoodRef[],
+  allFoods: PlateFoodRef[] = catalog,
+): PlateDraftItem[] | null {
+  const items = resolvePlateItems(raw, catalog, allFoods);
+  if (raw.length > 0 && items.length === 0) {
+    return null;
+  }
+  return items;
+}
+
 function matchCatalogFood(
   row: PlateModelItem,
   catalog: PlateFoodRef[],

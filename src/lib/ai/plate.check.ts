@@ -5,7 +5,11 @@ import {
   rankPlateCatalog,
 } from "@/lib/ai/plate-catalog";
 import { plateCommitSchema } from "@/lib/ai/plate-commit";
-import { resolvePlateItems, roundPlateGrams } from "@/lib/ai/plate-match";
+import {
+  resolvePlateItems,
+  roundPlateGrams,
+  takeReadyPlateItems,
+} from "@/lib/ai/plate-match";
 import { parsePlateDraft, parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateFoodRef, PlateModelItem } from "@/lib/ai/plate-types";
 
@@ -196,6 +200,11 @@ const parsed = parsePlateModelItems({
   ],
 });
 assertEqual(parsed?.length, 1, "skip empty model name");
+assertEqual(
+  parsePlateModelItems({ items: [{ name: "", grams: 10 }] }),
+  null,
+  "all unusable model items fail",
+);
 
 const draft = parsePlateDraft({
   items: [
@@ -361,18 +370,26 @@ const potato = food("potato-boiled", "Картофель варёный", {
   carbs_per_100: 16,
   kcal_per_100: 72,
 });
-const friesRejected = resolvePlateItems(
-  [
-    raw({
-      catalog_i: 0,
-      match: true,
-      name: "Картофель фри",
-      grams: 150,
-    }),
-  ],
-  [potato],
-);
+const friesRejectedRaw = [
+  raw({
+    catalog_i: 0,
+    match: true,
+    name: "Картофель фри",
+    grams: 150,
+  }),
+];
+const friesRejected = resolvePlateItems(friesRejectedRaw, [potato]);
 assertEqual(friesRejected.length, 0, "fries vs boiled dropped without macros");
+assertEqual(
+  takeReadyPlateItems(friesRejectedRaw, [potato]),
+  null,
+  "unusable items fail instead of empty",
+);
+assertEqual(
+  takeReadyPlateItems([], [potato])?.length,
+  0,
+  "model empty stays empty",
+);
 
 const friesLump = resolvePlateItems(
   [

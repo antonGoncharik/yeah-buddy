@@ -22,10 +22,14 @@ export function parsePlateModelItems(value: unknown): PlateModelItem[] | null {
     return null;
   }
 
-  return mapRecordList(value.items, parsePlateModelItem).slice(
+  const items = mapRecordList(value.items, parsePlateModelItem).slice(
     0,
     PLATE_ITEM_LIMIT,
   );
+  if (value.items.length > 0 && items.length === 0) {
+    return null;
+  }
+  return items;
 }
 
 export function parsePlateDraft(value: unknown): PlateDraft | null {
