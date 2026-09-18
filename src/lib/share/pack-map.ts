@@ -50,6 +50,7 @@ export async function toSummary(
     created_at: pack.created_at,
     revoked: Boolean(pack.revoked_at),
     mine,
+    received: pack.source_pack_id != null,
     share_url: shareUrl,
   };
 }

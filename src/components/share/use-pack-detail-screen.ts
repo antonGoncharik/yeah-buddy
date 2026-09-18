@@ -4,14 +4,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { ApiError, mutateJson } from "@/lib/api-cache";
+import { ApiError, mutateJson, peekJson, writeJson } from "@/lib/api-cache";
 import { ensureTodayDay } from "@/lib/day/ensure-today";
-import { LOAD_FAILED, PACK_NOT_FOUND } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  PACK_NOT_FOUND,
+  PACK_REMOVE_LINK,
+  PACK_REMOVE_SAVED,
+} from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 import { shareOrCopyLink } from "@/lib/share/client";
 import { readSharePackPayload } from "@/lib/share/map";
 import { packShareText } from "@/lib/share/payload";
 import {
   dismissPendingPackToken,
+  packBackHref,
   packPath,
   parsePackBackFrom,
 } from "@/lib/share/pending";
@@ -88,7 +95,7 @@ export function usePackDetailScreen(token: string) {
   }, [from, pack, router, token]);
 
   async function onApply() {
-    if (!pack) {
+    if (!pack || (pack.mine && !pack.received)) {
       return;
     }
     const ok = await confirm({
@@ -148,7 +155,7 @@ export function usePackDetailScreen(token: string) {
       return;
     }
     const ok = await confirm({
-      message: "Убрать ссылку? У тебя копия останется, у друзей — нет.",
+      message: pack.received ? PACK_REMOVE_SAVED : PACK_REMOVE_LINK,
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -160,23 +167,22 @@ export function usePackDetailScreen(token: string) {
     setBusy(true);
     setError(null);
     try {
-      const data = await mutateJson(`/api/packs/${pack.token}/revoke`, {
+      await mutateJson(`/api/packs/${pack.token}/revoke`, {
         method: "POST",
       });
-      const loaded = readSharePackPayload(data);
-      if (loaded) {
-        setPack(loaded);
-        haptic("commit");
-      }
+      dropCachedPack(pack.token);
+      dismissPendingPackToken(token);
+      haptic("commit");
+      router.replace(packBackHref(from));
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
       setBusy(false);
     }
   }
 
   const ownLive = Boolean(pack?.mine && !pack.revoked);
+  const canApply = Boolean(pack && (!pack.mine || pack.received));
 
   return {
     pack,
@@ -186,9 +192,23 @@ export function usePackDetailScreen(token: string) {
     copied,
     from,
     ownLive,
+    canApply,
     load,
     onApply,
     onShare,
     onRevoke,
   };
+}
+
+function dropCachedPack(token: string) {
+  const cached = peekJson("/api/packs");
+  if (!isRecord(cached) || !Array.isArray(cached.packs)) {
+    return;
+  }
+
+  writeJson("/api/packs", {
+    packs: cached.packs.filter(
+      (row) => !(isRecord(row) && row.token === token),
+    ),
+  });
 }

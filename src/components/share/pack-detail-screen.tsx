@@ -22,6 +22,7 @@ export function PackDetailScreen({ token }: { token: string }) {
     copied,
     from,
     ownLive,
+    canApply,
     load,
     onApply,
     onShare,
@@ -62,6 +63,8 @@ export function PackDetailScreen({ token }: { token: string }) {
                 busy={busy}
                 error={error}
                 copied={copied}
+                canApply={canApply}
+                received={pack.received}
                 onShare={() => void onShare()}
                 onApply={() => void onApply()}
                 onRevoke={() => void onRevoke()}
@@ -83,7 +86,7 @@ export function PackDetailScreen({ token }: { token: string }) {
         ) : null}
       </div>
 
-      {!loading && pack && !ownLive ? (
+      {!loading && pack && !ownLive && canApply ? (
         <StickyActions>
           <ApplyButton busy={busy} onApply={() => void onApply()} />
         </StickyActions>
@@ -96,6 +99,8 @@ function PackOwnerActions({
   busy,
   error,
   copied,
+  canApply,
+  received,
   onShare,
   onApply,
   onRevoke,
@@ -103,6 +108,8 @@ function PackOwnerActions({
   busy: boolean;
   error: string | null;
   copied: boolean;
+  canApply: boolean;
+  received: boolean;
   onShare: () => void;
   onApply: () => void;
   onRevoke: () => void;
@@ -112,14 +119,16 @@ function PackOwnerActions({
       <Button className="h-14 text-lg" disabled={busy} onClick={onShare}>
         Поделиться
       </Button>
-      <ApplyButton busy={busy} onApply={onApply} variant="secondary" />
+      {canApply ? (
+        <ApplyButton busy={busy} onApply={onApply} variant="secondary" />
+      ) : null}
       <Button
         variant="ghost"
         className="h-12 text-base"
         disabled={busy}
         onClick={onRevoke}
       >
-        Убрать ссылку
+        {received ? "Убрать из списка" : "Убрать ссылку"}
       </Button>
       {copied ? (
         <p className="animate-fade text-sm text-muted-foreground">
@@ -159,16 +168,13 @@ function packQrCaption(pack: SharePackDetail): string {
 }
 
 function packSubtitle(pack: SharePackDetail): string {
-  if (pack.revoked) {
-    return "Ссылка выключена. Поставить себе всё ещё можно.";
-  }
-  if (pack.mine) {
+  if (pack.mine && !pack.received) {
     return pack.kind === "meals"
       ? "Еда на день и цели по белкам, жирам и углеводам. Записи из дневника в ссылку не попадают."
       : "Список тренировок и план подходов. Твои рабочие веса в ссылку не попадают.";
   }
   const fromOwner = pack.owner_name ? `От ${pack.owner_name}. ` : "";
-  if (pack.saved) {
+  if (pack.saved || pack.received) {
     return pack.kind === "meals"
       ? `${fromOwner}Сохранено. Если поставить — еда на день и цели станут как в ссылке.`
       : `${fromOwner}Сохранено. Если поставить — программа тренировок станет как в ссылке.`;

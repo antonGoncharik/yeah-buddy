@@ -58,8 +58,9 @@ export function PacksLibraryScreen() {
         <p className="text-base text-muted-foreground">
           Едой на день и программой тренировок делишься отдельными ссылками и
           QR. В ссылку попадают только шаблоны — записи из дневника и рабочие
-          веса остаются у тебя. Ссылки от друзей сохраняются сюда, поставить их
-          можно когда удобно.
+          веса остаются у тебя. Ссылку можно убрать — она перестанет
+          открываться. Ссылки от друзей сохраняются сюда, поставить их можно
+          когда удобно.
         </p>
 
         {loading ? <ScreenLoading /> : null}
@@ -109,8 +110,5 @@ export function PacksLibraryScreen() {
 
 function packHint(pack: SharePackSummary): string {
   const kind = pack.kind === "meals" ? "Еда" : "Зал";
-  if (pack.revoked) {
-    return `${kind} · ссылка выключена`;
-  }
   return `${kind} · ${pack.hint}`;
 }

@@ -23,7 +23,7 @@ export async function applyPack(
   userId: string,
   token: string,
 ): Promise<SharePackDetail> {
-  const pack = await loadOwnedOrPublic(userId, token);
+  const pack = await loadOwnedOrPublic(token);
   if (!pack) {
     throw new PackNotFoundError();
   }

@@ -42,14 +42,10 @@ export async function loadOwnedPack(
 }
 
 export async function loadOwnedOrPublic(
-  userId: string,
   token: string,
 ): Promise<PackRow | null> {
   const pack = await loadPublicPack(token);
-  if (!pack) {
-    return null;
-  }
-  if (pack.revoked_at && pack.owner_user_id !== userId) {
+  if (!pack || pack.revoked_at) {
     return null;
   }
   return pack;
@@ -85,7 +81,8 @@ export async function assertPackQuota(userId: string): Promise<void> {
   const result = await supabase
     .from("share_packs")
     .select("id", { count: "exact", head: true })
-    .eq("owner_user_id", userId);
+    .eq("owner_user_id", userId)
+    .is("revoked_at", null);
 
   if (result.error) {
     throw result.error;

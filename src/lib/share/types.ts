@@ -14,6 +14,7 @@ export interface SharePackSummary {
   created_at: string;
   revoked: boolean;
   mine: boolean;
+  received: boolean;
   share_url: string | null;
 }
 

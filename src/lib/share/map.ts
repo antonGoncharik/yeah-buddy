@@ -20,6 +20,7 @@ export function parseSharePackSummary(value: unknown): SharePackSummary | null {
     created_at: typeof value.created_at === "string" ? value.created_at : "",
     revoked: Boolean(value.revoked),
     mine: Boolean(value.mine),
+    received: Boolean(value.received),
     share_url: typeof value.share_url === "string" ? value.share_url : null,
   };
 }
@@ -29,7 +30,9 @@ export function readSharePacksPayload(data: unknown): SharePackSummary[] {
     return [];
   }
 
-  return mapRecordList(data.packs, parseSharePackSummary);
+  return mapRecordList(data.packs, parseSharePackSummary).filter(
+    (pack) => !pack.revoked,
+  );
 }
 
 export function parseSharePackDetail(value: unknown): SharePackDetail | null {

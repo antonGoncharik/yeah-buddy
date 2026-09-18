@@ -20,8 +20,8 @@ export async function POST(
   const { token } = await context.params;
 
   try {
-    const pack = await revokePack(auth.session.userId, token);
-    return jsonOk({ pack });
+    await revokePack(auth.session.userId, token);
+    return jsonOk({ ok: true });
   } catch (error) {
     return failRoute(error, [whenError(PackNotFoundError, 404)]);
   }

@@ -32,6 +32,7 @@ export async function listOwnedPacks(
       "id, owner_user_id, source_pack_id, kind, token, title, payload, revoked_at, created_at",
     )
     .eq("owner_user_id", userId)
+    .is("revoked_at", null)
     .order("created_at", { ascending: false });
 
   if (result.error) {
@@ -55,7 +56,7 @@ export async function getPackDetail(
     throw new PackNotFoundError();
   }
 
-  if (pack.revoked_at && pack.owner_user_id !== userId) {
+  if (pack.revoked_at) {
     throw new PackNotFoundError();
   }
 
@@ -112,6 +113,9 @@ export async function savePackCopy(
 
   const existing = await findClone(userId, source.id);
   if (existing) {
+    if (existing.revoked_at) {
+      await restorePack(userId, existing.id);
+    }
     return getPackDetail(userId, existing.token);
   }
 
@@ -126,17 +130,14 @@ export async function savePackCopy(
   return getPackDetail(userId, copy.token);
 }
 
-export async function revokePack(
-  userId: string,
-  token: string,
-): Promise<SharePackDetail> {
+export async function revokePack(userId: string, token: string): Promise<void> {
   const pack = await loadOwnedPack(userId, token);
   if (!pack) {
     throw new PackNotFoundError();
   }
 
   if (pack.revoked_at) {
-    return getPackDetail(userId, pack.token);
+    return;
   }
 
   const supabase = createSupabaseServerClient();
@@ -144,13 +145,22 @@ export async function revokePack(
     .from("share_packs")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", pack.id)
-    .eq("owner_user_id", userId)
-    .select("token")
-    .maybeSingle();
+    .eq("owner_user_id", userId);
 
   if (updated.error) {
     throw updated.error;
   }
+}
 
-  return getPackDetail(userId, pack.token);
+async function restorePack(userId: string, packId: string): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const restored = await supabase
+    .from("share_packs")
+    .update({ revoked_at: null })
+    .eq("id", packId)
+    .eq("owner_user_id", userId);
+
+  if (restored.error) {
+    throw restored.error;
+  }
 }

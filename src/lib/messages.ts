@@ -71,6 +71,9 @@ export const AI_PLATE_RETRY = "Ещё раз";
 export const REVIEW_CTA_HINT = "Еда, зал и вес за эти дни";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
+export const PACK_REMOVE_LINK =
+  "Ссылка перестанет открываться. У кого уже поставлено — останется. Из списка пропадёт.";
+export const PACK_REMOVE_SAVED = "Убрать из списка? Еда и зал не изменятся.";
 export const PACK_EMPTY_MEALS = "Сначала собери еду на день.";
 export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в программу.";
 export const ACCOUNT_DELETE_CONFIRM =
