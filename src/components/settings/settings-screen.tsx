@@ -3,7 +3,17 @@
 import { ChevronDown, Moon, Sun } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle, MugDoodle } from "@/components/layout/doodles";
+import {
+  ChartDoodle,
+  CookieDoodle,
+  LinkDoodle,
+  MacroDoodle,
+  MugDoodle,
+  PairDoodle,
+  PlateDoodle,
+  QrDoodle,
+  WeekDoodle,
+} from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -75,7 +85,7 @@ export function SettingsScreen() {
                 onClick={() => setShowGoals((open) => !open)}
               >
                 <MarkBadge className="size-9 rounded-xl">
-                  <CookieDoodle />
+                  <MacroDoodle />
                 </MarkBadge>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-lg font-medium">
@@ -100,7 +110,7 @@ export function SettingsScreen() {
               href="/settings/meals"
               title={MEAL_TEMPLATES_LABEL}
               hint="Что подставлять в новый день"
-              icon={<CookieDoodle />}
+              icon={<PlateDoodle />}
             />
             <NavRow
               href="/foods"
@@ -130,13 +140,13 @@ export function SettingsScreen() {
               href={reviewHref("settings")}
               title={REVIEW_LABEL}
               hint="Еда, зал и вес за 14, 30 или 90 дней"
-              icon={<MugDoodle />}
+              icon={<ChartDoodle />}
             />
             <NavRow
               href="/today/week?from=settings"
               title="Неделя"
               hint="Еда и зал за 7 дней"
-              icon={<CookieDoodle />}
+              icon={<WeekDoodle />}
             />
             <NavRow
               href="/today/history?from=settings"
@@ -154,19 +164,19 @@ export function SettingsScreen() {
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделиться едой на день или программой тренировок"
-              icon={<MugDoodle />}
+              icon={<LinkDoodle />}
             />
             <NavRow
               href="/settings/invite"
               title="Показать дневник"
               hint="QR и ссылка на бот, без твоей еды и зала"
-              icon={<MugDoodle />}
+              icon={<QrDoodle />}
             />
             <NavRow
               href="/onboarding?again=1"
               title="Белок и 1ПМ"
               hint="Задать заново. Еда на день и программа не изменятся"
-              icon={<CookieDoodle />}
+              icon={<PairDoodle />}
             />
           </div>
         </section>

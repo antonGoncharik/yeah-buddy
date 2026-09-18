@@ -6,7 +6,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useWeekScreen } from "@/components/day/use-week-screen";
 import { WeekDayRow } from "@/components/day/week-day-row";
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle } from "@/components/layout/doodles";
+import { WeekDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -37,7 +37,7 @@ export function WeekScreen() {
 
         {empty ? (
           <EmptyNote
-            icon={<CookieDoodle className="size-6" />}
+            icon={<WeekDoodle className="h-7 w-8" />}
             title={WEEK_EMPTY}
           />
         ) : null}

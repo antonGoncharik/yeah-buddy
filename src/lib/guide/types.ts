@@ -1,4 +1,10 @@
-export const GUIDE_DOODLES = ["mug", "cookie", "dumbbell", "barbell"] as const;
+export const GUIDE_DOODLES = [
+  "mug",
+  "cookie",
+  "dumbbell",
+  "barbell",
+  "link",
+] as const;
 
 export type GuideDoodle = (typeof GUIDE_DOODLES)[number];
 

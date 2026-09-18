@@ -1,3 +1,5 @@
+import type { ComponentType } from "react";
+
 import {
   BARBELL_VIEWBOX,
   BarbellMark,
@@ -6,6 +8,8 @@ import {
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
+  LINK_VIEWBOX,
+  LinkMark,
   MUG_VIEWBOX,
   MugMark,
 } from "@/components/layout/doodles";
@@ -56,41 +60,48 @@ export function GuidePageBody({
   );
 }
 
+const GUIDE_DOODLE_ICON: Record<
+  GuideDoodle,
+  {
+    className: string;
+    viewBox: string;
+    Mark: ComponentType<{ ink?: string }>;
+  }
+> = {
+  mug: {
+    className: "doodle-mug h-9 w-auto",
+    viewBox: MUG_VIEWBOX,
+    Mark: MugMark,
+  },
+  cookie: {
+    className: "h-9 w-auto",
+    viewBox: COOKIE_VIEWBOX,
+    Mark: CookieMark,
+  },
+  dumbbell: {
+    className: "h-8 w-auto",
+    viewBox: DUMBBELL_VIEWBOX,
+    Mark: DumbbellMark,
+  },
+  barbell: {
+    className: "h-8 w-auto",
+    viewBox: BARBELL_VIEWBOX,
+    Mark: BarbellMark,
+  },
+  link: { className: "h-8 w-auto", viewBox: LINK_VIEWBOX, Mark: LinkMark },
+};
+
 export function GuideDoodleIcon({ kind }: { kind: GuideDoodle }) {
-  if (kind === "mug") {
-    return (
-      <WiggleTap>
-        <Doodle
-          className="doodle-mug h-9 w-auto text-primary"
-          viewBox={MUG_VIEWBOX}
-        >
-          <MugMark />
-        </Doodle>
-      </WiggleTap>
-    );
-  }
-  if (kind === "cookie") {
-    return (
-      <WiggleTap>
-        <Doodle className="h-9 w-auto text-primary" viewBox={COOKIE_VIEWBOX}>
-          <CookieMark />
-        </Doodle>
-      </WiggleTap>
-    );
-  }
-  if (kind === "dumbbell") {
-    return (
-      <WiggleTap>
-        <Doodle className="h-8 w-auto text-primary" viewBox={DUMBBELL_VIEWBOX}>
-          <DumbbellMark />
-        </Doodle>
-      </WiggleTap>
-    );
-  }
+  const icon = GUIDE_DOODLE_ICON[kind];
+  const Mark = icon.Mark;
+
   return (
     <WiggleTap>
-      <Doodle className="h-8 w-auto text-primary" viewBox={BARBELL_VIEWBOX}>
-        <BarbellMark />
+      <Doodle
+        className={cn("text-primary", icon.className)}
+        viewBox={icon.viewBox}
+      >
+        <Mark />
       </Doodle>
     </WiggleTap>
   );

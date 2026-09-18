@@ -5,8 +5,9 @@ import Link from "next/link";
 
 import {
   BarbellDoodle,
+  ChartDoodle,
   DumbbellDoodle,
-  MugDoodle,
+  SetsDoodle,
 } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -217,13 +218,13 @@ export function WorkoutsHubNavSections({
           href="/settings/formulas"
           title={FORMULAS_LABEL}
           hint="Общая схема, если в дне нет своей"
-          icon={<BarbellDoodle />}
+          icon={<SetsDoodle />}
         />
         <NavRow
           href={reviewHref("workouts")}
           title={REVIEW_LABEL}
           hint="За 14, 30 или 90 дней"
-          icon={<MugDoodle />}
+          icon={<ChartDoodle />}
         />
       </section>
     </div>
