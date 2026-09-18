@@ -115,7 +115,7 @@ export function SettingsScreen() {
             <NavRow
               href="/foods"
               title="Продукты"
-              hint="Свои продукты для записи еды"
+              hint="Свои продукты. Из них собирается день."
               icon={<CookieDoodle />}
             />
           </div>
@@ -169,7 +169,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/invite"
               title="Показать дневник"
-              hint="QR и ссылка на бот, без твоей еды и зала"
+              hint="QR на бот. Твоей еды и зала там нет."
               icon={<QrDoodle />}
             />
             <NavRow

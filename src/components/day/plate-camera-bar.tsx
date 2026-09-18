@@ -4,6 +4,7 @@ import { Camera, Images } from "lucide-react";
 import type { RefObject } from "react";
 
 import { Button } from "@/components/ui/button";
+import { PLATE_CAPTURE_LABEL } from "@/lib/flavor";
 
 export function PlateCameraBar({
   busy,
@@ -46,7 +47,7 @@ export function PlateCameraBar({
         onClick={() => onStartLiveCamera()}
       >
         <Camera className="size-5" aria-hidden />
-        {status === "idle" ? "Сфотографировать" : "Другое фото"}
+        {status === "idle" ? PLATE_CAPTURE_LABEL : "Другое фото"}
       </Button>
 
       <div className="relative">

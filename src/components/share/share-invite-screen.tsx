@@ -8,6 +8,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { ShareQr } from "@/components/share/share-qr";
 import { Button } from "@/components/ui/button";
 import { mutateJson } from "@/lib/api-cache";
+import { INVITE_QR_CAPTION } from "@/lib/flavor";
 import { LOAD_FAILED } from "@/lib/messages";
 import { shareOrCopyLink } from "@/lib/share/client";
 import { readInvitePayload } from "@/lib/share/invite";
@@ -78,12 +79,7 @@ export function ShareInviteScreen() {
 
         {!loading && url ? (
           <>
-            {showQr ? (
-              <ShareQr
-                url={url}
-                caption="Наведи камеру — откроется бот. Нажми Start."
-              />
-            ) : null}
+            {showQr ? <ShareQr url={url} caption={INVITE_QR_CAPTION} /> : null}
             <p className="text-base leading-relaxed text-muted-foreground">
               {showQr
                 ? "Если человек уже в Telegram — «Поделиться» отправит ссылку на бот."

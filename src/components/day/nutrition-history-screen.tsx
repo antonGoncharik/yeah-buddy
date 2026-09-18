@@ -18,7 +18,10 @@ import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
 import { parseDayHistoryPayload } from "@/lib/day/map";
 import { historyNeedsOlder } from "@/lib/diary-range";
-import { NUTRITION_HISTORY_EMPTY } from "@/lib/messages";
+import {
+  NUTRITION_HISTORY_EMPTY,
+  NUTRITION_HISTORY_EMPTY_HINT,
+} from "@/lib/messages";
 import {
   chronological,
   type HistoryMetric,
@@ -97,6 +100,7 @@ export function NutritionHistoryScreen() {
           <EmptyNote
             icon={<CookieDoodle className="size-6" />}
             title={NUTRITION_HISTORY_EMPTY}
+            hint={NUTRITION_HISTORY_EMPTY_HINT}
           />
         ) : null}
 

@@ -1,17 +1,26 @@
 import {
+  BODYBUILDER_LINE,
   comebackLine,
   consecutiveProteinHits,
+  EARLY_LINE,
+  EVENING_LINE,
   firstDeloadLine,
   firstPhaseLine,
   foodSearchEasterEgg,
+  foodSearchEmptyLine,
   hundredWeightLine,
+  INVITE_QR_CAPTION,
   LATE_NIGHT_LINE,
+  LIGHT_WEIGHT_BABY_LINE,
   LIGHT_WEIGHT_LINE,
   loadingFlavor,
   loadingLine,
   macrosClosedLine,
+  mealEmptyLine,
   nightLoadingLine,
   overflowKcalLabel,
+  PEANUT_LINE,
+  packQrCaption,
   proteinAlmostLine,
   proteinClosed,
   proteinWeekLine,
@@ -97,6 +106,7 @@ assertEqual(
   "Десять. Уже не разовый заход.",
   "tenth session",
 );
+assertEqual(sessionMilestoneLine(25), "Двадцать пять. Уже привычка.", "25th");
 assertEqual(sessionMilestoneLine(50), "Пятьдесят. Yeah buddy.", "fiftieth");
 assertEqual(
   sessionMilestoneLine(100),
@@ -137,9 +147,14 @@ assertEqual(
   "first volume",
 );
 assertEqual(
-  firstPhaseLine({ ...deload, phase_type: "ramp" }),
-  null,
-  "ramp stays quiet",
+  firstPhaseLine({ ...deload, phase_type: "ramp", phase_name: "Разгон" }),
+  "Разгон. Не гони вес.",
+  "first ramp",
+);
+assertEqual(
+  comebackLine("2026-10-01", "2026-09-01"),
+  "Месяц без зала. Нормально, что вернулся.",
+  "a month away",
 );
 assertEqual(
   comebackLine("2026-09-15", "2026-09-01"),
@@ -187,6 +202,11 @@ assertEqual(
   proteinWeekLine(7),
   "Белок семь дней подряд. Холодильник в курсе.",
   "week closed",
+);
+assertEqual(
+  proteinWeekLine(14),
+  "Белок две недели подряд. Это уже характер.",
+  "two weeks closed",
 );
 
 assertEqual(proteinClosed(0.4, 160), true, "protein hit");
@@ -254,13 +274,19 @@ assertEqual(
   null,
   "fat still open",
 );
-assertEqual(hundredWeightLine(100), "Сотня.", "even hundred");
-assertEqual(hundredWeightLine(100.04), "Сотня.", "scale jitter");
+assertEqual(hundredWeightLine(100), "Сотня. Круглая.", "even hundred");
+assertEqual(hundredWeightLine(100.04), "Сотня. Круглая.", "scale jitter");
 assertEqual(hundredWeightLine(99.8), null, "not yet a hundred");
 assertEqual(foodSearchEasterEgg("Ронни"), "Yeah buddy.", "ronnie search");
 assertEqual(foodSearchEasterEgg("yeah buddy."), "Yeah buddy.", "full yeah");
+assertEqual(
+  foodSearchEasterEgg("Yeah buddy!"),
+  "Yeah buddy.",
+  "yeah with bang",
+);
 assertEqual(foodSearchEasterEgg("ronnie"), "Yeah buddy.", "latin ronnie");
 assertEqual(foodSearchEasterEgg("coleman"), "Yeah buddy.", "coleman");
+assertEqual(foodSearchEasterEgg("king ronnie"), "Yeah buddy.", "king");
 assertEqual(
   foodSearchEasterEgg("light weight"),
   LIGHT_WEIGHT_LINE,
@@ -271,11 +297,91 @@ assertEqual(
   LIGHT_WEIGHT_LINE,
   "ё maps to е",
 );
+assertEqual(
+  foodSearchEasterEgg("light weight baby"),
+  LIGHT_WEIGHT_BABY_LINE,
+  "baby",
+);
+assertEqual(
+  foodSearchEasterEgg("ain't nothin' but a peanut"),
+  PEANUT_LINE,
+  "peanut quote",
+);
+assertEqual(
+  foodSearchEasterEgg("everybody wanna be a bodybuilder"),
+  BODYBUILDER_LINE,
+  "bodybuilder rant",
+);
 assertEqual(foodSearchEasterEgg("овсянка"), null, "real food");
+assertEqual(
+  foodSearchEmptyLine("", "all"),
+  "Пока пусто. Добавь продукты — из них соберёшь день.",
+  "all empty stays useful",
+);
+assertEqual(
+  foodSearchEmptyLine("", "favorites"),
+  "Нет избранных. Пока все равны.",
+  "favorites empty",
+);
+assertEqual(
+  foodSearchEmptyLine("", "recent"),
+  "Недавних нет. Съешь что-нибудь.",
+  "recent empty",
+);
+assertEqual(
+  foodSearchEmptyLine("творог", "all"),
+  "Нет такого. Или ещё не заводил.",
+  "missed search",
+);
+assertEqual(
+  foodSearchEmptyLine("творог", "all", true),
+  "Нет в списке — запиши порцию сверху.",
+  "lump miss",
+);
+assertEqual(
+  foodSearchEmptyLine("yeah buddy", "all"),
+  "Yeah buddy.",
+  "egg beats empty",
+);
+assertEqual(
+  mealEmptyLine("breakfast"),
+  "Пока пусто. Утро само не запишется.",
+  "breakfast empty",
+);
+assertEqual(
+  mealEmptyLine("post_workout"),
+  "Пока пусто. Зал был, еды нет.",
+  "post empty",
+);
+assertEqual(
+  packQrCaption("meals"),
+  "Наведи камеру — откроется еда на день.",
+  "meals qr",
+);
+assertEqual(
+  packQrCaption("workouts"),
+  "Наведи камеру — откроется программа.",
+  "workouts qr",
+);
+assertEqual(
+  INVITE_QR_CAPTION.includes("yeah buddy"),
+  true,
+  "invite qr keeps the line",
+);
 assertEqual(
   nightLoadingLine(new Date(2026, 8, 18, 2).getTime()),
   LATE_NIGHT_LINE,
   "2am boot",
+);
+assertEqual(
+  nightLoadingLine(new Date(2026, 8, 18, 7).getTime()),
+  EARLY_LINE,
+  "7am boot",
+);
+assertEqual(
+  nightLoadingLine(new Date(2026, 8, 18, 22).getTime()),
+  EVENING_LINE,
+  "10pm boot",
 );
 assertEqual(
   nightLoadingLine(new Date(2026, 8, 18, 0).getTime()),

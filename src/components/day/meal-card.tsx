@@ -11,6 +11,7 @@ import {
 import { MealTypeMark } from "@/components/day/meal-type-mark";
 import { Button } from "@/components/ui/button";
 import { SortableList } from "@/components/workout/sortable-list";
+import { mealEmptyLine } from "@/lib/flavor";
 import {
   formatKcal,
   formatMacro,
@@ -112,7 +113,9 @@ export function MealCard({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-base text-muted-foreground">Пока пусто.</p>
+        <p className="text-base text-muted-foreground">
+          {mealEmptyLine(mealType)}
+        </p>
       ) : onReorderItems && !readOnly ? (
         <SortableList
           items={items}

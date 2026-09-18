@@ -27,6 +27,7 @@ export function WorkoutsHubEmpty({
       <EmptyNote
         icon={<DumbbellDoodle className="h-5 w-10" />}
         title={WORKOUTS_NEED_EXERCISES}
+        hint="Штанга сама не встанет."
         action={
           <Link
             href="/workouts/exercises/new"
@@ -45,6 +46,7 @@ export function WorkoutsHubEmpty({
       <EmptyNote
         icon={<BarbellDoodle className="h-5 w-10" />}
         title={WORKOUTS_NEED_TEMPLATES}
+        hint="Без очереди зал не знает, что делать."
         action={
           <Link
             href="/workouts/schedule"

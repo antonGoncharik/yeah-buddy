@@ -12,9 +12,9 @@ import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { foodSearchEasterEgg } from "@/lib/flavor";
+import { foodSearchEmptyLine } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
-import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
 type Filter = "favorites" | "recent" | "all";
@@ -130,7 +130,7 @@ export function PlateFoodPicker({
           visibleFoods.length === 0 &&
           !catalogSearchActive(query) ? (
             <p className="py-10 text-center text-muted-foreground">
-              {emptyMessage(filter, query)}
+              {foodSearchEmptyLine(query, filter)}
             </p>
           ) : null}
 
@@ -149,7 +149,7 @@ export function PlateFoodPicker({
               query={query}
               emptyLabel={
                 visibleFoods.length === 0
-                  ? emptyMessage(filter, query)
+                  ? foodSearchEmptyLine(query, filter)
                   : undefined
               }
               onAdded={onPick}
@@ -172,21 +172,4 @@ export function PlateFoodPicker({
       </div>
     </div>
   );
-}
-
-function emptyMessage(filter: Filter, query: string): string {
-  const easter = foodSearchEasterEgg(query);
-  if (easter) {
-    return easter;
-  }
-  if (query.trim()) {
-    return "Ничего не найдено.";
-  }
-  if (filter === "favorites") {
-    return "Нет избранных продуктов.";
-  }
-  if (filter === "recent") {
-    return "Недавних продуктов пока нет.";
-  }
-  return FOODS_EMPTY;
 }

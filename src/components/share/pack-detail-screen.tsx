@@ -8,6 +8,7 @@ import { PackWorkoutsPreview } from "@/components/share/pack-workouts-preview";
 import { ShareQr } from "@/components/share/share-qr";
 import { usePackDetailScreen } from "@/components/share/use-pack-detail-screen";
 import { Button } from "@/components/ui/button";
+import { packQrCaption } from "@/lib/flavor";
 import { packBackHref } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
@@ -55,7 +56,10 @@ export function PackDetailScreen({ token }: { token: string }) {
             </p>
 
             {ownLive && pack.share_url && isTelegramMeUrl(pack.share_url) ? (
-              <ShareQr url={pack.share_url} caption={packQrCaption(pack)} />
+              <ShareQr
+                url={pack.share_url}
+                caption={packQrCaption(pack.kind)}
+              />
             ) : null}
 
             {ownLive ? (
@@ -159,12 +163,6 @@ function ApplyButton({
       {busy ? "Сохранение…" : "Поставить себе"}
     </Button>
   );
-}
-
-function packQrCaption(pack: SharePackDetail): string {
-  return pack.kind === "meals"
-    ? "Наведи камеру — откроется бот с едой на день."
-    : "Наведи камеру — откроется бот с программой.";
 }
 
 function packSubtitle(pack: SharePackDetail): string {

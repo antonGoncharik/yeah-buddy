@@ -17,9 +17,9 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { foodSearchEasterEgg } from "@/lib/flavor";
+import { foodSearchEmptyLine } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
-import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -139,7 +139,7 @@ export function AddMealItemScreen({
         visibleFoods.length === 0 &&
         !catalogSearchActive(query) ? (
           <p className="py-10 text-center text-muted-foreground">
-            {emptyMessage(filter, search, Boolean(lumpHrefBase))}
+            {foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))}
           </p>
         ) : null}
 
@@ -158,7 +158,7 @@ export function AddMealItemScreen({
             query={query}
             emptyLabel={
               visibleFoods.length === 0
-                ? emptyMessage(filter, search, Boolean(lumpHrefBase))
+                ? foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))
                 : undefined
             }
             onAdded={(food) => {
@@ -181,28 +181,6 @@ export function AddMealItemScreen({
       )}
     </>
   );
-}
-
-function emptyMessage(filter: Filter, query: string, canLump: boolean): string {
-  const easter = foodSearchEasterEgg(query);
-  if (easter) {
-    return easter;
-  }
-  if (query) {
-    return canLump
-      ? "Нет в списке — запиши порцию сверху."
-      : "Ничего не найдено.";
-  }
-
-  if (filter === "favorites") {
-    return "Нет избранных продуктов.";
-  }
-
-  if (filter === "recent") {
-    return "Недавних продуктов пока нет.";
-  }
-
-  return FOODS_EMPTY;
 }
 
 function appendPathSegment(href: string, segment: string): string {

@@ -22,9 +22,9 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
-import { foodSearchEasterEgg } from "@/lib/flavor";
+import { foodSearchEmptyLine } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
-import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
@@ -122,7 +122,7 @@ export function FoodsScreen() {
         !catalogSearchActive(query) ? (
           <EmptyNote
             icon={<CookieDoodle className="size-6" />}
-            title={emptyMessage(filter, query)}
+            title={foodSearchEmptyLine(query, filter)}
           />
         ) : null}
 
@@ -140,7 +140,7 @@ export function FoodsScreen() {
             query={query}
             emptyLabel={
               visibleFoods.length === 0
-                ? emptyMessage(filter, query)
+                ? foodSearchEmptyLine(query, filter)
                 : undefined
             }
             onAdded={(food) => {
@@ -168,26 +168,6 @@ export function FoodsScreen() {
       </StickyActions>
     </div>
   );
-}
-
-function emptyMessage(filter: Filter, query: string): string {
-  const easter = foodSearchEasterEgg(query);
-  if (easter) {
-    return easter;
-  }
-  if (query.trim()) {
-    return "Ничего не найдено.";
-  }
-
-  if (filter === "favorites") {
-    return "Нет избранных продуктов.";
-  }
-
-  if (filter === "recent") {
-    return "Недавних продуктов пока нет.";
-  }
-
-  return FOODS_EMPTY;
 }
 
 function readFoods(data: unknown): Food[] {

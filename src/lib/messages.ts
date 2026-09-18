@@ -20,7 +20,7 @@ export function switchRestToTrainingMessage(input: {
     : "Цели поменяются, записанная еда останется.";
   return `${prefix} Сделать его тренировочным? ${suffix}`;
 }
-export const YESTERDAY_MISSING = "Вчера пусто.";
+export const YESTERDAY_MISSING = "Вчера пусто. Нечего копировать.";
 export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
 export const SOURCE_MEAL_EMPTY = "В выбранный день этот приём пустой.";
 export const PAST_DAY_LOCKED = "Это старый день — уже не меняется.";
@@ -31,7 +31,7 @@ export const BOT_START = `Yeah buddy! 👟
 
 Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
 
-Погнали 🔥`;
+Light weight. Погнали 🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
@@ -39,7 +39,8 @@ export const BOT_YEAH_BUDDY = "Yeah buddy.";
 export function botReminderGym(name: string): string {
   return `Сегодня ${name}.`;
 }
-export const EXERCISES_EMPTY = "Пока пусто. Добавь упражнение.";
+export const EXERCISES_EMPTY =
+  "Пока пусто. Добавь упражнение — штанга сама не встанет.";
 export const WORKOUTS_NEED_EXERCISES = "Сначала добавь упражнения.";
 export const WORKOUTS_NEED_TEMPLATES =
   "Программа пустая. Поставь готовую или собери тренировку сам.";
@@ -50,25 +51,25 @@ export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
 export const CYCLE_RAISE_LATER =
   "Идёт цикл: вес растёт на смене недели, а не после одной тренировки.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
-export const SESSION_HISTORY_EMPTY =
-  "Пока пусто. Здесь появятся сделанные тренировки.";
-export const NUTRITION_HISTORY_EMPTY =
-  "Пока пусто. Здесь появятся дни с записанной едой.";
-export const WEEK_EMPTY =
-  "Пока пусто. Запиши еду или тренировку — день появится здесь.";
+export const SESSION_HISTORY_EMPTY = "Пока пусто. Первый подход ещё впереди.";
+export const NUTRITION_HISTORY_EMPTY = "Пока пусто. Первый приём ещё впереди.";
+export const WEEK_EMPTY = "Пока пусто. Неделя сама себя не запишет.";
+export const WEEK_EMPTY_HINT = "Запиши еду или зал — день появится здесь.";
+export const SESSION_HISTORY_EMPTY_HINT = "Сделай тренировку — она ляжет сюда.";
+export const NUTRITION_HISTORY_EMPTY_HINT = "Запиши еду — день появится здесь.";
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
   "Нет веса для плана. Напиши 1ПМ или первый кг — прямо здесь.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
-export const AI_REVIEW_EMPTY = "Пока мало записей, чтобы разобрать.";
+export const AI_REVIEW_EMPTY = "Пока мало записей. Другу не о чем говорить.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";
 export const AI_REVIEW_FAILED = "Не получилось разобрать.";
 export const AI_PLATE_FAILED = "Не получилось разобрать.";
-export const AI_PLATE_EMPTY = "На фото не видно еды.";
+export const AI_PLATE_EMPTY = "На фото еды не видно. Покажи тарелку ближе.";
 export const AI_PLATE_PHOTO_FAILED = "Не получилось прочитать фото.";
 export const AI_PLATE_RETRY = "Ещё раз это фото";
-export const REVIEW_CTA_HINT = "Еда, зал и вес за эти дни";
+export const REVIEW_CTA_HINT = "Как еда, зал и вес жили вместе";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
 export const PACK_REMOVE_LINK =

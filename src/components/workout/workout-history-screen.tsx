@@ -14,7 +14,10 @@ import { WorkoutHistoryStats } from "@/components/workout/workout-history-stats"
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
 import { diaryRangeStart, historyNeedsOlder } from "@/lib/diary-range";
-import { SESSION_HISTORY_EMPTY } from "@/lib/messages";
+import {
+  SESSION_HISTORY_EMPTY,
+  SESSION_HISTORY_EMPTY_HINT,
+} from "@/lib/messages";
 import {
   HISTORY_RANGE_OPTIONS,
   useCursorHistory,
@@ -80,6 +83,7 @@ export function WorkoutHistoryScreen() {
           <EmptyNote
             icon={<DumbbellDoodle className="h-5 w-10" />}
             title={SESSION_HISTORY_EMPTY}
+            hint={SESSION_HISTORY_EMPTY_HINT}
           />
         ) : null}
 
