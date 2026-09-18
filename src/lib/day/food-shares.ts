@@ -85,7 +85,7 @@ export async function listFoodSharesInRange(
       }
       return left.name.localeCompare(right.name, "ru");
     })
-    .slice(0, 8)
+    .slice(0, 12)
     .map((item) => ({
       name: item.name,
       protein: round1(item.protein),

@@ -37,7 +37,7 @@ export function ReviewTextCard({
       >
         {review.headline}
       </h2>
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-col gap-5">
         {review.observations.map((item) => (
           <li key={item} className="text-base leading-relaxed">
             {item}
@@ -47,7 +47,7 @@ export function ReviewTextCard({
       {review.watch.length > 0 ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
           <p className="text-sm font-medium text-muted-foreground">Дальше</p>
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-4">
             {review.watch.map((item) => (
               <li key={item} className="text-base leading-relaxed">
                 {item}

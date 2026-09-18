@@ -115,8 +115,8 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     },
     phase: source.macro,
     maxes: {
-      grown: maxes.grown.slice(0, 4),
-      stalled: maxes.stalled.slice(0, 4),
+      grown: maxes.grown.slice(0, 8),
+      stalled: maxes.stalled.slice(0, 8),
     },
     categories,
     avgPercent:

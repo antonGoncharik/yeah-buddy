@@ -162,7 +162,7 @@ export function nutritionSignalLines(input: {
   if (input.foods.length > 0) {
     lines.push(
       `Топ белка: ${input.foods
-        .slice(0, 8)
+        .slice(0, 12)
         .map((item) => `${item.name} ${formatG(item.protein)} г`)
         .join(", ")}.`,
     );

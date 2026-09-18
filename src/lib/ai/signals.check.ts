@@ -475,9 +475,24 @@ assertEqual(
   "prompt asks for grounded advice",
 );
 assertEqual(
-  REVIEW_SYSTEM_PROMPT.includes("2–4 предложения"),
+  REVIEW_SYSTEM_PROMPT.includes("3–5 предложений"),
   true,
   "prompt asks for longer observations",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("Назови упражнения"),
+  true,
+  "prompt asks to name lifts",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("8–12 связных абзацев"),
+  true,
+  "prompt asks for a full window",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("Когда совет заходит"),
+  true,
+  "prompt requires advice",
 );
 assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
 assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");

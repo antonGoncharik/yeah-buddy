@@ -104,7 +104,7 @@ export function gymSignalLines(input: {
   const records = input.gym.records ?? [];
   if (records.length > 0) {
     lines.push(
-      `Рекорды: ${records.slice(0, 6).map(formatPeakRecord).join("; ")}.`,
+      `Рекорды: ${records.slice(0, 8).map(formatPeakRecord).join("; ")}.`,
     );
   }
 

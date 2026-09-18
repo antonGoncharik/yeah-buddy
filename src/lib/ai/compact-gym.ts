@@ -62,7 +62,7 @@ export function sessionNotes(
         },
       ];
     })
-    .slice(0, 8);
+    .slice(0, 12);
 }
 
 export function compactFeels(sessions: ReviewSessionRow[]): {

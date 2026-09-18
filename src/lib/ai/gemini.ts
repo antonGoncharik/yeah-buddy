@@ -22,6 +22,7 @@ const reviewTextSchema = z.object({
     .max(REVIEW_OBSERVATION_MAX),
   watch: z
     .array(z.string().trim().min(1).max(REVIEW_WATCH_CHARS))
+    .min(1)
     .max(REVIEW_WATCH_MAX),
 });
 
@@ -38,6 +39,7 @@ const RESPONSE_SCHEMA = {
     watch: {
       type: "array",
       items: { type: "string" },
+      minItems: 1,
       maxItems: REVIEW_WATCH_MAX,
     },
   },
@@ -45,6 +47,7 @@ const RESPONSE_SCHEMA = {
 } as const;
 
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const DEFAULT_REVIEW_MODEL = "gemini-3.5-flash";
 
 export function getGeminiApiKey(): string | null {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -54,6 +57,11 @@ export function getGeminiApiKey(): string | null {
 export function getGeminiModel(): string {
   const model = process.env.GEMINI_MODEL?.trim();
   return model || DEFAULT_MODEL;
+}
+
+export function getGeminiReviewModel(): string {
+  const model = process.env.GEMINI_REVIEW_MODEL?.trim();
+  return model || DEFAULT_REVIEW_MODEL;
 }
 
 export type GeminiUserPart =
@@ -68,6 +76,8 @@ export async function generateGeminiJson({
   timeoutMs = 25_000,
   maxOutputTokens,
   failedMessage,
+  model: modelOverride,
+  thinkingLevel,
 }: {
   system: string;
   parts: GeminiUserPart[];
@@ -76,13 +86,15 @@ export async function generateGeminiJson({
   timeoutMs?: number;
   maxOutputTokens?: number;
   failedMessage: string;
+  model?: string;
+  thinkingLevel?: "minimal" | "low" | "medium" | "high";
 }): Promise<unknown> {
   const key = getGeminiApiKey();
   if (!key) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 
-  const model = encodeURIComponent(getGeminiModel());
+  const model = encodeURIComponent(modelOverride?.trim() || getGeminiModel());
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -106,6 +118,13 @@ export async function generateGeminiJson({
           maxOutputTokens,
           responseMimeType: "application/json",
           responseSchema: schema,
+          ...(thinkingLevel
+            ? {
+                thinkingConfig: {
+                  thinkingLevel: thinkingLevel.toUpperCase(),
+                },
+              }
+            : {}),
         },
       }),
       signal: AbortSignal.timeout(timeoutMs),
@@ -141,10 +160,12 @@ export async function writeReview(
       { text: JSON.stringify(reviewPromptPayload(brief, previous)) },
     ],
     schema: RESPONSE_SCHEMA,
-    temperature: 0.7,
-    timeoutMs: 45_000,
-    maxOutputTokens: 8192,
+    temperature: 0.75,
+    timeoutMs: 75_000,
+    maxOutputTokens: 24_576,
     failedMessage: AI_REVIEW_FAILED,
+    model: getGeminiReviewModel(),
+    thinkingLevel: "medium",
   });
 
   const parsed = reviewTextSchema.safeParse(payload);
@@ -167,7 +188,7 @@ function readCandidateText(payload: unknown): string | null {
   const record = payload as {
     candidates?: Array<{
       finishReason?: unknown;
-      content?: { parts?: Array<{ text?: unknown }> };
+      content?: { parts?: Array<{ text?: unknown; thought?: unknown }> };
     }>;
   };
   const candidate = record.candidates?.[0];
@@ -179,9 +200,14 @@ function readCandidateText(payload: unknown): string | null {
   }
 
   const parts = candidate.content?.parts ?? [];
-  const chunks = parts.flatMap((part) =>
-    typeof part.text === "string" && part.text.trim() !== "" ? [part.text] : [],
-  );
+  const chunks = parts.flatMap((part) => {
+    if (part.thought === true) {
+      return [];
+    }
+    return typeof part.text === "string" && part.text.trim() !== ""
+      ? [part.text]
+      : [];
+  });
   if (chunks.length === 0) {
     return null;
   }

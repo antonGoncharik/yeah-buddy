@@ -29,7 +29,7 @@ export function maxesSignalLines(input: {
   if (easy >= 2 && input.maxes.stalled.length > 0) {
     lines.push(
       `Легко ${easy}, без роста: ${input.maxes.stalled
-        .slice(0, 4)
+        .slice(0, 8)
         .map((item) => item.name)
         .join(", ")}.`,
     );
