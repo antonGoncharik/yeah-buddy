@@ -8,6 +8,10 @@ import {
   CatalogFoodSection,
   catalogSearchActive,
 } from "@/components/foods/catalog-food-section";
+import {
+  foodsApiUrl,
+  toggleFoodFavorite,
+} from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { AppHeader } from "@/components/layout/app-header";
@@ -17,7 +21,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { cachedGet, patchJson, writeJson } from "@/lib/api-cache";
+import { cachedGet, writeJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { FOODS_EMPTY, LOAD_FAILED } from "@/lib/messages";
@@ -93,41 +97,6 @@ export function FoodsScreen() {
     });
   }, [foods, query]);
 
-  async function onToggleFavorite(food: Food) {
-    const nextValue = !food.is_favorite;
-    setFoods((current) => {
-      const next = current.map((item) =>
-        item.id === food.id ? { ...item, is_favorite: nextValue } : item,
-      );
-      writeJson(foodsUrl(listFilter), { foods: next });
-      return next;
-    });
-
-    try {
-      await patchJson(`/api/foods/${food.id}/favorite`, {
-        is_favorite: nextValue,
-      });
-
-      if (filter === "favorites" && !nextValue) {
-        setFoods((current) => {
-          const next = current.filter((item) => item.id !== food.id);
-          writeJson(foodsUrl("favorites"), { foods: next });
-          return next;
-        });
-      }
-    } catch {
-      setFoods((current) => {
-        const next = current.map((item) =>
-          item.id === food.id
-            ? { ...item, is_favorite: food.is_favorite }
-            : item,
-        );
-        writeJson(foodsUrl(listFilter), { foods: next });
-        return next;
-      });
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Продукты" backHref="/settings" />
@@ -160,7 +129,9 @@ export function FoodsScreen() {
         {!loading && !error && visibleFoods.length > 0 ? (
           <FoodList
             foods={visibleFoods}
-            onToggleFavorite={(food) => void onToggleFavorite(food)}
+            onToggleFavorite={(food) =>
+              void toggleFoodFavorite(food, setFoods, listFilter)
+            }
           />
         ) : null}
 
@@ -178,7 +149,7 @@ export function FoodsScreen() {
                   food,
                   ...current.filter((item) => item.id !== food.id),
                 ];
-                writeJson("/api/foods", { foods: next });
+                writeJson(foodsApiUrl("all"), { foods: next });
                 return next;
               });
             }}
@@ -221,8 +192,4 @@ function emptyMessage(filter: Filter, query: string): string {
 
 function readFoods(data: unknown): Food[] {
   return parseFoodList(data);
-}
-
-function foodsUrl(filter: Filter): string {
-  return filter === "all" ? "/api/foods" : `/api/foods?filter=${filter}`;
 }

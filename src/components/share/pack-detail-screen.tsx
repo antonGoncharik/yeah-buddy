@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { packBackHref } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
+import { cn } from "@/lib/utils";
 
 export function PackDetailScreen({ token }: { token: string }) {
   const {
@@ -34,7 +35,12 @@ export function PackDetailScreen({ token }: { token: string }) {
         backHref={packBackHref(from)}
       />
 
-      <div className="flex flex-col gap-4 px-4 pb-44">
+      <div
+        className={cn(
+          "flex flex-col gap-4 px-4",
+          ownLive ? "pb-8" : "pb-[var(--app-field-scroll-pad)]",
+        )}
+      >
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !pack ? (
@@ -51,6 +57,17 @@ export function PackDetailScreen({ token }: { token: string }) {
               <ShareQr url={pack.share_url} caption={packQrCaption(pack)} />
             ) : null}
 
+            {ownLive ? (
+              <PackOwnerActions
+                busy={busy}
+                error={error}
+                copied={copied}
+                onShare={() => void onShare()}
+                onApply={() => void onApply()}
+                onRevoke={() => void onRevoke()}
+              />
+            ) : null}
+
             {pack.kind === "meals" && pack.meals ? (
               <PackMealsPreview pack={pack} />
             ) : null}
@@ -59,48 +76,79 @@ export function PackDetailScreen({ token }: { token: string }) {
               <PackWorkoutsPreview pack={pack} />
             ) : null}
 
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            {copied ? (
-              <p className="animate-fade text-sm text-muted-foreground">
-                Ссылка скопирована.
-              </p>
+            {ownLive ? null : error ? (
+              <p className="text-sm text-destructive">{error}</p>
             ) : null}
           </>
         ) : null}
       </div>
 
-      {!loading && pack ? (
+      {!loading && pack && !ownLive ? (
         <StickyActions>
-          {ownLive ? (
-            <Button
-              className="h-14 text-lg"
-              disabled={busy}
-              onClick={() => void onShare()}
-            >
-              Поделиться
-            </Button>
-          ) : null}
-          <Button
-            className="h-14 text-lg"
-            variant={ownLive ? "secondary" : "default"}
-            disabled={busy}
-            onClick={() => void onApply()}
-          >
-            {busy ? "Сохранение…" : "Поставить себе"}
-          </Button>
-          {ownLive ? (
-            <Button
-              variant="ghost"
-              className="h-12 text-base"
-              disabled={busy}
-              onClick={() => void onRevoke()}
-            >
-              Убрать ссылку
-            </Button>
-          ) : null}
+          <ApplyButton busy={busy} onApply={() => void onApply()} />
         </StickyActions>
       ) : null}
     </div>
+  );
+}
+
+function PackOwnerActions({
+  busy,
+  error,
+  copied,
+  onShare,
+  onApply,
+  onRevoke,
+}: {
+  busy: boolean;
+  error: string | null;
+  copied: boolean;
+  onShare: () => void;
+  onApply: () => void;
+  onRevoke: () => void;
+}) {
+  return (
+    <div className="animate-rise flex flex-col gap-2">
+      <Button className="h-14 text-lg" disabled={busy} onClick={onShare}>
+        Поделиться
+      </Button>
+      <ApplyButton busy={busy} onApply={onApply} variant="secondary" />
+      <Button
+        variant="ghost"
+        className="h-12 text-base"
+        disabled={busy}
+        onClick={onRevoke}
+      >
+        Убрать ссылку
+      </Button>
+      {copied ? (
+        <p className="animate-fade text-sm text-muted-foreground">
+          Ссылка скопирована.
+        </p>
+      ) : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
+  );
+}
+
+function ApplyButton({
+  busy,
+  onApply,
+  variant = "default",
+}: {
+  busy: boolean;
+  onApply: () => void;
+  variant?: "default" | "secondary";
+}) {
+  return (
+    <Button
+      className="h-14 text-lg"
+      variant={variant}
+      disabled={busy}
+      onClick={onApply}
+    >
+      {busy ? "Сохранение…" : "Поставить себе"}
+    </Button>
   );
 }
 

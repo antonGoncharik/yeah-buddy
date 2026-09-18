@@ -6,6 +6,7 @@ import {
   CatalogFoodSection,
   catalogSearchActive,
 } from "@/components/foods/catalog-food-section";
+import { toggleFoodFavorite } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -136,8 +137,10 @@ export function PlateFoodPicker({
           {!loading && !error && visibleFoods.length > 0 ? (
             <FoodList
               foods={visibleFoods}
-              showFavorite={false}
               onSelectFood={onPick}
+              onToggleFavorite={(food) =>
+                void toggleFoodFavorite(food, setFoods, listFilter)
+              }
             />
           ) : null}
 

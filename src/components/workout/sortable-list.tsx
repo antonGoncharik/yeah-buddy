@@ -25,7 +25,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
@@ -67,7 +68,13 @@ export function SortableList<T extends { id: string }>({
   );
   const canSort = !disabled && items.length > 1;
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [overlayHost, setOverlayHost] = useState<HTMLElement | null>(null);
   const lastOverId = useRef<string | number | null>(null);
+
+  useEffect(() => {
+    setOverlayHost(document.body);
+  }, []);
+
   const activeIndex = activeId
     ? items.findIndex((item) => item.id === activeId)
     : -1;
@@ -114,6 +121,7 @@ export function SortableList<T extends { id: string }>({
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[restrictToVerticalAxis]}
+      autoScroll={{ layoutShiftCompensation: false }}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
@@ -143,26 +151,18 @@ export function SortableList<T extends { id: string }>({
           ))}
         </div>
       </SortableContext>
-      <DragOverlay dropAnimation={dropAnimation}>
-        {activeItem ? (
-          <div
-            className={cn(
-              "flex items-start gap-1 rounded-xl bg-card shadow-lg ring-1 ring-border/80",
-              variant === "rows" && "px-1 py-1",
-            )}
-          >
-            <HandleSlot index={activeIndex} variant={variant} />
-            <div
-              className={cn(
-                "min-w-0 flex-1",
-                variant === "rows" && "flex items-center",
-              )}
-            >
-              {renderItem(activeItem, activeIndex)}
-            </div>
-          </div>
-        ) : null}
-      </DragOverlay>
+      {overlayHost
+        ? createPortal(
+            <DragOverlay dropAnimation={dropAnimation}>
+              {activeItem ? (
+                <OverlayCard index={activeIndex} variant={variant}>
+                  {renderItem(activeItem, activeIndex)}
+                </OverlayCard>
+              ) : null}
+            </DragOverlay>,
+            overlayHost,
+          )
+        : null}
     </DndContext>
   );
 }
@@ -223,6 +223,35 @@ function SortableRow({
       ) : (
         <HandleSlot index={index} variant={variant} />
       )}
+      <div
+        className={cn(
+          "min-w-0 flex-1",
+          variant === "rows" && "flex items-center",
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function OverlayCard({
+  index,
+  variant,
+  children,
+}: {
+  index: number;
+  variant: "rows" | "cards";
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-1 rounded-xl bg-card shadow-lg ring-1 ring-border/80",
+        variant === "rows" && "px-1 py-1",
+      )}
+    >
+      <HandleSlot index={index} variant={variant} />
       <div
         className={cn(
           "min-w-0 flex-1",
