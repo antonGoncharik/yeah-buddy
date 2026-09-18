@@ -19,6 +19,7 @@ import {
 export function useRestTimer(sessionId: string | null, enabled: boolean) {
   const [left, setLeft] = useState<number | null>(null);
   const [exerciseId, setExerciseId] = useState<string | null>(null);
+  const [round, setRound] = useState(0);
   const endsAtRef = useRef<number | null>(null);
   const exerciseRef = useRef<string | null>(null);
   const running = left != null && left > 0;
@@ -48,6 +49,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
     const seconds = id ? readLastRestSeconds(id) : WORK_REST_SECONDS;
     persist(Date.now() + seconds * 1000, id);
     setLeft(seconds);
+    setRound((current) => current + 1);
   }
 
   function bump(delta: number) {
@@ -143,6 +145,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
   return {
     left,
     exerciseId,
+    round,
     lastSeconds,
     start,
     restart: () => start(exerciseRef.current),

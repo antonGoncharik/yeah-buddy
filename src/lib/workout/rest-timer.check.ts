@@ -50,8 +50,8 @@ assertEqual(
     { set_type: "warmup", planned_seconds: null },
     { set_type: "work", planned_seconds: 6 },
   ]),
-  false,
-  "static hold is not rest",
+  true,
+  "static work still rests between holds",
 );
 assertEqual(
   workSetsNeedRest([{ set_type: "warmup", planned_seconds: null }]),

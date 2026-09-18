@@ -185,10 +185,6 @@ export function nextRestLeft(current: number, delta: number): number {
   return Math.max(0, current + delta);
 }
 
-export function workSetsNeedRest(
-  sets: Array<{ set_type: string; planned_seconds: number | null }>,
-): boolean {
-  return sets.some(
-    (set) => set.set_type === "work" && set.planned_seconds == null,
-  );
+export function workSetsNeedRest(sets: Array<{ set_type: string }>): boolean {
+  return sets.some((set) => set.set_type === "work");
 }

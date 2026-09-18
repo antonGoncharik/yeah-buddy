@@ -13,6 +13,7 @@ import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
+import { restLoadTargetKg } from "@/lib/workout/rest-load";
 
 export function SessionScreen() {
   const {
@@ -55,6 +56,7 @@ export function SessionScreen() {
   } = useSessionScreen();
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
+  const loadTarget = restLoadTargetKg(detail?.exercises ?? [], rest.exerciseId);
 
   return (
     <div className="flex flex-col gap-4">
@@ -62,11 +64,13 @@ export function SessionScreen() {
 
       <div
         className={
-          showStickyComplete && rest.left != null
-            ? "flex flex-col gap-5 px-4 pb-40"
-            : showStickyComplete
-              ? "flex flex-col gap-5 px-4 pb-24"
-              : "flex flex-col gap-5 px-4 pb-4"
+          showStickyComplete && rest.left != null && rest.left > 0
+            ? "flex flex-col gap-5 px-4 pb-80"
+            : showStickyComplete && rest.left != null
+              ? "flex flex-col gap-5 px-4 pb-40"
+              : showStickyComplete
+                ? "flex flex-col gap-5 px-4 pb-24"
+                : "flex flex-col gap-5 px-4 pb-4"
         }
       >
         {loading ? <ScreenLoading /> : null}
@@ -178,11 +182,19 @@ export function SessionScreen() {
       </div>
 
       {showStickyComplete && detail ? (
-        <StickyActions>
+        <StickyActions
+          className={
+            rest.left != null && rest.left > 0
+              ? "bg-background from-background to-background"
+              : undefined
+          }
+        >
           {rest.left != null ? (
             <div data-keyboard-secondary>
               <RestBar
                 left={rest.left}
+                targetKg={loadTarget}
+                round={rest.round}
                 onAdd={rest.add}
                 onSubtract={rest.subtract}
                 onStop={rest.stop}
