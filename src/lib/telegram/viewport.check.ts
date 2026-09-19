@@ -1,8 +1,10 @@
 import {
   chromeBottomShift,
+  contentSafeBottom,
   extraBottomGap,
   isKeyboardOpen,
   keyboardOverlayInset,
+  syncTelegramViewport,
 } from "@/lib/telegram/viewport";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -65,6 +67,54 @@ assertEqual(
   keyboardOverlayInset(852, 818),
   0,
   "home indicator is not an overlay lift",
+);
+assertEqual(contentSafeBottom(0), 0, "empty content inset");
+assertEqual(contentSafeBottom(34), 34, "home-sized content inset is kept");
+assertEqual(contentSafeBottom(48), 48, "MainButton content inset is kept");
+assertEqual(
+  contentSafeBottom(320),
+  0,
+  "keyboard leftover is not a content inset",
+);
+
+const vars = new Map<string, string>();
+const root = {
+  style: {
+    setProperty(name: string, value: string) {
+      vars.set(name, value);
+    },
+    removeProperty(name: string) {
+      vars.delete(name);
+    },
+  },
+  dataset: {} as DOMStringMap,
+} as HTMLElement;
+
+syncTelegramViewport(
+  {
+    onEvent() {},
+    offEvent() {},
+    safeAreaInset: { top: 47, bottom: 34, left: 0, right: 0 },
+    contentSafeAreaInset: { top: 60, bottom: 320, left: 0, right: 0 },
+  },
+  root,
+  { layoutHeight: 852, visualBottom: 852, visualHeight: 852 },
+);
+
+assertEqual(
+  vars.get("--tg-content-safe-area-inset-bottom"),
+  "0px",
+  "stuck keyboard inset is not written into the tab bar",
+);
+assertEqual(
+  vars.get("--tg-content-safe-area-inset-top"),
+  "60px",
+  "top content inset stays",
+);
+assertEqual(
+  vars.get("--tg-safe-area-inset-bottom"),
+  "34px",
+  "device home indicator stays",
 );
 
 console.log("telegram viewport ok");

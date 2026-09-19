@@ -32,6 +32,9 @@ const EVENTS = [
 const RETRY_MS = [50, 250, 800];
 const HOME_INDICATOR_MIN = 16;
 const HOME_INDICATOR_MAX = 56;
+// MainButton / Android nav. Keyboard leftovers are hundreds of px and
+// would inflate the tab bar if added into --app-safe-bottom.
+const CONTENT_BOTTOM_MAX = 80;
 
 export function extraBottomGap(
   layoutHeight: number,
@@ -71,6 +74,16 @@ export function keyboardOverlayInset(
     return 0;
   }
   return Math.round(gap);
+}
+
+export function contentSafeBottom(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) {
+    return 0;
+  }
+  if (value > CONTENT_BOTTOM_MAX) {
+    return 0;
+  }
+  return Math.round(value);
 }
 
 export function isKeyboardOpen(
@@ -156,9 +169,10 @@ export function syncTelegramViewport(
 
   if (webApp.contentSafeAreaInset) {
     for (const side of SIDES) {
+      const inset = readInset(webApp.contentSafeAreaInset, side);
       style.setProperty(
         `--tg-content-safe-area-inset-${side}`,
-        asPx(readInset(webApp.contentSafeAreaInset, side)),
+        asPx(side === "bottom" ? contentSafeBottom(inset) : inset),
       );
     }
   }

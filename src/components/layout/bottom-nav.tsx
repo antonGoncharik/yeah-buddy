@@ -48,8 +48,8 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="app-bottom-nav app-fixed-bottom fixed inset-x-0 z-10 border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
-      <ul className="mx-auto grid max-w-lg grid-cols-3">
+    <nav className="app-bottom-nav app-fixed-bottom fixed inset-x-0 z-10 overflow-hidden border-t border-border/70 bg-background/85 pb-[var(--app-safe-bottom)] backdrop-blur-md">
+      <ul className="mx-auto grid h-16 max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active = item.href === activeHref;
           const Icon = item.icon;
@@ -61,13 +61,13 @@ export function BottomNav() {
                 href={item.href}
                 onClick={(event) => onTabClick(item.href, event)}
                 className={cn(
-                  "flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",
+                  "flex h-full flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-full transition-[transform,background-color] duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
+                    "flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full transition-[transform,background-color] duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none",
                     active ? "scale-100 bg-primary/12" : "scale-90",
                   )}
                 >
