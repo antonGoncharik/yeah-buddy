@@ -40,6 +40,7 @@ export const BOT_START = `Yeah buddy! 👟
 Light weight. Погнали 🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_PACK_START = "Start";
+export const BOT_PROGRAM_START = "Поставить";
 export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
 
@@ -72,10 +73,15 @@ export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день 
 export const AI_REVIEW_EMPTY = "Пока мало записей. Другу не о чем говорить.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";
 export const AI_REVIEW_FAILED = "Не получилось разобрать.";
+export const AI_REVIEW_QUOTA = "На сегодня разборов хватит. Цифры на месте.";
+export const AI_REVIEW_LIMIT = "Пока не разбирается. Цифры на месте.";
 export const AI_PLATE_FAILED = "Не получилось разобрать.";
 export const AI_PLATE_EMPTY = "На фото еды не видно. Покажи тарелку ближе.";
 export const AI_PLATE_PHOTO_FAILED = "Не получилось прочитать фото.";
 export const AI_PLATE_RETRY = "Ещё раз это фото";
+export const AI_PLATE_OFF = "Фото пока выключено. Запиши руками.";
+export const AI_PLATE_QUOTA = "На сегодня фото кончились. Запиши руками.";
+export const AI_PLATE_LIMIT = "Пока не разбирается. Запиши руками.";
 export const REVIEW_CTA_HINT = "Как еда, зал и вес жили вместе";
 export const PACK_NOT_FOUND = "Ссылка уже не работает.";
 export const PACK_LIMIT = "Слишком много сохранённых. Убери старые.";
