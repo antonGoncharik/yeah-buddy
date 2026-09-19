@@ -38,11 +38,11 @@ export function BottomNav() {
   const [wiggleHref, setWiggleHref] = useState<string | null>(null);
 
   function onTabClick(href: string, event: MouseEvent<HTMLAnchorElement>) {
+    haptic("tap");
     if (pathname !== href) {
       return;
     }
     event.preventDefault();
-    haptic("tick");
     setWiggleHref(null);
     requestAnimationFrame(() => setWiggleHref(href));
   }

@@ -1,6 +1,8 @@
 import {
+  HAPTIC_EVENT,
   hapticCommand,
   hapticEventData,
+  hapticNativeMessage,
   holdTimerStepHaptic,
   TIMER_DONE_HAPTICS,
   TIMER_DONE_VIBRATE,
@@ -76,6 +78,21 @@ assertEqual(
   hapticEventData("error"),
   { type: "notification", notification_type: "error" },
   "native error",
+);
+
+assertEqual(
+  hapticNativeMessage("tap"),
+  {
+    eventName: HAPTIC_EVENT,
+    eventType: HAPTIC_EVENT,
+    eventData: JSON.stringify({ type: "impact", impact_style: "light" }),
+  },
+  "ios native tap message",
+);
+assertEqual(
+  JSON.parse(hapticNativeMessage("tick").eventData),
+  { type: "selection_change" },
+  "ios native tick payload stays a json string",
 );
 
 assertEqual(holdTimerStepHaptic(6), null, "early hold second is silent");
