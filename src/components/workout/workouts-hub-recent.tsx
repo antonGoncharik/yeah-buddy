@@ -4,10 +4,10 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/layout/section-heading";
+import { SessionCloseTrail } from "@/components/workout/session-close-trail";
 import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
-import { formatRecentSessionTrail } from "@/lib/workout/session-format";
 
 export function WorkoutsHubRecent({
   recent,
@@ -46,9 +46,10 @@ export function WorkoutsHubRecent({
                   </span>
                 </span>
                 {item.summary || item.close_kind ? (
-                  <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-                    {formatRecentSessionTrail(item)}
-                  </span>
+                  <SessionCloseTrail
+                    summary={item.summary}
+                    closeKind={item.close_kind}
+                  />
                 ) : null}
               </span>
               <ChevronRight

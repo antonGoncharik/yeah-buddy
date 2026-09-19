@@ -32,16 +32,13 @@ import { type JoyLift, sessionJoyMoment } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
   PhaseCircleProgress,
-  SessionCloseKind,
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { sessionCloseKindLine } from "@/lib/workout/session-format";
 
 export function SessionCompletedPanel({
   abovePlan,
-  closeKind,
   nextName,
   phaseHint,
   holdHint,
@@ -59,7 +56,6 @@ export function SessionCompletedPanel({
   onRaise,
 }: {
   abovePlan: boolean;
-  closeKind: SessionCloseKind;
   nextName: string | null;
   phaseHint: string | null;
   holdHint: string | null;
@@ -188,10 +184,6 @@ export function SessionCompletedPanel({
       </div>
       <FlavorNote
         line={sessionDoneLead(feel)}
-        className="text-muted-foreground"
-      />
-      <FlavorNote
-        line={sessionCloseKindLine(closeKind)}
         className="text-muted-foreground"
       />
       <FlavorNote

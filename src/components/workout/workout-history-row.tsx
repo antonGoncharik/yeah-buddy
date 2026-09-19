@@ -5,13 +5,13 @@ import Link from "next/link";
 
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
+import { SessionCloseTrail } from "@/components/workout/session-close-trail";
 import { formatIsoDate } from "@/lib/day/format";
 import type { RecentWorkoutSession } from "@/lib/types";
 import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
-import { formatRecentSessionTrail } from "@/lib/workout/session-format";
 
 export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
   return (
@@ -27,9 +27,10 @@ export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
           {item.template_name ?? WORKOUT_KIND_LABELS[item.session.workout_type]}
         </span>
         {item.summary || item.close_kind ? (
-          <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-            {formatRecentSessionTrail(item)}
-          </span>
+          <SessionCloseTrail
+            summary={item.summary}
+            closeKind={item.close_kind}
+          />
         ) : item.session.status !== "completed" ? (
           <span className="text-sm text-muted-foreground">
             {SESSION_STATUS_LABELS[item.session.status]}

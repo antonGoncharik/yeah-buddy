@@ -163,10 +163,6 @@ export function sessionCloseKind(
     : "as_planned";
 }
 
-export function sessionCloseKindLine(kind: SessionCloseKind): string {
-  return kind === "as_planned" ? "Закрыл как план." : "Правил по ходу.";
-}
-
 export function sessionCloseKindShort(kind: SessionCloseKind): string {
   return kind === "as_planned" ? "как план" : "правил";
 }

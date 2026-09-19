@@ -38,7 +38,6 @@ export function SessionScreen() {
     correcting,
     setCorrecting,
     abovePlan,
-    closeKind,
     nextName,
     phaseHint,
     holdHint,
@@ -145,7 +144,6 @@ export function SessionScreen() {
             {session.status === "completed" && !correcting ? (
               <SessionCompletedPanel
                 abovePlan={abovePlan}
-                closeKind={closeKind}
                 nextName={nextName}
                 phaseHint={phaseHint}
                 holdHint={holdHint}

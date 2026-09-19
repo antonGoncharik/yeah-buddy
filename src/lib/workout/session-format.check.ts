@@ -3,7 +3,6 @@ import {
   firstWorkPlanScore,
   formatRecentSessionTrail,
   sessionCloseKind,
-  sessionCloseKindLine,
   sessionCloseKindShort,
   setCopiedFromPlan,
 } from "@/lib/workout/session-format";
@@ -49,12 +48,6 @@ assertEqual(
   "edited",
   "a logged set is edited",
 );
-assertEqual(
-  sessionCloseKindLine("as_planned"),
-  "Закрыл как план.",
-  "as planned line",
-);
-assertEqual(sessionCloseKindLine("edited"), "Правил по ходу.", "edited line");
 assertEqual(
   sessionCloseKindShort("as_planned"),
   "как план",
