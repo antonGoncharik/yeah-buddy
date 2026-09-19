@@ -17,6 +17,8 @@ export function ProgramPresetList({
   compact,
   recommendedId,
   levels,
+  ids,
+  excludeIds,
   showLevelLabels = true,
 }: {
   value?: ProgramPresetId | null;
@@ -25,11 +27,27 @@ export function ProgramPresetList({
   compact?: boolean;
   recommendedId?: ProgramPresetId;
   levels?: readonly ProgramLevel[];
+  ids?: readonly ProgramPresetId[];
+  excludeIds?: readonly ProgramPresetId[];
   showLevelLabels?: boolean;
 }) {
-  const groups = programPresetsByLevel().filter(
-    (group) => !levels || levels.includes(group.level),
-  );
+  const groups = programPresetsByLevel()
+    .map((group) => ({
+      ...group,
+      presets: group.presets.filter((preset) => {
+        if (levels && !levels.includes(group.level)) {
+          return false;
+        }
+        if (ids && !ids.includes(preset.id)) {
+          return false;
+        }
+        if (excludeIds?.includes(preset.id)) {
+          return false;
+        }
+        return true;
+      }),
+    }))
+    .filter((group) => group.presets.length > 0);
 
   return (
     <>

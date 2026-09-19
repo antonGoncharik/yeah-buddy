@@ -38,9 +38,8 @@ export function OnboardingCircleStep({
       </p>
       <ProgramPresetList
         value={isProgramPresetId(value) ? value : null}
-        compact
         recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
-        levels={["beginner"]}
+        ids={[RECOMMENDED_PROGRAM_PRESET_ID]}
         showLevelLabels={false}
         onPick={onChange}
       />
@@ -48,7 +47,7 @@ export function OnboardingCircleStep({
         <ProgramPresetList
           value={isProgramPresetId(value) ? value : null}
           compact
-          levels={["intermediate", "advanced"]}
+          excludeIds={[RECOMMENDED_PROGRAM_PRESET_ID]}
           onPick={onChange}
         />
       ) : (

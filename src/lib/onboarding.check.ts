@@ -27,7 +27,9 @@ assert(
   defaultOnboardingCircle("ppl", false) === "ppl",
   "existing program stays",
 );
-assert(!isExtraProgram("full_body"), "full body is beginner");
+assert(!isExtraProgram("full_body"), "full body is the featured start");
+assert(isExtraProgram("one_day"), "other beginner sits under more");
+assert(isExtraProgram("five_three_one"), "5/3/1 sits under more");
 assert(isExtraProgram("ppl"), "ppl is extra");
 assert(!isExtraProgram("empty"), "empty is not extra");
 

@@ -1,7 +1,6 @@
 import {
   isProgramPresetId,
   type ProgramPresetId,
-  programPresetById,
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
 
@@ -18,10 +17,7 @@ export function defaultOnboardingCircle(
 }
 
 export function isExtraProgram(circle: OnboardingCircleChoice): boolean {
-  if (!isProgramPresetId(circle)) {
-    return false;
-  }
-  return programPresetById(circle)?.level !== "beginner";
+  return isProgramPresetId(circle) && circle !== RECOMMENDED_PROGRAM_PRESET_ID;
 }
 
 export function scaledTemplateGrams(
