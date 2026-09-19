@@ -6,7 +6,11 @@ import {
   readWeightSteady,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
-import { filledMealTypes, mealExistsReplace } from "@/lib/nutrition";
+import {
+  filledMealTypes,
+  mealExistsReplace,
+  shareMealLine,
+} from "@/lib/nutrition";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -33,6 +37,13 @@ assertEqual(
   mealExistsReplace("pre_workout"),
   "Заменить до тренировки?",
   "pre workout",
+);
+
+assertEqual(shareMealLine("lunch"), "Вот обед", "lunch throw");
+assertEqual(
+  shareMealLine("pre_workout"),
+  "Вот до тренировки",
+  "pre workout throw",
 );
 
 assertEqual(

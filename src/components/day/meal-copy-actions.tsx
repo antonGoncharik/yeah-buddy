@@ -19,7 +19,6 @@ export function MealCopyActions({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
-  onShareMeal,
   onShareNamed,
   onDeleteNamed,
 }: {
@@ -32,7 +31,6 @@ export function MealCopyActions({
   onCopyDate: (sourceDate: string) => void;
   onApplyNamed: (namedMealId: string) => void;
   onSaveNamed: () => void;
-  onShareMeal?: () => void;
   onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed: (namedMealId: string, name: string) => void;
 }) {
@@ -83,14 +81,6 @@ export function MealCopyActions({
               ? () => {
                   setOpen(false);
                   onSaveNamed();
-                }
-              : undefined
-          }
-          onShareMeal={
-            hasItems && onShareMeal
-              ? () => {
-                  setOpen(false);
-                  onShareMeal();
                 }
               : undefined
           }

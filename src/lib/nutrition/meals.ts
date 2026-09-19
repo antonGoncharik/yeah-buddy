@@ -36,6 +36,10 @@ export function mealExistsReplace(mealType: MealType): string {
   return `Заменить ${MEAL_LABELS[mealType].toLowerCase()}?`;
 }
 
+export function shareMealLine(mealType: MealType): string {
+  return `Вот ${MEAL_LABELS[mealType].toLowerCase()}`;
+}
+
 export function filledMealTypes(
   meals: Array<{ meal_type: MealType; items: readonly unknown[] }>,
 ): MealType[] {

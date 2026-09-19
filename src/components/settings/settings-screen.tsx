@@ -144,7 +144,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
-              hint="Поделиться едой на день или программой тренировок"
+              hint="Еда на день и программа. Один приём — с карточки на Сегодня"
               icon={<LinkDoodle />}
             />
             <NavRow

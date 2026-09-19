@@ -28,5 +28,6 @@ export {
   isMealVisible,
   MEAL_DISPLAY_ORDER,
   mealExistsReplace,
+  shareMealLine,
   visibleMealTypes,
 } from "@/lib/nutrition/meals";
