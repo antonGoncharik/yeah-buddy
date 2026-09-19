@@ -484,6 +484,11 @@ html.dark[data-day="deload"] {
   bottom: var(--app-fixed-bottom);
 }
 
+@utility app-chrome-bar {
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  background-color: var(--background);
+}
+
 html[data-keyboard="open"] {
   --app-nav-clearance: 0.75rem;
   --app-field-scroll-pad: 5.5rem;
@@ -495,8 +500,6 @@ html[data-keyboard="open"] .app-bottom-nav {
 
 html[data-keyboard="open"] .app-sticky-actions {
   padding-top: 0.5rem;
-  background-image: none;
-  background-color: var(--background);
 }
 
 html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {

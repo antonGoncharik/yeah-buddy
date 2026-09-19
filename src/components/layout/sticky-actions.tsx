@@ -6,22 +6,27 @@ export function StickyActions({
   children,
   className,
   withNav = true,
+  overlay = true,
 }: {
   children: ReactNode;
   className?: string;
   withNav?: boolean;
+  overlay?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "app-fixed-bottom app-sticky-actions pointer-events-none fixed inset-x-0 z-[9] mx-auto max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8",
+        "app-sticky-actions app-chrome-bar pointer-events-none pt-3",
+        overlay && "app-fixed-bottom fixed inset-x-0 z-[9]",
         withNav
           ? "pb-[var(--app-nav-clearance)]"
           : "pb-[max(1.25rem,var(--app-safe-bottom))]",
         className,
       )}
     >
-      <div className="pointer-events-auto flex flex-col gap-2">{children}</div>
+      <div className="pointer-events-auto mx-auto flex w-full max-w-lg flex-col gap-2 px-4">
+        {children}
+      </div>
     </div>
   );
 }

@@ -13,11 +13,11 @@ const buttonVariants = cva(
         outline:
           "border border-border bg-card text-foreground shadow-sm hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
-          "border border-primary/15 bg-primary/10 text-foreground shadow-sm hover:bg-primary/15 aria-expanded:bg-primary/10 aria-expanded:text-foreground dark:border-primary/20 dark:bg-primary/15 dark:hover:bg-primary/20",
+          "border border-primary/15 bg-[color-mix(in_oklch,var(--primary)_14%,var(--background))] text-foreground shadow-sm hover:bg-[color-mix(in_oklch,var(--primary)_22%,var(--background))] aria-expanded:bg-[color-mix(in_oklch,var(--primary)_14%,var(--background))] aria-expanded:text-foreground dark:border-primary/20",
         ghost:
           "text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:
-          "border border-destructive/20 bg-destructive/10 text-destructive shadow-sm hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "border border-destructive/20 bg-[color-mix(in_oklch,var(--destructive)_14%,var(--background))] text-destructive shadow-sm hover:bg-[color-mix(in_oklch,var(--destructive)_22%,var(--background))] focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

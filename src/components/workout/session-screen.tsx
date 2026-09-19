@@ -182,13 +182,7 @@ export function SessionScreen() {
       </div>
 
       {showStickyComplete && detail ? (
-        <StickyActions
-          className={
-            rest.left != null && rest.left > 0
-              ? "bg-background from-background to-background"
-              : undefined
-          }
-        >
+        <StickyActions>
           {rest.left != null ? (
             <div data-keyboard-secondary>
               <RestBar

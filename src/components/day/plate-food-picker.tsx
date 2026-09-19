@@ -10,6 +10,7 @@ import { toggleFoodFavorite } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
@@ -114,7 +115,7 @@ export function PlateFoodPicker({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 pb-28">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         <div className="flex flex-col gap-4">
           {loading ? <ScreenLoading /> : null}
 
@@ -158,8 +159,8 @@ export function PlateFoodPicker({
         </div>
       </div>
 
-      <div className="app-fixed-bottom app-sticky-actions pointer-events-none mx-auto w-full max-w-lg bg-gradient-to-t from-background from-40% to-transparent px-4 pt-8 pb-[max(1.25rem,var(--app-safe-bottom))]">
-        <div className="pointer-events-auto" data-keyboard-secondary>
+      <StickyActions overlay={false} withNav={false}>
+        <div data-keyboard-secondary>
           <Button
             type="button"
             variant="ghost"
@@ -169,7 +170,7 @@ export function PlateFoodPicker({
             Отмена
           </Button>
         </div>
-      </div>
+      </StickyActions>
     </div>
   );
 }
