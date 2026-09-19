@@ -11,10 +11,6 @@ export function showProgramInvite(
   return completedSessions >= 1 || recentCompleted >= 1;
 }
 
-export function promptFirstProgramInvite(completedSessions: number): boolean {
-  return completedSessions === 1;
-}
-
 export function readInvitePayload(
   data: unknown,
 ): { url: string; text: string } | null {

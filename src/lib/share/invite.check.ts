@@ -1,7 +1,6 @@
 import { APP_NAME } from "@/lib/brand";
 import {
   INVITE_HREF,
-  promptFirstProgramInvite,
   readInvitePayload,
   SHOW_PROGRAM_LABEL,
   showProgramInvite,
@@ -45,7 +44,5 @@ assertEqual(SHOW_PROGRAM_LABEL, "Показать программу другу"
 assertEqual(showProgramInvite(0), false, "before first session");
 assertEqual(showProgramInvite(1), true, "after first session");
 assertEqual(showProgramInvite(0, 1), true, "recent completed counts");
-assertEqual(promptFirstProgramInvite(1), true, "prompt on first close");
-assertEqual(promptFirstProgramInvite(2), false, "no repeat prompt");
 
 console.log("share invite meta ok");

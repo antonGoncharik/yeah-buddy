@@ -48,6 +48,8 @@ export const SHARE_HIDE_KG = "Без кг";
 export const BOT_INSTALL_DIARY = "Поставить дневник";
 export const SHARE_FAILED = "Не отправилось.";
 export const JOY_INLINE_PREFIX = "joy ";
+export const JOY_SESSION_COUNTS = [1, 10, 50, 100] as const;
+export const JOY_PROTEIN_HITS = 7;
 
 export function isJoyKind(value: string): value is JoyKind {
   return JOY_KINDS.some((kind) => kind === value);
@@ -87,6 +89,10 @@ export function heaviestWorkLift(
   return best;
 }
 
+export function isJoySessionCount(count: number): boolean {
+  return JOY_SESSION_COUNTS.some((value) => value === count);
+}
+
 export function sessionJoyMoment(input: {
   feel: SessionFeel | null;
   completedSessions: number;
@@ -96,15 +102,17 @@ export function sessionJoyMoment(input: {
     return null;
   }
 
-  const milestone = sessionMilestoneLine(input.completedSessions);
-  if (milestone) {
-    return {
-      kind: "milestone",
-      line: milestone,
-      doodle: "trex",
-      allowKg: true,
-      sessions: input.completedSessions,
-    };
+  if (isJoySessionCount(input.completedSessions)) {
+    const milestone = sessionMilestoneLine(input.completedSessions);
+    if (milestone) {
+      return {
+        kind: "milestone",
+        line: milestone,
+        doodle: "trex",
+        allowKg: true,
+        sessions: input.completedSessions,
+      };
+    }
   }
 
   if (hundredWeightLine(input.workKg)) {
@@ -116,13 +124,7 @@ export function sessionJoyMoment(input: {
     };
   }
 
-  return {
-    kind: "session",
-    line: sessionDoneHeadline(input.feel),
-    doodle: "trex",
-    allowKg: true,
-    feel: input.feel,
-  };
+  return null;
 }
 
 export function dayJoyMoment(input: {
@@ -138,16 +140,19 @@ export function dayJoyMoment(input: {
       allowKg: false,
     };
   }
-  if (!input.proteinClosed) {
+  if (!input.proteinClosed || input.proteinHits !== JOY_PROTEIN_HITS) {
     return null;
   }
-  const hits = input.proteinHits ?? 0;
+  const line = proteinWeekLine(input.proteinHits);
+  if (!line) {
+    return null;
+  }
   return {
     kind: "protein",
-    line: proteinWeekLine(hits) ?? PROTEIN_CLOSED_LABEL,
+    line,
     doodle: "cookie",
     allowKg: false,
-    proteinHits: hits,
+    proteinHits: input.proteinHits,
   };
 }
 

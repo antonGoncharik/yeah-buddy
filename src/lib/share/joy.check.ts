@@ -1,12 +1,10 @@
-import {
-  HUNDRED_WEIGHT_LINE,
-  PROTEIN_CLOSED_LABEL,
-  YEAH_BUDDY_LINE,
-} from "@/lib/flavor";
+import { HUNDRED_WEIGHT_LINE, YEAH_BUDDY_LINE } from "@/lib/flavor";
 import {
   BOT_INSTALL_DIARY,
   dayJoyMoment,
   heaviestWorkLift,
+  JOY_PROTEIN_HITS,
+  JOY_SESSION_COUNTS,
   joyInlineQuery,
   joyMomentFromRequest,
   joyShareCaption,
@@ -31,19 +29,40 @@ assertEqual(
   "miss is not a joy share",
 );
 assertEqual(
-  sessionJoyMoment({ feel: "easy", completedSessions: 3, workKg: 80 })?.line,
-  YEAH_BUDDY_LINE,
-  "after done easy",
+  sessionJoyMoment({ feel: "easy", completedSessions: 3, workKg: 80 }),
+  null,
+  "ordinary done is wallpaper",
 );
 assertEqual(
-  sessionJoyMoment({ feel: null, completedSessions: 3, workKg: 80 })?.kind,
-  "session",
-  "done without feel still shares",
+  sessionJoyMoment({ feel: null, completedSessions: 3, workKg: 80 }),
+  null,
+  "done without feel is silent",
+);
+assertEqual(
+  sessionJoyMoment({ feel: "miss", completedSessions: 1, workKg: 80 }),
+  null,
+  "first miss is not a share",
+);
+assertEqual(
+  [...JOY_SESSION_COUNTS],
+  [1, 10, 50, 100],
+  "share sessions are rare",
+);
+assertEqual(JOY_PROTEIN_HITS, 7, "protein share is a week");
+assertEqual(
+  sessionJoyMoment({ feel: "easy", completedSessions: 1, workKg: 80 })?.line,
+  "Первый. Yeah buddy.",
+  "first workout shares",
 );
 assertEqual(
   sessionJoyMoment({ feel: "easy", completedSessions: 10, workKg: 80 })?.line,
   "Десять. Уже не разовый заход.",
   "tenth workout wins",
+);
+assertEqual(
+  sessionJoyMoment({ feel: "easy", completedSessions: 25, workKg: 80 }),
+  null,
+  "twenty-five is flavor, not a share",
 );
 assertEqual(
   sessionJoyMoment({ feel: "easy", completedSessions: 50, workKg: 80 })?.line,
@@ -67,19 +86,29 @@ assertEqual(
   "open protein is silent",
 );
 assertEqual(
-  dayJoyMoment({ proteinClosed: true, bodyWeight: 82 })?.line,
-  PROTEIN_CLOSED_LABEL,
-  "protein closed",
+  dayJoyMoment({ proteinClosed: true, bodyWeight: 82 }),
+  null,
+  "protein closed is wallpaper",
 );
 assertEqual(
-  dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 4 })?.line,
-  "Белок 4 дня подряд.",
-  "four-day protein on the day",
+  dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 4 }),
+  null,
+  "four-day protein is not a share",
 );
 assertEqual(
   dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 7 })?.line,
   "Белок семь дней подряд. Холодильник в курсе.",
   "week of protein",
+);
+assertEqual(
+  dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 8 }),
+  null,
+  "day eight is wallpaper",
+);
+assertEqual(
+  dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 14 }),
+  null,
+  "two weeks is not a share",
 );
 assertEqual(
   dayJoyMoment({ proteinClosed: true, bodyWeight: 100 })?.line,
@@ -157,19 +186,19 @@ assertEqual(
 
 const moment = sessionJoyMoment({
   feel: "easy",
-  completedSessions: 3,
+  completedSessions: 10,
   workKg: 80,
 });
 if (moment == null) {
-  throw new Error("easy session should share");
+  throw new Error("tenth session should share");
 }
 const query = joyInlineQuery(moment, squat);
-assertEqual(query, "joy session easy | Присед | 140", "inline query with kg");
+assertEqual(query, "joy milestone 10 | Присед | 140", "inline query with kg");
 assertEqual(
   parseJoyInlineQuery(query),
   {
-    kind: "session",
-    feel: "easy",
+    kind: "milestone",
+    sessions: 10,
     lift: { name: "Присед", kg: 140 },
   },
   "roundtrip query",
