@@ -82,7 +82,7 @@ export async function generateGeminiJson({
   system: string;
   parts: GeminiUserPart[];
   schema: object;
-  temperature: number;
+  temperature?: number;
   timeoutMs?: number;
   maxOutputTokens?: number;
   failedMessage: string;
@@ -139,6 +139,7 @@ export async function generateGeminiJson({
 
   const text = readCandidateText(payload);
   if (!text) {
+    console.error("gemini empty candidate", summarizeGeminiFailure(payload));
     throw new ReviewError("GEMINI", failedMessage);
   }
 
@@ -177,6 +178,27 @@ export async function writeReview(
     headline: parsed.data.headline,
     observations: parsed.data.observations.slice(0, REVIEW_OBSERVATION_MAX),
     watch: parsed.data.watch.slice(0, REVIEW_WATCH_MAX),
+  };
+}
+
+function summarizeGeminiFailure(payload: unknown) {
+  if (!payload || typeof payload !== "object") {
+    return payload;
+  }
+
+  const record = payload as {
+    promptFeedback?: unknown;
+    usageMetadata?: unknown;
+    candidates?: Array<{
+      finishReason?: unknown;
+      safetyRatings?: unknown;
+    }>;
+  };
+  return {
+    finishReason: record.candidates?.[0]?.finishReason ?? null,
+    promptFeedback: record.promptFeedback ?? null,
+    usage: record.usageMetadata ?? null,
+    safetyRatings: record.candidates?.[0]?.safetyRatings ?? null,
   };
 }
 

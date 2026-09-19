@@ -391,6 +391,27 @@ assertEqual(
   "model empty stays empty",
 );
 
+const incompleteLump = takeReadyPlateItems(
+  [
+    raw({
+      catalog_i: 2,
+      match: false,
+      name: "Поке с тофу и овощами",
+      grams: 350,
+      protein: 18,
+      protein_per_100: 5.1,
+    }),
+  ],
+  catalogFoods,
+);
+assertEqual(incompleteLump?.length, 1, "incomplete macros still draft");
+assertEqual(incompleteLump?.[0]?.kind, "lump", "incomplete macros is lump");
+if (incompleteLump?.[0]?.kind === "lump") {
+  assertEqual(incompleteLump[0].protein, 18, "keeps protein");
+  assertEqual(incompleteLump[0].fat, 0, "missing fat is 0");
+  assertEqual(incompleteLump[0].carbs, 0, "missing carbs is 0");
+}
+
 const friesLump = resolvePlateItems(
   [
     raw({

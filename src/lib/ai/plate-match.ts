@@ -199,35 +199,51 @@ function draftFromLump(row: PlateModelItem): PlateDraftLump | null {
 }
 
 function portionFromModel(row: PlateModelItem): LumpMealItemInput | null {
-  if (
-    row.protein != null &&
-    row.fat != null &&
-    row.carbs != null &&
-    row.protein + row.fat + row.carbs > 0
-  ) {
-    return clampPortion({
-      name: row.name,
-      protein: row.protein,
-      fat: row.fat,
-      carbs: row.carbs,
-    });
+  const portion = coalesceMacros(row.protein, row.fat, row.carbs);
+  if (portion) {
+    return clampPortion({ name: row.name, ...portion });
   }
 
-  if (
-    row.protein_per_100 == null ||
-    row.fat_per_100 == null ||
-    row.carbs_per_100 == null ||
-    row.grams <= 0
-  ) {
+  if (row.grams <= 0) {
+    return null;
+  }
+
+  const per100 = coalesceMacros(
+    row.protein_per_100,
+    row.fat_per_100,
+    row.carbs_per_100,
+  );
+  if (!per100) {
     return null;
   }
 
   return clampPortion({
     name: row.name,
-    protein: (row.protein_per_100 * row.grams) / 100,
-    fat: (row.fat_per_100 * row.grams) / 100,
-    carbs: (row.carbs_per_100 * row.grams) / 100,
+    protein: (per100.protein * row.grams) / 100,
+    fat: (per100.fat * row.grams) / 100,
+    carbs: (per100.carbs * row.grams) / 100,
   });
+}
+
+function coalesceMacros(
+  protein: number | null,
+  fat: number | null,
+  carbs: number | null,
+): { protein: number; fat: number; carbs: number } | null {
+  if (protein == null && fat == null && carbs == null) {
+    return null;
+  }
+
+  const next = {
+    protein: protein ?? 0,
+    fat: fat ?? 0,
+    carbs: carbs ?? 0,
+  };
+  if (next.protein + next.fat + next.carbs <= 0) {
+    return null;
+  }
+
+  return next;
 }
 
 function clampPortion(input: LumpMealItemInput): LumpMealItemInput | null {
