@@ -3,11 +3,12 @@
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { parseReviewSnapshot } from "@/lib/ai/parse-review";
+import { parseRemaining, parseReviewSnapshot } from "@/lib/ai/parse-review";
 import { reviewBackHref } from "@/lib/ai/review-nav";
 import type { ReviewSnapshot } from "@/lib/ai/types";
-import { mutateJson, postJson } from "@/lib/api-cache";
+import { ApiError, mutateJson, postJson } from "@/lib/api-cache";
 import { AI_REVIEW_FAILED, LOAD_FAILED } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 
 export type ReviewRangeId = "14" | "30" | "90";
 
@@ -56,6 +57,16 @@ export function useReviewScreen() {
       setSnapshot(next);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : AI_REVIEW_FAILED);
+      if (caught instanceof ApiError) {
+        const remaining = parseRemaining(
+          isRecord(caught.data) ? caught.data.remaining : null,
+        );
+        if (remaining != null) {
+          setSnapshot((current) =>
+            current ? { ...current, remaining } : current,
+          );
+        }
+      }
     } finally {
       setWriting(false);
     }

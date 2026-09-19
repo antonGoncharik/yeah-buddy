@@ -41,7 +41,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError
-          ? jsonError(err.message, reviewStatus(err.code))
+          ? jsonError(
+              err.message,
+              reviewStatus(err.code),
+              err.code === "QUOTA" ? { remaining: 0 } : undefined,
+            )
           : null,
     ]);
   }

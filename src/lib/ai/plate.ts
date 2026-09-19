@@ -1,11 +1,12 @@
 import { ReviewError } from "@/lib/ai/errors";
-import { generateGeminiJson, getGeminiApiKey } from "@/lib/ai/gemini";
+import { generateGeminiJson, getGeminiPlateApiKey } from "@/lib/ai/gemini";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
 import { takeReadyPlateItems } from "@/lib/ai/plate-match";
 import { parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateDraft, PlateFoodRef } from "@/lib/ai/plate-types";
+import { refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
 import { FOOD_STATES } from "@/lib/foods";
-import { AI_PLATE_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
+import { AI_PLATE_FAILED, AI_PLATE_LIMIT, AI_PLATE_OFF } from "@/lib/messages";
 
 const COOLDOWN_MS = 4_000;
 const lastWrite = new Map<string, number>();
@@ -61,9 +62,10 @@ export async function analyzePlate(
   catalogFoods: PlateFoodRef[],
   image: { mimeType: string; data: string },
   allFoods: PlateFoodRef[] = catalogFoods,
-): Promise<PlateDraft> {
-  if (!getGeminiApiKey()) {
-    throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
+): Promise<PlateDraft & { remaining: number | null }> {
+  const key = getGeminiPlateApiKey();
+  if (!key) {
+    throw new ReviewError("NO_KEY", AI_PLATE_OFF);
   }
 
   const now = Date.now();
@@ -72,30 +74,38 @@ export async function analyzePlate(
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
 
-  const catalog = compactPlateCatalog(catalogFoods);
-  const payload = await generateGeminiJson({
-    system: SYSTEM_PROMPT,
-    parts: [
-      { inlineData: { mimeType: image.mimeType, data: image.data } },
-      { text: JSON.stringify({ catalog }) },
-    ],
-    schema: RESPONSE_SCHEMA,
-    timeoutMs: 35_000,
-    maxOutputTokens: 4_096,
-    failedMessage: AI_PLATE_FAILED,
-    thinkingLevel: "minimal",
-  });
+  const slot = await takeAiSlot(userId, "plate");
+  try {
+    const catalog = compactPlateCatalog(catalogFoods);
+    const payload = await generateGeminiJson({
+      key,
+      system: SYSTEM_PROMPT,
+      parts: [
+        { inlineData: { mimeType: image.mimeType, data: image.data } },
+        { text: JSON.stringify({ catalog }) },
+      ],
+      schema: RESPONSE_SCHEMA,
+      timeoutMs: 35_000,
+      maxOutputTokens: 4_096,
+      failedMessage: AI_PLATE_FAILED,
+      limitMessage: AI_PLATE_LIMIT,
+      thinkingLevel: "minimal",
+    });
 
-  const raw = parsePlateModelItems(payload);
-  if (!raw) {
-    throw new ReviewError("GEMINI", AI_PLATE_FAILED);
+    const raw = parsePlateModelItems(payload);
+    if (!raw) {
+      throw new ReviewError("GEMINI", AI_PLATE_FAILED);
+    }
+
+    const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
+    if (!items) {
+      throw new ReviewError("GEMINI", AI_PLATE_FAILED);
+    }
+
+    lastWrite.set(userId, Date.now());
+    return { items, remaining: slot.remaining };
+  } catch (error) {
+    await refundAiSlot(userId, "plate");
+    throw error;
   }
-
-  const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
-  if (!items) {
-    throw new ReviewError("GEMINI", AI_PLATE_FAILED);
-  }
-
-  lastWrite.set(userId, Date.now());
-  return { items };
 }

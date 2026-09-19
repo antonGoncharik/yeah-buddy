@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewDetailSignals } from "@/lib/ai/signal-lines";
 import { DIARY_RANGE_OPTIONS } from "@/lib/diary-range";
-import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
+import {
+  AI_REVIEW_EMPTY,
+  AI_REVIEW_NO_KEY,
+  AI_REVIEW_QUOTA,
+} from "@/lib/messages";
 import { REVIEW_LABEL } from "@/lib/workout/labels";
 
 export function ReviewScreen() {
@@ -70,7 +74,8 @@ export function ReviewScreen() {
               <p className="text-base text-muted-foreground">
                 {AI_REVIEW_EMPTY}
               </p>
-            ) : snapshot?.configured ? (
+            ) : snapshot?.configured &&
+              (snapshot.remaining == null || snapshot.remaining > 0) ? (
               <Button
                 type="button"
                 className="h-14 text-lg"
@@ -79,6 +84,10 @@ export function ReviewScreen() {
               >
                 {writing ? "Разбираю…" : review ? "Ещё раз" : "Разобрать"}
               </Button>
+            ) : snapshot?.configured ? (
+              <p className="text-base text-muted-foreground">
+                {AI_REVIEW_QUOTA}
+              </p>
             ) : (
               <p className="text-base text-muted-foreground">
                 {AI_REVIEW_NO_KEY}

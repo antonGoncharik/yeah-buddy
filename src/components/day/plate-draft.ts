@@ -1,4 +1,5 @@
 import { parseNonneg } from "@/components/foods/food-form-state";
+import { parseRemaining } from "@/lib/ai/parse-review";
 import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { ApiError } from "@/lib/api-cache";
@@ -14,6 +15,7 @@ import {
   toNativeGrams,
 } from "@/lib/food/yield";
 import { AI_PLATE_FAILED, readApiError } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 import type { Food } from "@/lib/types";
 
 export type PlateRow = PlateDraftItem & {
@@ -252,7 +254,10 @@ export async function requestPlateDraft(blob: Blob, signal?: AbortSignal) {
     throw new Error(AI_PLATE_FAILED);
   }
 
-  return parsed.items.map(toPlateRow);
+  return {
+    items: parsed.items.map(toPlateRow),
+    remaining: parseRemaining(isRecord(data) ? data.remaining : null),
+  };
 }
 
 export function rememberPreview(

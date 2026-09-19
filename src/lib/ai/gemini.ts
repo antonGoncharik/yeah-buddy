@@ -12,7 +12,11 @@ import {
   reviewPromptPayload,
 } from "@/lib/ai/prompt";
 import type { ReviewBrief, ReviewText, StoredReview } from "@/lib/ai/types";
-import { AI_REVIEW_FAILED, AI_REVIEW_NO_KEY } from "@/lib/messages";
+import {
+  AI_REVIEW_FAILED,
+  AI_REVIEW_LIMIT,
+  AI_REVIEW_NO_KEY,
+} from "@/lib/messages";
 
 const reviewTextSchema = z.object({
   headline: z.string().trim().min(1).max(REVIEW_HEADLINE_CHARS),
@@ -49,9 +53,41 @@ const RESPONSE_SCHEMA = {
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const DEFAULT_REVIEW_MODEL = "gemini-3.5-flash";
 
-export function getGeminiApiKey(): string | null {
-  const key = process.env.GEMINI_API_KEY?.trim();
+export type GeminiPurpose = "plate" | "review";
+
+export function readGeminiKey(
+  purpose: GeminiPurpose,
+  env: Record<string, string | undefined> = process.env,
+): string | null {
+  const raw =
+    purpose === "plate" ? env.GEMINI_PLATE_API_KEY : env.GEMINI_API_KEY;
+  const key = raw?.trim();
   return key ? key : null;
+}
+
+export function getGeminiReviewApiKey(): string | null {
+  return readGeminiKey("review");
+}
+
+export function getGeminiPlateApiKey(): string | null {
+  return readGeminiKey("plate");
+}
+
+export function isGeminiLimit(status: number, payload: unknown): boolean {
+  if (status === 429) {
+    return true;
+  }
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+  const error = Reflect.get(payload, "error");
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  return (
+    Reflect.get(error, "status") === "RESOURCE_EXHAUSTED" ||
+    Reflect.get(error, "code") === 429
+  );
 }
 
 export function getGeminiModel(): string {
@@ -69,6 +105,7 @@ export type GeminiUserPart =
   | { inlineData: { mimeType: string; data: string } };
 
 export async function generateGeminiJson({
+  key,
   system,
   parts,
   schema,
@@ -76,9 +113,11 @@ export async function generateGeminiJson({
   timeoutMs = 25_000,
   maxOutputTokens,
   failedMessage,
+  limitMessage,
   model: modelOverride,
   thinkingLevel,
 }: {
+  key: string;
   system: string;
   parts: GeminiUserPart[];
   schema: object;
@@ -86,10 +125,10 @@ export async function generateGeminiJson({
   timeoutMs?: number;
   maxOutputTokens?: number;
   failedMessage: string;
+  limitMessage?: string;
   model?: string;
   thinkingLevel?: "minimal" | "low" | "medium" | "high";
 }): Promise<unknown> {
-  const key = getGeminiApiKey();
   if (!key) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
@@ -134,6 +173,9 @@ export async function generateGeminiJson({
   const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     console.error("gemini request failed", response.status, payload);
+    if (isGeminiLimit(response.status, payload)) {
+      throw new ReviewError("LIMIT", limitMessage ?? failedMessage);
+    }
     throw new ReviewError("GEMINI", failedMessage);
   }
 
@@ -154,7 +196,13 @@ export async function writeReview(
   brief: ReviewBrief,
   previous: StoredReview | null = null,
 ): Promise<ReviewText> {
+  const key = getGeminiReviewApiKey();
+  if (!key) {
+    throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
+  }
+
   const payload = await generateGeminiJson({
+    key,
     system: REVIEW_SYSTEM_PROMPT,
     parts: [
       { text: REVIEW_USER_LEAD },
@@ -165,6 +213,7 @@ export async function writeReview(
     timeoutMs: 75_000,
     maxOutputTokens: 24_576,
     failedMessage: AI_REVIEW_FAILED,
+    limitMessage: AI_REVIEW_LIMIT,
     model: getGeminiReviewModel(),
     thinkingLevel: "medium",
   });

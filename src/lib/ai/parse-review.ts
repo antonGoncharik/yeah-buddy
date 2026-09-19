@@ -40,6 +40,7 @@ export function parseReviewSnapshot(data: unknown): ReviewSnapshot | null {
 
   return {
     configured: data.configured,
+    remaining: parseRemaining(data.remaining),
     brief,
     review: parseStoredReview(data.review),
     previous: parseStoredReview(data.previous),
@@ -164,4 +165,14 @@ function toDateOnly(value: unknown): string | null {
 
   const date = value.slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+}
+
+export function parseRemaining(value: unknown): number | null {
+  if (value == null) {
+    return null;
+  }
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    return null;
+  }
+  return value;
 }

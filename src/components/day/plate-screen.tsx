@@ -30,18 +30,29 @@ export function PlateScreen({
   date,
   doneHref,
   configured,
+  remaining,
 }: {
   mealId: string;
   date: string;
   doneHref: string;
   configured: boolean;
+  remaining: number | null;
 }) {
-  const plate = usePlateScreen({ mealId, date, doneHref, configured });
+  const plate = usePlateScreen({
+    mealId,
+    date,
+    doneHref,
+    configured,
+    remaining,
+  });
   const totals = sumDraft(plate.items);
   const cameraPrimary =
     plate.view.status === "idle" ||
     plate.view.status === "empty" ||
     (plate.view.status === "error" && !plate.canRetryLast);
+  const showSave =
+    plate.view.status === "draft" || plate.view.status === "saving";
+  const showSticky = showSave || plate.canRetryLast || !plate.cameraOff;
 
   return (
     <>
@@ -80,7 +91,9 @@ export function PlateScreen({
         <PlateStatusCopy
           idle={plate.view.status === "idle"}
           unavailable={plate.unavailable}
+          exhausted={plate.exhausted}
           empty={plate.empty}
+          remaining={plate.remaining}
         />
 
         {plate.items.length > 0 ? (
@@ -158,9 +171,9 @@ export function PlateScreen({
         ) : null}
       </div>
 
-      {plate.unavailable ? null : (
+      {showSticky ? (
         <StickyActions>
-          {plate.view.status === "draft" || plate.view.status === "saving" ? (
+          {showSave ? (
             <Button
               className="h-14 w-full text-lg"
               disabled={plate.busy || plate.items.length === 0}
@@ -181,21 +194,23 @@ export function PlateScreen({
             </Button>
           ) : null}
 
-          <div data-keyboard-secondary>
-            <PlateCameraBar
-              busy={plate.busy}
-              cameraPrimary={cameraPrimary}
-              status={plate.view.status}
-              cameraId={plate.cameraId}
-              galleryId={plate.galleryId}
-              cameraRef={plate.cameraRef}
-              galleryRef={plate.galleryRef}
-              onStartLiveCamera={() => void plate.startLiveCamera()}
-              onFile={(file) => void plate.onFile(file)}
-            />
-          </div>
+          {plate.cameraOff ? null : (
+            <div data-keyboard-secondary>
+              <PlateCameraBar
+                busy={plate.busy}
+                cameraPrimary={cameraPrimary}
+                status={plate.view.status}
+                cameraId={plate.cameraId}
+                galleryId={plate.galleryId}
+                cameraRef={plate.cameraRef}
+                galleryRef={plate.galleryRef}
+                onStartLiveCamera={() => void plate.startLiveCamera()}
+                onFile={(file) => void plate.onFile(file)}
+              />
+            </div>
+          )}
         </StickyActions>
-      )}
+      ) : null}
     </>
   );
 }

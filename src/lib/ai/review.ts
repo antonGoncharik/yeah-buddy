@@ -1,6 +1,7 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
 import { ReviewError } from "@/lib/ai/errors";
-import { getGeminiApiKey, writeReview } from "@/lib/ai/gemini";
+import { getGeminiReviewApiKey, writeReview } from "@/lib/ai/gemini";
+import { getAiQuota, refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
 import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
 import type { ReviewSnapshot, StoredReview } from "@/lib/ai/types";
@@ -36,12 +37,14 @@ export async function getReviewSnapshot(
   today?: string,
 ): Promise<ReviewSnapshot> {
   const resolvedToday = today ?? (await getUserCalendarToday(userId));
-  const [brief, stored] = await Promise.all([
+  const [brief, stored, quota] = await Promise.all([
     loadReviewBrief(userId, range, resolvedToday),
     listStoredReviews(userId, range),
+    getAiQuota(userId, "review"),
   ]);
   return {
-    configured: getGeminiApiKey() != null,
+    configured: quota.configured,
+    remaining: quota.remaining,
     brief,
     review: stored[0] ?? null,
     previous: stored[1] ?? null,
@@ -53,7 +56,7 @@ export async function createReview(
   range: ReviewRange,
   today?: string,
 ): Promise<ReviewSnapshot> {
-  const key = getGeminiApiKey();
+  const key = getGeminiReviewApiKey();
   if (!key) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
@@ -73,6 +76,7 @@ export async function createReview(
     throw new ReviewError("EMPTY", AI_REVIEW_EMPTY);
   }
 
+  const slot = await takeAiSlot(userId, "review");
   lastWrite.set(userId, now);
 
   const previous = stored[0] ?? null;
@@ -87,11 +91,13 @@ export async function createReview(
     );
   } catch (error) {
     lastWrite.delete(userId);
+    await refundAiSlot(userId, "review");
     throw error;
   }
 
   return {
     configured: true,
+    remaining: slot.remaining,
     brief,
     review,
     previous,

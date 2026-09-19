@@ -11,8 +11,11 @@ import {
 } from "@/components/day/plate-draft";
 import { usePlateCamera } from "@/components/day/use-plate-camera";
 import { usePlateDraft } from "@/components/day/use-plate-draft";
+import { parseRemaining } from "@/lib/ai/parse-review";
 import { compressPlateImage } from "@/lib/ai/read-plate-image";
+import { ApiError } from "@/lib/api-cache";
 import { AI_PLATE_FAILED, AI_PLATE_PHOTO_FAILED } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import { isAbortError } from "@/lib/telegram/html-capture";
 
@@ -23,16 +26,19 @@ export function usePlateScreen({
   date,
   doneHref,
   configured,
+  remaining: remainingStart,
 }: {
   mealId: string;
   date: string;
   doneHref: string;
   configured: boolean;
+  remaining: number | null;
 }) {
   const previewRef = useRef<string | null>(null);
   const lastBlobRef = useRef<Blob | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const requestRef = useRef(0);
+  const [remaining, setRemaining] = useState<number | null>(remainingStart);
   const [view, setView] = useState<PlateStatus>(
     configured ? { status: "idle" } : { status: "unavailable" },
   );
@@ -98,11 +104,14 @@ export function usePlateScreen({
     setView({ status: "working", title: "Смотрю…", previewUrl });
 
     try {
-      const items = await requestPlateDraft(blob, abortRef.current?.signal);
+      const result = await requestPlateDraft(blob, abortRef.current?.signal);
       if (stale(request)) {
         return;
       }
-      if (items.length === 0) {
+      if (result.remaining != null) {
+        setRemaining(result.remaining);
+      }
+      if (result.items.length === 0) {
         setView({
           status: "empty",
           previewUrl: previewUrl ?? "",
@@ -114,11 +123,19 @@ export function usePlateScreen({
       setView({
         status: "draft",
         previewUrl: previewUrl ?? "",
-        items,
+        items: result.items,
       });
     } catch (caught) {
       if (stale(request) || isAbortError(caught)) {
         return;
+      }
+      if (caught instanceof ApiError) {
+        const next = parseRemaining(
+          isRecord(caught.data) ? caught.data.remaining : null,
+        );
+        if (next != null) {
+          setRemaining(next);
+        }
       }
       haptic("error");
       setView({
@@ -160,6 +177,12 @@ export function usePlateScreen({
       : null;
   const items: PlateRow[] =
     view.status === "draft" || view.status === "saving" ? view.items : [];
+  const cameraOff = !configured || remaining === 0;
+  const exhausted =
+    configured &&
+    remaining === 0 &&
+    view.status !== "draft" &&
+    view.status !== "saving";
 
   return {
     cameraId: camera.cameraId,
@@ -173,14 +196,19 @@ export function usePlateScreen({
     empty: view.status === "empty",
     error: view.status === "error" ? view.message : draft.saveError,
     unavailable: view.status === "unavailable",
+    exhausted,
+    remaining,
+    cameraOff,
     liveCamera: camera.liveCamera,
     liveStream: camera.liveStream,
     picker: draft.picker,
     canAddFood:
       view.status === "draft" ||
       view.status === "empty" ||
-      view.status === "idle",
-    canRetryLast: view.status === "error" && lastBlobRef.current != null,
+      view.status === "idle" ||
+      view.status === "unavailable",
+    canRetryLast:
+      view.status === "error" && lastBlobRef.current != null && remaining !== 0,
     workingTitle: view.status === "working" ? view.title : null,
     retry,
     onFile,

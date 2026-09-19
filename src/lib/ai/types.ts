@@ -147,6 +147,7 @@ export type StoredReview = ReviewText & {
 
 export type ReviewSnapshot = {
   configured: boolean;
+  remaining: number | null;
   brief: ReviewBrief;
   review: StoredReview | null;
   previous: StoredReview | null;

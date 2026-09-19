@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 
 import { PlateScreen } from "@/components/day/plate-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { getGeminiApiKey } from "@/lib/ai/gemini";
+import { getAiQuota } from "@/lib/ai/quota";
+import { getSession } from "@/lib/auth/session";
 import {
   isIsoDate,
   isWritableDayDate,
@@ -28,6 +29,11 @@ export default async function PlateMealPage({
     redirect(homeHref);
   }
 
+  const session = await getSession();
+  const quota = session
+    ? await getAiQuota(session.userId, "plate")
+    : { configured: false, remaining: 0 };
+
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
@@ -38,7 +44,8 @@ export default async function PlateMealPage({
         mealId={mealId}
         date={date ?? today}
         doneHref={homeHref}
-        configured={getGeminiApiKey() != null}
+        configured={quota.configured}
+        remaining={quota.remaining}
       />
     </div>
   );

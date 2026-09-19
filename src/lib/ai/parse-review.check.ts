@@ -132,6 +132,27 @@ assertEqual(
   "2026-08-02",
   "snapshot previous",
 );
+assertEqual(
+  parseReviewSnapshot({
+    configured: true,
+    remaining: 3,
+    brief,
+    review: null,
+    previous: null,
+  })?.remaining,
+  3,
+  "snapshot remaining",
+);
+assertEqual(
+  parseReviewSnapshot({
+    configured: true,
+    brief,
+    review: null,
+    previous: null,
+  })?.remaining,
+  null,
+  "old snapshot without remaining still reads",
+);
 
 assertEqual(
   parseReviewBrief({ ...brief, range: 90 })?.range,
