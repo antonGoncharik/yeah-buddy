@@ -8,6 +8,7 @@ import {
   Doodle,
 } from "@/components/layout/doodles";
 import { FlavorNote } from "@/components/layout/flavor-note";
+import { JoyShareButton } from "@/components/share/joy-share-button";
 import { Button } from "@/components/ui/button";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import {
@@ -22,15 +23,19 @@ import {
   sessionRaiseLine,
 } from "@/lib/flavor";
 import { CYCLE_RAISE_LATER } from "@/lib/messages";
+import { type JoyLift, sessionJoyMoment } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
   PhaseCircleProgress,
+  SessionCloseKind,
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
+import { sessionCloseKindLine } from "@/lib/workout/session-format";
 
 export function SessionCompletedPanel({
   abovePlan,
+  closeKind,
   nextName,
   phaseHint,
   holdHint,
@@ -41,12 +46,14 @@ export function SessionCompletedPanel({
   lastCompletedBefore,
   sessionDate,
   phaseCircle,
+  workLift,
   busy,
   onCorrect,
   onFeel,
   onRaise,
 }: {
   abovePlan: boolean;
+  closeKind: SessionCloseKind;
   nextName: string | null;
   phaseHint: string | null;
   holdHint: string | null;
@@ -57,6 +64,7 @@ export function SessionCompletedPanel({
   lastCompletedBefore: string | null;
   sessionDate: string;
   phaseCircle: PhaseCircleProgress | null;
+  workLift: JoyLift | null;
   busy: boolean;
   onCorrect: () => void;
   onFeel: (value: SessionFeel | null) => void;
@@ -64,6 +72,11 @@ export function SessionCompletedPanel({
 }) {
   const canRaise = raiseOffers.length > 0;
   const milestone = sessionMilestoneLine(completedSessions);
+  const joy = sessionJoyMoment({
+    feel,
+    completedSessions,
+    workKg: workLift?.kg ?? null,
+  });
   const phase = firstPhaseLine(phaseCircle);
   const comeback = milestone
     ? null
@@ -172,6 +185,10 @@ export function SessionCompletedPanel({
         className="text-muted-foreground"
       />
       <FlavorNote
+        line={sessionCloseKindLine(closeKind)}
+        className="text-muted-foreground"
+      />
+      <FlavorNote
         line={lightWeight ? LIGHT_WEIGHT_LINE : null}
         className="text-foreground"
       />
@@ -179,6 +196,7 @@ export function SessionCompletedPanel({
       <FlavorNote line={phase} className="text-foreground" />
       <FlavorNote line={comeback} className="text-foreground" />
       <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
+      {joy ? <JoyShareButton moment={joy} lift={workLift} /> : null}
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}

@@ -12,6 +12,7 @@ import { pluralDays } from "@/lib/nutrition-stats";
 import { cn } from "@/lib/utils";
 import {
   formatFrequencyVsProgram,
+  formatSessionCloseMix,
   formatSessionFeels,
   formatSessionRateHalves,
   pluralWorkouts,
@@ -55,7 +56,13 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         label="Зал"
         hit={brief.gym.plan_hit}
         total={brief.gym.plan_total}
-        empty={brief.gym.completed > 0 ? "без плана" : "не было"}
+        empty={
+          brief.gym.as_planned > 0 && brief.gym.plan_total === 0
+            ? "как план"
+            : brief.gym.completed > 0
+              ? "без плана"
+              : "не было"
+        }
         hint={gymHint(brief)}
       />
       <FactRow
@@ -118,6 +125,13 @@ function gymHint(brief: ReviewBrief): string | null {
   const feels = formatSessionFeels(brief.gym.feels);
   if (feels) {
     parts.push(feels);
+  }
+  const close = formatSessionCloseMix(
+    brief.gym.as_planned,
+    brief.gym.completed,
+  );
+  if (close) {
+    parts.push(close);
   }
   if (
     brief.phase.type &&

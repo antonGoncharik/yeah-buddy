@@ -29,6 +29,7 @@ export type WorkoutHistoryStats = {
   static: number;
   planHit: number;
   planTotal: number;
+  asPlanned: number;
   templates: Array<{ name: string; count: number }>;
   feels: SessionFeels;
 };
@@ -68,6 +69,7 @@ export function summarizeWorkoutHistory(
   let staticCount = 0;
   let planHit = 0;
   let planTotal = 0;
+  let asPlanned = 0;
   const feels: SessionFeels = { easy: 0, close: 0, miss: 0 };
   const templateCounts = new Map<string, number>();
 
@@ -79,6 +81,9 @@ export function summarizeWorkoutHistory(
     }
     planHit += item.plan_hit ?? 0;
     planTotal += item.plan_total ?? 0;
+    if (item.close_kind === "as_planned") {
+      asPlanned += 1;
+    }
     const feel = item.session.feel;
     if (feel) {
       feels[feel] += 1;
@@ -105,6 +110,7 @@ export function summarizeWorkoutHistory(
     static: staticCount,
     planHit,
     planTotal,
+    asPlanned,
     templates,
     feels,
   };
@@ -252,6 +258,19 @@ export function formatSessionFeels(feels: SessionFeels): string | null {
     return [`${SESSION_FEEL_LABELS[key].toLowerCase()} ${count}`];
   });
   return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+export function formatSessionCloseMix(
+  asPlanned: number,
+  count: number,
+): string | null {
+  if (count <= 0 || asPlanned <= 0) {
+    return null;
+  }
+  if (asPlanned === count) {
+    return "закрыты как план";
+  }
+  return `${asPlanned} как план`;
 }
 
 export function gymGapDays(from: string, to: string, dates: string[]): number {

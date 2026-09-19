@@ -3,8 +3,7 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import {
-  parseInteger,
-  parseRir,
+  completeSetOverrides,
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
@@ -14,7 +13,6 @@ import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
-import { parseDecimal } from "@/lib/workout/numbers";
 import { completeSessionLocally } from "@/lib/workout/session-complete-local";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
@@ -75,19 +73,7 @@ export function useSessionActions({
     const body = {
       note: note.trim() === "" ? null : note.trim(),
       feel: detail.session.feel,
-      sets: Object.entries(drafts).map(([id, draft]) => ({
-        id,
-        actual_weight: parseDecimal(draft.weight),
-        actual_reps:
-          detail.session.workout_type === "dynamic"
-            ? parseInteger(draft.reps)
-            : null,
-        actual_seconds:
-          detail.session.workout_type === "static"
-            ? parseDecimal(draft.seconds)
-            : null,
-        actual_rir: parseRir(draft.rir),
-      })),
+      sets: completeSetOverrides(detail, drafts),
     };
     const local = completeSessionLocally(detail, body);
     const previous = detail;

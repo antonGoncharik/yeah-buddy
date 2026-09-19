@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutSet } from "@/lib/types";
-import { toNullableNumber, toNumber } from "@/lib/workout/numbers";
+import { mapWorkoutSet } from "@/lib/workout/map-session";
 
 export interface SessionExerciseWork {
   exercise_id: string;
@@ -83,7 +83,7 @@ async function listWorkSetsBySessionExercise(
   }
 
   for (const row of result.data ?? []) {
-    const set = mapWorkSet(row as Record<string, unknown>);
+    const set = mapWorkoutSet(row as Record<string, unknown>);
     const current = map.get(set.session_exercise_id) ?? [];
     current.push(set);
     map.set(set.session_exercise_id, current);
@@ -118,25 +118,4 @@ async function exerciseNamesById(userId: string, ids: string[]) {
   }
 
   return names;
-}
-
-function mapWorkSet(row: Record<string, unknown>): WorkoutSet {
-  return {
-    id: String(row.id),
-    user_id: String(row.user_id),
-    session_exercise_id: String(row.session_exercise_id),
-    set_type: "work",
-    set_number: toNumber(row.set_number),
-    planned_weight: toNullableNumber(row.planned_weight),
-    planned_reps: toNullableNumber(row.planned_reps),
-    planned_reps_to: toNullableNumber(row.planned_reps_to),
-    planned_seconds: toNullableNumber(row.planned_seconds),
-    planned_rir: toNullableNumber(row.planned_rir),
-    actual_weight: toNullableNumber(row.actual_weight),
-    actual_reps: toNullableNumber(row.actual_reps),
-    actual_seconds: toNullableNumber(row.actual_seconds),
-    actual_rir: toNullableNumber(row.actual_rir),
-    is_completed: Boolean(row.is_completed),
-    created_at: String(row.created_at),
-  };
 }

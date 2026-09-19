@@ -13,6 +13,7 @@ import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
+import { heaviestWorkLift } from "@/lib/share/joy";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 
 export function SessionScreen() {
@@ -37,6 +38,7 @@ export function SessionScreen() {
     correcting,
     setCorrecting,
     abovePlan,
+    closeKind,
     nextName,
     phaseHint,
     holdHint,
@@ -143,6 +145,7 @@ export function SessionScreen() {
             {session.status === "completed" && !correcting ? (
               <SessionCompletedPanel
                 abovePlan={abovePlan}
+                closeKind={closeKind}
                 nextName={nextName}
                 phaseHint={phaseHint}
                 holdHint={holdHint}
@@ -153,6 +156,7 @@ export function SessionScreen() {
                 lastCompletedBefore={lastCompletedBefore}
                 sessionDate={session.session_date}
                 phaseCircle={phaseCircle}
+                workLift={heaviestWorkLift(detail.exercises)}
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}
                 onFeel={(feel) => void saveFeel(feel)}

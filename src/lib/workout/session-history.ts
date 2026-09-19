@@ -113,6 +113,10 @@ export async function listSessionHistory(
         summary: info?.summary ?? null,
         plan_hit: info?.plan_hit ?? 0,
         plan_total: info?.plan_total ?? 0,
+        close_kind:
+          session.status === "completed"
+            ? (info?.close_kind ?? "as_planned")
+            : null,
       };
     }),
     next_before: hasMore ? (sessions.at(-1)?.session_date ?? null) : null,

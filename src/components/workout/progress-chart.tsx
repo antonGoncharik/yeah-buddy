@@ -76,6 +76,7 @@ export function ProgressChart({
           >
             <span className="truncate text-muted-foreground">
               {point.label}
+              {point.from_plan ? " · как план" : ""}
             </span>
             <span className="shrink-0 font-medium tabular-nums">
               {formatValue(

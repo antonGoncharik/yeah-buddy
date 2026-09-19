@@ -208,6 +208,7 @@ function parseProgressPoint(
         : row.kind === "dynamic"
           ? "dynamic"
           : null,
+    from_plan: row.from_plan === true,
     label: String(row.label ?? ""),
   };
 }

@@ -75,6 +75,7 @@ export function mapWorkoutSet(row: Record<string, unknown>): WorkoutSet {
     actual_seconds: toNullableNumber(row.actual_seconds),
     actual_rir: toNullableNumber(row.actual_rir),
     is_completed: Boolean(row.is_completed),
+    logged: row.logged === true,
     created_at: String(row.created_at),
   };
 }

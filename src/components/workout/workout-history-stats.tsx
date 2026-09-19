@@ -4,6 +4,7 @@ import { MeterBar } from "@/components/ui/meter-bar";
 import {
   formatFrequencyVsProgram,
   formatGymGap,
+  formatSessionCloseMix,
   formatSessionFeels,
   formatSessionRateHalves,
   pluralWorkouts,
@@ -30,6 +31,7 @@ export function WorkoutHistoryStats({
   const halves = sessionRateHalves(dates, from, to);
   const gap = formatGymGap(from, to, dates);
   const feelLine = formatSessionFeels(stats.feels);
+  const closeLine = formatSessionCloseMix(stats.asPlanned, stats.count);
   // Kind split only says something when both kinds happened.
   const kinds =
     stats.dynamic > 0 && stats.static > 0
@@ -60,6 +62,9 @@ export function WorkoutHistoryStats({
         ) : null}
         {feelLine ? (
           <p className="mt-2 text-sm text-muted-foreground">{feelLine}</p>
+        ) : null}
+        {closeLine ? (
+          <p className="mt-2 text-sm text-muted-foreground">{closeLine}</p>
         ) : null}
         {kinds.length > 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">

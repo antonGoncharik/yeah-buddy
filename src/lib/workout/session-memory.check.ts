@@ -30,6 +30,7 @@ function workSet(patch: Partial<WorkoutSet> = {}): WorkoutSet {
     actual_seconds: null,
     actual_rir: null,
     is_completed: true,
+    logged: true,
     created_at: "",
     ...patch,
   };

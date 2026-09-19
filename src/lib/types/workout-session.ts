@@ -34,12 +34,16 @@ export interface SessionMaxRaiseOffer {
   to_weight: number;
 }
 
+export type SessionCloseKind = "as_planned" | "edited";
+
 export interface RecentWorkoutSession {
   session: WorkoutSession;
   template_name: string | null;
   summary: string | null;
   plan_hit: number;
   plan_total: number;
+  /** Null for skipped / unfinished. Completed sessions always have a kind. */
+  close_kind: SessionCloseKind | null;
 }
 
 export interface TodayWorkoutState {
@@ -87,6 +91,8 @@ export interface WorkoutSet {
   actual_seconds: number | null;
   actual_rir: number | null;
   is_completed: boolean;
+  /** True when the lifter wrote this set. False if «Готово» copied the plan. */
+  logged: boolean;
   created_at: string;
 }
 

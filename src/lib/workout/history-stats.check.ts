@@ -1,6 +1,7 @@
 import {
   formatFrequencyVsProgram,
   formatGymGap,
+  formatSessionCloseMix,
   formatSessionFeels,
   formatSessionRateHalves,
   sessionRateHalves,
@@ -72,5 +73,8 @@ assertEqual(
   null,
   "no feels yet",
 );
+assertEqual(formatSessionCloseMix(3, 3), "закрыты как план", "all as planned");
+assertEqual(formatSessionCloseMix(2, 5), "2 как план", "mix");
+assertEqual(formatSessionCloseMix(0, 4), null, "all edited is silent");
 
 console.log("history stats ok");

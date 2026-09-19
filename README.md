@@ -19,7 +19,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 - A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Programs with weeks (tables, 5/3/1, two-week press) start those weeks with the days; after a full round the next week starts itself. A 1ПМ bump and the last week still wait for a tap.
 - «Пропустить» on the hub moves the queue without taking the date; you can put the skipped day back. «Не сегодня» inside a started session just removes that entry; the day stays next in the queue.
 - Optional weeks can also be picked later: ramp → volume → peak → deload, or a percent/kg wave. Starting weeks can omit 1ПМ — the session asks. Weights move when the week changes, not after a single session.
-- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово», actuals in history and on charts. Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
+- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово». Untouched sets close as planned and stay labeled that way in history and on charts; edited sets are the real log. Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
 - Progress (working weights and relative strength when body weight is logged), session history, exercise list.
 
 **Share**
@@ -52,7 +52,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0017_named_meals.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0026_set_logged.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
 Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). At 20:00 in the user’s timezone (from the Mini App, otherwise `Europe/Moscow`) the bot sends **one** reminder if that calendar evening has no food items and no gym session: empty food day, and the next circle template if there is a queue. A later cron run still delivers that same evening if 20:00 already passed. On Sunday the same message adds a 14-day scoreboard from the diary review. Not a broadcast. Toggle: Settings → Evening reminders. Cron: daily `GET /api/cron/reminders` at `0 17 * * *` (20:00 Moscow) with `CRON_SECRET`. Hobby only allows one run per day; hourly needs Vercel Pro. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 

@@ -11,6 +11,7 @@ import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
+import { formatRecentSessionTrail } from "@/lib/workout/session-format";
 
 export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
   return (
@@ -25,9 +26,9 @@ export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
         <span className="block truncate text-base font-medium">
           {item.template_name ?? WORKOUT_KIND_LABELS[item.session.workout_type]}
         </span>
-        {item.summary ? (
+        {item.summary || item.close_kind ? (
           <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-            {item.summary}
+            {formatRecentSessionTrail(item)}
           </span>
         ) : item.session.status !== "completed" ? (
           <span className="text-sm text-muted-foreground">

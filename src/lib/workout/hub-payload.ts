@@ -190,5 +190,11 @@ export function parseRecentSession(
     summary: typeof row.summary === "string" ? row.summary : null,
     plan_hit: toNumber(row.plan_hit),
     plan_total: toNumber(row.plan_total),
+    close_kind:
+      row.close_kind === "edited"
+        ? "edited"
+        : row.close_kind === "as_planned"
+          ? "as_planned"
+          : null,
   };
 }

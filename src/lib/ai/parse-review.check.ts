@@ -81,6 +81,7 @@ const brief = {
     static: 0,
     plan_hit: 0,
     plan_total: 0,
+    as_planned: 0,
     templates: [],
     weak: [],
     notes: [],

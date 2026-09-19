@@ -178,5 +178,6 @@ async function listUnfinishedGym(
     summary: null,
     plan_hit: 0,
     plan_total: 0,
+    close_kind: null,
   }));
 }

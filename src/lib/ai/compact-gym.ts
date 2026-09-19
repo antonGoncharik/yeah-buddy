@@ -38,6 +38,7 @@ export function compactSessions(
         status: item.session.status,
         plan_hit: item.plan_hit,
         plan_total: item.plan_total,
+        as_planned: item.close_kind === "as_planned",
         note: item.session.note,
         feel: item.session.feel,
       },

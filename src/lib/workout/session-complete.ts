@@ -56,6 +56,7 @@ export async function patchWorkoutSet(
       input.is_completed === undefined
         ? current.is_completed
         : input.is_completed,
+    logged: true,
   };
 
   if (next.is_completed) {
@@ -159,6 +160,7 @@ export async function completeSessionAsPlanned(
           actual_seconds,
           actual_rir,
           is_completed: true,
+          logged: override !== undefined || set.logged,
         })
         .eq("user_id", userId)
         .eq("id", set.id);

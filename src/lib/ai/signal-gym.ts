@@ -21,6 +21,7 @@ export function gymSignalLines(input: {
     skipped: number;
     planHit: number;
     planTotal: number;
+    asPlanned?: number;
     templates: Array<{ name: string; count: number }>;
     weak: string[];
     feels?: { easy: number; close: number; miss: number };
@@ -37,12 +38,14 @@ export function gymSignalLines(input: {
   const lines: string[] = [];
 
   if (input.gym.completed > 0) {
+    const asPlanned = input.gym.asPlanned ?? 0;
+    const close = asPlanned > 0 ? `, ${asPlanned} как план` : "";
     const plan =
       input.gym.planTotal > 0
         ? `, не слабее плана ${input.gym.planHit} из ${input.gym.planTotal}`
         : "";
     lines.push(
-      `Зал: ${input.gym.completed} ${pluralWorkouts(input.gym.completed)}${plan}.`,
+      `Зал: ${input.gym.completed} ${pluralWorkouts(input.gym.completed)}${close}${plan}.`,
     );
   }
 

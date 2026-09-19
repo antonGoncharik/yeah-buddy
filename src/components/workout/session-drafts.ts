@@ -60,6 +60,54 @@ export function toDraft(value: number | null): string {
   return formatWeight(value);
 }
 
+export function draftChanged(set: WorkoutSet, draft: SetDraft): boolean {
+  const original = draftFromSet(set);
+  return (
+    draft.weight !== original.weight ||
+    draft.reps !== original.reps ||
+    draft.seconds !== original.seconds ||
+    draft.rir !== original.rir
+  );
+}
+
+export function completeSetOverrides(
+  detail: SessionDetail,
+  drafts: Record<string, SetDraft>,
+): Array<{
+  id: string;
+  actual_weight: number | null;
+  actual_reps: number | null;
+  actual_seconds: number | null;
+  actual_rir: number | null;
+}> {
+  const kind = detail.session.workout_type;
+  const sets: Array<{
+    id: string;
+    actual_weight: number | null;
+    actual_reps: number | null;
+    actual_seconds: number | null;
+    actual_rir: number | null;
+  }> = [];
+
+  for (const item of detail.exercises) {
+    for (const set of item.sets) {
+      const draft = drafts[set.id];
+      if (!draft || !draftChanged(set, draft)) {
+        continue;
+      }
+      sets.push({
+        id: set.id,
+        actual_weight: parseDecimal(draft.weight),
+        actual_reps: kind === "dynamic" ? parseInteger(draft.reps) : null,
+        actual_seconds: kind === "static" ? parseDecimal(draft.seconds) : null,
+        actual_rir: parseRir(draft.rir),
+      });
+    }
+  }
+
+  return sets;
+}
+
 export function parseInteger(raw: string): number | null {
   const value = parseDecimal(raw);
   if (value == null) {

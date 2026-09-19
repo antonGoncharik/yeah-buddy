@@ -81,6 +81,7 @@ export function parseSessionRow(
     status,
     plan_hit: toNumber(row.plan_hit),
     plan_total: toNumber(row.plan_total),
+    as_planned: row.as_planned === true,
     note: typeof row.note === "string" ? row.note : null,
     feel:
       row.feel === "easy" || row.feel === "close" || row.feel === "miss"

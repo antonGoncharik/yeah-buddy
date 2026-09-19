@@ -7,6 +7,7 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { formatRecentSessionTrail } from "@/lib/workout/session-format";
 
 export function WorkoutsHubRecent({
   recent,
@@ -44,9 +45,9 @@ export function WorkoutsHubRecent({
                     {formatSessionDay(item.session.session_date)}
                   </span>
                 </span>
-                {item.summary ? (
+                {item.summary || item.close_kind ? (
                   <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-                    {item.summary}
+                    {formatRecentSessionTrail(item)}
                   </span>
                 ) : null}
               </span>

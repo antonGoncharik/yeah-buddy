@@ -83,6 +83,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       static: toNumber(value.gym.static),
       plan_hit: toNumber(value.gym.plan_hit),
       plan_total: toNumber(value.gym.plan_total),
+      as_planned: toNumber(value.gym.as_planned),
       templates: mapRecordList(value.gym.templates, parseNamedCount),
       weak: stringList(value.gym.weak),
       notes: mapRecordList(value.gym.notes, parseGymNote),

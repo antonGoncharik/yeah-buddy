@@ -6,7 +6,7 @@ import {
 } from "@/lib/workout/exercise-work-phase";
 import { phaseLabel } from "@/lib/workout/labels";
 import { toSessionFeel } from "@/lib/workout/map-enums";
-import { firstWorkSet } from "@/lib/workout/session-format";
+import { firstWorkSet, setWasWritten } from "@/lib/workout/session-format";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 import {
   circleTonnageByRound,
@@ -129,6 +129,7 @@ async function pointsFromSessions(
         phase_type: meta?.phase_type ?? null,
         macro_number: meta?.macro_number ?? null,
         kind: session.workout_type,
+        from_plan: !setWasWritten(work),
         label,
       });
     }
@@ -152,6 +153,7 @@ async function pointsFromSessions(
       phase_type: row.phase_type,
       macro_number: row.macro_number,
       kind: row.kind,
+      from_plan: row.from_plan,
       label: row.label,
     });
     points.set(row.exerciseId, list);

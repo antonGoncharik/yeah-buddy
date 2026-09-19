@@ -1,4 +1,4 @@
-import type { WorkoutSet } from "@/lib/types";
+import type { SessionCloseKind, WorkoutSet } from "@/lib/types";
 import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
 
 export function setUsesSeconds(set: {
@@ -58,11 +58,7 @@ export function firstWorkSet(sets: WorkoutSet[]): WorkoutSet | null {
   return sets.find((set) => set.set_type === "work") ?? null;
 }
 
-export function workSetDiffers(set: WorkoutSet): boolean {
-  if (set.set_type !== "work") {
-    return false;
-  }
-
+export function setDiffersFromPlan(set: WorkoutSet): boolean {
   if (
     set.actual_weight != null &&
     set.planned_weight != null &&
@@ -88,6 +84,14 @@ export function workSetDiffers(set: WorkoutSet): boolean {
   }
 
   return false;
+}
+
+export function workSetDiffers(set: WorkoutSet): boolean {
+  return set.set_type === "work" && setDiffersFromPlan(set);
+}
+
+export function setWasWritten(set: WorkoutSet): boolean {
+  return set.logged || setDiffersFromPlan(set);
 }
 
 export function workAbovePlan(set: WorkoutSet): boolean {
@@ -135,7 +139,7 @@ export function firstWorkPlanScore(sets: WorkoutSet[]): {
   total: number;
 } {
   const work = firstWorkSet(sets);
-  if (!work) {
+  if (!work || !setWasWritten(work)) {
     return { hit: 0, total: 0 };
   }
 
@@ -145,6 +149,37 @@ export function firstWorkPlanScore(sets: WorkoutSet[]): {
   }
 
   return { hit: met ? 1 : 0, total: 1 };
+}
+
+export function setCopiedFromPlan(set: WorkoutSet): boolean {
+  return set.is_completed && !setWasWritten(set);
+}
+
+export function sessionCloseKind(
+  exercises: Array<{ sets: WorkoutSet[] }>,
+): SessionCloseKind {
+  return exercises.some((item) => item.sets.some((set) => setWasWritten(set)))
+    ? "edited"
+    : "as_planned";
+}
+
+export function sessionCloseKindLine(kind: SessionCloseKind): string {
+  return kind === "as_planned" ? "Закрыл как план." : "Правил по ходу.";
+}
+
+export function sessionCloseKindShort(kind: SessionCloseKind): string {
+  return kind === "as_planned" ? "как план" : "правил";
+}
+
+export function formatRecentSessionTrail(item: {
+  summary: string | null;
+  close_kind: SessionCloseKind | null;
+}): string | null {
+  const kind = item.close_kind ? sessionCloseKindShort(item.close_kind) : null;
+  if (kind && item.summary) {
+    return `${kind} · ${item.summary}`;
+  }
+  return kind ?? item.summary;
 }
 
 export function formatWorkSummary(

@@ -33,6 +33,7 @@ export function SessionExerciseRow({
   warmupOpen,
   disabled,
   showActual,
+  showCopied = false,
   drafts,
   onOpenSets,
   onToggleWarmup,
@@ -51,6 +52,7 @@ export function SessionExerciseRow({
   warmupOpen: boolean;
   disabled: boolean;
   showActual: boolean;
+  showCopied?: boolean;
   drafts: Record<string, SetDraft>;
   onOpenSets: (ids: string[]) => void;
   onToggleWarmup: () => void;
@@ -149,6 +151,7 @@ export function SessionExerciseRow({
               <SessionSetButtons
                 sets={warmup}
                 showActual={showActual}
+                showCopied={showCopied}
                 disabled={disabled}
                 tone="warmup"
                 openIds={openSetIds}
@@ -168,6 +171,7 @@ export function SessionExerciseRow({
             <SessionSetButtons
               sets={work}
               showActual={showActual}
+              showCopied={showCopied}
               disabled={disabled}
               tone="work"
               openIds={openSetIds}

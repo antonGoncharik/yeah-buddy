@@ -21,7 +21,7 @@ import {
   readSessionDraft,
   writeSessionDraft,
 } from "@/lib/workout/session-draft-store";
-import { workAbovePlan } from "@/lib/workout/session-format";
+import { sessionCloseKind, workAbovePlan } from "@/lib/workout/session-format";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionScreen() {
@@ -140,6 +140,11 @@ export function useSessionScreen() {
     );
   }, [detail]);
 
+  const closeKind = useMemo(
+    () => (detail ? sessionCloseKind(detail.exercises) : "as_planned"),
+    [detail],
+  );
+
   const {
     complete,
     saveFeel,
@@ -206,6 +211,7 @@ export function useSessionScreen() {
     correcting,
     setCorrecting,
     abovePlan,
+    closeKind,
     nextName,
     phaseHint,
     holdHint,

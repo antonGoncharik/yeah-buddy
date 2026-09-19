@@ -1,3 +1,8 @@
+import {
+  completeSetOverrides,
+  draftChanged,
+  draftFromSet,
+} from "@/components/workout/session-drafts";
 import type {
   Exercise,
   SessionDetail,
@@ -5,19 +10,12 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
-import { completeSessionLocally } from "@/lib/workout/session-complete-local";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);
   const right = JSON.stringify(expected);
   if (left !== right) {
     throw new Error(`${label}: got ${left}, expected ${right}`);
-  }
-}
-
-function assert(condition: boolean, label: string) {
-  if (!condition) {
-    throw new Error(label);
   }
 }
 
@@ -100,45 +98,32 @@ const detail: SessionDetail = {
   raise_offers: [],
 };
 
-const done = completeSessionLocally(detail, {
-  note: "basement",
-  feel: "close",
-  sets: [
+const untouched = draftFromSet(set);
+assertEqual(draftChanged(set, untouched), false, "same draft is not dirty");
+assertEqual(
+  draftChanged(set, { ...untouched, weight: "82.5" }),
+  true,
+  "weight edit is dirty",
+);
+assertEqual(
+  completeSetOverrides(detail, { "set-1": untouched }),
+  [],
+  "untouched sets are not sent",
+);
+assertEqual(
+  completeSetOverrides(detail, {
+    "set-1": { ...untouched, reps: "4" },
+  }),
+  [
     {
       id: "set-1",
-      actual_weight: 82.5,
+      actual_weight: 80,
       actual_reps: 4,
-      actual_rir: 1,
+      actual_seconds: null,
+      actual_rir: null,
     },
   ],
-});
-
-assertEqual(done.session.status, "completed", "marks completed");
-assertEqual(done.session.note, "basement", "keeps note");
-assertEqual(done.session.feel, "close", "keeps feel");
-assertEqual(done.exercises[0]?.sets[0]?.actual_weight, 82.5, "logged weight");
-assertEqual(done.exercises[0]?.sets[0]?.actual_reps, 4, "logged reps");
-assertEqual(done.exercises[0]?.sets[0]?.is_completed, true, "set done");
-assertEqual(done.exercises[0]?.sets[0]?.logged, true, "edited set is logged");
-assert(detail.session.status === "planned", "does not mutate input");
-
-const asPlanned = completeSessionLocally(detail, {});
-assertEqual(
-  asPlanned.exercises[0]?.sets[0]?.actual_weight,
-  80,
-  "falls back to plan",
-);
-assertEqual(
-  asPlanned.exercises[0]?.sets[0]?.logged,
-  false,
-  "copied plan is not logged",
+  "edited set is sent",
 );
 
-const kept = completeSessionLocally(done, {});
-assertEqual(
-  kept.exercises[0]?.sets[0]?.logged,
-  true,
-  "later save keeps logged",
-);
-
-console.log("session complete local ok");
+console.log("session drafts close kind ok");

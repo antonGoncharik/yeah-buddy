@@ -1,7 +1,8 @@
-import type { WorkoutSession } from "@/lib/types";
+import type { SessionCloseKind, WorkoutSession } from "@/lib/types";
 import {
   firstWorkPlanScore,
   formatWorkSummary,
+  sessionCloseKind,
 } from "@/lib/workout/session-format";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 
@@ -9,6 +10,7 @@ export interface SessionWorkInfo {
   summary: string | null;
   plan_hit: number;
   plan_total: number;
+  close_kind: SessionCloseKind;
 }
 
 export async function listSessionWorkInfo(
@@ -34,6 +36,7 @@ export async function listSessionWorkInfo(
       summary: formatWorkSummary(exercises),
       plan_hit,
       plan_total,
+      close_kind: sessionCloseKind(exercises),
     });
   }
 

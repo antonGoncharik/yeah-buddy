@@ -33,6 +33,7 @@ export type ReviewPromptPayload = {
     static: number;
     plan_hit: number;
     plan_total: number;
+    as_planned: number;
     templates: ReviewBrief["gym"]["templates"];
     weak: string[];
     notes: ReviewBrief["gym"]["notes"];
@@ -65,7 +66,7 @@ export const REVIEW_SYSTEM_PROMPT = `Ты — хороший друг, кото�
 
 Как устроен дневник
 - Еда: что съел. День без зала или с залом — от этого цели.
-- Зал идёт кругом, не пн/ср/пт. Один раз «Готово», не галочки на подходы.
+- Зал идёт кругом, не пн/ср/пт. Один раз «Готово», не галочки на подходы. «Готово» без правок копирует план в факт: gym.as_planned и sessions[].as_planned. plan_hit — только по подходам, которые человек правил. Не хвали попадание в план, если тренировка as_planned.
 - Спорт любой. Ярлык вроде пауэрлифтинга — только если он есть во входе.
 - Цикл и этапы есть не у всех. Не предлагай заводить, закрывать или крутить проценты.
 - Вес тела — одна цифра на день, если есть. weight.logged — сколько взвешиваний в окне. Одно — дельта от прошлого веса, не кривая. Нет веса — не выдумывай.
@@ -170,6 +171,7 @@ export function reviewPromptPayload(
       static: brief.gym.static,
       plan_hit: brief.gym.plan_hit,
       plan_total: brief.gym.plan_total,
+      as_planned: brief.gym.as_planned,
       templates: brief.gym.templates,
       weak: brief.gym.weak,
       notes: brief.gym.notes,

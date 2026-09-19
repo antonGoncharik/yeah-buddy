@@ -40,6 +40,7 @@ export type ReviewSessionRow = {
   status: "completed" | "skipped";
   plan_hit: number;
   plan_total: number;
+  as_planned: boolean;
   note: string | null;
   feel: "easy" | "close" | "miss" | null;
 };
@@ -93,6 +94,7 @@ export type ReviewBrief = {
     static: number;
     plan_hit: number;
     plan_total: number;
+    as_planned: number;
     templates: Array<{ name: string; count: number }>;
     weak: string[];
     notes: Array<{ date: string; name: string; note: string }>;

@@ -6,6 +6,7 @@ import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   formatSetLine,
+  setCopiedFromPlan,
   setRirLabel,
   workSetDiffers,
 } from "@/lib/workout/session-format";
@@ -13,6 +14,7 @@ import {
 export function SessionSetButtons({
   sets,
   showActual,
+  showCopied = false,
   disabled,
   tone,
   openIds = [],
@@ -21,6 +23,8 @@ export function SessionSetButtons({
 }: {
   sets: WorkoutSet[];
   showActual: boolean;
+  /** When some sets were written, label the ones that still came from the plan. */
+  showCopied?: boolean;
   disabled: boolean;
   tone: "warmup" | "work";
   /** Sets whose editor is open; drawn as selected. */
@@ -89,6 +93,10 @@ export function SessionSetButtons({
             {showActual && workSetDiffers(set) ? (
               <p className="-mt-1 pl-7 text-sm text-muted-foreground">
                 план {formatSetLine(set, { compact: true })}
+              </p>
+            ) : showActual && showCopied && setCopiedFromPlan(set) ? (
+              <p className="-mt-1 pl-7 text-sm text-muted-foreground">
+                как план
               </p>
             ) : null}
             {open ? renderAfter?.(set) : null}

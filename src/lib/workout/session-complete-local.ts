@@ -40,6 +40,7 @@ export function completeSessionLocally(
               ? override.actual_rir
               : set.actual_rir,
           is_completed: true,
+          logged: override !== undefined || set.logged,
         };
       }),
     })),

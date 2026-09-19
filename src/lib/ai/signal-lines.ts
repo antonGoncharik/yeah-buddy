@@ -28,6 +28,7 @@ export function buildSignals(input: {
     skipped: number;
     planHit: number;
     planTotal: number;
+    asPlanned?: number;
     templates: Array<{ name: string; count: number }>;
     weak: string[];
     feels?: { easy: number; close: number; miss: number };
