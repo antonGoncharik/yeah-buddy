@@ -56,6 +56,7 @@ const fromSupabase = mapDayWithMeals({
 
 assertEqual(fromSupabase.date, "2026-09-09", "date trimmed");
 assertEqual(fromSupabase.body_weight, 81.5, "body weight");
+assertEqual(fromSupabase.caught_up, false, "caught up defaults false");
 assertEqual(fromSupabase.meals[0]?.items.length, 1, "supabase meal_items");
 
 const remapped = mapDayWithMeals(
@@ -73,6 +74,7 @@ const history = parseDayHistoryPayload({
 });
 assertEqual(history?.date, "2026-09-09", "history date");
 assertEqual(history?.body_weight, null, "history weight missing is null");
+assertEqual(history?.caught_up, false, "history catch-up missing is false");
 assertEqual(history?.fact_protein, 10, "history protein");
 assertEqual(history?.target_fat, 0, "missing target is 0");
 assertEqual(parseDayHistoryPayload({}), null, "history without date");

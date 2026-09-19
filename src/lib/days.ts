@@ -15,6 +15,7 @@ export { createDayFromTemplate } from "@/lib/day/create";
 export {
   calendarToday,
   DayConflictError,
+  isDayWritable,
   isIsoDate,
   isPastDayDate,
   isWritableDayDate,
@@ -29,6 +30,7 @@ export {
   todayHistoryDayHref,
   todayHomeHref,
   withDateQuery,
+  writeStateFromDay,
   YesterdayMealEmptyError,
   YesterdayMissingError,
 } from "@/lib/day/dates";

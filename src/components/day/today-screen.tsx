@@ -16,7 +16,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { nutritionHistoryHref } from "@/lib/day/dates";
-import { LOAD_FAILED } from "@/lib/messages";
+import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function TodayScreen({
@@ -33,6 +33,7 @@ export function TodayScreen({
     today,
     isToday,
     writable,
+    catchUp,
     viewOnly,
     contentReady,
     shownDay,
@@ -84,7 +85,9 @@ export function TodayScreen({
     <div className="flex flex-col gap-4">
       <AppHeader
         title={titleDate}
-        subtitle={viewOnly ? "Только просмотр" : undefined}
+        subtitle={
+          viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
+        }
         backHref={fromHistory ? nutritionHistoryHref(fromSettings) : undefined}
         titleExpanded={pickerOpen}
         onTitleClick={() => {
@@ -158,6 +161,7 @@ export function TodayScreen({
               busy={busy}
               trainingFirst={isToday}
               showCopy={yesterdayExists}
+              catchUp={catchUp}
               onCreateRest={() => void createDay("rest")}
               onCreateTraining={() => void createDay("training")}
               onCopyYesterday={() => void copyYesterday()}
@@ -176,6 +180,7 @@ export function TodayScreen({
             date={date}
             today={today}
             writable={writable}
+            catchUp={catchUp}
             viewOnly={viewOnly}
             fromHistory={fromHistory}
             shownDay={shownDay}

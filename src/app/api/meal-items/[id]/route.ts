@@ -14,12 +14,14 @@ import { lumpMealItemSchema } from "@/lib/day/lump";
 import {
   deleteMealItem,
   getDateForMeal,
+  getDayByDate,
   getMealItem,
   getUserCalendarToday,
-  isWritableDayDate,
+  isDayWritable,
   PastDayLockedError,
   updateLumpMealItem,
   updateMealItemGrams,
+  writeStateFromDay,
 } from "@/lib/days";
 import { NOT_FOUND } from "@/lib/messages";
 
@@ -53,12 +55,15 @@ export async function GET(
 
     const date = await getDateForMeal(auth.session.userId, item.meal_id);
     const today = await getUserCalendarToday(auth.session.userId);
+    const day =
+      date == null ? null : await getDayByDate(auth.session.userId, date);
 
     return jsonOk({
       item,
       date,
       today,
-      writable: date != null && isWritableDayDate(date, today),
+      writable:
+        date != null && isDayWritable(date, today, writeStateFromDay(day)),
     });
   } catch (error) {
     return failRoute(error);

@@ -41,6 +41,7 @@ export interface Day {
   target_kcal: number;
   body_weight: number | null;
   notes: string | null;
+  caught_up: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -161,6 +162,7 @@ export interface DayHistoryRow {
   target_carbs: number;
   target_kcal: number;
   body_weight: number | null;
+  caught_up: boolean;
   fact_protein: number;
   fact_fat: number;
   fact_carbs: number;

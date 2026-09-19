@@ -11,6 +11,7 @@ const DAY_HISTORY_SELECT = `
   target_carbs,
   target_kcal,
   body_weight,
+  caught_up,
   meals (
     meal_items (
       protein,

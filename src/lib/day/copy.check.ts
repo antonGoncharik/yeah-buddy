@@ -68,8 +68,13 @@ assertEqual(
 );
 assertEqual(
   readDayWritable({}, "2026-09-09", "2026-09-12"),
+  true,
+  "fallback keeps catch-up window writable",
+);
+assertEqual(
+  readDayWritable({}, "2026-09-04", "2026-09-12"),
   false,
-  "fallback locks older day",
+  "fallback locks older than a week",
 );
 
 console.log("copy yesterday meal ok");

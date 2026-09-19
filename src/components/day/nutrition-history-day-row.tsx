@@ -9,6 +9,7 @@ import { MeterBar } from "@/components/ui/meter-bar";
 import { formatBodyWeight } from "@/lib/day/body-weight";
 import { todayHistoryDayHref } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
+import { CATCH_UP_MARK } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
 
@@ -36,6 +37,7 @@ export function NutritionHistoryDayRow({
             {item.is_training_day
               ? DAY_TYPE_LABELS.training
               : DAY_TYPE_LABELS.rest}
+            {item.caught_up ? ` · ${CATCH_UP_MARK}` : null}
           </span>
         </div>
         <p className="text-sm">

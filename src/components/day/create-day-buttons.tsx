@@ -2,6 +2,7 @@
 
 import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
+import { CATCH_UP_EMPTY_HINT } from "@/lib/messages";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition";
 
 export function CreateDayButtons({
@@ -11,6 +12,7 @@ export function CreateDayButtons({
   busy,
   trainingFirst = false,
   showCopy = true,
+  catchUp = false,
 }: {
   onCreateRest: () => void;
   onCreateTraining: () => void;
@@ -18,6 +20,7 @@ export function CreateDayButtons({
   busy: boolean;
   trainingFirst?: boolean;
   showCopy?: boolean;
+  catchUp?: boolean;
 }) {
   const rest = (
     <Button
@@ -44,6 +47,9 @@ export function CreateDayButtons({
 
   return (
     <div className="flex flex-col gap-3">
+      {catchUp ? (
+        <p className="text-base text-muted-foreground">{CATCH_UP_EMPTY_HINT}</p>
+      ) : null}
       {trainingFirst ? (
         <>
           {training}

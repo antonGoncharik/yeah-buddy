@@ -154,19 +154,99 @@ export function isPastDayDate(date: string, today = calendarToday()): boolean {
   return isIsoDate(date) && date < today;
 }
 
-/** Today plus this many previous calendar days stay editable. */
+/** Today plus this many previous calendar days stay fully editable. */
 export const WRITABLE_DAY_LOOKBACK = 2;
+
+/** Empty days this far back can still be filled, marked as catch-up. */
+export const CATCH_UP_DAY_LOOKBACK = 7;
+
+export interface DayWriteState {
+  caught_up: boolean;
+  has_food: boolean;
+}
 
 export function earliestWritableDayDate(today: string): string {
   return shiftIsoDate(today, -WRITABLE_DAY_LOOKBACK);
 }
 
+export function earliestCatchUpDayDate(today: string): string {
+  return shiftIsoDate(today, -CATCH_UP_DAY_LOOKBACK);
+}
+
+function isDateOnOrBefore(date: string, today: string): boolean {
+  return isIsoDate(date) && isIsoDate(today) && date <= today;
+}
+
+export function isHonestWritableDayDate(date: string, today: string): boolean {
+  return (
+    isDateOnOrBefore(date, today) && date >= earliestWritableDayDate(today)
+  );
+}
+
+export function isCatchUpWindowDate(date: string, today: string): boolean {
+  return (
+    isDateOnOrBefore(date, today) &&
+    date >= earliestCatchUpDayDate(today) &&
+    date < earliestWritableDayDate(today)
+  );
+}
+
+/** Date sits in the honest window or the catch-up lookback. */
 export function isWritableDayDate(date: string, today: string): boolean {
-  if (!isIsoDate(date) || !isIsoDate(today)) {
-    return false;
+  return isDateOnOrBefore(date, today) && date >= earliestCatchUpDayDate(today);
+}
+
+export function writeStateFromDay(
+  day: {
+    caught_up: boolean;
+    meals: Array<{ items: unknown[] }>;
+  } | null,
+): DayWriteState | null {
+  if (!day) {
+    return null;
   }
 
-  return date <= today && date >= earliestWritableDayDate(today);
+  return {
+    caught_up: day.caught_up,
+    has_food: day.meals.some((meal) => meal.items.length > 0),
+  };
+}
+
+export function writeStateFromHistory(
+  day: {
+    caught_up: boolean;
+    fact_protein: number;
+    fact_fat: number;
+    fact_carbs: number;
+    fact_kcal: number;
+  } | null,
+): DayWriteState | null {
+  if (!day) {
+    return null;
+  }
+
+  return {
+    caught_up: day.caught_up,
+    has_food:
+      day.fact_protein > 0 ||
+      day.fact_fat > 0 ||
+      day.fact_carbs > 0 ||
+      day.fact_kcal > 0,
+  };
+}
+
+export function isDayWritable(
+  date: string,
+  today: string,
+  day: DayWriteState | null,
+): boolean {
+  if (!isWritableDayDate(date, today)) {
+    return false;
+  }
+  if (isHonestWritableDayDate(date, today)) {
+    return true;
+  }
+  return day == null || day.caught_up || !day.has_food;
 }
 
 export function assertWritableDayDate(date: string, today: string): void {

@@ -5,6 +5,7 @@ import {
   peekJson,
   writeJson,
 } from "@/lib/api-cache";
+import { calendarToday, isCatchUpWindowDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { bumpOrAddFood, dayFromTemplate } from "@/lib/day/optimistic";
 import { remainingFills } from "@/lib/day/remaining";
@@ -174,12 +175,16 @@ export function optimisticCreatedDay(
   date: string,
   dayType: DayType,
 ): DayWithMeals {
-  return dayFromTemplate(
+  const day = dayFromTemplate(
     date,
     dayType,
     peekTemplate(dayType),
     targetsFromCache(dayType),
   );
+  return {
+    ...day,
+    caught_up: isCatchUpWindowDate(date, calendarToday()),
+  };
 }
 
 export function applyRemainingFromCache(

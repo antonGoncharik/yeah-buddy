@@ -16,12 +16,13 @@ import {
   getDayByDate,
   getLastBodyWeight,
   getUserCalendarToday,
+  isDayWritable,
   isIsoDate,
-  isWritableDayDate,
   listBodyWeightsInRange,
   listCopyDays,
   PastDayLockedError,
   recipeFromTemplate,
+  writeStateFromDay,
   yesterdayCopyHint,
 } from "@/lib/days";
 import { STEADY_WEIGHT_DAYS, steadyWeightLine } from "@/lib/flavor";
@@ -74,7 +75,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return jsonOk({
       day,
       today,
-      writable: isWritableDayDate(date, today),
+      writable: isDayWritable(date, today, writeStateFromDay(day)),
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
       lastBodyWeight,

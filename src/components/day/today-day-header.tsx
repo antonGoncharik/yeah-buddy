@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { todayHomeHref } from "@/lib/day/dates";
+import { CATCH_UP_TITLE, PAST_DAY_LOCKED } from "@/lib/messages";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition";
 import type { DayType } from "@/lib/types";
 
@@ -18,6 +19,7 @@ export function TodayDayHeader({
   date,
   today,
   writable,
+  catchUp,
   viewOnly,
   fromHistory,
   isTrainingDay,
@@ -27,6 +29,7 @@ export function TodayDayHeader({
   date: string;
   today: string;
   writable: boolean;
+  catchUp: boolean;
   viewOnly: boolean;
   fromHistory: boolean;
   isTrainingDay: boolean;
@@ -36,11 +39,20 @@ export function TodayDayHeader({
   const router = useRouter();
 
   if (viewOnly) {
+    const typeLabel = isTrainingDay
+      ? DAY_TYPE_LABELS.training
+      : DAY_TYPE_LABELS.rest;
+
     return (
       <div className="animate-rise flex flex-col gap-3">
         <p className="text-base text-muted-foreground">
-          {isTrainingDay ? DAY_TYPE_LABELS.training : DAY_TYPE_LABELS.rest}
-          {writable ? null : ". Это старый день — граммы уже не меняются."}
+          {[
+            typeLabel,
+            catchUp ? CATCH_UP_TITLE : null,
+            writable ? null : PAST_DAY_LOCKED,
+          ]
+            .filter((note) => note != null)
+            .join(". ")}
         </p>
         {fromHistory && writable ? (
           <Button
@@ -55,7 +67,7 @@ export function TodayDayHeader({
   }
 
   return (
-    <div className="animate-rise">
+    <div className="animate-rise flex flex-col gap-3">
       <Segmented
         value={isTrainingDay ? "training" : "rest"}
         disabled={busy}

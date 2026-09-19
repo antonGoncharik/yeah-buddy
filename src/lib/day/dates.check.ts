@@ -1,13 +1,17 @@
 import {
   assertWritableDayDate,
+  CATCH_UP_DAY_LOOKBACK,
   calendarDateInTimeZone,
   calendarToday,
+  earliestCatchUpDayDate,
+  earliestWritableDayDate,
   inclusiveDayCount,
+  isCatchUpWindowDate,
+  isDayWritable,
+  isHonestWritableDayDate,
   isIsoDate,
   isPastDayDate,
-  earliestWritableDayDate,
   isWritableDayDate,
-  WRITABLE_DAY_LOOKBACK,
   longestDateGap,
   nextIsoDate,
   nutritionHistoryHref,
@@ -17,6 +21,7 @@ import {
   shiftIsoDate,
   todayHistoryDayHref,
   todayHomeHref,
+  WRITABLE_DAY_LOOKBACK,
   weekStartMonday,
   withDateQuery,
 } from "@/lib/day/dates";
@@ -113,28 +118,84 @@ assertEqual(
 
 const today = "2026-09-11";
 assertEqual(WRITABLE_DAY_LOOKBACK, 2, "two previous days stay open");
+assertEqual(CATCH_UP_DAY_LOOKBACK, 7, "catch-up covers a week back");
 assertEqual(
   earliestWritableDayDate(today),
   "2026-09-09",
-  "lookback starts two days back",
+  "honest lookback starts two days back",
 );
-assertEqual(isWritableDayDate(today, today), true, "today is writable");
 assertEqual(
-  isWritableDayDate("2026-09-10", today),
+  earliestCatchUpDayDate(today),
+  "2026-09-04",
+  "catch-up lookback starts seven days back",
+);
+assertEqual(isWritableDayDate(today, today), true, "today is in write window");
+assertEqual(
+  isHonestWritableDayDate("2026-09-10", today),
   true,
-  "yesterday is writable",
+  "yesterday is honest",
 );
 assertEqual(
-  isWritableDayDate("2026-09-09", today),
+  isHonestWritableDayDate("2026-09-09", today),
   true,
-  "day before yesterday is writable",
+  "day before yesterday is honest",
 );
 assertEqual(
-  isWritableDayDate("2026-09-08", today),
+  isHonestWritableDayDate("2026-09-08", today),
   false,
-  "three days back locked",
+  "three days back is not honest",
+);
+assertEqual(
+  isCatchUpWindowDate("2026-09-08", today),
+  true,
+  "three days back is catch-up",
+);
+assertEqual(
+  isCatchUpWindowDate("2026-09-04", today),
+  true,
+  "seven days back is catch-up",
+);
+assertEqual(
+  isCatchUpWindowDate("2026-09-03", today),
+  false,
+  "eight days back is outside catch-up",
+);
+assertEqual(
+  isWritableDayDate("2026-09-04", today),
+  true,
+  "seven days back stays in window",
+);
+assertEqual(
+  isWritableDayDate("2026-09-03", today),
+  false,
+  "eight days back locked",
 );
 assertEqual(isWritableDayDate("2026-09-12", today), false, "future locked");
+assertEqual(
+  isDayWritable("2026-09-08", today, null),
+  true,
+  "empty catch-up day is writable",
+);
+assertEqual(
+  isDayWritable("2026-09-08", today, { caught_up: false, has_food: false }),
+  true,
+  "opened empty catch-up day is writable",
+);
+assertEqual(
+  isDayWritable("2026-09-08", today, { caught_up: false, has_food: true }),
+  false,
+  "logged catch-up window day stays locked",
+);
+assertEqual(
+  isDayWritable("2026-09-08", today, { caught_up: true, has_food: true }),
+  true,
+  "catch-up day stays editable in window",
+);
+assertEqual(
+  isDayWritable("2026-09-09", today, { caught_up: false, has_food: true }),
+  true,
+  "honest window can rewrite food",
+);
 assertEqual(
   calendarDateInTimeZone("Europe/Moscow", new Date("2026-09-11T21:30:00Z")),
   "2026-09-12",
@@ -163,11 +224,12 @@ let todayOk = true;
 try {
   assertWritableDayDate("2026-09-10", today);
   assertWritableDayDate("2026-09-09", today);
+  assertWritableDayDate("2026-09-04", today);
 } catch {
   todayOk = false;
 }
 if (!todayOk) {
-  throw new Error("yesterday and the day before should stay writable");
+  throw new Error("honest window and catch-up lookback should stay writable");
 }
 
 console.log("day dates ok");

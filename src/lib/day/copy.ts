@@ -43,7 +43,7 @@ export async function copyYesterday(
   date: string,
   replace: boolean,
 ): Promise<DayWithMeals> {
-  await assertUserDayWritable(userId, date);
+  const { catchUp } = await assertUserDayWritable(userId, date);
   const yesterday = await getDayByDate(userId, previousIsoDate(date));
   if (!yesterday) {
     throw new YesterdayMissingError();
@@ -79,6 +79,7 @@ export async function copyYesterday(
       target_carbs: yesterday.target_carbs,
       notes: yesterday.notes,
       body_weight: existing?.body_weight ?? null,
+      caught_up: catchUp,
     })
     .select("*")
     .single();

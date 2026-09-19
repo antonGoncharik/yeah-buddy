@@ -1,4 +1,10 @@
-import { isIsoDate, isWritableDayDate, shiftIsoDate } from "@/lib/day/dates";
+import {
+  isDayWritable,
+  isIsoDate,
+  shiftIsoDate,
+  todayHomeHref,
+  writeStateFromHistory,
+} from "@/lib/day/dates";
 import { parseDayHistoryPayload } from "@/lib/day/map";
 import { isRecord, toNullableString } from "@/lib/read";
 import type { DayHistoryRow, SessionStatus, WorkoutKind } from "@/lib/types";
@@ -103,12 +109,11 @@ export function weekSlotHref(
   today: string,
   fromSettings = false,
 ): string | null {
+  if (isDayWritable(slot.date, today, writeStateFromHistory(slot.day))) {
+    return todayHomeHref(slot.date, today);
+  }
+
   if (slot.day) {
-    if (isWritableDayDate(slot.date, today)) {
-      return slot.date === today
-        ? "/today"
-        : `/today?date=${encodeURIComponent(slot.date)}`;
-    }
     const params = new URLSearchParams();
     params.set("date", slot.date);
     params.set("view", "history");

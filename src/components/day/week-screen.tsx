@@ -35,20 +35,22 @@ export function WeekScreen() {
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        {empty ? (
-          <EmptyNote
-            icon={<WeekDoodle className="h-7 w-8" />}
-            title={WEEK_EMPTY}
-          />
-        ) : null}
-
-        {!loading && week && weekHasEntries(week.items) ? (
+        {!loading && week ? (
           <>
-            <FlavorNote
-              line={proteinLine}
-              className="px-1 text-muted-foreground"
-            />
-            <ReviewCta from="week" />
+            {empty ? (
+              <EmptyNote
+                icon={<WeekDoodle className="h-7 w-8" />}
+                title={WEEK_EMPTY}
+              />
+            ) : (
+              <>
+                <FlavorNote
+                  line={proteinLine}
+                  className="px-1 text-muted-foreground"
+                />
+                <ReviewCta from="week" />
+              </>
+            )}
             <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
               {week.items.map((item) => (
                 <li key={item.date}>

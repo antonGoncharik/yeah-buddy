@@ -21,7 +21,7 @@ export async function createDayFromTemplate(
   date: string,
   dayType: DayType,
 ): Promise<DayWithMeals> {
-  await assertUserDayWritable(userId, date);
+  const { catchUp } = await assertUserDayWritable(userId, date);
   const existing = await getDayByDate(userId, date);
   if (existing) {
     throw new DayConflictError();
@@ -38,6 +38,7 @@ export async function createDayFromTemplate(
       target_protein: targets.protein,
       target_fat: targets.fat,
       target_carbs: targets.carbs,
+      caught_up: catchUp,
     })
     .select("*")
     .single();

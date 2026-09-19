@@ -21,9 +21,11 @@ import { useDayMood } from "@/components/layout/day-mood";
 import { subscribeActionError } from "@/lib/action-error";
 import {
   calendarToday,
-  isWritableDayDate,
+  isCatchUpWindowDate,
+  isDayWritable,
   todayHistoryDayHref,
   todayHomeHref,
+  writeStateFromDay,
 } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
@@ -54,9 +56,12 @@ export function useTodayScreen({
   const data = useTodayData(date, clearActionError);
   const isToday = date === data.today;
   const fromHistory = readOnly;
-  const writable = isWritableDayDate(date, data.today);
-  const viewOnly = fromHistory || !writable;
   const { shownDay } = data;
+  const writable = isDayWritable(date, data.today, writeStateFromDay(shownDay));
+  const catchUp =
+    shownDay?.caught_up === true ||
+    (writable && isCatchUpWindowDate(date, data.today));
+  const viewOnly = fromHistory || !writable;
 
   const banner = useMemo(
     () =>
@@ -179,6 +184,7 @@ export function useTodayScreen({
     today: data.today,
     isToday,
     writable,
+    catchUp,
     viewOnly,
     contentReady: data.contentReady,
     shownDay,

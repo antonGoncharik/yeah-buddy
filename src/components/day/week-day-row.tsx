@@ -8,7 +8,7 @@ import { MarkBadge } from "@/components/layout/mark-badge";
 import { formatBodyWeight } from "@/lib/day/body-weight";
 import { formatIsoDate } from "@/lib/day/format";
 import { dayHasFood, type WeekSlot, weekSlotHref } from "@/lib/day/week";
-import { WEEK_NO_FOOD, WEEK_NO_GYM } from "@/lib/messages";
+import { CATCH_UP_MARK, WEEK_NO_FOOD, WEEK_NO_GYM } from "@/lib/messages";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
@@ -67,7 +67,9 @@ export function WeekDayRow({
           </span>
           {typeLabel ? (
             <span className="shrink-0 text-sm text-muted-foreground">
-              {typeLabel}
+              {slot.day?.caught_up
+                ? `${typeLabel} · ${CATCH_UP_MARK}`
+                : typeLabel}
             </span>
           ) : null}
         </span>

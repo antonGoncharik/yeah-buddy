@@ -1,5 +1,5 @@
 import { getTargets, writeTemplateItems } from "@/lib/day/create";
-import { isWritableDayDate } from "@/lib/day/dates";
+import { isDayWritable, writeStateFromDay } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { mealsMatchRecipe, recipeFromTemplate } from "@/lib/day/remaining";
 import { getDayByDate } from "@/lib/day/store";
@@ -90,11 +90,11 @@ export async function markDateAsTrainingIfExists(
   date: string,
 ): Promise<void> {
   const today = await getUserCalendarToday(userId);
-  if (!isWritableDayDate(date, today)) {
+  const day = await getDayByDate(userId, date);
+  if (!isDayWritable(date, today, writeStateFromDay(day))) {
     return;
   }
 
-  const day = await getDayByDate(userId, date);
   if (!day || day.is_training_day) {
     return;
   }

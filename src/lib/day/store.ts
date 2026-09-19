@@ -49,3 +49,20 @@ export async function dateHasDay(
 
   return (result.count ?? 0) > 0;
 }
+
+export async function markDayCaughtUp(
+  userId: string,
+  dayId: string,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const updated = await supabase
+    .from("days")
+    .update({ caught_up: true })
+    .eq("id", dayId)
+    .eq("user_id", userId)
+    .eq("caught_up", false);
+
+  if (updated.error) {
+    throw updated.error;
+  }
+}

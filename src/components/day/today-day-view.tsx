@@ -21,6 +21,7 @@ export function TodayDayView({
   date,
   today,
   writable,
+  catchUp,
   viewOnly,
   fromHistory,
   shownDay,
@@ -51,6 +52,7 @@ export function TodayDayView({
   date: string;
   today: string;
   writable: boolean;
+  catchUp: boolean;
   viewOnly: boolean;
   fromHistory: boolean;
   shownDay: DayWithMeals;
@@ -107,6 +109,7 @@ export function TodayDayView({
         date={date}
         today={today}
         writable={writable}
+        catchUp={catchUp}
         viewOnly={viewOnly}
         fromHistory={fromHistory}
         isTrainingDay={shownDay.is_training_day}

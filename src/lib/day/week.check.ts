@@ -30,6 +30,7 @@ function day(input: {
   carbs?: number;
   kcal?: number;
   weight?: number | null;
+  caughtUp?: boolean;
 }): DayHistoryRow {
   return {
     date: input.date,
@@ -39,6 +40,7 @@ function day(input: {
     target_carbs: 200,
     target_kcal: 1910,
     body_weight: input.weight ?? null,
+    caught_up: input.caughtUp ?? false,
     fact_protein: input.protein ?? 0,
     fact_fat: input.fat ?? 0,
     fact_carbs: input.carbs ?? 0,
@@ -240,20 +242,62 @@ assertEqual(
 );
 assertEqual(
   hrefOn("2026-09-10"),
-  "/workouts/sessions/gym-only",
-  "gym without day href",
+  "/today?date=2026-09-10",
+  "honest empty gym day opens today",
 );
 assertEqual(
   hrefOn("2026-09-09"),
-  "/today?date=2026-09-09&view=history",
-  "old food day view",
+  "/today?date=2026-09-09",
+  "empty catch-up food day opens today",
 );
 assertEqual(
   hrefOn("2026-09-09", true),
-  "/today?date=2026-09-09&view=history&from=settings",
-  "old food from settings",
+  "/today?date=2026-09-09",
+  "empty catch-up from settings still edits",
 );
-assertEqual(hrefOn("2026-09-07"), null, "empty hole is not a link");
+assertEqual(
+  hrefOn("2026-09-07"),
+  "/today?date=2026-09-07",
+  "empty catch-up hole is a link",
+);
+
+assertEqual(
+  weekSlotHref(
+    {
+      date: "2026-09-08",
+      day: day({
+        date: "2026-09-08",
+        protein: 110,
+        fat: 50,
+        carbs: 180,
+        kcal: 1600,
+      }),
+      session: null,
+    },
+    today,
+  ),
+  "/today?date=2026-09-08&view=history",
+  "logged catch-up window day stays view-only",
+);
+assertEqual(
+  weekSlotHref(
+    {
+      date: "2026-09-08",
+      day: day({
+        date: "2026-09-08",
+        protein: 110,
+        fat: 50,
+        carbs: 180,
+        kcal: 1600,
+        caughtUp: true,
+      }),
+      session: null,
+    },
+    today,
+  ),
+  "/today?date=2026-09-08",
+  "marked catch-up day stays editable",
+);
 
 const parsed = parseWeekPayload({
   today,

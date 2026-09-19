@@ -326,6 +326,7 @@ export function placeholderDay(
     target_kcal: targets.kcal,
     body_weight: null,
     notes: null,
+    caught_up: false,
     created_at: now,
     updated_at: now,
     meals: MEAL_DISPLAY_ORDER.map((mealType) => ({

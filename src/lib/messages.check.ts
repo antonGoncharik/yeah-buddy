@@ -1,4 +1,10 @@
-import { PENDING_WRITES, switchRestToTrainingMessage } from "@/lib/messages";
+import {
+  CATCH_UP_EMPTY_HINT,
+  CATCH_UP_MARK,
+  CATCH_UP_TITLE,
+  PENDING_WRITES,
+  switchRestToTrainingMessage,
+} from "@/lib/messages";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
@@ -28,6 +34,13 @@ assertEqual(
   PENDING_WRITES,
   "На телефоне. Когда появится сеть — уйдёт само.",
   "offline queue copy",
+);
+assertEqual(CATCH_UP_MARK, "догонял", "catch-up mark");
+assertEqual(CATCH_UP_TITLE, "Догонял", "catch-up title");
+assertEqual(
+  CATCH_UP_EMPTY_HINT,
+  "День пустой. Можно догнать — в истории будет пометка «догонял».",
+  "catch-up empty hint",
 );
 
 console.log("messages ok");
