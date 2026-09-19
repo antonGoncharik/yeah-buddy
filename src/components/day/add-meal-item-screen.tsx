@@ -6,10 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
-import {
-  CatalogFoodSection,
-  catalogSearchActive,
-} from "@/components/foods/catalog-food-section";
+import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
 import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
 import {
   foodsApiUrl,
@@ -25,6 +22,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
+import { foodMatchesQuery } from "@/lib/food/catalog-map";
 import {
   type FavoriteOffer,
   readFavoriteOffers,
@@ -65,6 +63,7 @@ export function AddMealItemScreen({
   const loadedFilterRef = useRef<Filter | null>(null);
   const skippedEmptyFavorites = useRef(false);
   const favoriteOffer = useFavoriteOffer(offers);
+  const [shopHits, setShopHits] = useState(false);
 
   const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
     const requestId = ++requestIdRef.current;
@@ -127,21 +126,26 @@ export function AddMealItemScreen({
   }, [listFilter, load]);
 
   const visibleFoods = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) {
+    if (!query.trim()) {
       return foods;
     }
 
-    return foods.filter((food) => {
-      const haystack = `${food.name} ${food.brand ?? ""}`.toLowerCase();
-      return haystack.includes(needle);
-    });
+    return foods.filter((food) =>
+      foodMatchesQuery(food.name, food.brand, query),
+    );
   }, [foods, query]);
 
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch value={query} onChange={setQuery} placeholder="Что съел" />
+        <FoodSearch
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setShopHits(false);
+          }}
+          placeholder="Что съел"
+        />
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
@@ -171,7 +175,7 @@ export function AddMealItemScreen({
         {lumpHrefBase ? (
           <MealLumpLink href={lumpHrefBase} query={query} />
         ) : null}
-        {plateHref && !search ? <MealPlateLink href={plateHref} /> : null}
+        {plateHref ? <MealPlateLink href={plateHref} /> : null}
       </div>
 
       <div
@@ -190,10 +194,7 @@ export function AddMealItemScreen({
           />
         ) : null}
 
-        {!loading &&
-        !error &&
-        visibleFoods.length === 0 &&
-        !catalogSearchActive(query) ? (
+        {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
           <p className="py-10 text-center text-muted-foreground">
             {foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))}
           </p>
@@ -214,11 +215,7 @@ export function AddMealItemScreen({
         {!loading && !error ? (
           <CatalogFoodSection
             query={query}
-            emptyLabel={
-              visibleFoods.length === 0
-                ? foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))
-                : undefined
-            }
+            onHits={setShopHits}
             onAdded={(food) => {
               router.push(appendPathSegment(foodHrefBase, food.id));
             }}

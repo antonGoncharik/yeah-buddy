@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { CatalogFoodList } from "@/components/foods/food-list";
 import { useCatalogSearch } from "@/components/foods/use-catalog-search";
 import { postJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
-import { CATALOG_SEARCH_MIN, type CatalogFood } from "@/lib/food/catalog-map";
+import { type CatalogFood, catalogSearchTokens } from "@/lib/food/catalog-map";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -14,15 +14,24 @@ import type { Food } from "@/lib/types";
 export function CatalogFoodSection({
   query,
   onAdded,
-  emptyLabel,
+  onHits,
 }: {
   query: string;
   onAdded: (food: Food) => void | Promise<void>;
-  emptyLabel?: string;
+  onHits?: (hasHits: boolean) => void;
 }) {
   const catalog = useCatalogSearch(query);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const hasHits = catalog.foods.length > 0;
+
+  useEffect(() => {
+    onHits?.(hasHits);
+  }, [hasHits, onHits]);
+
+  useEffect(() => {
+    return () => onHits?.(false);
+  }, [onHits]);
 
   async function addFromCatalog(item: CatalogFood) {
     setPendingId(item.id);
@@ -46,10 +55,8 @@ export function CatalogFoodSection({
     return null;
   }
 
-  if (!catalog.loading && catalog.foods.length === 0 && !error) {
-    return emptyLabel ? (
-      <p className="py-10 text-center text-muted-foreground">{emptyLabel}</p>
-    ) : null;
+  if (!hasHits && !error) {
+    return null;
   }
 
   return (
@@ -58,22 +65,19 @@ export function CatalogFoodSection({
         Магазин
       </h3>
       {error ? <p className="px-1 text-sm text-destructive">{error}</p> : null}
-      {catalog.loading && catalog.foods.length === 0 ? (
-        <p className="px-1 text-sm text-muted-foreground">Ищу в магазине…</p>
-      ) : (
+      {hasHits ? (
         <CatalogFoodList
           foods={catalog.foods}
           pendingId={pendingId}
           onSelectFood={(item) => void addFromCatalog(item)}
         />
-      )}
+      ) : null}
     </div>
   );
 }
 
 export function catalogSearchActive(query: string): boolean {
   return (
-    query.trim().length >= CATALOG_SEARCH_MIN &&
-    foodSearchEasterEgg(query) == null
+    catalogSearchTokens(query) != null && foodSearchEasterEgg(query) == null
   );
 }

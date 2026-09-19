@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { foodSearchEasterEgg } from "@/lib/flavor";
 import {
-  CATALOG_SEARCH_MIN,
   type CatalogFood,
+  catalogSearchTokens,
   parseCatalogFoodList,
 } from "@/lib/food/catalog-map";
 
@@ -19,7 +19,7 @@ export function useCatalogSearch(query: string): {
   const requestIdRef = useRef(0);
   const needle = query.trim();
   const searching =
-    needle.length >= CATALOG_SEARCH_MIN && foodSearchEasterEgg(needle) == null;
+    catalogSearchTokens(query) != null && foodSearchEasterEgg(query) == null;
 
   useEffect(() => {
     if (!searching) {

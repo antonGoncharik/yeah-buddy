@@ -1,6 +1,10 @@
 import {
   catalogDefaultPortion,
+  catalogSearchLead,
   catalogSearchNeedle,
+  catalogSearchTokens,
+  filterCatalogHits,
+  foodMatchesQuery,
   parseCatalogDumpRow,
 } from "@/lib/food/catalog-map";
 import { calcKcalFromMacros } from "@/lib/nutrition";
@@ -60,6 +64,52 @@ assertEqual(parseCatalogDumpRow({ name: "no ids" }), null, "skip nameless ids");
 assertEqual(catalogSearchNeedle("т"), null, "one letter is not a search");
 assertEqual(catalogSearchNeedle("  творог  "), "творог", "trim query");
 assertEqual(catalogSearchNeedle("foo%bar"), "foo bar", "strip ilike wildcards");
+assertEqual(catalogSearchNeedle("чёрный"), "черный", "fold yo before search");
+
+const brandTokens = catalogSearchTokens("Простоквашино кефир");
+assertEqual(brandTokens?.join(" "), "простоквашино кефир", "split tokens");
+assertEqual(
+  catalogSearchLead(brandTokens ?? []),
+  "простоквашино",
+  "longest token leads the sql",
+);
+assertEqual(
+  catalogSearchTokens("шаурма из кафе")?.join(" "),
+  "шаурма кафе",
+  "drop prepositions",
+);
+assertEqual(
+  catalogSearchTokens("а б") == null,
+  true,
+  "short tokens are not a catalog search",
+);
+
+assertEqual(
+  foodMatchesQuery("Кефир 2.5%", "Простоквашино", "простоквашино кефир"),
+  true,
+  "tokens match across name and brand",
+);
+assertEqual(
+  foodMatchesQuery("Кефир 2.5%", "Простоквашино", "простоквашино творог"),
+  false,
+  "missing token is a miss",
+);
+assertEqual(
+  foodMatchesQuery("Чёрный хлеб", null, "черный"),
+  true,
+  "yo folded in the list",
+);
+
+const mixed = filterCatalogHits(
+  [
+    { name: "Кефир 1%", brand: "Домик в деревне" },
+    { name: "Кефир 2.5%", brand: "Простоквашино" },
+    { name: "Творог", brand: "Простоквашино" },
+  ],
+  ["простоквашино", "кефир"],
+);
+assertEqual(mixed.length, 1, "and-filter leftover tokens");
+assertEqual(mixed[0]?.name, "Кефир 2.5%", "keeps the matching sku");
 
 const small = catalogDefaultPortion(90);
 assertEqual(small.grams, 90, "small pack is the portion");

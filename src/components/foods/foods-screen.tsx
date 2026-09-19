@@ -4,10 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  CatalogFoodSection,
-  catalogSearchActive,
-} from "@/components/foods/catalog-food-section";
+import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
 import {
   foodsApiUrl,
   toggleFoodFavorite,
@@ -23,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
+import { foodMatchesQuery } from "@/lib/food/catalog-map";
 import { parseFoodList } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -45,6 +43,7 @@ export function FoodsScreen() {
   const [error, setError] = useState<string | null>(null);
   const search = query.trim();
   const listFilter = search ? "all" : filter;
+  const [shopHits, setShopHits] = useState(false);
 
   const load = useCallback(
     async (nextFilter: Filter) => {
@@ -86,15 +85,13 @@ export function FoodsScreen() {
   }, [filter, listFilter, load]);
 
   const visibleFoods = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) {
+    if (!query.trim()) {
       return foods;
     }
 
-    return foods.filter((food) => {
-      const haystack = `${food.name} ${food.brand ?? ""}`.toLowerCase();
-      return haystack.includes(needle);
-    });
+    return foods.filter((food) =>
+      foodMatchesQuery(food.name, food.brand, query),
+    );
   }, [foods, query]);
 
   return (
@@ -102,7 +99,13 @@ export function FoodsScreen() {
       <AppHeader title="Продукты" backHref="/settings" />
 
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch value={query} onChange={setQuery} />
+        <FoodSearch
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setShopHits(false);
+          }}
+        />
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
@@ -116,10 +119,7 @@ export function FoodsScreen() {
           <ScreenError message={error} onRetry={() => void load(listFilter)} />
         ) : null}
 
-        {!loading &&
-        !error &&
-        visibleFoods.length === 0 &&
-        !catalogSearchActive(query) ? (
+        {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
           <EmptyNote
             icon={<CookieDoodle className="size-6" />}
             title={foodSearchEmptyLine(query, filter)}
@@ -138,11 +138,7 @@ export function FoodsScreen() {
         {!loading && !error ? (
           <CatalogFoodSection
             query={query}
-            emptyLabel={
-              visibleFoods.length === 0
-                ? foodSearchEmptyLine(query, filter)
-                : undefined
-            }
+            onHits={setShopHits}
             onAdded={(food) => {
               setFoods((current) => {
                 const next = [

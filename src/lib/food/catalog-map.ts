@@ -9,6 +9,30 @@ import {
 
 export const CATALOG_SEARCH_MIN = 2;
 export const CATALOG_SEARCH_LIMIT = 40;
+export const CATALOG_SEARCH_FETCH = 120;
+export const CATALOG_SEARCH_TOKEN_MAX = 5;
+
+const CATALOG_SEARCH_STOP = new Set([
+  "из",
+  "на",
+  "от",
+  "до",
+  "по",
+  "за",
+  "со",
+  "ко",
+  "во",
+  "не",
+  "ни",
+  "или",
+  "для",
+  "без",
+  "при",
+  "про",
+  "and",
+  "the",
+  "of",
+]);
 
 export interface CatalogDumpInput {
   source: string;
@@ -92,10 +116,14 @@ export function parseCatalogFoodList(data: unknown): CatalogFood[] {
   return mapRecordList(data.foods, parseCatalogFood);
 }
 
+export function foldCatalogSearch(value: string): string {
+  return value.replace(/ё/gi, "е");
+}
+
 export function catalogSearchNeedle(raw: string): string | null {
-  const trimmed = raw
+  const trimmed = foldCatalogSearch(raw)
     .trim()
-    .replace(/[%_,.()]/g, " ")
+    .replace(/[%_,.()'"`\\*]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   if (trimmed.length < CATALOG_SEARCH_MIN) {
@@ -103,6 +131,70 @@ export function catalogSearchNeedle(raw: string): string | null {
   }
 
   return trimmed.slice(0, 80);
+}
+
+export function catalogSearchTokens(raw: string): string[] | null {
+  const needle = catalogSearchNeedle(raw);
+  if (!needle) {
+    return null;
+  }
+
+  const tokens: string[] = [];
+  for (const part of needle.toLowerCase().split(" ")) {
+    if (
+      part.length < CATALOG_SEARCH_MIN ||
+      CATALOG_SEARCH_STOP.has(part) ||
+      tokens.includes(part)
+    ) {
+      continue;
+    }
+    tokens.push(part);
+    if (tokens.length >= CATALOG_SEARCH_TOKEN_MAX) {
+      break;
+    }
+  }
+
+  return tokens.length > 0 ? tokens : null;
+}
+
+export function catalogSearchLead(tokens: string[]): string {
+  return tokens.reduce((lead, token) =>
+    token.length > lead.length ? token : lead,
+  );
+}
+
+export function foodMatchesQuery(
+  name: string,
+  brand: string | null,
+  query: string,
+): boolean {
+  const haystack = catalogHaystack(name, brand);
+  const tokens = catalogSearchTokens(query);
+  if (tokens) {
+    return tokens.every((token) => haystack.includes(token));
+  }
+
+  const needle = foldCatalogSearch(query.trim().toLowerCase());
+  return needle.length === 0 || haystack.includes(needle);
+}
+
+export function filterCatalogHits<
+  T extends { name: string; brand: string | null },
+>(rows: T[], tokens: string[]): T[] {
+  if (tokens.length === 0) {
+    return [];
+  }
+
+  return rows
+    .filter((row) => {
+      const haystack = catalogHaystack(row.name, row.brand);
+      return tokens.every((token) => haystack.includes(token));
+    })
+    .slice(0, CATALOG_SEARCH_LIMIT);
+}
+
+function catalogHaystack(name: string, brand: string | null): string {
+  return foldCatalogSearch(`${name} ${brand ?? ""}`.toLowerCase());
 }
 
 export function catalogDefaultPortion(packWeightG: number | null): {

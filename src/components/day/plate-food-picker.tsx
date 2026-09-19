@@ -2,10 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  CatalogFoodSection,
-  catalogSearchActive,
-} from "@/components/foods/catalog-food-section";
+import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
 import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
 import {
   foodsApiUrl,
@@ -20,6 +17,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
+import { foodMatchesQuery } from "@/lib/food/catalog-map";
 import {
   type FavoriteOffer,
   readFavoriteOffers,
@@ -57,6 +55,7 @@ export function PlateFoodPicker({
   const favoriteOffer = useFavoriteOffer(offers);
   const search = query.trim();
   const listFilter = search ? "all" : filter;
+  const [shopHits, setShopHits] = useState(false);
 
   const load = useCallback(async (nextFilter: Filter) => {
     const requestId = ++requestIdRef.current;
@@ -120,21 +119,25 @@ export function PlateFoodPicker({
   }, [onClose]);
 
   const visibleFoods = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) {
+    if (!query.trim()) {
       return foods;
     }
-    return foods.filter((food) => {
-      const haystack = `${food.name} ${food.brand ?? ""}`.toLowerCase();
-      return haystack.includes(needle);
-    });
+    return foods.filter((food) =>
+      foodMatchesQuery(food.name, food.brand, query),
+    );
   }, [foods, query]);
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-background">
       <div className="flex flex-col gap-3 px-4 pt-4">
         <p className="text-xl font-semibold tracking-tight">{title}</p>
-        <FoodSearch value={query} onChange={setQuery} />
+        <FoodSearch
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setShopHits(false);
+          }}
+        />
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
@@ -173,10 +176,7 @@ export function PlateFoodPicker({
             />
           ) : null}
 
-          {!loading &&
-          !error &&
-          visibleFoods.length === 0 &&
-          !catalogSearchActive(query) ? (
+          {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
             <p className="py-10 text-center text-muted-foreground">
               {foodSearchEmptyLine(query, filter)}
             </p>
@@ -197,11 +197,7 @@ export function PlateFoodPicker({
           {!loading && !error ? (
             <CatalogFoodSection
               query={query}
-              emptyLabel={
-                visibleFoods.length === 0
-                  ? foodSearchEmptyLine(query, filter)
-                  : undefined
-              }
+              onHits={setShopHits}
               onAdded={onPick}
             />
           ) : null}

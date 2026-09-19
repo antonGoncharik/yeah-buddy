@@ -1,10 +1,13 @@
 import { CatalogFoodNotFoundError } from "@/lib/food/catalog-errors";
 import {
+  CATALOG_SEARCH_FETCH,
   CATALOG_SEARCH_LIMIT,
   type CatalogDumpInput,
   type CatalogFood,
   catalogDefaultPortion,
-  catalogSearchNeedle,
+  catalogSearchLead,
+  catalogSearchTokens,
+  filterCatalogHits,
   mapCatalogFood,
 } from "@/lib/food/catalog-map";
 import { mapFood } from "@/lib/food/map";
@@ -19,8 +22,8 @@ export async function searchCatalogFoods(
   userId: string,
   query: string,
 ): Promise<CatalogFood[]> {
-  const needle = catalogSearchNeedle(query);
-  if (!needle) {
+  const tokens = catalogSearchTokens(query);
+  if (!tokens) {
     return [];
   }
 
@@ -39,7 +42,10 @@ export async function searchCatalogFoods(
     .map((row) => row.catalog_food_id)
     .filter((id): id is string => typeof id === "string");
 
-  const pattern = `%${needle}%`;
+  const lead = catalogSearchLead(tokens);
+  const pattern = `%${lead}%`;
+  const fetchLimit =
+    tokens.length > 1 ? CATALOG_SEARCH_FETCH : CATALOG_SEARCH_LIMIT;
   let request = supabase
     .from("catalog_foods")
     .select(
@@ -47,7 +53,7 @@ export async function searchCatalogFoods(
     )
     .or(`name.ilike."${pattern}",brand.ilike."${pattern}"`)
     .order("name", { ascending: true })
-    .limit(CATALOG_SEARCH_LIMIT);
+    .limit(fetchLimit);
 
   if (ownedIds.length > 0) {
     request = request.not("id", "in", `(${ownedIds.join(",")})`);
@@ -58,8 +64,11 @@ export async function searchCatalogFoods(
     throw result.error;
   }
 
-  return (result.data ?? []).map((row) =>
-    mapCatalogFood(row as Record<string, unknown>),
+  return filterCatalogHits(
+    (result.data ?? []).map((row) =>
+      mapCatalogFood(row as Record<string, unknown>),
+    ),
+    tokens,
   );
 }
 
