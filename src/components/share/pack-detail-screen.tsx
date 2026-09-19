@@ -3,6 +3,7 @@
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
+import { PackMealPreview } from "@/components/share/pack-meal-preview";
 import { PackMealsPreview } from "@/components/share/pack-meals-preview";
 import { PackWorkoutsPreview } from "@/components/share/pack-workouts-preview";
 import { ShareQr } from "@/components/share/share-qr";
@@ -81,6 +82,10 @@ export function PackDetailScreen({ token }: { token: string }) {
 
             {pack.kind === "workouts" && pack.workouts ? (
               <PackWorkoutsPreview pack={pack} />
+            ) : null}
+
+            {pack.kind === "meal" && pack.meal ? (
+              <PackMealPreview pack={pack} />
             ) : null}
 
             {ownLive ? null : error ? (
@@ -167,17 +172,35 @@ function ApplyButton({
 
 function packSubtitle(pack: SharePackDetail): string {
   if (pack.mine && !pack.received) {
-    return pack.kind === "meals"
-      ? "Еда на день и цели по белкам, жирам и углеводам. Записи из дневника в ссылку не попадают."
-      : "Список тренировок и план подходов. Твои рабочие веса в ссылку не попадают.";
+    if (pack.kind === "meals") {
+      return "Еда на день и цели по белкам, жирам и углеводам. Записи из дневника в ссылку не попадают.";
+    }
+    if (pack.kind === "workouts") {
+      return "Список тренировок и план подходов. Твои рабочие веса в ссылку не попадают.";
+    }
+    return "Один приём. В чате сразу видно, что внутри. Записи из дневника в ссылку не попадают.";
   }
   const fromOwner = pack.owner_name ? `От ${pack.owner_name}. ` : "";
   if (pack.saved || pack.received) {
-    return pack.kind === "meals"
-      ? `${fromOwner}Сохранено. Если поставить — еда на день и цели станут как в ссылке.`
-      : `${fromOwner}Сохранено. Если поставить — программа тренировок станет как в ссылке.`;
+    if (pack.kind === "meals") {
+      return `${fromOwner}Сохранено. Если поставить — еда на день и цели станут как в ссылке.`;
+    }
+    if (pack.kind === "workouts") {
+      return `${fromOwner}Сохранено. Если поставить — программа тренировок станет как в ссылке.`;
+    }
+    return `${fromOwner}Сохранено. Если поставить — приём появится в «Ещё». Пустой слот сегодня подставится.`;
   }
-  return pack.kind === "meals"
-    ? `${fromOwner}Еда на день. Можно поставить себе.`
-    : `${fromOwner}Программа тренировок. Можно поставить себе.`;
+  if (pack.kind === "meals") {
+    return pack.hint
+      ? `${fromOwner}${pack.hint}`
+      : `${fromOwner}Еда на день. Можно поставить себе.`;
+  }
+  if (pack.kind === "workouts") {
+    return pack.hint
+      ? `${fromOwner}${pack.hint}`
+      : `${fromOwner}Программа тренировок. Можно поставить себе.`;
+  }
+  return pack.hint
+    ? `${fromOwner}${pack.hint}`
+    : `${fromOwner}Один приём. Можно поставить себе.`;
 }

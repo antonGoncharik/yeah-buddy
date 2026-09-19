@@ -1,4 +1,5 @@
-import { PackNotFoundError } from "@/lib/share/pack-errors";
+import { NAMED_MEAL_EMPTY } from "@/lib/messages";
+import { PackEmptyError, PackNotFoundError } from "@/lib/share/pack-errors";
 import {
   assertPackQuota,
   findClone,
@@ -8,13 +9,19 @@ import {
 } from "@/lib/share/pack-load";
 import {
   mapPackRow,
+  mealPreview,
   mealsPreview,
   resolveTitle,
   toSummary,
   workoutsPreview,
 } from "@/lib/share/pack-map";
-import { insertPack, snapshotLive } from "@/lib/share/pack-write";
+import {
+  insertPack,
+  snapshotLive,
+  snapshotMealPack,
+} from "@/lib/share/pack-write";
 import type {
+  MealPackPayload,
   MealsPackPayload,
   SharePackKind,
   WorkoutsPackPayload,
@@ -77,6 +84,10 @@ export async function getPackDetail(
       pack.kind === "workouts"
         ? workoutsPreview(pack.payload as WorkoutsPackPayload)
         : null,
+    meal:
+      pack.kind === "meal"
+        ? mealPreview(pack.payload as MealPackPayload)
+        : null,
   };
 }
 
@@ -85,6 +96,9 @@ export async function publishLivePack(
   kind: SharePackKind,
   titleRaw?: string,
 ): Promise<SharePackDetail> {
+  if (kind === "meal") {
+    throw new PackEmptyError(NAMED_MEAL_EMPTY);
+  }
   await assertPackQuota(userId);
   const payload = await snapshotLive(userId, kind);
   const title = resolveTitle(titleRaw, kind, payload);
@@ -92,6 +106,24 @@ export async function publishLivePack(
     ownerUserId: userId,
     sourcePackId: null,
     kind,
+    title,
+    payload,
+  });
+  return getPackDetail(userId, pack.token);
+}
+
+export async function publishMealPack(
+  userId: string,
+  source: { mealId?: string; namedMealId?: string },
+  titleRaw?: string,
+): Promise<SharePackDetail> {
+  await assertPackQuota(userId);
+  const payload = await snapshotMealPack(userId, source);
+  const title = resolveTitle(titleRaw, "meal", payload);
+  const pack = await insertPack({
+    ownerUserId: userId,
+    sourcePackId: null,
+    kind: "meal",
     title,
     payload,
   });

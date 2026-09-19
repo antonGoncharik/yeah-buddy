@@ -47,6 +47,7 @@ export function parseSharePackDetail(value: unknown): SharePackDetail | null {
     saved: Boolean(value.saved),
     meals: parseMealsPreview(value.meals),
     workouts: parseWorkoutsPreview(value.workouts),
+    meal: parseMealPreview(value.meal),
   };
 }
 
@@ -132,5 +133,37 @@ function parseWorkoutsPreview(value: unknown): SharePackDetail["workouts"] {
         : [];
       return { name: row.name, kind, exercises };
     }),
+  };
+}
+
+function parseMealPreview(value: unknown): SharePackDetail["meal"] {
+  if (!isRecord(value) || !isMealType(value.meal_type)) {
+    return null;
+  }
+  if (typeof value.name !== "string" || !Array.isArray(value.items)) {
+    return null;
+  }
+
+  const items = mapRecordList(value.items, (item) => {
+    if (typeof item.name !== "string") {
+      return null;
+    }
+    return {
+      name: item.name,
+      grams: Number(item.grams) || 0,
+    };
+  });
+  if (items.length === 0) {
+    return null;
+  }
+
+  return {
+    name: value.name,
+    meal_type: value.meal_type,
+    protein: Number(value.protein) || 0,
+    fat: Number(value.fat) || 0,
+    carbs: Number(value.carbs) || 0,
+    kcal: Number(value.kcal) || 0,
+    items,
   };
 }

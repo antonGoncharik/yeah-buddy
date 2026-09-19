@@ -34,6 +34,8 @@ export function MealCard({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
+  onShareMeal,
+  onShareNamed,
   onDeleteNamed,
   onFillTemplate,
   copyBusy = false,
@@ -53,6 +55,8 @@ export function MealCard({
   onCopyDate?: (sourceDate: string) => void;
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
+  onShareMeal?: () => void;
+  onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
   onFillTemplate?: () => void;
   copyBusy?: boolean;
@@ -73,6 +77,8 @@ export function MealCard({
           onCopyDate,
           onApplyNamed,
           onSaveNamed,
+          onShareMeal,
+          onShareNamed,
           onDeleteNamed,
         }
       : null;
@@ -106,6 +112,8 @@ export function MealCard({
               onCopyDate={copy.onCopyDate}
               onApplyNamed={copy.onApplyNamed}
               onSaveNamed={copy.onSaveNamed}
+              onShareMeal={copy.onShareMeal}
+              onShareNamed={copy.onShareNamed}
               onDeleteNamed={copy.onDeleteNamed}
             />
           ) : null}

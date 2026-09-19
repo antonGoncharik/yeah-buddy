@@ -1,6 +1,7 @@
 import { APP_NAME } from "@/lib/brand";
 import { readInvitePayload } from "@/lib/share/invite";
 import { publicPackDescription } from "@/lib/share/pack-meta";
+import { packChatMessage } from "@/lib/share/payload";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const left = JSON.stringify(actual);
@@ -11,14 +12,19 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assertEqual(
-  publicPackDescription("meals", null),
-  "Еда на день. Можно поставить себе.",
-  "meals without owner",
+  publicPackDescription(null, "Отдых 2200 · зал 2600"),
+  "Отдых 2200 · зал 2600",
+  "meals poster without owner",
 );
 assertEqual(
-  publicPackDescription("workouts", "Антон"),
-  "От Антон. Программа тренировок. Можно поставить себе.",
-  "workouts with owner",
+  publicPackDescription("Антон", "Тело A / Тело B · присед, жим, тяга"),
+  "От Антон. Тело A / Тело B · присед, жим, тяга",
+  "workouts poster with owner",
+);
+assertEqual(
+  packChatMessage("Антон", "Обед · творог, овсянка, банан, яйца"),
+  "От Антон.\n\nОбед · творог, овсянка, банан, яйца",
+  "bot pack message",
 );
 
 assertEqual(

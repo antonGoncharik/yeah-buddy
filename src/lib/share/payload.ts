@@ -2,7 +2,11 @@ import { z } from "zod";
 
 import { APP_NAME } from "@/lib/brand";
 import { FOOD_STATES } from "@/lib/foods";
-import { PACK_EMPTY_MEALS, PACK_EMPTY_WORKOUTS } from "@/lib/messages";
+import {
+  NAMED_MEAL_EMPTY,
+  PACK_EMPTY_MEALS,
+  PACK_EMPTY_WORKOUTS,
+} from "@/lib/messages";
 import {
   calcKcalFromMacros,
   calcMacrosFromPer100,
@@ -22,13 +26,14 @@ import {
   EXERCISE_CATEGORIES,
   EXERCISE_UNITS,
   EXERCISE_WORKOUT_TYPES,
+  exerciseShortLabel,
   FORMULA_PRESETS,
 } from "@/lib/workout/labels";
 import { formulasSchema } from "@/lib/workout/map-settings";
 import { slotFor } from "@/lib/workout/slot-plan";
 import { slotPlanSchema } from "@/lib/workout/slot-plan-schema";
 
-export const SHARE_PACK_KINDS = ["meals", "workouts"] as const;
+export const SHARE_PACK_KINDS = ["meals", "workouts", "meal"] as const;
 
 export type SharePackKind = (typeof SHARE_PACK_KINDS)[number];
 
@@ -49,21 +54,26 @@ export const packFoodSchema = z.object({
   is_favorite: z.boolean(),
 });
 
-export const packMealItemSchema = z.object({
-  meal_type: z.enum([
-    "breakfast",
-    "lunch",
-    "snack",
-    "dinner",
-    "pre_workout",
-    "post_workout",
-  ]),
+const mealTypeSchema = z.enum([
+  "breakfast",
+  "lunch",
+  "snack",
+  "dinner",
+  "pre_workout",
+  "post_workout",
+]);
+
+export const packMealLineSchema = z.object({
   food_name: z.string().trim().min(1).max(80),
   food_state: z.enum(FOOD_STATES),
   protein_per_100: foodKeyPart,
   fat_per_100: foodKeyPart,
   carbs_per_100: foodKeyPart,
   grams: z.number().finite().positive(),
+});
+
+export const packMealItemSchema = packMealLineSchema.extend({
+  meal_type: mealTypeSchema,
 });
 
 export const packMealDaySchema = z.object({
@@ -113,12 +123,25 @@ export const workoutsPackPayloadSchema = z.object({
   max_increase_percent: z.number().finite().min(0).max(50),
 });
 
+export const mealPackPayloadSchema = z.object({
+  v: z.literal(1),
+  name: z.string().trim().min(1).max(40),
+  meal_type: mealTypeSchema,
+  foods: z.array(packFoodSchema).min(1).max(80),
+  items: z.array(packMealLineSchema).min(1).max(20),
+});
+
 export type PackFood = z.infer<typeof packFoodSchema>;
 export type PackMealItem = z.infer<typeof packMealItemSchema>;
+export type PackMealLine = z.infer<typeof packMealLineSchema>;
 export type MealsPackPayload = z.infer<typeof mealsPackPayloadSchema>;
 export type PackExercise = z.infer<typeof packExerciseSchema>;
 export type WorkoutsPackPayload = z.infer<typeof workoutsPackPayloadSchema>;
-export type SharePackPayload = MealsPackPayload | WorkoutsPackPayload;
+export type MealPackPayload = z.infer<typeof mealPackPayloadSchema>;
+export type SharePackPayload =
+  | MealsPackPayload
+  | WorkoutsPackPayload
+  | MealPackPayload;
 
 export function parseSharePayload(
   kind: SharePackKind,
@@ -128,13 +151,16 @@ export function parseSharePayload(
     const parsed = mealsPackPayloadSchema.safeParse(value);
     return parsed.success ? parsed.data : null;
   }
-
-  const parsed = workoutsPackPayloadSchema.safeParse(value);
+  if (kind === "workouts") {
+    const parsed = workoutsPackPayloadSchema.safeParse(value);
+    return parsed.success ? parsed.data : null;
+  }
+  const parsed = mealPackPayloadSchema.safeParse(value);
   return parsed.success ? parsed.data : null;
 }
 
 export function isSharePackKind(value: unknown): value is SharePackKind {
-  return value === "meals" || value === "workouts";
+  return value === "meals" || value === "workouts" || value === "meal";
 }
 
 export class PackEmptyError extends Error {}
@@ -290,16 +316,62 @@ export function mealsPackHint(payload: MealsPackPayload): string {
   const training = payload.templates.find((row) => row.day_type === "training");
   const restKcal = rest ? dayKcal(rest.items) : 0;
   const trainingKcal = training ? dayKcal(training.items) : 0;
-  return `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`;
+  return `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)}`;
 }
 
 export function workoutsPackHint(payload: WorkoutsPackPayload): string {
   const names = payload.templates.map((day) => day.name);
-  if (names.length <= 3) {
-    return names.join(" · ");
-  }
+  const days =
+    names.length <= 4
+      ? names.join(" / ")
+      : `${names.slice(0, 2).join(" / ")} и ещё ${names.length - 2}`;
+  const lifts = workoutPackLifts(payload);
+  return lifts ? `${days} · ${lifts}` : days;
+}
 
-  return `${names.slice(0, 2).join(" · ")} и ещё ${names.length - 2}`;
+export function mealPackHint(payload: MealPackPayload): string {
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const item of payload.items) {
+    const name = item.food_name.trim();
+    const key = name.toLowerCase();
+    if (name === "" || seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    names.push(name);
+    if (names.length >= 4) {
+      break;
+    }
+  }
+  if (names.length === 0) {
+    return payload.name;
+  }
+  return `${payload.name} · ${names.join(", ")}`;
+}
+
+export function packPoster(
+  kind: SharePackKind,
+  payload: SharePackPayload,
+): string {
+  if (kind === "meals") {
+    return mealsPackHint(payload as MealsPackPayload);
+  }
+  if (kind === "workouts") {
+    return workoutsPackHint(payload as WorkoutsPackPayload);
+  }
+  return mealPackHint(payload as MealPackPayload);
+}
+
+export function packChatMessage(
+  ownerName: string | null,
+  poster: string,
+): string {
+  const fromOwner = ownerName?.trim();
+  if (!fromOwner) {
+    return poster;
+  }
+  return `От ${fromOwner}.\n\n${poster}`;
 }
 
 export function defaultMealsTitle(payload: MealsPackPayload): string {
@@ -314,14 +386,105 @@ export function defaultWorkoutsTitle(payload: WorkoutsPackPayload): string {
   return payload.templates.map((day) => day.name).join(" / ");
 }
 
+export function defaultMealTitle(payload: MealPackPayload): string {
+  return payload.name;
+}
+
 export function packShareText(kind: SharePackKind, title?: string): string {
   const name = title?.trim();
   if (name) {
     return `${name} — ${APP_NAME}`;
   }
-  return kind === "meals"
-    ? `Еда на день из ${APP_NAME}`
-    : `Тренировки из ${APP_NAME}`;
+  if (kind === "meals") {
+    return `Еда на день из ${APP_NAME}`;
+  }
+  if (kind === "workouts") {
+    return `Тренировки из ${APP_NAME}`;
+  }
+  return `Приём из ${APP_NAME}`;
+}
+
+export function buildMealPayload(input: {
+  name: string;
+  mealType: MealPackPayload["meal_type"];
+  foods: PackFood[];
+  items: Array<{ food: PackFood; grams: number }>;
+}): MealPackPayload {
+  if (input.items.length === 0) {
+    throw new PackEmptyError(NAMED_MEAL_EMPTY);
+  }
+
+  const foodsByKey = new Map<string, PackFood>();
+  for (const food of input.foods) {
+    const key = foodMatchKey(food);
+    if (!foodsByKey.has(key)) {
+      foodsByKey.set(key, food);
+    }
+  }
+  for (const item of input.items) {
+    const key = foodMatchKey(item.food);
+    if (!foodsByKey.has(key)) {
+      foodsByKey.set(key, item.food);
+    }
+  }
+
+  return mealPackPayloadSchema.parse({
+    v: 1,
+    name: input.name,
+    meal_type: input.mealType,
+    foods: [...foodsByKey.values()],
+    items: input.items.map((item) => ({
+      food_name: item.food.name,
+      food_state: item.food.state,
+      protein_per_100: item.food.protein_per_100,
+      fat_per_100: item.food.fat_per_100,
+      carbs_per_100: item.food.carbs_per_100,
+      grams: item.grams,
+    })),
+  });
+}
+
+function workoutPackLifts(payload: WorkoutsPackPayload): string {
+  const byName = new Map(
+    payload.exercises.map((exercise) => [exercise.name, exercise] as const),
+  );
+  const labels: string[] = [];
+  const seen = new Set<string>();
+
+  const push = (name: string, baseOnly: boolean) => {
+    if (labels.length >= 3) {
+      return;
+    }
+    const exercise = byName.get(name);
+    if (baseOnly && exercise?.category !== "base") {
+      return;
+    }
+    const label = exerciseShortLabel(exercise?.short_name, name).trim();
+    if (label === "") {
+      return;
+    }
+    const key = label.toLowerCase();
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    labels.push(label);
+  };
+
+  for (const day of payload.templates) {
+    for (const name of day.exercises) {
+      push(name, true);
+    }
+  }
+  if (labels.length < 3) {
+    for (const day of payload.templates) {
+      for (const name of day.exercises) {
+        push(name, false);
+      }
+    }
+  }
+
+  return labels.join(", ");
 }
 
 export function mealDayTotals(items: PackMealItem[]): {

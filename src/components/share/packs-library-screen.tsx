@@ -56,11 +56,11 @@ export function PacksLibraryScreen() {
 
       <div className="flex flex-col gap-4 px-4 pb-36">
         <p className="text-base text-muted-foreground">
-          Едой на день и программой тренировок делишься отдельными ссылками и
-          QR. В ссылку попадают только шаблоны — записи из дневника и рабочие
-          веса остаются у тебя. Ссылку можно убрать — она перестанет
-          открываться. Ссылки от друзей сохраняются сюда, поставить их можно
-          когда удобно.
+          Едой на день, одним приёмом и программой тренировок делишься
+          отдельными ссылками и QR. В ссылку попадают только шаблоны и строки
+          приёма — записи из дневника и рабочие веса остаются у тебя. Ссылку
+          можно убрать — она перестанет открываться. Ссылки от друзей
+          сохраняются сюда, поставить их можно когда удобно.
         </p>
 
         {loading ? <ScreenLoading /> : null}
@@ -73,7 +73,7 @@ export function PacksLibraryScreen() {
           <EmptyNote
             icon={<LinkDoodle className="h-8 w-10" />}
             title="Пока пусто."
-            hint="Поделись едой на день или программой тренировок — ссылка появится здесь."
+            hint="Поделись обедом, едой на день или программой — ссылка появится здесь."
           />
         ) : null}
 
@@ -109,6 +109,7 @@ export function PacksLibraryScreen() {
 }
 
 function packHint(pack: SharePackSummary): string {
-  const kind = pack.kind === "meals" ? "Еда" : "Зал";
+  const kind =
+    pack.kind === "workouts" ? "Зал" : pack.kind === "meals" ? "Еда" : "Приём";
   return `${kind} · ${pack.hint}`;
 }

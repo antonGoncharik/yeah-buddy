@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { readNamedMealHint } from "@/components/day/today-copy-request";
 import { useConfirm, usePrompt } from "@/components/layout/confirm-provider";
@@ -8,6 +9,8 @@ import { deleteJson, postJson } from "@/lib/api-cache";
 import { writeCachedNamedMeals } from "@/lib/day/cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { getMealLabel } from "@/lib/nutrition";
+import { readSharePackPayload } from "@/lib/share/map";
+import { packPath } from "@/lib/share/pending";
 import { haptic } from "@/lib/telegram/haptic";
 import type { MealType, NamedMealHint } from "@/lib/types";
 
@@ -20,6 +23,7 @@ export function useTodayNamedMeals({
   date: string;
   setNamedMeals: Dispatch<SetStateAction<NamedMealHint[]>>;
 }) {
+  const router = useRouter();
   const confirm = useConfirm();
   const prompt = usePrompt();
 
@@ -94,5 +98,32 @@ export function useTodayNamedMeals({
     }
   }
 
-  return { saveNamedMeal, deleteNamedMeal };
+  async function shareMealPack(body: {
+    mealId?: string;
+    namedMealId?: string;
+  }) {
+    if (viewOnly) {
+      return;
+    }
+
+    try {
+      const data = await postJson("/api/packs", { kind: "meal", ...body });
+      const pack = readSharePackPayload(data);
+      if (!pack) {
+        throw new Error(LOAD_FAILED);
+      }
+      haptic("success");
+      router.push(packPath(pack.token, "today"));
+    } catch (caught) {
+      haptic("error");
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
+  return {
+    saveNamedMeal,
+    deleteNamedMeal,
+    shareMeal: (mealId: string) => shareMealPack({ mealId }),
+    shareNamedMeal: (namedMealId: string) => shareMealPack({ namedMealId }),
+  };
 }

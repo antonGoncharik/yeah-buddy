@@ -46,6 +46,8 @@ export function TodayDayView({
   copyMealFromDate,
   applyNamedMeal,
   saveNamedMeal,
+  shareMeal,
+  shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
 }: {
@@ -85,6 +87,8 @@ export function TodayDayView({
     namedMealId: string,
   ) => Promise<void>;
   saveNamedMeal: (mealId: string, mealType: MealType) => Promise<void>;
+  shareMeal: (mealId: string) => Promise<void>;
+  shareNamedMeal: (namedMealId: string) => Promise<void>;
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
@@ -155,6 +159,8 @@ export function TodayDayView({
         copyMealFromDate={copyMealFromDate}
         applyNamedMeal={applyNamedMeal}
         saveNamedMeal={saveNamedMeal}
+        shareMeal={shareMeal}
+        shareNamedMeal={shareNamedMeal}
         deleteNamedMeal={deleteNamedMeal}
         deleteItem={deleteItem}
       />

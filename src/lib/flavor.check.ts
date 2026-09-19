@@ -364,6 +364,11 @@ assertEqual(
   "workouts qr",
 );
 assertEqual(
+  packQrCaption("meal"),
+  "Наведи камеру — откроется приём.",
+  "meal qr",
+);
+assertEqual(
   INVITE_QR_CAPTION.includes("yeah buddy"),
   true,
   "invite qr keeps the line",

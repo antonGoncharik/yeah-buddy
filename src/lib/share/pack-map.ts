@@ -1,19 +1,24 @@
 import { MEAL_DISPLAY_ORDER } from "@/lib/nutrition";
 import {
   defaultMealsTitle,
+  defaultMealTitle,
   defaultWorkoutsTitle,
   formulaHint,
   isSharePackKind,
+  type MealPackPayload,
   type MealsPackPayload,
   mealDayTotals,
-  mealsPackHint,
+  packPoster,
   parseSharePayload,
   type SharePackKind,
   type SharePackPayload,
   type WorkoutsPackPayload,
-  workoutsPackHint,
 } from "@/lib/share/payload";
-import type { ShareMealDayPreview, SharePackSummary } from "@/lib/share/types";
+import type {
+  ShareMealDayPreview,
+  ShareMealPreview,
+  SharePackSummary,
+} from "@/lib/share/types";
 import { getPackShareUrl } from "@/lib/telegram/bot";
 import { fillFormulas } from "@/lib/workout/map-settings";
 
@@ -43,10 +48,7 @@ export async function toSummary(
     token: pack.token,
     kind: pack.kind,
     title: pack.title,
-    hint:
-      pack.kind === "meals"
-        ? mealsPackHint(pack.payload as MealsPackPayload)
-        : workoutsPackHint(pack.payload as WorkoutsPackPayload),
+    hint: packPoster(pack.kind, pack.payload),
     created_at: pack.created_at,
     revoked: Boolean(pack.revoked_at),
     mine,
@@ -131,6 +133,29 @@ export function mapPackRow(row: Record<string, unknown>): PackRow | null {
   };
 }
 
+export function mealPreview(payload: MealPackPayload): ShareMealPreview {
+  const totals = mealDayTotals(
+    payload.items.map((item) => ({
+      meal_type: payload.meal_type,
+      food_name: item.food_name,
+      food_state: item.food_state,
+      protein_per_100: item.protein_per_100,
+      fat_per_100: item.fat_per_100,
+      carbs_per_100: item.carbs_per_100,
+      grams: item.grams,
+    })),
+  );
+  return {
+    name: payload.name,
+    meal_type: payload.meal_type,
+    ...totals,
+    items: payload.items.map((item) => ({
+      name: item.food_name,
+      grams: item.grams,
+    })),
+  };
+}
+
 export function resolveTitle(
   raw: string | undefined,
   kind: SharePackKind,
@@ -144,9 +169,12 @@ export function resolveTitle(
   if (kind === "meals") {
     return defaultMealsTitle(payload as MealsPackPayload).slice(0, TITLE_MAX);
   }
+  if (kind === "workouts") {
+    return defaultWorkoutsTitle(payload as WorkoutsPackPayload).slice(
+      0,
+      TITLE_MAX,
+    );
+  }
 
-  return defaultWorkoutsTitle(payload as WorkoutsPackPayload).slice(
-    0,
-    TITLE_MAX,
-  );
+  return defaultMealTitle(payload as MealPackPayload).slice(0, TITLE_MAX);
 }

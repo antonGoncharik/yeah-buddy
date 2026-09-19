@@ -36,6 +36,16 @@ export interface ShareWorkoutDayPreview {
   exercises: string[];
 }
 
+export interface ShareMealPreview {
+  name: string;
+  meal_type: MealType;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+  items: Array<{ name: string; grams: number }>;
+}
+
 export interface SharePackDetail extends SharePackSummary {
   owner_name: string | null;
   saved: boolean;
@@ -47,6 +57,7 @@ export interface SharePackDetail extends SharePackSummary {
     formula_hint: string;
     days: ShareWorkoutDayPreview[];
   } | null;
+  meal: ShareMealPreview | null;
 }
 
 export type { WorkoutsPackPayload };

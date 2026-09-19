@@ -204,6 +204,7 @@ export const INVITE_QR_CAPTION =
   "Наведи камеру. Бот скажет yeah buddy — жми Start.";
 export const PACK_MEALS_QR_CAPTION = "Наведи камеру — откроется еда на день.";
 export const PACK_WORKOUTS_QR_CAPTION = "Наведи камеру — откроется программа.";
+export const PACK_MEAL_QR_CAPTION = "Наведи камеру — откроется приём.";
 export const PLATE_IDLE_LINE =
   "Сфотографируй тарелку. Своё — с граммами, остальное разовой порцией, в список не попадёт.";
 export const PLATE_CAPTURE_LABEL = "Снять тарелку";
@@ -326,8 +327,14 @@ export function mealEmptyLine(mealType: MealType): string {
   return MEAL_EMPTY_LINES[mealType];
 }
 
-export function packQrCaption(kind: "meals" | "workouts"): string {
-  return kind === "meals" ? PACK_MEALS_QR_CAPTION : PACK_WORKOUTS_QR_CAPTION;
+export function packQrCaption(kind: "meals" | "workouts" | "meal"): string {
+  if (kind === "meals") {
+    return PACK_MEALS_QR_CAPTION;
+  }
+  if (kind === "workouts") {
+    return PACK_WORKOUTS_QR_CAPTION;
+  }
+  return PACK_MEAL_QR_CAPTION;
 }
 
 function normalizeSearch(query: string): string {

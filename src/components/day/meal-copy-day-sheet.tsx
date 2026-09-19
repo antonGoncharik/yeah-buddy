@@ -15,6 +15,8 @@ export function MealCopyDaySheet({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
+  onShareMeal,
+  onShareNamed,
   onDeleteNamed,
   onCancel,
 }: {
@@ -28,6 +30,8 @@ export function MealCopyDaySheet({
   onCopyDate?: (date: string) => void;
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
+  onShareMeal?: () => void;
+  onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
   onCancel: () => void;
 }) {
@@ -65,6 +69,18 @@ export function MealCopyDaySheet({
           >
             <span className="truncate">{meal.name}</span>
           </Button>
+          {onShareNamed ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-12 shrink-0 px-3 text-base text-muted-foreground"
+              disabled={busy}
+              aria-label={`Поделиться ${meal.name}`}
+              onClick={() => onShareNamed(meal.id)}
+            >
+              ↗
+            </Button>
+          ) : null}
           {onDeleteNamed ? (
             <Button
               type="button"
@@ -79,6 +95,17 @@ export function MealCopyDaySheet({
           ) : null}
         </div>
       ))}
+      {hasItems && onShareMeal ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-12 w-full text-base"
+          disabled={busy}
+          onClick={onShareMeal}
+        >
+          Поделиться
+        </Button>
+      ) : null}
       {hasItems && onSaveNamed ? (
         <Button
           type="button"

@@ -63,6 +63,8 @@ export function TodayScreen({
     copyMealFromDate,
     applyNamedMeal,
     saveNamedMeal,
+    shareMeal,
+    shareNamedMeal,
     deleteNamedMeal,
     switchType,
     saveBodyWeight,
@@ -210,6 +212,8 @@ export function TodayScreen({
             copyMealFromDate={copyMealFromDate}
             applyNamedMeal={applyNamedMeal}
             saveNamedMeal={saveNamedMeal}
+            shareMeal={shareMeal}
+            shareNamedMeal={shareNamedMeal}
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
           />

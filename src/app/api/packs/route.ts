@@ -15,13 +15,26 @@ import {
   PackEmptyError,
   PackLimitError,
   publishLivePack,
+  publishMealPack,
 } from "@/lib/share/packs";
 import { isSharePackKind } from "@/lib/share/payload";
 
 const bodySchema = z.object({
   kind: z.string(),
   title: z.string().trim().max(60).optional(),
+  mealId: z.string().trim().min(1).optional(),
+  namedMealId: z.string().trim().min(1).optional(),
 });
+
+function isPublishBody(data: z.infer<typeof bodySchema>): boolean {
+  if (!isSharePackKind(data.kind)) {
+    return false;
+  }
+  if (data.kind !== "meal") {
+    return true;
+  }
+  return Boolean(data.mealId) !== Boolean(data.namedMealId);
+}
 
 export async function GET(): Promise<NextResponse> {
   const auth = await requireSession();
@@ -43,9 +56,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return auth.response;
   }
 
-  const parsed = await parseJsonSchema(request, bodySchema, (data) =>
-    isSharePackKind(data.kind),
-  );
+  const parsed = await parseJsonSchema(request, bodySchema, isPublishBody);
   if (!parsed.ok) {
     return parsed.response;
   }
@@ -55,11 +66,21 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const pack = await publishLivePack(
-      auth.session.userId,
-      parsed.data.kind,
-      parsed.data.title,
-    );
+    const pack =
+      parsed.data.kind === "meal"
+        ? await publishMealPack(
+            auth.session.userId,
+            {
+              mealId: parsed.data.mealId,
+              namedMealId: parsed.data.namedMealId,
+            },
+            parsed.data.title,
+          )
+        : await publishLivePack(
+            auth.session.userId,
+            parsed.data.kind,
+            parsed.data.title,
+          );
     return jsonOk({ pack });
   } catch (error) {
     return failRoute(error, [

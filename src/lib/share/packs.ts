@@ -1,9 +1,14 @@
+import { applyMealPack } from "./pack-apply-meal";
 import { applyMealsPack } from "./pack-apply-meals";
 import { applyWorkoutsPack } from "./pack-apply-workouts";
 import { PackLimitError, PackNotFoundError } from "./pack-errors";
 import { loadOwnedOrPublic } from "./pack-load";
 import { getPackDetail, savePackCopy } from "./pack-publish";
-import type { MealsPackPayload, WorkoutsPackPayload } from "./payload";
+import type {
+  MealPackPayload,
+  MealsPackPayload,
+  WorkoutsPackPayload,
+} from "./payload";
 import type { SharePackDetail } from "./types";
 
 export {
@@ -15,6 +20,7 @@ export {
   getPackDetail,
   listOwnedPacks,
   publishLivePack,
+  publishMealPack,
   revokePack,
   savePackCopy,
 } from "./pack-publish";
@@ -30,8 +36,10 @@ export async function applyPack(
 
   if (pack.kind === "meals") {
     await applyMealsPack(userId, pack.payload as MealsPackPayload);
-  } else {
+  } else if (pack.kind === "workouts") {
     await applyWorkoutsPack(userId, pack.payload as WorkoutsPackPayload);
+  } else {
+    await applyMealPack(userId, pack.payload as MealPackPayload);
   }
 
   if (pack.owner_user_id !== userId) {

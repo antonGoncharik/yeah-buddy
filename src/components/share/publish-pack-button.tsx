@@ -16,7 +16,7 @@ export function PublishPackButton({
   from,
   className,
 }: {
-  kind: SharePackKind;
+  kind: Exclude<SharePackKind, "meal">;
   from: PackBackFrom;
   className?: string;
 }) {

@@ -102,7 +102,9 @@ export function usePackDetailScreen(token: string) {
       message:
         pack.kind === "meals"
           ? "Еда на день и цели по белкам, жирам и углеводам станут как в ссылке. Уже записанные дни не изменятся."
-          : "Программа станет как в ссылке. Рабочие веса останутся твои. Свои дни не удалятся — просто отложатся.",
+          : pack.kind === "workouts"
+            ? "Программа станет как в ссылке. Рабочие веса останутся твои. Свои дни не удалятся — просто отложатся."
+            : "Приём сохранится. Если этот слот сегодня пустой — подставится. Уже записанное не заменится.",
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });
@@ -116,16 +118,18 @@ export function usePackDetailScreen(token: string) {
       await mutateJson(`/api/packs/${pack.token}/apply`, { method: "POST" });
       dismissPendingPackToken(token);
       haptic("success");
+      if (pack.kind === "workouts") {
+        router.replace("/workouts");
+        return;
+      }
       if (pack.kind === "meals") {
         try {
           await ensureTodayDay("rest");
         } catch {
           // still open today
         }
-        router.replace("/today");
-        return;
       }
-      router.replace("/workouts");
+      router.replace("/today");
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
@@ -142,7 +146,7 @@ export function usePackDetailScreen(token: string) {
     try {
       const result = await shareOrCopyLink(
         url,
-        packShareText(pack.kind, pack.title),
+        pack.hint || packShareText(pack.kind, pack.title),
       );
       setCopied(result === "copied");
     } catch {

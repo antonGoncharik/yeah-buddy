@@ -3,6 +3,10 @@ import type { NextResponse } from "next/server";
 import { failRoute, jsonOk, whenError } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
+  NamedMealEmptyError,
+  NamedMealLimitError,
+} from "@/lib/named-meal/errors";
+import {
   applyPack,
   PackEmptyError,
   PackLimitError,
@@ -32,6 +36,8 @@ export async function POST(
       whenError(PackNotFoundError, 404),
       whenError(PackEmptyError, 400),
       whenError(PackLimitError, 400),
+      whenError(NamedMealEmptyError, 400),
+      whenError(NamedMealLimitError, 400),
     ]);
   }
 }

@@ -1,13 +1,19 @@
 import { PACK_EMPTY_MEALS, PACK_EMPTY_WORKOUTS } from "@/lib/messages";
 import {
+  buildMealPayload,
   buildMealsPayload,
   buildWorkoutsPayload,
   defaultMealsTitle,
   foodMatchKey,
   formulaHint,
+  isSharePackKind,
+  mealPackHint,
+  mealsPackHint,
   PackEmptyError,
+  packPoster,
   packShareText,
   parseSharePayload,
+  workoutsPackHint,
 } from "@/lib/share/payload";
 import { createPackToken, isPackToken } from "@/lib/share/token";
 import type {
@@ -175,6 +181,19 @@ assert(
   packShareText("workouts") === "Тренировки из Yeah Buddy",
   "share text workouts fallback",
 );
+assert(
+  packShareText("meal") === "Приём из Yeah Buddy",
+  "share text meal fallback",
+);
+assert(isSharePackKind("meal"), "meal is a pack kind");
+assert(
+  mealsPackHint(meals) === "Отдых 182 · зал 0",
+  "meals poster is rest/gym kcal",
+);
+assert(
+  packPoster("meals", meals) === mealsPackHint(meals),
+  "poster matches meals hint",
+);
 
 const emptyWorkouts = buildWorkoutsPayloadFail();
 assert(emptyWorkouts === PACK_EMPTY_WORKOUTS, "empty workouts text");
@@ -240,6 +259,24 @@ assert(
   "workouts payload parses",
 );
 assert(formulaHint(DEFAULT_WORKOUT_FORMULAS) === "3×5", "3x5 hint");
+assert(
+  workoutsPackHint(workouts) === "Сила A · Присед",
+  "workouts poster is days and lifts",
+);
+
+const cottage = meals.foods[0];
+assert(cottage != null, "meals food snapshot");
+const mealPack = buildMealPayload({
+  name: "Обед",
+  mealType: "lunch",
+  foods: meals.foods,
+  items: [{ food: cottage, grams: 150 }],
+});
+assert(parseSharePayload("meal", mealPack) != null, "meal payload parses");
+assert(
+  mealPackHint(mealPack) === "Обед · Творог 5%",
+  "meal poster is name and foods",
+);
 
 function buildWorkoutsPayloadFail(): string {
   try {

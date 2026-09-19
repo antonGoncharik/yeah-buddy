@@ -1,7 +1,12 @@
 import { Bot, GrammyError, InlineKeyboard } from "grammy";
 
 import { getServerEnv, type ServerEnv } from "@/lib/env";
-import { BOT_OPEN_DIARY, BOT_START, BOT_YEAH_BUDDY } from "@/lib/messages";
+import {
+  BOT_OPEN_DIARY,
+  BOT_PACK_START,
+  BOT_START,
+  BOT_YEAH_BUDDY,
+} from "@/lib/messages";
 import { isPackToken } from "@/lib/share/token";
 import {
   resolveAppShareUrl,
@@ -62,6 +67,17 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
     const payload = typeof ctx.match === "string" ? ctx.match.trim() : "";
     const token = isPackToken(payload) ? payload : null;
     const buttonUrl = token ? withStartApp(miniAppUrl, token) : miniAppUrl;
+
+    if (token) {
+      const { packBotReply } = await import("@/lib/share/pack-meta");
+      const reply = await packBotReply(token);
+      if (reply) {
+        await ctx.reply(reply.text, {
+          reply_markup: new InlineKeyboard().webApp(BOT_PACK_START, buttonUrl),
+        });
+        return;
+      }
+    }
 
     await ctx.reply(BOT_START, {
       // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).

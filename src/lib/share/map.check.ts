@@ -25,8 +25,8 @@ assert(live?.revoked === false, "own pack is live");
 
 const received = parseSharePackSummary({
   token: "mnopqrstuvwx",
-  kind: "workouts",
-  title: "Зал",
+  kind: "meal",
+  title: "Обед",
   mine: true,
   received: true,
 });

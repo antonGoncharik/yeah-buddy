@@ -34,6 +34,11 @@ assertEqual(
   "meal pack skips protein after the intro",
 );
 assertEqual(
+  onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
+  "guide,food,circle",
+  "one meal pack still asks protein and program",
+);
+assertEqual(
   onboardingSteps({ ...empty, replay: true, pendingKind: "meals" }).join(),
   "food",
   "replay always has at least the protein step",

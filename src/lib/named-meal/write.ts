@@ -9,7 +9,23 @@ import { mapNamedMeal } from "@/lib/named-meal/map";
 import { findNamedMealByName, listNamedMealHints } from "@/lib/named-meal/read";
 import { NAMED_MEAL_LIMIT } from "@/lib/named-meal/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { NamedMeal, NamedMealHint } from "@/lib/types";
+import type { MealType, NamedMeal, NamedMealHint } from "@/lib/types";
+
+export interface NamedMealItemWrite {
+  food_id: string | null;
+  name_snapshot: string;
+  grams: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+  per_100_snapshot: {
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal: number;
+  };
+}
 
 export async function saveNamedMealFromMeal(
   userId: string,
@@ -31,6 +47,33 @@ export async function saveNamedMealFromMeal(
     throw new NamedMealEmptyError();
   }
 
+  return upsertNamedMealFromItems(
+    userId,
+    name,
+    meal.meal_type,
+    meal.items.map((item) => ({
+      food_id: item.food_id,
+      name_snapshot: item.name_snapshot,
+      grams: item.grams,
+      protein: item.protein,
+      fat: item.fat,
+      carbs: item.carbs,
+      kcal: item.kcal,
+      per_100_snapshot: item.per_100_snapshot,
+    })),
+  );
+}
+
+export async function upsertNamedMealFromItems(
+  userId: string,
+  name: string,
+  mealType: MealType,
+  items: NamedMealItemWrite[],
+): Promise<NamedMealHint> {
+  if (items.length === 0) {
+    throw new NamedMealEmptyError();
+  }
+
   const supabase = createSupabaseServerClient();
   const existing = await findNamedMealByName(userId, name);
 
@@ -45,7 +88,7 @@ export async function saveNamedMealFromMeal(
   if (existing) {
     const updated = await supabase
       .from("named_meals")
-      .update({ meal_type: meal.meal_type })
+      .update({ meal_type: mealType })
       .eq("id", existing.id)
       .eq("user_id", userId)
       .select("*")
@@ -69,7 +112,7 @@ export async function saveNamedMealFromMeal(
       .insert({
         user_id: userId,
         name,
-        meal_type: meal.meal_type,
+        meal_type: mealType,
       })
       .select("*")
       .single();
@@ -80,7 +123,7 @@ export async function saveNamedMealFromMeal(
   }
 
   const inserted = await supabase.from("named_meal_items").insert(
-    meal.items.map((item, index) => ({
+    items.map((item, index) => ({
       user_id: userId,
       named_meal_id: namedMeal.id,
       food_id: item.food_id,

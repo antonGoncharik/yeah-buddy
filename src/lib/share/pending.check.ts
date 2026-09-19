@@ -53,8 +53,10 @@ assert(
   "pack path with from",
 );
 assert(parsePackBackFrom("schedule") === "schedule", "parse from");
+assert(parsePackBackFrom("today") === "today", "parse today");
 assert(parsePackBackFrom("nope") === null, "reject from");
 assert(packBackHref("meals") === "/settings/meals", "back to meals");
+assert(packBackHref("today") === "/today", "back to today");
 assert(packBackHref(null) === "/settings/packs", "back default");
 
 console.log("share pending ok");

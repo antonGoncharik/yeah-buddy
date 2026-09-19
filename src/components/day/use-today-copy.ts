@@ -205,6 +205,8 @@ export function useTodayCopy({
     applyNamedMeal,
     saveNamedMeal: named.saveNamedMeal,
     deleteNamedMeal: named.deleteNamedMeal,
+    shareMeal: named.shareMeal,
+    shareNamedMeal: named.shareNamedMeal,
     fillDayFromTemplate: (dayId: string) =>
       fillFromTemplate(`/api/days/${dayId}/fill-template`),
     fillMealFromTemplate: (mealId: string) =>

@@ -25,6 +25,8 @@ export function TodayDayMeals({
   copyMealFromDate,
   applyNamedMeal,
   saveNamedMeal,
+  shareMeal,
+  shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
 }: {
@@ -49,6 +51,8 @@ export function TodayDayMeals({
     namedMealId: string,
   ) => Promise<void>;
   saveNamedMeal: (mealId: string, mealType: MealType) => Promise<void>;
+  shareMeal?: (mealId: string) => Promise<void>;
+  shareNamedMeal?: (namedMealId: string) => Promise<void>;
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
@@ -97,6 +101,16 @@ export function TodayDayMeals({
             viewOnly
               ? undefined
               : () => void saveNamedMeal(meal.id, meal.meal_type)
+          }
+          onShareMeal={
+            viewOnly || isTempId(meal.id) || !shareMeal
+              ? undefined
+              : () => void shareMeal(meal.id)
+          }
+          onShareNamed={
+            viewOnly || !shareNamedMeal
+              ? undefined
+              : (namedMealId) => void shareNamedMeal(namedMealId)
           }
           onDeleteNamed={
             viewOnly

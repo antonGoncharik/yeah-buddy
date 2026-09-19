@@ -3,7 +3,7 @@ import { isPackToken } from "@/lib/share/token";
 const PACK_PENDING_KEY = "yb.pack";
 const PACK_SEEN_KEY = "yb.pack.seen";
 
-export type PackBackFrom = "meals" | "schedule" | "packs";
+export type PackBackFrom = "meals" | "schedule" | "packs" | "today";
 
 function storage(): Storage | null {
   if (typeof sessionStorage === "undefined") {
@@ -74,7 +74,12 @@ export function packPath(token: string, from?: PackBackFrom): string {
 }
 
 export function parsePackBackFrom(value: string | null): PackBackFrom | null {
-  if (value === "meals" || value === "schedule" || value === "packs") {
+  if (
+    value === "meals" ||
+    value === "schedule" ||
+    value === "packs" ||
+    value === "today"
+  ) {
     return value;
   }
   return null;
@@ -86,6 +91,9 @@ export function packBackHref(from: PackBackFrom | null): string {
   }
   if (from === "schedule") {
     return "/workouts/schedule";
+  }
+  if (from === "today") {
+    return "/today";
   }
   return "/settings/packs";
 }

@@ -38,6 +38,7 @@ export const BOT_START = `Yeah buddy! 👟
 
 Light weight. Погнали 🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
+export const BOT_PACK_START = "Start";
 export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
 

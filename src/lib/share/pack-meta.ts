@@ -1,16 +1,14 @@
 import { APP_NAME } from "@/lib/brand";
 import { loadOwnerName, loadPublicPack } from "@/lib/share/pack-load";
-import { packShareText, type SharePackKind } from "@/lib/share/payload";
+import { packChatMessage, packPoster } from "@/lib/share/payload";
 import { isPackToken } from "@/lib/share/token";
 
 export function publicPackDescription(
-  kind: SharePackKind,
   ownerName: string | null,
+  poster: string,
 ): string {
   const fromOwner = ownerName ? `От ${ownerName}. ` : "";
-  return kind === "meals"
-    ? `${fromOwner}Еда на день. Можно поставить себе.`
-    : `${fromOwner}Программа тренировок. Можно поставить себе.`;
+  return `${fromOwner}${poster}`;
 }
 
 export async function publicPackOpenGraph(
@@ -27,9 +25,32 @@ export async function publicPackOpenGraph(
     }
 
     const ownerName = await loadOwnerName(pack.owner_user_id);
+    const poster = packPoster(pack.kind, pack.payload);
     return {
-      title: packShareText(pack.kind, pack.title),
-      description: publicPackDescription(pack.kind, ownerName),
+      title: poster,
+      description: ownerName ? `От ${ownerName}` : APP_NAME,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function packBotReply(
+  token: string,
+): Promise<{ text: string } | null> {
+  if (!isPackToken(token)) {
+    return null;
+  }
+
+  try {
+    const pack = await loadPublicPack(token);
+    if (!pack || pack.revoked_at) {
+      return null;
+    }
+
+    const ownerName = await loadOwnerName(pack.owner_user_id);
+    return {
+      text: packChatMessage(ownerName, packPoster(pack.kind, pack.payload)),
     };
   } catch {
     return null;
