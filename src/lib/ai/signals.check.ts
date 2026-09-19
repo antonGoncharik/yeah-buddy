@@ -1,5 +1,5 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
-import { reviewCoverage } from "@/lib/ai/coverage";
+import { reviewCoverage, reviewOfferReady } from "@/lib/ai/coverage";
 import { formatG } from "@/lib/ai/format";
 import { REVIEW_SYSTEM_PROMPT, reviewPromptPayload } from "@/lib/ai/prompt";
 import { buildSignals, reviewDetailSignals } from "@/lib/ai/signal-lines";
@@ -57,9 +57,13 @@ function day(input: {
 
 assertEqual(reviewCoverage(0, 0), "empty", "empty log");
 assertEqual(reviewCoverage(2, 1), "thin", "thin log");
-assertEqual(reviewCoverage(4, 2), "thin", "thin still");
+assertEqual(reviewCoverage(6, 3), "thin", "thin still");
 assertEqual(reviewCoverage(7, 1), "ok", "enough days");
-assertEqual(reviewCoverage(3, 3), "ok", "enough gym");
+assertEqual(reviewCoverage(3, 3), "thin", "three gyms still thin");
+assertEqual(reviewCoverage(3, 4), "ok", "enough gym");
+assertEqual(reviewOfferReady(7, 0), true, "seven food days");
+assertEqual(reviewOfferReady(0, 4), true, "four gyms");
+assertEqual(reviewOfferReady(6, 3), false, "not yet");
 
 const proteinDays = [
   day({ date: "2026-09-01", protein: 150, targetProtein: 200 }),

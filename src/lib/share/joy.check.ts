@@ -72,6 +72,11 @@ assertEqual(
   "protein closed",
 );
 assertEqual(
+  dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 4 })?.line,
+  "Белок 4 дня подряд.",
+  "four-day protein on the day",
+);
+assertEqual(
   dayJoyMoment({ proteinClosed: true, bodyWeight: 82, proteinHits: 7 })?.line,
   "Белок семь дней подряд. Холодильник в курсе.",
   "week of protein",

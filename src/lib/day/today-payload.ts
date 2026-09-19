@@ -42,6 +42,20 @@ export function readWeightSteady(data: unknown): boolean {
   return isRecord(data) && data.weightSteady === true;
 }
 
+export function readPriorProteinHits(data: unknown): number {
+  if (!isRecord(data) || typeof data.priorProteinHits !== "number") {
+    return 0;
+  }
+  if (!Number.isInteger(data.priorProteinHits) || data.priorProteinHits < 0) {
+    return 0;
+  }
+  return data.priorProteinHits;
+}
+
+export function readReviewReady(data: unknown): boolean {
+  return isRecord(data) && data.reviewReady === true;
+}
+
 export function readCalendarToday(data: unknown): string | null {
   if (!isRecord(data) || typeof data.today !== "string") {
     return null;

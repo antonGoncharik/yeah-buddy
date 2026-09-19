@@ -17,7 +17,9 @@ export function reviewBackHref(from: string | null): string {
       return "/today";
     case "week":
       return "/today/week";
-    default:
+    case "settings":
       return "/settings";
+    default:
+      return "/today";
   }
 }

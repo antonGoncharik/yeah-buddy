@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { reviewOfferReady } from "@/lib/ai/coverage";
 import {
   failRoute,
   jsonError,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { shiftIsoDate } from "@/lib/day/dates";
+import { dayHasFood } from "@/lib/day/week";
 import {
   createDayFromTemplate,
   DayConflictError,
@@ -20,15 +21,22 @@ import {
   isIsoDate,
   listBodyWeightsInRange,
   listCopyDays,
+  listDaysInRange,
   PastDayLockedError,
   recipeFromTemplate,
   writeStateFromDay,
   yesterdayCopyHint,
 } from "@/lib/days";
-import { STEADY_WEIGHT_DAYS, steadyWeightLine } from "@/lib/flavor";
+import {
+  PROTEIN_STREAK_WINDOW,
+  priorProteinHits,
+  STEADY_WEIGHT_DAYS,
+  steadyWeightLine,
+} from "@/lib/flavor";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
+import { countCompletedSessions } from "@/lib/workout/sessions";
 
 const createSchema = z.object({
   date: z.string().optional(),
@@ -48,6 +56,8 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const today = await getUserCalendarToday(auth.session.userId);
+    const streakStart = shiftIsoDate(date, 1 - PROTEIN_STREAK_WINDOW);
+    const viewingToday = date === today;
     const [
       day,
       yesterday,
@@ -57,6 +67,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       rest,
       training,
       recentWeights,
+      recentDays,
+      gymCount,
     ] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
@@ -70,6 +82,13 @@ export async function GET(request: Request): Promise<NextResponse> {
         shiftIsoDate(date, 1 - STEADY_WEIGHT_DAYS),
         date,
       ),
+      listDaysInRange(auth.session.userId, streakStart, date),
+      viewingToday
+        ? countCompletedSessions(auth.session.userId, {
+            start: streakStart,
+            end: today,
+          })
+        : Promise.resolve(0),
     ]);
 
     return jsonOk({
@@ -84,6 +103,10 @@ export async function GET(request: Request): Promise<NextResponse> {
           new Map(recentWeights.map((row) => [row.date, row.weight])),
           date,
         ) != null,
+      priorProteinHits: priorProteinHits(recentDays, date),
+      reviewReady:
+        viewingToday &&
+        reviewOfferReady(recentDays.filter(dayHasFood).length, gymCount),
       copyDays,
       namedMeals,
       recipes: {

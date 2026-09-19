@@ -12,7 +12,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 - Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen: known foods get grams, unknown food becomes that same one-off row.
 - Your own food list: CRUD, search, favorites, recents. A shop catalog can copy a card into that list. No barcodes or live external food APIs.
 - Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Today plus the two previous calendar days stay fully writable in the user's timezone. Empty days up to seven days back can still be filled, marked «догонял»; already logged days in that extra window stay locked.
-- Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template. Catch-up days keep the «догонял» mark in the week and history.
+- Older days on Today are view-only. Food history and the week open from Today's calendar. After seven logged days or four gyms, «Как прошло» appears once on Today; Sunday the bot already adds that 14-day scoreboard to the evening reminder. The day screen shows leftover recipe grams vs the template. Catch-up days keep the «догонял» mark in the week and history.
 
 **Gym**
 

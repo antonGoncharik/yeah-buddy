@@ -5,14 +5,12 @@ import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import {
-  ChartDoodle,
   CookieDoodle,
   LinkDoodle,
   MacroDoodle,
   MugDoodle,
   PairDoodle,
   PlateDoodle,
-  WeekDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
@@ -24,7 +22,6 @@ import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
@@ -34,11 +31,7 @@ import {
   timezoneChoicesFor,
 } from "@/lib/telegram/timezone-label";
 import { cn } from "@/lib/utils";
-import {
-  MEAL_TEMPLATES_LABEL,
-  PACKS_LABEL,
-  REVIEW_LABEL,
-} from "@/lib/workout/labels";
+import { MEAL_TEMPLATES_LABEL, PACKS_LABEL } from "@/lib/workout/labels";
 
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
@@ -143,30 +136,6 @@ export function SettingsScreen() {
               updateField={updateField}
             />
           ) : null}
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <SectionHeading title="Журнал" />
-          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow
-              href={reviewHref("settings")}
-              title={REVIEW_LABEL}
-              hint="Еда, зал и вес за 14, 30 или 90 дней"
-              icon={<ChartDoodle />}
-            />
-            <NavRow
-              href="/today/week?from=settings"
-              title="Неделя"
-              hint="Еда и зал за 7 дней"
-              icon={<WeekDoodle />}
-            />
-            <NavRow
-              href="/today/history?from=settings"
-              title="История еды"
-              hint="14, 30 или 90 дней"
-              icon={<CookieDoodle />}
-            />
-          </div>
         </section>
 
         <section className="flex flex-col gap-2">

@@ -19,7 +19,9 @@ import {
   readDay,
   readLastBodyWeight,
   readNamedMeals,
+  readPriorProteinHits,
   readRecipes,
+  readReviewReady,
   readWeightSteady,
   readYesterdayExists,
 } from "@/lib/day/today-payload";
@@ -44,6 +46,8 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   }>({ rest: [], training: [] });
   const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
   const [weightSteady, setWeightSteady] = useState(false);
+  const [priorProteinHits, setPriorProteinHits] = useState(0);
+  const [reviewReady, setReviewReady] = useState(false);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -69,6 +73,8 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setRecipes(readRecipes(data));
       setLastBodyWeight(readLastBodyWeight(data));
       setWeightSteady(readWeightSteady(data));
+      setPriorProteinHits(readPriorProteinHits(data));
+      setReviewReady(readReviewReady(data));
       setLoadedDate(requestedDate);
       return true;
     },
@@ -158,6 +164,8 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setCopyDays([]);
     setLastBodyWeight(null);
     setWeightSteady(false);
+    setPriorProteinHits(0);
+    setReviewReady(false);
     setWorkoutState(null);
   }, [applyDayPayload, date, reset]);
 
@@ -189,6 +197,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     lastBodyWeight:
       cached != null ? readLastBodyWeight(cached) : lastBodyWeight,
     weightSteady: cached != null ? readWeightSteady(cached) : weightSteady,
+    priorProteinHits:
+      cached != null ? readPriorProteinHits(cached) : priorProteinHits,
+    reviewReady: cached != null ? readReviewReady(cached) : reviewReady,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
     contentReady,

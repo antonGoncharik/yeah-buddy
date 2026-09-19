@@ -13,6 +13,7 @@ import {
   LATE_NIGHT_LINE,
   LIGHT_WEIGHT_BABY_LINE,
   LIGHT_WEIGHT_LINE,
+  liveProteinHits,
   loadingFlavor,
   loadingLine,
   macrosClosedLine,
@@ -20,7 +21,9 @@ import {
   nightLoadingLine,
   overflowKcalLabel,
   PEANUT_LINE,
+  PROTEIN_STREAK_LINE,
   packQrCaption,
+  priorProteinHits,
   proteinAlmostLine,
   proteinClosed,
   proteinWeekLine,
@@ -197,12 +200,33 @@ assertEqual(
   0,
   "empty today breaks",
 );
-assertEqual(proteinWeekLine(6), null, "six is not the joke");
+assertEqual(proteinWeekLine(3), null, "three is not a streak");
+assertEqual(proteinWeekLine(4), PROTEIN_STREAK_LINE, "four days on the day");
+assertEqual(
+  proteinWeekLine(6),
+  PROTEIN_STREAK_LINE,
+  "six still the four-day line",
+);
 assertEqual(
   proteinWeekLine(7),
   "Белок семь дней подряд. Холодильник в курсе.",
   "week closed",
 );
+assertEqual(
+  priorProteinHits(
+    [
+      { date: "2026-09-19", fact_protein: 160, target_protein: 160 },
+      { date: "2026-09-18", fact_protein: 160, target_protein: 160 },
+      { date: "2026-09-17", fact_protein: 160, target_protein: 160 },
+      { date: "2026-09-16", fact_protein: 160, target_protein: 160 },
+    ],
+    "2026-09-19",
+  ),
+  3,
+  "prior skips today",
+);
+assertEqual(liveProteinHits(true, 3), 4, "today closed adds the fourth");
+assertEqual(liveProteinHits(false, 3), 0, "open today breaks");
 assertEqual(
   proteinWeekLine(14),
   "Белок две недели подряд. Это уже характер.",

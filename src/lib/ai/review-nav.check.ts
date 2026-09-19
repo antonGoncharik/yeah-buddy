@@ -16,6 +16,6 @@ assertEqual(reviewBackHref("workouts"), "/workouts", "back workouts");
 assertEqual(reviewBackHref("today"), "/today", "back today");
 assertEqual(reviewBackHref("week"), "/today/week", "back week");
 assertEqual(reviewBackHref("settings"), "/settings", "back settings");
-assertEqual(reviewBackHref(null), "/settings", "back default");
+assertEqual(reviewBackHref(null), "/today", "back default");
 
 console.log("review nav ok");

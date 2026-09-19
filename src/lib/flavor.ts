@@ -152,6 +152,9 @@ function isoDayDiff(end: string, start: string): number {
   return Math.round(ms / 86_400_000);
 }
 
+export const PROTEIN_STREAK_WINDOW = 14;
+export const PROTEIN_STREAK_LINE = "Белок 4 дня подряд.";
+
 export function consecutiveProteinHits(
   slots: ReadonlyArray<{
     day: { fact_protein: number; target_protein: number } | null;
@@ -171,12 +174,41 @@ export function consecutiveProteinHits(
   return count;
 }
 
+export function priorProteinHits(
+  days: ReadonlyArray<{
+    date: string;
+    fact_protein: number;
+    target_protein: number;
+  }>,
+  endDate: string,
+): number {
+  const byDate = new Map(days.map((day) => [day.date, day]));
+  const slots = [];
+  for (let offset = 1; offset < PROTEIN_STREAK_WINDOW; offset += 1) {
+    slots.push({ day: byDate.get(shiftIsoDate(endDate, -offset)) ?? null });
+  }
+  return consecutiveProteinHits(slots);
+}
+
+export function liveProteinHits(
+  todayClosed: boolean,
+  priorHits: number,
+): number {
+  if (!todayClosed) {
+    return 0;
+  }
+  return priorHits + 1;
+}
+
 export function proteinWeekLine(hits: number): string | null {
   if (hits >= 14) {
     return "Белок две недели подряд. Это уже характер.";
   }
   if (hits >= 7) {
     return "Белок семь дней подряд. Холодильник в курсе.";
+  }
+  if (hits >= 4) {
+    return PROTEIN_STREAK_LINE;
   }
   return null;
 }

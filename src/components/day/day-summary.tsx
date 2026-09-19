@@ -10,12 +10,14 @@ import { MeterBar } from "@/components/ui/meter-bar";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import {
   hundredWeightLine,
+  liveProteinHits,
   macrosClosedLine,
   overflowKcalLabel,
   PROTEIN_CLOSED_LABEL,
   PROTEIN_CLOSED_MS,
   proteinAlmostLine,
   proteinClosed,
+  proteinWeekLine,
   STEADY_WEIGHT_LINE,
 } from "@/lib/flavor";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
@@ -33,6 +35,7 @@ export function DaySummary({
   bodyWeightReadOnly = false,
   bodyWeightBusy = false,
   weightSteady = false,
+  priorProteinHits = 0,
   share = false,
   onSaveBodyWeight,
 }: {
@@ -53,6 +56,7 @@ export function DaySummary({
   bodyWeightReadOnly?: boolean;
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
+  priorProteinHits?: number;
   share?: boolean;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
@@ -61,6 +65,8 @@ export function DaySummary({
   const remainingProtein = day.target_protein - fact.protein;
   const proteinOverflow = remainingProtein < 0;
   const closed = proteinClosed(remainingProtein, fact.protein);
+  const hits = liveProteinHits(closed, priorProteinHits);
+  const proteinLine = proteinWeekLine(hits);
   const [flashClosed, setFlashClosed] = useState(false);
   const wasClosed = useRef(false);
   const cookie = useWiggle();
@@ -72,7 +78,11 @@ export function DaySummary({
   const hundred = hundredWeightLine(bodyWeight);
   const weightNote = hundred ?? (weightSteady ? STEADY_WEIGHT_LINE : null);
   const joy = share
-    ? dayJoyMoment({ proteinClosed: closed, bodyWeight })
+    ? dayJoyMoment({
+        proteinClosed: closed,
+        bodyWeight,
+        proteinHits: hits,
+      })
     : null;
   const perKg =
     bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
@@ -136,6 +146,9 @@ export function DaySummary({
           </p>
           {almost ? (
             <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
+          ) : null}
+          {proteinLine ? (
+            <p className="mt-1 text-base font-medium">{proteinLine}</p>
           ) : null}
           <p className="mt-1 text-sm text-muted-foreground tabular-nums">
             {overflow

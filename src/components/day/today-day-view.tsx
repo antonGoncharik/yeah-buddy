@@ -1,6 +1,7 @@
 "use client";
 
 import { ReviewCta } from "@/components/ai/review-cta";
+import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
@@ -37,6 +38,8 @@ export function TodayDayView({
   namedMeals,
   lastBodyWeight,
   weightSteady,
+  priorProteinHits,
+  reviewReady,
   busy,
   switchType,
   saveBodyWeight,
@@ -70,6 +73,8 @@ export function TodayDayView({
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
   weightSteady: boolean;
+  priorProteinHits: number;
+  reviewReady: boolean;
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
@@ -106,6 +111,7 @@ export function TodayDayView({
       onFill={() => void fillDayFromTemplate()}
     />
   ) : null;
+  const reviewOffer = useReviewOffer(reviewReady);
 
   return (
     <div className="flex flex-col gap-4">
@@ -129,6 +135,7 @@ export function TodayDayView({
           bodyWeight={shownDay.body_weight}
           lastBodyWeight={lastBodyWeight}
           weightSteady={weightSteady}
+          priorProteinHits={priorProteinHits}
           share={writable}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
@@ -191,7 +198,9 @@ export function TodayDayView({
         </div>
       )}
 
-      {viewOnly ? null : <ReviewCta from="today" />}
+      {viewOnly || !reviewOffer.show ? null : (
+        <ReviewCta from="today" onOpen={reviewOffer.open} />
+      )}
     </div>
   );
 }

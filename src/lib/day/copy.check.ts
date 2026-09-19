@@ -1,6 +1,8 @@
 import {
   readDayWritable,
   readLastBodyWeight,
+  readPriorProteinHits,
+  readReviewReady,
   readWeightSteady,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
@@ -51,6 +53,15 @@ assertEqual(
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
 assertEqual(readWeightSteady({ weightSteady: true }), true, "steady flag");
 assertEqual(readWeightSteady({}), false, "missing steady is false");
+assertEqual(readPriorProteinHits({ priorProteinHits: 4 }), 4, "prior hits");
+assertEqual(readPriorProteinHits({}), 0, "missing prior hits");
+assertEqual(
+  readPriorProteinHits({ priorProteinHits: 1.5 }),
+  0,
+  "fraction drops",
+);
+assertEqual(readReviewReady({ reviewReady: true }), true, "review ready");
+assertEqual(readReviewReady({}), false, "missing review ready");
 assertEqual(
   readDayWritable({ writable: true }, "2026-09-10", "2026-09-12"),
   true,

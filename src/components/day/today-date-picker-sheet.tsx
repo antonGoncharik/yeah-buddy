@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { SheetFrame } from "@/components/layout/sheet-frame";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { formatIsoDate, formatYearMonth } from "@/lib/day/format";
 import {
   canShiftYearMonthForward,
@@ -114,6 +115,27 @@ export function TodayDatePickerSheet({
             </button>
           );
         })}
+      </div>
+
+      <div className="mt-1 grid grid-cols-2 gap-2">
+        <Link
+          href="/today/week"
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "h-12 text-base",
+          )}
+        >
+          Неделя
+        </Link>
+        <Link
+          href="/today/history"
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "h-12 text-base",
+          )}
+        >
+          История еды
+        </Link>
       </div>
 
       {date === today ? null : (

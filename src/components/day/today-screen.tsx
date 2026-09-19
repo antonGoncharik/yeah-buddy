@@ -51,6 +51,8 @@ export function TodayScreen({
     namedMeals,
     lastBodyWeight,
     weightSteady,
+    priorProteinHits,
+    reviewReady,
     busy,
     loadError,
     actionError,
@@ -199,6 +201,8 @@ export function TodayScreen({
             namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
             weightSteady={weightSteady}
+            priorProteinHits={priorProteinHits}
+            reviewReady={reviewReady && isToday}
             busy={busy}
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}

@@ -101,10 +101,7 @@ function navActiveHref(pathname: string, from: string | null): string {
     if (from === "gym" || from === "workouts") {
       return "/workouts";
     }
-    if (from === "today" || from === "food" || from === "week") {
-      return "/today";
-    }
-    return "/settings";
+    return "/today";
   }
   if (
     (pathname.startsWith("/today/history") ||
