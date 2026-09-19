@@ -6,6 +6,7 @@ import {
 import { mapMealItem } from "@/lib/day/map";
 import { assertUserDayWritable } from "@/lib/day/writable";
 import { getFood } from "@/lib/food/store";
+import { recordFunnelEvent } from "@/lib/funnel";
 import {
   calcMacrosFromPer100,
   type Macros,
@@ -161,6 +162,8 @@ export async function addMealItemWrites(
   if (inserted.error) {
     throw inserted.error;
   }
+
+  await recordFunnelEvent(userId, "first_food");
 
   return (inserted.data ?? []).map((row) =>
     mapMealItem(row as Record<string, unknown>),

@@ -3,6 +3,7 @@ import {
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
   CATCH_UP_YESTERDAY_HINT,
+  OPEN_VIA_BOT_LEAD,
   PENDING_WRITES,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
@@ -47,6 +48,11 @@ assertEqual(
   CATCH_UP_YESTERDAY_HINT,
   "Вчера пустой — можно догнать.",
   "today after a hole",
+);
+assertEqual(
+  OPEN_VIA_BOT_LEAD,
+  "Записывай, что съел и что сделал в зале.",
+  "outside Telegram gate",
 );
 
 console.log("messages ok");

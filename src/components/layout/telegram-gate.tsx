@@ -9,7 +9,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
-import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { LOAD_FAILED, OPEN_VIA_BOT_LEAD } from "@/lib/messages";
 import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberIncomingStart } from "@/lib/share/pending";
@@ -152,7 +152,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
           {state === "outside" ? (
             <div className="animate-rise flex max-w-xs flex-col items-center gap-4">
               <p className="text-xl font-semibold leading-snug">
-                {OPEN_VIA_BOT}
+                {OPEN_VIA_BOT_LEAD}
               </p>
               {openUrl ? (
                 <a

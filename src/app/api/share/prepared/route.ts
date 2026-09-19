@@ -4,6 +4,7 @@ import { z } from "zod";
 import { jsonError, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { getServerEnv } from "@/lib/env";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import {
   JOY_KINDS,
@@ -73,6 +74,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         allow_channel_chats: true,
       },
     );
+    await recordFunnelEvent(auth.session.userId, "share");
     return jsonOk({ id: prepared.id });
   } catch (error) {
     console.error(error);

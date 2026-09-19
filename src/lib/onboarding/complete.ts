@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { recordFunnelEvent } from "@/lib/funnel";
 import {
   listMealTemplates,
   updateTemplateItemGrams,
@@ -33,6 +34,7 @@ import {
 export const onboardingCompleteSchema = z.object({
   protein: z.number().finite().positive().max(400).optional(),
   circle: z.enum([...PROGRAM_PRESET_IDS, "empty", "keep"]),
+  fromStart: z.boolean().optional(),
   maxes: z
     .array(
       z.object({
@@ -138,6 +140,13 @@ export async function completeOnboarding(
 
   if (stamped.error) {
     throw stamped.error;
+  }
+
+  if (firstRun) {
+    await recordFunnelEvent(userId, "onboarding_done");
+  }
+  if (input.fromStart) {
+    await recordFunnelEvent(userId, "program_start");
   }
 
   return getOnboardingState(userId);

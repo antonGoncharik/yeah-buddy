@@ -9,6 +9,7 @@ import {
   whenError,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
 import {
   listOwnedPacks,
@@ -81,6 +82,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             parsed.data.kind,
             parsed.data.title,
           );
+    await recordFunnelEvent(auth.session.userId, "share");
     return jsonOk({ pack });
   } catch (error) {
     return failRoute(error, [

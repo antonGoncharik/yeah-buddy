@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import type { CatalogFood } from "@/lib/food/catalog-map";
+import { quickAddPortionLabel } from "@/lib/food/quick-add";
 import { formatYieldGrams, parseFoodYield } from "@/lib/food/yield";
 import { FOOD_STATE_LABELS } from "@/lib/foods";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
@@ -20,7 +21,16 @@ export type FoodRowData = Pick<
   | "carbs_per_100"
   | "kcal_per_100"
 > &
-  Partial<Pick<Food, "state" | "yield_from_g" | "yield_to_g">>;
+  Partial<
+    Pick<
+      Food,
+      | "state"
+      | "yield_from_g"
+      | "yield_to_g"
+      | "default_portion_g"
+      | "default_portion_label"
+    >
+  >;
 
 /**
  * Foods as one card of rows, like every other list in the app: name and
@@ -123,7 +133,15 @@ function FoodListBody({ food }: { food: FoodRowData }) {
     yield_from_g: food.yield_from_g ?? null,
     yield_to_g: food.yield_to_g ?? null,
   });
+  const portion = quickAddPortionLabel({
+    default_portion_g: food.default_portion_g ?? null,
+    default_portion_label: food.default_portion_label ?? null,
+    state: food.state ?? "as_is",
+    yield_from_g: food.yield_from_g ?? null,
+    yield_to_g: food.yield_to_g ?? null,
+  });
   const subtitle = [
+    portion,
     yieldPair
       ? `${formatYieldGrams(yieldPair.from_g)} → ${formatYieldGrams(yieldPair.to_g)}`
       : null,

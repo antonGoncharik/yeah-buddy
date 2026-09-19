@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+import { addMealItemGrams } from "@/components/day/grams-save";
 import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
 import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
 import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
@@ -20,6 +20,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { reportActionError } from "@/lib/action-error";
 import { cachedGet } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
 import { foodMatchesQuery } from "@/lib/food/catalog-map";
@@ -27,8 +28,10 @@ import {
   type FavoriteOffer,
   readFavoriteOffers,
 } from "@/lib/food/favorite-offer";
+import { quickAddGrams } from "@/lib/food/quick-add";
 import { parseFoodList } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -45,11 +48,17 @@ export function AddMealItemScreen({
   newFoodHref,
   lumpHrefBase,
   plateHref,
+  quickAdd,
 }: {
   foodHrefBase: string;
   newFoodHref: string;
   lumpHrefBase?: string;
   plateHref?: string;
+  quickAdd?: {
+    mealId: string;
+    date: string;
+    doneHref: string;
+  };
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("favorites");
@@ -64,6 +73,7 @@ export function AddMealItemScreen({
   const skippedEmptyFavorites = useRef(false);
   const favoriteOffer = useFavoriteOffer(offers);
   const [shopHits, setShopHits] = useState(false);
+  const [addingId, setAddingId] = useState<string | null>(null);
 
   const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
     const requestId = ++requestIdRef.current;
@@ -117,6 +127,36 @@ export function AddMealItemScreen({
     }
     setLoading(false);
   }, []);
+
+  async function pickFood(food: Food) {
+    const href = appendPathSegment(foodHrefBase, food.id);
+    if (!quickAdd || addingId) {
+      router.push(href);
+      return;
+    }
+
+    const grams = quickAddGrams(food);
+    if (grams == null) {
+      router.push(href);
+      return;
+    }
+
+    setAddingId(food.id);
+    try {
+      await addMealItemGrams({
+        date: quickAdd.date,
+        mealId: quickAdd.mealId,
+        food,
+        grams,
+      });
+      haptic("success");
+      router.replace(quickAdd.doneHref);
+    } catch (caught) {
+      haptic("error");
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      setAddingId(null);
+    }
+  }
 
   const search = query.trim();
   const listFilter = search ? "all" : filter;
@@ -204,6 +244,7 @@ export function AddMealItemScreen({
           <FoodList
             foods={visibleFoods}
             hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
+            onSelectFood={quickAdd ? pickFood : undefined}
             onToggleFavorite={(food) =>
               void toggleFoodFavorite(food, setFoods, listFilter).then(() =>
                 favoriteOffer.refresh(),
@@ -217,7 +258,7 @@ export function AddMealItemScreen({
             query={query}
             onHits={setShopHits}
             onAdded={(food) => {
-              router.push(appendPathSegment(foodHrefBase, food.id));
+              void pickFood(food);
             }}
           />
         ) : null}

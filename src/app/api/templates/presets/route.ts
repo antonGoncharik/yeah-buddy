@@ -8,12 +8,14 @@ import {
   parseJsonSchema,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
+import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
 import { applyProgramPreset } from "@/lib/workout/templates";
 
 const bodySchema = z.object({
   preset: z.string(),
+  fromStart: z.boolean().optional(),
 });
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -38,6 +40,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       auth.session.userId,
       parsed.data.preset,
     );
+    if (parsed.data.fromStart) {
+      await recordFunnelEvent(auth.session.userId, "program_start");
+    }
     return jsonOk({ templates });
   } catch (error) {
     return failRoute(error);

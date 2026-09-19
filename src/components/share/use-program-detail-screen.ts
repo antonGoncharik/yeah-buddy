@@ -88,7 +88,10 @@ export function useProgramDetailScreen(id: string) {
     setBusy(true);
     setError(null);
     try {
-      await postJson("/api/templates/presets", { preset: program.id });
+      await postJson("/api/templates/presets", {
+        preset: program.id,
+        fromStart: true,
+      });
       dismissPendingProgramId(program.id);
       haptic("success");
       router.replace("/workouts");

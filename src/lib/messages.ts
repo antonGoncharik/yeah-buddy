@@ -1,4 +1,5 @@
 export const OPEN_VIA_BOT = "Открой приложение в Telegram.";
+export const OPEN_VIA_BOT_LEAD = "Записывай, что съел и что сделал в зале.";
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";

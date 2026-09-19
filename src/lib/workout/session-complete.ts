@@ -1,3 +1,4 @@
+import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
@@ -197,6 +198,7 @@ export async function completeSessionAsPlanned(
       }
     }
     await maybeAutoEndPhase(userId);
+    await recordFunnelEvent(userId, "first_session");
   }
   const refreshed = await getSession(userId, sessionId);
   if (!refreshed) {

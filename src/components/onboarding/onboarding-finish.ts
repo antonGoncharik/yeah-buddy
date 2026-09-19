@@ -51,6 +51,7 @@ export async function submitOnboardingFinish({
       replay,
       circle,
     }),
+    ...(pendingProgramId ? { fromStart: true } : {}),
   });
 
   const onboarding = parseOnboardingState(data);

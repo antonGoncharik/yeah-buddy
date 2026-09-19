@@ -48,6 +48,11 @@ export default async function AddMealItemPage({
             ? withDateQuery(`/today/meals/${mealId}/plate`, date, today)
             : undefined
         }
+        quickAdd={{
+          mealId,
+          date: date ?? today,
+          doneHref: homeHref,
+        }}
       />
     </div>
   );
