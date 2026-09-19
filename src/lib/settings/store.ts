@@ -1,6 +1,7 @@
 import { mapSettings } from "@/lib/settings/map";
 import type { SettingsInput } from "@/lib/settings/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
 import type { UserSettings } from "@/lib/types";
 
 export async function getUserSettings(
@@ -29,12 +30,16 @@ export async function saveUserSettings(
   input: SettingsInput,
 ): Promise<UserSettings> {
   const supabase = createSupabaseServerClient();
+  const row =
+    "timezone" in input && input.timezone
+      ? { ...input, timezone: resolveTimeZone(input.timezone) }
+      : input;
   const saved = await supabase
     .from("user_settings")
     .upsert(
       {
         user_id: userId,
-        ...input,
+        ...row,
       },
       { onConflict: "user_id" },
     )

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import {
@@ -21,11 +22,17 @@ import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
+import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewHref } from "@/lib/ai/review-nav";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
+import {
+  timezoneCaption,
+  timezoneChoiceLabel,
+  timezoneChoicesFor,
+} from "@/lib/telegram/timezone-label";
 import { cn } from "@/lib/utils";
 import {
   MEAL_TEMPLATES_LABEL,
@@ -49,7 +56,13 @@ export function SettingsScreen() {
     onSubmit,
     updateField,
     setReminders,
+    setTimezone,
   } = useSettingsScreen();
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -198,8 +211,41 @@ export function SettingsScreen() {
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
             <p className="text-sm text-muted-foreground">
-              Если к 20:00 день остался пустым — одно напоминание про еду и
-              тренировку. Если всё записано — просто «Yeah buddy».
+              {now
+                ? timezoneCaption(form.timezone, now)
+                : timezoneChoiceLabel(form.timezone)}
+            </p>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm text-muted-foreground">Пояс</span>
+              <select
+                className="field-control h-12 w-full rounded-xl border border-input/70 bg-input-bg px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                value={form.timezone}
+                onChange={(event) => void setTimezone(event.target.value)}
+              >
+                {timezoneChoicesFor(form.timezone).map((choice) => (
+                  <option key={choice.id} value={choice.id}>
+                    {choice.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-12 text-base"
+              onClick={() =>
+                void setTimezone(
+                  Intl.DateTimeFormat().resolvedOptions().timeZone,
+                )
+              }
+            >
+              Как на телефоне
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              В 20:00 в этом поясе — одно сообщение. Нет еды — напомнит.
+              Тренировочный день без «Готово» — про очередь. Отдых или закрытый
+              зал и записанная еда — «Yeah buddy». После 20:00 второе не придёт.
+              Воскресенье — табло за 14 дней с «Как прошло».
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}

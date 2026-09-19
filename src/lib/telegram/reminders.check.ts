@@ -1,18 +1,24 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import {
   composeReminderMessage,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
 import {
+  gymDoneForReminder,
   isCronAuthorized,
   isoWeekdaySun0,
-  isReminderHour,
   localClock,
-  reminderDateForClock,
+  reminderDateIfDue,
   reminderText,
   resolveTimeZone,
 } from "@/lib/telegram/reminders";
 import {
+  TIMEZONE_CHOICES,
   timezoneCaption,
+  timezoneChoiceLabel,
+  timezoneChoicesFor,
   timezoneZoneName,
 } from "@/lib/telegram/timezone-label";
 
@@ -27,41 +33,51 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 assertEqual(resolveTimeZone(null), "Europe/Moscow", "empty tz defaults");
 assertEqual(resolveTimeZone("not-a-zone"), "Europe/Moscow", "invalid tz");
 assertEqual(resolveTimeZone("UTC"), "UTC", "keeps valid tz");
-assertEqual(isReminderHour(20), true, "eight pm");
-assertEqual(isReminderHour(19), false, "too early");
-assertEqual(isReminderHour(21), false, "too late");
-
+for (const choice of TIMEZONE_CHOICES) {
+  assertEqual(resolveTimeZone(choice.id), choice.id, `${choice.id} is valid`);
+}
 assertEqual(
-  reminderDateForClock({ date: "2026-09-11", hour: 20 }),
+  reminderDateIfDue({ date: "2026-09-11", hour: 20 }),
   "2026-09-11",
   "20:00 is tonight",
 );
 assertEqual(
-  reminderDateForClock({ date: "2026-09-11", hour: 21 }),
+  reminderDateIfDue({ date: "2026-09-11", hour: 21 }),
   "2026-09-11",
   "after 20:00 still tonight",
 );
 assertEqual(
-  reminderDateForClock({ date: "2026-09-11", hour: 19 }),
-  "2026-09-10",
-  "before 20:00 catches last night",
+  reminderDateIfDue({ date: "2026-09-11", hour: 19 }),
+  null,
+  "before 20:00 waits",
 );
 assertEqual(
-  reminderDateForClock({ date: "2026-09-01", hour: 3 }),
-  "2026-08-31",
-  "early morning catches previous month",
+  reminderDateIfDue({ date: "2026-09-01", hour: 3 }),
+  null,
+  "morning waits for evening",
 );
 assertEqual(isoWeekdaySun0("2026-09-13"), 0, "sunday");
 assertEqual(isoWeekdaySun0("2026-09-17"), 4, "thursday");
 assertEqual(
   timezoneCaption("Europe/Moscow", new Date("2026-09-11T17:00:00.000Z")),
-  "Europe/Moscow · сейчас 20:00",
+  "Москва · сейчас 20:00",
   "moscow caption",
 );
 assertEqual(
   timezoneZoneName("America/Los_Angeles"),
   "America/Los Angeles",
   "underscores become spaces",
+);
+assertEqual(timezoneChoiceLabel("Europe/Moscow"), "Москва", "moscow label");
+assertEqual(
+  timezoneChoicesFor("America/Los_Angeles")[0]?.id,
+  "America/Los_Angeles",
+  "unknown zone stays on the list",
+);
+assertEqual(
+  timezoneChoicesFor("Europe/Moscow")[0]?.id,
+  "Europe/Kaliningrad",
+  "known zone is not duplicated",
 );
 
 const moscowEvening = localClock(
@@ -84,9 +100,40 @@ const laYesterday = localClock(
 assertEqual(laYesterday.date, "2026-09-10", "LA still previous date");
 
 assertEqual(
+  gymDoneForReminder({ isTrainingDay: true, sessionStatus: "completed" }),
+  true,
+  "closed session is done",
+);
+assertEqual(
+  gymDoneForReminder({ isTrainingDay: true, sessionStatus: "planned" }),
+  false,
+  "open session is not done",
+);
+assertEqual(
+  gymDoneForReminder({ isTrainingDay: false, sessionStatus: null }),
+  true,
+  "rest day is done",
+);
+assertEqual(
+  gymDoneForReminder({ isTrainingDay: true, sessionStatus: null }),
+  false,
+  "training day without session is due",
+);
+assertEqual(
+  gymDoneForReminder({ isTrainingDay: null, sessionStatus: null }),
+  false,
+  "unopened day is due",
+);
+assertEqual(
+  gymDoneForReminder({ isTrainingDay: false, sessionStatus: "skipped" }),
+  true,
+  "skipped session is done",
+);
+
+assertEqual(
   reminderText({
     foodLogged: true,
-    gymLogged: false,
+    gymDone: false,
     nextTemplateName: "Сила A",
   }),
   "Сегодня Сила A.",
@@ -95,7 +142,7 @@ assertEqual(
 assertEqual(
   reminderText({
     foodLogged: false,
-    gymLogged: true,
+    gymDone: true,
     nextTemplateName: "Сила A",
   }),
   "День еды пустой. Холодильник сам не запишет.",
@@ -104,7 +151,7 @@ assertEqual(
 assertEqual(
   reminderText({
     foodLogged: true,
-    gymLogged: true,
+    gymDone: true,
     nextTemplateName: "Сила A",
   }),
   "Yeah buddy.",
@@ -113,16 +160,16 @@ assertEqual(
 assertEqual(
   reminderText({
     foodLogged: true,
-    gymLogged: false,
+    gymDone: false,
     nextTemplateName: null,
   }),
-  null,
+  "Yeah buddy.",
   "food done and no circle",
 );
 assertEqual(
   reminderText({
     foodLogged: false,
-    gymLogged: false,
+    gymDone: false,
     nextTemplateName: null,
   }),
   "День еды пустой. Холодильник сам не запишет.",
@@ -131,7 +178,7 @@ assertEqual(
 assertEqual(
   reminderText({
     foodLogged: false,
-    gymLogged: false,
+    gymDone: false,
     nextTemplateName: "Сила A",
   }),
   "День еды пустой. Холодильник сам не запишет.\nСегодня Сила A.",
@@ -191,5 +238,22 @@ assertEqual(
   "only scoreboard lines",
 );
 assertEqual(weekRecapText(["Смотри ужин."]), null, "no scoreboard skips recap");
+
+const vercel = JSON.parse(
+  readFileSync(join(process.cwd(), "vercel.json"), "utf8"),
+) as { crons?: Array<{ path?: string; schedule?: string }> };
+assertEqual(vercel.crons?.length, 24, "hourly via 24 daily jobs");
+for (let hour = 0; hour < 24; hour += 1) {
+  assertEqual(
+    vercel.crons?.[hour]?.path,
+    "/api/cron/reminders",
+    `path ${hour}`,
+  );
+  assertEqual(
+    vercel.crons?.[hour]?.schedule,
+    `0 ${hour} * * *`,
+    `hour ${hour}`,
+  );
+}
 
 console.log("telegram reminders ok");

@@ -133,6 +133,32 @@ export function useSettingsScreen() {
     }
   }
 
+  async function setTimezone(timezone: string) {
+    if (!form || form.timezone === timezone) {
+      return;
+    }
+
+    const previous = form.timezone;
+    setForm({ ...form, timezone });
+    setError(null);
+
+    try {
+      const data = await patchJson("/api/settings", { timezone });
+      const settings = readSettings(data);
+      if (settings) {
+        setForm((current) =>
+          current ? { ...current, timezone: settings.timezone } : current,
+        );
+        writeJson("/api/settings", data);
+      }
+    } catch (caught) {
+      setForm((current) =>
+        current ? { ...current, timezone: previous } : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
   return {
     form,
     loading,
@@ -147,5 +173,6 @@ export function useSettingsScreen() {
     onSubmit,
     updateField,
     setReminders,
+    setTimezone,
   };
 }

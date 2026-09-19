@@ -6,18 +6,19 @@ import { sendDiaryMessage } from "@/lib/telegram/bot";
 import {
   isoWeekdaySun0,
   localClock,
-  reminderDateForClock,
+  reminderDateIfDue,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
 import {
   dateHasFoodRecord,
+  dateIsTrainingDay,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
 import {
   composeReminderMessage,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
-import { reminderText } from "@/lib/telegram/reminder-text";
+import { gymDoneForReminder, reminderText } from "@/lib/telegram/reminder-text";
 import { getSessionOnDate } from "@/lib/workout/sessions";
 
 const CANDIDATE_PAGE = 100;
@@ -48,17 +49,30 @@ export async function runEveningReminders(
 
   for (const candidate of await listReminderCandidates()) {
     const clock = localClock(now, candidate.timezone);
-    const reminderDate = reminderDateForClock(clock);
+    const reminderDate = reminderDateIfDue(clock);
+    if (!reminderDate) {
+      result.skipped += 1;
+      continue;
+    }
     if (candidate.remindedOn === reminderDate) {
       result.skipped += 1;
       continue;
     }
 
+    const [foodLogged, isTrainingDay, session, nextTemplateName] =
+      await Promise.all([
+        dateHasFoodRecord(candidate.userId, reminderDate),
+        dateIsTrainingDay(candidate.userId, reminderDate),
+        getSessionOnDate(candidate.userId, reminderDate),
+        nextCircleName(candidate.userId),
+      ]);
     const nag = reminderText({
-      foodLogged: await dateHasFoodRecord(candidate.userId, reminderDate),
-      gymLogged:
-        (await getSessionOnDate(candidate.userId, reminderDate)) != null,
-      nextTemplateName: await nextCircleName(candidate.userId),
+      foodLogged,
+      gymDone: gymDoneForReminder({
+        isTrainingDay,
+        sessionStatus: session?.status ?? null,
+      }),
+      nextTemplateName,
     });
     const recap = await sundayRecap(candidate.userId, reminderDate);
     const text = composeReminderMessage(nag, recap);

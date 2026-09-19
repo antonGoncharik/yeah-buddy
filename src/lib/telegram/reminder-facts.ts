@@ -1,6 +1,29 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { templateAfter } from "@/lib/workout/templates";
 
+export async function dateIsTrainingDay(
+  userId: string,
+  date: string,
+): Promise<boolean | null> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("days")
+    .select("is_training_day")
+    .eq("user_id", userId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (!result.data) {
+    return null;
+  }
+
+  return result.data.is_training_day === true;
+}
+
 export async function dateHasFoodRecord(
   userId: string,
   date: string,
