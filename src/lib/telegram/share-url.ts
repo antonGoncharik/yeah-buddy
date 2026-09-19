@@ -1,3 +1,7 @@
+import {
+  type FeaturedProgramId,
+  programStartPayload,
+} from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 export function isTelegramMeUrl(value: string): boolean {
@@ -60,10 +64,25 @@ export function resolvePackShareUrl(
     return null;
   }
 
-  const bot = telegramBotChatUrl(appUrl);
-  if (bot) {
-    return withStart(bot, token);
+  return botOrAppStart(appUrl, token);
+}
+
+export function resolveProgramShareUrl(
+  id: FeaturedProgramId,
+  appUrl: string | null,
+): string | null {
+  if (!appUrl) {
+    return null;
   }
 
-  return withStartApp(appUrl, token);
+  return botOrAppStart(appUrl, programStartPayload(id));
+}
+
+function botOrAppStart(appUrl: string, payload: string): string {
+  const bot = telegramBotChatUrl(appUrl);
+  if (bot) {
+    return withStart(bot, payload);
+  }
+
+  return withStartApp(appUrl, payload);
 }

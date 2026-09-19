@@ -18,6 +18,8 @@ import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
 import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
+import { peekPendingProgramId } from "@/lib/share/pending";
+import type { FeaturedProgramId } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
@@ -45,6 +47,8 @@ export function useOnboardingScreen() {
   );
   const [saving, setSaving] = useState(false);
   const [pendingKind, setPendingKind] = useState<SharePackKind | null>(null);
+  const [pendingProgramId, setPendingProgramId] =
+    useState<FeaturedProgramId | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,11 +64,15 @@ export function useOnboardingScreen() {
         return;
       }
       const incoming = replay ? null : await loadPendingPackKind();
+      const incomingProgram = replay ? null : peekPendingProgramId();
       setPendingKind(incoming);
+      setPendingProgramId(incomingProgram);
       setState(onboarding);
       setProtein(String(onboarding.settings.rest_protein));
       setSkipFood(incoming === "meals");
-      setCircle(defaultOnboardingCircle(onboarding.circle, replay));
+      setCircle(
+        incomingProgram ?? defaultOnboardingCircle(onboarding.circle, replay),
+      );
       setStep(replay ? "food" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
@@ -85,8 +93,13 @@ export function useOnboardingScreen() {
       : null;
 
   const steps = useMemo(
-    () => onboardingSteps({ pendingKind, replay }),
-    [pendingKind, replay],
+    () =>
+      onboardingSteps({
+        pendingKind,
+        pendingProgram: pendingProgramId != null,
+        replay,
+      }),
+    [pendingKind, pendingProgramId, replay],
   );
 
   useEffect(() => {
@@ -155,6 +168,7 @@ export function useOnboardingScreen() {
         omitProtein,
         proteinValue,
         pendingKind,
+        pendingProgramId,
         replay,
         circle,
       });
@@ -186,6 +200,7 @@ export function useOnboardingScreen() {
     saving,
     replay,
     pendingKind,
+    pendingProgramId,
     protein,
     preview,
     circle,

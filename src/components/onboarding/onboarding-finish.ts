@@ -4,7 +4,12 @@ import type { OnboardingCircle } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
 import { readSharePackPayload } from "@/lib/share/map";
 import type { SharePackKind } from "@/lib/share/payload";
-import { packPath, peekPendingPackToken } from "@/lib/share/pending";
+import {
+  dismissPendingProgramId,
+  packPath,
+  peekPendingPackToken,
+} from "@/lib/share/pending";
+import type { FeaturedProgramId } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 export async function loadPendingPackKind(): Promise<SharePackKind | null> {
@@ -25,12 +30,14 @@ export async function submitOnboardingFinish({
   omitProtein,
   proteinValue,
   pendingKind,
+  pendingProgramId,
   replay,
   circle,
 }: {
   omitProtein: boolean;
   proteinValue: number | null;
   pendingKind: SharePackKind | null;
+  pendingProgramId: FeaturedProgramId | null;
   replay: boolean;
   circle: OnboardingCircle;
 }): Promise<string> {
@@ -38,13 +45,22 @@ export async function submitOnboardingFinish({
     ...(omitProtein || pendingKind === "meals"
       ? {}
       : { protein: proteinValue }),
-    circle: replay || pendingKind === "workouts" ? "keep" : circle,
+    circle: onboardingFinishCircle({
+      pendingProgramId,
+      pendingKind,
+      replay,
+      circle,
+    }),
   });
 
   const onboarding = parseOnboardingState(data);
   if (onboarding) {
     writeJson("/api/settings", { settings: onboarding.settings });
     writeJson("/api/onboarding", data);
+  }
+
+  if (pendingProgramId) {
+    dismissPendingProgramId(pendingProgramId);
   }
 
   const pending = peekPendingPackToken();
@@ -57,6 +73,26 @@ export async function submitOnboardingFinish({
   }
 
   return onboardingExitHref(pending);
+}
+
+export function onboardingFinishCircle({
+  pendingProgramId,
+  pendingKind,
+  replay,
+  circle,
+}: {
+  pendingProgramId: FeaturedProgramId | null;
+  pendingKind: SharePackKind | null;
+  replay: boolean;
+  circle: OnboardingCircle;
+}): OnboardingCircle | "keep" {
+  if (pendingProgramId) {
+    return pendingProgramId;
+  }
+  if (replay || pendingKind === "workouts") {
+    return "keep";
+  }
+  return circle;
 }
 
 export function onboardingExitHref(pendingToken: string | null): string {

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { programApplyConfirmMessage } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { readTemplates } from "@/lib/workout/hub-payload";
@@ -90,9 +91,7 @@ export function useScheduleScreen() {
       return;
     }
     const ok = await confirm({
-      message: preset.cycle
-        ? `Поставить «${preset.name}»? Станут её дни и недели, цикл запустится сам. Свои дни не удалятся — отложатся.`
-        : `Поставить «${preset.name}»? Дни станут этой программой — свои не пропадут, отложатся. Если шли недели — закроются.`,
+      message: programApplyConfirmMessage(preset),
       confirmLabel: "Поставить",
       cancelLabel: "Оставить",
     });

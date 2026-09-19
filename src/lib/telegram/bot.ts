@@ -4,14 +4,23 @@ import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
   BOT_OPEN_DIARY,
   BOT_PACK_START,
+  BOT_PROGRAM_START,
   BOT_START,
   BOT_YEAH_BUDDY,
 } from "@/lib/messages";
-import { joyInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
+import { botInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
+import {
+  type FeaturedProgramId,
+  featuredProgramPreset,
+  parseProgramStartPayload,
+  programChatMessage,
+  programStartPayload,
+} from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 import {
   resolveAppShareUrl,
   resolvePackShareUrl,
+  resolveProgramShareUrl,
   withStartApp,
 } from "@/lib/telegram/share-url";
 import { replyStartSticker, trexStickerFileId } from "@/lib/telegram/sticker";
@@ -52,6 +61,12 @@ export async function getPackShareUrl(token: string): Promise<string | null> {
   return resolvePackShareUrl(token, await getAppShareUrl());
 }
 
+export async function getProgramShareUrl(
+  id: FeaturedProgramId,
+): Promise<string | null> {
+  return resolveProgramShareUrl(id, await getAppShareUrl());
+}
+
 export function createBot(env: ServerEnv = getServerEnv()): Bot {
   if (bot) {
     return bot;
@@ -69,6 +84,18 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
     }
 
     const payload = typeof ctx.match === "string" ? ctx.match.trim() : "";
+    const programId = parseProgramStartPayload(payload);
+    if (programId) {
+      const buttonUrl = withStartApp(
+        miniAppUrl,
+        programStartPayload(programId),
+      );
+      await ctx.reply(programChatMessage(featuredProgramPreset(programId)), {
+        reply_markup: new InlineKeyboard().webApp(BOT_PROGRAM_START, buttonUrl),
+      });
+      return;
+    }
+
     const token = isPackToken(payload) ? payload : null;
     const buttonUrl = token ? withStartApp(miniAppUrl, token) : miniAppUrl;
 
@@ -105,7 +132,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
     }
 
     await ctx.answerInlineQuery(
-      joyInlineResults({
+      botInlineResults({
         query: ctx.inlineQuery.query,
         photoOrigin,
         installUrl,

@@ -1,7 +1,14 @@
+import {
+  type FeaturedProgramId,
+  isFeaturedProgramId,
+  parseProgramStartPayload,
+} from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 const PACK_PENDING_KEY = "yb.pack";
 const PACK_SEEN_KEY = "yb.pack.seen";
+const PROGRAM_PENDING_KEY = "yb.program";
+const PROGRAM_SEEN_KEY = "yb.program.seen";
 
 export type PackBackFrom = "meals" | "schedule" | "packs" | "today";
 
@@ -12,8 +19,52 @@ function storage(): Storage | null {
   return sessionStorage;
 }
 
+export function rememberIncomingStart(value: string | null | undefined): void {
+  if (!value) {
+    return;
+  }
+
+  const programId = parseProgramStartPayload(value);
+  if (programId) {
+    rememberProgramStart(programId);
+    return;
+  }
+
+  rememberPackToken(value);
+}
+
+export function rememberProgramStart(id: FeaturedProgramId): void {
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(PROGRAM_SEEN_KEY) === id) {
+    return;
+  }
+
+  store.setItem(PROGRAM_PENDING_KEY, id);
+}
+
+export function peekPendingProgramId(): FeaturedProgramId | null {
+  const value = storage()?.getItem(PROGRAM_PENDING_KEY);
+  return isFeaturedProgramId(value) ? value : null;
+}
+
+export function dismissPendingProgramId(id: FeaturedProgramId): void {
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(PROGRAM_PENDING_KEY) === id) {
+    store.removeItem(PROGRAM_PENDING_KEY);
+  }
+  store.setItem(PROGRAM_SEEN_KEY, id);
+}
+
 export function rememberPackToken(token: string | null | undefined): void {
-  if (!token || !isPackToken(token)) {
+  if (!token || parseProgramStartPayload(token) || !isPackToken(token)) {
     return;
   }
 

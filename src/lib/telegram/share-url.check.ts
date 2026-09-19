@@ -1,8 +1,10 @@
+import { programStartPayload } from "@/lib/share/program-start";
 import { createPackToken, isPackToken } from "@/lib/share/token";
 import {
   isTelegramMeUrl,
   resolveAppShareUrl,
   resolvePackShareUrl,
+  resolveProgramShareUrl,
   telegramBotChatUrl,
   withStart,
   withStartApp,
@@ -125,6 +127,27 @@ assertEqual(
   withStartApp("https://t.me/yeahbuddy/app", token),
   `https://t.me/yeahbuddy/app?startapp=${token}`,
   "mini app startapp",
+);
+
+assertEqual(
+  resolveProgramShareUrl("full_body", "https://t.me/yeahbuddybot"),
+  `https://t.me/yeahbuddybot?start=${programStartPayload("full_body")}`,
+  "program opens bot with start",
+);
+assertEqual(
+  resolveProgramShareUrl("ppl", "https://t.me/yeahbuddy/app?startapp=open"),
+  `https://t.me/yeahbuddy?start=${programStartPayload("ppl")}`,
+  "program strips mini app path",
+);
+assertEqual(
+  resolveProgramShareUrl("five_three_one", "https://diary.example"),
+  withStartApp("https://diary.example", programStartPayload("five_three_one")),
+  "https program keeps startapp",
+);
+assertEqual(
+  resolveProgramShareUrl("full_body", null),
+  null,
+  "no app, no program link",
 );
 
 console.log("telegram share url ok");

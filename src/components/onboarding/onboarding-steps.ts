@@ -4,9 +4,11 @@ export type OnboardingStep = "guide" | "food" | "circle";
 
 export function onboardingSteps({
   pendingKind,
+  pendingProgram,
   replay,
 }: {
   pendingKind: SharePackKind | null;
+  pendingProgram: boolean;
   replay: boolean;
 }): OnboardingStep[] {
   const next: OnboardingStep[] = [];
@@ -16,7 +18,7 @@ export function onboardingSteps({
   if (pendingKind !== "meals") {
     next.push("food");
   }
-  if (!replay && pendingKind !== "workouts") {
+  if (!replay && pendingKind !== "workouts" && !pendingProgram) {
     next.push("circle");
   }
   if (next.length === 0) {

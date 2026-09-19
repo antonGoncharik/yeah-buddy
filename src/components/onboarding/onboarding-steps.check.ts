@@ -10,6 +10,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 
 const empty = {
   pendingKind: null,
+  pendingProgram: false,
   replay: false,
 };
 
@@ -27,6 +28,11 @@ assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
   "guide,food",
   "workout pack skips program after the intro",
+);
+assertEqual(
+  onboardingSteps({ ...empty, pendingProgram: true }).join(),
+  "guide,food",
+  "bot program skips the picker after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals" }).join(),

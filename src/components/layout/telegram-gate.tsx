@@ -12,8 +12,8 @@ import { APP_NAME } from "@/lib/brand";
 import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
 import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
-import { rememberPackToken } from "@/lib/share/pending";
-import { isPackToken } from "@/lib/share/token";
+import { rememberIncomingStart } from "@/lib/share/pending";
+import { startPayloadFromLocation } from "@/lib/share/start-param";
 import { cn } from "@/lib/utils";
 
 type GateState = "loading" | "ready" | "outside" | "error";
@@ -65,7 +65,13 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       webApp.ready();
       webApp.expand();
       enterTelegramFullscreen(webApp);
-      rememberPackToken(readStartParam(webApp));
+      rememberIncomingStart(
+        startPayloadFromLocation({
+          telegramStartParam: webApp.initDataUnsafe?.start_param,
+          search: window.location.search,
+          hash: window.location.hash,
+        }),
+      );
 
       const initData = webApp.initData;
       if (initData) {
@@ -184,36 +190,4 @@ async function loadOpenUrl(): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-function readStartParam(webApp: {
-  initDataUnsafe?: { start_param?: string };
-}): string | null {
-  const fromTelegram = webApp.initDataUnsafe?.start_param;
-  if (fromTelegram && isPackToken(fromTelegram)) {
-    return fromTelegram;
-  }
-
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const search = new URLSearchParams(window.location.search);
-  for (const key of ["startapp", "pack"]) {
-    const value = search.get(key);
-    if (value && isPackToken(value)) {
-      return value;
-    }
-  }
-
-  const hash = window.location.hash.replace(/^#/, "");
-  if (hash) {
-    const hashed = new URLSearchParams(hash);
-    const value = hashed.get("tgWebAppStartParam") ?? hashed.get("startapp");
-    if (value && isPackToken(value)) {
-      return value;
-    }
-  }
-
-  return null;
 }

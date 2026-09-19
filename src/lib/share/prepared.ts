@@ -1,6 +1,11 @@
-import type { InlineQueryResult, InlineQueryResultPhoto } from "grammy/types";
+import type {
+  InlineQueryResult,
+  InlineQueryResultArticle,
+  InlineQueryResultPhoto,
+} from "grammy/types";
 
 import { YEAH_BUDDY_LINE } from "@/lib/flavor";
+import { BOT_PROGRAM_START } from "@/lib/messages";
 import {
   BOT_INSTALL_DIARY,
   type JoyDoodle,
@@ -10,7 +15,14 @@ import {
   parseJoyInlineQuery,
   sanitizeJoyLift,
 } from "@/lib/share/joy";
+import {
+  featuredProgramPreset,
+  matchFeaturedPrograms,
+  programChatMessage,
+  programShareText,
+} from "@/lib/share/program-start";
 import { publicHttpOrigin } from "@/lib/site-url";
+import { resolveProgramShareUrl } from "@/lib/telegram/share-url";
 
 export function joyPhotoOrigin(
   value: string | null | undefined,
@@ -95,4 +107,52 @@ export function joyInlineResults(input: {
   }
 
   return results;
+}
+
+export function programInlineResults(input: {
+  query: string;
+  installUrl: string;
+}): InlineQueryResultArticle[] {
+  const results: InlineQueryResultArticle[] = [];
+  for (const id of matchFeaturedPrograms(input.query)) {
+    const url = resolveProgramShareUrl(id, input.installUrl);
+    if (!url) {
+      continue;
+    }
+    const preset = featuredProgramPreset(id);
+    results.push({
+      type: "article",
+      id: `program-${id}`,
+      title: preset.name,
+      description: programShareText(preset),
+      input_message_content: {
+        message_text: programChatMessage(preset),
+      },
+      reply_markup: {
+        inline_keyboard: [[{ text: BOT_PROGRAM_START, url }]],
+      },
+    });
+  }
+  return results;
+}
+
+export function botInlineResults(input: {
+  query: string;
+  photoOrigin: string;
+  installUrl: string;
+  stickerFileId: string | null;
+}): InlineQueryResult[] {
+  if (parseJoyInlineQuery(input.query)) {
+    return joyInlineResults(input);
+  }
+
+  const programs = programInlineResults({
+    query: input.query,
+    installUrl: input.installUrl,
+  });
+  if (input.query.trim() !== "" && programs.length > 0) {
+    return programs;
+  }
+
+  return [...programs, ...joyInlineResults(input)];
 }

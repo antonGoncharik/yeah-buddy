@@ -1,10 +1,13 @@
 import { PROTEIN_CLOSED_LABEL, YEAH_BUDDY_LINE } from "@/lib/flavor";
+import { BOT_PROGRAM_START } from "@/lib/messages";
 import { BOT_INSTALL_DIARY } from "@/lib/share/joy";
 import {
+  botInlineResults,
   joyInlinePhotoResult,
   joyInlineResults,
   joyPhotoOrigin,
 } from "@/lib/share/prepared";
+import { programStartPayload } from "@/lib/share/program-start";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -83,6 +86,63 @@ assertEqual(
   prepared[0] && "caption" in prepared[0] ? prepared[0].caption : null,
   PROTEIN_CLOSED_LABEL,
   "protein caption",
+);
+
+const storefront = botInlineResults({
+  query: "",
+  photoOrigin: "https://diary.example",
+  installUrl: "https://t.me/yeahbuddybot",
+  stickerFileId: "sticker-file",
+});
+assertEqual(storefront[0]?.type, "article", "empty query leads with a program");
+assertEqual(
+  storefront[0] && "title" in storefront[0] ? storefront[0].title : null,
+  "Всё тело A/B",
+  "first card is full body",
+);
+assertEqual(
+  storefront[3]?.type,
+  "sticker",
+  "sticker still follows the programs",
+);
+assert(
+  JSON.stringify(storefront[0]).includes(
+    `start=${programStartPayload("full_body")}`,
+  ),
+  "program button is a bot start link",
+);
+assertEqual(
+  storefront[0] && "reply_markup" in storefront[0]
+    ? storefront[0].reply_markup?.inline_keyboard[0]?.[0]?.text
+    : null,
+  BOT_PROGRAM_START,
+  "program button says put it on",
+);
+
+const searched = botInlineResults({
+  query: "531",
+  photoOrigin: "https://diary.example",
+  installUrl: "https://t.me/yeahbuddybot",
+  stickerFileId: "sticker-file",
+});
+assertEqual(searched.length, 1, "531 is only 5/3/1");
+assertEqual(
+  searched[0] && "title" in searched[0] ? searched[0].title : null,
+  "5/3/1",
+  "531 title",
+);
+
+const joyQuery = botInlineResults({
+  query: "joy protein",
+  photoOrigin: "https://diary.example",
+  installUrl: "https://t.me/yeahbuddybot",
+  stickerFileId: "sticker-file",
+});
+assertEqual(joyQuery.length, 1, "joy query stays joy-only");
+assertEqual(
+  joyQuery[0] && "caption" in joyQuery[0] ? joyQuery[0].caption : null,
+  PROTEIN_CLOSED_LABEL,
+  "joy protein is not a program",
 );
 
 console.log("prepared share ok");

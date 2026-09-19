@@ -30,6 +30,7 @@ export function OnboardingScreen() {
     saving,
     replay,
     pendingKind,
+    pendingProgramId,
     protein,
     preview,
     circle,
@@ -97,7 +98,9 @@ export function OnboardingScreen() {
             protein={protein}
             preview={preview}
             replay={replay}
-            fromWorkoutPack={pendingKind === "workouts"}
+            fromWorkoutPack={
+              pendingKind === "workouts" || pendingProgramId != null
+            }
             onProteinChange={onProteinChange}
           />
         ) : null}
