@@ -53,18 +53,12 @@ export async function getOnboardingState(
     throw new Error("Настройки не нашлись.");
   }
 
-  const [exercises, templates, macro] = await Promise.all([
-    listExercises(userId, "active"),
-    listTemplates(userId),
-    getCurrentMacroState(userId),
-  ]);
+  const templates = await listTemplates(userId);
 
   return {
     completed: isOnboardingCompleted(settings),
     settings,
-    exercises,
     circle: matchProgramPresetId(templates) ?? "empty",
-    maxesLocked: macro.phase != null,
   };
 }
 

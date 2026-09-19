@@ -16,13 +16,10 @@ import { LOAD_FAILED } from "@/lib/messages";
 import { macroGoalsFromProtein } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
-import {
-  defaultOnboardingCircle,
-  onboardingWeightExercises,
-} from "@/lib/onboarding/setup";
+import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { haptic } from "@/lib/telegram/haptic";
-import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { parseDecimal } from "@/lib/workout/numbers";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
 export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
@@ -46,7 +43,6 @@ export function useOnboardingScreen() {
   const [circle, setCircle] = useState<OnboardingCircle>(
     RECOMMENDED_PROGRAM_PRESET_ID,
   );
-  const [maxInputs, setMaxInputs] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [pendingKind, setPendingKind] = useState<SharePackKind | null>(null);
 
@@ -69,16 +65,6 @@ export function useOnboardingScreen() {
       setProtein(String(onboarding.settings.rest_protein));
       setSkipFood(incoming === "meals");
       setCircle(defaultOnboardingCircle(onboarding.circle, replay));
-      setMaxInputs(
-        Object.fromEntries(
-          onboarding.exercises.map((exercise) => [
-            exercise.id,
-            exercise.current_max
-              ? formatWeight(exercise.current_max.max_weight)
-              : "",
-          ]),
-        ),
-      );
       setStep(replay ? "food" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
@@ -97,13 +83,10 @@ export function useOnboardingScreen() {
     proteinValid(proteinValue) && state
       ? macroGoalsFromProtein(proteinValue, state.settings)
       : null;
-  const weightExercises = state
-    ? onboardingWeightExercises(circle, state.exercises)
-    : [];
 
   const steps = useMemo(
-    () => onboardingSteps({ pendingKind, replay, circle, state }),
-    [circle, pendingKind, replay, state],
+    () => onboardingSteps({ pendingKind, replay }),
+    [pendingKind, replay],
   );
 
   useEffect(() => {
@@ -154,10 +137,7 @@ export function useOnboardingScreen() {
     void finish({ omitProtein: true });
   }
 
-  async function finish(options?: {
-    omitProtein?: boolean;
-    omitMaxes?: boolean;
-  }) {
+  async function finish(options?: { omitProtein?: boolean }) {
     const omitProtein = Boolean(
       options?.omitProtein || skipFood || pendingKind === "meals",
     );
@@ -173,13 +153,10 @@ export function useOnboardingScreen() {
     try {
       const href = await submitOnboardingFinish({
         omitProtein,
-        omitMaxes: Boolean(options?.omitMaxes),
         proteinValue,
         pendingKind,
         replay,
         circle,
-        maxesLocked: Boolean(state?.maxesLocked),
-        maxInputs,
       });
       router.replace(href);
       haptic("success");
@@ -195,10 +172,6 @@ export function useOnboardingScreen() {
     setError(null);
     setSkipFood(false);
     setProtein(value);
-  }
-
-  function onMaxChange(id: string, value: string) {
-    setMaxInputs((current) => ({ ...current, [id]: value }));
   }
 
   return {
@@ -217,13 +190,9 @@ export function useOnboardingScreen() {
     preview,
     circle,
     setCircle,
-    maxInputs,
-    weightExercises,
     goBack,
     goNext,
     skipFoodStep,
-    finish,
     onProteinChange,
-    onMaxChange,
   };
 }

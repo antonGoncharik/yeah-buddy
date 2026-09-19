@@ -1,11 +1,8 @@
 import {
   defaultOnboardingCircle,
-  exercisesForCircle,
   isExtraProgram,
-  onboardingWeightExercises,
   scaledTemplateGrams,
 } from "@/lib/onboarding/setup";
-import type { ExerciseWithMax } from "@/lib/types";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
 function assert(condition: boolean, message: string): void {
@@ -34,44 +31,6 @@ assert(!isExtraProgram("full_body"), "full body is beginner");
 assert(isExtraProgram("ppl"), "ppl is extra");
 assert(!isExtraProgram("empty"), "empty is not extra");
 
-const squat = exercise("Приседания со штангой", "base");
-const curls = exercise("Молотковый подъём", "isolation");
-const bench = exercise("Жим лёжа", "base");
-
-assert(
-  exercisesForCircle("one_day", [squat, curls, bench])
-    .map((item) => item.name)
-    .join() === "Приседания со штангой,Жим лёжа",
-  "circle keeps program order",
-);
-const maxes = onboardingWeightExercises("ppl", [squat, curls, bench]);
-assert(maxes.length === 2, "two primary lifts");
-assert(
-  maxes.every((item) => item.category === "base"),
-  "onboarding maxes skip isolation",
-);
-assert(
-  !maxes.some((item) => item.name === curls.name),
-  "curls stay off the max list",
-);
-const fullBody = onboardingWeightExercises("full_body", [
-  squat,
-  bench,
-  curls,
-  exercise("Румынская тяга", "base"),
-  exercise("Подтягивания", "base"),
-  exercise("Жим ногами", "base"),
-]);
-assert(fullBody.length === 2, "full body asks squat and bench");
-assert(
-  !fullBody.some((item) => item.name === "Подтягивания"),
-  "pull-ups stay off the max list",
-);
-assert(
-  onboardingWeightExercises("empty", [squat]).length === 0,
-  "empty circle has no maxes",
-);
-
 assert(
   scaledTemplateGrams(
     [
@@ -99,28 +58,3 @@ assert(
 );
 
 console.log("onboarding setup ok");
-
-function exercise(
-  name: string,
-  category: "base" | "isolation",
-): ExerciseWithMax {
-  return {
-    id: name,
-    user_id: "u",
-    name,
-    short_name: name,
-    category,
-    workout_type: "dynamic",
-    unit: "reps",
-    weight_step: 2.5,
-    formula_preset: "barbell",
-    slot: "a",
-    is_active: true,
-    created_at: "2026-01-01",
-    updated_at: "2026-01-01",
-    archived_at: null,
-    current_max: null,
-    max_history: [],
-    track: null,
-  };
-}

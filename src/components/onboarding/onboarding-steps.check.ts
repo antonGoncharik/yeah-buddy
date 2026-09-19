@@ -11,14 +11,12 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 const empty = {
   pendingKind: null,
   replay: false,
-  circle: "empty" as const,
-  state: null,
 };
 
 assertEqual(
   onboardingSteps(empty).join(),
   "guide,food,circle",
-  "first run explains the diary before protein",
+  "first run is guide, protein, program — 1RM waits for the gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),

@@ -11,8 +11,8 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 - A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover protein.
 - Meals: breakfast, lunch, snack / pre–post, dinner. Pick a food, enter grams, get protein / fat / carbs / kcal. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen: known foods get grams, unknown food becomes that same one-off row.
 - Your own food list: CRUD, search, favorites, recents. A shop catalog can copy a card into that list. No barcodes or live external food APIs.
-- Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Today plus the two previous calendar days stay writable in the user's timezone.
-- Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template.
+- Today opens itself as a rest day from the meal template. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a meal, extra copy actions sit behind «Ещё». Today plus the two previous calendar days stay fully writable in the user's timezone. Empty days up to seven days back can still be filled, marked «догонял»; already logged days in that extra window stay locked.
+- Older days on Today are view-only. Food history and the week live in Settings. The day screen shows leftover recipe grams vs the template. Catch-up days keep the «догонял» mark in the week and history.
 
 **Gym**
 
@@ -60,7 +60,7 @@ Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELE
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
 ```
 
-Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. A workout can start as soon as the day has at least one exercise with a set scheme; missing working weights are asked inside the session (`POST /api/sessions/:id/maxes`). First visit with no history opens onboarding; the recommended start is the full-body program.
+Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods, meal templates, and exercises without maxes. The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding: how the diary works, protein (100 / 120 / 150), then a program. 1ПМ is not part of that setup — a workout can start as soon as the day has at least one exercise with a set scheme, and missing working weights are asked inside the session (`POST /api/sessions/:id/maxes`). The recommended start is the full-body program.
 
 Scripts: `npm run dev` · `build` · `start` · `lint` (`biome check`) · `format` · `test` (`*.check.ts`).
 

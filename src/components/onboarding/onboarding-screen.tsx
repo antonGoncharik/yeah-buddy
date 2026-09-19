@@ -8,7 +8,6 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
 import { OnboardingCircleStep } from "@/components/onboarding/onboarding-circle-step";
 import { OnboardingFoodStep } from "@/components/onboarding/onboarding-food-step";
-import { OnboardingMaxesStep } from "@/components/onboarding/onboarding-maxes-step";
 import {
   type OnboardingStep,
   useOnboardingScreen,
@@ -35,14 +34,10 @@ export function OnboardingScreen() {
     preview,
     circle,
     setCircle,
-    maxInputs,
-    weightExercises,
     goBack,
     goNext,
     skipFoodStep,
-    finish,
     onProteinChange,
-    onMaxChange,
   } = useOnboardingScreen();
 
   if (loading) {
@@ -115,14 +110,6 @@ export function OnboardingScreen() {
           />
         ) : null}
 
-        {step === "maxes" ? (
-          <OnboardingMaxesStep
-            exercises={weightExercises}
-            values={maxInputs}
-            onChange={onMaxChange}
-          />
-        ) : null}
-
         {error ? (
           <p className="animate-rise text-center text-base text-destructive">
             {error}
@@ -141,18 +128,6 @@ export function OnboardingScreen() {
             onClick={() => skipFoodStep()}
           >
             Пропустить
-          </Button>
-        ) : null}
-        {step === "maxes" ? (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-12 w-full text-base"
-            disabled={saving}
-            data-keyboard-secondary
-            onClick={() => void finish({ omitMaxes: true })}
-          >
-            Указать позже
           </Button>
         ) : null}
         <Button
@@ -196,8 +171,5 @@ function titleForStep(step: OnboardingStep): string {
   if (step === "circle") {
     return "Программа тренировок";
   }
-  if (step === "guide") {
-    return GUIDE_LABEL;
-  }
-  return "1ПМ";
+  return GUIDE_LABEL;
 }

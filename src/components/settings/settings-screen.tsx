@@ -174,7 +174,7 @@ export function SettingsScreen() {
             />
             <NavRow
               href="/onboarding?again=1"
-              title="Белок и 1ПМ"
+              title="Белок на день"
               hint="Задать заново. Еда на день и программа не изменятся"
               icon={<PairDoodle />}
             />
