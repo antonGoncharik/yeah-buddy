@@ -2,6 +2,7 @@ import {
   CATCH_UP_EMPTY_HINT,
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
+  CATCH_UP_YESTERDAY_HINT,
   PENDING_WRITES,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
@@ -41,6 +42,11 @@ assertEqual(
   CATCH_UP_EMPTY_HINT,
   "День пустой. Можно догнать — в истории будет пометка «догонял».",
   "catch-up empty hint",
+);
+assertEqual(
+  CATCH_UP_YESTERDAY_HINT,
+  "Вчера пустой — можно догнать.",
+  "today after a hole",
 );
 
 console.log("messages ok");

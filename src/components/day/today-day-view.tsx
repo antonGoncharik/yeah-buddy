@@ -7,6 +7,10 @@ import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import {
+  showYesterdayCatchUpHint,
+  YesterdayCatchUpHint,
+} from "@/components/day/yesterday-catch-up-hint";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
 import { hiddenMealSlotsNote } from "@/lib/nutrition";
@@ -34,6 +38,8 @@ export function TodayDayView({
   remainingFullGap,
   remainingMealTypes,
   dayHasItems,
+  yesterdayExists,
+  onOpenYesterday,
   copyDays,
   namedMeals,
   lastBodyWeight,
@@ -69,6 +75,8 @@ export function TodayDayView({
   remainingFullGap: boolean;
   remainingMealTypes: ReadonlySet<MealType>;
   dayHasItems: boolean;
+  yesterdayExists: boolean;
+  onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
@@ -112,6 +120,11 @@ export function TodayDayView({
     />
   ) : null;
   const reviewOffer = useReviewOffer(reviewReady);
+  const yesterdayCatchUp = showYesterdayCatchUpHint({
+    isToday: date === today,
+    yesterdayExists,
+    viewOnly,
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -126,6 +139,12 @@ export function TodayDayView({
         busy={busy || isTempId(shownDay.id)}
         switchType={switchType}
       />
+
+      {yesterdayCatchUp ? (
+        <div className="animate-rise" style={{ animationDelay: "20ms" }}>
+          <YesterdayCatchUpHint onOpen={onOpenYesterday} />
+        </div>
+      ) : null}
 
       <div className="animate-rise" style={{ animationDelay: "40ms" }}>
         <DaySummary
@@ -184,7 +203,7 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {viewOnly || dayHasItems ? null : (
+      {viewOnly || dayHasItems || !yesterdayExists ? null : (
         <div
           className="animate-rise"
           style={{

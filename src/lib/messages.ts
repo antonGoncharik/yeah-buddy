@@ -28,6 +28,7 @@ export const CATCH_UP_MARK = "догонял";
 export const CATCH_UP_TITLE = "Догонял";
 export const CATCH_UP_EMPTY_HINT =
   "День пустой. Можно догнать — в истории будет пометка «догонял».";
+export const CATCH_UP_YESTERDAY_HINT = "Вчера пустой — можно догнать.";
 export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";

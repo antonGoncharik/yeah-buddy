@@ -15,7 +15,7 @@ import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
-import { nutritionHistoryHref } from "@/lib/day/dates";
+import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 
@@ -197,6 +197,8 @@ export function TodayScreen({
             remainingFullGap={remainingFullGap}
             remainingMealTypes={remainingMealTypes}
             dayHasItems={dayHasItems}
+            yesterdayExists={yesterdayExists}
+            onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
