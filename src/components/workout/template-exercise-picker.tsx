@@ -64,11 +64,10 @@ export function TemplateExercisePicker({
         <SectionHeading
           title="Упражнения"
           hint={[
-            "Порядок в списке — порядок в зале.",
-            selected.length > 1 ? "Потяни за номер слева." : null,
+            selected.length > 1 ? "Потяни за номер — порядок в зале." : null,
             cycle.length > 0
-              ? "Нажми на упражнение — свои подходы и вес, можно отдельно на неделю."
-              : "Нажми на упражнение — свои подходы и вес.",
+              ? "Нажми — свои подходы. Недели общие, задаются отдельно."
+              : "Нажми — свои подходы. Иначе берётся общий план.",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -91,41 +90,41 @@ export function TemplateExercisePicker({
                 const open = openId === row.id;
                 const summary = slotPlanSummary(row.plan, cycle);
                 return (
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-expanded={open}
-                        className={cn(
-                          "min-w-0 flex-1 rounded-lg px-1 py-1 text-left",
-                          open && "text-primary",
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      className={cn(
+                        "min-w-0 flex-1 rounded-lg px-1 py-1 text-left",
+                        open && "text-primary",
+                      )}
+                      onClick={() => setOpenId(open ? null : row.id)}
+                    >
+                      <p className="truncate text-base font-medium leading-snug">
+                        {exerciseShortLabel(
+                          row.exercise.short_name,
+                          row.exercise.name,
                         )}
-                        onClick={() => setOpenId(open ? null : row.id)}
-                      >
-                        <p className="text-base font-medium leading-snug">
-                          {exerciseShortLabel(
-                            row.exercise.short_name,
-                            row.exercise.name,
-                          )}
-                        </p>
-                        <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                          {summary ?? "по общему плану"}
-                        </p>
-                      </button>
-                      <RemoveRowButton onClick={() => onToggle(row.id)} />
-                    </div>
-                    {open ? (
-                      <SlotPlanEditor
-                        kind={kind}
-                        exercise={row.exercise}
-                        plan={row.plan}
-                        cycle={cycle}
-                        onChange={(plan) => onPlanChange(row.id, plan)}
-                      />
-                    ) : null}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm leading-snug text-muted-foreground">
+                        {summary ?? "как в плане"}
+                      </p>
+                    </button>
+                    <RemoveRowButton onClick={() => onToggle(row.id)} />
                   </div>
                 );
               }}
+              renderAfter={(row) =>
+                openId === row.id ? (
+                  <SlotPlanEditor
+                    kind={kind}
+                    exercise={row.exercise}
+                    plan={row.plan}
+                    cycle={cycle}
+                    onChange={(plan) => onPlanChange(row.id, plan)}
+                  />
+                ) : null
+              }
             />
           </div>
         )}

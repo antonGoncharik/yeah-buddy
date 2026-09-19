@@ -47,12 +47,15 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   disabled,
   renderItem,
+  renderAfter,
   variant = "rows",
 }: {
   items: T[];
   onReorder: (next: T[]) => void;
   disabled?: boolean;
   renderItem: (item: T, index: number) => ReactNode;
+  /** Full-width under the handle row — expanded editors, not squeezed beside the number. */
+  renderAfter?: (item: T, index: number) => ReactNode;
   variant?: "rows" | "cards";
 }) {
   const sensors = useSensors(
@@ -145,6 +148,7 @@ export function SortableList<T extends { id: string }>({
               showHandle={items.length > 1}
               index={index}
               variant={variant}
+              after={renderAfter?.(item, index)}
             >
               {renderItem(item, index)}
             </SortableRow>
@@ -173,6 +177,7 @@ function SortableRow({
   showHandle,
   index,
   variant,
+  after,
   children,
 }: {
   id: string;
@@ -180,6 +185,7 @@ function SortableRow({
   showHandle: boolean;
   index: number;
   variant: "rows" | "cards";
+  after?: ReactNode;
   children: ReactNode;
 }) {
   const {
@@ -201,36 +207,45 @@ function SortableRow({
         transition,
       }}
       className={cn(
-        "flex items-start gap-1",
-        variant === "rows" &&
-          "border-b border-border/70 px-1 py-1 last:border-b-0",
+        "flex flex-col",
+        variant === "rows" && "border-b border-border/70 last:border-b-0",
         isDragging && "z-10 opacity-40",
       )}
     >
-      {showHandle && !disabled ? (
-        <button
-          type="button"
-          className={cn(
-            "flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl active:cursor-grabbing",
-            variant === "cards" && "mt-1",
-          )}
-          aria-label={`Перетащить, ${index + 1}`}
-          {...attributes}
-          {...listeners}
-        >
-          <HandleFace index={index} />
-        </button>
-      ) : (
-        <HandleSlot index={index} variant={variant} />
-      )}
       <div
         className={cn(
-          "min-w-0 flex-1",
-          variant === "rows" && "flex items-center",
+          "flex items-start gap-1",
+          variant === "rows" && "px-1 py-1",
         )}
       >
-        {children}
+        {showHandle ? (
+          disabled ? (
+            <HandleSlot index={index} variant={variant} />
+          ) : (
+            <button
+              type="button"
+              className={cn(
+                "flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-xl active:cursor-grabbing",
+                variant === "cards" && "mt-1",
+              )}
+              aria-label={`Перетащить, ${index + 1}`}
+              {...attributes}
+              {...listeners}
+            >
+              <HandleFace index={index} />
+            </button>
+          )
+        ) : null}
+        <div
+          className={cn(
+            "min-w-0 flex-1",
+            variant === "rows" && "flex items-center",
+          )}
+        >
+          {children}
+        </div>
       </div>
+      {after}
     </div>
   );
 }

@@ -45,7 +45,7 @@ export function FormulasScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={FORMULAS_LABEL}
-        subtitle="Общая схема, если в дне нет своей"
+        subtitle="Общая схема. В дне можно своя"
         backHref="/workouts"
       />
 

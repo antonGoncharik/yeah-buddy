@@ -12,7 +12,9 @@ export function FormulaExampleMax({
 }) {
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <span className="min-w-0 flex-1">Килограммы справа — пример при 1ПМ</span>
+      <span className="min-w-0 flex-1">
+        Килограммы под строкой — пример при 1ПМ
+      </span>
       <Input
         inputMode="decimal"
         value={value}

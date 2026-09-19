@@ -604,7 +604,7 @@ export function slotPlanSummary(
   if (plan.groups) {
     parts.push(plan.groups.map(formatSlotGroup).join(" · "));
   } else if (slotPhaseKeys(plan).length > 0) {
-    parts.push("по общему плану");
+    parts.push("как в плане");
   }
   const phases = phaseNamesLabel(plan, cycle);
   if (phases) {

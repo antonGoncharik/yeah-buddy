@@ -217,7 +217,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/settings/formulas"
           title={FORMULAS_LABEL}
-          hint="Общая схема, если в дне нет своей"
+          hint="Общая, если в упражнении нет своей"
           icon={<SetsDoodle />}
         />
         <NavRow

@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Plus } from "lucide-react";
+import { type MutableRefObject, useEffect, useRef, useState } from "react";
 
-import { AddRowButton } from "@/components/ui/add-row-button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { Segmented } from "@/components/ui/segmented";
 import { SortableList } from "@/components/workout/sortable-list";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   CyclePhaseDef,
   ExerciseWithMax,
@@ -31,6 +33,7 @@ import {
   SLOT_LOAD_LABELS,
   SLOT_LOAD_TYPES,
   setSlotPhaseGroups,
+  slotPhaseKeys,
   switchLoadType,
 } from "@/lib/workout/slot-plan";
 import { MAX_SLOT_GROUPS } from "@/lib/workout/slot-plan-schema";
@@ -54,221 +57,257 @@ export function SlotPlanEditor({
 }) {
   const current = plan ?? defaultSlotPlan();
   const [phaseKey, setPhaseKey] = useState<string | null>(null);
+  const [weekOpen, setWeekOpen] = useState(
+    () => slotPhaseKeys(plan).length > 0,
+  );
   const phase = phaseKey
     ? (cycle.find((item) => item.key === phaseKey) ?? null)
     : null;
-  // Открыт этап — правим его схему; иначе обычную схему слота.
-  const edited = phase ? (current.phases?.[phase.key] ?? null) : current.groups;
-  const custom = edited != null;
-  const groups = edited ?? [];
+  const defaultCustom = current.groups != null;
+  const phaseGroups = phase ? (current.phases?.[phase.key] ?? null) : null;
+  const phaseCustom = phaseGroups != null;
   const groupIds = useRef<string[]>([]);
-  if (groupIds.current.length !== groups.length) {
-    groupIds.current = groups.map(
-      (_, index) => groupIds.current[index] ?? crypto.randomUUID(),
-    );
-  }
 
   function update(patch: Partial<SlotPlan>) {
     onChange({ ...current, ...patch });
   }
 
-  function setGroups(next: SlotSetGroup[] | null) {
-    if (phase) {
-      onChange(setSlotPhaseGroups(current, phase.key, next));
-      return;
-    }
+  function setDefaultGroups(next: SlotSetGroup[] | null) {
     update({ groups: next });
   }
 
-  function updateGroup(index: number, patch: Partial<SlotSetGroup>) {
-    setGroups(
-      groups.map((group, position) =>
-        position === index ? { ...group, ...patch } : group,
-      ),
-    );
+  function setPhaseGroups(next: SlotSetGroup[] | null) {
+    if (!phase) {
+      return;
+    }
+    onChange(setSlotPhaseGroups(current, phase.key, next));
+  }
+
+  function closeWeeks() {
+    setWeekOpen(false);
+    setPhaseKey(null);
   }
 
   return (
-    <div
-      className="mb-2 flex flex-col gap-4 rounded-xl bg-muted/50 px-3 py-3"
-      data-field-group
-    >
-      {cycle.length > 0 ? (
-        <PhaseChips
-          cycle={cycle}
-          plan={current}
-          value={phaseKey}
-          onChange={setPhaseKey}
-        />
-      ) : null}
+    <div className="flex flex-col gap-4 border-t border-border/60 px-1 pt-3 pb-2">
+      <p className="text-sm leading-snug text-muted-foreground">
+        {cycle.length > 0
+          ? "Только это упражнение. Недели общие — задаются отдельно."
+          : "Только это упражнение. Остальные дни берут общий план."}
+      </p>
 
-      <Segmented
-        value={custom ? "custom" : "shared"}
-        options={[
-          {
-            id: "shared",
-            label: phase ? "Обычно" : "Общий план",
-          },
-          {
-            id: "custom",
-            label: phase ? "Своя" : "Своя схема",
-          },
-        ]}
-        onChange={(id) =>
-          setGroups(
-            id === "custom"
-              ? groups.length > 0
-                ? groups
-                : (current.groups ?? [defaultSlotGroup(kind)])
-              : null,
-          )
+      <div className="flex flex-col gap-2">
+        <p className="text-base font-medium">Подходы</p>
+        <Segmented
+          value={defaultCustom ? "custom" : "shared"}
+          options={[
+            { id: "shared", label: "Как в плане" },
+            { id: "custom", label: "Свои" },
+          ]}
+          onChange={(id) =>
+            setDefaultGroups(
+              id === "custom"
+                ? (current.groups ?? [defaultSlotGroup(kind)])
+                : null,
+            )
+          }
+        />
+        {defaultCustom ? (
+          <GroupsEditor
+            kind={kind}
+            exercise={exercise}
+            groups={current.groups ?? []}
+            groupIds={groupIds}
+            onChange={setDefaultGroups}
+          />
+        ) : (
+          <p className="text-sm leading-snug text-muted-foreground">
+            Подходы из общего плана. Проценты и разминка — там же.
+          </p>
+        )}
+        {defaultCustom && exercise.formula_preset !== "none" ? (
+          <Segmented
+            value={current.warmup ? "on" : "off"}
+            options={[
+              { id: "on", label: "Разминка" },
+              { id: "off", label: "Без" },
+            ]}
+            onChange={(id) => update({ warmup: id === "on" })}
+          />
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Segmented<IntensityOption>
+          value={current.intensity ?? "none"}
+          options={[
+            { id: "none", label: "Обычно" },
+            ...SLOT_INTENSITIES.map((intensity) => ({
+              id: intensity,
+              label: SLOT_INTENSITY_LABELS[intensity],
+            })),
+          ]}
+          onChange={(id) => update({ intensity: id === "none" ? null : id })}
+        />
+        <p className="text-sm leading-snug text-muted-foreground">
+          {current.intensity
+            ? SLOT_INTENSITY_HINTS[current.intensity]
+            : "Пометка дня: сколько оставить в запасе в последнем подходе."}
+        </p>
+      </div>
+
+      <Input
+        value={current.note ?? ""}
+        placeholder="Заметка: хват, темп, замена"
+        maxLength={120}
+        className="h-11 text-base"
+        onChange={(event) =>
+          update({
+            note: event.target.value === "" ? null : event.target.value,
+          })
         }
       />
 
-      {phase && !custom ? (
-        <p className="px-1 text-sm leading-snug text-muted-foreground">
-          На этапе «{phase.name}» подходы как обычно. Другой вес на эту неделю —
-          включи «Своя».
-        </p>
-      ) : null}
-
-      {custom ? (
-        <div className="flex flex-col gap-2">
-          <SortableList
-            variant="cards"
-            items={groups.map((group, index) => ({
-              id: groupIds.current[index] ?? `group-${index}`,
-              group,
-            }))}
-            onReorder={(next) => {
-              groupIds.current = next.map((item) => item.id);
-              setGroups(next.map((item) => item.group));
-            }}
-            renderItem={(item, index) => (
-              <GroupRow
-                kind={kind}
-                exercise={exercise}
-                group={item.group}
-                canRemove={groups.length > 1}
-                onChange={(patch) => updateGroup(index, patch)}
-                onRemove={() => {
-                  groupIds.current = groupIds.current.filter(
-                    (_, position) => position !== index,
-                  );
-                  setGroups(groups.filter((_, position) => position !== index));
-                }}
-              />
-            )}
-          />
-          {groups.length < MAX_SLOT_GROUPS ? (
-            <div className="flex items-center gap-2">
-              <AddRowButton
-                label="Добавить группу подходов"
-                onClick={() =>
-                  setGroups([
-                    ...groups,
-                    {
-                      ...(groups[groups.length - 1] ?? defaultSlotGroup(kind)),
-                    },
-                  ])
-                }
-              />
-              <span className="text-sm text-muted-foreground">
-                Ещё группа подходов: топ 2×2, потом бэк 3×6.
-              </span>
-            </div>
-          ) : null}
-          {!phase && exercise.formula_preset !== "none" ? (
-            <Segmented
-              value={current.warmup ? "on" : "off"}
-              options={[
-                { id: "on", label: "Разминка" },
-                { id: "off", label: "Без" },
-              ]}
-              onChange={(id) => update({ warmup: id === "on" })}
-            />
-          ) : null}
-        </div>
-      ) : null}
-
-      {phase ? (
-        <p className="px-1 text-sm leading-snug text-muted-foreground">
-          Разминка, пометка и заметка — общие для упражнения, они в «Обычно».
-        </p>
-      ) : (
-        <>
-          <div className="flex flex-col gap-1.5">
-            <Segmented<IntensityOption>
-              value={current.intensity ?? "none"}
-              options={[
-                { id: "none", label: "Обычно" },
-                ...SLOT_INTENSITIES.map((intensity) => ({
-                  id: intensity,
-                  label: SLOT_INTENSITY_LABELS[intensity],
-                })),
-              ]}
-              onChange={(id) =>
-                update({ intensity: id === "none" ? null : id })
-              }
-            />
-            <p className="px-1 text-sm leading-snug text-muted-foreground">
-              {current.intensity
-                ? SLOT_INTENSITY_HINTS[current.intensity]
-                : "Тяжело / легко — пометка дня: сколько оставить в запасе в последнем подходе."}
-            </p>
-          </div>
-
-          <Input
-            value={current.note ?? ""}
-            placeholder="Заметка к упражнению: хват, темп, замена"
-            maxLength={120}
-            className="h-11 text-base"
-            onChange={(event) =>
-              update({
-                note: event.target.value === "" ? null : event.target.value,
-              })
+      {cycle.length > 0 ? (
+        <WeekOverride
+          cycle={cycle}
+          plan={current}
+          open={weekOpen}
+          phase={phase}
+          phaseCustom={phaseCustom}
+          groups={phaseGroups ?? []}
+          kind={kind}
+          exercise={exercise}
+          onToggle={() => {
+            haptic("tap");
+            if (weekOpen) {
+              closeWeeks();
+              return;
             }
-          />
-        </>
-      )}
+            setWeekOpen(true);
+            const first = slotPhaseKeys(current)[0];
+            if (first) {
+              setPhaseKey(first);
+            }
+          }}
+          onPickPhase={setPhaseKey}
+          onSetPhaseGroups={setPhaseGroups}
+        />
+      ) : null}
     </div>
   );
 }
 
-/** «Обычно» плюс этапы цикла; точка — на этапе своя схема. */
-function PhaseChips({
+function WeekOverride({
   cycle,
   plan,
-  value,
-  onChange,
+  open,
+  phase,
+  phaseCustom,
+  groups,
+  kind,
+  exercise,
+  onToggle,
+  onPickPhase,
+  onSetPhaseGroups,
 }: {
   cycle: CyclePhaseDef[];
   plan: SlotPlan;
-  value: string | null;
-  onChange: (key: string | null) => void;
+  open: boolean;
+  phase: CyclePhaseDef | null;
+  phaseCustom: boolean;
+  groups: SlotSetGroup[];
+  kind: WorkoutKind;
+  exercise: ExerciseWithMax;
+  onToggle: () => void;
+  onPickPhase: (key: string) => void;
+  onSetPhaseGroups: (next: SlotSetGroup[] | null) => void;
 }) {
+  const marked = slotPhaseKeys(plan);
+  const names = cycle
+    .filter((item) => marked.includes(item.key))
+    .map((item) => item.name)
+    .join(", ");
+  const phaseIds = useRef<string[]>([]);
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-        <Chip
-          label="Обычно"
-          selected={value == null}
-          onClick={() => onChange(null)}
+    <div className="flex flex-col gap-3 rounded-xl border border-border/70 px-3 py-2.5">
+      <button
+        type="button"
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 text-left"
+        onClick={onToggle}
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block text-base font-medium">На неделе иначе</span>
+          <span className="mt-0.5 block text-sm leading-snug text-muted-foreground">
+            {names
+              ? `Свои подходы: ${names}`
+              : "Цикл общий. Сюда — только если на этапе другие подходы."}
+          </span>
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-5 shrink-0 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+          aria-hidden
         />
-        {cycle.map((phase) => (
-          <Chip
-            key={phase.key}
-            label={phase.name}
-            marked={(plan.phases?.[phase.key]?.length ?? 0) > 0}
-            selected={value === phase.key}
-            onClick={() => onChange(phase.key)}
-          />
-        ))}
-      </div>
-      <p className="px-1 text-sm leading-snug text-muted-foreground">
-        На этапе — свои подходы: другие повторы или другой вес. Точка — схема
-        уже стоит.
-      </p>
+      </button>
+
+      {open ? (
+        <div className="flex flex-col gap-3">
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5">
+            {cycle.map((item) => (
+              <Chip
+                key={item.key}
+                label={item.name}
+                marked={marked.includes(item.key)}
+                selected={phase?.key === item.key}
+                onClick={() => onPickPhase(item.key)}
+              />
+            ))}
+          </div>
+          {phase ? (
+            <>
+              <Segmented
+                value={phaseCustom ? "custom" : "shared"}
+                options={[
+                  { id: "shared", label: "Как обычно" },
+                  { id: "custom", label: "Свои" },
+                ]}
+                onChange={(id) =>
+                  onSetPhaseGroups(
+                    id === "custom"
+                      ? groups.length > 0
+                        ? groups
+                        : (plan.groups ?? [defaultSlotGroup(kind)])
+                      : null,
+                  )
+                }
+              />
+              {phaseCustom ? (
+                <GroupsEditor
+                  kind={kind}
+                  exercise={exercise}
+                  groups={groups}
+                  groupIds={phaseIds}
+                  onChange={onSetPhaseGroups}
+                />
+              ) : (
+                <p className="text-sm leading-snug text-muted-foreground">
+                  На этапе «{phase.name}» подходы как обычно. Другой вес на эту
+                  неделю — включи «Свои».
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm leading-snug text-muted-foreground">
+              Выбери неделю.
+            </p>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -292,7 +331,7 @@ function Chip({
         "flex max-w-[11rem] shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors",
         selected
           ? "bg-primary text-primary-foreground"
-          : "bg-card text-muted-foreground hover:text-foreground",
+          : "bg-muted text-muted-foreground hover:text-foreground",
       )}
       onClick={onClick}
     >
@@ -307,6 +346,81 @@ function Chip({
         />
       ) : null}
     </button>
+  );
+}
+
+function GroupsEditor({
+  kind,
+  exercise,
+  groups,
+  groupIds,
+  onChange,
+}: {
+  kind: WorkoutKind;
+  exercise: ExerciseWithMax;
+  groups: SlotSetGroup[];
+  groupIds: MutableRefObject<string[]>;
+  onChange: (next: SlotSetGroup[] | null) => void;
+}) {
+  if (groupIds.current.length !== groups.length) {
+    groupIds.current = groups.map(
+      (_, index) => groupIds.current[index] ?? crypto.randomUUID(),
+    );
+  }
+
+  function updateGroup(index: number, patch: Partial<SlotSetGroup>) {
+    onChange(
+      groups.map((group, position) =>
+        position === index ? { ...group, ...patch } : group,
+      ),
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <SortableList
+        variant="cards"
+        items={groups.map((group, index) => ({
+          id: groupIds.current[index] ?? `group-${index}`,
+          group,
+        }))}
+        onReorder={(next) => {
+          groupIds.current = next.map((item) => item.id);
+          onChange(next.map((item) => item.group));
+        }}
+        renderItem={(item, index) => (
+          <GroupRow
+            kind={kind}
+            exercise={exercise}
+            group={item.group}
+            canRemove={groups.length > 1}
+            onChange={(patch) => updateGroup(index, patch)}
+            onRemove={() => {
+              groupIds.current = groupIds.current.filter(
+                (_, position) => position !== index,
+              );
+              onChange(groups.filter((_, position) => position !== index));
+            }}
+          />
+        )}
+      />
+      {groups.length < MAX_SLOT_GROUPS ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-11 justify-start px-1 text-base text-primary"
+          onClick={() =>
+            onChange([
+              ...groups,
+              { ...(groups[groups.length - 1] ?? defaultSlotGroup(kind)) },
+            ])
+          }
+        >
+          <Plus className="size-4" />
+          Ещё подходы
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
@@ -329,8 +443,8 @@ function GroupRow({
   const exampleWeight = exercise.current_max?.max_weight ?? null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-card px-3 py-2.5">
-      <div className="flex items-center gap-2">
+    <div className="flex min-w-0 flex-col gap-2 rounded-xl border border-border/70 px-3 py-2.5">
+      <div className="flex min-w-0 items-end gap-2">
         <NumField
           label="подх."
           value={group.sets}
@@ -341,7 +455,9 @@ function GroupRow({
             }
           }}
         />
-        <span className="pt-4 text-lg text-muted-foreground">×</span>
+        <span className="flex h-11 shrink-0 items-center text-lg text-muted-foreground">
+          ×
+        </span>
         {kind === "static" ? (
           <NumField
             label="сек"
@@ -362,8 +478,11 @@ function GroupRow({
             }
           />
         )}
-        <div className="flex-1" />
-        {canRemove ? <RemoveRowButton onClick={onRemove} /> : null}
+        {canRemove ? (
+          <div className="-mb-0.5 -mr-1 shrink-0">
+            <RemoveRowButton onClick={onRemove} />
+          </div>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -418,7 +537,7 @@ function GroupRow({
           />
         ) : null}
       </div>
-      <p className="text-xs leading-snug text-muted-foreground">
+      <p className="text-sm leading-snug text-muted-foreground">
         {loadHint(load, exercise)}
       </p>
     </div>
@@ -434,7 +553,7 @@ function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max
-      ? `От 1ПМ ${formatWeight(exercise.current_max.max_weight)} кг. На другой неделе процент может быть другим.`
+      ? `От 1ПМ ${formatWeight(exercise.current_max.max_weight)} кг.`
       : SLOT_LOAD_HINTS.percent;
   }
   return SLOT_LOAD_HINTS[load.type];
@@ -456,7 +575,7 @@ function RepsField({
   }, [external]);
 
   return (
-    <div className="flex w-20 flex-col gap-1">
+    <div className="flex min-w-0 flex-1 flex-col gap-1">
       <span className="text-xs text-muted-foreground">раз</span>
       <Input
         aria-label="раз"
@@ -464,7 +583,7 @@ function RepsField({
         enterKeyHint="next"
         value={text}
         placeholder="6–8"
-        className="h-11 text-base tabular-nums"
+        className="h-11 min-w-0 text-base tabular-nums"
         onKeyDown={handleNumericEnter}
         onChange={(event) => {
           const next = event.target.value;
@@ -501,14 +620,14 @@ function NumField({
   }, [external]);
 
   return (
-    <div className="flex w-20 flex-col gap-1">
+    <div className="flex min-w-0 flex-1 flex-col gap-1">
       <span className="text-xs text-muted-foreground">{label}</span>
       <Input
         aria-label={label}
         inputMode={inputMode}
         enterKeyHint="next"
         value={text}
-        className="h-11 text-base tabular-nums"
+        className="h-11 min-w-0 text-base tabular-nums"
         onKeyDown={handleNumericEnter}
         onChange={(event) => {
           const next = event.target.value;
