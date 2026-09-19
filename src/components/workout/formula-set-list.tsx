@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useRef } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FormulaExampleMax } from "@/components/workout/formula-example-max";
 import { MAX_SETS } from "@/components/workout/formula-form";
 import { FormulaSetRow } from "@/components/workout/formula-set-row";
 import { SortableList } from "@/components/workout/sortable-list";
@@ -18,6 +19,8 @@ export function FormulaSetList({
   defaultHold,
   allowEmpty = false,
   emptyLabel = "Пусто",
+  previewMax,
+  onPreviewMaxChange,
   onChange,
 }: {
   sets: FormulaSetSpec[];
@@ -26,6 +29,8 @@ export function FormulaSetList({
   defaultHold: boolean;
   allowEmpty?: boolean;
   emptyLabel?: string;
+  previewMax?: string;
+  onPreviewMaxChange?: (value: string) => void;
   onChange: (sets: FormulaSetSpec[]) => void;
 }) {
   const rowIds = useRef<string[]>([]);
@@ -108,6 +113,11 @@ export function FormulaSetList({
         <Plus className="size-4" />
         Подход
       </Button>
+      {previewMax != null && onPreviewMaxChange ? (
+        <div className="border-t border-border/60 pt-3">
+          <FormulaExampleMax value={previewMax} onChange={onPreviewMaxChange} />
+        </div>
+      ) : null}
     </div>
   );
 }

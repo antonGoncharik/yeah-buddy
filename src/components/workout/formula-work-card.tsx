@@ -2,7 +2,6 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-import { Input } from "@/components/ui/input";
 import { patchBaseWork } from "@/components/workout/formula-form";
 import { FormulaSetList } from "@/components/workout/formula-set-list";
 import type { WorkoutFormulas, WorkoutKind } from "@/lib/types";
@@ -82,6 +81,8 @@ export function FormulaWorkCard({
         exampleMax={exampleMax}
         exampleStep={exampleStep}
         defaultHold={kind === "static"}
+        previewMax={previewMax}
+        onPreviewMaxChange={setPreviewMax}
         onChange={(next) => {
           setSaved(false);
           setFormulas((current) =>
@@ -89,20 +90,6 @@ export function FormulaWorkCard({
           );
         }}
       />
-
-      <div className="flex items-center gap-2 border-t border-border/60 pt-3 text-sm text-muted-foreground">
-        <span className="min-w-0 flex-1">
-          Килограммы справа — пример при 1ПМ
-        </span>
-        <Input
-          inputMode="decimal"
-          value={previewMax}
-          onChange={(event) => setPreviewMax(event.target.value)}
-          className="h-10 w-16 px-2 text-center text-sm tabular-nums"
-          aria-label="Пример 1ПМ, кг"
-        />
-        <span>кг</span>
-      </div>
     </section>
   );
 }

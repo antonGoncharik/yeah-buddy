@@ -27,6 +27,8 @@ export function FormulaWarmupScreen() {
     showKindSwitch,
     formulas,
     setFormulas,
+    previewMax,
+    setPreviewMax,
     exampleMax,
     exampleStep,
     loading,
@@ -58,8 +60,7 @@ export function FormulaWarmupScreen() {
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
               Какая разминка — зависит от упражнения: в каждом выбрано «штанга»
-              или «блок». Проценты от 1ПМ, килограммы справа — пример при{" "}
-              {exampleMax} кг.
+              или «блок». Проценты от 1ПМ.
               {kind === "static"
                 ? " На время разминка обычно в повторах, а рабочие — в секундах."
                 : ""}
@@ -96,6 +97,10 @@ export function FormulaWarmupScreen() {
                   defaultHold={false}
                   allowEmpty
                   emptyLabel="Без разминки"
+                  previewMax={previewMax[kind]}
+                  onPreviewMaxChange={(value) =>
+                    setPreviewMax((current) => ({ ...current, [kind]: value }))
+                  }
                   onChange={(sets) => {
                     setSaved(false);
                     setFormulas((current) =>

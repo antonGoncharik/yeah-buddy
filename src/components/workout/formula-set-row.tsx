@@ -97,7 +97,7 @@ export function FormulaSetRow({
       >
         {hold ? "сек" : "повт"}
       </button>
-      <p className="min-w-0 flex-1 truncate text-right text-sm font-medium tabular-nums">
+      <p className="min-w-14 shrink-0 text-right text-sm font-medium tabular-nums text-muted-foreground">
         {weight == null ? "" : `${formatWeight(weight)} кг`}
       </p>
       <button
