@@ -4,6 +4,8 @@ import {
   consecutiveProteinHits,
   EARLY_LINE,
   EVENING_LINE,
+  FAVORITE_OFFER_HINT,
+  favoriteOfferLine,
   firstDeloadLine,
   firstPhaseLine,
   foodSearchEasterEgg,
@@ -366,6 +368,16 @@ assertEqual(
   foodSearchEmptyLine("yeah buddy", "all"),
   "Yeah buddy.",
   "egg beats empty",
+);
+assertEqual(
+  favoriteOfferLine("Творог"),
+  "Творог ставишь каждый день.",
+  "favorite offer",
+);
+assertEqual(
+  FAVORITE_OFFER_HINT,
+  "В избранное — не искать каждый обед.",
+  "favorite offer hint",
 );
 assertEqual(
   mealEmptyLine("breakfast"),

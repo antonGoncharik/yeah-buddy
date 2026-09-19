@@ -10,18 +10,25 @@ import {
   CatalogFoodSection,
   catalogSearchActive,
 } from "@/components/foods/catalog-food-section";
+import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
 import {
   foodsApiUrl,
+  starFoodFromOffer,
   toggleFoodFavorite,
 } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
+import {
+  type FavoriteOffer,
+  readFavoriteOffers,
+} from "@/lib/food/favorite-offer";
 import { parseFoodList } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -50,10 +57,14 @@ export function AddMealItemScreen({
   const [filter, setFilter] = useState<Filter>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
+  const [offers, setOffers] = useState<FavoriteOffer[]>([]);
+  const [starring, setStarring] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
   const loadedFilterRef = useRef<Filter | null>(null);
+  const skippedEmptyFavorites = useRef(false);
+  const favoriteOffer = useFavoriteOffer(offers);
 
   const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
     const requestId = ++requestIdRef.current;
@@ -62,6 +73,7 @@ export function AddMealItemScreen({
     }
     setError(null);
 
+    let lastCount = 0;
     try {
       await cachedGet(
         foodsApiUrl(nextFilter),
@@ -69,7 +81,10 @@ export function AddMealItemScreen({
           if (requestId !== requestIdRef.current) {
             return true;
           }
-          setFoods(readFoods(data));
+          const nextFoods = readFoods(data);
+          lastCount = nextFoods.length;
+          setFoods(nextFoods);
+          setOffers(readFavoriteOffers(data));
           loadedFilterRef.current = nextFilter;
           return true;
         },
@@ -85,11 +100,23 @@ export function AddMealItemScreen({
       }
       setError(LOAD_FAILED);
       setFoods([]);
-    } finally {
-      if (requestId === requestIdRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
+      return;
     }
+
+    if (requestId !== requestIdRef.current) {
+      return;
+    }
+    if (
+      nextFilter === "favorites" &&
+      lastCount === 0 &&
+      !skippedEmptyFavorites.current
+    ) {
+      skippedEmptyFavorites.current = true;
+      setFilter("recent");
+      return;
+    }
+    setLoading(false);
   }, []);
 
   const search = query.trim();
@@ -118,6 +145,28 @@ export function AddMealItemScreen({
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+        )}
+        {search || !favoriteOffer.offer ? null : (
+          <FavoriteOfferCard
+            offer={favoriteOffer.offer}
+            busy={starring}
+            onAccept={() => {
+              const target = favoriteOffer.offer;
+              if (!target) {
+                return;
+              }
+              setStarring(true);
+              void starFoodFromOffer(target.foodId, setFoods, listFilter)
+                .then(() => {
+                  favoriteOffer.dismiss();
+                  if (listFilter === "favorites") {
+                    void load("favorites", true);
+                  }
+                })
+                .finally(() => setStarring(false));
+            }}
+            onDismiss={favoriteOffer.dismiss}
+          />
         )}
         {lumpHrefBase ? (
           <MealLumpLink href={lumpHrefBase} query={query} />
@@ -155,7 +204,9 @@ export function AddMealItemScreen({
             foods={visibleFoods}
             hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
             onToggleFavorite={(food) =>
-              void toggleFoodFavorite(food, setFoods, listFilter)
+              void toggleFoodFavorite(food, setFoods, listFilter).then(() =>
+                favoriteOffer.refresh(),
+              )
             }
           />
         ) : null}

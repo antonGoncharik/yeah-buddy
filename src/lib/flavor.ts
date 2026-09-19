@@ -355,6 +355,12 @@ export function foodSearchEmptyLine(
   return FOODS_EMPTY;
 }
 
+export function favoriteOfferLine(name: string): string {
+  return `${name.trim()} ставишь каждый день.`;
+}
+
+export const FAVORITE_OFFER_HINT = "В избранное — не искать каждый обед.";
+
 export function mealEmptyLine(mealType: MealType): string {
   return MEAL_EMPTY_LINES[mealType];
 }

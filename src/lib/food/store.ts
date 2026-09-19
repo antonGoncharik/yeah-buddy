@@ -1,5 +1,10 @@
+import {
+  type FavoriteOfferHit,
+  favoriteOfferWindowStart,
+} from "@/lib/food/favorite-offer";
 import { mapFood } from "@/lib/food/map";
 import type { FoodInput, FoodListFilter } from "@/lib/food/schema";
+import { isRecord } from "@/lib/read";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
 
@@ -193,4 +198,103 @@ export async function setFoodFavorite(
   }
 
   return mapFood(updated.data as Record<string, unknown>);
+}
+
+export async function listFavoriteOfferHits(
+  userId: string,
+  today: string,
+): Promise<FavoriteOfferHit[]> {
+  const start = favoriteOfferWindowStart(today);
+  const supabase = createSupabaseServerClient();
+  const days = await supabase
+    .from("days")
+    .select(
+      `
+      date,
+      meals (
+        meal_items (
+          food_id
+        )
+      )
+    `,
+    )
+    .eq("user_id", userId)
+    .gte("date", start)
+    .lte("date", today);
+
+  if (days.error) {
+    throw days.error;
+  }
+
+  const foodIds = new Set<string>();
+  const logged: Array<{ date: string; foodId: string }> = [];
+  for (const row of days.data ?? []) {
+    const date = String(row.date).slice(0, 10);
+    for (const foodId of foodIdsFromDayRow(row as Record<string, unknown>)) {
+      foodIds.add(foodId);
+      logged.push({ date, foodId });
+    }
+  }
+
+  if (foodIds.size === 0) {
+    return [];
+  }
+
+  const foods = await supabase
+    .from("foods")
+    .select("id, name, is_favorite")
+    .eq("user_id", userId)
+    .in("id", [...foodIds]);
+
+  if (foods.error) {
+    throw foods.error;
+  }
+
+  const byId = new Map(
+    (foods.data ?? []).flatMap((row) => {
+      if (typeof row.id !== "string" || typeof row.name !== "string") {
+        return [];
+      }
+      return [
+        [
+          row.id,
+          { name: row.name, isFavorite: Boolean(row.is_favorite) },
+        ] as const,
+      ];
+    }),
+  );
+
+  return logged.flatMap((item) => {
+    const food = byId.get(item.foodId);
+    if (!food) {
+      return [];
+    }
+    return [
+      {
+        foodId: item.foodId,
+        name: food.name,
+        isFavorite: food.isFavorite,
+        date: item.date,
+      },
+    ];
+  });
+}
+
+function foodIdsFromDayRow(row: Record<string, unknown>): string[] {
+  const meals = Array.isArray(row.meals) ? row.meals : [];
+  const ids: string[] = [];
+  for (const meal of meals) {
+    if (!isRecord(meal) || !Array.isArray(meal.meal_items)) {
+      continue;
+    }
+    for (const item of meal.meal_items) {
+      if (!isRecord(item) || typeof item.food_id !== "string") {
+        continue;
+      }
+      if (item.food_id !== "") {
+        ids.push(item.food_id);
+      }
+    }
+  }
+  return ids;
 }

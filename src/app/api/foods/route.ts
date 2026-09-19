@@ -2,7 +2,9 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { createFood, listFoods } from "@/lib/food/store";
+import { getUserCalendarToday } from "@/lib/day/writable";
+import { rankFavoriteOffers } from "@/lib/food/favorite-offer";
+import { createFood, listFavoriteOfferHits, listFoods } from "@/lib/food/store";
 import { foodInputSchema, parseFoodListFilter } from "@/lib/foods";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -16,8 +18,15 @@ export async function GET(request: Request): Promise<NextResponse> {
   );
 
   try {
-    const foods = await listFoods(auth.session.userId, filter);
-    return jsonOk({ foods });
+    const today = await getUserCalendarToday(auth.session.userId);
+    const [foods, hits] = await Promise.all([
+      listFoods(auth.session.userId, filter),
+      listFavoriteOfferHits(auth.session.userId, today),
+    ]);
+    return jsonOk({
+      foods,
+      favoriteOffers: rankFavoriteOffers(hits, today),
+    });
   } catch (error) {
     return failRoute(error);
   }

@@ -6,14 +6,24 @@ import {
   CatalogFoodSection,
   catalogSearchActive,
 } from "@/components/foods/catalog-food-section";
-import { toggleFoodFavorite } from "@/components/foods/food-favorite";
+import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
+import {
+  foodsApiUrl,
+  starFoodFromOffer,
+  toggleFoodFavorite,
+} from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
+import {
+  type FavoriteOffer,
+  readFavoriteOffers,
+} from "@/lib/food/favorite-offer";
 import { parseFoodList } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -38,9 +48,13 @@ export function PlateFoodPicker({
   const [filter, setFilter] = useState<Filter>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
+  const [offers, setOffers] = useState<FavoriteOffer[]>([]);
+  const [starring, setStarring] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const skippedEmptyFavorites = useRef(false);
+  const favoriteOffer = useFavoriteOffer(offers);
   const search = query.trim();
   const listFilter = search ? "all" : filter;
 
@@ -49,10 +63,9 @@ export function PlateFoodPicker({
     setLoading(true);
     setError(null);
 
+    let switched = false;
     try {
-      const params =
-        nextFilter === "all" ? "" : `?filter=${encodeURIComponent(nextFilter)}`;
-      const response = await fetch(`/api/foods${params}`);
+      const response = await fetch(foodsApiUrl(nextFilter));
       if (!response.ok) {
         throw new Error("load failed");
       }
@@ -60,7 +73,19 @@ export function PlateFoodPicker({
       if (requestId !== requestIdRef.current) {
         return;
       }
-      setFoods(parseFoodList(data));
+      const nextFoods = parseFoodList(data);
+      setFoods(nextFoods);
+      setOffers(readFavoriteOffers(data));
+      if (
+        nextFilter === "favorites" &&
+        nextFoods.length === 0 &&
+        !skippedEmptyFavorites.current
+      ) {
+        skippedEmptyFavorites.current = true;
+        switched = true;
+        setFilter("recent");
+        return;
+      }
     } catch {
       if (requestId !== requestIdRef.current) {
         return;
@@ -68,7 +93,7 @@ export function PlateFoodPicker({
       setError(LOAD_FAILED);
       setFoods([]);
     } finally {
-      if (requestId === requestIdRef.current) {
+      if (requestId === requestIdRef.current && !switched) {
         setLoading(false);
       }
     }
@@ -113,6 +138,28 @@ export function PlateFoodPicker({
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
+        {search || !favoriteOffer.offer ? null : (
+          <FavoriteOfferCard
+            offer={favoriteOffer.offer}
+            busy={starring}
+            onAccept={() => {
+              const target = favoriteOffer.offer;
+              if (!target) {
+                return;
+              }
+              setStarring(true);
+              void starFoodFromOffer(target.foodId, setFoods, listFilter)
+                .then(() => {
+                  favoriteOffer.dismiss();
+                  if (listFilter === "favorites") {
+                    void load("favorites");
+                  }
+                })
+                .finally(() => setStarring(false));
+            }}
+            onDismiss={favoriteOffer.dismiss}
+          />
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -140,7 +187,9 @@ export function PlateFoodPicker({
               foods={visibleFoods}
               onSelectFood={onPick}
               onToggleFavorite={(food) =>
-                void toggleFoodFavorite(food, setFoods, listFilter)
+                void toggleFoodFavorite(food, setFoods, listFilter).then(() =>
+                  favoriteOffer.refresh(),
+                )
               }
             />
           ) : null}
