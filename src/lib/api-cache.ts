@@ -62,20 +62,31 @@ export function peekJson(url: string): unknown | null {
   }
 }
 
+type CacheListener = (url: string, data: unknown) => void;
+
+const cacheListeners = new Set<CacheListener>();
+
+export function subscribeJson(listener: CacheListener): () => void {
+  cacheListeners.add(listener);
+  return () => {
+    cacheListeners.delete(listener);
+  };
+}
+
 export function writeJson(url: string, data: unknown): void {
   writeStamp.set(url, ++clock);
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  try {
-    const raw = JSON.stringify({ at: Date.now(), data } satisfies CacheEntry);
-    if (raw.length > MAX_CHARS) {
-      return;
+  if (typeof localStorage !== "undefined") {
+    try {
+      const raw = JSON.stringify({ at: Date.now(), data } satisfies CacheEntry);
+      if (raw.length <= MAX_CHARS) {
+        localStorage.setItem(`${PREFIX}${url}`, raw);
+      }
+    } catch {
+      // quota, private mode, or disabled storage
     }
-    localStorage.setItem(`${PREFIX}${url}`, raw);
-  } catch {
-    // quota, private mode, or disabled storage
+  }
+  for (const listener of cacheListeners) {
+    listener(url, data);
   }
 }
 

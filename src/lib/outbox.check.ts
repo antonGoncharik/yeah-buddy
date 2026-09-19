@@ -160,6 +160,61 @@ const rewritten = rewriteOutboxClientId(
 assertEqual(rewritten[0]?.url, "/api/meal-items/real-id", "rewrites url");
 assertEqual(rewritten[0]?.clientIds, ["real-id"], "rewrites client id");
 
+const shawarma: OutboxInput = {
+  method: "POST",
+  url: "/api/meals/m1/items",
+  body: { name: "шаурма", protein: 30, fat: 20, carbs: 40 },
+  cacheUrls: ["/api/days?date=2026-09-19"],
+  clientIds: ["temp:item:lump"],
+};
+const twoAdds = applyEnqueue(queued, shawarma, 10);
+assertEqual(twoAdds.length, 2, "second add stays");
+assertEqual(twoAdds[1]?.body, shawarma.body, "keeps lump body");
+
+const completeRewrite = rewriteOutboxClientId(
+  [
+    op(
+      {
+        method: "POST",
+        url: "/api/sessions/temp:session:1/complete",
+        body: {
+          note: null,
+          sets: [{ id: "temp:set:1", actual_weight: 80 }],
+        },
+        cacheUrls: ["/api/sessions/temp:session:1"],
+        clientIds: ["temp:session:1"],
+      },
+      "op:2",
+      11,
+    ),
+  ],
+  "temp:session:1",
+  "real-session",
+);
+assertEqual(
+  completeRewrite[0]?.url,
+  "/api/sessions/real-session/complete",
+  "rewrites complete url",
+);
+assertEqual(
+  completeRewrite[0]?.cacheUrls,
+  ["/api/sessions/real-session"],
+  "rewrites cache url",
+);
+const setRewrite = rewriteOutboxClientId(
+  completeRewrite,
+  "temp:set:1",
+  "11111111-1111-1111-1111-111111111111",
+);
+assertEqual(
+  setRewrite[0]?.body,
+  {
+    note: null,
+    sets: [{ id: "11111111-1111-1111-1111-111111111111", actual_weight: 80 }],
+  },
+  "rewrites set id in body",
+);
+
 assert(isTempId(tempId("item")), "temp helper");
 assert(
   isNetworkError(new TypeError("Failed to fetch")),

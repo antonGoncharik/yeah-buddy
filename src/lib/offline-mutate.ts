@@ -31,6 +31,9 @@ export async function queueMutate(input: OutboxInput): Promise<unknown | null> {
 }
 
 function isLocalOnly(input: OutboxInput): boolean {
+  if (input.url.includes("temp:")) {
+    return true;
+  }
   if (input.method === "POST") {
     return false;
   }

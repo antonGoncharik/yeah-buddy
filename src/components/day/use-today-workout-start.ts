@@ -4,12 +4,18 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { ApiError, postJson } from "@/lib/api-cache";
 import type { DayWithMeals } from "@/lib/day/map";
 import { mealsMatchRecipe, type RecipeLine } from "@/lib/day/remaining";
-import { LOAD_FAILED, switchRestToTrainingMessage } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  switchRestToTrainingMessage,
+  WORKOUT_TEMPLATE_EMPTY,
+} from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import { readTodaySession } from "@/lib/workout/hub-payload";
+import {
+  isEmptyTemplateError,
+  queueCreateSession,
+} from "@/lib/workout/session-start";
 
 export function useTodayWorkoutStart({
   viewOnly,
@@ -18,7 +24,6 @@ export function useTodayWorkoutStart({
   restRecipe,
   setBusy,
   setActionError,
-  load,
 }: {
   viewOnly: boolean;
   date: string;
@@ -26,7 +31,6 @@ export function useTodayWorkoutStart({
   restRecipe: RecipeLine[];
   setBusy: Dispatch<SetStateAction<boolean>>;
   setActionError: Dispatch<SetStateAction<string | null>>;
-  load: () => Promise<void>;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -53,19 +57,16 @@ export function useTodayWorkoutStart({
     setBusy(true);
     setActionError(null);
     try {
-      const data = await postJson("/api/sessions", {
-        session_date: date,
-        template_id: templateId,
-      });
-      const created = readTodaySession(data);
-      if (created) {
-        haptic("commit");
-        router.push(`/workouts/sessions/${created.id}`);
+      const created = await queueCreateSession({ date, templateId });
+      if (!created) {
+        haptic("warn");
+        setActionError(WORKOUT_TEMPLATE_EMPTY);
         return;
       }
-      await load();
+      haptic("commit");
+      router.push(`/workouts/sessions/${created.session.id}`);
     } catch (caught) {
-      if (caught instanceof ApiError && caught.status === 400) {
+      if (isEmptyTemplateError(caught)) {
         haptic("warn");
         router.push("/workouts/exercises");
         return;

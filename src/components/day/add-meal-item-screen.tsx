@@ -10,13 +10,17 @@ import {
   CatalogFoodSection,
   catalogSearchActive,
 } from "@/components/foods/catalog-food-section";
-import { toggleFoodFavorite } from "@/components/foods/food-favorite";
+import {
+  foodsApiUrl,
+  toggleFoodFavorite,
+} from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { cachedGet } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
 import { parseFoodList } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -59,19 +63,22 @@ export function AddMealItemScreen({
     setError(null);
 
     try {
-      const params =
-        nextFilter === "all" ? "" : `?filter=${encodeURIComponent(nextFilter)}`;
-      const response = await fetch(`/api/foods${params}`);
-      if (!response.ok) {
-        throw new Error("load failed");
-      }
-
-      const data: unknown = await response.json();
-      if (requestId !== requestIdRef.current) {
-        return;
-      }
-      setFoods(readFoods(data));
-      loadedFilterRef.current = nextFilter;
+      await cachedGet(
+        foodsApiUrl(nextFilter),
+        (data) => {
+          if (requestId !== requestIdRef.current) {
+            return true;
+          }
+          setFoods(readFoods(data));
+          loadedFilterRef.current = nextFilter;
+          return true;
+        },
+        () => {
+          if (requestId === requestIdRef.current) {
+            setLoading(false);
+          }
+        },
+      );
     } catch {
       if (requestId !== requestIdRef.current) {
         return;

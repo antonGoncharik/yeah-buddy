@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { mutateJson, postJson } from "@/lib/api-cache";
+import { mutateJson, peekJson, postJson } from "@/lib/api-cache";
+import { daysUrl } from "@/lib/day/cache";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
 import {
@@ -12,10 +13,15 @@ import {
   switchRestToTrainingMessage,
   WORKOUT_TEMPLATE_EMPTY,
 } from "@/lib/messages";
+import { isOffline } from "@/lib/offline";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
 import { templateCanPlan } from "@/lib/workout/hints";
-import { isRestFoodDay, readTodaySession } from "@/lib/workout/hub-payload";
+import { isRestFoodDay } from "@/lib/workout/hub-payload";
+import {
+  isEmptyTemplateError,
+  queueCreateSession,
+} from "@/lib/workout/session-start";
 
 export function useHubSessionActions({
   date,
@@ -51,13 +57,13 @@ export function useHubSessionActions({
     setError(null);
 
     try {
-      let dayData: unknown = null;
-      try {
-        dayData = await mutateJson(
-          `/api/days?date=${encodeURIComponent(sessionDate)}`,
-        );
-      } catch {
-        dayData = null;
+      let dayData = peekJson(daysUrl(sessionDate));
+      if (!isOffline()) {
+        try {
+          dayData = await mutateJson(daysUrl(sessionDate));
+        } catch {
+          // keep the cached day if the phone is in a basement with a fake "online"
+        }
       }
       if (dayData && isRestFoodDay(dayData)) {
         const day = readDay(dayData);
@@ -76,20 +82,23 @@ export function useHubSessionActions({
         }
       }
 
-      const data = await postJson("/api/sessions", {
-        session_date: sessionDate,
-        template_id: templateId,
+      const created = await queueCreateSession({
+        date: sessionDate,
+        templateId,
       });
-
-      const created = readTodaySession(data);
-      if (created) {
-        haptic("commit");
-        router.push(`/workouts/sessions/${created.id}`);
+      if (!created) {
+        haptic("warn");
+        setError(WORKOUT_TEMPLATE_EMPTY);
         return;
       }
-
-      await load();
+      haptic("commit");
+      router.push(`/workouts/sessions/${created.session.id}`);
     } catch (caught) {
+      if (isEmptyTemplateError(caught)) {
+        haptic("warn");
+        setError(WORKOUT_TEMPLATE_EMPTY);
+        return;
+      }
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {

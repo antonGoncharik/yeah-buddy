@@ -1,9 +1,11 @@
 import {
   cloneItemsToMeal,
   copyMealsFrom,
+  dayCreateClientIds,
   isTempId,
   mealItemFromFood,
   mealItemFromLump,
+  mergeCreatedDay,
   placeholderDay,
   replaceItemsFromTemplate,
   withAddedItem,
@@ -11,6 +13,7 @@ import {
   withDayType,
   withRemovedItem,
   withUpdatedItemGrams,
+  zipClientIds,
 } from "@/lib/day/optimistic";
 import type { Food, MealTemplateDetail } from "@/lib/types";
 
@@ -156,5 +159,35 @@ assertEqual(
   80,
   "template grams",
 );
+
+const localDay = placeholderDay("2026-09-19", "rest");
+const shawarma = mealItemFromLump(localDay.meals[0]?.id ?? "m", {
+  name: "шаурма",
+  protein: 30,
+  fat: 20,
+  carbs: 40,
+});
+const localWithLump = withAddedItem(
+  localDay,
+  localDay.meals[0]?.id ?? "",
+  shawarma,
+);
+const serverDay = placeholderDay("2026-09-19", "rest");
+const created = new Set(dayCreateClientIds(localDay));
+const merged = mergeCreatedDay(localWithLump, serverDay, created);
+assertEqual(
+  merged.meals[0]?.items.map((item) => item.name_snapshot),
+  ["шаурма"],
+  "keeps lump after create",
+);
+assertEqual(
+  merged.meals[0]?.items[0]?.meal_id,
+  serverDay.meals[0]?.id,
+  "rewrites meal id",
+);
+
+const zipped = zipClientIds(["temp:a", "temp:b"], ["real-a", "real-b"]);
+assertEqual(zipped.get("temp:a"), "real-a", "zip first");
+assertEqual(zipped.get("temp:b"), "real-b", "zip second");
 
 console.log("day optimistic ok");

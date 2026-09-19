@@ -341,6 +341,59 @@ export function placeholderDay(
   };
 }
 
+export function dayCreateClientIds(day: DayWithMeals): string[] {
+  return [
+    day.id,
+    ...day.meals.map((meal) => meal.id),
+    ...day.meals.flatMap((meal) => meal.items.map((item) => item.id)),
+  ];
+}
+
+export function mergeCreatedDay(
+  local: DayWithMeals,
+  server: DayWithMeals,
+  createdIds: ReadonlySet<string>,
+): DayWithMeals {
+  return {
+    ...server,
+    meals: server.meals.map((serverMeal) => {
+      const localMeal = local.meals.find(
+        (meal) => meal.meal_type === serverMeal.meal_type,
+      );
+      if (!localMeal) {
+        return serverMeal;
+      }
+      const extras = localMeal.items.filter((item) => !createdIds.has(item.id));
+      if (extras.length === 0) {
+        return serverMeal;
+      }
+      return {
+        ...serverMeal,
+        items: [
+          ...serverMeal.items,
+          ...extras.map((item) => ({ ...item, meal_id: serverMeal.id })),
+        ],
+      };
+    }),
+  };
+}
+
+export function zipClientIds(
+  clientIds: string[],
+  serverIds: string[],
+): Map<string, string> {
+  const map = new Map<string, string>();
+  const length = Math.min(clientIds.length, serverIds.length);
+  for (let index = 0; index < length; index += 1) {
+    const from = clientIds[index];
+    const to = serverIds[index];
+    if (from && to && from !== to) {
+      map.set(from, to);
+    }
+  }
+  return map;
+}
+
 export function dayFromTemplate(
   date: string,
   dayType: DayType,

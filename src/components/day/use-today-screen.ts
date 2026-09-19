@@ -174,7 +174,6 @@ export function useTodayScreen({
     restRecipe: data.recipes.rest,
     setBusy,
     setActionError,
-    load: data.load,
   });
   const { createDay, switchType, saveBodyWeight, deleteItem } =
     useTodayDayActions({

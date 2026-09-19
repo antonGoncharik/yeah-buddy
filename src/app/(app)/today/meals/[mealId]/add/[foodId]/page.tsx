@@ -7,6 +7,8 @@ import { addMealItemGrams, GramsScreen } from "@/components/day/grams-screen";
 import { LumpMacrosCreate } from "@/components/day/lump-macros-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { peekJson } from "@/lib/api-cache";
+import { daysUrl, peekFood } from "@/lib/day/cache";
 import {
   calendarToday,
   isIsoDate,
@@ -94,6 +96,19 @@ function AddMealItemGramsPage({
       setLoading(true);
       setError(null);
 
+      const cachedFood = peekFood(foodId);
+      if (cachedFood) {
+        setFood(cachedFood);
+        setLoading(false);
+      }
+
+      const cachedDay = date ? peekJson(daysUrl(date)) : null;
+      if (date && cachedDay != null) {
+        const loadedToday = readCalendarToday(cachedDay) ?? calendarToday();
+        setToday(loadedToday);
+        setWritable(readDayWritable(cachedDay, date, loadedToday));
+      }
+
       try {
         const [foodResponse, dayResponse] = await Promise.all([
           fetch(`/api/foods/${foodId}`),
@@ -106,8 +121,10 @@ function AddMealItemGramsPage({
         }
 
         if (foodResponse.status === 404) {
-          setError("Продукт не найден.");
-          setFood(null);
+          if (!cachedFood) {
+            setError("Продукт не найден.");
+            setFood(null);
+          }
           return;
         }
 
@@ -116,7 +133,7 @@ function AddMealItemGramsPage({
         }
 
         const data: unknown = await foodResponse.json();
-        setFood(readFood(data));
+        setFood(readFood(data) ?? cachedFood);
 
         if (date && dayResponse?.ok) {
           const dayData: unknown = await dayResponse.json();
@@ -128,13 +145,13 @@ function AddMealItemGramsPage({
           setWritable(
             loadedToday != null && readDayWritable(dayData, date, loadedToday),
           );
-        } else if (date) {
+        } else if (date && cachedDay == null) {
           setWritable(false);
-        } else {
+        } else if (!date) {
           setWritable(true);
         }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && !cachedFood) {
           setError(LOAD_FAILED);
           setFood(null);
         }

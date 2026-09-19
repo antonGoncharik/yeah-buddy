@@ -10,7 +10,7 @@ import {
 } from "@/components/workout/session-drafts";
 import { loadSessionFollowUp } from "@/components/workout/session-follow-up";
 import { useSessionActions } from "@/components/workout/use-session-actions";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, subscribeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -114,6 +114,18 @@ export function useSessionScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    return subscribeJson((url, data) => {
+      if (url !== sessionUrl) {
+        return;
+      }
+      const next = readSessionDetail(data);
+      if (next) {
+        applyDetail(next);
+      }
+    });
+  }, [applyDetail, sessionUrl]);
 
   useEffect(() => {
     setMood(detail?.phase?.phase_type === "deload" ? "deload" : "training");

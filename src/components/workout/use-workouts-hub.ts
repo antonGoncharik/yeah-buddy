@@ -121,6 +121,10 @@ export function useWorkoutsHub() {
         () => true,
         () => false,
       ),
+      cachedGet("/api/workout-settings", () => true, showCached).then(
+        () => true,
+        () => false,
+      ),
     ]);
 
     // Templates and today's queue state decide what the hub shows; without

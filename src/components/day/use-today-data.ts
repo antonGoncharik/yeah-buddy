@@ -25,6 +25,7 @@ import {
 } from "@/lib/day/today-payload";
 import type { CopyDayHint, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { prefetchGymCache } from "@/lib/workout/session-local";
 
 function sessionsUrl(date: string): string {
   return `/api/sessions?date=${encodeURIComponent(date)}`;
@@ -135,6 +136,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
 
     setLoadedDate(requestedDate);
     done(true);
+    prefetchGymCache();
   }, [applyDayPayload, begin, date, done, onLoadStart]);
 
   useLayoutEffect(() => {

@@ -127,22 +127,24 @@ export function applyEnqueue(
     }
   }
 
+  if (next.method === "POST" && targetIds.length > 0) {
+    const index = ops.findIndex(
+      (current) =>
+        current.method === "POST" &&
+        current.url === next.url &&
+        sameClientIds(current.clientIds, targetIds),
+    );
+    if (index < 0) {
+      return [...ops, op];
+    }
+    return replaceAt(ops, index, op, at);
+  }
+
   const index = ops.findIndex(
     (current) => current.method === next.method && current.url === next.url,
   );
   if (index >= 0) {
-    const copy = [...ops];
-    const current = copy[index];
-    if (current) {
-      copy[index] = {
-        ...current,
-        body: next.body,
-        cacheUrls: next.cacheUrls,
-        clientIds: next.clientIds ?? current.clientIds,
-        at,
-      };
-    }
-    return copy;
+    return replaceAt(ops, index, op, at);
   }
 
   return [...ops, op];
@@ -160,8 +162,23 @@ export function rewriteOutboxClientId(
   return ops.map((op) => ({
     ...op,
     url: op.url.includes(from) ? op.url.replaceAll(from, to) : op.url,
+    cacheUrls: op.cacheUrls.map((url) =>
+      url.includes(from) ? url.replaceAll(from, to) : url,
+    ),
     clientIds: op.clientIds?.map((id) => (id === from ? to : id)),
+    body: rewriteBodyIds(op.body, from, to),
   }));
+}
+
+export function rewriteOutboxClientIds(
+  ops: OutboxOp[],
+  ids: Map<string, string>,
+): OutboxOp[] {
+  let next = ops;
+  for (const [from, to] of ids) {
+    next = rewriteOutboxClientId(next, from, to);
+  }
+  return next;
 }
 
 function stripClientIds(op: OutboxOp, ids: string[]): OutboxOp | null {
@@ -195,11 +212,55 @@ function stripClientIds(op: OutboxOp, ids: string[]): OutboxOp | null {
   };
 }
 
+function replaceAt(
+  ops: OutboxOp[],
+  index: number,
+  next: OutboxOp,
+  at: number,
+): OutboxOp[] {
+  const copy = [...ops];
+  const current = copy[index];
+  if (current) {
+    copy[index] = {
+      ...current,
+      body: next.body,
+      cacheUrls: next.cacheUrls,
+      clientIds: next.clientIds ?? current.clientIds,
+      at,
+    };
+  }
+  return copy;
+}
+
+function sameClientIds(left: string[] | undefined, right: string[]): boolean {
+  if (!left || left.length !== right.length) {
+    return false;
+  }
+  return left.every((id, index) => id === right[index]);
+}
+
 function mergeBodies(base: unknown, patch: unknown): unknown {
   if (isRecord(base) && isRecord(patch)) {
     return { ...base, ...patch };
   }
   return patch ?? base;
+}
+
+function rewriteBodyIds(value: unknown, from: string, to: string): unknown {
+  if (typeof value === "string") {
+    return value === from ? to : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => rewriteBodyIds(item, from, to));
+  }
+  if (isRecord(value)) {
+    const next: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      next[key] = rewriteBodyIds(item, from, to);
+    }
+    return next;
+  }
+  return value;
 }
 
 function sessionIdFromPatchUrl(url: string): string | null {

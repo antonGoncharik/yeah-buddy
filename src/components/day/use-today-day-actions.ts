@@ -3,13 +3,7 @@
 import { useCallback } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import {
-  ApiError,
-  mutateJson,
-  patchJson,
-  peekJson,
-  postJson,
-} from "@/lib/api-cache";
+import { ApiError, mutateJson, patchJson, peekJson } from "@/lib/api-cache";
 import {
   daysUrl,
   optimisticCreatedDay,
@@ -20,6 +14,7 @@ import {
 } from "@/lib/day/cache";
 import type { DayWithMeals } from "@/lib/day/map";
 import {
+  dayCreateClientIds,
   isTempId,
   replaceItemsFromTemplate,
   withBodyWeight,
@@ -51,30 +46,36 @@ export function useTodayDayActions({
       }
 
       haptic("commit");
-      await withDayOptimistic(
-        date,
-        optimisticCreatedDay(date, dayType),
-        async () => {
-          try {
-            const data = await postJson("/api/days", { date, dayType });
+      const optimistic = optimisticCreatedDay(date, dayType);
+      await withDayOptimistic(date, optimistic, async () => {
+        try {
+          const data = await queueMutate({
+            method: "POST",
+            url: "/api/days",
+            body: { date, dayType },
+            cacheUrls: [daysUrl(date)],
+            clientIds: dayCreateClientIds(optimistic),
+          });
+          if (data == null) {
+            return "keep";
+          }
+          const next = writeDayResponse(date, data);
+          if (!next) {
+            throw new Error(LOAD_FAILED);
+          }
+          return "keep";
+        } catch (caught) {
+          if (caught instanceof ApiError && caught.status === 409) {
+            const data = await mutateJson(daysUrl(date));
             const next = writeDayResponse(date, data);
             if (!next) {
               throw new Error(LOAD_FAILED);
             }
             return "keep";
-          } catch (caught) {
-            if (caught instanceof ApiError && caught.status === 409) {
-              const data = await mutateJson(daysUrl(date));
-              const next = writeDayResponse(date, data);
-              if (!next) {
-                throw new Error(LOAD_FAILED);
-              }
-              return "keep";
-            }
-            throw caught;
           }
-        },
-      );
+          throw caught;
+        }
+      });
     },
     [date, viewOnly],
   );

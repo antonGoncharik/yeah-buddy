@@ -19,6 +19,26 @@ export function sessionDraftKey(sessionId: string): string {
   return `${PREFIX}${sessionId}`;
 }
 
+export function rewriteSessionDraftIds(
+  fromSessionId: string,
+  toSessionId: string,
+  ids: Map<string, string>,
+): void {
+  const stored = readSessionDraft(fromSessionId);
+  if (!stored) {
+    return;
+  }
+
+  const drafts: Record<string, StoredSetDraft> = {};
+  for (const [id, draft] of Object.entries(stored.drafts)) {
+    drafts[ids.get(id) ?? id] = draft;
+  }
+  writeSessionDraft(toSessionId, { ...stored, drafts });
+  if (fromSessionId !== toSessionId) {
+    clearSessionDraft(fromSessionId);
+  }
+}
+
 export function overlaySessionDrafts(
   base: Record<string, StoredSetDraft>,
   stored: Record<string, StoredSetDraft> | null | undefined,
