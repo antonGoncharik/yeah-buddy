@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 
 import { patchBaseWork } from "@/components/workout/formula-form";
 import { FormulaSetList } from "@/components/workout/formula-set-list";
@@ -37,14 +37,15 @@ export function FormulaWorkCard({
   const activeSystem = FORMULA_SYSTEMS.find((system) =>
     workSetsEqual(system.formulas[kind].base.work, work),
   );
+  const [customOpen, setCustomOpen] = useState(false);
+  const showEditor = kind !== "dynamic" || activeSystem == null || customOpen;
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
         <h2 className="text-xl font-semibold">Рабочие подходы</h2>
         <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-          Общая схема, если у упражнения в дне нет своей. Недели цикла — общие,
-          ниже. Проценты от 1ПМ, либо в дне поставишь килограммы.
+          Если в упражнении нет своих — будут эти.
         </p>
         <p className="text-sm tabular-nums text-muted-foreground">
           {workSummary(work)}
@@ -67,7 +68,10 @@ export function FormulaWorkCard({
                     ? "bg-primary/12 font-medium text-primary"
                     : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
-                onClick={() => applySystem(system.id)}
+                onClick={() => {
+                  setCustomOpen(false);
+                  applySystem(system.id);
+                }}
               >
                 {system.name}
               </button>
@@ -76,20 +80,30 @@ export function FormulaWorkCard({
         </div>
       ) : null}
 
-      <FormulaSetList
-        sets={work}
-        exampleMax={exampleMax}
-        exampleStep={exampleStep}
-        defaultHold={kind === "static"}
-        previewMax={previewMax}
-        onPreviewMaxChange={setPreviewMax}
-        onChange={(next) => {
-          setSaved(false);
-          setFormulas((current) =>
-            current ? patchBaseWork(current, kind, next) : current,
-          );
-        }}
-      />
+      {showEditor ? (
+        <FormulaSetList
+          sets={work}
+          exampleMax={exampleMax}
+          exampleStep={exampleStep}
+          defaultHold={kind === "static"}
+          previewMax={previewMax}
+          onPreviewMaxChange={setPreviewMax}
+          onChange={(next) => {
+            setSaved(false);
+            setFormulas((current) =>
+              current ? patchBaseWork(current, kind, next) : current,
+            );
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          className="self-start py-1 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+          onClick={() => setCustomOpen(true)}
+        >
+          Настроить самому
+        </button>
+      )}
     </section>
   );
 }

@@ -4,6 +4,8 @@ import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { SetsDoodle } from "@/components/layout/doodles";
+import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
@@ -13,7 +15,7 @@ import { ScheduleInactiveList } from "@/components/workout/schedule-inactive-lis
 import { ScheduleProgramsSection } from "@/components/workout/schedule-programs-section";
 import { useScheduleScreen } from "@/components/workout/use-schedule-screen";
 import { cn } from "@/lib/utils";
-import { QUEUE_LABEL } from "@/lib/workout/labels";
+import { FORMULAS_LABEL, QUEUE_LABEL } from "@/lib/workout/labels";
 
 export function ScheduleScreen() {
   const {
@@ -73,6 +75,17 @@ export function ScheduleScreen() {
             saving={saving}
             onSetInCircle={setInCircle}
           />
+        ) : null}
+
+        {!loading && (active.length > 0 || inactive.length > 0) ? (
+          <section className="card-surface divide-y divide-border/70 px-5 py-2">
+            <NavRow
+              href="/settings/formulas"
+              title={FORMULAS_LABEL}
+              hint="3×5, если в дне нет своих"
+              icon={<SetsDoodle />}
+            />
+          </section>
         ) : null}
 
         {!loading && (active.length > 0 || inactive.length > 0) ? (

@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import {
@@ -8,7 +12,59 @@ import {
   programDayExerciseNames,
   programPresetSummary,
   programPresetsByLevel,
+  RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
+
+/** Recommended start on top; the rest of the catalog behind «Ещё программы». */
+export function ProgramPresetCatalog({
+  value,
+  disabled,
+  onPick,
+}: {
+  value?: ProgramPresetId | null;
+  disabled?: boolean;
+  onPick: (id: ProgramPresetId) => void;
+}) {
+  const extraSelected =
+    value != null && value !== RECOMMENDED_PROGRAM_PRESET_ID;
+  const [showMore, setShowMore] = useState(extraSelected);
+
+  useEffect(() => {
+    if (extraSelected) {
+      setShowMore(true);
+    }
+  }, [extraSelected]);
+
+  return (
+    <>
+      <ProgramPresetList
+        value={value}
+        disabled={disabled}
+        recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
+        ids={[RECOMMENDED_PROGRAM_PRESET_ID]}
+        showLevelLabels={false}
+        onPick={onPick}
+      />
+      {showMore ? (
+        <ProgramPresetList
+          value={value}
+          disabled={disabled}
+          compact
+          excludeIds={[RECOMMENDED_PROGRAM_PRESET_ID]}
+          onPick={onPick}
+        />
+      ) : (
+        <button
+          type="button"
+          className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+          onClick={() => setShowMore(true)}
+        >
+          Ещё программы
+        </button>
+      )}
+    </>
+  );
+}
 
 export function ProgramPresetList({
   value,

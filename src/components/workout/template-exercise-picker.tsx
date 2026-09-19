@@ -63,14 +63,11 @@ export function TemplateExercisePicker({
       <section className="flex flex-col gap-2">
         <SectionHeading
           title="Упражнения"
-          hint={[
-            selected.length > 1 ? "Потяни за номер — порядок в зале." : null,
-            cycle.length > 0
-              ? "Нажми — свои подходы. Недели общие, задаются отдельно."
-              : "Нажми — свои подходы. Иначе берётся общий план.",
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          hint={
+            selected.length > 1
+              ? "Потяни за номер — порядок в зале."
+              : undefined
+          }
         />
         {selected.length === 0 ? (
           <p className="card-surface px-5 py-4 text-base text-muted-foreground">

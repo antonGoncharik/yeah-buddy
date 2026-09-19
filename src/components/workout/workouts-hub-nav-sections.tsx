@@ -7,7 +7,6 @@ import {
   BarbellDoodle,
   ChartDoodle,
   DumbbellDoodle,
-  SetsDoodle,
 } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -24,7 +23,6 @@ import { cycleTimeline, phaseLinkLabel } from "@/lib/workout/hints";
 import {
   CYCLE_LABEL,
   exerciseShortLabel,
-  FORMULAS_LABEL,
   QUEUE_LABEL,
   REVIEW_LABEL,
 } from "@/lib/workout/labels";
@@ -213,12 +211,6 @@ export function WorkoutsHubNavSections({
           title="Рабочие веса"
           hint="За 90 дней и с первой записи"
           icon={<BarbellDoodle />}
-        />
-        <NavRow
-          href="/settings/formulas"
-          title={FORMULAS_LABEL}
-          hint="Общая, если в упражнении нет своей"
-          icon={<SetsDoodle />}
         />
         <NavRow
           href={reviewHref("workouts")}

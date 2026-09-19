@@ -1,7 +1,7 @@
 "use client";
 
 import { SectionHeading } from "@/components/layout/section-heading";
-import { ProgramPresetList } from "@/components/workout/program-preset-list";
+import { ProgramPresetCatalog } from "@/components/workout/program-preset-list";
 import type { ProgramPresetId } from "@/lib/workout/program-presets";
 
 export function ScheduleProgramsSection({
@@ -17,7 +17,7 @@ export function ScheduleProgramsSection({
         title="Готовые программы"
         hint="Встанет вместо текущей. Свои дни отложатся. Если у программы есть недели — встанут сами."
       />
-      <ProgramPresetList disabled={saving} onPick={onPick} />
+      <ProgramPresetCatalog disabled={saving} onPick={onPick} />
     </section>
   );
 }

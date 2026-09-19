@@ -67,6 +67,14 @@ export function SlotPlanEditor({
   const phaseGroups = phase ? (current.phases?.[phase.key] ?? null) : null;
   const phaseCustom = phaseGroups != null;
   const groupIds = useRef<string[]>([]);
+  const extraUsed = Boolean(current.intensity || current.note);
+  const [showExtra, setShowExtra] = useState(extraUsed);
+
+  useEffect(() => {
+    if (extraUsed) {
+      setShowExtra(true);
+    }
+  }, [extraUsed]);
 
   function update(patch: Partial<SlotPlan>) {
     onChange({ ...current, ...patch });
@@ -93,7 +101,7 @@ export function SlotPlanEditor({
       <p className="text-sm leading-snug text-muted-foreground">
         {cycle.length > 0
           ? "Только это упражнение. Недели общие — задаются отдельно."
-          : "Только это упражнение. Остальные дни берут общий план."}
+          : "Только это упражнение. «Свои» — если нужны другие подходы."}
       </p>
 
       <div className="flex flex-col gap-2">
@@ -137,36 +145,50 @@ export function SlotPlanEditor({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Segmented<IntensityOption>
-          value={current.intensity ?? "none"}
-          options={[
-            { id: "none", label: "Обычно" },
-            ...SLOT_INTENSITIES.map((intensity) => ({
-              id: intensity,
-              label: SLOT_INTENSITY_LABELS[intensity],
-            })),
-          ]}
-          onChange={(id) => update({ intensity: id === "none" ? null : id })}
-        />
-        <p className="text-sm leading-snug text-muted-foreground">
-          {current.intensity
-            ? SLOT_INTENSITY_HINTS[current.intensity]
-            : "Пометка дня: сколько оставить в запасе в последнем подходе."}
-        </p>
-      </div>
+      {showExtra ? (
+        <>
+          <div className="flex flex-col gap-1.5">
+            <Segmented<IntensityOption>
+              value={current.intensity ?? "none"}
+              options={[
+                { id: "none", label: "Обычно" },
+                ...SLOT_INTENSITIES.map((intensity) => ({
+                  id: intensity,
+                  label: SLOT_INTENSITY_LABELS[intensity],
+                })),
+              ]}
+              onChange={(id) =>
+                update({ intensity: id === "none" ? null : id })
+              }
+            />
+            <p className="text-sm leading-snug text-muted-foreground">
+              {current.intensity
+                ? SLOT_INTENSITY_HINTS[current.intensity]
+                : "Пометка дня: сколько оставить в запасе в последнем подходе."}
+            </p>
+          </div>
 
-      <Input
-        value={current.note ?? ""}
-        placeholder="Заметка: хват, темп, замена"
-        maxLength={120}
-        className="h-11 text-base"
-        onChange={(event) =>
-          update({
-            note: event.target.value === "" ? null : event.target.value,
-          })
-        }
-      />
+          <Input
+            value={current.note ?? ""}
+            placeholder="Заметка: хват, темп, замена"
+            maxLength={120}
+            className="h-11 text-base"
+            onChange={(event) =>
+              update({
+                note: event.target.value === "" ? null : event.target.value,
+              })
+            }
+          />
+        </>
+      ) : (
+        <button
+          type="button"
+          className="self-start py-1 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
+          onClick={() => setShowExtra(true)}
+        >
+          Ещё: пометка и заметка
+        </button>
+      )}
 
       {cycle.length > 0 ? (
         <WeekOverride
