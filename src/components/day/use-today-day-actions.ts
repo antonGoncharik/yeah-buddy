@@ -5,7 +5,6 @@ import { useCallback } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import {
   ApiError,
-  deleteJson,
   mutateJson,
   patchJson,
   peekJson,
@@ -30,6 +29,7 @@ import {
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
 import { LOAD_FAILED } from "@/lib/messages";
+import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealItem } from "@/lib/types";
 
@@ -110,9 +110,15 @@ export function useTodayDayActions({
     }
 
     await withDayOptimistic(date, withBodyWeight(day, value), async () => {
-      const data = await patchJson(`/api/days/${day.id}`, {
-        bodyWeight: value,
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/days/${day.id}`,
+        body: { bodyWeight: value },
+        cacheUrls: [daysUrl(date)],
       });
+      if (data == null) {
+        return "keep";
+      }
       const next = readDay(data);
       if (!next) {
         throw new Error(LOAD_FAILED);
@@ -138,9 +144,13 @@ export function useTodayDayActions({
 
     haptic("commit");
     await withDayOptimistic(date, withRemovedItem(day, item.id), async () => {
-      if (!isTempId(item.id)) {
-        await deleteJson(`/api/meal-items/${item.id}`);
-      }
+      await queueMutate({
+        method: "DELETE",
+        url: `/api/meal-items/${item.id}`,
+        body: null,
+        cacheUrls: [daysUrl(date)],
+        clientIds: isTempId(item.id) ? [item.id] : undefined,
+      });
       return "keep";
     });
   }

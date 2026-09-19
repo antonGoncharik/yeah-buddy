@@ -1,4 +1,4 @@
-import { switchRestToTrainingMessage } from "@/lib/messages";
+import { PENDING_WRITES, switchRestToTrainingMessage } from "@/lib/messages";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
@@ -22,6 +22,12 @@ assertEqual(
   switchRestToTrainingMessage({ isToday: false, swapMeals: true }),
   "Этот день записан как день отдыха. Сделать его тренировочным? Приёмы пищи подставятся из шаблона тренировки.",
   "other day swap",
+);
+
+assertEqual(
+  PENDING_WRITES,
+  "На телефоне. Когда появится сеть — уйдёт само.",
+  "offline queue copy",
 );
 
 console.log("messages ok");

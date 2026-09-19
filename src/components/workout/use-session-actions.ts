@@ -8,11 +8,15 @@ import {
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
-import { fetchJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
+import { fetchJson, peekJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { queueMutate } from "@/lib/offline-mutate";
+import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
+import { completeSessionLocally } from "@/lib/workout/session-complete-local";
+import { clearSessionDraft } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionActions({
@@ -68,35 +72,52 @@ export function useSessionActions({
       return;
     }
 
-    await runBusy(async () => {
-      const data = await postJson(
-        `/api/sessions/${detail.session.id}/complete`,
-        {
-          note: note.trim() === "" ? null : note.trim(),
-          feel: detail.session.feel,
-          sets: Object.entries(drafts).map(([id, draft]) => ({
-            id,
-            actual_weight: parseDecimal(draft.weight),
-            actual_reps:
-              detail.session.workout_type === "dynamic"
-                ? parseInteger(draft.reps)
-                : null,
-            actual_seconds:
-              detail.session.workout_type === "static"
-                ? parseDecimal(draft.seconds)
-                : null,
-            actual_rir: parseRir(draft.rir),
-          })),
-        },
-      );
+    const body = {
+      note: note.trim() === "" ? null : note.trim(),
+      feel: detail.session.feel,
+      sets: Object.entries(drafts).map(([id, draft]) => ({
+        id,
+        actual_weight: parseDecimal(draft.weight),
+        actual_reps:
+          detail.session.workout_type === "dynamic"
+            ? parseInteger(draft.reps)
+            : null,
+        actual_seconds:
+          detail.session.workout_type === "static"
+            ? parseDecimal(draft.seconds)
+            : null,
+        actual_rir: parseRir(draft.rir),
+      })),
+    };
+    const local = completeSessionLocally(detail, body);
+    const previous = detail;
+    writeCompletedCaches(sessionUrl, local);
+    clearSessionDraft(detail.session.id);
+    applyDetail(local);
+    setCorrecting(false);
+    setError(null);
+    haptic("success");
 
+    try {
+      const data = await queueMutate({
+        method: "POST",
+        url: `/api/sessions/${detail.session.id}/complete`,
+        body,
+        cacheUrls: [sessionUrl, sessionDateUrl(detail.session.session_date)],
+      });
+      if (!data) {
+        return;
+      }
       const next = applyPayload(data);
       if (next) {
-        setCorrecting(false);
-        haptic("success");
         await loadFollowUp(next.session.session_date);
       }
-    });
+    } catch (caught) {
+      haptic("error");
+      writeCompletedCaches(sessionUrl, previous);
+      applyDetail(previous);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
   }
 
   async function saveFeel(feel: SessionFeel | null) {
@@ -105,18 +126,26 @@ export function useSessionActions({
     }
 
     const previous = detail.session.feel;
-    setDetail((current) =>
-      current ? { ...current, session: { ...current.session, feel } } : current,
-    );
+    const nextDetail = {
+      ...detail,
+      session: { ...detail.session, feel },
+    };
+    setDetail(nextDetail);
+    writeCompletedCaches(sessionUrl, nextDetail);
 
     try {
-      await patchJson(`/api/sessions/${detail.session.id}`, { feel });
-      if (detail.session.status !== "completed" || correcting) {
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/sessions/${detail.session.id}`,
+        body: { feel },
+        cacheUrls: [sessionUrl, sessionDateUrl(detail.session.session_date)],
+      });
+      if (data == null || detail.session.status !== "completed" || correcting) {
         return;
       }
 
-      const data = await fetchJson(sessionUrl);
-      const next = readSessionDetail(data);
+      const refreshed = await fetchJson(sessionUrl);
+      const next = readSessionDetail(refreshed);
       if (next) {
         applyDetail(next);
         await loadFollowUp(detail.session.session_date);
@@ -146,4 +175,20 @@ export function useSessionActions({
     saveFeel,
     ...edits,
   };
+}
+
+function sessionDateUrl(date: string): string {
+  return `/api/sessions?date=${encodeURIComponent(date)}`;
+}
+
+function writeCompletedCaches(sessionUrl: string, detail: SessionDetail): void {
+  writeJson(sessionUrl, detail);
+  const hubUrl = sessionDateUrl(detail.session.session_date);
+  const current = peekJson(hubUrl);
+  writeJson(
+    hubUrl,
+    isRecord(current)
+      ? { ...current, session: detail.session }
+      : { session: detail.session },
+  );
 }

@@ -21,7 +21,7 @@ import {
 } from "@/components/day/plate-draft-commit";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
 import { postJson } from "@/lib/api-cache";
-import { readCachedDay, withDayOptimistic } from "@/lib/day/cache";
+import { daysUrl, readCachedDay, withDayOptimistic } from "@/lib/day/cache";
 import {
   mealItemFromFood,
   mealItemFromLump,
@@ -30,6 +30,7 @@ import {
 } from "@/lib/day/optimistic";
 import type { GramsMode } from "@/lib/food/yield";
 import { readMealItemsPayload } from "@/lib/meal/parse";
+import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food, MealItem } from "@/lib/types";
 
@@ -186,8 +187,12 @@ export function usePlateDraft({
         date,
         withAddedItems(current, mealId, temps),
         async () => {
-          const data = await postJson(`/api/meals/${mealId}/plate`, {
-            items: prepared.items.map(toCommitItem),
+          const data = await queueMutate({
+            method: "POST",
+            url: `/api/meals/${mealId}/plate`,
+            body: { items: prepared.items.map(toCommitItem) },
+            cacheUrls: [daysUrl(date)],
+            clientIds: temps.map((item) => item.id),
           });
           const saved = readMealItemsPayload(data);
           const latest = readCachedDay(date);

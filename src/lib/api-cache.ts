@@ -1,5 +1,7 @@
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
+import { clearOutbox, hasPendingCache } from "@/lib/outbox";
 import { isRecord } from "@/lib/read";
+import { clearSessionDrafts } from "@/lib/workout/session-draft-store";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -80,6 +82,8 @@ export function writeJson(url: string, data: unknown): void {
 export function clearDiaryCache(): void {
   writeStamp.clear();
   inflight.clear();
+  clearOutbox();
+  clearSessionDrafts();
   if (typeof localStorage === "undefined") {
     return;
   }
@@ -145,9 +149,20 @@ export async function deleteJson(url: string): Promise<unknown> {
 }
 
 export async function fetchJson(url: string): Promise<unknown> {
+  if (hasPendingCache(url)) {
+    const cached = peekJson(url);
+    if (cached != null) {
+      return cached;
+    }
+  }
+
   const started = clock;
   const data = await mutateJson(url);
-  if ((inflight.get(url) ?? 0) > 0 || (writeStamp.get(url) ?? 0) > started) {
+  if (
+    (inflight.get(url) ?? 0) > 0 ||
+    (writeStamp.get(url) ?? 0) > started ||
+    hasPendingCache(url)
+  ) {
     return peekJson(url) ?? data;
   }
   writeJson(url, data);
@@ -162,6 +177,9 @@ export async function cachedGet(
   const cached = peekJson(url);
   if (cached != null && apply(cached)) {
     onCached?.();
+    if (hasPendingCache(url)) {
+      return;
+    }
   }
 
   try {

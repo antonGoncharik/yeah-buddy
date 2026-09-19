@@ -1,6 +1,7 @@
 import { patchJson, postJson } from "@/lib/api-cache";
-import { readCachedDay, withDayOptimistic } from "@/lib/day/cache";
+import { daysUrl, readCachedDay, withDayOptimistic } from "@/lib/day/cache";
 import {
+  isTempId,
   mealItemFromFood,
   mealItemFromLump,
   withAddedItem,
@@ -21,6 +22,7 @@ import {
   withTemplateOptimistic,
 } from "@/lib/meal/template-cache";
 import { isMealType } from "@/lib/nutrition";
+import { queueMutate } from "@/lib/offline-mutate";
 import type { DayType, Food, MealItem } from "@/lib/types";
 
 export async function saveMealItemGrams({
@@ -42,7 +44,13 @@ export async function saveMealItemGrams({
     date,
     withUpdatedItemGrams(current, item.id, grams),
     async () => {
-      const data = await patchJson(`/api/meal-items/${item.id}`, { grams });
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/meal-items/${item.id}`,
+        body: { grams },
+        cacheUrls: [daysUrl(date)],
+        clientIds: isTempId(item.id) ? [item.id] : undefined,
+      });
       const saved = readMealItemPayload(data);
       const latest = readCachedDay(date);
       if (saved && latest) {
@@ -83,9 +91,12 @@ export async function addMealItemGrams({
     date,
     withAddedItem(current, mealId, temp),
     async () => {
-      const data = await postJson(`/api/meals/${mealId}/items`, {
-        foodId: food.id,
-        grams,
+      const data = await queueMutate({
+        method: "POST",
+        url: `/api/meals/${mealId}/items`,
+        body: { foodId: food.id, grams },
+        cacheUrls: [daysUrl(date)],
+        clientIds: [temp.id],
       });
       const saved = readMealItemPayload(data);
       const latest = readCachedDay(date);
@@ -117,7 +128,13 @@ export async function addLumpMealItem({
     date,
     withAddedItem(current, mealId, temp),
     async () => {
-      const data = await postJson(`/api/meals/${mealId}/items`, input);
+      const data = await queueMutate({
+        method: "POST",
+        url: `/api/meals/${mealId}/items`,
+        body: input,
+        cacheUrls: [daysUrl(date)],
+        clientIds: [temp.id],
+      });
       const saved = readMealItemPayload(data);
       const latest = readCachedDay(date);
       if (saved && latest) {
@@ -147,7 +164,13 @@ export async function saveLumpMealItem({
     date,
     withUpdatedLump(current, itemId, input),
     async () => {
-      const data = await patchJson(`/api/meal-items/${itemId}`, input);
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/meal-items/${itemId}`,
+        body: input,
+        cacheUrls: [daysUrl(date)],
+        clientIds: isTempId(itemId) ? [itemId] : undefined,
+      });
       const saved = readMealItemPayload(data);
       const latest = readCachedDay(date);
       if (saved && latest) {

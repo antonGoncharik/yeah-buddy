@@ -6,6 +6,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail } from "@/lib/types";
 import { readSessionDetail } from "@/lib/workout/session-payload";
@@ -74,7 +75,15 @@ export function useSessionEdits({
     );
 
     try {
-      await patchJson(`/api/sessions/${detail.session.id}`, { note: trimmed });
+      await queueMutate({
+        method: "PATCH",
+        url: `/api/sessions/${detail.session.id}`,
+        body: { note: trimmed },
+        cacheUrls: [
+          `/api/sessions/${detail.session.id}`,
+          `/api/sessions?date=${encodeURIComponent(detail.session.session_date)}`,
+        ],
+      });
     } catch (caught) {
       haptic("error");
       setDetail((current) =>

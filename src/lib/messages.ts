@@ -24,6 +24,7 @@ export const YESTERDAY_MISSING = "Вчера пусто. Нечего копир
 export const YESTERDAY_MEAL_EMPTY = "Вчера этот приём пустой.";
 export const SOURCE_MEAL_EMPTY = "В выбранный день этот приём пустой.";
 export const PAST_DAY_LOCKED = "Это старый день — уже не меняется.";
+export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
 export const BOT_START = `Yeah buddy! 👟

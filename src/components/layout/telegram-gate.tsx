@@ -10,6 +10,7 @@ import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
 import { LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberPackToken } from "@/lib/share/pending";
 import { isPackToken } from "@/lib/share/token";
@@ -68,14 +69,24 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
 
       const initData = webApp.initData;
       if (initData) {
-        const response = await fetch("/api/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            initData,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          }),
-        });
+        let response: Response;
+        try {
+          response = await fetch("/api/auth/telegram", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              initData,
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            }),
+          });
+        } catch {
+          if (hasLocalDiary()) {
+            setState("ready");
+            return;
+          }
+          setState("error");
+          return;
+        }
 
         if (response.status === 401) {
           setOpenUrl(await loadOpenUrl());
@@ -91,7 +102,17 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const devResponse = await fetch("/api/auth/dev", { method: "POST" });
+      let devResponse: Response;
+      try {
+        devResponse = await fetch("/api/auth/dev", { method: "POST" });
+      } catch {
+        if (hasLocalDiary()) {
+          setState("ready");
+          return;
+        }
+        setState("error");
+        return;
+      }
       if (devResponse.ok) {
         setState("ready");
         return;

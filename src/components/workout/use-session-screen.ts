@@ -15,6 +15,12 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import {
+  clearSessionDraft,
+  overlaySessionDrafts,
+  readSessionDraft,
+  writeSessionDraft,
+} from "@/lib/workout/session-draft-store";
 import { workAbovePlan } from "@/lib/workout/session-format";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
@@ -55,8 +61,12 @@ export function useSessionScreen() {
 
   const applyDetail = useCallback((next: SessionDetail) => {
     setDetail(next);
-    setDrafts(draftsFromDetail(next));
-    setNote(next.session.note ?? "");
+    const stored =
+      next.session.status === "planned"
+        ? readSessionDraft(next.session.id)
+        : null;
+    setDrafts(overlaySessionDrafts(draftsFromDetail(next), stored?.drafts));
+    setNote(stored ? stored.note : (next.session.note ?? ""));
     setOpenSetIds([]);
   }, []);
 
@@ -109,6 +119,17 @@ export function useSessionScreen() {
     setMood(detail?.phase?.phase_type === "deload" ? "deload" : "training");
     return () => setMood(null);
   }, [detail?.phase?.phase_type, setMood]);
+
+  useEffect(() => {
+    if (!detail) {
+      return;
+    }
+    if (detail.session.status === "planned" || correcting) {
+      writeSessionDraft(detail.session.id, { drafts, note });
+      return;
+    }
+    clearSessionDraft(detail.session.id);
+  }, [correcting, detail, drafts, note]);
 
   const abovePlan = useMemo(() => {
     if (detail?.session.status !== "completed") {
