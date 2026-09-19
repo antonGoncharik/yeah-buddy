@@ -18,9 +18,11 @@ import {
   nutritionWeekHref,
   PastDayLockedError,
   previousIsoDate,
+  resolveStartDate,
   shiftIsoDate,
   todayHistoryDayHref,
   todayHomeHref,
+  visibleTodayDate,
   WRITABLE_DAY_LOOKBACK,
   weekStartMonday,
   withDateQuery,
@@ -58,6 +60,60 @@ assertEqual(weekStartMonday("2026-09-13"), "2026-09-07", "sunday to monday");
 assertEqual(previousIsoDate("2026-03-01"), "2026-02-28", "month rollover");
 assertEqual(previousIsoDate("2026-01-01"), "2025-12-31", "year rollover back");
 assertEqual(nextIsoDate("2026-12-31"), "2027-01-01", "year rollover forward");
+assertEqual(
+  resolveStartDate("2026-09-10", "2026-09-12"),
+  "2026-09-10",
+  "past date from route",
+);
+assertEqual(
+  resolveStartDate("2026-09-13", "2026-09-12"),
+  "2026-09-12",
+  "future date clamps to today",
+);
+assertEqual(
+  resolveStartDate(undefined, "2026-09-12"),
+  "2026-09-12",
+  "missing route date is today",
+);
+assertEqual(
+  visibleTodayDate({
+    current: "2026-09-10",
+    today: "2026-09-12",
+    routeDate: undefined,
+    routeChanged: false,
+  }),
+  "2026-09-10",
+  "arrow keeps the day the user picked",
+);
+assertEqual(
+  visibleTodayDate({
+    current: "2026-09-10",
+    today: "2026-09-12",
+    routeDate: "2026-09-11",
+    routeChanged: false,
+  }),
+  "2026-09-10",
+  "stale route date does not jump the day",
+);
+assertEqual(
+  visibleTodayDate({
+    current: "2026-09-10",
+    today: "2026-09-12",
+    routeDate: "2026-09-08",
+    routeChanged: true,
+  }),
+  "2026-09-08",
+  "new route date from history link",
+);
+assertEqual(
+  visibleTodayDate({
+    current: "2026-09-13",
+    today: "2026-09-12",
+    routeChanged: false,
+  }),
+  "2026-09-12",
+  "calendar today clamps a future current date",
+);
 assertEqual(
   shiftIsoDate("2026-09-12", -13),
   "2026-08-30",

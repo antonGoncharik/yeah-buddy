@@ -2,16 +2,14 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { nextIsoDate, previousIsoDate } from "@/lib/day/dates";
-
 export function TodayDateNav({
-  date,
   canGoForward,
-  onGoToDate,
+  onPrev,
+  onNext,
 }: {
-  date: string;
   canGoForward: boolean;
-  onGoToDate: (next: string) => void;
+  onPrev: () => void;
+  onNext: () => void;
 }) {
   return (
     <>
@@ -19,7 +17,7 @@ export function TodayDateNav({
         type="button"
         className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
         aria-label="Предыдущий день"
-        onClick={() => onGoToDate(previousIsoDate(date))}
+        onClick={onPrev}
       >
         <ChevronLeft className="size-6" />
       </button>
@@ -32,7 +30,7 @@ export function TodayDateNav({
           if (!canGoForward) {
             return;
           }
-          onGoToDate(nextIsoDate(date));
+          onNext();
         }}
       >
         <ChevronRight className="size-6" />

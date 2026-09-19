@@ -56,6 +56,7 @@ export function TodayScreen({
     actionError,
     load,
     goToDate,
+    goBy,
     createDay,
     copyYesterday,
     fillDayFromTemplate,
@@ -98,9 +99,9 @@ export function TodayScreen({
         }}
         trailing={
           <TodayDateNav
-            date={date}
             canGoForward={canGoForward}
-            onGoToDate={goToDate}
+            onPrev={() => goBy(-1)}
+            onNext={() => goBy(1)}
           />
         }
       />

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   factFromDay,
@@ -11,10 +10,7 @@ import {
 } from "@/components/day/today-derived";
 import { bannerFromTodayState } from "@/components/day/today-workout-banner";
 import { useTodayCopy } from "@/components/day/use-today-copy";
-import {
-  resolveStartDate,
-  useTodayData,
-} from "@/components/day/use-today-data";
+import { useTodayData } from "@/components/day/use-today-data";
 import { useTodayDayActions } from "@/components/day/use-today-day-actions";
 import { useTodayWorkoutStart } from "@/components/day/use-today-workout-start";
 import { useDayMood } from "@/components/layout/day-mood";
@@ -23,12 +19,24 @@ import {
   calendarToday,
   isCatchUpWindowDate,
   isDayWritable,
+  nextIsoDate,
+  previousIsoDate,
+  resolveStartDate,
   todayHistoryDayHref,
   todayHomeHref,
+  visibleTodayDate,
   writeStateFromDay,
 } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
+
+function replaceTodayUrl(href: string): void {
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (current === href) {
+    return;
+  }
+  window.history.replaceState(null, "", href);
+}
 
 export function useTodayScreen({
   initialDate,
@@ -39,11 +47,12 @@ export function useTodayScreen({
   readOnly?: boolean;
   fromSettings?: boolean;
 }) {
-  const router = useRouter();
   const { setMood } = useDayMood();
   const [date, setDate] = useState(() =>
     resolveStartDate(initialDate, calendarToday()),
   );
+  const dateRef = useRef(date);
+  const routeDateRef = useRef(initialDate);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -73,19 +82,43 @@ export function useTodayScreen({
   );
 
   useEffect(() => {
-    setDate(resolveStartDate(initialDate, data.today));
+    const routeChanged = routeDateRef.current !== initialDate;
+    routeDateRef.current = initialDate;
+    const next = visibleTodayDate({
+      current: dateRef.current,
+      today: data.today,
+      routeDate: initialDate,
+      routeChanged,
+    });
+    dateRef.current = next;
+    setDate(next);
   }, [data.today, initialDate]);
 
   const goToDate = useCallback(
     (next: string) => {
       const resolved = resolveStartDate(next, data.today);
+      if (resolved === dateRef.current) {
+        return;
+      }
+      dateRef.current = resolved;
       setDate(resolved);
       const href = fromHistory
         ? todayHistoryDayHref(resolved, fromSettings, data.today)
         : todayHomeHref(resolved, data.today);
-      router.replace(href, { scroll: false });
+      replaceTodayUrl(href);
     },
-    [data.today, fromHistory, fromSettings, router],
+    [data.today, fromHistory, fromSettings],
+  );
+
+  const goBy = useCallback(
+    (direction: -1 | 1) => {
+      goToDate(
+        direction < 0
+          ? previousIsoDate(dateRef.current)
+          : nextIsoDate(dateRef.current),
+      );
+    },
+    [goToDate],
   );
 
   useEffect(() => {
@@ -209,6 +242,7 @@ export function useTodayScreen({
     actionError,
     load: data.load,
     goToDate,
+    goBy,
     createDay,
     copyYesterday,
     fillDayFromTemplate,

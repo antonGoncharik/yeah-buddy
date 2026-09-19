@@ -72,6 +72,31 @@ export function isIsoDate(value: string): boolean {
   );
 }
 
+export function resolveStartDate(
+  value: string | undefined,
+  today: string,
+): string {
+  if (value && isIsoDate(value) && value <= today) {
+    return value;
+  }
+  return today;
+}
+
+/** Keep the day the user picked; only take a new route date, and never a future day. */
+export function visibleTodayDate({
+  current,
+  today,
+  routeDate,
+  routeChanged,
+}: {
+  current: string;
+  today: string;
+  routeDate?: string;
+  routeChanged: boolean;
+}): string {
+  return resolveStartDate(routeChanged ? routeDate : current, today);
+}
+
 export function previousIsoDate(date: string): string {
   return shiftIsoDate(date, -1);
 }
