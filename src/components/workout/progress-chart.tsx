@@ -25,7 +25,7 @@ export function ProgressChart({
 }) {
   const series = metricPoints(points, metric);
   const width = 320;
-  const height = 168;
+  const height = 176;
   const shape = chartShape(metricValues(series, metric), width, height, 16);
   if (!shape) {
     return <ChartEmpty>Ещё тренировка — и будет линия.</ChartEmpty>;
@@ -64,6 +64,7 @@ export function ProgressChart({
         lastLabel={last.label}
         unit={unit}
         formatValue={formatValue}
+        values={metricValues(series, metric)}
         tonnageShape={tonnageShape}
         tonnageLayout={tonnageLayout}
       />

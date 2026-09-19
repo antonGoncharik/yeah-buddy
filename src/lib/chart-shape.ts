@@ -73,7 +73,7 @@ export function chartSeries(
 
   const dots = values.map((value, index) => ({
     x: xAt(index, layout),
-    y: yAt(value, layout),
+    y: chartY(value, layout),
   }));
   const first = dots[0];
   const last = dots[dots.length - 1];
@@ -115,8 +115,12 @@ function xAt(index: number, layout: ChartLayout): number {
   return layout.pad + (layout.innerW / (layout.count - 1)) * index;
 }
 
-function yAt(value: number, layout: ChartLayout): number {
+export function chartY(value: number, layout: ChartLayout): number {
   const span = layout.max - layout.min;
+  if (span === 0) {
+    return layout.pad + layout.innerH / 2;
+  }
+
   return (
     layout.pad + layout.innerH - ((value - layout.min) / span) * layout.innerH
   );

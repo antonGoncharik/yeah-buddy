@@ -1,7 +1,12 @@
-import { ChartCaption, TrendPlot } from "@/components/chart/trend-plot";
-import { BarbellDoodle } from "@/components/layout/doodles";
+import {
+  ChartInsight,
+  ChartLegend,
+  TrendPlot,
+} from "@/components/chart/trend-plot";
 import type { phaseMarks } from "@/components/workout/progress-phase-marks";
 import type { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
+import { chartY } from "@/lib/chart-shape";
+import { chartInsight, chartMean, chartSpan } from "@/lib/chart-stats";
 import { formatTonnage } from "@/lib/workout/numbers";
 import type { ProgressMetric } from "@/lib/workout/progress-stats";
 
@@ -18,6 +23,7 @@ export function ProgressChartPlot({
   lastLabel,
   unit,
   formatValue,
+  values,
   tonnageShape,
   tonnageLayout,
 }: {
@@ -28,21 +34,26 @@ export function ProgressChartPlot({
   lastLabel: string;
   unit: string;
   formatValue: (value: number) => string;
+  values: number[];
   tonnageShape: ChartSeries | null;
   tonnageLayout: ChartLayout | null;
 }) {
   const showTonnage = tonnageShape != null && tonnageLayout != null;
-  const caption =
+  const seriesLabel =
     metric === "seconds"
-      ? "Как держал"
+      ? "Удержание"
       : metric === "relative"
         ? "К весу тела"
-        : showTonnage
-          ? "Вес · тоннаж пунктиром"
-          : "Рабочий вес";
+        : "Вес";
+  const mean = chartMean(values);
+  const last = values[values.length - 1];
+  const withUnit = (value: number) =>
+    `${formatValue(value)}${unit ? ` ${unit}` : ""}`;
+  const insight = progressInsight(values, withUnit);
 
   return (
     <div className="flex flex-col gap-3">
+      {insight ? <ChartInsight>{insight}</ChartInsight> : null}
       <TrendPlot
         layout={shape}
         series={shape}
@@ -58,12 +69,18 @@ export function ProgressChartPlot({
                 ? "Прогресс весов и тоннажа"
                 : "Прогресс весов"
         }
-        maxLabel={`${formatValue(shape.dataMax)}${unit ? ` ${unit}` : ""}`}
-        minLabel={`${formatValue(shape.dataMin)}${unit ? ` ${unit}` : ""}`}
+        maxLabel={withUnit(shape.dataMax)}
+        minLabel={withUnit(shape.dataMin)}
         endLabel={lastLabel}
         extraMaxLabel={
           showTonnage ? formatTonnage(tonnageLayout.dataMax) : undefined
         }
+        guideY={
+          mean != null && shape.dataMax !== shape.dataMin
+            ? chartY(mean, shape)
+            : undefined
+        }
+        endValue={last != null ? withUnit(last) : undefined}
       >
         {marks.map((mark) => (
           <g key={`phase-${mark.x}-${mark.label}`}>
@@ -72,9 +89,8 @@ export function ProgressChartPlot({
               x2={mark.x}
               y1="28"
               y2={height - 16}
-              className="stroke-muted-foreground/40"
+              className="stroke-muted-foreground/35"
               strokeWidth="1"
-              strokeDasharray="4 3"
             />
             <text
               x={mark.x}
@@ -87,11 +103,28 @@ export function ProgressChartPlot({
           </g>
         ))}
       </TrendPlot>
-      <ChartCaption
-        icon={<BarbellDoodle />}
-      >
-        {caption}
-      </ChartCaption>
+      <ChartLegend
+        items={[
+          { label: seriesLabel, color: "var(--primary)", swatch: "line" },
+          ...(showTonnage
+            ? [{ label: "Тоннаж", swatch: "dash" as const }]
+            : []),
+        ]}
+      />
     </div>
   );
+}
+
+function progressInsight(
+  values: number[],
+  format: (value: number) => string,
+): string | null {
+  const mean = chartMean(values);
+  const span = chartSpan(values);
+  return chartInsight([
+    span && span.first !== span.last
+      ? `${format(span.first)} → ${format(span.last)}`
+      : null,
+    mean != null ? `среднее ${format(mean)}` : null,
+  ]);
 }

@@ -50,9 +50,9 @@ export function ProgressExerciseCard({
   );
   const lastSeconds = series.at(-1)?.seconds ?? null;
   const metricOptions = [
-    { id: "weight" as const, label: "кг" },
-    ...(secondsOk ? [{ id: "seconds" as const, label: "сек" }] : []),
-    ...(relativeOk ? [{ id: "relative" as const, label: "× веса" }] : []),
+    { id: "weight" as const, label: "Вес" },
+    ...(secondsOk ? [{ id: "seconds" as const, label: "Время" }] : []),
+    ...(relativeOk ? [{ id: "relative" as const, label: "К телу" }] : []),
   ];
   const shownMetric =
     metric === "seconds" && !secondsOk

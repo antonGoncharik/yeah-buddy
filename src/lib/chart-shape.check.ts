@@ -1,4 +1,9 @@
-import { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
+import {
+  chartLayout,
+  chartSeries,
+  chartShape,
+  chartY,
+} from "@/lib/chart-shape";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -35,6 +40,12 @@ assert(
 );
 assertEqual(climb?.dataMin, 10, "label min stays on data");
 assertEqual(climb?.dataMax, 40, "label max stays on data");
+if (climb) {
+  assert(
+    chartY(climb.dataMax, climb) < chartY(climb.dataMin, climb),
+    "higher value sits higher",
+  );
+}
 
 const peak = chartShape([10, 40, 10], 100, 50, 10);
 assert(peak != null, "peak draws");

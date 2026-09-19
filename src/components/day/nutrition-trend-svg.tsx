@@ -1,9 +1,8 @@
-import { ChartCaption, TrendPlot } from "@/components/chart/trend-plot";
 import {
-  COOKIE_VIEWBOX,
-  CookieMark,
-  Doodle,
-} from "@/components/layout/doodles";
+  ChartInsight,
+  ChartLegend,
+  TrendPlot,
+} from "@/components/chart/trend-plot";
 import type { chartLayout, chartSeries } from "@/lib/chart-shape";
 import { formatIsoDate } from "@/lib/day/format";
 
@@ -17,7 +16,9 @@ export function NutritionTrendSvg({
   maxLabel,
   minLabel,
   lastDate,
-  caption,
+  guideY,
+  endValue,
+  insight,
 }: {
   layout: NonNullable<ReturnType<typeof chartLayout>>;
   factSeries: NonNullable<ReturnType<typeof chartSeries>>;
@@ -28,10 +29,13 @@ export function NutritionTrendSvg({
   maxLabel: string;
   minLabel: string;
   lastDate: string;
-  caption?: string;
+  guideY?: number;
+  endValue?: string;
+  insight?: string | null;
 }) {
   return (
     <div className="flex flex-col gap-3">
+      {insight ? <ChartInsight>{insight}</ChartInsight> : null}
       <TrendPlot
         layout={layout}
         series={factSeries}
@@ -42,18 +46,15 @@ export function NutritionTrendSvg({
         maxLabel={maxLabel}
         minLabel={minLabel}
         endLabel={formatIsoDate(lastDate, "d MMM")}
+        guideY={guideY}
+        endValue={endValue}
       />
-      {caption ? (
-        <ChartCaption
-          icon={
-            <Doodle className="size-4" viewBox={COOKIE_VIEWBOX}>
-              <CookieMark />
-            </Doodle>
-          }
-        >
-          {caption}
-        </ChartCaption>
-      ) : null}
+      <ChartLegend
+        items={[
+          { label, color, swatch: "line" },
+          ...(targetSeries ? [{ label: "Цель", swatch: "dash" as const }] : []),
+        ]}
+      />
     </div>
   );
 }

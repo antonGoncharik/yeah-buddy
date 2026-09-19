@@ -40,11 +40,11 @@ import {
 type RangeId = "14" | "30" | "90";
 
 const METRIC_OPTIONS: Array<{ id: HistoryMetric; label: string }> = [
-  { id: "protein", label: "Б" },
-  { id: "fat", label: "Ж" },
-  { id: "carbs", label: "У" },
-  { id: "kcal", label: "ккал" },
-  { id: "weight", label: "кг" },
+  { id: "protein", label: "Белок" },
+  { id: "fat", label: "Жиры" },
+  { id: "carbs", label: "Углеводы" },
+  { id: "kcal", label: "Ккал" },
+  { id: "weight", label: "Вес" },
 ];
 
 export function NutritionHistoryScreen() {
