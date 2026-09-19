@@ -49,6 +49,7 @@ export function useWorkoutsHub() {
   );
   const [canUnskip, setCanUnskip] = useState(false);
   const [canBackfillYesterday, setCanBackfillYesterday] = useState(false);
+  const [completedSessions, setCompletedSessions] = useState(0);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -112,6 +113,7 @@ export function useWorkoutsHub() {
           setPhaseCircle(hub.phaseCircle);
           setCanUnskip(hub.canUnskip);
           setCanBackfillYesterday(hub.canBackfillYesterday);
+          setCompletedSessions(hub.completedSessions);
           return true;
         },
         showCached,
@@ -191,6 +193,7 @@ export function useWorkoutsHub() {
     phaseCircle,
     canUnskip,
     canBackfillYesterday,
+    completedSessions,
     creating,
     skipping,
     sessionAction,

@@ -1,5 +1,11 @@
 import { APP_NAME } from "@/lib/brand";
-import { readInvitePayload } from "@/lib/share/invite";
+import {
+  INVITE_HREF,
+  promptFirstProgramInvite,
+  readInvitePayload,
+  SHOW_PROGRAM_LABEL,
+  showProgramInvite,
+} from "@/lib/share/invite";
 import { publicPackDescription } from "@/lib/share/pack-meta";
 import { packChatMessage } from "@/lib/share/payload";
 
@@ -34,5 +40,12 @@ assertEqual(
 );
 assertEqual(readInvitePayload({ url: "  " }), null, "blank url");
 assertEqual(readInvitePayload({ text: "hi" }), null, "missing url");
+assertEqual(INVITE_HREF, "/workouts/invite", "invite lives in the gym");
+assertEqual(SHOW_PROGRAM_LABEL, "Показать программу другу", "invite label");
+assertEqual(showProgramInvite(0), false, "before first session");
+assertEqual(showProgramInvite(1), true, "after first session");
+assertEqual(showProgramInvite(0, 1), true, "recent completed counts");
+assertEqual(promptFirstProgramInvite(1), true, "prompt on first close");
+assertEqual(promptFirstProgramInvite(2), false, "no repeat prompt");
 
 console.log("share invite meta ok");

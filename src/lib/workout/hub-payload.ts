@@ -121,6 +121,10 @@ export function readRecent(data: unknown): RecentWorkoutSession[] {
   return mapRecordList(data.recent, parseRecentSession);
 }
 
+export function readCompletedSessions(data: unknown): number {
+  return isRecord(data) ? toNumber(data.completed_sessions) : 0;
+}
+
 export function readHubSessionState(data: unknown): {
   session: WorkoutSession | null;
   sessionTemplate: WorkoutTemplateDetail | null;
@@ -131,6 +135,7 @@ export function readHubSessionState(data: unknown): {
   phaseCircle: ReturnType<typeof readPhaseCircle>;
   canUnskip: boolean;
   canBackfillYesterday: boolean;
+  completedSessions: number;
 } {
   return {
     session: readTodaySession(data),
@@ -142,6 +147,7 @@ export function readHubSessionState(data: unknown): {
     phaseCircle: readPhaseCircle(data),
     canUnskip: readCanUnskip(data),
     canBackfillYesterday: readCanBackfillYesterday(data),
+    completedSessions: readCompletedSessions(data),
   };
 }
 

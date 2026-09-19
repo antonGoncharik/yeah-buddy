@@ -11,7 +11,6 @@ import {
   MugDoodle,
   PairDoodle,
   PlateDoodle,
-  QrDoodle,
   WeekDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
@@ -165,12 +164,6 @@ export function SettingsScreen() {
               title={PACKS_LABEL}
               hint="Поделиться едой на день или программой тренировок"
               icon={<LinkDoodle />}
-            />
-            <NavRow
-              href="/settings/invite"
-              title="Показать дневник"
-              hint="QR на бот. Твоей еды и зала там нет."
-              icon={<QrDoodle />}
             />
             <NavRow
               href="/onboarding?again=1"

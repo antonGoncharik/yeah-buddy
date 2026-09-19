@@ -1,5 +1,7 @@
-import { ShareInviteScreen } from "@/components/share/share-invite-screen";
+import { redirect } from "next/navigation";
 
-export default function InvitePage() {
-  return <ShareInviteScreen />;
+import { INVITE_HREF } from "@/lib/share/invite";
+
+export default function SettingsInviteRedirect() {
+  redirect(INVITE_HREF);
 }

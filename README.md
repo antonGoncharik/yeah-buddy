@@ -25,7 +25,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 **Share**
 
 - After «Готово», when protein is closed, on a 10/50/100th session, or «Сотня. Круглая.»: **В чат** puts a short message in a chat the person picks — doodle, one line, **Поставить дневник**. Mini App `shareMessage` / prepared inline, not `t.me/share/url`. Body weight, the plate, and 1ПМ stay off the message. Working kg is opt-in: **Написать кг**.
-- Meal templates and the gym queue share separately as snapshots, as a QR or a t.me bot link. A friend saves the pack and applies it later. Logged days and working weights stay private. The app invite is the bot chat, so a new person can press Start.
+- Meal templates and the gym queue share separately as snapshots, as a QR or a t.me bot link. A friend saves the pack and applies it later. Logged days and working weights stay private. The app invite QR lives after the first closed session and on the gym hub («Показать программу другу»), not in Settings.
 
 Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Food items and finishing a workout (`Готово`) stay on the phone if the network is down and sync when it comes back. Approaches typed in a session survive closing the Mini App. Offline writes need that day or session to have been loaded once while online.
 

@@ -9,7 +9,7 @@ import {
 } from "@/components/layout/doodles";
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { JoyShareButton } from "@/components/share/joy-share-button";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import {
   comebackLine,
@@ -23,6 +23,11 @@ import {
   sessionRaiseLine,
 } from "@/lib/flavor";
 import { CYCLE_RAISE_LATER } from "@/lib/messages";
+import {
+  INVITE_HREF,
+  promptFirstProgramInvite,
+  SHOW_PROGRAM_LABEL,
+} from "@/lib/share/invite";
 import { type JoyLift, sessionJoyMoment } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
@@ -31,6 +36,7 @@ import type {
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { sessionCloseKindLine } from "@/lib/workout/session-format";
 
 export function SessionCompletedPanel({
@@ -197,6 +203,17 @@ export function SessionCompletedPanel({
       <FlavorNote line={comeback} className="text-foreground" />
       <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       {joy ? <JoyShareButton moment={joy} lift={workLift} /> : null}
+      {promptFirstProgramInvite(completedSessions) ? (
+        <Link
+          href={INVITE_HREF}
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "h-12 text-base",
+          )}
+        >
+          {SHOW_PROGRAM_LABEL}
+        </Link>
+      ) : null}
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}

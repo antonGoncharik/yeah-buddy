@@ -3,6 +3,8 @@
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
+import { QrDoodle } from "@/components/layout/doodles";
+import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
 import { WorkoutsHubEmpty } from "@/components/workout/workouts-hub-empty";
@@ -11,6 +13,12 @@ import { WorkoutsHubQueueCta } from "@/components/workout/workouts-hub-queue-cta
 import { WorkoutsHubRecent } from "@/components/workout/workouts-hub-recent";
 import { WorkoutsHubSessionCard } from "@/components/workout/workouts-hub-session-card";
 import { previousIsoDate } from "@/lib/day/dates";
+import {
+  INVITE_HREF,
+  SHOW_PROGRAM_HINT,
+  SHOW_PROGRAM_LABEL,
+  showProgramInvite,
+} from "@/lib/share/invite";
 
 export function WorkoutsHubScreen() {
   const {
@@ -31,6 +39,7 @@ export function WorkoutsHubScreen() {
     phaseCircle,
     canUnskip,
     canBackfillYesterday,
+    completedSessions,
     creating,
     skipping,
     sessionAction,
@@ -96,6 +105,19 @@ export function WorkoutsHubScreen() {
               void createOnDate(nextTemplate?.id ?? "", previousIsoDate(date))
             }
           />
+        ) : null}
+
+        {!loading &&
+        !error &&
+        showProgramInvite(completedSessions, recent.length) ? (
+          <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+            <NavRow
+              href={INVITE_HREF}
+              title={SHOW_PROGRAM_LABEL}
+              hint={SHOW_PROGRAM_HINT}
+              icon={<QrDoodle />}
+            />
+          </section>
         ) : null}
 
         {!loading && !error && exercises.length > 0 ? (
