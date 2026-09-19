@@ -7,12 +7,14 @@ import {
   BOT_START,
   BOT_YEAH_BUDDY,
 } from "@/lib/messages";
+import { joyInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
 import { isPackToken } from "@/lib/share/token";
 import {
   resolveAppShareUrl,
   resolvePackShareUrl,
   withStartApp,
 } from "@/lib/telegram/share-url";
+import { replyStartSticker, trexStickerFileId } from "@/lib/telegram/sticker";
 
 let bot: Bot | null = null;
 let botUsername: string | null | undefined;
@@ -58,6 +60,8 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   const instance = new Bot(env.TELEGRAM_BOT_TOKEN);
 
   instance.command("start", async (ctx) => {
+    await replyStartSticker(ctx);
+
     const miniAppUrl = getMiniAppUrl();
     if (!miniAppUrl) {
       await ctx.reply(BOT_START);
@@ -87,6 +91,28 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
 
   instance.command("yeah", async (ctx) => {
     await ctx.reply(BOT_YEAH_BUDDY);
+  });
+
+  instance.on("inline_query", async (ctx) => {
+    const env = getServerEnv();
+    const photoOrigin =
+      joyPhotoOrigin(env.NEXT_PUBLIC_APP_URL) ??
+      joyPhotoOrigin(env.TELEGRAM_MINI_APP_URL);
+    const installUrl = await getAppShareUrl(env);
+    if (!photoOrigin || !installUrl) {
+      await ctx.answerInlineQuery([]);
+      return;
+    }
+
+    await ctx.answerInlineQuery(
+      joyInlineResults({
+        query: ctx.inlineQuery.query,
+        photoOrigin,
+        installUrl,
+        stickerFileId: trexStickerFileId(),
+      }),
+      { cache_time: 15, is_personal: false },
+    );
   });
 
   bot = instance;

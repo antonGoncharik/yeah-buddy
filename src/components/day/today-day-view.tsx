@@ -129,6 +129,7 @@ export function TodayDayView({
           bodyWeight={shownDay.body_weight}
           lastBodyWeight={lastBodyWeight}
           weightSteady={weightSteady}
+          share={writable}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
           bodyWeightBusy={busy || isTempId(shownDay.id)}

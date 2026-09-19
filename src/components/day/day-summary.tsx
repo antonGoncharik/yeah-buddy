@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
+import { JoyShareButton } from "@/components/share/joy-share-button";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
 import {
@@ -18,6 +19,7 @@ import {
   STEADY_WEIGHT_LINE,
 } from "@/lib/flavor";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { dayJoyMoment } from "@/lib/share/joy";
 import type { Day } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,7 @@ export function DaySummary({
   bodyWeightReadOnly = false,
   bodyWeightBusy = false,
   weightSteady = false,
+  share = false,
   onSaveBodyWeight,
 }: {
   day: Pick<
@@ -50,6 +53,7 @@ export function DaySummary({
   bodyWeightReadOnly?: boolean;
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
+  share?: boolean;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
@@ -67,6 +71,9 @@ export function DaySummary({
   const macros = macrosClosedLine(fact, day);
   const hundred = hundredWeightLine(bodyWeight);
   const weightNote = hundred ?? (weightSteady ? STEADY_WEIGHT_LINE : null);
+  const joy = share
+    ? dayJoyMoment({ proteinClosed: closed, bodyWeight })
+    : null;
   const perKg =
     bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
 
@@ -165,6 +172,8 @@ export function DaySummary({
           </div>
         )}
       </div>
+
+      {joy ? <JoyShareButton moment={joy} /> : null}
 
       <div className="flex flex-col gap-3.5">
         <MacroBar

@@ -24,6 +24,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 
 **Share**
 
+- After «Готово», when protein is closed, on a 10/50/100th session, or «Сотня. Круглая.»: **В чат** puts a short message in a chat the person picks — doodle, one line, **Поставить дневник**. Mini App `shareMessage` / prepared inline, not `t.me/share/url`. Body weight, the plate, and 1ПМ stay off the message. Working kg is opt-in: **Написать кг**.
 - Meal templates and the gym queue share separately as snapshots, as a QR or a t.me bot link. A friend saves the pack and applies it later. Logged days and working weights stay private. The app invite is the bot chat, so a new person can press Start.
 
 Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Food items and finishing a workout (`Готово`) stay on the phone if the network is down and sync when it comes back. Approaches typed in a session survive closing the Mini App. Offline writes need that day or session to have been loaded once while online.
@@ -48,13 +49,13 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | server key, never in the client |
 | `TELEGRAM_BOT_TOKEN` | yes | bot token, never in the client |
 | `SESSION_SECRET` | yes | session signing key, ≥ 32 characters |
-| `NEXT_PUBLIC_APP_URL` | no | app URL; fallback for the Mini App button |
+| `NEXT_PUBLIC_APP_URL` | no | public HTTPS app host; Mini App fallback and doodle/sticker files |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 
 Migrations: `supabase/migrations/0001_init.sql` … `0026_set_logged.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
-Bot: `/start` and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). At 20:00 in the user’s timezone (from the Mini App, otherwise `Europe/Moscow`) the bot sends **one** reminder if that calendar evening has no food items and no gym session: empty food day, and the next circle template if there is a queue. A later cron run still delivers that same evening if 20:00 already passed. On Sunday the same message adds a 14-day scoreboard from the diary review. Not a broadcast. Toggle: Settings → Evening reminders. Cron: daily `GET /api/cron/reminders` at `0 17 * * *` (20:00 Moscow) with `CRON_SECRET`. Hobby only allows one run per day; hourly needs Vercel Pro. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
+Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there. At 20:00 in the user’s timezone (from the Mini App, otherwise `Europe/Moscow`) the bot sends **one** reminder if that calendar evening has no food items and no gym session: empty food day, and the next circle template if there is a queue. A later cron run still delivers that same evening if 20:00 already passed. On Sunday the same message adds a 14-day scoreboard from the diary review. Not a broadcast. Toggle: Settings → Evening reminders. Cron: daily `GET /api/cron/reminders` at `0 17 * * *` (20:00 Moscow) with `CRON_SECRET`. Hobby only allows one run per day; hourly needs Vercel Pro. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 
 ```text
 https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
