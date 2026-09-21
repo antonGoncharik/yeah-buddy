@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 const POINT_ICONS = {
   Еда: <PlateDoodle />,
   Зал: <DumbbellDoodle />,
-  Штрих: <QrDoodle />,
+  Штрихкод: <QrDoodle />,
 } as const;
 
 export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
@@ -30,21 +30,11 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
 
   return (
     <div className="animate-rise flex w-full flex-col items-center gap-6">
-      <header className="flex flex-col items-center gap-4 text-center">
-        <div
-          aria-hidden
-          className="flex items-center gap-4 rounded-full bg-primary/10 px-5 py-3 text-primary"
-        >
-          <PlateDoodle className="size-6" />
-          <DumbbellDoodle className="h-4 w-9" />
-          <QrDoodle className="size-6" />
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{APP_NAME}</h1>
-          <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
-            {OPEN_VIA_BOT_LEAD}
-          </p>
-        </div>
+      <header className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight">{APP_NAME}</h1>
+        <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
+          {OPEN_VIA_BOT_LEAD}
+        </p>
       </header>
 
       <ul className="card-surface w-full divide-y divide-border/70 px-5 py-1 text-left">

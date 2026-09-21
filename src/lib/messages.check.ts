@@ -83,7 +83,7 @@ assertEqual(
   OPEN_VIA_BOT_POINTS.map((point) => `${point.title}: ${point.body}`).join(
     "\n",
   ),
-  "Еда: Свои продукты и каталог. Белок считается сам.\nЗал: Программа, подходы, рабочий вес.\nШтрих: Код с пачки — сразу в дневник.",
+  "Еда: Свои продукты и каталог. Белок считается сам.\nЗал: Программа, подходы, рабочий вес.\nШтрихкод: Код с пачки — сразу в дневник.",
   "outside Telegram facts",
 );
 assertEqual(OPEN_VIA_BOT_STEPS_TITLE, "Как начать", "outside Telegram steps");

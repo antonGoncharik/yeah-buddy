@@ -86,7 +86,7 @@ export function BarcodeScanner({
         </Button>
       </div>
       <p className="px-4 pt-3 pb-[max(1.25rem,var(--app-safe-bottom))] text-center text-sm text-white/80">
-        Наведи на штрих
+        Наведи на штрихкод
       </p>
     </div>,
     document.body,

@@ -19,7 +19,7 @@ export const OPEN_VIA_BOT_POINTS = [
     body: "Программа, подходы, рабочий вес.",
   },
   {
-    title: "Штрих",
+    title: "Штрихкод",
     body: "Код с пачки — сразу в дневник.",
   },
 ] as const;

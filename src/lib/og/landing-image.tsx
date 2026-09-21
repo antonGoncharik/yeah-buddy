@@ -18,7 +18,7 @@ const LINE = "#E7D9CC";
 const CHIPS = [
   { title: "Еда", body: "Белок считается сам" },
   { title: "Зал", body: "Программа и вес" },
-  { title: "Штрих", body: "Код с пачки" },
+  { title: "Штрихкод", body: "Код с пачки" },
 ] as const;
 
 const FONT_FILES = [
