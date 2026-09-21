@@ -11,4 +11,8 @@ export {
 export type { ReminderRunResult } from "./reminder-run";
 export { runEveningReminders } from "./reminder-run";
 export type { ReminderFacts } from "./reminder-text";
-export { gymDoneForReminder, reminderText } from "./reminder-text";
+export {
+  gymClosedForReminder,
+  gymDoneForReminder,
+  reminderText,
+} from "./reminder-text";

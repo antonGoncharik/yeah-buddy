@@ -1,6 +1,7 @@
 import { getReviewSnapshot } from "@/lib/ai/review";
 import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
+import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
 import {
   dayInlineQuery,
@@ -27,7 +28,11 @@ import {
   composeEveningCaption,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
-import { gymDoneForReminder, reminderText } from "@/lib/telegram/reminder-text";
+import {
+  gymClosedForReminder,
+  gymDoneForReminder,
+  reminderText,
+} from "@/lib/telegram/reminder-text";
 import { getSessionOnDate } from "@/lib/workout/sessions";
 
 const CANDIDATE_PAGE = 100;
@@ -44,6 +49,7 @@ interface ReminderCandidate {
   telegramId: number;
   timezone: string;
   remindedOn: string | null;
+  onboardedAt: string | null;
 }
 
 export async function runEveningReminders(
@@ -76,13 +82,22 @@ export async function runEveningReminders(
         nextCircleName(candidate.userId),
         dateShareSnapshot(candidate.userId, reminderDate),
       ]);
+    const sessionStatus = session?.status ?? null;
     const nag = reminderText({
       foodLogged,
       gymDone: gymDoneForReminder({
         isTrainingDay,
-        sessionStatus: session?.status ?? null,
+        sessionStatus,
       }),
+      gymClosed: gymClosedForReminder(sessionStatus),
       nextTemplateName,
+      early: inRetentionTail(
+        onboardingAgeDays(
+          candidate.onboardedAt,
+          reminderDate,
+          candidate.timezone,
+        ),
+      ),
     });
     const recap = await sundayRecap(candidate.userId, reminderDate);
     const facts = dayShareFacts({
@@ -173,7 +188,7 @@ async function listReminderCandidates(): Promise<ReminderCandidate[]> {
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminded_on, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -231,6 +246,10 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
       typeof row.timezone === "string" ? row.timezone : null,
     ),
     remindedOn: toDateOnly(row.reminded_on),
+    onboardedAt:
+      typeof row.onboarding_completed_at === "string"
+        ? row.onboarding_completed_at
+        : null,
   };
 }
 

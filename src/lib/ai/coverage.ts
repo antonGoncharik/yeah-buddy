@@ -2,6 +2,7 @@ import type { ReviewCoverage } from "@/lib/ai/types";
 
 export const REVIEW_FOOD_DAYS = 7;
 export const REVIEW_GYM_SESSIONS = 4;
+export const REVIEW_OFFER_MIN_AGE_DAYS = 7;
 
 export function reviewCoverage(
   loggedDays: number,
@@ -24,4 +25,15 @@ export function reviewOfferReady(
   completedWorkouts: number,
 ): boolean {
   return reviewCoverage(loggedDays, completedWorkouts) === "ok";
+}
+
+export function reviewCtaReady(input: {
+  loggedDays: number;
+  completedWorkouts: number;
+  ageDays: number | null;
+}): boolean {
+  if (input.ageDays == null || input.ageDays < REVIEW_OFFER_MIN_AGE_DAYS) {
+    return false;
+  }
+  return reviewOfferReady(input.loggedDays, input.completedWorkouts);
 }

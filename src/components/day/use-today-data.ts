@@ -211,8 +211,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     priorProteinHits:
       cached != null ? readPriorProteinHits(cached) : priorProteinHits,
     reviewReady: cached != null ? readReviewReady(cached) : reviewReady,
-    retentionTail:
-      cached != null ? readRetentionTail(cached) : retentionTail,
+    retentionTail: cached != null ? readRetentionTail(cached) : retentionTail,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
     contentReady,

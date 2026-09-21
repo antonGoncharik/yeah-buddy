@@ -371,7 +371,7 @@ assertEqual(
 );
 assertEqual(
   favoriteOfferLine("Творог"),
-  "Творог ставишь каждый день.",
+  "Творог уже не первый раз.",
   "favorite offer",
 );
 assertEqual(

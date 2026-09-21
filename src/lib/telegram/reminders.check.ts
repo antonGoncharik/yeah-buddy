@@ -185,6 +185,28 @@ assertEqual(
   "День еды пустой. Холодильник сам не запишет.\nВ очереди Сила A.",
   "food and circle",
 );
+assertEqual(
+  reminderText({
+    foodLogged: false,
+    gymDone: true,
+    gymClosed: false,
+    nextTemplateName: "Сила A",
+    early: true,
+  }),
+  "День еды пустой. Запиши, что ешь — завтра будет что повторить.\nВ очереди Сила A.",
+  "first evenings nag food and the queued gym even on rest",
+);
+assertEqual(
+  reminderText({
+    foodLogged: true,
+    gymDone: true,
+    gymClosed: true,
+    nextTemplateName: "Сила A",
+    early: true,
+  }),
+  "Yeah buddy.",
+  "first evening stays quiet when the day is done",
+);
 
 const authorized = isCronAuthorized(
   new Request("https://example.test", {

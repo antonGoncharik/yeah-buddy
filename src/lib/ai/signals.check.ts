@@ -1,5 +1,9 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
-import { reviewCoverage, reviewOfferReady } from "@/lib/ai/coverage";
+import {
+  reviewCoverage,
+  reviewCtaReady,
+  reviewOfferReady,
+} from "@/lib/ai/coverage";
 import { formatG } from "@/lib/ai/format";
 import { REVIEW_SYSTEM_PROMPT, reviewPromptPayload } from "@/lib/ai/prompt";
 import { buildSignals, reviewDetailSignals } from "@/lib/ai/signal-lines";
@@ -64,6 +68,21 @@ assertEqual(reviewCoverage(3, 4), "ok", "enough gym");
 assertEqual(reviewOfferReady(7, 0), true, "seven food days");
 assertEqual(reviewOfferReady(0, 4), true, "four gyms");
 assertEqual(reviewOfferReady(6, 3), false, "not yet");
+assertEqual(
+  reviewCtaReady({ loggedDays: 7, completedWorkouts: 0, ageDays: 7 }),
+  true,
+  "week lived and seven food days",
+);
+assertEqual(
+  reviewCtaReady({ loggedDays: 0, completedWorkouts: 4, ageDays: 4 }),
+  false,
+  "four gyms before a week stay quiet",
+);
+assertEqual(
+  reviewCtaReady({ loggedDays: 7, completedWorkouts: 0, ageDays: null }),
+  false,
+  "unknown age does not open review",
+);
 
 const proteinDays = [
   day({ date: "2026-09-01", protein: 150, targetProtein: 200 }),

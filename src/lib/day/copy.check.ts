@@ -2,6 +2,7 @@ import {
   readDayWritable,
   readLastBodyWeight,
   readPriorProteinHits,
+  readRetentionTail,
   readReviewReady,
   readWeightSteady,
   readYesterdayMealTypes,
@@ -73,6 +74,8 @@ assertEqual(
 );
 assertEqual(readReviewReady({ reviewReady: true }), true, "review ready");
 assertEqual(readReviewReady({}), false, "missing review ready");
+assertEqual(readRetentionTail({ retentionTail: true }), true, "retention tail");
+assertEqual(readRetentionTail({}), false, "missing retention tail");
 assertEqual(
   readDayWritable({ writable: true }, "2026-09-10", "2026-09-12"),
   true,

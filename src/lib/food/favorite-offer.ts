@@ -2,7 +2,8 @@ import { shiftIsoDate } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 
 export const FAVORITE_OFFER_WINDOW_DAYS = 4;
-export const FAVORITE_OFFER_MIN_DAYS = 3;
+export const FAVORITE_OFFER_MIN_DAYS = 2;
+export const FAVORITE_OFFER_MIN_HITS = 3;
 export const FAVORITE_OFFER_SEEN_KEY = "yb.favorite.offer";
 
 export interface FavoriteOffer {
@@ -26,7 +27,10 @@ export function rankFavoriteOffers(
   today: string,
 ): FavoriteOffer[] {
   const start = favoriteOfferWindowStart(today);
-  const byFood = new Map<string, { name: string; dates: Set<string> }>();
+  const byFood = new Map<
+    string,
+    { name: string; dates: Set<string>; hits: number }
+  >();
 
   for (const hit of hits) {
     if (
@@ -40,24 +44,42 @@ export function rankFavoriteOffers(
     const current = byFood.get(hit.foodId) ?? {
       name: hit.name.trim(),
       dates: new Set<string>(),
+      hits: 0,
     };
     if (current.name === "") {
       current.name = hit.name.trim();
     }
     current.dates.add(hit.date);
+    current.hits += 1;
     byFood.set(hit.foodId, current);
   }
 
   const ranked = [...byFood.entries()]
     .flatMap(([foodId, current]) => {
-      if (current.name === "" || current.dates.size < FAVORITE_OFFER_MIN_DAYS) {
+      if (current.name === "") {
         return [];
       }
-      return [{ foodId, name: current.name, days: current.dates.size }];
+      if (
+        current.dates.size < FAVORITE_OFFER_MIN_DAYS &&
+        current.hits < FAVORITE_OFFER_MIN_HITS
+      ) {
+        return [];
+      }
+      return [
+        {
+          foodId,
+          name: current.name,
+          days: current.dates.size,
+          hits: current.hits,
+        },
+      ];
     })
     .sort((left, right) => {
       if (right.days !== left.days) {
         return right.days - left.days;
+      }
+      if (right.hits !== left.hits) {
+        return right.hits - left.hits;
       }
       const names = left.name.localeCompare(right.name, "ru");
       if (names !== 0) {

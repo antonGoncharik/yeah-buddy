@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-import { reviewOfferReady } from "@/lib/ai/coverage";
+import { reviewCtaReady } from "@/lib/ai/coverage";
 import {
   failRoute,
   jsonError,
@@ -9,7 +9,7 @@ import {
   whenError,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { shiftIsoDate } from "@/lib/day/dates";
+import { calendarDateInTimeZone, shiftIsoDate } from "@/lib/day/dates";
 import { dayHasFood } from "@/lib/day/week";
 import {
   createDayFromTemplate,
@@ -36,6 +36,9 @@ import {
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
+import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
+import { getUserSettings } from "@/lib/settings";
+import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
 import { countCompletedSessions } from "@/lib/workout/sessions";
 
 const createSchema = z.object({
@@ -55,7 +58,14 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const today = await getUserCalendarToday(auth.session.userId);
+    const settings = await getUserSettings(auth.session.userId);
+    const timeZone = settings?.timezone ?? DEFAULT_TIMEZONE;
+    const today = calendarDateInTimeZone(timeZone);
+    const ageDays = onboardingAgeDays(
+      settings?.onboarding_completed_at,
+      today,
+      timeZone,
+    );
     const streakStart = shiftIsoDate(date, 1 - PROTEIN_STREAK_WINDOW);
     const viewingToday = date === today;
     const [
@@ -104,9 +114,14 @@ export async function GET(request: Request): Promise<NextResponse> {
           date,
         ) != null,
       priorProteinHits: priorProteinHits(recentDays, date),
+      retentionTail: viewingToday && inRetentionTail(ageDays),
       reviewReady:
         viewingToday &&
-        reviewOfferReady(recentDays.filter(dayHasFood).length, gymCount),
+        reviewCtaReady({
+          loggedDays: recentDays.filter(dayHasFood).length,
+          completedWorkouts: gymCount,
+          ageDays,
+        }),
       copyDays,
       namedMeals,
       recipes: {

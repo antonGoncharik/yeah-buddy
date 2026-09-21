@@ -127,7 +127,7 @@ export function TodayScreen({
         !loadError &&
         !viewOnly &&
         guideTip.tip &&
-        !retentionTail ? (
+        !(retentionTail && isToday && !dayHasItems) ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
         {showLoading ? <ScreenLoading /> : null}

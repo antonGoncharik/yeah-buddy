@@ -1,5 +1,6 @@
 import {
   FAVORITE_OFFER_MIN_DAYS,
+  FAVORITE_OFFER_MIN_HITS,
   FAVORITE_OFFER_SEEN_KEY,
   FAVORITE_OFFER_WINDOW_DAYS,
   type FavoriteOfferHit,
@@ -35,7 +36,8 @@ function hit(
 }
 
 assertEqual(FAVORITE_OFFER_WINDOW_DAYS, 4, "four-day window");
-assertEqual(FAVORITE_OFFER_MIN_DAYS, 3, "three days is enough");
+assertEqual(FAVORITE_OFFER_MIN_DAYS, 2, "two days is enough");
+assertEqual(FAVORITE_OFFER_MIN_HITS, 3, "three hits is enough");
 assertEqual(favoriteOfferWindowStart(today), "2026-09-16", "window start");
 assertEqual(FAVORITE_OFFER_SEEN_KEY, "yb.favorite.offer", "storage key");
 
@@ -80,8 +82,32 @@ assertEqual(
     [hit("curd", "2026-09-17"), hit("curd", "2026-09-18")],
     today,
   ).length,
+  1,
+  "two days is already a habit",
+);
+
+assertEqual(
+  rankFavoriteOffers(
+    [hit("curd", "2026-09-18"), hit("curd", "2026-09-18"), hit("curd", today)],
+    today,
+  ).length,
+  1,
+  "three hits across two days",
+);
+
+assertEqual(
+  rankFavoriteOffers(
+    [hit("curd", today), hit("curd", today), hit("curd", today)],
+    today,
+  ).length,
+  1,
+  "three hits the same day",
+);
+
+assertEqual(
+  rankFavoriteOffers([hit("curd", today), hit("curd", today)], today).length,
   0,
-  "two days is not a habit yet",
+  "two hits one day is not a habit yet",
 );
 
 assertEqual(

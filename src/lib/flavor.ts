@@ -356,7 +356,7 @@ export function foodSearchEmptyLine(
 }
 
 export function favoriteOfferLine(name: string): string {
-  return `${name.trim()} ставишь каждый день.`;
+  return `${name.trim()} уже не первый раз.`;
 }
 
 export const FAVORITE_OFFER_HINT = "В избранное — не искать каждый обед.";
