@@ -54,6 +54,21 @@ export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
 
 export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 
+/**
+ * What the picker offers. «Всё тело A/B» sits on top; the rest open under
+ * «Ещё программы». Other presets stay in PROGRAM_PRESETS so a queue already
+ * on one of them is left alone. Bot start links stay on the featured three.
+ */
+export const LISTED_PROGRAM_PRESET_IDS = [
+  "full_body",
+  "five_by_five",
+  "upper_lower",
+  "ppl",
+  "five_three_one",
+  "table_three_lifts",
+  "press_two_week",
+] as const satisfies readonly ProgramPresetId[];
+
 export const PROGRAM_LEVELS = ["beginner", "intermediate", "advanced"] as const;
 
 export type ProgramLevel = (typeof PROGRAM_LEVELS)[number];

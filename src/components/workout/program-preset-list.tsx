@@ -8,6 +8,7 @@ import {
   type ProgramLevel,
   type ProgramPreset,
   type ProgramPresetId,
+  pickerProgramPresetIds,
   presetExerciseLine,
   programDayExerciseNames,
   programPresetSummary,
@@ -28,6 +29,7 @@ export function ProgramPresetCatalog({
   const extraSelected =
     value != null && value !== RECOMMENDED_PROGRAM_PRESET_ID;
   const [showMore, setShowMore] = useState(extraSelected);
+  const catalogIds = pickerProgramPresetIds(value);
 
   useEffect(() => {
     if (extraSelected) {
@@ -50,6 +52,7 @@ export function ProgramPresetCatalog({
           value={value}
           disabled={disabled}
           compact
+          ids={catalogIds}
           excludeIds={[RECOMMENDED_PROGRAM_PRESET_ID]}
           onPick={onPick}
         />

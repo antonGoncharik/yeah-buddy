@@ -1,4 +1,5 @@
 export {
+  LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,
   PROGRAM_PRESET_IDS,
@@ -11,8 +12,10 @@ export {
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-preset-data";
 export {
+  isListedProgramPresetId,
   isProgramPresetId,
   matchProgramPresetId,
+  pickerProgramPresetIds,
   presetExerciseLine,
   programDayExerciseNames,
   programPresetById,

@@ -1,5 +1,6 @@
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import {
+  LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,
   PROGRAM_PRESETS,
@@ -24,6 +25,23 @@ export function programPresetsByLevel(): Array<{
 
 export function isProgramPresetId(value: unknown): value is ProgramPresetId {
   return PROGRAM_PRESETS.some((preset) => preset.id === value);
+}
+
+const listedProgramIds = new Set<ProgramPresetId>(LISTED_PROGRAM_PRESET_IDS);
+
+export function isListedProgramPresetId(id: ProgramPresetId): boolean {
+  return listedProgramIds.has(id);
+}
+
+/** Listed catalog, plus a program already chosen so onboarding still shows it. */
+export function pickerProgramPresetIds(
+  selected?: ProgramPresetId | null,
+): ProgramPresetId[] {
+  const ids: ProgramPresetId[] = [...LISTED_PROGRAM_PRESET_IDS];
+  if (selected && !isListedProgramPresetId(selected)) {
+    ids.push(selected);
+  }
+  return ids;
 }
 
 export function programPresetById(

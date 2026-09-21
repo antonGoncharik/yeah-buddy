@@ -60,6 +60,21 @@ assertEqual(
   "extra beginner stays inside",
 );
 assert(!isFeaturedProgramId("one_day"), "one day is not a bot object");
+for (const id of [
+  "five_by_five",
+  "upper_lower",
+  "press_two_week",
+  "table_three_lifts",
+  "table_squat",
+  "arnold",
+] as const) {
+  assert(!isFeaturedProgramId(id), `${id} has no bot link`);
+  assertEqual(
+    parseProgramStartPayload(`p_${id}`),
+    null,
+    `${id} start payload stays closed`,
+  );
+}
 
 assert(
   isPackToken("p_full_body"),

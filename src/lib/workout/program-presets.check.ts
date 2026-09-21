@@ -6,9 +6,11 @@ import {
 } from "@/lib/workout/cycle-templates";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 import {
+  LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_PRESET_IDS,
   PROGRAM_PRESETS,
 } from "@/lib/workout/program-preset-data";
+import { pickerProgramPresetIds } from "@/lib/workout/program-preset-utils";
 import { plannedSetsForSlot, slotPhaseKeys } from "@/lib/workout/slot-plan";
 import { parseSlotPlan } from "@/lib/workout/slot-plan-schema";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
@@ -32,6 +34,34 @@ const starterNames = new Set(STARTER_EXERCISES.map((item) => item.name));
 assert(
   PROGRAM_PRESETS.length === PROGRAM_PRESET_IDS.length,
   "every preset id has a preset",
+);
+assertEqual(
+  LISTED_PROGRAM_PRESET_IDS.map(
+    (id) => PROGRAM_PRESETS.find((preset) => preset.id === id)?.name,
+  ).join(" | "),
+  [
+    "Всё тело A/B",
+    "5×5 A/B",
+    "Верх / Низ",
+    "Жим / Тяга / Ноги",
+    "5/3/1",
+    "Присед / Жим / Тяга по таблице",
+    "Жимовая · 2 недели",
+  ].join(" | "),
+  "picker lists the short catalog plus the custom press block",
+);
+assert(
+  PROGRAM_PRESETS.length > LISTED_PROGRAM_PRESET_IDS.length,
+  "unlisted presets stay in the data",
+);
+assertEqual(
+  pickerProgramPresetIds("arnold").at(-1),
+  "arnold",
+  "a program already chosen stays visible",
+);
+assert(
+  !pickerProgramPresetIds(null).includes("arnold"),
+  "a new picker does not offer the hidden presets",
 );
 assert(
   new Set(PROGRAM_PRESETS.map((preset) => preset.id)).size ===
