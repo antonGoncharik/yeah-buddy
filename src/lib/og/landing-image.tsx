@@ -26,8 +26,22 @@ const FONT_FILES = [
   ["Manrope-Bold.ttf", 700],
 ] as const;
 
-export async function landingOgImage(): Promise<ImageResponse> {
-  const fonts = await Promise.all(
+export const OG_PAPER = PAPER;
+export const OG_INK = INK;
+export const OG_MUTED = MUTED;
+export const OG_CLAY = CLAY;
+export const OG_CARD = CARD;
+export const OG_LINE = LINE;
+
+export async function loadOgFonts(): Promise<
+  Array<{
+    name: string;
+    data: ArrayBuffer;
+    weight: 500 | 700;
+    style: "normal";
+  }>
+> {
+  return Promise.all(
     FONT_FILES.map(async ([file, weight]) => {
       const bytes = await readFile(
         new URL(`../../assets/fonts/${file}`, import.meta.url),
@@ -43,6 +57,10 @@ export async function landingOgImage(): Promise<ImageResponse> {
       };
     }),
   );
+}
+
+export async function landingOgImage(): Promise<ImageResponse> {
+  const fonts = await loadOgFonts();
 
   return new ImageResponse(
     <div

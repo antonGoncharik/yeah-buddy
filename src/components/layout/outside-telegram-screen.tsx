@@ -4,6 +4,7 @@ import {
   QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
+import { ProgramShelf } from "@/components/share/program-shelf";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
@@ -25,7 +26,13 @@ const POINT_ICONS = {
   Штрихкод: <QrDoodle />,
 } as const;
 
-export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
+export function OutsideTelegramScreen({
+  openUrl,
+  origin,
+}: {
+  openUrl: string | null;
+  origin?: string;
+}) {
   const showQr = openUrl != null && isTelegramMeUrl(openUrl);
 
   return (
@@ -61,6 +68,8 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
           {OPEN_VIA_BOT_CTA}
         </a>
       ) : null}
+
+      <ProgramShelf origin={origin} />
 
       <section className="flex w-full flex-col gap-2">
         <h2 className="px-1 text-sm font-medium text-muted-foreground">

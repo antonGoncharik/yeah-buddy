@@ -39,6 +39,13 @@ export const OPEN_VIA_BOT_STEPS = [
   },
 ] as const;
 export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
+export const PROGRAM_SHELF_TITLE = "Программы";
+export const PROGRAM_SHELF_LEAD =
+  "Готовые ссылки. Кидай страницу — в боте кнопка «Поставить».";
+export const PROGRAM_COPY_LINK = "Скопировать";
+export const PROGRAM_COPIED_LINK = "Скопировано";
+export const PROGRAM_PAGE_BACK = "На главную";
+export const PROGRAM_QR_CAPTION = "Наведи камеру — бот поставит эту программу.";
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";

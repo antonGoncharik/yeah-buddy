@@ -47,7 +47,7 @@ export default async function HomePage() {
     <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
       <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       <div className="my-auto w-full max-w-md py-8">
-        <OutsideTelegramScreen openUrl={openUrl} />
+        <OutsideTelegramScreen openUrl={openUrl} origin={origin} />
       </div>
     </main>
   );

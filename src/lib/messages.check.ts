@@ -14,6 +14,12 @@ import {
   OPEN_VIA_BOT_STEPS,
   OPEN_VIA_BOT_STEPS_TITLE,
   PENDING_WRITES,
+  PROGRAM_COPIED_LINK,
+  PROGRAM_COPY_LINK,
+  PROGRAM_PAGE_BACK,
+  PROGRAM_QR_CAPTION,
+  PROGRAM_SHELF_LEAD,
+  PROGRAM_SHELF_TITLE,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
 
@@ -96,6 +102,20 @@ assertEqual(
   OPEN_VIA_BOT_NOTE,
   "В чат уходит только то, чем сам поделился.",
   "outside Telegram note",
+);
+assertEqual(PROGRAM_SHELF_TITLE, "Программы", "program shelf title");
+assertEqual(
+  PROGRAM_SHELF_LEAD,
+  "Готовые ссылки. Кидай страницу — в боте кнопка «Поставить».",
+  "program shelf lead",
+);
+assertEqual(PROGRAM_COPY_LINK, "Скопировать", "copy program link");
+assertEqual(PROGRAM_COPIED_LINK, "Скопировано", "copied program link");
+assertEqual(PROGRAM_PAGE_BACK, "На главную", "program page back");
+assertEqual(
+  PROGRAM_QR_CAPTION,
+  "Наведи камеру — бот поставит эту программу.",
+  "program qr",
 );
 assertEqual(
   BOT_START,
