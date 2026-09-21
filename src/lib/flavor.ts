@@ -238,7 +238,7 @@ export const PACK_MEALS_QR_CAPTION = "Наведи камеру — открое
 export const PACK_WORKOUTS_QR_CAPTION = "Наведи камеру — откроется программа.";
 export const PACK_MEAL_QR_CAPTION = "Наведи камеру — откроется приём.";
 export const PLATE_IDLE_LINE =
-  "Сфотографируй тарелку. Своё — с граммами, остальное разовой порцией, в список не попадёт.";
+  "Сфотографируй тарелку. Свои продукты встанут с граммами. Остальное станет разовой порцией и в список не попадёт.";
 export const PLATE_CAPTURE_LABEL = "Снять тарелку";
 export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
