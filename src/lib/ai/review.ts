@@ -18,6 +18,7 @@ import { getStrengthProgress } from "@/lib/workout/progress";
 import { listSessionHistory } from "@/lib/workout/sessions";
 
 const COOLDOWN_MS = 20_000;
+const SESSION_WORK_LIMIT = 8;
 const lastWrite = new Map<string, number>();
 
 export function parseReviewRange(value: unknown): ReviewRange | null {
@@ -143,6 +144,8 @@ async function loadReviewSessions(userId: string, start: string, end: string) {
       before,
       limit: 120,
       statuses: ["completed", "skipped"],
+      summaryLimit: SESSION_WORK_LIMIT,
+      richWork: true,
     });
     items.push(...result.items);
     if (!result.next_before) {

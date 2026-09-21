@@ -533,6 +533,16 @@ assertEqual(
   true,
   "prompt wants a one-breath headline",
 );
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("sessions[].work"),
+  true,
+  "prompt reads the working sets",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("tonnage_percent"),
+  true,
+  "prompt reads lift volume",
+);
 assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
 assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
 assertEqual(seedBrief.gym.gap_days, null, "one gymless day is not a hole");

@@ -87,6 +87,8 @@ export function parseSessionRow(
       row.feel === "easy" || row.feel === "close" || row.feel === "miss"
         ? row.feel
         : null,
+    work:
+      typeof row.work === "string" && row.work.trim() !== "" ? row.work : null,
   };
 }
 
@@ -105,6 +107,7 @@ export function parseMaxRow(row: Record<string, unknown>): ReviewMaxRow | null {
     current: toNullableNumber(row.current),
     start_relative: toNullableNumber(row.start_relative),
     current_relative: toNullableNumber(row.current_relative),
+    tonnage_percent: toNullableNumber(row.tonnage_percent),
   };
 }
 

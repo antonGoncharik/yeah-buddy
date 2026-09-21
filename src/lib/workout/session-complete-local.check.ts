@@ -5,7 +5,10 @@ import type {
   WorkoutSession,
   WorkoutSet,
 } from "@/lib/types";
-import { completeSessionLocally } from "@/lib/workout/session-complete-local";
+import {
+  completeSessionLocally,
+  preferLiveFeel,
+} from "@/lib/workout/session-complete-local";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);
@@ -140,5 +143,13 @@ assertEqual(
   true,
   "later save keeps logged",
 );
+
+assertEqual(
+  preferLiveFeel("easy", null, null),
+  "easy",
+  "tap during finish beats the stale reply",
+);
+assertEqual(preferLiveFeel("easy", null, "easy"), "easy", "saved feel stays");
+assertEqual(preferLiveFeel(null, null, null), null, "no tap stays empty");
 
 console.log("session complete local ok");

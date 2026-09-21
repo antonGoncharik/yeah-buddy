@@ -203,3 +203,98 @@ export function formatWorkSummary(
 
   return workCount > limit ? `${parts.join(" · ")}…` : parts.join(" · ");
 }
+
+const REVIEW_WORK_SETS = 6;
+
+/** Every work set, collapsed when the line repeats. Warmups stay out. */
+export function formatReviewWork(
+  exercises: Array<{ name: string; note?: string | null; sets: WorkoutSet[] }>,
+  limit = 8,
+): string | null {
+  const parts: string[] = [];
+  let count = 0;
+  for (const item of exercises) {
+    const line = formatReviewExercise(item);
+    if (!line) {
+      continue;
+    }
+    count += 1;
+    if (parts.length < limit) {
+      parts.push(line);
+    }
+  }
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return count > limit ? `${parts.join(" · ")}…` : parts.join(" · ");
+}
+
+function formatReviewExercise(item: {
+  name: string;
+  note?: string | null;
+  sets: WorkoutSet[];
+}): string | null {
+  const works = item.sets.filter((set) => set.set_type === "work");
+  if (works.length === 0) {
+    return null;
+  }
+
+  const shown = works.slice(0, REVIEW_WORK_SETS);
+  const groups: Array<{ label: string; count: number }> = [];
+  for (const set of shown) {
+    const label = reviewSetLabel(set);
+    const last = groups.at(-1);
+    if (last && last.label === label) {
+      last.count += 1;
+    } else {
+      groups.push({ label, count: 1 });
+    }
+  }
+
+  const body = groups
+    .map((group) =>
+      group.count > 1 ? `${group.label}×${group.count}` : group.label,
+    )
+    .join(", ");
+  const more = works.length > shown.length ? "…" : "";
+  const note = item.note?.trim() ?? "";
+  const noteBit = note === "" ? "" : ` (${note.slice(0, 40)})`;
+  return `${item.name} ${body}${more}${noteBit}`;
+}
+
+function reviewSetLabel(set: WorkoutSet): string {
+  let label = formatSetLine(set, { showActual: true, compact: true });
+  if (setWasWritten(set)) {
+    if (
+      setUsesSeconds(set) &&
+      set.actual_seconds != null &&
+      set.planned_seconds != null &&
+      set.actual_seconds < set.planned_seconds
+    ) {
+      label = `${label} из ${set.planned_seconds}`;
+    } else if (
+      !setUsesSeconds(set) &&
+      set.actual_reps != null &&
+      set.planned_reps != null &&
+      set.actual_reps < set.planned_reps
+    ) {
+      label = `${label} из ${set.planned_reps}`;
+    }
+    if (
+      set.actual_weight != null &&
+      set.planned_weight != null &&
+      set.actual_weight < set.planned_weight
+    ) {
+      label = `${label} план ${formatWeight(set.planned_weight)}`;
+    }
+  }
+
+  if (set.actual_rir == null) {
+    return label;
+  }
+
+  const rir = set.actual_rir <= 0 ? "до отказа" : `запас ${set.actual_rir}`;
+  return `${label} ${rir}`;
+}

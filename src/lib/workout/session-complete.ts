@@ -176,7 +176,7 @@ export async function completeSessionAsPlanned(
   await patchSession(userId, session.id, {
     status: "completed",
     note: input.note !== undefined ? input.note : undefined,
-    feel: input.feel !== undefined ? input.feel : undefined,
+    feel: input.feel == null ? undefined : input.feel,
   });
   await clearSkipTemplateIds(userId);
   if (firstCompletion) {

@@ -1,6 +1,7 @@
 import type { SessionCloseKind, WorkoutSession } from "@/lib/types";
 import {
   firstWorkPlanScore,
+  formatReviewWork,
   formatWorkSummary,
   sessionCloseKind,
 } from "@/lib/workout/session-format";
@@ -16,6 +17,8 @@ export interface SessionWorkInfo {
 export async function listSessionWorkInfo(
   userId: string,
   sessions: WorkoutSession[],
+  summaryLimit = 3,
+  rich = false,
 ): Promise<Map<string, SessionWorkInfo>> {
   const gymIds = sessions.map((session) => session.id);
   const info = new Map<string, SessionWorkInfo>();
@@ -33,7 +36,9 @@ export async function listSessionWorkInfo(
       plan_total += score.total;
     }
     info.set(sessionId, {
-      summary: formatWorkSummary(exercises),
+      summary: rich
+        ? formatReviewWork(exercises, summaryLimit)
+        : formatWorkSummary(exercises, summaryLimit),
       plan_hit,
       plan_total,
       close_kind: sessionCloseKind(exercises),

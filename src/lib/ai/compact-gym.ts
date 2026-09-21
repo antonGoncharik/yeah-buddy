@@ -41,6 +41,7 @@ export function compactSessions(
         as_planned: item.close_kind === "as_planned",
         note: item.session.note,
         feel: item.session.feel,
+        work: item.summary,
       },
     ];
   });
@@ -144,6 +145,8 @@ function toMaxRow(item: ExerciseProgress): ReviewMaxRow {
       item.start_relative == null ? null : round2(item.start_relative),
     current_relative:
       item.current_relative == null ? null : round2(item.current_relative),
+    tonnage_percent:
+      item.tonnage_percent == null ? null : round1(item.tonnage_percent),
   };
 }
 

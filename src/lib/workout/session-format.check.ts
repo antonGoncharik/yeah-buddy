@@ -2,6 +2,8 @@ import type { WorkoutSet } from "@/lib/types";
 import {
   firstWorkPlanScore,
   formatRecentSessionTrail,
+  formatReviewWork,
+  formatWorkSummary,
   sessionCloseKind,
   sessionCloseKindShort,
   setCopiedFromPlan,
@@ -110,6 +112,58 @@ assertEqual(
   formatRecentSessionTrail({ summary: null, close_kind: "edited" }),
   "правил",
   "kind without summary",
+);
+assertEqual(
+  formatWorkSummary(
+    [
+      { name: "Присед", sets: [workSet()] },
+      {
+        name: "Жим",
+        sets: [workSet({ actual_weight: 60, planned_weight: 60 })],
+      },
+      { name: "Тяга", sets: [workSet()] },
+      { name: "Выпады", sets: [workSet()] },
+    ],
+    3,
+  ),
+  "Присед 80×5 · Жим 60×5 · Тяга 80×5…",
+  "summary keeps three",
+);
+assertEqual(
+  formatWorkSummary(
+    [
+      { name: "Присед", sets: [workSet()] },
+      { name: "Жим", sets: [workSet()] },
+      { name: "Тяга", sets: [workSet()] },
+      { name: "Выпады", sets: [workSet()] },
+    ],
+    8,
+  ),
+  "Присед 80×5 · Жим 80×5 · Тяга 80×5 · Выпады 80×5",
+  "review summary keeps the session",
+);
+assertEqual(
+  formatReviewWork([
+    {
+      name: "Присед",
+      sets: [workSet(), workSet({ set_number: 2 }), workSet({ set_number: 3 })],
+    },
+    {
+      name: "Жим",
+      note: "плечо",
+      sets: [
+        workSet({ logged: true, actual_reps: 3 }),
+        workSet({
+          set_number: 2,
+          logged: true,
+          actual_reps: 5,
+          actual_rir: 2,
+        }),
+      ],
+    },
+  ]),
+  "Присед 80×5×3 · Жим 80×3 из 5, 80×5 запас 2 (плечо)",
+  "review work keeps every set",
 );
 
 console.log("session format close kind ok");

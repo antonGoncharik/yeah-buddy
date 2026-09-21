@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useRef } from "react";
 
 import {
   completeSetOverrides,
@@ -13,7 +13,10 @@ import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
-import { completeSessionLocally } from "@/lib/workout/session-complete-local";
+import {
+  completeSessionLocally,
+  preferLiveFeel,
+} from "@/lib/workout/session-complete-local";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
@@ -42,6 +45,9 @@ export function useSessionActions({
   setDetail: Dispatch<SetStateAction<SessionDetail | null>>;
   correcting: boolean;
 }) {
+  const detailRef = useRef(detail);
+  detailRef.current = detail;
+
   async function runBusy(work: () => Promise<void>) {
     setBusy(true);
     setError(null);
@@ -66,19 +72,21 @@ export function useSessionActions({
   }
 
   async function complete() {
-    if (!detail) {
+    const current = detailRef.current;
+    if (!current) {
       return;
     }
 
+    const sentFeel = current.session.feel;
     const body = {
       note: note.trim() === "" ? null : note.trim(),
-      feel: detail.session.feel,
-      sets: completeSetOverrides(detail, drafts),
+      feel: sentFeel,
+      sets: completeSetOverrides(current, drafts),
     };
-    const local = completeSessionLocally(detail, body);
-    const previous = detail;
+    const local = completeSessionLocally(current, body);
+    const previous = current;
     writeCompletedCaches(sessionUrl, local);
-    clearSessionDraft(detail.session.id);
+    clearSessionDraft(current.session.id);
     applyDetail(local);
     setCorrecting(false);
     setError(null);
@@ -87,17 +95,32 @@ export function useSessionActions({
     try {
       const data = await queueMutate({
         method: "POST",
-        url: `/api/sessions/${detail.session.id}/complete`,
+        url: `/api/sessions/${current.session.id}/complete`,
         body,
-        cacheUrls: [sessionUrl, sessionDateUrl(detail.session.session_date)],
+        cacheUrls: [sessionUrl, sessionDateUrl(current.session.session_date)],
       });
       if (!data) {
         return;
       }
-      const next = applyPayload(data);
-      if (next) {
-        await loadFollowUp(next.session.session_date);
+      const parsed = readSessionDetail(data);
+      if (!parsed) {
+        return;
       }
+      const live = detailRef.current;
+      const feel = preferLiveFeel(
+        live?.session.id === parsed.session.id
+          ? live.session.feel
+          : parsed.session.feel,
+        sentFeel,
+        parsed.session.feel,
+      );
+      const next =
+        feel === parsed.session.feel
+          ? parsed
+          : { ...parsed, session: { ...parsed.session, feel } };
+      writeJson(sessionUrl, next);
+      applyDetail(next);
+      await loadFollowUp(next.session.session_date);
     } catch (caught) {
       haptic("error");
       writeCompletedCaches(sessionUrl, previous);
@@ -131,18 +154,27 @@ export function useSessionActions({
       }
 
       const refreshed = await fetchJson(sessionUrl);
-      const next = readSessionDetail(refreshed);
-      if (next) {
+      const parsed = readSessionDetail(refreshed);
+      if (parsed) {
+        const feelNow = preferLiveFeel(feel, previous, parsed.session.feel);
+        const next =
+          feelNow === parsed.session.feel
+            ? parsed
+            : { ...parsed, session: { ...parsed.session, feel: feelNow } };
+        if (next !== parsed) {
+          writeJson(sessionUrl, next);
+        }
         applyDetail(next);
         await loadFollowUp(detail.session.session_date);
       }
     } catch (caught) {
       haptic("error");
-      setDetail((current) =>
-        current
-          ? { ...current, session: { ...current.session, feel: previous } }
-          : current,
-      );
+      const reverted = {
+        ...nextDetail,
+        session: { ...nextDetail.session, feel: previous },
+      };
+      writeCompletedCaches(sessionUrl, reverted);
+      setDetail(reverted);
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }

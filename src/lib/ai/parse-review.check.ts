@@ -163,6 +163,53 @@ assertEqual(
   parseReviewBrief({
     ...brief,
     gym: {
+      ...brief.gym,
+      sessions: [
+        {
+          date: "2026-08-20",
+          name: "Низ",
+          kind: "dynamic",
+          status: "completed",
+          plan_hit: 1,
+          plan_total: 1,
+          as_planned: false,
+          note: null,
+          feel: "close",
+          work: "Присед 140×5",
+        },
+      ],
+    },
+  })?.gym.sessions[0]?.work,
+  "Присед 140×5",
+  "session work parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    gym: {
+      ...brief.gym,
+      sessions: [
+        {
+          date: "2026-08-20",
+          name: "Низ",
+          kind: "dynamic",
+          status: "completed",
+          plan_hit: 0,
+          plan_total: 0,
+          as_planned: true,
+          note: null,
+          feel: null,
+        },
+      ],
+    },
+  })?.gym.sessions[0]?.work,
+  null,
+  "old session without work",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    gym: {
       completed: 0,
       skipped: 0,
       dynamic: 0,

@@ -187,7 +187,10 @@ export function SessionCompletedPanel({
       <FlavorNote line={milestone} className="text-foreground" />
       <FlavorNote line={phase} className="text-foreground" />
       <FlavorNote line={comeback} className="text-foreground" />
-      <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-muted-foreground">Как прошло</p>
+        <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
+      </div>
       {joy ? <JoyShareButton moment={joy} lift={workLift} /> : null}
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">

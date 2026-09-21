@@ -43,6 +43,7 @@ export type ReviewSessionRow = {
   as_planned: boolean;
   note: string | null;
   feel: "easy" | "close" | "miss" | null;
+  work: string | null;
 };
 
 export type ReviewRecord = {
@@ -67,6 +68,7 @@ export type ReviewMaxRow = {
   current: number | null;
   start_relative: number | null;
   current_relative: number | null;
+  tonnage_percent: number | null;
 };
 
 export type ReviewBrief = {

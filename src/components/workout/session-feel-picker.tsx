@@ -31,8 +31,11 @@ export function SessionFeelPicker({
                 : "border-border bg-card text-muted-foreground hover:bg-muted",
             )}
             onClick={() => {
+              if (pressed) {
+                return;
+              }
               haptic("tick");
-              onChange(pressed ? null : feel);
+              onChange(feel);
             }}
           >
             {SESSION_FEEL_LABELS[feel]}

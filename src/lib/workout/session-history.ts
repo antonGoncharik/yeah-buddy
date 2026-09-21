@@ -67,6 +67,8 @@ export async function listSessionHistory(
     until?: string;
     limit: number;
     statuses?: SessionStatus[];
+    summaryLimit?: number;
+    richWork?: boolean;
   },
 ): Promise<{ items: RecentWorkoutSession[]; next_before: string | null }> {
   const limit = Math.min(Math.max(options.limit, 1), 120);
@@ -110,7 +112,12 @@ export async function listSessionHistory(
         session.template_id ? [session.template_id] : [],
       ),
     ),
-    listSessionWorkInfo(userId, sessions),
+    listSessionWorkInfo(
+      userId,
+      sessions,
+      options.summaryLimit,
+      options.richWork,
+    ),
   ]);
 
   return {

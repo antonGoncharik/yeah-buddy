@@ -1,5 +1,17 @@
-import type { SessionDetail } from "@/lib/types";
+import type { SessionDetail, SessionFeel } from "@/lib/types";
 import type { CompleteSessionInput } from "@/lib/workout/session-schema";
+
+/** A feel chosen while finish is still saving beats the stale reply. */
+export function preferLiveFeel(
+  live: SessionFeel | null,
+  sent: SessionFeel | null,
+  returned: SessionFeel | null,
+): SessionFeel | null {
+  if (live !== sent && returned === sent) {
+    return live;
+  }
+  return returned;
+}
 
 export function completeSessionLocally(
   detail: SessionDetail,

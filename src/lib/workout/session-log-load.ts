@@ -5,6 +5,7 @@ import { mapWorkoutSet } from "@/lib/workout/map-session";
 export interface SessionExerciseWork {
   exercise_id: string;
   name: string;
+  note: string | null;
   sets: WorkoutSet[];
 }
 
@@ -20,7 +21,7 @@ export async function loadWorkBySession(
   const supabase = createSupabaseServerClient();
   const exerciseRows = await supabase
     .from("session_exercises")
-    .select("id, session_id, exercise_id, sort_order")
+    .select("id, session_id, exercise_id, sort_order, note")
     .eq("user_id", userId)
     .in("session_id", sessionIds)
     .order("sort_order", { ascending: true });
@@ -52,6 +53,7 @@ export async function loadWorkBySession(
     current.push({
       exercise_id: exerciseId,
       name: names.get(exerciseId) ?? "упражнение",
+      note: typeof row.note === "string" ? row.note : null,
       sets: setsByExercise.get(String(row.id)) ?? [],
     });
     grouped.set(sessionId, current);
