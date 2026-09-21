@@ -53,6 +53,8 @@ export const CATCH_UP_TITLE = "Догонял";
 export const CATCH_UP_EMPTY_HINT =
   "День пустой. Можно догнать — в истории будет пометка «догонял».";
 export const CATCH_UP_YESTERDAY_HINT = "Вчера пустой — можно догнать.";
+export const EMPTY_START_REPEAT = "Вчера было так. Повторить.";
+export const EMPTY_START_SCAN = "Отсканируй то, что ешь каждый день.";
 export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
@@ -60,10 +62,12 @@ export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_PACK_START = "Start";
 export const BOT_PROGRAM_START = "Поставить";
 export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
+export const BOT_REMINDER_FOOD_EARLY =
+  "День еды пустой. Запиши, что ешь — завтра будет что повторить.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
 
 export function botReminderGym(name: string): string {
-  return `Сегодня ${name}.`;
+  return `В очереди ${name}.`;
 }
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение — штанга сама не встанет.";

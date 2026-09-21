@@ -49,6 +49,7 @@ export function AddMealItemScreen({
   lumpHrefBase,
   plateHref,
   quickAdd,
+  startScan = false,
 }: {
   foodHrefBase: string;
   newFoodHref: string;
@@ -59,6 +60,7 @@ export function AddMealItemScreen({
     date: string;
     doneHref: string;
   };
+  startScan?: boolean;
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("favorites");
@@ -74,6 +76,19 @@ export function AddMealItemScreen({
   const favoriteOffer = useFavoriteOffer(offers);
   const [shopHits, setShopHits] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!startScan) {
+      return;
+    }
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("scan")) {
+      return;
+    }
+    url.searchParams.delete("scan");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState(null, "", next);
+  }, [startScan]);
 
   const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
     const requestId = ++requestIdRef.current;
@@ -178,7 +193,12 @@ export function AddMealItemScreen({
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch value={query} onChange={setQuery} placeholder="Что съел" />
+        <FoodSearch
+          value={query}
+          onChange={setQuery}
+          placeholder="Что съел"
+          startScan={startScan}
+        />
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />

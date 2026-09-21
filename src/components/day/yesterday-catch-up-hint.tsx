@@ -7,8 +7,14 @@ export function showYesterdayCatchUpHint(input: {
   isToday: boolean;
   yesterdayExists: boolean;
   viewOnly: boolean;
+  retentionTail?: boolean;
 }): boolean {
-  return input.isToday && !input.yesterdayExists && !input.viewOnly;
+  return (
+    input.isToday &&
+    !input.yesterdayExists &&
+    !input.viewOnly &&
+    !input.retentionTail
+  );
 }
 
 export function YesterdayCatchUpHint({ onOpen }: { onOpen: () => void }) {

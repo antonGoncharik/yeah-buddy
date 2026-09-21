@@ -16,7 +16,7 @@ export default async function AddMealItemPage({
   searchParams,
 }: {
   params: Promise<{ mealId: string }>;
-  searchParams: Promise<{ date?: string | string[] }>;
+  searchParams: Promise<{ date?: string | string[]; scan?: string | string[] }>;
 }) {
   const { mealId } = await params;
   const query = await searchParams;
@@ -53,6 +53,7 @@ export default async function AddMealItemPage({
           date: date ?? today,
           doneHref: homeHref,
         }}
+        startScan={query.scan === "1"}
       />
     </div>
   );

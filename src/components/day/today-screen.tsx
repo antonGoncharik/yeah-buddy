@@ -8,7 +8,6 @@ import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayView } from "@/components/day/today-day-view";
-import { TodayWorkoutBanner } from "@/components/day/today-workout-banner";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
@@ -37,7 +36,7 @@ export function TodayScreen({
     viewOnly,
     contentReady,
     shownDay,
-    banner,
+    gym,
     visibleMeals,
     hiddenMealKcal,
     hiddenMealTypes,
@@ -47,12 +46,14 @@ export function TodayScreen({
     remainingMealTypes,
     dayHasItems,
     yesterdayExists,
+    yesterdayHasFood,
     copyDays,
     namedMeals,
     lastBodyWeight,
     weightSteady,
     priorProteinHits,
     reviewReady,
+    retentionTail,
     busy,
     loadError,
     actionError,
@@ -122,19 +123,12 @@ export function TodayScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 px-4 pb-4">
-        {contentReady && !loadError && !viewOnly && guideTip.tip ? (
+        {contentReady &&
+        !loadError &&
+        !viewOnly &&
+        guideTip.tip &&
+        !retentionTail ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
-        ) : null}
-        {contentReady && !loadError && banner ? (
-          <TodayWorkoutBanner
-            href={banner.href}
-            title={banner.title}
-            hint={banner.hint}
-            label={banner.label}
-            templateId={banner.templateId}
-            busy={busy}
-            onStart={startQueuedWorkout}
-          />
         ) : null}
         {showLoading ? <ScreenLoading /> : null}
 
@@ -165,7 +159,7 @@ export function TodayScreen({
             <CreateDayButtons
               busy={busy}
               trainingFirst={isToday}
-              showCopy={yesterdayExists}
+              showCopy={yesterdayHasFood}
               catchUp={catchUp}
               onCreateRest={() => void createDay("rest")}
               onCreateTraining={() => void createDay("training")}
@@ -198,6 +192,8 @@ export function TodayScreen({
             remainingMealTypes={remainingMealTypes}
             dayHasItems={dayHasItems}
             yesterdayExists={yesterdayExists}
+            yesterdayHasFood={yesterdayHasFood}
+            retentionTail={retentionTail && isToday}
             onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}
@@ -205,6 +201,7 @@ export function TodayScreen({
             weightSteady={weightSteady}
             priorProteinHits={priorProteinHits}
             reviewReady={reviewReady && isToday}
+            gym={gym}
             busy={busy}
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}
@@ -223,6 +220,7 @@ export function TodayScreen({
             shareNamedMeal={shareNamedMeal}
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
+            startQueuedWorkout={startQueuedWorkout}
           />
         ) : null}
       </div>

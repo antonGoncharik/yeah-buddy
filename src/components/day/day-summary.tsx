@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { CookieDoodle } from "@/components/layout/doodles";
@@ -8,6 +8,7 @@ import { useWiggle } from "@/components/layout/wiggle-tap";
 import { JoyShareButton } from "@/components/share/joy-share-button";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
+import { proteinLoopLine } from "@/lib/day/loop";
 import {
   hundredWeightLine,
   liveProteinHits,
@@ -37,6 +38,7 @@ export function DaySummary({
   weightSteady = false,
   priorProteinHits = 0,
   share = false,
+  gym = null,
   onSaveBodyWeight,
 }: {
   day: Pick<
@@ -58,6 +60,7 @@ export function DaySummary({
   weightSteady?: boolean;
   priorProteinHits?: number;
   share?: boolean;
+  gym?: ReactNode;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
@@ -66,7 +69,7 @@ export function DaySummary({
   const proteinOverflow = remainingProtein < 0;
   const closed = proteinClosed(remainingProtein, fact.protein);
   const hits = liveProteinHits(closed, priorProteinHits);
-  const proteinLine = proteinWeekLine(hits);
+  const weekLine = proteinWeekLine(hits);
   const [flashClosed, setFlashClosed] = useState(false);
   const wasClosed = useRef(false);
   const cookie = useWiggle();
@@ -86,6 +89,8 @@ export function DaySummary({
     : null;
   const perKg =
     bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
+  const loop = gym != null;
+  const proteinGlance = proteinLoopLine(remainingProtein, fact.protein);
 
   useEffect(() => {
     if (!closed) {
@@ -105,10 +110,20 @@ export function DaySummary({
     return () => window.clearTimeout(timer);
   }, [closed, wiggleCookie]);
 
+  const proteinNumber = loop
+    ? flashClosed
+      ? PROTEIN_CLOSED_LABEL
+      : proteinGlance
+    : flashClosed
+      ? PROTEIN_CLOSED_LABEL
+      : proteinOverflow
+        ? `+${formatMacro(Math.abs(remainingProtein))}`
+        : formatMacro(Math.max(0, remainingProtein));
+
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <button
               type="button"
@@ -124,21 +139,17 @@ export function DaySummary({
                 <CookieDoodle className="size-4" />
               </span>
             </button>
-            {overflowKcalLabel(overflow)}
+            {loop ? "Белок" : overflowKcalLabel(overflow)}
           </div>
           <p
             className={cn(
               "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
               flashClosed ? "animate-fade" : "tabular-nums",
-              proteinOverflow && !flashClosed && "text-destructive",
+              proteinOverflow && !flashClosed && !closed && "text-destructive",
             )}
           >
-            {flashClosed
-              ? PROTEIN_CLOSED_LABEL
-              : proteinOverflow
-                ? `+${formatMacro(Math.abs(remainingProtein))}`
-                : formatMacro(Math.max(0, remainingProtein))}
-            {flashClosed ? null : (
+            {proteinNumber}
+            {loop || flashClosed ? null : (
               <span className="ml-1.5 text-base font-medium text-muted-foreground">
                 г белка
               </span>
@@ -147,33 +158,33 @@ export function DaySummary({
           {almost ? (
             <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
           ) : null}
-          {proteinLine ? (
-            <p className="mt-1 text-base font-medium">{proteinLine}</p>
+          {weekLine ? (
+            <p className="mt-1 text-base font-medium">{weekLine}</p>
           ) : null}
-          <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-            {overflow
-              ? `+${formatKcal(Math.abs(remainingKcal))} ккал`
-              : `${formatKcal(remainingKcal)} ккал`}
-            {showWeight ? ` · ${factLabel} ${formatKcal(fact.kcal)}` : null}
-            {perKg != null ? ` · ${formatProteinPerKg(perKg)}` : null}
-          </p>
-        </div>
-        {showWeight ? (
-          <div className="text-right">
-            <p className="text-sm font-medium text-muted-foreground">Вес</p>
+          {loop ? null : (
             <div className="mt-1">
-              <BodyWeightField
-                value={bodyWeight}
-                placeholder={bodyWeight == null ? lastBodyWeight : null}
-                readOnly={bodyWeightReadOnly}
-                disabled={bodyWeightBusy}
-                onSave={onSaveBodyWeight}
+              <KcalLine
+                overflow={overflow}
+                remainingKcal={remainingKcal}
+                showWeight={showWeight}
+                factLabel={factLabel}
+                factKcal={fact.kcal}
+                perKg={perKg}
               />
             </div>
-            {weightNote ? (
-              <p className="mt-1 text-sm text-muted-foreground">{weightNote}</p>
-            ) : null}
-          </div>
+          )}
+        </div>
+        {loop ? (
+          gym
+        ) : showWeight ? (
+          <WeightBlock
+            bodyWeight={bodyWeight}
+            lastBodyWeight={lastBodyWeight}
+            readOnly={bodyWeightReadOnly}
+            busy={bodyWeightBusy}
+            note={weightNote}
+            onSave={onSaveBodyWeight}
+          />
         ) : (
           <div className="text-right">
             <p className="text-sm font-medium text-muted-foreground">
@@ -185,6 +196,29 @@ export function DaySummary({
           </div>
         )}
       </div>
+
+      {loop ? (
+        <div className="flex items-start justify-between gap-4">
+          <KcalLine
+            overflow={overflow}
+            remainingKcal={remainingKcal}
+            showWeight={showWeight}
+            factLabel={factLabel}
+            factKcal={fact.kcal}
+            perKg={perKg}
+          />
+          {showWeight ? (
+            <WeightBlock
+              bodyWeight={bodyWeight}
+              lastBodyWeight={lastBodyWeight}
+              readOnly={bodyWeightReadOnly}
+              busy={bodyWeightBusy}
+              note={weightNote}
+              onSave={onSaveBodyWeight}
+            />
+          ) : null}
+        </div>
+      ) : null}
 
       {joy ? <JoyShareButton moment={joy} /> : null}
 
@@ -212,6 +246,66 @@ export function DaySummary({
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
     </section>
+  );
+}
+
+function KcalLine({
+  overflow,
+  remainingKcal,
+  showWeight,
+  factLabel,
+  factKcal,
+  perKg,
+}: {
+  overflow: boolean;
+  remainingKcal: number;
+  showWeight: boolean;
+  factLabel: string;
+  factKcal: number;
+  perKg: number | null;
+}) {
+  return (
+    <p className="min-w-0 text-sm text-muted-foreground tabular-nums">
+      {overflow
+        ? `+${formatKcal(Math.abs(remainingKcal))} ккал`
+        : `${formatKcal(remainingKcal)} ккал`}
+      {showWeight ? ` · ${factLabel} ${formatKcal(factKcal)}` : null}
+      {perKg != null ? ` · ${formatProteinPerKg(perKg)}` : null}
+    </p>
+  );
+}
+
+function WeightBlock({
+  bodyWeight,
+  lastBodyWeight,
+  readOnly,
+  busy,
+  note,
+  onSave,
+}: {
+  bodyWeight: number | null;
+  lastBodyWeight: number | null;
+  readOnly: boolean;
+  busy: boolean;
+  note: string | null;
+  onSave?: (value: number | null) => Promise<void>;
+}) {
+  return (
+    <div className="shrink-0 text-right">
+      <p className="text-sm font-medium text-muted-foreground">Вес</p>
+      <div className="mt-1">
+        <BodyWeightField
+          value={bodyWeight}
+          placeholder={bodyWeight == null ? lastBodyWeight : null}
+          readOnly={readOnly}
+          disabled={busy}
+          onSave={onSave}
+        />
+      </div>
+      {note ? (
+        <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+      ) : null}
+    </div>
   );
 }
 

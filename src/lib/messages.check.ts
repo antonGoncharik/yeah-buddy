@@ -4,6 +4,8 @@ import {
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
   CATCH_UP_YESTERDAY_HINT,
+  EMPTY_START_REPEAT,
+  EMPTY_START_SCAN,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_POINTS,
@@ -52,6 +54,16 @@ assertEqual(
   CATCH_UP_YESTERDAY_HINT,
   "Вчера пустой — можно догнать.",
   "today after a hole",
+);
+assertEqual(
+  EMPTY_START_REPEAT,
+  "Вчера было так. Повторить.",
+  "empty today after a logged yesterday",
+);
+assertEqual(
+  EMPTY_START_SCAN,
+  "Отсканируй то, что ешь каждый день.",
+  "empty today with nothing to copy",
 );
 assertEqual(
   OPEN_VIA_BOT_LEAD,

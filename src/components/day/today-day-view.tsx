@@ -2,18 +2,22 @@
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
-import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayEmptyStart } from "@/components/day/today-empty-start";
+import { TodayGymStatus } from "@/components/day/today-gym-status";
 import {
   showYesterdayCatchUpHint,
   YesterdayCatchUpHint,
 } from "@/components/day/yesterday-catch-up-hint";
+import { withDateQuery } from "@/lib/day/dates";
+import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
 import { hiddenMealSlotsNote } from "@/lib/nutrition";
+import { emptyStartCopy } from "@/lib/retention";
 import type {
   CopyDayHint,
   DayType,
@@ -39,6 +43,8 @@ export function TodayDayView({
   remainingMealTypes,
   dayHasItems,
   yesterdayExists,
+  yesterdayHasFood,
+  retentionTail,
   onOpenYesterday,
   copyDays,
   namedMeals,
@@ -46,6 +52,7 @@ export function TodayDayView({
   weightSteady,
   priorProteinHits,
   reviewReady,
+  gym,
   busy,
   switchType,
   saveBodyWeight,
@@ -59,6 +66,7 @@ export function TodayDayView({
   shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
+  startQueuedWorkout,
 }: {
   date: string;
   today: string;
@@ -76,6 +84,8 @@ export function TodayDayView({
   remainingMealTypes: ReadonlySet<MealType>;
   dayHasItems: boolean;
   yesterdayExists: boolean;
+  yesterdayHasFood: boolean;
+  retentionTail: boolean;
   onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -83,6 +93,7 @@ export function TodayDayView({
   weightSteady: boolean;
   priorProteinHits: number;
   reviewReady: boolean;
+  gym: GymLoop;
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
@@ -104,6 +115,7 @@ export function TodayDayView({
   shareNamedMeal: (namedMealId: string) => Promise<void>;
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
+  startQueuedWorkout: (templateId: string) => Promise<void>;
 }) {
   const hiddenNote = hiddenMealSlotsNote(
     hiddenMealKcal,
@@ -124,6 +136,21 @@ export function TodayDayView({
     isToday: date === today,
     yesterdayExists,
     viewOnly,
+    retentionTail,
+  });
+  const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
+  const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
+  const addHref = addPath ? withDateQuery(addPath, date, today) : null;
+  const scanHref = addPath
+    ? withDateQuery(`${addPath}?scan=1`, date, today)
+    : null;
+  const showEmptyStart = !viewOnly && !dayHasItems;
+  const startCopy = emptyStartCopy({
+    retentionTail,
+    isToday: date === today,
+    viewOnly,
+    dayHasItems,
+    yesterdayHasFood,
   });
 
   return (
@@ -156,41 +183,66 @@ export function TodayDayView({
           weightSteady={weightSteady}
           priorProteinHits={priorProteinHits}
           share={writable}
+          gym={
+            <TodayGymStatus
+              kind={gym.kind}
+              label={gym.label}
+              href={gym.href}
+              templateId={gym.templateId}
+              busy={busy}
+              onStart={startQueuedWorkout}
+            />
+          }
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           bodyWeightReadOnly={viewOnly}
           bodyWeightBusy={busy || isTempId(shownDay.id)}
         />
       </div>
 
+      {showEmptyStart ? (
+        <div className="animate-rise" style={{ animationDelay: "60ms" }}>
+          <TodayEmptyStart
+            yesterdayHasFood={yesterdayHasFood}
+            copy={startCopy}
+            addHref={addHref}
+            scanHref={scanHref}
+            busy={busy}
+            onCopyYesterday={() => void copyYesterday()}
+          />
+        </div>
+      ) : null}
+
       {hiddenNote ? (
         <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
       ) : null}
 
       {remainingFullGap && remainingAction ? (
-        <div className="animate-rise" style={{ animationDelay: "60ms" }}>
+        <div className="animate-rise" style={{ animationDelay: "80ms" }}>
           {remainingAction}
         </div>
       ) : null}
 
-      <TodayDayMeals
-        date={date}
-        today={today}
-        viewOnly={viewOnly}
-        visibleMeals={visibleMeals}
-        remainingMealTypes={remainingMealTypes}
-        remainingFullGap={remainingFullGap}
-        copyDays={copyDays}
-        namedMeals={namedMeals}
-        busy={busy}
-        fillMealFromTemplate={fillMealFromTemplate}
-        copyMealFromDate={copyMealFromDate}
-        applyNamedMeal={applyNamedMeal}
-        saveNamedMeal={saveNamedMeal}
-        shareMeal={shareMeal}
-        shareNamedMeal={shareNamedMeal}
-        deleteNamedMeal={deleteNamedMeal}
-        deleteItem={deleteItem}
-      />
+      {dayHasItems ? (
+        <TodayDayMeals
+          date={date}
+          today={today}
+          viewOnly={viewOnly}
+          visibleMeals={visibleMeals}
+          remainingMealTypes={remainingMealTypes}
+          remainingFullGap={remainingFullGap}
+          copyDays={copyDays}
+          namedMeals={namedMeals}
+          busy={busy}
+          fillMealFromTemplate={fillMealFromTemplate}
+          copyMealFromDate={copyMealFromDate}
+          applyNamedMeal={applyNamedMeal}
+          saveNamedMeal={saveNamedMeal}
+          shareMeal={shareMeal}
+          shareNamedMeal={shareNamedMeal}
+          deleteNamedMeal={deleteNamedMeal}
+          deleteItem={deleteItem}
+        />
+      ) : null}
 
       {remainingFullGap ? null : remainingAction ? (
         <div
@@ -202,20 +254,6 @@ export function TodayDayView({
           {remainingAction}
         </div>
       ) : null}
-
-      {viewOnly || dayHasItems || !yesterdayExists ? null : (
-        <div
-          className="animate-rise"
-          style={{
-            animationDelay: `${80 + visibleMeals.length * 50}ms`,
-          }}
-        >
-          <CopyYesterdayButton
-            busy={busy}
-            onCopy={() => void copyYesterday()}
-          />
-        </div>
-      )}
 
       {viewOnly || !reviewOffer.show ? null : (
         <ReviewCta from="today" onOpen={reviewOffer.open} />

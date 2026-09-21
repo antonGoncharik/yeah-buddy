@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   factFromDay,
   hiddenMealKcalFromDay,
@@ -8,7 +9,6 @@ import {
   remainingFromDay,
   visibleMealsFromDay,
 } from "@/components/day/today-derived";
-import { bannerFromTodayState } from "@/components/day/today-workout-banner";
 import { useTodayCopy } from "@/components/day/use-today-copy";
 import { useTodayData } from "@/components/day/use-today-data";
 import { useTodayDayActions } from "@/components/day/use-today-day-actions";
@@ -27,6 +27,7 @@ import {
   visibleTodayDate,
   writeStateFromDay,
 } from "@/lib/day/dates";
+import { gymLoopFromTodayState } from "@/lib/day/loop";
 import { isRecord } from "@/lib/read";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
@@ -72,9 +73,9 @@ export function useTodayScreen({
     (writable && isCatchUpWindowDate(date, data.today));
   const viewOnly = fromHistory || !writable;
 
-  const banner = useMemo(
+  const gym = useMemo(
     () =>
-      bannerFromTodayState(data.workoutState, {
+      gymLoopFromTodayState(data.workoutState, {
         isToday,
         isTrainingDay: shownDay?.is_training_day === true,
       }),
@@ -222,7 +223,7 @@ export function useTodayScreen({
     viewOnly,
     contentReady: data.contentReady,
     shownDay,
-    banner,
+    gym,
     visibleMeals,
     hiddenMealKcal,
     hiddenMealTypes,
@@ -232,12 +233,14 @@ export function useTodayScreen({
     remainingMealTypes,
     dayHasItems,
     yesterdayExists: data.yesterdayExists,
+    yesterdayHasFood: data.yesterdayHasFood,
     copyDays: data.copyDays,
     namedMeals: data.namedMeals,
     lastBodyWeight: data.lastBodyWeight,
     weightSteady: data.weightSteady,
     priorProteinHits: data.priorProteinHits,
     reviewReady: data.reviewReady,
+    retentionTail: data.retentionTail,
     busy,
     loadError: data.loadError,
     actionError,

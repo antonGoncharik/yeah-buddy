@@ -56,6 +56,10 @@ export function readReviewReady(data: unknown): boolean {
   return isRecord(data) && data.reviewReady === true;
 }
 
+export function readRetentionTail(data: unknown): boolean {
+  return isRecord(data) && data.retentionTail === true;
+}
+
 export function readCalendarToday(data: unknown): string | null {
   if (!isRecord(data) || typeof data.today !== "string") {
     return null;

@@ -44,5 +44,15 @@ assertEqual(
   false,
   "history does not offer catch-up",
 );
+assertEqual(
+  showYesterdayCatchUpHint({
+    isToday: true,
+    yesterdayExists: false,
+    viewOnly: false,
+    retentionTail: true,
+  }),
+  false,
+  "first days do not send the person to catch up yesterday",
+);
 
 console.log("yesterday catch-up hint ok");

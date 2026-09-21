@@ -11,13 +11,15 @@ export function FoodSearch({
   value,
   onChange,
   placeholder = "Поиск продукта",
+  startScan = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  startScan?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [scanning, setScanning] = useState(false);
+  const [scanning, setScanning] = useState(startScan);
 
   function closeScanner() {
     setScanning(false);
