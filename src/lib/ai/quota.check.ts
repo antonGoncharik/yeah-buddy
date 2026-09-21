@@ -38,8 +38,8 @@ assertEqual(
   "review does not share plate key",
 );
 
-assertEqual(dailyLimit("plate"), 5, "five photos");
-assertEqual(dailyLimit("review"), 2, "two reviews");
+assertEqual(dailyLimit("plate"), 2, "two photos");
+assertEqual(dailyLimit("review"), 1, "one review");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");
@@ -48,7 +48,7 @@ assertEqual(remainingAfterUse(6, 5), 0, "clamp over");
 assertEqual(plateRemainingLine(null), null, "no line when untracked");
 assertEqual(plateRemainingLine(0), AI_PLATE_QUOTA, "exhausted copy");
 assertEqual(plateRemainingLine(1), "Ещё одно фото сегодня.", "one left");
-assertEqual(plateRemainingLine(5), "Ещё 5 фото сегодня.", "several left");
+assertEqual(plateRemainingLine(2), "Ещё 2 фото сегодня.", "two left");
 
 assertEqual(isGeminiLimit(429, null), true, "http 429 is limit");
 assertEqual(

@@ -2,8 +2,8 @@ import { AI_PLATE_QUOTA } from "@/lib/messages";
 
 export type AiKind = "plate" | "review";
 
-export const PLATE_DAILY_LIMIT = 5;
-export const REVIEW_DAILY_LIMIT = 2;
+export const PLATE_DAILY_LIMIT = 2;
+export const REVIEW_DAILY_LIMIT = 1;
 
 export function dailyLimit(kind: AiKind): number {
   return kind === "plate" ? PLATE_DAILY_LIMIT : REVIEW_DAILY_LIMIT;
