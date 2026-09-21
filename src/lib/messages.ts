@@ -1,5 +1,11 @@
 export const OPEN_VIA_BOT = "Открой приложение в Telegram.";
-export const OPEN_VIA_BOT_LEAD = "Записывай, что съел и что сделал в зале.";
+export const BOT_START = `Yeah buddy! 👟
+Это дневник еды и тренировок.
+
+Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
+
+Light weight. Погнали 🔥`;
+export const OPEN_VIA_BOT_LEAD = BOT_START;
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";
@@ -33,12 +39,6 @@ export const CATCH_UP_YESTERDAY_HINT = "Вчера пустой — можно �
 export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
-export const BOT_START = `Yeah buddy! 👟
-Это дневник еды и тренировок.
-
-Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
-
-Light weight. Погнали 🔥`;
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_PACK_START = "Start";
 export const BOT_PROGRAM_START = "Поставить";

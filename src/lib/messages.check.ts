@@ -1,4 +1,5 @@
 import {
+  BOT_START,
   CATCH_UP_EMPTY_HINT,
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
@@ -51,8 +52,13 @@ assertEqual(
 );
 assertEqual(
   OPEN_VIA_BOT_LEAD,
-  "Записывай, что съел и что сделал в зале.",
-  "outside Telegram gate",
+  BOT_START,
+  "outside Telegram gate matches /start",
+);
+assertEqual(
+  BOT_START,
+  "Yeah buddy! 👟\nЭто дневник еды и тренировок.\n\nЗаписывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.\n\nLight weight. Погнали 🔥",
+  "/start copy",
 );
 
 console.log("messages ok");

@@ -150,8 +150,8 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       {state === "outside" || state === "error" ? (
         <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
           {state === "outside" ? (
-            <div className="animate-rise flex max-w-xs flex-col items-center gap-4">
-              <p className="text-xl font-semibold leading-snug">
+            <div className="animate-rise flex max-w-sm flex-col items-center gap-4">
+              <p className="whitespace-pre-line text-lg font-medium leading-snug">
                 {OPEN_VIA_BOT_LEAD}
               </p>
               {openUrl ? (
