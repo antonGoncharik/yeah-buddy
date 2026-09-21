@@ -55,8 +55,6 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 | `GEMINI_API_KEY` | no | text review «Как прошло»; without it the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo; without it the camera link is hidden, food still logs by hand. Prefer a second Google project — keys in one project share Gemini quota |
-| `GEMINI_PLATE_DAILY_LIMIT` | no | photos per person per calendar day, default 8; `0` = no app cap |
-| `GEMINI_REVIEW_DAILY_LIMIT` | no | reviews per person per calendar day, default 6; `0` = no app cap |
 
 Migrations: `supabase/migrations/0001_init.sql` … `0030_catalog_barcode.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 

@@ -1,9 +1,7 @@
 import { isGeminiLimit, readGeminiKey } from "@/lib/ai/gemini";
 import {
-  DEFAULT_PLATE_DAILY_LIMIT,
-  DEFAULT_REVIEW_DAILY_LIMIT,
+  dailyLimit,
   plateRemainingLine,
-  readDailyLimit,
   remainingAfterUse,
 } from "@/lib/ai/quota-copy";
 import { AI_PLATE_QUOTA } from "@/lib/messages";
@@ -40,36 +38,12 @@ assertEqual(
   "review does not share plate key",
 );
 
-assertEqual(
-  readDailyLimit("plate", {}),
-  DEFAULT_PLATE_DAILY_LIMIT,
-  "plate default",
-);
-assertEqual(
-  readDailyLimit("review", {}),
-  DEFAULT_REVIEW_DAILY_LIMIT,
-  "review default",
-);
-assertEqual(
-  readDailyLimit("plate", { GEMINI_PLATE_DAILY_LIMIT: "0" }),
-  null,
-  "0 disables app cap",
-);
-assertEqual(
-  readDailyLimit("plate", { GEMINI_PLATE_DAILY_LIMIT: "3" }),
-  3,
-  "plate cap from env",
-);
-assertEqual(
-  readDailyLimit("review", { GEMINI_REVIEW_DAILY_LIMIT: "2" }),
-  2,
-  "review cap from env",
-);
+assertEqual(dailyLimit("plate"), 5, "five photos");
+assertEqual(dailyLimit("review"), 2, "two reviews");
 
-assertEqual(remainingAfterUse(0, 8), 8, "full remaining");
-assertEqual(remainingAfterUse(8, 8), 0, "exhausted");
-assertEqual(remainingAfterUse(9, 8), 0, "clamp over");
-assertEqual(remainingAfterUse(1, null), null, "unlimited stays hidden");
+assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
+assertEqual(remainingAfterUse(5, 5), 0, "exhausted");
+assertEqual(remainingAfterUse(6, 5), 0, "clamp over");
 
 assertEqual(plateRemainingLine(null), null, "no line when untracked");
 assertEqual(plateRemainingLine(0), AI_PLATE_QUOTA, "exhausted copy");

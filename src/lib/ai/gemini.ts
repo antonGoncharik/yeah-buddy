@@ -50,8 +50,8 @@ const RESPONSE_SCHEMA = {
   required: ["headline", "observations", "watch"],
 } as const;
 
-const DEFAULT_MODEL = "gemini-3.5-flash-lite";
-const DEFAULT_REVIEW_MODEL = "gemini-3.5-flash";
+const PLATE_MODEL = "gemini-3.5-flash-lite";
+const REVIEW_MODEL = "gemini-3.5-flash";
 
 export type GeminiPurpose = "plate" | "review";
 
@@ -90,16 +90,6 @@ export function isGeminiLimit(status: number, payload: unknown): boolean {
   );
 }
 
-export function getGeminiModel(): string {
-  const model = process.env.GEMINI_MODEL?.trim();
-  return model || DEFAULT_MODEL;
-}
-
-export function getGeminiReviewModel(): string {
-  const model = process.env.GEMINI_REVIEW_MODEL?.trim();
-  return model || DEFAULT_REVIEW_MODEL;
-}
-
 export type GeminiUserPart =
   | { text: string }
   | { inlineData: { mimeType: string; data: string } };
@@ -133,7 +123,7 @@ export async function generateGeminiJson({
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 
-  const model = encodeURIComponent(modelOverride?.trim() || getGeminiModel());
+  const model = encodeURIComponent(modelOverride?.trim() || PLATE_MODEL);
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -214,7 +204,7 @@ export async function writeReview(
     maxOutputTokens: 24_576,
     failedMessage: AI_REVIEW_FAILED,
     limitMessage: AI_REVIEW_LIMIT,
-    model: getGeminiReviewModel(),
+    model: REVIEW_MODEL,
     thinkingLevel: "medium",
   });
 

@@ -2,42 +2,14 @@ import { AI_PLATE_QUOTA } from "@/lib/messages";
 
 export type AiKind = "plate" | "review";
 
-export const DEFAULT_PLATE_DAILY_LIMIT = 8;
-export const DEFAULT_REVIEW_DAILY_LIMIT = 6;
+export const PLATE_DAILY_LIMIT = 5;
+export const REVIEW_DAILY_LIMIT = 2;
 
-export function readDailyLimit(
-  kind: AiKind,
-  env: Record<string, string | undefined> = process.env,
-): number | null {
-  const raw =
-    kind === "plate"
-      ? env.GEMINI_PLATE_DAILY_LIMIT
-      : env.GEMINI_REVIEW_DAILY_LIMIT;
-  if (raw == null || raw.trim() === "") {
-    return kind === "plate"
-      ? DEFAULT_PLATE_DAILY_LIMIT
-      : DEFAULT_REVIEW_DAILY_LIMIT;
-  }
-
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    return kind === "plate"
-      ? DEFAULT_PLATE_DAILY_LIMIT
-      : DEFAULT_REVIEW_DAILY_LIMIT;
-  }
-  if (parsed === 0) {
-    return null;
-  }
-  return parsed;
+export function dailyLimit(kind: AiKind): number {
+  return kind === "plate" ? PLATE_DAILY_LIMIT : REVIEW_DAILY_LIMIT;
 }
 
-export function remainingAfterUse(
-  used: number,
-  limit: number | null,
-): number | null {
-  if (limit == null) {
-    return null;
-  }
+export function remainingAfterUse(used: number, limit: number): number {
   return Math.max(0, limit - Math.max(0, used));
 }
 

@@ -2,7 +2,7 @@ import { ReviewError } from "@/lib/ai/errors";
 import { getGeminiPlateApiKey, getGeminiReviewApiKey } from "@/lib/ai/gemini";
 import {
   type AiKind,
-  readDailyLimit,
+  dailyLimit,
   remainingAfterUse,
 } from "@/lib/ai/quota-copy";
 import { getUserCalendarToday } from "@/lib/day/writable";
@@ -10,13 +10,7 @@ import { AI_PLATE_QUOTA, AI_REVIEW_QUOTA } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type { AiKind } from "@/lib/ai/quota-copy";
-export {
-  DEFAULT_PLATE_DAILY_LIMIT,
-  DEFAULT_REVIEW_DAILY_LIMIT,
-  plateRemainingLine,
-  readDailyLimit,
-  remainingAfterUse,
-} from "@/lib/ai/quota-copy";
+export { plateRemainingLine } from "@/lib/ai/quota-copy";
 
 export interface AiQuota {
   configured: boolean;
@@ -39,11 +33,6 @@ export async function getAiQuota(
     return { configured: false, remaining: 0 };
   }
 
-  const limit = readDailyLimit(kind);
-  if (limit == null) {
-    return { configured: true, remaining: null };
-  }
-
   const usedOn = await getUserCalendarToday(userId);
   const supabase = createSupabaseServerClient();
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
@@ -52,7 +41,7 @@ export async function getAiQuota(
   }
   return {
     configured: true,
-    remaining: remainingAfterUse(used, limit),
+    remaining: remainingAfterUse(used, dailyLimit(kind)),
   };
 }
 
@@ -78,10 +67,6 @@ export async function refundAiSlot(
   userId: string,
   kind: AiKind,
 ): Promise<void> {
-  if (readDailyLimit(kind) == null) {
-    return;
-  }
-
   const usedOn = await getUserCalendarToday(userId);
   const supabase = createSupabaseServerClient();
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
@@ -105,11 +90,7 @@ async function consumeAiUsage(
   kind: AiKind,
   usedOn: string,
 ): Promise<{ remaining: number | null } | "exhausted" | "untracked"> {
-  const limit = readDailyLimit(kind);
-  if (limit == null) {
-    return { remaining: null };
-  }
-
+  const limit = dailyLimit(kind);
   const supabase = createSupabaseServerClient();
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
   if (used == null) {
