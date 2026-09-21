@@ -5,7 +5,9 @@ import {
   catalogSearchTokens,
   filterCatalogHits,
   foodMatchesQuery,
+  parseBarcodeEan,
   parseCatalogDumpRow,
+  parseCatalogFoodPayload,
 } from "@/lib/food/catalog-map";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 
@@ -60,7 +62,39 @@ assertEqual(jam.protein_per_100, 0, "null protein -> 0");
 assertEqual(jam.fat_per_100, 0, "null fat -> 0");
 assertEqual(jam.carbs_per_100, 58, "carbs kept");
 
+assertEqual("barcode" in herring, false, "dump without ean keeps barcode off");
 assertEqual(parseCatalogDumpRow({ name: "no ids" }), null, "skip nameless ids");
+
+const coded = parseCatalogDumpRow({
+  source: "edostavka",
+  source_product_id: "9",
+  barcode: "4600605021084",
+  name: "Код",
+  per_100: { protein: 1, fat: 1, carbs: 1 },
+});
+assertEqual(coded?.barcode, "4600605021084", "dump barcode kept");
+assertEqual(parseBarcodeEan(" 4600605021084 "), "4600605021084", "ean trim");
+assertEqual(parseBarcodeEan("1234567"), null, "7 digits is not ean");
+assertEqual(parseBarcodeEan("12345678") != null, true, "ean-8");
+assertEqual(parseBarcodeEan("12345678901234") != null, true, "gtin-14");
+assertEqual(parseBarcodeEan("123456789012345"), null, "15 digits is not ean");
+assertEqual(parseBarcodeEan("460060502108a"), null, "letters are not ean");
+assertEqual(
+  parseCatalogFoodPayload({
+    food: {
+      id: "c1",
+      name: "Код",
+      brand: null,
+      pack_weight_g: 90,
+      protein_per_100: 1,
+      fat_per_100: 2,
+      carbs_per_100: 3,
+      kcal_per_100: 34,
+    },
+  })?.id,
+  "c1",
+  "barcode payload",
+);
 assertEqual(catalogSearchNeedle("т"), null, "one letter is not a search");
 assertEqual(catalogSearchNeedle("  творог  "), "творог", "trim query");
 assertEqual(catalogSearchNeedle("foo%bar"), "foo bar", "strip ilike wildcards");

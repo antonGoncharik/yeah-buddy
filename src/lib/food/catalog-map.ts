@@ -11,6 +11,8 @@ export const CATALOG_SEARCH_MIN = 2;
 export const CATALOG_SEARCH_LIMIT = 40;
 export const CATALOG_SEARCH_FETCH = 120;
 export const CATALOG_SEARCH_TOKEN_MAX = 5;
+export const CATALOG_SOURCE_OFF = "off";
+export const BARCODE_EAN = /^\d{8,14}$/;
 
 const CATALOG_SEARCH_STOP = new Set([
   "из",
@@ -37,6 +39,7 @@ const CATALOG_SEARCH_STOP = new Set([
 export interface CatalogDumpInput {
   source: string;
   source_product_id: string;
+  barcode?: string | null;
   name: string;
   brand: string | null;
   pack_weight_g: number | null;
@@ -70,10 +73,16 @@ export function parseCatalogDumpRow(value: unknown): CatalogDumpInput | null {
 
   const per100 = isRecord(value.per_100) ? value.per_100 : {};
   const pack = positiveGrams(value.weight_g);
+  const barcode = parseBarcodeEan(
+    typeof value.barcode === "number"
+      ? String(value.barcode)
+      : (toNullableString(value.barcode) ?? toNullableString(value.ean) ?? ""),
+  );
 
   return {
     source,
     source_product_id: sourceProductId,
+    ...(barcode ? { barcode } : {}),
     name,
     brand: toNullableString(value.brand),
     pack_weight_g: pack,
@@ -81,6 +90,11 @@ export function parseCatalogDumpRow(value: unknown): CatalogDumpInput | null {
     fat_per_100: catalogMacro(per100.fat),
     carbs_per_100: catalogMacro(per100.carbs),
   };
+}
+
+export function parseBarcodeEan(raw: string): string | null {
+  const trimmed = raw.trim();
+  return BARCODE_EAN.test(trimmed) ? trimmed : null;
 }
 
 export function mapCatalogFood(row: Record<string, unknown>): CatalogFood {
@@ -114,6 +128,10 @@ export function parseCatalogFoodList(data: unknown): CatalogFood[] {
   }
 
   return mapRecordList(data.foods, parseCatalogFood);
+}
+
+export function parseCatalogFoodPayload(data: unknown): CatalogFood | null {
+  return isRecord(data) ? parseCatalogFood(data.food) : null;
 }
 
 export function foldCatalogSearch(value: string): string {

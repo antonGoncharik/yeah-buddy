@@ -99,13 +99,7 @@ export function FoodsScreen() {
       <AppHeader title="Продукты" backHref="/settings" />
 
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch
-          value={query}
-          onChange={(value) => {
-            setQuery(value);
-            setShopHits(false);
-          }}
-        />
+        <FoodSearch value={query} onChange={setQuery} />
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />

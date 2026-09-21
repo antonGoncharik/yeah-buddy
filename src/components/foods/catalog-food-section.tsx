@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 import { CatalogFoodList } from "@/components/foods/food-list";
 import { useCatalogSearch } from "@/components/foods/use-catalog-search";
 import { postJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
-import { type CatalogFood, catalogSearchTokens } from "@/lib/food/catalog-map";
+import {
+  type CatalogFood,
+  catalogSearchTokens,
+  parseBarcodeEan,
+} from "@/lib/food/catalog-map";
 import { readFoodPayload } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -25,9 +29,9 @@ export function CatalogFoodSection({
   const [error, setError] = useState<string | null>(null);
   const hasHits = catalog.foods.length > 0;
 
-  useEffect(() => {
-    onHits?.(hasHits);
-  }, [hasHits, onHits]);
+  useLayoutEffect(() => {
+    onHits?.(catalog.loading || hasHits);
+  }, [catalog.loading, hasHits, onHits]);
 
   useEffect(() => {
     return () => onHits?.(false);
@@ -55,7 +59,7 @@ export function CatalogFoodSection({
     return null;
   }
 
-  if (!hasHits && !error) {
+  if (!hasHits && !error && !catalog.loading) {
     return null;
   }
 
@@ -65,6 +69,9 @@ export function CatalogFoodSection({
         Магазин
       </h3>
       {error ? <p className="px-1 text-sm text-destructive">{error}</p> : null}
+      {catalog.loading && !hasHits ? (
+        <p className="px-1 text-sm text-muted-foreground">Ищем…</p>
+      ) : null}
       {hasHits ? (
         <CatalogFoodList
           foods={catalog.foods}
@@ -77,7 +84,9 @@ export function CatalogFoodSection({
 }
 
 export function catalogSearchActive(query: string): boolean {
-  return (
-    catalogSearchTokens(query) != null && foodSearchEasterEgg(query) == null
-  );
+  if (foodSearchEasterEgg(query) != null) {
+    return false;
+  }
+
+  return parseBarcodeEan(query) != null || catalogSearchTokens(query) != null;
 }

@@ -178,14 +178,7 @@ export function AddMealItemScreen({
   return (
     <>
       <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch
-          value={query}
-          onChange={(value) => {
-            setQuery(value);
-            setShopHits(false);
-          }}
-          placeholder="Что съел"
-        />
+        <FoodSearch value={query} onChange={setQuery} placeholder="Что съел" />
 
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
