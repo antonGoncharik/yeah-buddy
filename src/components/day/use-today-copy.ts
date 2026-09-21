@@ -42,6 +42,7 @@ export function useTodayCopy({
     viewOnly,
     date,
     setNamedMeals,
+    setBusy,
   });
 
   async function runReplaceCopy({

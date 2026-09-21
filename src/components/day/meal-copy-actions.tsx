@@ -7,6 +7,7 @@ import { MealCopyDaySheet } from "@/components/day/meal-copy-day-sheet";
 import { Button } from "@/components/ui/button";
 import { previousIsoDate } from "@/lib/day/dates";
 import { namedMealsOfType } from "@/lib/named-meal/map";
+import { shareMealLine } from "@/lib/nutrition";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 
 export function MealCopyActions({
@@ -19,6 +20,7 @@ export function MealCopyActions({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
+  onShareMeal,
   onShareNamed,
   onDeleteNamed,
 }: {
@@ -31,6 +33,7 @@ export function MealCopyActions({
   onCopyDate: (sourceDate: string) => void;
   onApplyNamed: (namedMealId: string) => void;
   onSaveNamed: () => void;
+  onShareMeal?: () => void;
   onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed: (namedMealId: string, name: string) => void;
 }) {
@@ -84,6 +87,15 @@ export function MealCopyActions({
                 }
               : undefined
           }
+          onShareMeal={
+            hasItems && onShareMeal
+              ? () => {
+                  setOpen(false);
+                  onShareMeal();
+                }
+              : undefined
+          }
+          shareLabel={shareMealLine(mealType)}
           onShareNamed={
             onShareNamed
               ? (namedMealId) => {

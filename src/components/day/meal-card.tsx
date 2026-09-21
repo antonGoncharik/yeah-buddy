@@ -16,7 +16,6 @@ import {
   formatKcal,
   formatMacro,
   getMealLabel,
-  shareMealLine,
   sumMealItems,
 } from "@/lib/nutrition";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
@@ -82,7 +81,6 @@ export function MealCard({
           onDeleteNamed,
         }
       : null;
-  const showShare = !readOnly && items.length > 0 && Boolean(onShareMeal);
   const showAdd = !readOnly && Boolean(addHref);
   const showFill = !readOnly && Boolean(onFillTemplate);
 
@@ -113,24 +111,13 @@ export function MealCard({
               onCopyDate={copy.onCopyDate}
               onApplyNamed={copy.onApplyNamed}
               onSaveNamed={copy.onSaveNamed}
+              onShareMeal={onShareMeal}
               onShareNamed={copy.onShareNamed}
               onDeleteNamed={copy.onDeleteNamed}
             />
           ) : null}
         </div>
       </div>
-
-      {showShare && onShareMeal ? (
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-12 w-full text-base"
-          disabled={copyBusy}
-          onClick={onShareMeal}
-        >
-          {shareMealLine(mealType)}
-        </Button>
-      ) : null}
 
       {items.length === 0 ? (
         <p className="text-base text-muted-foreground">

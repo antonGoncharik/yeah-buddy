@@ -15,6 +15,8 @@ export function MealCopyDaySheet({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
+  onShareMeal,
+  shareLabel,
   onShareNamed,
   onDeleteNamed,
   onCancel,
@@ -29,6 +31,8 @@ export function MealCopyDaySheet({
   onCopyDate?: (date: string) => void;
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
+  onShareMeal?: () => void;
+  shareLabel?: string;
   onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
   onCancel: () => void;
@@ -102,6 +106,17 @@ export function MealCopyDaySheet({
           onClick={onSaveNamed}
         >
           Сохранить приём
+        </Button>
+      ) : null}
+      {hasItems && onShareMeal && shareLabel ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-12 w-full text-base text-muted-foreground"
+          disabled={busy}
+          onClick={onShareMeal}
+        >
+          {shareLabel}
         </Button>
       ) : null}
       <Button
