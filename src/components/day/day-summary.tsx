@@ -113,101 +113,86 @@ export function DaySummary({
   const proteinNumber = loop
     ? flashClosed
       ? PROTEIN_CLOSED_LABEL
-      : proteinGlance
+      : proteinGlance.replace(/ г$/, "\u00A0г")
     : flashClosed
       ? PROTEIN_CLOSED_LABEL
       : proteinOverflow
         ? `+${formatMacro(Math.abs(remainingProtein))}`
         : formatMacro(Math.max(0, remainingProtein));
+  const weightBesideProtein = loop && showWeight;
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <button
-              type="button"
-              aria-label="Печенье"
-              className="text-primary/80"
-              onClick={cookie.wiggle}
-            >
-              <span
-                key={cookie.token}
-                className={cn("inline-flex", cookie.className)}
-                onAnimationEnd={cookie.onAnimationEnd}
-              >
-                <CookieDoodle className="size-4" />
-              </span>
-            </button>
-            {loop ? "Белок" : overflowKcalLabel(overflow)}
-          </div>
-          <p
-            className={cn(
-              "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
-              flashClosed ? "animate-fade" : "tabular-nums",
-              proteinOverflow && !flashClosed && !closed && "text-destructive",
-            )}
-          >
-            {proteinNumber}
-            {loop || flashClosed ? null : (
-              <span className="ml-1.5 text-base font-medium text-muted-foreground">
-                г белка
-              </span>
-            )}
-          </p>
-          {almost ? (
-            <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
-          ) : null}
-          {weekLine ? (
-            <p className="mt-1 text-base font-medium">{weekLine}</p>
-          ) : null}
-          {loop ? null : (
-            <div className="mt-1">
-              <KcalLine
-                overflow={overflow}
-                remainingKcal={remainingKcal}
-                showWeight={showWeight}
-                factLabel={factLabel}
-                factKcal={fact.kcal}
-                perKg={perKg}
-              />
-            </div>
+      <div className="flex flex-col gap-3">
+        <div
+          className={cn(
+            "flex justify-between gap-4",
+            weightBesideProtein ? "items-end" : "items-start",
           )}
-        </div>
-        {loop ? (
-          gym
-        ) : showWeight ? (
-          <WeightBlock
-            bodyWeight={bodyWeight}
-            lastBodyWeight={lastBodyWeight}
-            readOnly={bodyWeightReadOnly}
-            busy={bodyWeightBusy}
-            note={weightNote}
-            onSave={onSaveBodyWeight}
-          />
-        ) : (
-          <div className="text-right">
-            <p className="text-sm font-medium text-muted-foreground">
-              {factLabel}
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <button
+                type="button"
+                aria-label="Печенье"
+                className="text-primary/80"
+                onClick={cookie.wiggle}
+              >
+                <span
+                  key={cookie.token}
+                  className={cn("inline-flex", cookie.className)}
+                  onAnimationEnd={cookie.onAnimationEnd}
+                >
+                  <CookieDoodle className="size-4" />
+                </span>
+              </button>
+              {loop ? "Белок" : overflowKcalLabel(overflow)}
+            </div>
+            <p
+              className={cn(
+                "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                flashClosed ? "animate-fade" : "tabular-nums",
+                proteinOverflow && !flashClosed && !closed && "text-destructive",
+              )}
+            >
+              <ProteinFigure text={proteinNumber} />
+              {loop || flashClosed ? null : (
+                <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
+                  г белка
+                </span>
+              )}
             </p>
-            <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-              {formatKcal(fact.kcal)}
-            </p>
+            {weightBesideProtein ? null : almost ? (
+              <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
+            ) : null}
+            {weightBesideProtein ? null : weekLine ? (
+              <p className="mt-1 text-base font-medium">{weekLine}</p>
+            ) : null}
+            {loop ? null : (
+              <div className="mt-1">
+                <KcalLine
+                  overflow={overflow}
+                  remainingKcal={remainingKcal}
+                  showWeight={showWeight}
+                  factLabel={factLabel}
+                  factKcal={fact.kcal}
+                  perKg={perKg}
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
-
-      {loop ? (
-        <div className="flex items-start justify-between gap-4">
-          <KcalLine
-            overflow={overflow}
-            remainingKcal={remainingKcal}
-            showWeight={showWeight}
-            factLabel={factLabel}
-            factKcal={fact.kcal}
-            perKg={perKg}
-          />
-          {showWeight ? (
+          {weightBesideProtein ? (
+            <WeightBlock
+              bodyWeight={bodyWeight}
+              lastBodyWeight={lastBodyWeight}
+              readOnly={bodyWeightReadOnly}
+              busy={bodyWeightBusy}
+              note={null}
+              onSave={onSaveBodyWeight}
+            />
+          ) : loop ? (
+            gym
+          ) : showWeight ? (
             <WeightBlock
               bodyWeight={bodyWeight}
               lastBodyWeight={lastBodyWeight}
@@ -216,9 +201,42 @@ export function DaySummary({
               note={weightNote}
               onSave={onSaveBodyWeight}
             />
-          ) : null}
+          ) : (
+            <div className="text-right">
+              <p className="text-sm font-medium text-muted-foreground">
+                {factLabel}
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
+                {formatKcal(fact.kcal)}
+              </p>
+            </div>
+          )}
         </div>
-      ) : null}
+
+        {weightBesideProtein && almost ? (
+          <p className="text-sm text-muted-foreground">{almost}</p>
+        ) : null}
+        {weightBesideProtein && weekLine ? (
+          <p className="text-base font-medium">{weekLine}</p>
+        ) : null}
+        {weightBesideProtein && weightNote ? (
+          <p className="text-right text-sm text-muted-foreground">{weightNote}</p>
+        ) : null}
+
+        {loop ? (
+          <div className="flex items-start justify-between gap-4">
+            <KcalLine
+              overflow={overflow}
+              remainingKcal={remainingKcal}
+              showWeight={showWeight}
+              factLabel={factLabel}
+              factKcal={fact.kcal}
+              perKg={perKg}
+            />
+            {weightBesideProtein ? gym : null}
+          </div>
+        ) : null}
+      </div>
 
       {joy ? <JoyShareButton moment={joy} /> : null}
 
@@ -246,6 +264,20 @@ export function DaySummary({
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
     </section>
+  );
+}
+
+function ProteinFigure({ text }: { text: string }) {
+  const split = text.match(/^(.*?\s)(\d[\d\s]*(?:,\d+)?\u00A0г)$/);
+  if (!split) {
+    return text;
+  }
+
+  return (
+    <>
+      {split[1]}
+      <span className="whitespace-nowrap">{split[2]}</span>
+    </>
   );
 }
 

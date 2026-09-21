@@ -98,7 +98,7 @@ export function BodyWeightField({
           }
         }}
         className={cn(
-          "h-9 w-[4.5rem] rounded-lg px-2 text-right text-xl font-semibold tabular-nums md:text-xl",
+          "h-8 w-[4.5rem] rounded-lg px-2 text-right text-xl font-semibold tabular-nums md:text-xl",
         )}
       />
       <span className="text-lg font-medium text-muted-foreground">кг</span>
