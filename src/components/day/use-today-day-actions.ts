@@ -20,6 +20,7 @@ import {
   withBodyWeight,
   withDayType,
   withRemovedItem,
+  withWaist,
 } from "@/lib/day/optimistic";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
@@ -105,6 +106,29 @@ export function useTodayDayActions({
     });
   }
 
+  async function saveWaist(value: number | null) {
+    if (viewOnly || !day || isTempId(day.id)) {
+      return;
+    }
+
+    await withDayOptimistic(date, withWaist(day, value), async () => {
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/days/${day.id}`,
+        body: { waistCm: value },
+        cacheUrls: [daysUrl(date)],
+      });
+      if (data == null) {
+        return "keep";
+      }
+      const next = readDay(data);
+      if (!next) {
+        throw new Error(LOAD_FAILED);
+      }
+      return next;
+    });
+  }
+
   async function saveBodyWeight(value: number | null) {
     if (viewOnly || !day || isTempId(day.id)) {
       return;
@@ -156,5 +180,5 @@ export function useTodayDayActions({
     });
   }
 
-  return { createDay, switchType, saveBodyWeight, deleteItem };
+  return { createDay, switchType, saveBodyWeight, saveWaist, deleteItem };
 }

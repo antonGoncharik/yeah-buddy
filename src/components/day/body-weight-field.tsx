@@ -14,20 +14,28 @@ export function BodyWeightField({
   readOnly = false,
   disabled = false,
   onSave,
+  unit = "кг",
+  ariaLabel = "Вес тела",
+  format = formatBodyWeight,
+  parse = parseBodyWeight,
 }: {
   value: number | null;
   placeholder?: number | null;
   readOnly?: boolean;
   disabled?: boolean;
   onSave?: (value: number | null) => Promise<void>;
+  unit?: string;
+  ariaLabel?: string;
+  format?: (value: number) => string;
+  parse?: (value: number | null) => number | null;
 }) {
   const [draft, setDraft] = useState(() =>
-    value == null ? "" : formatBodyWeight(value),
+    value == null ? "" : format(value),
   );
 
   useEffect(() => {
-    setDraft(value == null ? "" : formatBodyWeight(value));
-  }, [value]);
+    setDraft(value == null ? "" : format(value));
+  }, [format, value]);
 
   if (readOnly || !onSave) {
     if (value == null) {
@@ -40,9 +48,9 @@ export function BodyWeightField({
 
     return (
       <p className="text-xl font-semibold tracking-tight tabular-nums">
-        {formatBodyWeight(value)}
+        {format(value)}
         <span className="ml-1 text-lg font-medium text-muted-foreground">
-          кг
+          {unit}
         </span>
       </p>
     );
@@ -63,19 +71,19 @@ export function BodyWeightField({
       return;
     }
 
-    const parsed = parseBodyWeight(parseDecimal(trimmed));
+    const parsed = parse(parseDecimal(trimmed));
     if (parsed == null) {
       haptic("warn");
-      setDraft(value == null ? "" : formatBodyWeight(value));
+      setDraft(value == null ? "" : format(value));
       return;
     }
 
     if (parsed === value) {
-      setDraft(formatBodyWeight(parsed));
+      setDraft(format(parsed));
       return;
     }
 
-    setDraft(formatBodyWeight(parsed));
+    setDraft(format(parsed));
     haptic("commit");
     void onSave(parsed);
   }
@@ -86,10 +94,10 @@ export function BodyWeightField({
         type="text"
         inputMode="decimal"
         autoComplete="off"
-        aria-label="Вес тела"
+        aria-label={ariaLabel}
         disabled={disabled}
         value={draft}
-        placeholder={placeholder != null ? formatBodyWeight(placeholder) : "—"}
+        placeholder={placeholder != null ? format(placeholder) : "—"}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={() => void commit()}
         onKeyDown={(event) => {
@@ -101,7 +109,7 @@ export function BodyWeightField({
           "h-8 w-[4.5rem] rounded-lg px-2 text-right text-xl font-semibold tabular-nums md:text-xl",
         )}
       />
-      <span className="text-lg font-medium text-muted-foreground">кг</span>
+      <span className="text-lg font-medium text-muted-foreground">{unit}</span>
     </div>
   );
 }

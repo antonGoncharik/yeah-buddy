@@ -73,6 +73,9 @@ const brief = {
     halves: null,
     days: [],
     foods: [],
+    foods_rest: [],
+    foods_training: [],
+    waist: null,
   },
   gym: {
     completed: 0,
@@ -113,6 +116,7 @@ const brief = {
     last_recap: null,
   },
   signals: [],
+  training_years: null,
 } satisfies ReviewBrief;
 
 assertEqual(
@@ -225,6 +229,32 @@ assertEqual(
   })?.gym.records.length,
   0,
   "old brief without records still reads",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    training_years: undefined,
+    nutrition: {
+      ...brief.nutrition,
+      waist: undefined,
+      foods_rest: undefined,
+      foods_training: undefined,
+    },
+  })?.nutrition.foods_training.length,
+  0,
+  "old brief without food split",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    training_years: 8,
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.nutrition.waist?.delta,
+  -2,
+  "waist window parses",
 );
 
 console.log("ai review store parse ok");

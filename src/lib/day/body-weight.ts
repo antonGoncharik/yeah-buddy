@@ -1,5 +1,7 @@
 export const BODY_WEIGHT_MIN = 20;
 export const BODY_WEIGHT_MAX = 400;
+export const WAIST_MIN = 40;
+export const WAIST_MAX = 200;
 
 export function roundBodyWeight(value: number): number {
   return Math.round(value * 10) / 10;
@@ -14,6 +16,19 @@ export function parseBodyWeight(
 
   const rounded = roundBodyWeight(value);
   if (rounded < BODY_WEIGHT_MIN || rounded > BODY_WEIGHT_MAX) {
+    return null;
+  }
+
+  return rounded;
+}
+
+export function parseWaist(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const rounded = roundBodyWeight(value);
+  if (rounded < WAIST_MIN || rounded > WAIST_MAX) {
     return null;
   }
 

@@ -6,6 +6,7 @@ import {
   formatRelative,
   historyWeightPoints,
   parseBodyWeight,
+  parseWaist,
   proteinPerKg,
   relativeStrength,
   weightDelta,
@@ -24,6 +25,10 @@ assertEqual(parseBodyWeight(82.45), 82.5, "round .45");
 assertEqual(parseBodyWeight(19.9), null, "below min");
 assertEqual(parseBodyWeight(400.1), null, "above max");
 assertEqual(parseBodyWeight(null), null, "null");
+assertEqual(parseWaist(84.44), 84.4, "waist rounds");
+assertEqual(parseWaist(39.9), null, "waist below min");
+assertEqual(parseWaist(200.1), null, "waist above max");
+assertEqual(parseWaist(null), null, "waist null");
 
 const weights = [
   { date: "2026-09-01", weight: 84 },

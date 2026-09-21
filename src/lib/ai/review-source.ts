@@ -14,7 +14,11 @@ export type ReviewSource = {
   days: DayHistoryRow[];
   sessions: RecentWorkoutSession[];
   foods: FoodShare[];
+  foodsRest?: FoodShare[];
+  foodsTraining?: FoodShare[];
   macro: CurrentMacroState;
   progress: StrengthProgress;
   seedWeight?: number | null;
+  seedWaist?: number | null;
+  trainingYears?: number | null;
 };

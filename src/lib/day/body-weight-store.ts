@@ -1,4 +1,4 @@
-import { parseBodyWeight } from "@/lib/day/body-weight";
+import { parseBodyWeight, parseWaist } from "@/lib/day/body-weight";
 import { isIsoDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { getDayByDate } from "@/lib/day/store";
@@ -122,6 +122,84 @@ export async function setBodyWeight(
   const updated = await supabase
     .from("days")
     .update({ body_weight: rounded })
+    .eq("id", dayId)
+    .eq("user_id", userId)
+    .select("date")
+    .maybeSingle();
+
+  if (updated.error) {
+    throw updated.error;
+  }
+
+  if (!updated.data) {
+    throw new Error("Day not found");
+  }
+
+  const day = await getDayByDate(userId, String(updated.data.date));
+  if (!day) {
+    throw new Error("Day lookup failed");
+  }
+
+  return day;
+}
+
+export async function getLastWaist(
+  userId: string,
+  beforeDate: string,
+): Promise<number | null> {
+  if (!isIsoDate(beforeDate)) {
+    return null;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("days")
+    .select("waist_cm")
+    .eq("user_id", userId)
+    .not("waist_cm", "is", null)
+    .lt("date", beforeDate)
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return toNullableNumber(result.data?.waist_cm);
+}
+
+export async function setWaist(
+  userId: string,
+  dayId: string,
+  waistCm: number | null,
+): Promise<DayWithMeals> {
+  const rounded = waistCm == null ? null : parseWaist(waistCm);
+  if (waistCm != null && rounded == null) {
+    throw new Error(CHECK_FIELDS);
+  }
+
+  const supabase = createSupabaseServerClient();
+  const existing = await supabase
+    .from("days")
+    .select("date")
+    .eq("id", dayId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existing.error) {
+    throw existing.error;
+  }
+
+  if (!existing.data) {
+    throw new Error("Day not found");
+  }
+
+  await assertUserDayWritable(userId, String(existing.data.date).slice(0, 10));
+
+  const updated = await supabase
+    .from("days")
+    .update({ waist_cm: rounded })
     .eq("id", dayId)
     .eq("user_id", userId)
     .select("date")

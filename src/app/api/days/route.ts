@@ -16,6 +16,7 @@ import {
   DayConflictError,
   getDayByDate,
   getLastBodyWeight,
+  getLastWaist,
   getUserCalendarToday,
   isDayWritable,
   isIsoDate,
@@ -72,6 +73,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       day,
       yesterday,
       lastBodyWeight,
+      lastWaist,
       copyDays,
       namedMeals,
       rest,
@@ -83,6 +85,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
       getLastBodyWeight(auth.session.userId, date),
+      getLastWaist(auth.session.userId, date),
       listCopyDays(auth.session.userId, date),
       listNamedMealHints(auth.session.userId),
       getActiveMealTemplate(auth.session.userId, "rest"),
@@ -108,6 +111,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
       lastBodyWeight,
+      lastWaist,
       weightSteady:
         steadyWeightLine(
           new Map(recentWeights.map((row) => [row.date, row.weight])),

@@ -22,6 +22,14 @@ export type ReviewDayRow = {
   kcal: number;
   kcal_target: number;
   weight: number | null;
+  waist: number | null;
+};
+
+export type ReviewMeasure = {
+  logged: number;
+  start: number | null;
+  end: number | null;
+  delta: number | null;
 };
 
 export type ReviewWeight = {
@@ -85,9 +93,12 @@ export type ReviewBrief = {
     kcal_hit: number;
     kcal_total: number;
     weight: ReviewWeight;
+    waist: ReviewMeasure | null;
     halves: { first: ReviewAverages; second: ReviewAverages } | null;
     days: ReviewDayRow[];
     foods: FoodShare[];
+    foods_rest: FoodShare[];
+    foods_training: FoodShare[];
   };
   gym: {
     completed: number;
@@ -133,6 +144,7 @@ export type ReviewBrief = {
     } | null;
   };
   signals: string[];
+  training_years: number | null;
 };
 
 export type ReviewText = {

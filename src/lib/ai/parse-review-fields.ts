@@ -255,6 +255,27 @@ export function parseDayRow(row: Record<string, unknown>): ReviewDayRow | null {
     kcal: toNumber(row.kcal),
     kcal_target: toNumber(row.kcal_target),
     weight: toNullableNumber(row.weight),
+    waist: toNullableNumber(row.waist),
+  };
+}
+
+export function parseMeasure(
+  value: unknown,
+): ReviewBrief["nutrition"]["waist"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const logged = toNumber(value.logged);
+  if (logged <= 0) {
+    return null;
+  }
+
+  return {
+    logged,
+    start: toNullableNumber(value.start),
+    end: toNullableNumber(value.end),
+    delta: toNullableNumber(value.delta),
   };
 }
 

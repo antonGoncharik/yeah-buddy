@@ -7,7 +7,11 @@ import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
 import { JoyShareButton } from "@/components/share/joy-share-button";
 import { MeterBar } from "@/components/ui/meter-bar";
-import { formatProteinPerKg, proteinPerKg } from "@/lib/day/body-weight";
+import {
+  formatProteinPerKg,
+  parseWaist,
+  proteinPerKg,
+} from "@/lib/day/body-weight";
 import { proteinLoopLine } from "@/lib/day/loop";
 import {
   hundredWeightLine,
@@ -33,6 +37,8 @@ export function DaySummary({
   showWeight = false,
   bodyWeight = null,
   lastBodyWeight = null,
+  waist = null,
+  lastWaist = null,
   bodyWeightReadOnly = false,
   bodyWeightBusy = false,
   weightSteady = false,
@@ -40,6 +46,7 @@ export function DaySummary({
   share = false,
   gym = null,
   onSaveBodyWeight,
+  onSaveWaist,
 }: {
   day: Pick<
     Day,
@@ -55,6 +62,8 @@ export function DaySummary({
   showWeight?: boolean;
   bodyWeight?: number | null;
   lastBodyWeight?: number | null;
+  waist?: number | null;
+  lastWaist?: number | null;
   bodyWeightReadOnly?: boolean;
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
@@ -62,6 +71,7 @@ export function DaySummary({
   share?: boolean;
   gym?: ReactNode;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
+  onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
@@ -152,7 +162,10 @@ export function DaySummary({
               className={cn(
                 "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
                 flashClosed ? "animate-fade" : "tabular-nums",
-                proteinOverflow && !flashClosed && !closed && "text-destructive",
+                proteinOverflow &&
+                  !flashClosed &&
+                  !closed &&
+                  "text-destructive",
               )}
             >
               <ProteinFigure text={proteinNumber} />
@@ -185,10 +198,13 @@ export function DaySummary({
             <WeightBlock
               bodyWeight={bodyWeight}
               lastBodyWeight={lastBodyWeight}
+              waist={waist}
+              lastWaist={lastWaist}
               readOnly={bodyWeightReadOnly}
               busy={bodyWeightBusy}
               note={null}
               onSave={onSaveBodyWeight}
+              onSaveWaist={onSaveWaist}
             />
           ) : loop ? (
             gym
@@ -196,10 +212,13 @@ export function DaySummary({
             <WeightBlock
               bodyWeight={bodyWeight}
               lastBodyWeight={lastBodyWeight}
+              waist={waist}
+              lastWaist={lastWaist}
               readOnly={bodyWeightReadOnly}
               busy={bodyWeightBusy}
               note={weightNote}
               onSave={onSaveBodyWeight}
+              onSaveWaist={onSaveWaist}
             />
           ) : (
             <div className="text-right">
@@ -220,7 +239,9 @@ export function DaySummary({
           <p className="text-base font-medium">{weekLine}</p>
         ) : null}
         {weightBesideProtein && weightNote ? (
-          <p className="text-right text-sm text-muted-foreground">{weightNote}</p>
+          <p className="text-right text-sm text-muted-foreground">
+            {weightNote}
+          </p>
         ) : null}
 
         {loop ? (
@@ -310,18 +331,26 @@ function KcalLine({
 function WeightBlock({
   bodyWeight,
   lastBodyWeight,
+  waist,
+  lastWaist,
   readOnly,
   busy,
   note,
   onSave,
+  onSaveWaist,
 }: {
   bodyWeight: number | null;
   lastBodyWeight: number | null;
+  waist: number | null;
+  lastWaist: number | null;
   readOnly: boolean;
   busy: boolean;
   note: string | null;
   onSave?: (value: number | null) => Promise<void>;
+  onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
+  const showWaist = onSaveWaist != null || waist != null;
+
   return (
     <div className="shrink-0 text-right">
       <p className="text-sm font-medium text-muted-foreground">Вес</p>
@@ -334,6 +363,23 @@ function WeightBlock({
           onSave={onSave}
         />
       </div>
+      {showWaist ? (
+        <div className="mt-2">
+          <p className="text-sm font-medium text-muted-foreground">Талия</p>
+          <div className="mt-1">
+            <BodyWeightField
+              value={waist}
+              placeholder={waist == null ? lastWaist : null}
+              readOnly={readOnly || onSaveWaist == null}
+              disabled={busy}
+              onSave={onSaveWaist}
+              unit="см"
+              ariaLabel="Талия"
+              parse={parseWaist}
+            />
+          </div>
+        </div>
+      ) : null}
       {note ? (
         <p className="mt-1 text-sm text-muted-foreground">{note}</p>
       ) : null}

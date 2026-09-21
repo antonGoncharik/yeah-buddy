@@ -37,9 +37,16 @@ export function WeekDayRow({
       WORKOUT_KIND_LABELS[slot.session.workout_type])
     : WEEK_NO_GYM;
   const weightLabel =
-    slot.day?.body_weight == null
-      ? null
-      : `${formatBodyWeight(slot.day.body_weight)} кг`;
+    [
+      slot.day?.body_weight == null
+        ? null
+        : `${formatBodyWeight(slot.day.body_weight)} кг`,
+      slot.day?.waist_cm == null
+        ? null
+        : `${formatBodyWeight(slot.day.waist_cm)} см`,
+    ]
+      .filter((part) => part != null)
+      .join(" · ") || null;
 
   // One line of facts under the date; what's missing is muted, not hidden,
   // so an empty day still reads as a day.

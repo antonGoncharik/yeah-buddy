@@ -49,6 +49,9 @@ export function NutritionHistoryDayRow({
           {item.body_weight == null
             ? null
             : ` · ${formatBodyWeight(item.body_weight)} кг`}
+          {item.waist_cm == null
+            ? null
+            : ` · ${formatBodyWeight(item.waist_cm)} см`}
         </p>
         <div className="flex flex-col gap-1.5">
           <MiniBar

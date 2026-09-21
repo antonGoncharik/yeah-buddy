@@ -11,11 +11,12 @@ export interface SettingsFormState {
   training_carbs: string;
   reminders_enabled: boolean;
   timezone: string;
+  training_years: string;
 }
 
 export type MacroFieldKey = Exclude<
   keyof SettingsFormState,
-  "reminders_enabled" | "timezone"
+  "reminders_enabled" | "timezone" | "training_years"
 >;
 
 export function toFormState(settings: UserSettings): SettingsFormState {
@@ -28,7 +29,28 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     training_carbs: String(settings.training_carbs),
     reminders_enabled: settings.reminders_enabled,
     timezone: settings.timezone,
+    training_years:
+      settings.training_years == null ? "" : String(settings.training_years),
   };
+}
+
+export function parseTrainingYearsInput(
+  raw: string,
+): number | null | undefined {
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return null;
+  }
+  if (!/^\d{1,2}$/.test(trimmed)) {
+    return undefined;
+  }
+
+  const value = Number(trimmed);
+  if (value > 80) {
+    return undefined;
+  }
+
+  return value;
 }
 
 export function toPayload(form: SettingsFormState) {

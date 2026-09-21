@@ -83,6 +83,7 @@ const settings: UserSettings = {
   onboarding_completed_at: "2026-01-01",
   reminders_enabled: true,
   timezone: "Europe/Moscow",
+  training_years: null,
   updated_at: "2026-01-01",
 };
 

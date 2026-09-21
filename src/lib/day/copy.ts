@@ -79,6 +79,7 @@ export async function copyYesterday(
       target_carbs: yesterday.target_carbs,
       notes: yesterday.notes,
       body_weight: existing?.body_weight ?? null,
+      waist_cm: existing?.waist_cm ?? null,
       caught_up: catchUp,
     })
     .select("*")

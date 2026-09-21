@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/compact-gym";
 import {
   compactDay,
+  compactWaist,
   compactWeight,
   roundAverages,
 } from "@/lib/ai/compact-nutrition";
@@ -142,9 +143,12 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       kcal_hit: hits.kcalHit,
       kcal_total: hits.kcalTotal,
       weight,
+      waist: compactWaist(days, source.seedWaist ?? null, source.from),
       halves: halfWindow(days),
       days: days.map(compactDay),
       foods: source.foods,
+      foods_rest: source.foodsRest ?? [],
+      foods_training: source.foodsTraining ?? [],
     },
     gym: {
       completed: gymStats.count,
@@ -205,5 +209,6 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
         : null,
     },
     signals,
+    training_years: source.trainingYears ?? null,
   };
 }

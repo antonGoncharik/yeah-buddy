@@ -19,6 +19,7 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     timezone: resolveTimeZone(
       typeof row.timezone === "string" ? row.timezone : null,
     ),
+    training_years: parseStoredTrainingYears(row.training_years),
     updated_at: String(row.updated_at),
   };
 }
@@ -37,4 +38,17 @@ export function readSettingsPayload(data: unknown): UserSettings | null {
 
 export function isOnboardingCompleted(settings: UserSettings): boolean {
   return settings.onboarding_completed_at != null;
+}
+
+export function parseStoredTrainingYears(value: unknown): number | null {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 80) {
+    return null;
+  }
+
+  return parsed;
 }

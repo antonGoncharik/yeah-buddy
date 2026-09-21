@@ -56,6 +56,8 @@ export function SettingsScreen() {
     updateField,
     setReminders,
     setTimezone,
+    setTrainingYearsDraft,
+    commitTrainingYears,
   } = useSettingsScreen();
   const [now, setNow] = useState<Date | null>(null);
 
@@ -187,6 +189,34 @@ export function SettingsScreen() {
             onChange={setTheme}
           />
         </section>
+
+        {!loading && form ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+            <h2 className="text-xl font-semibold">Сколько лет в зале</h2>
+            <p className="text-sm text-muted-foreground">
+              Чтобы застой читался по-разному: первый год и восьмой — не одна
+              фраза. Можно не заполнять.
+            </p>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm text-muted-foreground">Лет</span>
+              <input
+                inputMode="numeric"
+                autoComplete="off"
+                aria-label="Сколько лет в зале"
+                value={form.training_years}
+                placeholder="не указано"
+                onChange={(event) => setTrainingYearsDraft(event.target.value)}
+                onBlur={() => void commitTrainingYears()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.currentTarget.blur();
+                  }
+                }}
+                className="field-control h-12 w-24 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+            </label>
+          </section>
+        ) : null}
 
         {!loading && form ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">

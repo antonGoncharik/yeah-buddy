@@ -176,7 +176,7 @@ export function useTodayScreen({
     setBusy,
     setActionError,
   });
-  const { createDay, switchType, saveBodyWeight, deleteItem } =
+  const { createDay, switchType, saveBodyWeight, saveWaist, deleteItem } =
     useTodayDayActions({
       viewOnly,
       date,
@@ -237,6 +237,7 @@ export function useTodayScreen({
     copyDays: data.copyDays,
     namedMeals: data.namedMeals,
     lastBodyWeight: data.lastBodyWeight,
+    lastWaist: data.lastWaist,
     weightSteady: data.weightSteady,
     priorProteinHits: data.priorProteinHits,
     reviewReady: data.reviewReady,
@@ -259,6 +260,7 @@ export function useTodayScreen({
     deleteNamedMeal,
     switchType,
     saveBodyWeight,
+    saveWaist,
     deleteItem,
     startQueuedWorkout,
   };

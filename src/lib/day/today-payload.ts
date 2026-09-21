@@ -38,6 +38,14 @@ export function readLastBodyWeight(data: unknown): number | null {
   return toNullableNumber(data.lastBodyWeight);
 }
 
+export function readLastWaist(data: unknown): number | null {
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  return toNullableNumber(data.lastWaist);
+}
+
 export function readWeightSteady(data: unknown): boolean {
   return isRecord(data) && data.weightSteady === true;
 }

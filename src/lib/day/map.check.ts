@@ -74,6 +74,8 @@ const history = parseDayHistoryPayload({
 });
 assertEqual(history?.date, "2026-09-09", "history date");
 assertEqual(history?.body_weight, null, "history weight missing is null");
+assertEqual(history?.waist_cm, null, "history waist missing is null");
+assertEqual(fromSupabase.waist_cm, null, "waist missing is null");
 assertEqual(history?.caught_up, false, "history catch-up missing is false");
 assertEqual(history?.fact_protein, 10, "history protein");
 assertEqual(history?.target_fat, 0, "missing target is 0");

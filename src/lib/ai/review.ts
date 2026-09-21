@@ -7,11 +7,13 @@ import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
 import type { ReviewSnapshot, StoredReview } from "@/lib/ai/types";
 import {
   getLastBodyWeight,
+  getLastWaist,
   getUserCalendarToday,
   listDaysInRange,
   listFoodSharesInRange,
 } from "@/lib/days";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
+import { getUserSettings } from "@/lib/settings";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { getStrengthProgress } from "@/lib/workout/progress";
@@ -111,15 +113,25 @@ async function loadReviewBrief(
   today: string,
 ) {
   const { start, end } = reviewWindow(today, range);
-  const [days, foods, sessions, macro, progress, seedWeight] =
-    await Promise.all([
-      listDaysInRange(userId, start, end),
-      listFoodSharesInRange(userId, start, end),
-      loadReviewSessions(userId, start, end),
-      getCurrentMacroState(userId),
-      getStrengthProgress(userId),
-      getLastBodyWeight(userId, start),
-    ]);
+  const [
+    days,
+    foods,
+    sessions,
+    macro,
+    progress,
+    seedWeight,
+    seedWaist,
+    settings,
+  ] = await Promise.all([
+    listDaysInRange(userId, start, end),
+    listFoodSharesInRange(userId, start, end),
+    loadReviewSessions(userId, start, end),
+    getCurrentMacroState(userId),
+    getStrengthProgress(userId),
+    getLastBodyWeight(userId, start),
+    getLastWaist(userId, start),
+    getUserSettings(userId),
+  ]);
 
   return buildReviewBrief({
     range,
@@ -127,10 +139,14 @@ async function loadReviewBrief(
     to: end,
     days,
     sessions,
-    foods,
+    foods: foods.all,
+    foodsRest: foods.rest,
+    foodsTraining: foods.training,
     macro,
     progress,
     seedWeight,
+    seedWaist,
+    trainingYears: settings?.training_years ?? null,
   });
 }
 

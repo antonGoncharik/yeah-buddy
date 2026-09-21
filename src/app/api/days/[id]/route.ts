@@ -10,8 +10,13 @@ import {
   whenMessage,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { parseBodyWeight } from "@/lib/day/body-weight";
-import { PastDayLockedError, setBodyWeight, setDayType } from "@/lib/days";
+import { parseBodyWeight, parseWaist } from "@/lib/day/body-weight";
+import {
+  PastDayLockedError,
+  setBodyWeight,
+  setDayType,
+  setWaist,
+} from "@/lib/days";
 import { CHECK_FIELDS } from "@/lib/messages";
 
 type RouteContext = {
@@ -22,9 +27,13 @@ const bodySchema = z
   .object({
     dayType: z.enum(["rest", "training"]).optional(),
     bodyWeight: z.number().finite().nullable().optional(),
+    waistCm: z.number().finite().nullable().optional(),
   })
   .refine(
-    (data) => data.dayType !== undefined || data.bodyWeight !== undefined,
+    (data) =>
+      data.dayType !== undefined ||
+      data.bodyWeight !== undefined ||
+      data.waistCm !== undefined,
   );
 
 export async function PATCH(
@@ -39,10 +48,13 @@ export async function PATCH(
   const { id } = await context.params;
 
   const parsed = await parseJsonSchema(request, bodySchema, (data) => {
-    if (data.bodyWeight === undefined || data.bodyWeight === null) {
-      return true;
+    if (data.bodyWeight != null && parseBodyWeight(data.bodyWeight) == null) {
+      return false;
     }
-    return parseBodyWeight(data.bodyWeight) != null;
+    if (data.waistCm != null && parseWaist(data.waistCm) == null) {
+      return false;
+    }
+    return true;
   });
   if (!parsed.ok) {
     return parsed.response;
@@ -59,6 +71,9 @@ export async function PATCH(
         id,
         parsed.data.bodyWeight,
       );
+    }
+    if (parsed.data.waistCm !== undefined) {
+      day = await setWaist(auth.session.userId, id, parsed.data.waistCm);
     }
     if (!day) {
       return jsonError(CHECK_FIELDS, 400);

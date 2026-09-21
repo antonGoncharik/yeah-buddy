@@ -40,6 +40,7 @@ function day(input: {
     target_carbs: 200,
     target_kcal: 1910,
     body_weight: input.weight ?? null,
+    waist_cm: null,
     caught_up: input.caughtUp ?? false,
     fact_protein: input.protein ?? 0,
     fact_fat: input.fat ?? 0,

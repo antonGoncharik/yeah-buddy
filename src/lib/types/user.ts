@@ -20,5 +20,6 @@ export interface UserSettings {
   onboarding_completed_at: string | null;
   reminders_enabled: boolean;
   timezone: string;
+  training_years: number | null;
   updated_at: string;
 }

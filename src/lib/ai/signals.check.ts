@@ -1,4 +1,5 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
+import { compactWaist } from "@/lib/ai/compact-nutrition";
 import {
   reviewCoverage,
   reviewCtaReady,
@@ -29,6 +30,7 @@ function maxRow(input: Partial<ReviewMaxRow> & { name: string }): ReviewMaxRow {
     current: input.current ?? null,
     start_relative: input.start_relative ?? null,
     current_relative: input.current_relative ?? null,
+    tonnage_percent: input.tonnage_percent ?? null,
   };
 }
 
@@ -42,6 +44,7 @@ function day(input: {
   kcal?: number;
   targetKcal?: number;
   weight?: number | null;
+  waist?: number | null;
 }): DayHistoryRow {
   return {
     date: input.date,
@@ -51,6 +54,7 @@ function day(input: {
     target_carbs: input.targetCarbs ?? 130,
     target_kcal: input.targetKcal ?? 2000,
     body_weight: input.weight ?? null,
+    waist_cm: input.waist ?? null,
     caught_up: false,
     fact_protein: input.protein,
     fact_fat: 70,
@@ -548,5 +552,38 @@ assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
 assertEqual(seedBrief.gym.gap_days, null, "one gymless day is not a hole");
 assertEqual(prompt.gym.circle_size, 0, "prompt keeps circle size");
 assertEqual(prompt.gym.gap_days, null, "prompt keeps gym gap");
+assertEqual(seedBrief.nutrition.waist, null, "no waist stays empty");
+assertEqual(
+  seedBrief.nutrition.foods_training.length,
+  0,
+  "food split stays empty",
+);
+assertEqual(seedBrief.training_years, null, "years stay empty");
+assertEqual(prompt.training_years, null, "prompt keeps years");
+assertEqual(
+  prompt.nutrition.foods_training.length,
+  0,
+  "prompt keeps the training plate",
+);
+assertEqual(
+  compactWaist(
+    [day({ date: "2026-09-10", protein: 1, targetProtein: 1, waist: 82 })],
+    84,
+    "2026-09-01",
+  )?.delta,
+  -2,
+  "waist delta from the previous measurement",
+);
+assertEqual(REVIEW_SYSTEM_PROMPT.includes("Талия"), true, "prompt reads waist");
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("foods_training"),
+  true,
+  "prompt reads the training plate",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("training_years"),
+  true,
+  "prompt reads training years",
+);
 
 console.log("ai signals ok");

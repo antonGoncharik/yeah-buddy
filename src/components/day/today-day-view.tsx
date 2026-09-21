@@ -49,6 +49,7 @@ export function TodayDayView({
   copyDays,
   namedMeals,
   lastBodyWeight,
+  lastWaist,
   weightSteady,
   priorProteinHits,
   reviewReady,
@@ -56,6 +57,7 @@ export function TodayDayView({
   busy,
   switchType,
   saveBodyWeight,
+  saveWaist,
   copyYesterday,
   fillDayFromTemplate,
   fillMealFromTemplate,
@@ -90,6 +92,7 @@ export function TodayDayView({
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
+  lastWaist: number | null;
   weightSteady: boolean;
   priorProteinHits: number;
   reviewReady: boolean;
@@ -97,6 +100,7 @@ export function TodayDayView({
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
+  saveWaist: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
   fillDayFromTemplate: () => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
@@ -180,6 +184,8 @@ export function TodayDayView({
           showWeight
           bodyWeight={shownDay.body_weight}
           lastBodyWeight={lastBodyWeight}
+          waist={shownDay.waist_cm}
+          lastWaist={lastWaist}
           weightSteady={weightSteady}
           priorProteinHits={priorProteinHits}
           share={writable}
@@ -194,6 +200,7 @@ export function TodayDayView({
             />
           }
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
+          onSaveWaist={viewOnly ? undefined : saveWaist}
           bodyWeightReadOnly={viewOnly}
           bodyWeightBusy={busy || isTempId(shownDay.id)}
         />

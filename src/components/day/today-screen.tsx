@@ -50,6 +50,7 @@ export function TodayScreen({
     copyDays,
     namedMeals,
     lastBodyWeight,
+    lastWaist,
     weightSteady,
     priorProteinHits,
     reviewReady,
@@ -72,6 +73,7 @@ export function TodayScreen({
     deleteNamedMeal,
     switchType,
     saveBodyWeight,
+    saveWaist,
     deleteItem,
     startQueuedWorkout,
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
@@ -198,6 +200,7 @@ export function TodayScreen({
             copyDays={copyDays}
             namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
+            lastWaist={lastWaist}
             weightSteady={weightSteady}
             priorProteinHits={priorProteinHits}
             reviewReady={reviewReady && isToday}
@@ -205,6 +208,7 @@ export function TodayScreen({
             busy={busy}
             switchType={switchType}
             saveBodyWeight={saveBodyWeight}
+            saveWaist={saveWaist}
             copyYesterday={copyYesterday}
             fillDayFromTemplate={() => {
               if (!shownDay) {

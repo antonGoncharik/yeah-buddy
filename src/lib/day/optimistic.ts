@@ -129,6 +129,13 @@ export function withBodyWeight(
   return { ...day, body_weight: bodyWeight };
 }
 
+export function withWaist(
+  day: DayWithMeals,
+  waistCm: number | null,
+): DayWithMeals {
+  return { ...day, waist_cm: waistCm };
+}
+
 export function withRemovedItem(
   day: DayWithMeals,
   itemId: string,
@@ -325,6 +332,7 @@ export function placeholderDay(
     target_carbs: targets.carbs,
     target_kcal: targets.kcal,
     body_weight: null,
+    waist_cm: null,
     notes: null,
     caught_up: false,
     created_at: now,

@@ -70,6 +70,13 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         value={weightValue(brief)}
         hint={weightHint(brief)}
       />
+      {brief.nutrition.waist != null ? (
+        <FactRow
+          label="Талия"
+          value={waistValue(brief)}
+          hint={waistHint(brief)}
+        />
+      ) : null}
       <FactRow
         label="Рабочие веса"
         value={liftsValue(brief)}
@@ -173,6 +180,31 @@ function weightHint(brief: ReviewBrief): string | null {
     return null;
   }
   return `${formatBodyWeight(weight.start)} → ${formatBodyWeight(weight.end)}`;
+}
+
+function waistValue(brief: ReviewBrief): string {
+  const waist = brief.nutrition.waist;
+  if (waist == null || waist.end == null) {
+    return "не записана";
+  }
+  if (waist.delta != null && waist.delta !== 0) {
+    return `${formatSignedBodyWeight(waist.delta)} см`;
+  }
+  return `${formatBodyWeight(waist.end)} см`;
+}
+
+function waistHint(brief: ReviewBrief): string | null {
+  const waist = brief.nutrition.waist;
+  if (
+    waist == null ||
+    waist.start == null ||
+    waist.end == null ||
+    waist.delta == null ||
+    waist.delta === 0
+  ) {
+    return null;
+  }
+  return `${formatBodyWeight(waist.start)} → ${formatBodyWeight(waist.end)}`;
 }
 
 function liftsValue(brief: ReviewBrief): string {

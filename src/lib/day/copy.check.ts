@@ -1,6 +1,7 @@
 import {
   readDayWritable,
   readLastBodyWeight,
+  readLastWaist,
   readPriorProteinHits,
   readRetentionTail,
   readReviewReady,
@@ -63,6 +64,8 @@ assertEqual(
   "last body weight",
 );
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
+assertEqual(readLastWaist({ lastWaist: 84 }), 84, "last waist");
+assertEqual(readLastWaist({}), null, "missing last waist");
 assertEqual(readWeightSteady({ weightSteady: true }), true, "steady flag");
 assertEqual(readWeightSteady({}), false, "missing steady is false");
 assertEqual(readPriorProteinHits({ priorProteinHits: 4 }), 4, "prior hits");

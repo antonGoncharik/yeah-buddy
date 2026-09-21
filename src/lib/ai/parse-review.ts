@@ -7,6 +7,7 @@ import {
   parseHalves,
   parseLastRecap,
   parseMaxRow,
+  parseMeasure,
   parseNamedCount,
   parseNamedPercent,
   parseRateHalves,
@@ -73,9 +74,15 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       kcal_hit: toNumber(value.nutrition.kcal_hit),
       kcal_total: toNumber(value.nutrition.kcal_total),
       weight: parseWeight(value.nutrition.weight),
+      waist: parseMeasure(value.nutrition.waist),
       halves: parseHalves(value.nutrition.halves),
       days: mapRecordList(value.nutrition.days, parseDayRow),
       foods: mapRecordList(value.nutrition.foods, parseFoodShare),
+      foods_rest: mapRecordList(value.nutrition.foods_rest, parseFoodShare),
+      foods_training: mapRecordList(
+        value.nutrition.foods_training,
+        parseFoodShare,
+      ),
     },
     gym: {
       completed: toNumber(value.gym.completed),
@@ -120,7 +127,18 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       last_recap: parseLastRecap(value.maxes.last_recap),
     },
     signals: stringList(value.signals),
+    training_years: parseStoredYears(value.training_years),
   };
+}
+
+function parseStoredYears(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    return null;
+  }
+  if (value < 0 || value > 80) {
+    return null;
+  }
+  return value;
 }
 
 export function parseReviewText(value: unknown): ReviewText | null {
