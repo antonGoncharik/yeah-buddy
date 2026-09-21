@@ -11,7 +11,11 @@ import { mutateJson } from "@/lib/api-cache";
 import { INVITE_QR_CAPTION } from "@/lib/flavor";
 import { LOAD_FAILED } from "@/lib/messages";
 import { shareOrCopyLink } from "@/lib/share/client";
-import { readInvitePayload, SHOW_PROGRAM_LABEL } from "@/lib/share/invite";
+import {
+  BOT_INVITE_LABEL,
+  BOT_INVITE_SUBTITLE,
+  readInvitePayload,
+} from "@/lib/share/invite";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 
 export function ShareInviteScreen() {
@@ -65,9 +69,9 @@ export function ShareInviteScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title={SHOW_PROGRAM_LABEL}
-        subtitle="Без твоей еды и зала"
-        backHref="/workouts"
+        title={BOT_INVITE_LABEL}
+        subtitle={BOT_INVITE_SUBTITLE}
+        backHref="/settings"
       />
 
       <div className="flex flex-col gap-4 px-4 pb-36">

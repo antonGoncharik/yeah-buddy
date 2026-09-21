@@ -1,19 +1,9 @@
 import { isRecord } from "@/lib/read";
 
-export const INVITE_HREF = "/workouts/invite";
-export const SHOW_PROGRAM_LABEL = "Показать программу другу";
-export const SHOW_PROGRAM_HINT = "QR на бот. Твоей еды и зала там нет.";
-
-export function showProgramInvite(
-  completedSessions: number,
-  recentCompleted = 0,
-): boolean {
-  return completedSessions >= 1 || recentCompleted >= 1;
-}
-
-export function showProgramInviteOnDone(completedSessions: number): boolean {
-  return completedSessions === 1;
-}
+export const INVITE_HREF = "/settings/invite";
+export const BOT_INVITE_LABEL = "Бот другу";
+export const BOT_INVITE_HINT = "QR. Твоей еды и зала там нет.";
+export const BOT_INVITE_SUBTITLE = "Ссылка на бот. Твоей еды и зала там нет.";
 
 export function readInvitePayload(
   data: unknown,

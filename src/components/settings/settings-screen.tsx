@@ -11,6 +11,7 @@ import {
   MugDoodle,
   PairDoodle,
   PlateDoodle,
+  QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
@@ -25,6 +26,11 @@ import { Segmented } from "@/components/ui/segmented";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
+import {
+  BOT_INVITE_HINT,
+  BOT_INVITE_LABEL,
+  INVITE_HREF,
+} from "@/lib/share/invite";
 import {
   timezoneCaption,
   timezoneChoiceLabel,
@@ -146,6 +152,12 @@ export function SettingsScreen() {
               title={PACKS_LABEL}
               hint="Еда на день и программа. Один приём — с карточки на Сегодня"
               icon={<LinkDoodle />}
+            />
+            <NavRow
+              href={INVITE_HREF}
+              title={BOT_INVITE_LABEL}
+              hint={BOT_INVITE_HINT}
+              icon={<QrDoodle />}
             />
             <NavRow
               href="/onboarding?again=1"

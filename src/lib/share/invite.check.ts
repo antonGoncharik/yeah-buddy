@@ -1,10 +1,10 @@
 import { APP_NAME } from "@/lib/brand";
 import {
+  BOT_INVITE_HINT,
+  BOT_INVITE_LABEL,
+  BOT_INVITE_SUBTITLE,
   INVITE_HREF,
   readInvitePayload,
-  SHOW_PROGRAM_LABEL,
-  showProgramInvite,
-  showProgramInviteOnDone,
 } from "@/lib/share/invite";
 import { publicPackDescription } from "@/lib/share/pack-meta";
 import { packChatMessage } from "@/lib/share/payload";
@@ -40,13 +40,13 @@ assertEqual(
 );
 assertEqual(readInvitePayload({ url: "  " }), null, "blank url");
 assertEqual(readInvitePayload({ text: "hi" }), null, "missing url");
-assertEqual(INVITE_HREF, "/workouts/invite", "invite lives in the gym");
-assertEqual(SHOW_PROGRAM_LABEL, "Показать программу другу", "invite label");
-assertEqual(showProgramInvite(0), false, "before first session");
-assertEqual(showProgramInvite(1), true, "after first session");
-assertEqual(showProgramInvite(0, 1), true, "recent completed counts");
-assertEqual(showProgramInviteOnDone(0), false, "done waits for first");
-assertEqual(showProgramInviteOnDone(1), true, "first done shows invite");
-assertEqual(showProgramInviteOnDone(2), false, "later done stays quiet");
+assertEqual(INVITE_HREF, "/settings/invite", "invite lives in settings");
+assertEqual(BOT_INVITE_LABEL, "Бот другу", "invite label");
+assertEqual(BOT_INVITE_HINT, "QR. Твоей еды и зала там нет.", "invite hint");
+assertEqual(
+  BOT_INVITE_SUBTITLE,
+  "Ссылка на бот. Твоей еды и зала там нет.",
+  "invite subtitle",
+);
 
 console.log("share invite meta ok");

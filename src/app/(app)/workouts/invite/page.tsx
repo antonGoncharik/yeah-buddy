@@ -1,5 +1,7 @@
-import { ShareInviteScreen } from "@/components/share/share-invite-screen";
+import { redirect } from "next/navigation";
 
-export default function WorkoutInvitePage() {
-  return <ShareInviteScreen />;
+import { INVITE_HREF } from "@/lib/share/invite";
+
+export default function WorkoutsInviteRedirect() {
+  redirect(INVITE_HREF);
 }
