@@ -1,3 +1,4 @@
+import { listDaysInRange } from "@/lib/day/history";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { templateAfter } from "@/lib/workout/templates";
 
@@ -42,6 +43,23 @@ export async function dateHasFoodRecord(
   }
 
   return result.data != null;
+}
+
+export async function dateShareSnapshot(
+  userId: string,
+  date: string,
+): Promise<{ protein: number; kcal: number; targetProtein: number } | null> {
+  const days = await listDaysInRange(userId, date, date);
+  const day = days[0];
+  if (!day) {
+    return null;
+  }
+
+  return {
+    protein: day.fact_protein,
+    kcal: day.fact_kcal,
+    targetProtein: day.target_protein,
+  };
 }
 
 export async function nextCircleName(userId: string): Promise<string | null> {

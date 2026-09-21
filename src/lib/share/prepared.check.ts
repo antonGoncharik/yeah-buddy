@@ -1,5 +1,6 @@
 import { PROTEIN_CLOSED_LABEL, YEAH_BUDDY_LINE } from "@/lib/flavor";
 import { BOT_PROGRAM_START } from "@/lib/messages";
+import { dayShareCard } from "@/lib/share/day";
 import { BOT_INSTALL_DIARY } from "@/lib/share/joy";
 import {
   botInlineResults,
@@ -144,5 +145,30 @@ assertEqual(
   PROTEIN_CLOSED_LABEL,
   "joy protein is not a program",
 );
+
+const dayQuery = botInlineResults({
+  query: "day 142 2100 gym cookie",
+  photoOrigin: "https://diary.example",
+  installUrl: "https://t.me/yeahbuddybot",
+  stickerFileId: "sticker-file",
+});
+const dayCard = dayShareCard({ protein: 142, kcal: 2100, gym: "gym" });
+assertEqual(dayQuery.length, 1, "day query is the day card");
+assertEqual(
+  dayQuery[0] && "caption" in dayQuery[0] ? dayQuery[0].caption : null,
+  dayCard,
+  "day caption is protein kcal gym",
+);
+assertEqual(
+  dayQuery[0] && "title" in dayQuery[0] ? dayQuery[0].title : null,
+  dayCard.replaceAll("\n", " · "),
+  "day title is one line",
+);
+assertEqual(
+  dayQuery[0] && "photo_url" in dayQuery[0] ? dayQuery[0].photo_url : null,
+  "https://diary.example/share/cookie.jpg",
+  "closed protein keeps the cookie",
+);
+assert(!JSON.stringify(dayQuery[0]).includes("вес"), "day card has no weight");
 
 console.log("prepared share ok");

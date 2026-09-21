@@ -1,4 +1,6 @@
-import { Bot, GrammyError, InlineKeyboard } from "grammy";
+import { join } from "node:path";
+
+import { Bot, GrammyError, InlineKeyboard, InputFile } from "grammy";
 
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
@@ -8,6 +10,7 @@ import {
   BOT_START,
   BOT_YEAH_BUDDY,
 } from "@/lib/messages";
+import { type JoyDoodle, joyPhotoPath, SHARE_TO_CHAT } from "@/lib/share/joy";
 import { botInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
 import {
   type FeaturedProgramId,
@@ -112,7 +115,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
 
     await ctx.reply(BOT_START, {
       // web_app buttons are URL-only; fullscreen is requested in the Mini App (Bot API 8.0+).
-      reply_markup: diaryKeyboard(buttonUrl),
+      ...replyMarkup(buttonUrl),
     });
   });
 
@@ -155,23 +158,67 @@ export async function sendDiaryMessage(
 ): Promise<DiarySendResult> {
   const miniAppUrl = getMiniAppUrl(env);
   try {
-    await createBot(env).api.sendMessage(
-      chatId,
-      text,
-      miniAppUrl ? { reply_markup: diaryKeyboard(miniAppUrl) } : {},
-    );
+    await createBot(env).api.sendMessage(chatId, text, replyMarkup(miniAppUrl));
     return "sent";
   } catch (error) {
-    if (error instanceof GrammyError && isBlockedChat(error)) {
-      return "blocked";
-    }
-    console.error(error);
-    return "failed";
+    return diarySendError(error);
   }
 }
 
-function diaryKeyboard(url: string): InlineKeyboard {
-  return new InlineKeyboard().webApp(BOT_OPEN_DIARY, url);
+export async function sendDiaryPhoto(
+  chatId: number,
+  input: {
+    doodle: JoyDoodle;
+    caption: string;
+    inlineQuery?: string | null;
+  },
+  env: ServerEnv = getServerEnv(),
+): Promise<DiarySendResult> {
+  const miniAppUrl = getMiniAppUrl(env);
+  try {
+    await createBot(env).api.sendPhoto(chatId, shareDoodleFile(input.doodle), {
+      caption: input.caption,
+      ...replyMarkup(miniAppUrl, input.inlineQuery),
+    });
+    return "sent";
+  } catch (error) {
+    return diarySendError(error);
+  }
+}
+
+function shareDoodleFile(doodle: JoyDoodle): InputFile {
+  return new InputFile(
+    join(process.cwd(), "public", joyPhotoPath(doodle).slice(1)),
+  );
+}
+
+function replyMarkup(
+  miniAppUrl: string | null,
+  inlineQuery?: string | null,
+): { reply_markup: InlineKeyboard } | Record<string, never> {
+  if (!miniAppUrl && !inlineQuery) {
+    return {};
+  }
+
+  const keyboard = new InlineKeyboard();
+  if (miniAppUrl) {
+    keyboard.webApp(BOT_OPEN_DIARY, miniAppUrl);
+  }
+  if (inlineQuery) {
+    if (miniAppUrl) {
+      keyboard.row();
+    }
+    keyboard.switchInline(SHARE_TO_CHAT, inlineQuery);
+  }
+  return { reply_markup: keyboard };
+}
+
+function diarySendError(error: unknown): DiarySendResult {
+  if (error instanceof GrammyError && isBlockedChat(error)) {
+    return "blocked";
+  }
+  console.error(error);
+  return "failed";
 }
 
 function isBlockedChat(error: GrammyError): boolean {

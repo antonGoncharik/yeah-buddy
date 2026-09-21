@@ -21,3 +21,15 @@ export function composeReminderMessage(
 
   return nag ?? recap;
 }
+
+export function composeEveningCaption(
+  nag: string | null,
+  recap: string | null,
+  dayCard: string,
+): string {
+  const text = composeReminderMessage(nag, recap);
+  if (text) {
+    return `${text}\n\n${dayCard}`;
+  }
+  return dayCard;
+}

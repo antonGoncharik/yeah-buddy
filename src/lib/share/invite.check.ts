@@ -4,6 +4,7 @@ import {
   readInvitePayload,
   SHOW_PROGRAM_LABEL,
   showProgramInvite,
+  showProgramInviteOnDone,
 } from "@/lib/share/invite";
 import { publicPackDescription } from "@/lib/share/pack-meta";
 import { packChatMessage } from "@/lib/share/payload";
@@ -44,5 +45,8 @@ assertEqual(SHOW_PROGRAM_LABEL, "Показать программу другу"
 assertEqual(showProgramInvite(0), false, "before first session");
 assertEqual(showProgramInvite(1), true, "after first session");
 assertEqual(showProgramInvite(0, 1), true, "recent completed counts");
+assertEqual(showProgramInviteOnDone(0), false, "done waits for first");
+assertEqual(showProgramInviteOnDone(1), true, "first done shows invite");
+assertEqual(showProgramInviteOnDone(2), false, "later done stays quiet");
 
 console.log("share invite meta ok");

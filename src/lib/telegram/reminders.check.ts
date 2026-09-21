@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  composeEveningCaption,
   composeReminderMessage,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
@@ -136,7 +137,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "Сегодня Сила A.",
+  "В очереди Сила A.",
   "food done gym still due",
 );
 assertEqual(
@@ -181,7 +182,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "День еды пустой. Холодильник сам не запишет.\nСегодня Сила A.",
+  "День еды пустой. Холодильник сам не запишет.\nВ очереди Сила A.",
   "food and circle",
 );
 
@@ -232,6 +233,16 @@ assertEqual(
   "recap alone when the day is already logged",
 );
 assertEqual(composeReminderMessage(null, null), null, "nothing to send");
+assertEqual(
+  composeEveningCaption("Yeah buddy.", null, "Б 142,0 г\n2 100 ккал\nЗал был"),
+  "Yeah buddy.\n\nБ 142,0 г\n2 100 ккал\nЗал был",
+  "evening photo caption keeps the nag and the day card",
+);
+assertEqual(
+  composeEveningCaption(null, null, "Б 0,0 г\n0 ккал\nОтдых"),
+  "Б 0,0 г\n0 ккал\nОтдых",
+  "day card still sends without a nag",
+);
 assertEqual(
   weekRecapText(["Белок дотянули: 12 из 14 дней.", "Смотри ужин."]),
   "За 14 дней:\nБелок дотянули: 12 из 14 дней.",

@@ -6,6 +6,7 @@ import type {
 
 import { YEAH_BUDDY_LINE } from "@/lib/flavor";
 import { BOT_PROGRAM_START } from "@/lib/messages";
+import { dayShareCard, parseDayInlineQuery } from "@/lib/share/day";
 import {
   BOT_INSTALL_DIARY,
   type JoyDoodle,
@@ -44,6 +45,7 @@ export function joyInlinePhotoResult(input: {
   doodle: JoyDoodle;
   photoOrigin: string;
   installUrl: string;
+  title?: string;
 }): InlineQueryResultPhoto {
   const photo = joyPhotoUrl(input.photoOrigin, input.doodle);
   return {
@@ -53,7 +55,7 @@ export function joyInlinePhotoResult(input: {
     thumbnail_url: photo,
     photo_width: 512,
     photo_height: 512,
-    title: input.line,
+    title: input.title ?? input.line,
     caption: input.line,
     reply_markup: {
       inline_keyboard: [[{ text: BOT_INSTALL_DIARY, url: input.installUrl }]],
@@ -136,6 +138,29 @@ export function programInlineResults(input: {
   return results;
 }
 
+export function dayInlineResults(input: {
+  query: string;
+  photoOrigin: string;
+  installUrl: string;
+}): InlineQueryResultPhoto[] {
+  const parsed = parseDayInlineQuery(input.query);
+  if (!parsed) {
+    return [];
+  }
+
+  const card = dayShareCard(parsed.facts);
+  return [
+    joyInlinePhotoResult({
+      id: `day-${parsed.facts.gym}`,
+      line: card,
+      title: card.replaceAll("\n", " · "),
+      doodle: parsed.doodle,
+      photoOrigin: input.photoOrigin,
+      installUrl: input.installUrl,
+    }),
+  ];
+}
+
 export function botInlineResults(input: {
   query: string;
   photoOrigin: string;
@@ -144,6 +169,11 @@ export function botInlineResults(input: {
 }): InlineQueryResult[] {
   if (parseJoyInlineQuery(input.query)) {
     return joyInlineResults(input);
+  }
+
+  const day = dayInlineResults(input);
+  if (day.length > 0) {
+    return day;
   }
 
   const programs = programInlineResults({

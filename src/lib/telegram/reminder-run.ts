@@ -1,8 +1,16 @@
 import { getReviewSnapshot } from "@/lib/ai/review";
+import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
 import { disableReminders } from "@/lib/settings";
+import {
+  dayInlineQuery,
+  dayShareCard,
+  dayShareDoodle,
+  dayShareFacts,
+} from "@/lib/share/day";
+import { joyPhotoOrigin } from "@/lib/share/prepared";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { sendDiaryMessage } from "@/lib/telegram/bot";
+import { sendDiaryMessage, sendDiaryPhoto } from "@/lib/telegram/bot";
 import {
   isoWeekdaySun0,
   localClock,
@@ -12,10 +20,11 @@ import {
 import {
   dateHasFoodRecord,
   dateIsTrainingDay,
+  dateShareSnapshot,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
 import {
-  composeReminderMessage,
+  composeEveningCaption,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
 import { gymDoneForReminder, reminderText } from "@/lib/telegram/reminder-text";
@@ -59,12 +68,13 @@ export async function runEveningReminders(
       continue;
     }
 
-    const [foodLogged, isTrainingDay, session, nextTemplateName] =
+    const [foodLogged, isTrainingDay, session, nextTemplateName, snapshot] =
       await Promise.all([
         dateHasFoodRecord(candidate.userId, reminderDate),
         dateIsTrainingDay(candidate.userId, reminderDate),
         getSessionOnDate(candidate.userId, reminderDate),
         nextCircleName(candidate.userId),
+        dateShareSnapshot(candidate.userId, reminderDate),
       ]);
     const nag = reminderText({
       foodLogged,
@@ -75,8 +85,18 @@ export async function runEveningReminders(
       nextTemplateName,
     });
     const recap = await sundayRecap(candidate.userId, reminderDate);
-    const text = composeReminderMessage(nag, recap);
-    if (!text) {
+    const facts = dayShareFacts({
+      protein: snapshot?.protein ?? 0,
+      kcal: snapshot?.kcal ?? 0,
+      sessionStatus: session?.status ?? null,
+      isTrainingDay,
+    });
+    const doodle = dayShareDoodle({
+      protein: snapshot?.protein ?? 0,
+      targetProtein: snapshot?.targetProtein ?? 0,
+    });
+    const caption = composeEveningCaption(nag, recap, dayShareCard(facts));
+    if (!caption) {
       result.skipped += 1;
       continue;
     }
@@ -87,7 +107,22 @@ export async function runEveningReminders(
       continue;
     }
 
-    const sent = await sendDiaryMessage(candidate.telegramId, text);
+    const env = getServerEnv();
+    const canInline =
+      joyPhotoOrigin(env.NEXT_PUBLIC_APP_URL) != null ||
+      joyPhotoOrigin(env.TELEGRAM_MINI_APP_URL) != null;
+    let sent = await sendDiaryPhoto(
+      candidate.telegramId,
+      {
+        doodle,
+        caption,
+        inlineQuery: canInline ? dayInlineQuery(facts, doodle) : null,
+      },
+      env,
+    );
+    if (sent === "failed") {
+      sent = await sendDiaryMessage(candidate.telegramId, caption, env);
+    }
     if (sent === "sent") {
       result.sent += 1;
       continue;
