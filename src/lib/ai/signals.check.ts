@@ -518,6 +518,21 @@ assertEqual(
   true,
   "prompt requires advice",
 );
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("start_relative"),
+  true,
+  "prompt reads relative bar",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("last_recap"),
+  true,
+  "prompt reads last cycle",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("одно предложение"),
+  true,
+  "prompt wants a one-breath headline",
+);
 assertEqual(seedBrief.gym.records.length, 0, "same bar is not a PR");
 assertEqual(seedBrief.gym.tonnage, null, "no work tonnage");
 assertEqual(seedBrief.gym.gap_days, null, "one gymless day is not a hole");
