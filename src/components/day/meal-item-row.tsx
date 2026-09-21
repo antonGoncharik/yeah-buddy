@@ -118,7 +118,7 @@ export function MealLumpLink({
       ) : (
         <>
           <Plus className="size-4" aria-hidden />
-          Не из списка
+          Быстрая запись
         </>
       )}
     </Link>

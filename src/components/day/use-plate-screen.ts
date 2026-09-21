@@ -202,11 +202,7 @@ export function usePlateScreen({
     liveCamera: camera.liveCamera,
     liveStream: camera.liveStream,
     picker: draft.picker,
-    canAddFood:
-      view.status === "draft" ||
-      view.status === "empty" ||
-      view.status === "idle" ||
-      view.status === "unavailable",
+    canAddFood: view.status === "empty",
     canRetryLast:
       view.status === "error" && lastBlobRef.current != null && remaining !== 0,
     workingTitle: view.status === "working" ? view.title : null,
