@@ -88,6 +88,6 @@ supabase/migrations/
 - UI is built for Telegram Mini App, Russian, narrow screen.
 - Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`.
 
-Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a bot `start` link. Apply replaces templates (and food/gym settings), not logged days or working weights. Ready programs use a stable `start=p_<id>` (`full_body`, `five_three_one`, `ppl`) — no pack row. The app invite is `https://t.me/<bot>` so a friend lands in the chat and presses Start. Opening the HTTPS app URL outside Telegram shows one product line and a button to that same bot link.
+Share links: meal templates and gym queue are separate snapshots (`share_packs`), shown as QR plus a bot `start` link. Apply replaces templates (and food/gym settings), not logged days or working weights. Ready programs use a stable `start=p_<id>` (`full_body`, `five_three_one`, `ppl`) — no pack row. The app invite is `https://t.me/<bot>` so a friend lands in the chat and presses Start. Opening the HTTPS app URL outside Telegram shows Yeah Buddy, three facts (food, gym, barcode), a QR, and a button to that same bot link.
 
 Anonymous first-occurrence funnel (`funnel_events`, no food / weights / telegram_id): `onboarding_done`, `first_food`, `first_session`, `share`, `program_start`. `program_start` is a bot/program link apply, not an ordinary onboarding pick.

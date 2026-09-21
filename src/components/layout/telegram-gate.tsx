@@ -5,16 +5,16 @@ import {
   BootSplashProvider,
   useBootSplash,
 } from "@/components/layout/boot-splash";
+import { OutsideTelegramScreen } from "@/components/layout/outside-telegram-screen";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
-import { LOAD_FAILED, OPEN_VIA_BOT_LEAD } from "@/lib/messages";
+import { LOAD_FAILED } from "@/lib/messages";
 import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberIncomingStart } from "@/lib/share/pending";
 import { startPayloadFromLocation } from "@/lib/share/start-param";
-import { cn } from "@/lib/utils";
 
 type GateState = "loading" | "ready" | "outside" | "error";
 
@@ -148,24 +148,14 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       <TelegramViewport />
       {state === "ready" ? children : null}
       {state === "outside" || state === "error" ? (
-        <main className="app-viewport-min flex flex-col items-center justify-center gap-5 px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)] text-center">
+        <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
           {state === "outside" ? (
-            <div className="animate-rise flex max-w-sm flex-col items-center gap-4">
-              <p className="whitespace-pre-line text-lg font-medium leading-snug">
-                {OPEN_VIA_BOT_LEAD}
-              </p>
-              {openUrl ? (
-                <a
-                  href={openUrl}
-                  className={cn(buttonVariants(), "h-14 min-w-40 text-lg")}
-                >
-                  Открыть в Telegram
-                </a>
-              ) : null}
+            <div className="my-auto w-full max-w-sm py-8">
+              <OutsideTelegramScreen openUrl={openUrl} />
             </div>
           ) : null}
           {state === "error" ? (
-            <div className="animate-rise flex flex-col items-center gap-4">
+            <div className="animate-rise my-auto flex flex-col items-center gap-4 py-8 text-center">
               <p className="text-xl font-semibold">{LOAD_FAILED}</p>
               <Button
                 className="h-14 min-w-40 text-lg"

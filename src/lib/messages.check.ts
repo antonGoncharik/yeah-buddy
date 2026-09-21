@@ -4,7 +4,10 @@ import {
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
   CATCH_UP_YESTERDAY_HINT,
+  OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_LEAD,
+  OPEN_VIA_BOT_POINTS,
+  OPEN_VIA_BOT_QR_CAPTION,
   PENDING_WRITES,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
@@ -52,8 +55,21 @@ assertEqual(
 );
 assertEqual(
   OPEN_VIA_BOT_LEAD,
-  BOT_START,
-  "outside Telegram gate matches /start",
+  "Дневник еды и зала в Telegram. Без регистрации.",
+  "outside Telegram lead",
+);
+assertEqual(OPEN_VIA_BOT_CTA, "Открыть в Telegram", "outside Telegram cta");
+assertEqual(
+  OPEN_VIA_BOT_QR_CAPTION,
+  "Наведи камеру — откроется бот.",
+  "outside Telegram qr",
+);
+assertEqual(
+  OPEN_VIA_BOT_POINTS.map((point) => `${point.title}: ${point.body}`).join(
+    "\n",
+  ),
+  "Еда: Свои продукты и магазин. Белок считается сам.\nЗал: Программа, подходы, рабочий вес.\nШтрих: Код с пачки — сразу в дневник.",
+  "outside Telegram facts",
 );
 assertEqual(
   BOT_START,

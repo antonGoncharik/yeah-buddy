@@ -5,7 +5,24 @@ export const BOT_START = `Yeah buddy! 👟
 Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
 
 Light weight. Погнали 🔥`;
-export const OPEN_VIA_BOT_LEAD = BOT_START;
+export const OPEN_VIA_BOT_LEAD =
+  "Дневник еды и зала в Telegram. Без регистрации.";
+export const OPEN_VIA_BOT_CTA = "Открыть в Telegram";
+export const OPEN_VIA_BOT_QR_CAPTION = "Наведи камеру — откроется бот.";
+export const OPEN_VIA_BOT_POINTS = [
+  {
+    title: "Еда",
+    body: "Свои продукты и магазин. Белок считается сам.",
+  },
+  {
+    title: "Зал",
+    body: "Программа, подходы, рабочий вес.",
+  },
+  {
+    title: "Штрих",
+    body: "Код с пачки — сразу в дневник.",
+  },
+] as const;
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";
