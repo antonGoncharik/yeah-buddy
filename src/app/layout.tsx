@@ -5,7 +5,12 @@ import Script from "next/script";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { ThemeProvider } from "@/components/layout/theme-provider";
-import { APP_DESCRIPTION, APP_NAME, APP_SHORT_NAME } from "@/lib/brand";
+import {
+  APP_DESCRIPTION,
+  APP_NAME,
+  APP_SHORT_NAME,
+  APP_TITLE,
+} from "@/lib/brand";
 import { siteOriginUrl } from "@/lib/site-url";
 import { TELEGRAM_BOOT_SCRIPT } from "@/lib/telegram/boot-script";
 import {
@@ -24,18 +29,33 @@ const manrope = Manrope({
 });
 
 const siteOrigin = siteOriginUrl();
-const ogImage = {
-  url: "/icons/icon-512.png",
-  width: 512,
-  height: 512,
-  alt: APP_NAME,
-};
 
 export const metadata: Metadata = {
   metadataBase: siteOrigin,
-  title: APP_SHORT_NAME,
+  title: {
+    default: APP_TITLE,
+    template: `%s — ${APP_NAME}`,
+  },
   description: APP_DESCRIPTION,
-  applicationName: APP_SHORT_NAME,
+  applicationName: APP_NAME,
+  keywords: [
+    "дневник питания",
+    "дневник тренировок",
+    "белок",
+    "калории",
+    "Telegram",
+  ],
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
@@ -56,16 +76,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
     siteName: APP_NAME,
-    title: APP_NAME,
+    title: APP_TITLE,
     description: APP_DESCRIPTION,
-    url: siteOrigin,
-    images: [ogImage],
+    url: "/",
   },
   twitter: {
-    card: "summary",
-    title: APP_NAME,
+    card: "summary_large_image",
+    title: APP_TITLE,
     description: APP_DESCRIPTION,
-    images: [ogImage.url],
   },
 };
 

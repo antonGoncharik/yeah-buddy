@@ -8,8 +8,11 @@ import {
   EMPTY_START_SCAN,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_LEAD,
+  OPEN_VIA_BOT_NOTE,
   OPEN_VIA_BOT_POINTS,
   OPEN_VIA_BOT_QR_CAPTION,
+  OPEN_VIA_BOT_STEPS,
+  OPEN_VIA_BOT_STEPS_TITLE,
   PENDING_WRITES,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
@@ -82,6 +85,17 @@ assertEqual(
   ),
   "Еда: Свои продукты и каталог. Белок считается сам.\nЗал: Программа, подходы, рабочий вес.\nШтрих: Код с пачки — сразу в дневник.",
   "outside Telegram facts",
+);
+assertEqual(OPEN_VIA_BOT_STEPS_TITLE, "Как начать", "outside Telegram steps");
+assertEqual(
+  OPEN_VIA_BOT_STEPS.map((step) => `${step.title}: ${step.body}`).join("\n"),
+  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Еда в граммах, зал по программе.\nВечером: Одно сообщение: белок, калории, был ли зал.",
+  "outside Telegram steps copy",
+);
+assertEqual(
+  OPEN_VIA_BOT_NOTE,
+  "В чат уходит только то, чем сам поделился.",
+  "outside Telegram note",
 );
 assertEqual(
   BOT_START,

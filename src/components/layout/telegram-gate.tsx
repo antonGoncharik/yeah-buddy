@@ -150,7 +150,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       {state === "outside" || state === "error" ? (
         <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
           {state === "outside" ? (
-            <div className="my-auto w-full max-w-sm py-8">
+            <div className="my-auto w-full max-w-md py-8">
               <OutsideTelegramScreen openUrl={openUrl} />
             </div>
           ) : null}

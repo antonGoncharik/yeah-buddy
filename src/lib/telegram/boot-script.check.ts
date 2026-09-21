@@ -38,5 +38,15 @@ assertEqual(
   true,
   "boot script looks for telegram hash",
 );
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes('location.pathname==="/"'),
+  true,
+  "boot script leaves the public landing when Telegram opens /",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes('location.replace("/today"'),
+  true,
+  "boot script opens the diary from the public landing",
+);
 
 console.log("telegram boot script ok");

@@ -23,6 +23,22 @@ export const OPEN_VIA_BOT_POINTS = [
     body: "Код с пачки — сразу в дневник.",
   },
 ] as const;
+export const OPEN_VIA_BOT_STEPS_TITLE = "Как начать";
+export const OPEN_VIA_BOT_STEPS = [
+  {
+    title: "Открой бота",
+    body: "Кнопка или QR. Регистрации нет.",
+  },
+  {
+    title: "Запиши день",
+    body: "Еда в граммах, зал по программе.",
+  },
+  {
+    title: "Вечером",
+    body: "Одно сообщение: белок, калории, был ли зал.",
+  },
+] as const;
+export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
 export const LOAD_FAILED = "Не загрузилось.";
 export const CHECK_FIELDS = "Проверь поля.";
 export const CHECK_DATE = "Проверь дату.";
