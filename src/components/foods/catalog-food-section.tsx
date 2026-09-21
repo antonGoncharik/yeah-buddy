@@ -66,7 +66,7 @@ export function CatalogFoodSection({
   return (
     <div className="flex flex-col gap-2">
       <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-        Магазин
+        Каталог
       </h3>
       {error ? <p className="px-1 text-sm text-destructive">{error}</p> : null}
       {catalog.loading && !hasHits ? (

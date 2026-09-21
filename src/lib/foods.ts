@@ -3,6 +3,7 @@ export {
   parseFood,
   parseFoodList,
   readFoodPayload,
+  readStarterOnly,
 } from "@/lib/food/map";
 export {
   FOOD_STATE_LABELS,

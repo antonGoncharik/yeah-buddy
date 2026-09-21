@@ -140,6 +140,22 @@ export const STARTER_MEAL_TEMPLATES: StarterMealTemplate[] = [
   },
 ];
 
+const STARTER_FOOD_NAMES = new Set(STARTER_FOODS.map((item) => item.name));
+
+export function isStarterFoodList(
+  foods: ReadonlyArray<{ name: string; catalogFoodId?: string | null }>,
+): boolean {
+  if (foods.length === 0) {
+    return false;
+  }
+
+  return foods.every(
+    (item) =>
+      (item.catalogFoodId == null || item.catalogFoodId === "") &&
+      STARTER_FOOD_NAMES.has(item.name),
+  );
+}
+
 function food(
   name: string,
   state: FoodState,

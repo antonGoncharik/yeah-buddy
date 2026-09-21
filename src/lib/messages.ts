@@ -12,7 +12,7 @@ export const OPEN_VIA_BOT_QR_CAPTION = "Наведи камеру — откро
 export const OPEN_VIA_BOT_POINTS = [
   {
     title: "Еда",
-    body: "Свои продукты и магазин. Белок считается сам.",
+    body: "Свои продукты и каталог. Белок считается сам.",
   },
   {
     title: "Зал",
@@ -29,6 +29,8 @@ export const CHECK_DATE = "Проверь дату.";
 export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
+export const STARTER_CATALOG_NOTE =
+  "Это стартовый набор. Напиши название — найдётся в каталоге.";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 

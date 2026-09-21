@@ -11,6 +11,7 @@ import {
 } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
@@ -22,7 +23,7 @@ import {
   type FavoriteOffer,
   readFavoriteOffers,
 } from "@/lib/food/favorite-offer";
-import { parseFoodList } from "@/lib/foods";
+import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 
@@ -56,6 +57,7 @@ export function PlateFoodPicker({
   const search = query.trim();
   const listFilter = search ? "all" : filter;
   const [shopHits, setShopHits] = useState(false);
+  const [starterOnly, setStarterOnly] = useState(false);
 
   const load = useCallback(async (nextFilter: Filter) => {
     const requestId = ++requestIdRef.current;
@@ -75,6 +77,7 @@ export function PlateFoodPicker({
       const nextFoods = parseFoodList(data);
       setFoods(nextFoods);
       setOffers(readFavoriteOffers(data));
+      setStarterOnly(readStarterOnly(data));
       if (
         nextFilter === "favorites" &&
         nextFoods.length === 0 &&
@@ -91,6 +94,7 @@ export function PlateFoodPicker({
       }
       setError(LOAD_FAILED);
       setFoods([]);
+      setStarterOnly(false);
     } finally {
       if (requestId === requestIdRef.current && !switched) {
         setLoading(false);
@@ -138,6 +142,7 @@ export function PlateFoodPicker({
             setShopHits(false);
           }}
         />
+        {search || !starterOnly ? null : <StarterCatalogNote />}
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
@@ -198,7 +203,10 @@ export function PlateFoodPicker({
             <CatalogFoodSection
               query={query}
               onHits={setShopHits}
-              onAdded={onPick}
+              onAdded={(food) => {
+                setStarterOnly(false);
+                onPick(food);
+              }}
             />
           ) : null}
         </div>

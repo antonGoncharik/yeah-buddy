@@ -49,3 +49,7 @@ export function parseFoodList(data: unknown, key = "foods"): Food[] {
 
   return mapRecordList(data[key], parseFood);
 }
+
+export function readStarterOnly(data: unknown): boolean {
+  return isRecord(data) && data.starterOnly === true;
+}

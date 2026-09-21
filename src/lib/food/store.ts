@@ -4,6 +4,7 @@ import {
 } from "@/lib/food/favorite-offer";
 import { mapFood } from "@/lib/food/map";
 import type { FoodInput, FoodListFilter } from "@/lib/food/schema";
+import { isStarterFoodList } from "@/lib/food/starter";
 import { isRecord } from "@/lib/read";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
@@ -34,6 +35,30 @@ export async function listFoods(
 
   return (result.data ?? []).map((row) =>
     mapFood(row as Record<string, unknown>),
+  );
+}
+
+export async function foodsAreStarterOnly(userId: string): Promise<boolean> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("foods")
+    .select("name, catalog_food_id")
+    .eq("user_id", userId);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return isStarterFoodList(
+    (result.data ?? []).map((row) => {
+      const record = row as Record<string, unknown>;
+      const catalogFoodId = record.catalog_food_id;
+      return {
+        name: typeof record.name === "string" ? record.name : "",
+        catalogFoodId:
+          typeof catalogFoodId === "string" ? catalogFoodId : null,
+      };
+    }),
   );
 }
 

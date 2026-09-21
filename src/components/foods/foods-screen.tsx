@@ -11,6 +11,7 @@ import {
 } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { AppHeader } from "@/components/layout/app-header";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -21,7 +22,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
 import { foodMatchesQuery } from "@/lib/food/catalog-map";
-import { parseFoodList } from "@/lib/foods";
+import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -44,6 +45,7 @@ export function FoodsScreen() {
   const search = query.trim();
   const listFilter = search ? "all" : filter;
   const [shopHits, setShopHits] = useState(false);
+  const [starterOnly, setStarterOnly] = useState(false);
 
   const load = useCallback(
     async (nextFilter: Filter) => {
@@ -59,6 +61,7 @@ export function FoodsScreen() {
           `/api/foods${params}`,
           (data) => {
             setFoods(readFoods(data));
+            setStarterOnly(readStarterOnly(data));
             return true;
           },
           () => done(true),
@@ -67,6 +70,7 @@ export function FoodsScreen() {
       } catch {
         setError(LOAD_FAILED);
         setFoods([]);
+        setStarterOnly(false);
         done(false);
       }
     },
@@ -101,6 +105,8 @@ export function FoodsScreen() {
       <div className="animate-rise flex flex-col gap-3 px-4">
         <FoodSearch value={query} onChange={setQuery} />
 
+        {search || !starterOnly ? null : <StarterCatalogNote />}
+
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
@@ -134,6 +140,7 @@ export function FoodsScreen() {
             query={query}
             onHits={setShopHits}
             onAdded={(food) => {
+              setStarterOnly(false);
               setFoods((current) => {
                 const next = [
                   food,

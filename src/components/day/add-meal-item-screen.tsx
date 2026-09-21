@@ -15,6 +15,7 @@ import {
 } from "@/components/foods/food-favorite";
 import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
+import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
@@ -29,7 +30,7 @@ import {
   readFavoriteOffers,
 } from "@/lib/food/favorite-offer";
 import { quickAddGrams } from "@/lib/food/quick-add";
-import { parseFoodList } from "@/lib/foods";
+import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
@@ -75,6 +76,7 @@ export function AddMealItemScreen({
   const skippedEmptyFavorites = useRef(false);
   const favoriteOffer = useFavoriteOffer(offers);
   const [shopHits, setShopHits] = useState(false);
+  const [starterOnly, setStarterOnly] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,6 +111,7 @@ export function AddMealItemScreen({
           lastCount = nextFoods.length;
           setFoods(nextFoods);
           setOffers(readFavoriteOffers(data));
+          setStarterOnly(readStarterOnly(data));
           loadedFilterRef.current = nextFilter;
           return true;
         },
@@ -124,6 +127,7 @@ export function AddMealItemScreen({
       }
       setError(LOAD_FAILED);
       setFoods([]);
+      setStarterOnly(false);
       setLoading(false);
       return;
     }
@@ -200,6 +204,8 @@ export function AddMealItemScreen({
           startScan={startScan}
         />
 
+        {search || !starterOnly ? null : <StarterCatalogNote />}
+
         {search ? null : (
           <Segmented value={filter} options={FILTERS} onChange={setFilter} />
         )}
@@ -271,6 +277,7 @@ export function AddMealItemScreen({
             query={query}
             onHits={setShopHits}
             onAdded={(food) => {
+              setStarterOnly(false);
               void pickFood(food);
             }}
           />
