@@ -18,7 +18,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
-import { foodMatchesQuery } from "@/lib/food/catalog-map";
+import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
 import {
   type FavoriteOffer,
   readFavoriteOffers,
@@ -127,7 +127,7 @@ export function PlateFoodPicker({
       return foods;
     }
     return foods.filter((food) =>
-      foodMatchesQuery(food.name, food.brand, query),
+      foodMatchesQuery(food.name, food.brand, query, food.barcode),
     );
   }, [foods, query]);
 
@@ -202,6 +202,7 @@ export function PlateFoodPicker({
           {!loading && !error ? (
             <CatalogFoodSection
               query={query}
+              barcodeTaken={ownsBarcode(foods, query)}
               onHits={setShopHits}
               onAdded={(food) => {
                 setStarterOnly(false);

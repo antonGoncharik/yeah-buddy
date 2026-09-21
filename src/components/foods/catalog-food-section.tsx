@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
 import { CatalogFoodList } from "@/components/foods/food-list";
+import { UnknownBarcodeCard } from "@/components/foods/unknown-barcode-card";
 import { useCatalogSearch } from "@/components/foods/use-catalog-search";
 import { postJson } from "@/lib/api-cache";
 import { foodSearchEasterEgg } from "@/lib/flavor";
@@ -19,19 +20,29 @@ export function CatalogFoodSection({
   query,
   onAdded,
   onHits,
+  barcodeTaken = false,
 }: {
   query: string;
   onAdded: (food: Food) => void | Promise<void>;
   onHits?: (hasHits: boolean) => void;
+  barcodeTaken?: boolean;
 }) {
   const catalog = useCatalogSearch(query);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const hasHits = catalog.foods.length > 0;
+  const ean = parseBarcodeEan(query.trim());
+  const showCatalog = hasHits || (catalog.loading && !barcodeTaken);
+  const showOwn =
+    ean != null &&
+    catalog.unknownCode &&
+    !barcodeTaken &&
+    !catalog.loading &&
+    !hasHits;
 
   useLayoutEffect(() => {
-    onHits?.(catalog.loading || hasHits);
-  }, [catalog.loading, hasHits, onHits]);
+    onHits?.(showCatalog || showOwn);
+  }, [showCatalog, showOwn, onHits]);
 
   useEffect(() => {
     return () => onHits?.(false);
@@ -59,17 +70,19 @@ export function CatalogFoodSection({
     return null;
   }
 
-  if (!hasHits && !error && !catalog.loading) {
+  if (!showCatalog && !showOwn && !error) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-        Каталог
-      </h3>
+      {showCatalog ? (
+        <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
+          Каталог
+        </h3>
+      ) : null}
       {error ? <p className="px-1 text-sm text-destructive">{error}</p> : null}
-      {catalog.loading && !hasHits ? (
+      {showCatalog && catalog.loading && !hasHits ? (
         <p className="px-1 text-sm text-muted-foreground">Ищем…</p>
       ) : null}
       {hasHits ? (
@@ -78,6 +91,9 @@ export function CatalogFoodSection({
           pendingId={pendingId}
           onSelectFood={(item) => void addFromCatalog(item)}
         />
+      ) : null}
+      {showOwn && ean ? (
+        <UnknownBarcodeCard key={ean} ean={ean} onSaved={onAdded} />
       ) : null}
     </div>
   );

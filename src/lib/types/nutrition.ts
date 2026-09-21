@@ -25,6 +25,7 @@ export interface Food {
   yield_from_g: number | null;
   yield_to_g: number | null;
   is_favorite: boolean;
+  barcode: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

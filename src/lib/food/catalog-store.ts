@@ -214,6 +214,7 @@ export async function lookupCatalogBarcode(ean: string): Promise<CatalogFood> {
 
   const off = await fetchOpenFoodFactsProduct(code);
   if (!off) {
+    // Пустая пачка в общий каталог не пишется — её заводят в личный список.
     throw new CatalogFoodNotFoundError();
   }
 

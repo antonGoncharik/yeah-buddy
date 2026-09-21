@@ -56,7 +56,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `GEMINI_API_KEY` | no | text review «Как прошло»; without it the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo; without it the camera link is hidden, food still logs by hand. Prefer a second Google project — keys in one project share Gemini quota |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0030_catalog_barcode.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0031_food_barcode.sql` — apply in order in the SQL Editor or with the Supabase CLI.
 
 Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there. At 20:00 in the user’s timezone (from Settings, or the Mini App, otherwise `Europe/Moscow`) the bot sends **one** photo of that evening: protein, kcal, whether the gym happened, plus a caption (empty food, a gym still in the queue, or «Yeah buddy»). The first three evenings after onboarding say empty food and the queued gym more plainly. **В чат** on that photo throws it into a gym chat — no body weight, 1ПМ, or plate. A later hourly run still delivers that same evening if 20:00 already passed. Closing after 20:00 does not send a second message. On Sunday the same caption adds a 14-day scoreboard from the diary review. Not a broadcast. Toggle and timezone: Settings → Evening reminders. Cron: `GET /api/cron/reminders` once per UTC hour (`0 0-23 * * *` as 24 daily jobs so Vercel Hobby can deploy) with `CRON_SECRET`. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 
@@ -81,7 +81,7 @@ supabase/migrations/
 
 ## Limits
 
-- The diary logs your food list. A shop catalog copies a card into it. A barcode (camera or 8–14 digits) resolves in that catalog, then Open Food Facts (ODbL), and the product is cached. A friend pack copies foods into your list.
+- The diary logs your food list. A shop catalog copies a card into it. A barcode (camera or 8–14 digits) resolves in that catalog, then Open Food Facts (ODbL). A hit is cached in the shop. A miss stays out of the shop: name and macros go on your own food, with the code. A friend pack copies foods into your list.
 - The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
 - The diary UI is the Telegram Mini App: Russian, narrow screen. In production, opening the HTTPS app URL outside Telegram shows a landing on `/`: Yeah Buddy, food / gym / barcode, how to start, a QR, and a button to `https://t.me/<bot>`. Inside Telegram, `/` goes straight to the diary. `next dev` skips that landing and opens `/today`.
 - Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`.

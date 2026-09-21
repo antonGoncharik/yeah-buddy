@@ -14,9 +14,11 @@ import {
 export function useCatalogSearch(query: string): {
   foods: CatalogFood[];
   loading: boolean;
+  unknownCode: boolean;
   dismiss: (id: string) => void;
 } {
   const [foods, setFoods] = useState<CatalogFood[]>([]);
+  const [missedCode, setMissedCode] = useState(false);
   const [loadedNeedle, setLoadedNeedle] = useState("");
   const requestIdRef = useRef(0);
   const needle = query.trim();
@@ -29,6 +31,7 @@ export function useCatalogSearch(query: string): {
     if (!searching) {
       requestIdRef.current += 1;
       setFoods([]);
+      setMissedCode(false);
       setLoadedNeedle("");
       return;
     }
@@ -38,18 +41,20 @@ export function useCatalogSearch(query: string): {
     const timer = window.setTimeout(() => {
       void (async () => {
         try {
-          const foods = ean
+          const found = ean
             ? await loadBarcode(ean)
-            : await loadNameSearch(needle);
+            : { foods: await loadNameSearch(needle), missed: false };
           if (requestId !== requestIdRef.current) {
             return;
           }
-          setFoods(foods);
+          setFoods(found.foods);
+          setMissedCode(found.missed);
         } catch {
           if (requestId !== requestIdRef.current) {
             return;
           }
           setFoods([]);
+          setMissedCode(false);
         } finally {
           if (requestId === requestIdRef.current) {
             setLoadedNeedle(needle);
@@ -67,9 +72,11 @@ export function useCatalogSearch(query: string): {
     setFoods((current) => current.filter((food) => food.id !== id));
   }
 
+  const settled = searching && loadedNeedle === needle;
   return {
-    foods: searching && loadedNeedle === needle ? foods : [],
+    foods: settled ? foods : [],
     loading: searching && loadedNeedle !== needle,
+    unknownCode: settled && missedCode && foods.length === 0,
     dismiss,
   };
 }
@@ -84,14 +91,16 @@ async function loadNameSearch(needle: string): Promise<CatalogFood[]> {
   return parseCatalogFoodList(await response.json());
 }
 
-async function loadBarcode(ean: string): Promise<CatalogFood[]> {
+async function loadBarcode(
+  ean: string,
+): Promise<{ foods: CatalogFood[]; missed: boolean }> {
   const response = await fetch(`/api/catalog-foods/barcode/${ean}`);
   if (response.status === 404) {
-    return [];
+    return { foods: [], missed: true };
   }
   if (!response.ok) {
     throw new Error("load failed");
   }
   const food = parseCatalogFoodPayload(await response.json());
-  return food ? [food] : [];
+  return { foods: food ? [food] : [], missed: !food };
 }

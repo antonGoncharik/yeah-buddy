@@ -24,6 +24,7 @@ const food: Food = {
   yield_from_g: 50,
   yield_to_g: 150,
   is_favorite: true,
+  barcode: null,
   notes: "hidden",
   created_at: "2026-01-01",
   updated_at: "2026-01-01",

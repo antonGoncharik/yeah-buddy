@@ -185,7 +185,13 @@ export function foodMatchesQuery(
   name: string,
   brand: string | null,
   query: string,
+  barcode?: string | null,
 ): boolean {
+  const ean = parseBarcodeEan(query);
+  if (ean) {
+    return barcode === ean;
+  }
+
   const haystack = catalogHaystack(name, brand);
   const tokens = catalogSearchTokens(query);
   if (tokens) {
@@ -194,6 +200,17 @@ export function foodMatchesQuery(
 
   const needle = foldCatalogSearch(query.trim().toLowerCase());
   return needle.length === 0 || haystack.includes(needle);
+}
+
+export function ownsBarcode(
+  foods: ReadonlyArray<{ barcode?: string | null }>,
+  query: string,
+): boolean {
+  const ean = parseBarcodeEan(query);
+  if (!ean) {
+    return false;
+  }
+  return foods.some((food) => food.barcode === ean);
 }
 
 export function filterCatalogHits<

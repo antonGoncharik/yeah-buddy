@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { parseBarcodeEan } from "@/lib/food/catalog-map";
 import { isYieldSourceState, parseYieldPair } from "@/lib/food/yield";
 import { calcKcalFromMacros } from "@/lib/nutrition";
 
@@ -56,6 +57,19 @@ export const foodInputSchema = z
     yield_to_g: z.number().finite().positive().nullable().optional(),
     notes: optionalText,
     is_favorite: z.boolean().optional(),
+    barcode: z.union([z.string(), z.null()]).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.barcode == null || value.barcode.trim() === "") {
+      return;
+    }
+    if (!parseBarcodeEan(value.barcode)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["barcode"],
+        message: "barcode",
+      });
+    }
   })
   .transform((value) => {
     const yieldPair =
@@ -81,8 +95,22 @@ export const foodInputSchema = z
       yield_to_g: yieldPair?.to_g ?? null,
       notes: value.notes ?? null,
       is_favorite: value.is_favorite ?? false,
+      ...readInputBarcode(value.barcode),
     };
   });
+
+function readInputBarcode(
+  value: string | null | undefined,
+): { barcode: string | null } | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null || value.trim() === "") {
+    return { barcode: null };
+  }
+  const ean = parseBarcodeEan(value);
+  return ean ? { barcode: ean } : undefined;
+}
 
 export type FoodInput = z.infer<typeof foodInputSchema>;
 

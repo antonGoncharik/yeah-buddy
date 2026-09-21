@@ -21,7 +21,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
-import { foodMatchesQuery } from "@/lib/food/catalog-map";
+import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
 import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
@@ -94,7 +94,7 @@ export function FoodsScreen() {
     }
 
     return foods.filter((food) =>
-      foodMatchesQuery(food.name, food.brand, query),
+      foodMatchesQuery(food.name, food.brand, query, food.barcode),
     );
   }, [foods, query]);
 
@@ -138,6 +138,7 @@ export function FoodsScreen() {
         {!loading && !error ? (
           <CatalogFoodSection
             query={query}
+            barcodeTaken={ownsBarcode(foods, query)}
             onHits={setShopHits}
             onAdded={(food) => {
               setStarterOnly(false);

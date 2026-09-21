@@ -5,6 +5,7 @@ import {
   catalogSearchTokens,
   filterCatalogHits,
   foodMatchesQuery,
+  ownsBarcode,
   parseBarcodeEan,
   parseCatalogDumpRow,
   parseCatalogFoodPayload,
@@ -132,6 +133,31 @@ assertEqual(
   foodMatchesQuery("Чёрный хлеб", null, "черный"),
   true,
   "yo folded in the list",
+);
+assertEqual(
+  foodMatchesQuery("Пачка", null, "4600605021084", "4600605021084"),
+  true,
+  "scan hits the saved code",
+);
+assertEqual(
+  foodMatchesQuery("4600605021084", null, "4600605021084", null),
+  false,
+  "scan does not match a name",
+);
+assertEqual(
+  foodMatchesQuery("Творог", null, "творог", "4600605021084"),
+  true,
+  "name search ignores the code",
+);
+assertEqual(
+  ownsBarcode([{ barcode: "4600605021084" }], "4600605021084"),
+  true,
+  "owned code",
+);
+assertEqual(
+  ownsBarcode([{ barcode: null }], "4600605021084"),
+  false,
+  "no code",
 );
 
 const mixed = filterCatalogHits(

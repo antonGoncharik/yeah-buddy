@@ -24,6 +24,7 @@ export function mapFood(row: Record<string, unknown>): Food {
     yield_from_g: toNullableNumber(row.yield_from_g),
     yield_to_g: toNullableNumber(row.yield_to_g),
     is_favorite: Boolean(row.is_favorite),
+    barcode: toNullableString(row.barcode),
     notes: toNullableString(row.notes),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),

@@ -6,6 +6,7 @@ import { mapFood } from "@/lib/food/map";
 import type { FoodInput, FoodListFilter } from "@/lib/food/schema";
 import { isStarterFoodList } from "@/lib/food/starter";
 import { isRecord } from "@/lib/read";
+import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
 
@@ -55,8 +56,7 @@ export async function foodsAreStarterOnly(userId: string): Promise<boolean> {
       const catalogFoodId = record.catalog_food_id;
       return {
         name: typeof record.name === "string" ? record.name : "",
-        catalogFoodId:
-          typeof catalogFoodId === "string" ? catalogFoodId : null,
+        catalogFoodId: typeof catalogFoodId === "string" ? catalogFoodId : null,
       };
     }),
   );
@@ -152,6 +152,20 @@ export async function createFood(
     .single();
 
   if (inserted.error || !inserted.data) {
+    if (inserted.error?.code === UNIQUE_VIOLATION && input.barcode) {
+      const existing = await supabase
+        .from("foods")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("barcode", input.barcode)
+        .maybeSingle();
+      if (existing.error) {
+        throw existing.error;
+      }
+      if (existing.data) {
+        return mapFood(existing.data as Record<string, unknown>);
+      }
+    }
     throw inserted.error ?? new Error("Food insert failed");
   }
 

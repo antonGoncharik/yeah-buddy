@@ -24,7 +24,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { reportActionError } from "@/lib/action-error";
 import { cachedGet } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
-import { foodMatchesQuery } from "@/lib/food/catalog-map";
+import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
 import {
   type FavoriteOffer,
   readFavoriteOffers,
@@ -190,7 +190,7 @@ export function AddMealItemScreen({
     }
 
     return foods.filter((food) =>
-      foodMatchesQuery(food.name, food.brand, query),
+      foodMatchesQuery(food.name, food.brand, query, food.barcode),
     );
   }, [foods, query]);
 
@@ -275,6 +275,7 @@ export function AddMealItemScreen({
         {!loading && !error ? (
           <CatalogFoodSection
             query={query}
+            barcodeTaken={ownsBarcode(foods, query)}
             onHits={setShopHits}
             onAdded={(food) => {
               setStarterOnly(false);

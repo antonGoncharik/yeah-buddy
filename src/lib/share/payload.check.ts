@@ -101,6 +101,7 @@ const food: Food = {
   yield_from_g: null,
   yield_to_g: null,
   is_favorite: true,
+  barcode: null,
   notes: null,
   created_at: "2026-01-01",
   updated_at: "2026-01-01",
