@@ -132,6 +132,8 @@ export const PACK_EMPTY_MEALS = "Сначала собери еду на ден�
 export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в программу.";
 export const ACCOUNT_DELETE_CONFIRM =
   "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
+export const DONATE_THANKS = "Спасибо";
+export const DONATE_REJECT = "Этот счёт не принять.";
 
 export function readApiError(data: unknown): string | null {
   if (

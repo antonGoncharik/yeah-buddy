@@ -1,0 +1,139 @@
+"use client";
+
+import { type FormEvent, useRef, useState } from "react";
+
+import { useConfirm } from "@/components/layout/confirm-provider";
+import { Button } from "@/components/ui/button";
+import { postJson } from "@/lib/api-cache";
+import {
+  DONATE_PRESETS,
+  donateConfirmMessage,
+  donateNeedsConfirm,
+  isDonateInvoiceUrl,
+  parseDonateStars,
+} from "@/lib/donate/amount";
+import { openDonateInvoice } from "@/lib/donate/open";
+import { DONATE_THANKS, LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import { isRecord } from "@/lib/read";
+import { haptic } from "@/lib/telegram/haptic";
+
+function readInvoiceUrl(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.url !== "string") {
+    return null;
+  }
+  return isDonateInvoiceUrl(data.url) ? data.url : null;
+}
+
+export function SettingsAuthor() {
+  const confirm = useConfirm();
+  const pending = useRef(false);
+  const [custom, setCustom] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [thanks, setThanks] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const customStars = parseDonateStars(custom);
+
+  async function pay(stars: number) {
+    if (pending.current || parseDonateStars(String(stars)) !== stars) {
+      return;
+    }
+
+    pending.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      if (donateNeedsConfirm(stars)) {
+        const ok = await confirm({
+          message: donateConfirmMessage(stars),
+          confirmLabel: "Оплатить",
+          cancelLabel: "Назад",
+        });
+        if (!ok) {
+          return;
+        }
+      }
+
+      const url = readInvoiceUrl(await postJson("/api/donate", { stars }));
+      if (!url) {
+        throw new Error(LOAD_FAILED);
+      }
+
+      const result = await openDonateInvoice(url);
+      if (result === "paid") {
+        haptic("success");
+        setThanks(true);
+        setCustom("");
+        return;
+      }
+      if (result === "unavailable") {
+        haptic("error");
+        setError(OPEN_VIA_BOT);
+      }
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
+  }
+
+  function onCustom(event: FormEvent) {
+    event.preventDefault();
+    if (customStars == null) {
+      return;
+    }
+    void pay(customStars);
+  }
+
+  return (
+    <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+      <h2 className="text-xl font-semibold">Автору</h2>
+      <p className="text-sm text-muted-foreground">Счёт в Telegram Stars.</p>
+      <div className="grid grid-cols-3 gap-2">
+        {DONATE_PRESETS.map((stars) => (
+          <Button
+            key={stars}
+            type="button"
+            variant="secondary"
+            className="h-12 text-lg"
+            disabled={busy}
+            onClick={() => void pay(stars)}
+          >
+            {stars}
+          </Button>
+        ))}
+      </div>
+      <form className="flex flex-col gap-1.5" onSubmit={onCustom}>
+        <label className="text-sm text-muted-foreground" htmlFor="donate-custom">
+          Другая сумма
+        </label>
+        <span className="flex gap-2">
+          <input
+            id="donate-custom"
+            inputMode="numeric"
+            autoComplete="off"
+            enterKeyHint="done"
+            value={custom}
+            disabled={busy}
+            onChange={(event) => {
+              setCustom(event.target.value);
+              setThanks(false);
+            }}
+            className="field-control h-12 min-w-0 flex-1 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+          <Button
+            type="submit"
+            variant="secondary"
+            className="h-12 px-4 text-base"
+            disabled={busy || customStars == null}
+          >
+            Ок
+          </Button>
+        </span>
+      </form>
+      {thanks ? <p className="text-lg font-medium">{DONATE_THANKS}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </section>
+  );
+}

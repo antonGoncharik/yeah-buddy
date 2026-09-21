@@ -2,6 +2,7 @@ import { join } from "node:path";
 
 import { Bot, GrammyError, InlineKeyboard, InputFile } from "grammy";
 
+import { registerDonatePayments } from "@/lib/donate/payments";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
   BOT_OPEN_DIARY,
@@ -122,6 +123,8 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   instance.command("yeah", async (ctx) => {
     await ctx.reply(BOT_YEAH_BUDDY);
   });
+
+  registerDonatePayments(instance);
 
   instance.on("inline_query", async (ctx) => {
     const env = getServerEnv();

@@ -19,6 +19,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsAccount } from "@/components/settings/settings-account";
+import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
@@ -278,6 +279,8 @@ export function SettingsScreen() {
         ) : null}
 
         {!loading && form ? <SettingsAccount /> : null}
+
+        <SettingsAuthor />
       </div>
     </div>
   );
