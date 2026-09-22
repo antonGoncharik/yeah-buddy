@@ -110,6 +110,10 @@ export function PacksLibraryScreen() {
 
 function packHint(pack: SharePackSummary): string {
   const kind =
-    pack.kind === "workouts" ? "Зал" : pack.kind === "meals" ? "Еда" : "Приём";
+    pack.kind === "workouts"
+      ? "Тренировки"
+      : pack.kind === "meals"
+        ? "Еда"
+        : "Приём";
   return `${kind} · ${pack.hint}`;
 }

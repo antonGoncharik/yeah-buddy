@@ -55,7 +55,7 @@ export function PublishPackButton({
           ? "Сохранение…"
           : kind === "meals"
             ? "Поделиться едой"
-            : "Поделиться залом"}
+            : "Поделиться тренировками"}
       </Button>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
