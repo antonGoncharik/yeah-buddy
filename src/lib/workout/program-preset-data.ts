@@ -65,8 +65,6 @@ export const LISTED_PROGRAM_PRESET_IDS = [
   "five_by_five",
   "upper_lower",
   "ppl",
-  "five_three_one",
-  "table_three_lifts",
 ] as const satisfies readonly ProgramPresetId[];
 
 export const PROGRAM_LEVELS = ["beginner", "intermediate", "advanced"] as const;

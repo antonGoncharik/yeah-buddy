@@ -140,8 +140,8 @@ assertEqual(
   "program strips mini app path",
 );
 assertEqual(
-  resolveProgramShareUrl("five_three_one", "https://diary.example"),
-  withStartApp("https://diary.example", programStartPayload("five_three_one")),
+  resolveProgramShareUrl("five_by_five", "https://diary.example"),
+  withStartApp("https://diary.example", programStartPayload("five_by_five")),
   "https program keeps startapp",
 );
 assertEqual(

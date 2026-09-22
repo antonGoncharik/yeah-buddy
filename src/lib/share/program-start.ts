@@ -9,7 +9,7 @@ import {
 
 export const FEATURED_PROGRAM_IDS = [
   "full_body",
-  "five_three_one",
+  "five_by_five",
   "ppl",
 ] as const;
 
@@ -27,7 +27,7 @@ const PROGRAM_ALIASES: Record<FeaturedProgramId, readonly string[]> = {
     "full body",
     "fullbody",
   ],
-  five_three_one: ["531", "5 3 1", "пять три один"],
+  five_by_five: ["5x5", "5 на 5", "пять на пять"],
   ppl: ["жим тяга ноги", "жим тяга", "push pull legs", "push pull"],
 };
 

@@ -22,7 +22,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assertEqual(publicProgramPath("full_body"), "/p/full-body", "full body path");
-assertEqual(publicProgramPath("five_three_one"), "/p/531", "531 path");
+assertEqual(publicProgramPath("five_by_five"), "/p/5x5", "5x5 path");
 assertEqual(publicProgramPath("ppl"), "/p/ppl", "ppl path");
 assertEqual(
   publicProgramUrl("https://yeahbuddy.app", "full_body"),
@@ -30,7 +30,8 @@ assertEqual(
   "absolute program url",
 );
 assertEqual(featuredProgramIdFromSlug("full-body"), "full_body", "slug");
-assertEqual(featuredProgramIdFromSlug("531"), "five_three_one", "531 slug");
+assertEqual(featuredProgramIdFromSlug("5x5"), "five_by_five", "5x5 slug");
+assertEqual(featuredProgramIdFromSlug("531"), null, "hidden preset");
 assertEqual(featuredProgramIdFromSlug("ppl"), "ppl", "ppl slug");
 assertEqual(featuredProgramIdFromSlug("full_body"), null, "id is not a slug");
 assertEqual(featuredProgramIdFromSlug("five-by-five"), null, "unlisted preset");

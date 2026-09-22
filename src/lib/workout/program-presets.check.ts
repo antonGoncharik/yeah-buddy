@@ -44,8 +44,6 @@ assertEqual(
     "5×5 A/B",
     "Верх / Низ",
     "Жим / Тяга / Ноги",
-    "5/3/1",
-    "Присед / Жим / Тяга по таблице",
   ].join(" | "),
   "picker lists the general programs",
 );

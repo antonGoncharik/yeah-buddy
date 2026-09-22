@@ -7,7 +7,7 @@ import { programPresetSummary } from "@/lib/workout/program-preset-utils";
 
 export const PUBLIC_PROGRAM_SLUGS = {
   full_body: "full-body",
-  five_three_one: "531",
+  five_by_five: "5x5",
   ppl: "ppl",
 } as const satisfies Record<FeaturedProgramId, string>;
 

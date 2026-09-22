@@ -121,16 +121,16 @@ assertEqual(
 );
 
 const searched = botInlineResults({
-  query: "531",
+  query: "5x5",
   photoOrigin: "https://diary.example",
   installUrl: "https://t.me/yeahbuddybot",
   stickerFileId: "sticker-file",
 });
-assertEqual(searched.length, 1, "531 is only 5/3/1");
+assertEqual(searched.length, 1, "5x5 is only 5×5");
 assertEqual(
   searched[0] && "title" in searched[0] ? searched[0].title : null,
-  "5/3/1",
-  "531 title",
+  "5×5 A/B",
+  "5x5 title",
 );
 
 const joyQuery = botInlineResults({

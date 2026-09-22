@@ -45,10 +45,10 @@ assertEqual(
 );
 assertEqual(
   startPayloadFromLocation({
-    search: `?startapp=${programStartPayload("five_three_one")}`,
+    search: `?startapp=${programStartPayload("five_by_five")}`,
     hash: "",
   }),
-  "p_five_three_one",
+  "p_five_by_five",
   "startapp query",
 );
 assertEqual(

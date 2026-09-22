@@ -61,7 +61,7 @@ assertEqual(
 );
 assert(!isFeaturedProgramId("one_day"), "one day is not a bot object");
 for (const id of [
-  "five_by_five",
+  "five_three_one",
   "upper_lower",
   "press_two_week",
   "table_three_lifts",
@@ -90,15 +90,15 @@ assertEqual(
   "random pack is not a program",
 );
 
-assertEqual(programPath("five_three_one"), "/programs/five_three_one", "path");
+assertEqual(programPath("five_by_five"), "/programs/five_by_five", "path");
 
 assertEqual(
   matchFeaturedPrograms("").join(),
   FEATURED_PROGRAM_IDS.join(),
   "empty query is the storefront",
 );
-assertEqual(matchFeaturedPrograms("531").join(), "five_three_one", "531");
-assertEqual(matchFeaturedPrograms("5/3/1").join(), "five_three_one", "5/3/1");
+assertEqual(matchFeaturedPrograms("5x5").join(), "five_by_five", "5x5");
+assertEqual(matchFeaturedPrograms("пять на пять").join(), "five_by_five", "5×5");
 assertEqual(matchFeaturedPrograms("фуллбади").join(), "full_body", "фуллбади");
 assertEqual(matchFeaturedPrograms("всё тело").join(), "full_body", "всё тело");
 assertEqual(matchFeaturedPrograms("ppl").join(), "ppl", "ppl");
@@ -118,7 +118,10 @@ assert(poster.includes("Тело B"), "chat lists day B");
 assert(!poster.includes("От "), "bot-authored, no person");
 assert(poster.includes("1ПМ"), "1RM stays in the gym");
 
-const wave = featuredProgramPreset("five_three_one");
+const wave = programPresetById("five_three_one");
+if (!wave) {
+  throw new Error("5/3/1 stays in the data");
+}
 assert(
   programApplyConfirmMessage(wave).includes("недели"),
   "531 confirm mentions weeks",
