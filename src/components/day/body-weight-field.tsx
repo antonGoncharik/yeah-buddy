@@ -16,6 +16,7 @@ export function BodyWeightField({
   onSave,
   unit = "кг",
   ariaLabel = "Вес тела",
+  align = "end",
   format = formatBodyWeight,
   parse = parseBodyWeight,
 }: {
@@ -26,6 +27,7 @@ export function BodyWeightField({
   onSave?: (value: number | null) => Promise<void>;
   unit?: string;
   ariaLabel?: string;
+  align?: "start" | "end";
   format?: (value: number) => string;
   parse?: (value: number | null) => number | null;
 }) {
@@ -89,7 +91,12 @@ export function BodyWeightField({
   }
 
   return (
-    <div className="flex items-baseline justify-end gap-1">
+    <div
+      className={cn(
+        "flex items-baseline gap-1",
+        align === "start" ? "justify-start" : "justify-end",
+      )}
+    >
       <Input
         type="text"
         inputMode="decimal"
@@ -106,7 +113,8 @@ export function BodyWeightField({
           }
         }}
         className={cn(
-          "h-8 w-[4.5rem] rounded-lg px-2 text-right text-xl font-semibold tabular-nums md:text-xl",
+          "h-8 w-[4.5rem] rounded-lg px-2 text-xl font-semibold tabular-nums md:text-xl",
+          align === "start" ? "text-left" : "text-right",
         )}
       />
       <span className="text-lg font-medium text-muted-foreground">{unit}</span>

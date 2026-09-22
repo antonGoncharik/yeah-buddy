@@ -216,36 +216,20 @@ export function DaySummary({
         </div>
 
         {loop ? (
-          <div className="flex flex-col gap-2">
-            <KcalLine
-              overflow={overflow}
-              remainingKcal={remainingKcal}
-              showWeight={showWeight}
-              factLabel={factLabel}
-              factKcal={fact.kcal}
-              perKg={perKg}
-            />
-            {bodyMetrics ? (
-              <WeightBlock
-                bodyWeight={bodyWeight}
-                lastBodyWeight={lastBodyWeight}
-                waist={waist}
-                lastWaist={lastWaist}
-                readOnly={bodyWeightReadOnly}
-                busy={bodyWeightBusy}
-                note={weightNote}
-                wide
-                onSave={onSaveBodyWeight}
-                onSaveWaist={onSaveWaist}
-              />
-            ) : null}
-          </div>
+          <LoopFacts
+            overflow={overflow}
+            remainingKcal={remainingKcal}
+            showWeight={showWeight}
+            factLabel={factLabel}
+            factKcal={fact.kcal}
+            perKg={perKg}
+          />
         ) : null}
       </div>
 
       {joy ? <JoyShareButton moment={joy} /> : null}
 
-      <div className="flex flex-col gap-3.5">
+      <div className={cn("flex flex-col", loop ? "gap-3" : "gap-3.5")}>
         <MacroBar
           label="Белки"
           fact={fact.protein}
@@ -268,6 +252,20 @@ export function DaySummary({
       {macros ? (
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
+      {bodyMetrics ? (
+        <WeightBlock
+          bodyWeight={bodyWeight}
+          lastBodyWeight={lastBodyWeight}
+          waist={waist}
+          lastWaist={lastWaist}
+          readOnly={bodyWeightReadOnly}
+          busy={bodyWeightBusy}
+          note={weightNote}
+          wide
+          onSave={onSaveBodyWeight}
+          onSaveWaist={onSaveWaist}
+        />
+      ) : null}
     </section>
   );
 }
@@ -283,6 +281,83 @@ function ProteinFigure({ text }: { text: string }) {
       {split[1]}
       <span className="whitespace-nowrap">{split[2]}</span>
     </>
+  );
+}
+
+function LoopFacts({
+  overflow,
+  remainingKcal,
+  showWeight,
+  factLabel,
+  factKcal,
+  perKg,
+}: {
+  overflow: boolean;
+  remainingKcal: number;
+  showWeight: boolean;
+  factLabel: string;
+  factKcal: number;
+  perKg: number | null;
+}) {
+  const cells = [
+    {
+      value: overflow
+        ? `+${formatKcal(Math.abs(remainingKcal))}`
+        : formatKcal(remainingKcal),
+      label: "ккал",
+      over: overflow,
+      muted: false,
+    },
+    ...(showWeight
+      ? [
+          {
+            value: formatKcal(factKcal),
+            label: factLabel.toLocaleLowerCase("ru-RU"),
+            over: false,
+            muted: false,
+          },
+        ]
+      : []),
+    ...(perKg != null || showWeight
+      ? [
+          {
+            value:
+              perKg == null
+                ? "—"
+                : formatProteinPerKg(perKg).replace(/\s*г\/кг$/, ""),
+            label: "г/кг",
+            over: false,
+            muted: perKg == null,
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <div
+      className={cn(
+        "grid gap-2",
+        cells.length === 3 && "grid-cols-3",
+        cells.length === 2 && "grid-cols-2",
+      )}
+    >
+      {cells.map((cell) => (
+        <p key={cell.label} className="min-w-0">
+          <span
+            className={cn(
+              "block text-lg font-semibold tracking-tight tabular-nums",
+              cell.over && "text-destructive",
+              cell.muted && "text-muted-foreground",
+            )}
+          >
+            {cell.value}
+          </span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {cell.label}
+          </span>
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -338,9 +413,16 @@ function WeightBlock({
   const showWaist = onSaveWaist != null || waist != null;
 
   return (
-    <div className={cn(wide ? "w-full" : "shrink-0 text-right")}>
+    <div
+      className={cn(
+        wide ? "border-t border-border pt-4" : "shrink-0 text-right",
+      )}
+    >
       <div
-        className={cn("flex gap-5", wide ? "justify-start" : "justify-end")}
+        className={cn(
+          wide ? "grid gap-4" : "flex justify-end gap-5",
+          wide && showWaist && "grid-cols-2",
+        )}
       >
         <div className={wide ? undefined : "text-right"}>
           <p className="text-sm font-medium text-muted-foreground">Вес</p>
@@ -350,6 +432,7 @@ function WeightBlock({
               placeholder={bodyWeight == null ? lastBodyWeight : null}
               readOnly={readOnly}
               disabled={busy}
+              align={wide ? "start" : "end"}
               onSave={onSave}
             />
           </div>
@@ -363,6 +446,7 @@ function WeightBlock({
                 placeholder={waist == null ? lastWaist : null}
                 readOnly={readOnly || onSaveWaist == null}
                 disabled={busy}
+                align={wide ? "start" : "end"}
                 onSave={onSaveWaist}
                 unit="см"
                 ariaLabel="Талия"
