@@ -40,7 +40,7 @@ export function SettingsInbox() {
   }
 
   async function onWrite() {
-    if (busy) {
+    if (busy || !url) {
       return;
     }
 
@@ -50,9 +50,7 @@ export function SettingsInbox() {
     try {
       // New start payload every tap — same ?start=w is often ignored in an open chat.
       const next = readInboxOpenUrl(await mutateJson("/api/inbox")) ?? url;
-      if (next) {
-        setUrl(next);
-      }
+      setUrl(next);
       const opened = await openTelegramChat(next);
       if (!opened) {
         throw new Error(INBOX_FAILED);

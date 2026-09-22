@@ -11,14 +11,15 @@ type TelegramLinkWebApp = {
 
 /** Leave the Mini App for a t.me deep link so /start is delivered in the chat. */
 export async function openTelegramChat(url: string): Promise<boolean> {
-  if (!isTelegramMeUrl(url)) {
+  const link = forOpenTelegramLink(url);
+  if (!link) {
     return false;
   }
 
   const webApp = await loadTelegramWebApp();
   if (webApp?.initData && typeof webApp.openTelegramLink === "function") {
     try {
-      webApp.openTelegramLink(url, { force_request: true });
+      webApp.openTelegramLink(link, { force_request: true });
       tryClose(webApp);
       return true;
     } catch {
@@ -26,7 +27,7 @@ export async function openTelegramChat(url: string): Promise<boolean> {
     }
 
     try {
-      webApp.openTelegramLink(url);
+      webApp.openTelegramLink(link);
       tryClose(webApp);
       return true;
     } catch {
@@ -35,11 +36,27 @@ export async function openTelegramChat(url: string): Promise<boolean> {
   }
 
   try {
-    window.location.assign(url);
+    window.location.assign(link);
     tryClose(webApp);
     return true;
   } catch {
     return false;
+  }
+}
+
+/** SDK openTelegramLink only accepts hostname `t.me`, not `www.t.me`. */
+export function forOpenTelegramLink(url: string): string | null {
+  if (!isTelegramMeUrl(url)) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    parsed.protocol = "https:";
+    parsed.hostname = "t.me";
+    return parsed.toString();
+  } catch {
+    return null;
   }
 }
 
