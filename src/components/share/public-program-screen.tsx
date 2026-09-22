@@ -1,4 +1,3 @@
-import { ProgramShelf } from "@/components/share/program-shelf";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
@@ -17,11 +16,9 @@ import { cn } from "@/lib/utils";
 
 export function PublicProgramScreen({
   id,
-  origin,
   openUrl,
 }: {
   id: FeaturedProgramId;
-  origin: string;
   openUrl: string | null;
 }) {
   const preset = featuredProgramPreset(id);
@@ -34,7 +31,7 @@ export function PublicProgramScreen({
   return (
     <div className="animate-rise flex w-full flex-col items-center gap-6">
       <a
-        href="/#programs"
+        href="/"
         className="self-start text-sm font-medium text-muted-foreground"
       >
         {PROGRAM_PAGE_BACK}
@@ -75,8 +72,6 @@ export function PublicProgramScreen({
           {OPEN_VIA_BOT_CTA}
         </a>
       ) : null}
-
-      <ProgramShelf origin={origin} />
 
       {showQr && openUrl ? (
         <ShareQr url={openUrl} caption={PROGRAM_QR_CAPTION} compact />

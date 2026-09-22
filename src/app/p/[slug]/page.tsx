@@ -8,7 +8,6 @@ import {
   publicProgramCards,
   publicProgramPath,
 } from "@/lib/share/program-public";
-import { siteOriginUrl } from "@/lib/site-url";
 import { getProgramShareUrl } from "@/lib/telegram/bot";
 
 export const dynamic = "force-dynamic";
@@ -62,13 +61,12 @@ export default async function PublicProgramPage({
     notFound();
   }
 
-  const origin = siteOriginUrl().origin;
   const openUrl = await programBotUrl(id);
 
   return (
     <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
       <div className="my-auto w-full max-w-md py-8">
-        <PublicProgramScreen id={id} origin={origin} openUrl={openUrl} />
+        <PublicProgramScreen id={id} openUrl={openUrl} />
       </div>
     </main>
   );

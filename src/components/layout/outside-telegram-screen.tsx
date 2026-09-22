@@ -4,7 +4,7 @@ import {
   QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
-import { ProgramShelf } from "@/components/share/program-shelf";
+import { NavRow } from "@/components/layout/nav-row";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
@@ -16,7 +16,10 @@ import {
   OPEN_VIA_BOT_QR_CAPTION,
   OPEN_VIA_BOT_STEPS,
   OPEN_VIA_BOT_STEPS_TITLE,
+  PROGRAM_SHELF_LEAD,
+  PROGRAM_SHELF_TITLE,
 } from "@/lib/messages";
+import { publicProgramCards } from "@/lib/share/program-public";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 import { cn } from "@/lib/utils";
 
@@ -26,14 +29,9 @@ const POINT_ICONS = {
   Штрихкод: <QrDoodle />,
 } as const;
 
-export function OutsideTelegramScreen({
-  openUrl,
-  origin,
-}: {
-  openUrl: string | null;
-  origin?: string;
-}) {
+export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
   const showQr = openUrl != null && isTelegramMeUrl(openUrl);
+  const programs = publicProgramCards();
 
   return (
     <div className="animate-rise flex w-full flex-col items-center gap-6">
@@ -69,7 +67,25 @@ export function OutsideTelegramScreen({
         </a>
       ) : null}
 
-      <ProgramShelf origin={origin} />
+      <section className="flex w-full flex-col gap-2">
+        <h2 className="px-1 text-sm font-medium text-muted-foreground">
+          {PROGRAM_SHELF_TITLE}
+        </h2>
+        <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+          {PROGRAM_SHELF_LEAD}
+        </p>
+        <ul className="card-surface w-full divide-y divide-border/70 px-5 py-1 text-left">
+          {programs.map((program) => (
+            <li key={program.id}>
+              <NavRow
+                href={program.path}
+                title={program.name}
+                hint={program.summary}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="flex w-full flex-col gap-2">
         <h2 className="px-1 text-sm font-medium text-muted-foreground">
