@@ -18,8 +18,16 @@ import {
 } from "@/lib/day/cache";
 import { previousIsoDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import { copyMealsFrom, isTempId } from "@/lib/day/optimistic";
-import { DAY_EXISTS_REPLACE, LOAD_FAILED } from "@/lib/messages";
+import {
+  copyMealsFrom,
+  isTempId,
+  withClearedItems,
+} from "@/lib/day/optimistic";
+import {
+  DAY_EXISTS_REPLACE,
+  LOAD_FAILED,
+  STARTER_DAY_CLEAR,
+} from "@/lib/messages";
 import { mealExistsReplace } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { MealType, NamedMealHint } from "@/lib/types";
@@ -119,6 +127,30 @@ export function useTodayCopy({
     }
   }
 
+  async function clearDayFood(dayId: string) {
+    if (viewOnly || !day || isTempId(day.id) || day.id !== dayId) {
+      return;
+    }
+
+    const ok = await confirm({
+      message: STARTER_DAY_CLEAR,
+      confirmLabel: "Убрать",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
+      return;
+    }
+
+    haptic("commit");
+    await withDayOptimistic(date, withClearedItems(day), async () => {
+      const data = await postJson(`/api/days/${dayId}/clear-food`, {});
+      const next = writeDayResponse(date, data);
+      haptic("success");
+      return next ?? "keep";
+    });
+  }
+
   async function fillFromTemplate(url: string, mealType?: MealType) {
     if (viewOnly || !day || isTempId(day.id)) {
       return;
@@ -208,6 +240,7 @@ export function useTodayCopy({
     deleteNamedMeal: named.deleteNamedMeal,
     shareMeal: named.shareMeal,
     shareNamedMeal: named.shareNamedMeal,
+    clearDayFood,
     fillDayFromTemplate: (dayId: string) =>
       fillFromTemplate(`/api/days/${dayId}/fill-template`),
     fillMealFromTemplate: (mealId: string) =>

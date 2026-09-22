@@ -142,6 +142,56 @@ export const STARTER_MEAL_TEMPLATES: StarterMealTemplate[] = [
 
 const STARTER_FOOD_NAMES = new Set(STARTER_FOODS.map((item) => item.name));
 
+export function isStarterDayMenu(
+  meals: ReadonlyArray<{ mealType: MealType; names: readonly string[] }>,
+  dayType: DayType,
+): boolean {
+  const template = STARTER_MEAL_TEMPLATES.find(
+    (item) => item.dayType === dayType,
+  );
+  if (!template || template.items.length === 0) {
+    return false;
+  }
+
+  const expected = new Map<MealType, string[]>();
+  for (const item of template.items) {
+    const names = expected.get(item.mealType) ?? [];
+    names.push(item.foodName);
+    expected.set(item.mealType, names);
+  }
+
+  const actual = new Map<MealType, string[]>();
+  for (const meal of meals) {
+    if (meal.names.length === 0) {
+      continue;
+    }
+    actual.set(meal.mealType, [...meal.names]);
+  }
+
+  const types = new Set<MealType>([...expected.keys(), ...actual.keys()]);
+  for (const mealType of types) {
+    if (
+      !sameFoodNames(expected.get(mealType) ?? [], actual.get(mealType) ?? [])
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function sameFoodNames(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  const a = [...left].sort();
+  const b = [...right].sort();
+  return a.every((name, index) => name === b[index]);
+}
+
 export function isStarterFoodList(
   foods: ReadonlyArray<{ name: string; catalogFoodId?: string | null }>,
 ): boolean {

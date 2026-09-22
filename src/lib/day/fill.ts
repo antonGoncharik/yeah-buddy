@@ -8,6 +8,37 @@ import { calcMacrosFromPer100, roundMacros } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food, MealItem, MealType } from "@/lib/types";
 
+export async function clearDayFood(
+  userId: string,
+  dayId: string,
+): Promise<DayWithMeals> {
+  const day = await loadDayById(userId, dayId);
+  if (!day) {
+    throw new Error("Day not found");
+  }
+
+  await assertUserDayWritable(userId, day.date);
+  const mealIds = day.meals.map((meal) => meal.id);
+  if (mealIds.length > 0) {
+    const supabase = createSupabaseServerClient();
+    const deleted = await supabase
+      .from("meal_items")
+      .delete()
+      .in("meal_id", mealIds)
+      .eq("user_id", userId);
+
+    if (deleted.error) {
+      throw deleted.error;
+    }
+  }
+
+  const next = await getDayByDate(userId, day.date);
+  if (!next) {
+    throw new Error("Day lookup failed");
+  }
+  return next;
+}
+
 export async function fillDayRemaining(
   userId: string,
   dayId: string,

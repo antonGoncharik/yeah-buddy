@@ -63,6 +63,7 @@ export function TodayScreen({
     goBy,
     createDay,
     copyYesterday,
+    clearDayFood,
     fillDayFromTemplate,
     fillMealFromTemplate,
     copyMealFromDate,
@@ -210,6 +211,12 @@ export function TodayScreen({
             saveBodyWeight={saveBodyWeight}
             saveWaist={saveWaist}
             copyYesterday={copyYesterday}
+            clearStarterDay={() => {
+              if (!shownDay) {
+                return Promise.resolve();
+              }
+              return clearDayFood(shownDay.id);
+            }}
             fillDayFromTemplate={() => {
               if (!shownDay) {
                 return Promise.resolve();

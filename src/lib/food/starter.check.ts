@@ -1,5 +1,11 @@
 import { readStarterOnly } from "@/lib/food/map";
-import { isStarterFoodList, STARTER_FOODS } from "@/lib/food/starter";
+import {
+  isStarterDayMenu,
+  isStarterFoodList,
+  STARTER_FOODS,
+  STARTER_MEAL_TEMPLATES,
+} from "@/lib/food/starter";
+import type { DayType, MealType } from "@/lib/types";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
@@ -41,5 +47,53 @@ assertEqual(readStarterOnly({ starterOnly: true }), true, "flag on");
 assertEqual(readStarterOnly({ starterOnly: false }), false, "flag off");
 assertEqual(readStarterOnly({ foods: [] }), false, "missing flag");
 assertEqual(readStarterOnly(null), false, "null payload");
+
+function starterMenu(dayType: DayType) {
+  const template = STARTER_MEAL_TEMPLATES.find(
+    (item) => item.dayType === dayType,
+  );
+  const byMeal = new Map<MealType, string[]>();
+  for (const item of template?.items ?? []) {
+    const names = byMeal.get(item.mealType) ?? [];
+    names.push(item.foodName);
+    byMeal.set(item.mealType, names);
+  }
+  return [...byMeal.entries()].map(([mealType, names]) => ({
+    mealType,
+    names,
+  }));
+}
+
+assertEqual(
+  isStarterDayMenu(starterMenu("rest"), "rest"),
+  true,
+  "rest example",
+);
+assertEqual(
+  isStarterDayMenu(starterMenu("training"), "training"),
+  true,
+  "training example",
+);
+assertEqual(
+  isStarterDayMenu(starterMenu("rest"), "training"),
+  false,
+  "rest menu is not a training day",
+);
+assertEqual(
+  isStarterDayMenu([], "rest"),
+  false,
+  "empty day is not the example",
+);
+const restPlus = starterMenu("rest");
+const breakfast = restPlus.find((meal) => meal.mealType === "breakfast");
+if (!breakfast) {
+  throw new Error("starter breakfast missing");
+}
+breakfast.names.push("Банан");
+assertEqual(
+  isStarterDayMenu(restPlus, "rest"),
+  false,
+  "an extra product leaves the example",
+);
 
 console.log("starter food list ok");

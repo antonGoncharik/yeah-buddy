@@ -159,6 +159,7 @@ export function useTodayScreen({
     shareMeal,
     shareNamedMeal,
     deleteNamedMeal,
+    clearDayFood,
     fillDayFromTemplate,
     fillMealFromTemplate,
   } = useTodayCopy({
@@ -250,6 +251,7 @@ export function useTodayScreen({
     goBy,
     createDay,
     copyYesterday,
+    clearDayFood,
     fillDayFromTemplate,
     fillMealFromTemplate,
     copyMealFromDate,

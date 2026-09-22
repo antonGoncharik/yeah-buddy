@@ -149,6 +149,13 @@ export function withRemovedItem(
   };
 }
 
+export function withClearedItems(day: DayWithMeals): DayWithMeals {
+  return {
+    ...day,
+    meals: day.meals.map((meal) => ({ ...meal, items: [] })),
+  };
+}
+
 export function withAddedItem(
   day: DayWithMeals,
   mealId: string,

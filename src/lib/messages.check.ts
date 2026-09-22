@@ -18,6 +18,9 @@ import {
   PROGRAM_QR_CAPTION,
   PROGRAM_SHELF_LEAD,
   PROGRAM_SHELF_TITLE,
+  STARTER_CATALOG_NOTE,
+  STARTER_DAY_CLEAR,
+  STARTER_DAY_NOTE,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
 
@@ -71,6 +74,21 @@ assertEqual(
   EMPTY_START_SCAN,
   "Отсканируй то, что ешь каждый день.",
   "empty today with nothing to copy",
+);
+assertEqual(
+  STARTER_DAY_NOTE,
+  "Это пример дня под твой белок: овсянка, яйца, курица, творог. Он стоит, чтобы было с чего начать. Ешь так — оставь. Ешь другое — убери пример и запиши своё.",
+  "starter day explains itself",
+);
+assertEqual(
+  STARTER_DAY_CLEAR,
+  "Убрать пример? День станет пустым, и можно записать то, что ешь.",
+  "clear starter day",
+);
+assertEqual(
+  STARTER_CATALOG_NOTE,
+  "Обычные продукты, из них собран пример дня. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.",
+  "starter catalog explains itself",
 );
 assertEqual(
   OPEN_VIA_BOT_LEAD,

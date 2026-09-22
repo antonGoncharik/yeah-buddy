@@ -37,7 +37,11 @@ export {
   YesterdayMissingError,
 } from "@/lib/day/dates";
 export { markDateAsTrainingIfExists, setDayType } from "@/lib/day/day-type";
-export { fillDayRemaining, fillMealRemaining } from "@/lib/day/fill";
+export {
+  clearDayFood,
+  fillDayRemaining,
+  fillMealRemaining,
+} from "@/lib/day/fill";
 export {
   type FoodShare,
   type FoodShareSplit,

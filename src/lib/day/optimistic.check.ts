@@ -10,6 +10,7 @@ import {
   replaceItemsFromTemplate,
   withAddedItem,
   withBodyWeight,
+  withClearedItems,
   withDayType,
   withRemovedItem,
   withUpdatedItemGrams,
@@ -91,6 +92,12 @@ assertEqual(bumped.meals[0]?.items[0]?.protein, 10, "protein scaled");
 
 const removed = withRemovedItem(withItem, added.id);
 assertEqual(removed.meals[0]?.items.length, 0, "item removed");
+
+const cleared = withClearedItems(withItem);
+assert(
+  cleared.meals.every((meal) => meal.items.length === 0),
+  "cleared day has no food",
+);
 
 const rest = withDayType(day, "rest", {
   protein: 120,

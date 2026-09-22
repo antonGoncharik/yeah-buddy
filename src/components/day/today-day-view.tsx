@@ -4,6 +4,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
+import { StarterDayNote } from "@/components/day/starter-day-note";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
@@ -16,6 +17,7 @@ import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
+import { isStarterDayMenu } from "@/lib/food/starter";
 import { hiddenMealSlotsNote } from "@/lib/nutrition";
 import { emptyStartCopy } from "@/lib/retention";
 import type {
@@ -59,6 +61,7 @@ export function TodayDayView({
   saveBodyWeight,
   saveWaist,
   copyYesterday,
+  clearStarterDay,
   fillDayFromTemplate,
   fillMealFromTemplate,
   copyMealFromDate,
@@ -102,6 +105,7 @@ export function TodayDayView({
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
+  clearStarterDay: () => Promise<void>;
   fillDayFromTemplate: () => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
   copyMealFromDate: (
@@ -149,6 +153,17 @@ export function TodayDayView({
     ? withDateQuery(`${addPath}?scan=1`, date, today)
     : null;
   const showEmptyStart = !viewOnly && !dayHasItems;
+  const showStarterDay =
+    !viewOnly &&
+    retentionTail &&
+    !isTempId(shownDay.id) &&
+    isStarterDayMenu(
+      shownDay.meals.map((meal) => ({
+        mealType: meal.meal_type,
+        names: meal.items.map((item) => item.name_snapshot),
+      })),
+      shownDay.is_training_day ? "training" : "rest",
+    );
   const startCopy = emptyStartCopy({
     retentionTail,
     isToday: date === today,
@@ -205,6 +220,12 @@ export function TodayDayView({
           bodyWeightBusy={busy || isTempId(shownDay.id)}
         />
       </div>
+
+      {showStarterDay ? (
+        <div className="animate-rise" style={{ animationDelay: "60ms" }}>
+          <StarterDayNote busy={busy} onClear={() => void clearStarterDay()} />
+        </div>
+      ) : null}
 
       {showEmptyStart ? (
         <div className="animate-rise" style={{ animationDelay: "60ms" }}>
