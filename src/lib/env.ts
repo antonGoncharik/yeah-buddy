@@ -8,6 +8,7 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   TELEGRAM_MINI_APP_URL: z.string().optional(),
   CRON_SECRET: z.string().min(1).optional(),
+  INBOX_CHAT_ID: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -27,6 +28,7 @@ export function getServerEnv(): ServerEnv {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || undefined,
     TELEGRAM_MINI_APP_URL: process.env.TELEGRAM_MINI_APP_URL || undefined,
     CRON_SECRET: process.env.CRON_SECRET || undefined,
+    INBOX_CHAT_ID: process.env.INBOX_CHAT_ID || undefined,
   });
 
   if (!parsed.success) {

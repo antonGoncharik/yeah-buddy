@@ -53,10 +53,11 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `NEXT_PUBLIC_APP_URL` | no | public HTTPS app host; Mini App fallback and doodle/sticker files |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
+| `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
 | `GEMINI_API_KEY` | no | text review «Как прошло»; without it the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo; without it the camera link is hidden, food still logs by hand. Prefer a second Google project — keys in one project share Gemini quota |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0033_program_grants.sql` — apply in order in the SQL Editor or with the Supabase CLI.
+Migrations: `supabase/migrations/0001_init.sql` … `0034_inbox_topics.sql` — apply in order in the SQL Editor or with the Supabase CLI. `0034` is the mailbox for Написать.
 
 Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there. At 20:00 in the user’s timezone (from Settings, or the Mini App, otherwise `Europe/Moscow`) the bot sends **one** photo of that evening: protein, kcal, whether the gym happened, plus a caption (empty food, a gym still in the queue, or «Yeah buddy»). The first three evenings after onboarding say empty food and the queued gym more plainly. **В чат** on that photo throws it into a gym chat — no body weight, 1ПМ, or plate. A later hourly run still delivers that same evening if 20:00 already passed. Closing after 20:00 does not send a second message. On Sunday the same caption adds a 14-day scoreboard from the diary review. Not a broadcast. Toggle and timezone: Settings → Evening reminders. Cron: `GET /api/cron/reminders` once per UTC hour (`0 0-23 * * *` as 24 daily jobs so Vercel Hobby can deploy) with `CRON_SECRET`. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 

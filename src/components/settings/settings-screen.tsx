@@ -20,6 +20,7 @@ import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
+import { SettingsInbox } from "@/components/settings/settings-inbox";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -242,6 +243,8 @@ export function SettingsScreen() {
         ) : null}
 
         {!loading && form ? <SettingsAccount /> : null}
+
+        <SettingsInbox />
 
         <SettingsAuthor />
       </div>

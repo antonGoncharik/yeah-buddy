@@ -5,6 +5,12 @@ import { Bot, GrammyError, InlineKeyboard, InputFile } from "grammy";
 import { registerDonatePayments } from "@/lib/donate/payments";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
+  classifyStart,
+  INBOX_START_MENU,
+  readInboxChatId,
+} from "@/lib/inbox/letter";
+import { openInboxStart, registerInbox } from "@/lib/inbox/register";
+import {
   BOT_OPEN_DIARY,
   BOT_PACK_START,
   BOT_PROGRAM_START,
@@ -16,15 +22,15 @@ import { botInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
 import {
   type FeaturedProgramId,
   featuredProgramPreset,
-  parseProgramStartPayload,
   programChatMessage,
   programStartPayload,
 } from "@/lib/share/program-start";
-import { isPackToken } from "@/lib/share/token";
 import {
   resolveAppShareUrl,
   resolvePackShareUrl,
   resolveProgramShareUrl,
+  telegramBotChatUrl,
+  withStart,
   withStartApp,
 } from "@/lib/telegram/share-url";
 import { replyStartSticker, trexStickerFileId } from "@/lib/telegram/sticker";
@@ -71,6 +77,26 @@ export async function getProgramShareUrl(
   return resolveProgramShareUrl(id, await getAppShareUrl());
 }
 
+export async function getInboxOpenUrl(
+  env: ServerEnv = getServerEnv(),
+): Promise<string | null> {
+  if (readInboxChatId(env.INBOX_CHAT_ID) == null) {
+    return null;
+  }
+
+  const share = await getAppShareUrl(env);
+  if (!share) {
+    return null;
+  }
+
+  const chat = telegramBotChatUrl(share);
+  if (!chat) {
+    return null;
+  }
+
+  return withStart(chat, INBOX_START_MENU);
+}
+
 export function createBot(env: ServerEnv = getServerEnv()): Bot {
   if (bot) {
     return bot;
@@ -79,6 +105,13 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   const instance = new Bot(env.TELEGRAM_BOT_TOKEN);
 
   instance.command("start", async (ctx) => {
+    const payload = typeof ctx.match === "string" ? ctx.match.trim() : "";
+    const start = classifyStart(payload);
+    if (start.kind === "inbox") {
+      await openInboxStart(ctx, start.topic);
+      return;
+    }
+
     await replyStartSticker(ctx);
 
     const miniAppUrl = getMiniAppUrl();
@@ -87,25 +120,22 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
       return;
     }
 
-    const payload = typeof ctx.match === "string" ? ctx.match.trim() : "";
-    const programId = parseProgramStartPayload(payload);
-    if (programId) {
-      const buttonUrl = withStartApp(
-        miniAppUrl,
-        programStartPayload(programId),
-      );
-      await ctx.reply(programChatMessage(featuredProgramPreset(programId)), {
+    if (start.kind === "program") {
+      const buttonUrl = withStartApp(miniAppUrl, programStartPayload(start.id));
+      await ctx.reply(programChatMessage(featuredProgramPreset(start.id)), {
         reply_markup: new InlineKeyboard().webApp(BOT_PROGRAM_START, buttonUrl),
       });
       return;
     }
 
-    const token = isPackToken(payload) ? payload : null;
-    const buttonUrl = token ? withStartApp(miniAppUrl, token) : miniAppUrl;
+    const buttonUrl =
+      start.kind === "pack"
+        ? withStartApp(miniAppUrl, start.token)
+        : miniAppUrl;
 
-    if (token) {
+    if (start.kind === "pack") {
       const { packBotReply } = await import("@/lib/share/pack-meta");
-      const reply = await packBotReply(token);
+      const reply = await packBotReply(start.token);
       if (reply) {
         await ctx.reply(reply.text, {
           reply_markup: new InlineKeyboard().webApp(BOT_PACK_START, buttonUrl),
@@ -125,6 +155,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   });
 
   registerDonatePayments(instance);
+  registerInbox(instance);
 
   instance.on("inline_query", async (ctx) => {
     const env = getServerEnv();

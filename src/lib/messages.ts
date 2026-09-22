@@ -143,6 +143,30 @@ export const ACCOUNT_DELETE_CONFIRM =
   "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
 export const DONATE_THANKS = "Спасибо";
 export const DONATE_REJECT = "Этот счёт не принять.";
+export const INBOX_SETTINGS_TITLE = "Написать";
+export const INBOX_SETTINGS_HINT =
+  "Своя программа, что улучшить или что изменить.";
+export const INBOX_MENU = "О чём написать?";
+export const INBOX_TOPIC_PROGRAM = "Своя программа";
+export const INBOX_TOPIC_IMPROVE = "Что улучшить";
+export const INBOX_TOPIC_CHANGE = "Изменить приложение";
+export const INBOX_OTHER = "Другая тема";
+export const INBOX_HOLD = "Выбери тему — и это уйдёт.";
+export const INBOX_PICK_FIRST = "Сначала выбери тему, потом пришли ещё раз.";
+export const INBOX_SENT = "Ушло. Ответ придёт сюда.";
+export const INBOX_FAILED = "Не ушло. Пришли ещё раз.";
+export const INBOX_TEXT_ONLY = "Это не перешлю. Напиши текстом.";
+export const INBOX_CLOSED = "Сюда пока не пишут.";
+export const INBOX_AUTHOR =
+  "Сюда приходят письма. Ответь на письмо — текст уйдёт человеку.";
+export const INBOX_REPLY_NEED =
+  "Не вижу, кому ответить. Ответь на само письмо.";
+export const INBOX_REPLY_LOST = "Не дошло.";
+export const INBOX_REPLY_CLOSED = "Человек закрыл бота.";
+
+export function inboxAsk(topicLabel: string): string {
+  return `${topicLabel}. Напиши сюда — ответ придёт в этот чат.`;
+}
 
 export function readApiError(data: unknown): string | null {
   if (
