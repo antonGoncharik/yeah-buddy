@@ -76,8 +76,15 @@ export function readTelegramId(value: unknown): number | null {
   return id;
 }
 
+/** Fresh each tap so Telegram re-sends /start even if the chat already exists. */
+export function inboxMenuStartPayload(now = Date.now()): string {
+  const stamp = Math.max(0, Math.floor(now)).toString();
+  return `${INBOX_START_MENU}${stamp}`;
+}
+
 export function parseInboxStart(payload: string): InboxTopic | "menu" | null {
-  if (payload === INBOX_START_MENU) {
+  // `w` or `w1739…` — menu. `w_program` stays a topic, not a stamped menu.
+  if (payload === INBOX_START_MENU || /^w\d{1,20}$/.test(payload)) {
     return "menu";
   }
 

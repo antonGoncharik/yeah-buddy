@@ -68,9 +68,6 @@ export function SettingsAccount() {
       <p className="text-sm text-muted-foreground">
         Скачай копию дневника или удали всё с сервера.
       </p>
-      <p className="text-sm text-muted-foreground">
-        Штрихкоды — Open Food Facts, ODbL.
-      </p>
       <Button
         type="button"
         variant="secondary"

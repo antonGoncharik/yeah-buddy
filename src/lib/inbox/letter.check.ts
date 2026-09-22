@@ -8,6 +8,7 @@ import {
   INBOX_DRAFT_LIMIT,
   inboxAdminHeader,
   inboxAdminMessage,
+  inboxMenuStartPayload,
   inboxPersonLine,
   inboxPrompt,
   messageHasRelayMedia,
@@ -34,12 +35,23 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assertEqual(parseInboxStart("w"), "menu", "menu start");
+assertEqual(parseInboxStart("w1734567890123"), "menu", "stamped menu start");
 assertEqual(parseInboxStart("w_program"), "program", "program start");
 assertEqual(parseInboxStart("w_improve"), "improve", "improve start");
 assertEqual(parseInboxStart("w_change"), "change", "change start");
 assertEqual(parseInboxStart("w_nope"), null, "unknown topic");
 assertEqual(parseInboxStart("write"), null, "plain write is not inbox");
+assertEqual(
+  parseInboxStart("w_123"),
+  null,
+  "underscore digits are not a menu stamp",
+);
 assert(isPackToken("w_program"), "topic start looks like a pack");
+assertEqual(
+  classifyStart("w1734567890123"),
+  { kind: "inbox", topic: "menu" },
+  "stamped menu wins over pack shape",
+);
 assertEqual(
   classifyStart("w_program"),
   { kind: "inbox", topic: "program" },
@@ -56,6 +68,13 @@ assertEqual(
   "pack still works",
 );
 assertEqual(classifyStart(""), { kind: "plain" }, "empty start");
+
+assertEqual(
+  inboxMenuStartPayload(1734567890123),
+  "w1734567890123",
+  "menu stamp",
+);
+assert(/^w\d+$/.test(inboxMenuStartPayload()), "live menu stamp");
 
 assertEqual(parseInboxCallback("inbox:menu"), "menu", "menu callback");
 assertEqual(parseInboxCallback("inbox:change"), "change", "change callback");

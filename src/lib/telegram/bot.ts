@@ -6,7 +6,7 @@ import { registerDonatePayments } from "@/lib/donate/payments";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
   classifyStart,
-  INBOX_START_MENU,
+  inboxMenuStartPayload,
   readInboxChatId,
 } from "@/lib/inbox/letter";
 import { openInboxStart, registerInbox } from "@/lib/inbox/register";
@@ -94,7 +94,7 @@ export async function getInboxOpenUrl(
     return null;
   }
 
-  return withStart(chat, INBOX_START_MENU);
+  return withStart(chat, inboxMenuStartPayload());
 }
 
 export function createBot(env: ServerEnv = getServerEnv()): Bot {

@@ -5,11 +5,18 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { mutateJson } from "@/lib/api-cache";
 import { readInboxOpenUrl } from "@/lib/inbox/open-url";
-import { INBOX_SETTINGS_HINT, INBOX_SETTINGS_TITLE } from "@/lib/messages";
+import {
+  INBOX_FAILED,
+  INBOX_SETTINGS_HINT,
+  INBOX_SETTINGS_TITLE,
+} from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
+import { openTelegramChat } from "@/lib/telegram/open-chat";
 
 export function SettingsInbox() {
   const [url, setUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +39,32 @@ export function SettingsInbox() {
     return null;
   }
 
+  async function onWrite() {
+    if (busy) {
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+    haptic("tap");
+    try {
+      // New start payload every tap — same ?start=w is often ignored in an open chat.
+      const next = readInboxOpenUrl(await mutateJson("/api/inbox")) ?? url;
+      if (next) {
+        setUrl(next);
+      }
+      const opened = await openTelegramChat(next);
+      if (!opened) {
+        throw new Error(INBOX_FAILED);
+      }
+    } catch {
+      haptic("error");
+      setError(INBOX_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <h2 className="text-xl font-semibold">{INBOX_SETTINGS_TITLE}</h2>
@@ -40,31 +73,12 @@ export function SettingsInbox() {
         type="button"
         variant="secondary"
         className="h-12 text-base"
-        onClick={() => {
-          haptic("tap");
-          void openInboxChat(url);
-        }}
+        disabled={busy}
+        onClick={() => void onWrite()}
       >
         {INBOX_SETTINGS_TITLE}
       </Button>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </section>
   );
-}
-
-async function openInboxChat(url: string): Promise<void> {
-  try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as {
-      initData?: string;
-      openTelegramLink?: (link: string) => void;
-    };
-    if (webApp.initData && typeof webApp.openTelegramLink === "function") {
-      webApp.openTelegramLink(url);
-      return;
-    }
-  } catch {
-    // Outside Telegram the link opens in the browser.
-  }
-
-  window.location.assign(url);
 }
