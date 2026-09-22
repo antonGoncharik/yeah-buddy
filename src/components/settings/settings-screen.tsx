@@ -205,7 +205,7 @@ export function SettingsScreen() {
                 autoComplete="off"
                 aria-label="Сколько лет в зале"
                 value={form.training_years}
-                placeholder="не указано"
+                placeholder="—"
                 onChange={(event) => setTrainingYearsDraft(event.target.value)}
                 onBlur={() => void commitTrainingYears()}
                 onKeyDown={(event) => {
@@ -213,7 +213,7 @@ export function SettingsScreen() {
                     event.currentTarget.blur();
                   }
                 }}
-                className="field-control h-12 w-24 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="field-control h-12 w-24 shrink-0 rounded-xl border border-input/70 bg-input-bg px-3 text-base tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               />
             </label>
           </section>

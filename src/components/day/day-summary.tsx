@@ -129,17 +129,12 @@ export function DaySummary({
       : proteinOverflow
         ? `+${formatMacro(Math.abs(remainingProtein))}`
         : formatMacro(Math.max(0, remainingProtein));
-  const weightBesideProtein = loop && showWeight;
+  const bodyMetrics = loop && showWeight;
 
   return (
     <section className="card-surface flex flex-col gap-5 px-5 py-5">
       <div className="flex flex-col gap-3">
-        <div
-          className={cn(
-            "flex justify-between gap-4",
-            weightBesideProtein ? "items-end" : "items-start",
-          )}
-        >
+        <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <button
@@ -175,10 +170,10 @@ export function DaySummary({
                 </span>
               )}
             </p>
-            {weightBesideProtein ? null : almost ? (
+            {almost ? (
               <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
             ) : null}
-            {weightBesideProtein ? null : weekLine ? (
+            {weekLine ? (
               <p className="mt-1 text-base font-medium">{weekLine}</p>
             ) : null}
             {loop ? null : (
@@ -194,19 +189,7 @@ export function DaySummary({
               </div>
             )}
           </div>
-          {weightBesideProtein ? (
-            <WeightBlock
-              bodyWeight={bodyWeight}
-              lastBodyWeight={lastBodyWeight}
-              waist={waist}
-              lastWaist={lastWaist}
-              readOnly={bodyWeightReadOnly}
-              busy={bodyWeightBusy}
-              note={null}
-              onSave={onSaveBodyWeight}
-              onSaveWaist={onSaveWaist}
-            />
-          ) : loop ? (
+          {loop ? (
             gym
           ) : showWeight ? (
             <WeightBlock
@@ -232,20 +215,8 @@ export function DaySummary({
           )}
         </div>
 
-        {weightBesideProtein && almost ? (
-          <p className="text-sm text-muted-foreground">{almost}</p>
-        ) : null}
-        {weightBesideProtein && weekLine ? (
-          <p className="text-base font-medium">{weekLine}</p>
-        ) : null}
-        {weightBesideProtein && weightNote ? (
-          <p className="text-right text-sm text-muted-foreground">
-            {weightNote}
-          </p>
-        ) : null}
-
         {loop ? (
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
             <KcalLine
               overflow={overflow}
               remainingKcal={remainingKcal}
@@ -254,7 +225,20 @@ export function DaySummary({
               factKcal={fact.kcal}
               perKg={perKg}
             />
-            {weightBesideProtein ? gym : null}
+            {bodyMetrics ? (
+              <WeightBlock
+                bodyWeight={bodyWeight}
+                lastBodyWeight={lastBodyWeight}
+                waist={waist}
+                lastWaist={lastWaist}
+                readOnly={bodyWeightReadOnly}
+                busy={bodyWeightBusy}
+                note={weightNote}
+                wide
+                onSave={onSaveBodyWeight}
+                onSaveWaist={onSaveWaist}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -336,6 +320,7 @@ function WeightBlock({
   readOnly,
   busy,
   note,
+  wide = false,
   onSave,
   onSaveWaist,
 }: {
@@ -346,42 +331,56 @@ function WeightBlock({
   readOnly: boolean;
   busy: boolean;
   note: string | null;
+  wide?: boolean;
   onSave?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
   const showWaist = onSaveWaist != null || waist != null;
 
   return (
-    <div className="shrink-0 text-right">
-      <p className="text-sm font-medium text-muted-foreground">Вес</p>
-      <div className="mt-1">
-        <BodyWeightField
-          value={bodyWeight}
-          placeholder={bodyWeight == null ? lastBodyWeight : null}
-          readOnly={readOnly}
-          disabled={busy}
-          onSave={onSave}
-        />
-      </div>
-      {showWaist ? (
-        <div className="mt-2">
-          <p className="text-sm font-medium text-muted-foreground">Талия</p>
+    <div className={cn(wide ? "w-full" : "shrink-0 text-right")}>
+      <div
+        className={cn("flex gap-5", wide ? "justify-start" : "justify-end")}
+      >
+        <div className={wide ? undefined : "text-right"}>
+          <p className="text-sm font-medium text-muted-foreground">Вес</p>
           <div className="mt-1">
             <BodyWeightField
-              value={waist}
-              placeholder={waist == null ? lastWaist : null}
-              readOnly={readOnly || onSaveWaist == null}
+              value={bodyWeight}
+              placeholder={bodyWeight == null ? lastBodyWeight : null}
+              readOnly={readOnly}
               disabled={busy}
-              onSave={onSaveWaist}
-              unit="см"
-              ariaLabel="Талия"
-              parse={parseWaist}
+              onSave={onSave}
             />
           </div>
         </div>
-      ) : null}
+        {showWaist ? (
+          <div className={wide ? undefined : "text-right"}>
+            <p className="text-sm font-medium text-muted-foreground">Талия</p>
+            <div className="mt-1">
+              <BodyWeightField
+                value={waist}
+                placeholder={waist == null ? lastWaist : null}
+                readOnly={readOnly || onSaveWaist == null}
+                disabled={busy}
+                onSave={onSaveWaist}
+                unit="см"
+                ariaLabel="Талия"
+                parse={parseWaist}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
       {note ? (
-        <p className="mt-1 text-sm text-muted-foreground">{note}</p>
+        <p
+          className={cn(
+            "mt-1 text-sm text-muted-foreground",
+            !wide && "text-right",
+          )}
+        >
+          {note}
+        </p>
       ) : null}
     </div>
   );
