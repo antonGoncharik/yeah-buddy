@@ -55,7 +55,7 @@ export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
 export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 
 /**
- * What everyone sees. «Всё тело A/B» sits on top; the rest open under
+ * What everyone sees. «Всё тело» sits on top; the rest open under
  * «Ещё программы». Other presets stay in PROGRAM_PRESETS so a queue already
  * on one of them is left alone. A hidden one shows up only after a grant.
  * Bot start links stay on the featured three.
@@ -95,17 +95,17 @@ export interface ProgramPreset {
 export const PROGRAM_PRESETS: ProgramPreset[] = [
   {
     id: "full_body",
-    name: "Всё тело A/B",
+    name: "Всё тело",
     hint: "Два разных дня на всё тело по кругу. Вес от твоего 1ПМ — если нет, спросит в зале.",
     level: "beginner",
     templates: [
-      day("Тело A", [
+      day("День 1", [
         "Приседания со штангой",
         "Жим лёжа",
         "Тяга штанги в наклоне",
         "Жим гантелей сидя",
       ]),
-      day("Тело B", [
+      day("День 2", [
         "Румынская тяга",
         "Жим стоя",
         "Подтягивания",

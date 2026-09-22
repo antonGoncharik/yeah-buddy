@@ -112,9 +112,9 @@ assertEqual(matchFeaturedPrograms("x").join(), "", "one letter is not a match");
 
 const fullBody = featuredProgramPreset("full_body");
 const poster = programChatMessage(fullBody);
-assert(poster.startsWith("Всё тело A/B"), "chat opens with the name");
-assert(poster.includes("Тело A"), "chat lists day A");
-assert(poster.includes("Тело B"), "chat lists day B");
+assert(poster.startsWith("Всё тело\n"), "chat opens with the name");
+assert(poster.includes("День 1"), "chat lists day 1");
+assert(poster.includes("День 2"), "chat lists day 2");
 assert(!poster.includes("От "), "bot-authored, no person");
 assert(poster.includes("1ПМ"), "1RM stays in the gym");
 

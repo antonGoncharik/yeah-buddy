@@ -40,7 +40,7 @@ assertEqual(
     (id) => PROGRAM_PRESETS.find((preset) => preset.id === id)?.name,
   ).join(" | "),
   [
-    "Всё тело A/B",
+    "Всё тело",
     "5×5 A/B",
     "Верх / Низ",
     "Жим / Тяга / Ноги",

@@ -98,7 +98,7 @@ const storefront = botInlineResults({
 assertEqual(storefront[0]?.type, "article", "empty query leads with a program");
 assertEqual(
   storefront[0] && "title" in storefront[0] ? storefront[0].title : null,
-  "Всё тело A/B",
+  "Всё тело",
   "first card is full body",
 );
 assertEqual(
