@@ -21,5 +21,7 @@ export interface UserSettings {
   reminders_enabled: boolean;
   timezone: string;
   training_years: number | null;
+  /** Hidden preset ids this person may pick. General programs are not stored here. */
+  granted_programs: string[];
   updated_at: string;
 }

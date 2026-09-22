@@ -84,6 +84,7 @@ const settings: UserSettings = {
   reminders_enabled: true,
   timezone: "Europe/Moscow",
   training_years: null,
+  granted_programs: [],
   updated_at: "2026-01-01",
 };
 

@@ -1,12 +1,18 @@
 import type { NextResponse } from "next/server";
 
-import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
+import {
+  failRoute,
+  jsonOk,
+  parseJsonSchema,
+  whenError,
+} from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   completeOnboarding,
   getOnboardingState,
   onboardingCompleteSchema,
 } from "@/lib/onboarding";
+import { ProgramNotOfferedError } from "@/lib/workout/templates";
 
 export async function GET(): Promise<NextResponse> {
   const auth = await requireSession();
@@ -40,6 +46,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
     return jsonOk({ onboarding });
   } catch (error) {
-    return failRoute(error);
+    return failRoute(error, [whenError(ProgramNotOfferedError, 403)]);
   }
 }

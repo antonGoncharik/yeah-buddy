@@ -6,12 +6,16 @@ import {
   jsonError,
   jsonOk,
   parseJsonSchema,
+  whenError,
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
-import { applyProgramPreset } from "@/lib/workout/templates";
+import {
+  applyProgramPreset,
+  ProgramNotOfferedError,
+} from "@/lib/workout/templates";
 
 const bodySchema = z.object({
   preset: z.string(),
@@ -45,6 +49,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
     return jsonOk({ templates });
   } catch (error) {
-    return failRoute(error);
+    return failRoute(error, [whenError(ProgramNotOfferedError, 403)]);
   }
 }

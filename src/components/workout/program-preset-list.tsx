@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+import { cachedGet } from "@/lib/api-cache";
+import { readSettingsPayload } from "@/lib/settings/map";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import {
   type ProgramLevel,
   type ProgramPreset,
   type ProgramPresetId,
+  parseGrantedPrograms,
   pickerProgramPresetIds,
   presetExerciseLine,
   programDayExerciseNames,
@@ -15,6 +18,25 @@ import {
   programPresetsByLevel,
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
+
+function useGrantedPrograms(): ProgramPresetId[] {
+  const [granted, setGranted] = useState<ProgramPresetId[]>([]);
+
+  useEffect(() => {
+    void cachedGet("/api/settings", (data) => {
+      const settings = readSettingsPayload(data);
+      if (!settings) {
+        return false;
+      }
+      setGranted(parseGrantedPrograms(settings.granted_programs));
+      return true;
+    }).catch(() => {
+      setGranted([]);
+    });
+  }, []);
+
+  return granted;
+}
 
 /** Recommended start on top; the rest of the catalog behind «Ещё программы». */
 export function ProgramPresetCatalog({
@@ -26,10 +48,11 @@ export function ProgramPresetCatalog({
   disabled?: boolean;
   onPick: (id: ProgramPresetId) => void;
 }) {
+  const granted = useGrantedPrograms();
   const extraSelected =
     value != null && value !== RECOMMENDED_PROGRAM_PRESET_ID;
   const [showMore, setShowMore] = useState(extraSelected);
-  const catalogIds = pickerProgramPresetIds(value);
+  const catalogIds = pickerProgramPresetIds(value, granted);
 
   useEffect(() => {
     if (extraSelected) {

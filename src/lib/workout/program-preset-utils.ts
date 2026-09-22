@@ -33,15 +33,47 @@ export function isListedProgramPresetId(id: ProgramPresetId): boolean {
   return listedProgramIds.has(id);
 }
 
-/** Listed catalog, plus a program already chosen so onboarding still shows it. */
+/** Listed catalog, grants, and a program already chosen so onboarding still shows it. */
 export function pickerProgramPresetIds(
   selected?: ProgramPresetId | null,
+  granted: readonly ProgramPresetId[] = [],
 ): ProgramPresetId[] {
   const ids: ProgramPresetId[] = [...LISTED_PROGRAM_PRESET_IDS];
-  if (selected && !isListedProgramPresetId(selected)) {
+  for (const id of granted) {
+    if (isProgramPresetId(id) && !ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  if (selected && isProgramPresetId(selected) && !ids.includes(selected)) {
     ids.push(selected);
   }
   return ids;
+}
+
+export function parseGrantedPrograms(value: unknown): ProgramPresetId[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const ids: ProgramPresetId[] = [];
+  for (const item of value) {
+    if (!isProgramPresetId(item) || isListedProgramPresetId(item)) {
+      continue;
+    }
+    if (!ids.includes(item)) {
+      ids.push(item);
+    }
+  }
+  return ids;
+}
+
+export function programIsOffered(
+  id: ProgramPresetId,
+  granted: readonly string[],
+): boolean {
+  return (
+    isListedProgramPresetId(id) || parseGrantedPrograms(granted).includes(id)
+  );
 }
 
 export function programPresetById(

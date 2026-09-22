@@ -46,9 +46,12 @@ assertEqual(
     "Жим / Тяга / Ноги",
     "5/3/1",
     "Присед / Жим / Тяга по таблице",
-    "Жимовая · 2 недели",
   ].join(" | "),
-  "picker lists the short catalog plus the custom press block",
+  "picker lists the general programs",
+);
+assert(
+  !(LISTED_PROGRAM_PRESET_IDS as readonly string[]).includes("press_two_week"),
+  "the press block stays hidden until granted",
 );
 assert(
   PROGRAM_PRESETS.length > LISTED_PROGRAM_PRESET_IDS.length,
@@ -62,6 +65,21 @@ assertEqual(
 assert(
   !pickerProgramPresetIds(null).includes("arnold"),
   "a new picker does not offer the hidden presets",
+);
+assert(
+  !pickerProgramPresetIds(null).includes("press_two_week"),
+  "press stays out of the general list",
+);
+assertEqual(
+  pickerProgramPresetIds(null, ["press_two_week"]).at(-1),
+  "press_two_week",
+  "a grant adds that program",
+);
+assertEqual(
+  pickerProgramPresetIds(null, ["full_body"]).filter((id) => id === "full_body")
+    .length,
+  1,
+  "a listed grant is not duplicated",
 );
 assert(
   new Set(PROGRAM_PRESETS.map((preset) => preset.id)).size ===

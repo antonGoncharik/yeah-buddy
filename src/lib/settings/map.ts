@@ -1,6 +1,7 @@
 import { isRecord, toNumber } from "@/lib/read";
 import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
 import type { UserSettings } from "@/lib/types";
+import { parseGrantedPrograms } from "@/lib/workout/program-presets";
 
 export function mapSettings(row: Record<string, unknown>): UserSettings {
   return {
@@ -20,6 +21,7 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
       typeof row.timezone === "string" ? row.timezone : null,
     ),
     training_years: parseStoredTrainingYears(row.training_years),
+    granted_programs: parseGrantedPrograms(row.granted_programs),
     updated_at: String(row.updated_at),
   };
 }

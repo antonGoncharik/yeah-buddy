@@ -1,4 +1,5 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
+import { getUserSettings } from "@/lib/settings";
 import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
 import { withCycle } from "@/lib/workout/cycle";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/lib/workout/macro-create";
 import {
   type ProgramPresetId,
+  programIsOffered,
   programPresetById,
 } from "@/lib/workout/program-presets";
 import { saveRotation } from "@/lib/workout/rotation";
@@ -27,6 +29,13 @@ import {
   updateTemplate,
 } from "@/lib/workout/template-store";
 
+export class ProgramNotOfferedError extends Error {
+  constructor() {
+    super("Этой программы нет.");
+    this.name = "ProgramNotOfferedError";
+  }
+}
+
 export async function applyProgramPreset(
   userId: string,
   presetId: ProgramPresetId,
@@ -34,6 +43,11 @@ export async function applyProgramPreset(
   const preset = programPresetById(presetId);
   if (!preset) {
     throw new Error("Нет такой программы.");
+  }
+
+  const account = await getUserSettings(userId);
+  if (!programIsOffered(presetId, account?.granted_programs ?? [])) {
+    throw new ProgramNotOfferedError();
   }
 
   const catalog = await listExercises(userId, "all");

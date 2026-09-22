@@ -1,4 +1,7 @@
-export { applyProgramPreset } from "@/lib/workout/apply-preset";
+export {
+  applyProgramPreset,
+  ProgramNotOfferedError,
+} from "@/lib/workout/apply-preset";
 export {
   getNextTemplate,
   saveRotation,
