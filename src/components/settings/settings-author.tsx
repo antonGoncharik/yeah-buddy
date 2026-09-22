@@ -89,7 +89,7 @@ export function SettingsAuthor() {
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <h2 className="text-xl font-semibold">Автору</h2>
-      <p className="text-sm text-muted-foreground">Счёт в Telegram Stars.</p>
+      <p className="text-sm text-muted-foreground">На развитие дневника.</p>
       <div className="grid grid-cols-3 gap-2">
         {DONATE_PRESETS.map((stars) => (
           <Button
@@ -105,7 +105,10 @@ export function SettingsAuthor() {
         ))}
       </div>
       <form className="flex flex-col gap-1.5" onSubmit={onCustom}>
-        <label className="text-sm text-muted-foreground" htmlFor="donate-custom">
+        <label
+          className="text-sm text-muted-foreground"
+          htmlFor="donate-custom"
+        >
           Другая сумма
         </label>
         <span className="flex gap-2">

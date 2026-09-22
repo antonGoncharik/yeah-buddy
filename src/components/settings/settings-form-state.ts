@@ -61,13 +61,15 @@ export function toPayload(form: SettingsFormState) {
   const training_fat = parseMacro(form.training_fat);
   const training_carbs = parseMacro(form.training_carbs);
 
+  const training_years = parseTrainingYearsInput(form.training_years);
   if (
     rest_protein == null ||
     rest_fat == null ||
     rest_carbs == null ||
     training_protein == null ||
     training_fat == null ||
-    training_carbs == null
+    training_carbs == null ||
+    training_years === undefined
   ) {
     return null;
   }
@@ -79,6 +81,7 @@ export function toPayload(form: SettingsFormState) {
     training_protein,
     training_fat,
     training_carbs,
+    training_years,
   };
 }
 

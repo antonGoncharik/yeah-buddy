@@ -9,7 +9,6 @@ import {
   LinkDoodle,
   MacroDoodle,
   MugDoodle,
-  PairDoodle,
   PlateDoodle,
   QrDoodle,
 } from "@/components/layout/doodles";
@@ -55,10 +54,9 @@ export function SettingsScreen() {
     load,
     onSubmit,
     updateField,
+    updateYears,
     setReminders,
     setTimezone,
-    setTrainingYearsDraft,
-    commitTrainingYears,
   } = useSettingsScreen();
   const [now, setNow] = useState<Date | null>(null);
 
@@ -143,6 +141,7 @@ export function SettingsScreen() {
               saving={saving}
               onSubmit={onSubmit}
               updateField={updateField}
+              updateYears={updateYears}
             />
           ) : null}
         </section>
@@ -161,12 +160,6 @@ export function SettingsScreen() {
               title={BOT_INVITE_LABEL}
               hint={BOT_INVITE_HINT}
               icon={<QrDoodle />}
-            />
-            <NavRow
-              href="/onboarding?again=1"
-              title="Белок на день"
-              hint="Задать заново. Еда на день и программа не изменятся"
-              icon={<PairDoodle />}
             />
           </div>
         </section>
@@ -190,34 +183,6 @@ export function SettingsScreen() {
             onChange={setTheme}
           />
         </section>
-
-        {!loading && form ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-            <h2 className="text-xl font-semibold">Сколько лет в зале</h2>
-            <p className="text-sm text-muted-foreground">
-              Чтобы застой читался по-разному: первый год и восьмой — не одна
-              фраза. Можно не заполнять.
-            </p>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm text-muted-foreground">Лет</span>
-              <input
-                inputMode="numeric"
-                autoComplete="off"
-                aria-label="Сколько лет в зале"
-                value={form.training_years}
-                placeholder="—"
-                onChange={(event) => setTrainingYearsDraft(event.target.value)}
-                onBlur={() => void commitTrainingYears()}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.currentTarget.blur();
-                  }
-                }}
-                className="field-control h-12 w-24 shrink-0 rounded-xl border border-input/70 bg-input-bg px-3 text-base tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              />
-            </label>
-          </section>
-        ) : null}
 
         {!loading && form ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
@@ -260,11 +225,7 @@ export function SettingsScreen() {
               Как на телефоне
             </Button>
             <p className="text-sm text-muted-foreground">
-              В 20:00 в этом поясе — одна картинка дня: белок, ккал, был ли зал.
-              Нет еды — напомнит. Тренировка без «Готово» — что в очереди. Отдых
-              или закрытый зал и записанная еда — «Yeah buddy». «В чат» кидает
-              картинку в чат зала, без веса и 1ПМ. После 20:00 второе не придёт.
-              Воскресенье — табло за 14 дней с «Как прошло».
+              В 20:00 — одна картинка: белок, ккал, был ли зал.
             </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}
@@ -274,7 +235,9 @@ export function SettingsScreen() {
               ]}
               onChange={(id) => void setReminders(id === "on")}
             />
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error && !showGoals ? (
+              <p className="text-sm text-destructive">{error}</p>
+            ) : null}
           </section>
         ) : null}
 

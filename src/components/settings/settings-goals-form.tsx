@@ -18,6 +18,7 @@ export function SettingsGoalsForm({
   saving,
   onSubmit,
   updateField,
+  updateYears,
 }: {
   form: SettingsFormState;
   restKcal: number | null;
@@ -27,6 +28,7 @@ export function SettingsGoalsForm({
   saving: boolean;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   updateField: (key: MacroFieldKey, value: string) => void;
+  updateYears: (value: string) => void;
 }) {
   return (
     <form className="flex flex-col gap-4 pb-28" onSubmit={onSubmit}>
@@ -82,7 +84,6 @@ export function SettingsGoalsForm({
           label="Углеводы"
           value={form.training_carbs}
           kcalPerGram={4}
-          enterKeyHint="done"
           onChange={(value) => updateField("training_carbs", value)}
         />
         {trainingKcal != null ? (
@@ -90,6 +91,26 @@ export function SettingsGoalsForm({
             {formatKcal(trainingKcal)} ккал
           </p>
         ) : null}
+      </section>
+
+      <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+        <h2 className="text-xl font-semibold">Лет в зале</h2>
+        <p className="text-sm text-muted-foreground">
+          Чтобы застой читался по стажу. Можно не заполнять.
+        </p>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm text-muted-foreground">Лет</span>
+          <input
+            inputMode="numeric"
+            autoComplete="off"
+            enterKeyHint="done"
+            aria-label="Сколько лет в зале"
+            value={form.training_years}
+            placeholder="не указано"
+            onChange={(event) => updateYears(event.target.value)}
+            className="field-control h-12 w-24 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          />
+        </label>
       </section>
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}

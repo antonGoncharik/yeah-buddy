@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   kcalFromFields,
   type MacroFieldKey,
-  parseTrainingYearsInput,
   readSettings,
   type SettingsFormState,
   toFormState,
@@ -22,7 +21,6 @@ export function useSettingsScreen() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
-  const yearsSaved = useRef("");
 
   const load = useCallback(async () => {
     begin();
@@ -37,9 +35,7 @@ export function useSettingsScreen() {
           if (!settings) {
             return false;
           }
-          const next = toFormState(settings);
-          yearsSaved.current = next.training_years;
-          setForm(next);
+          setForm(toFormState(settings));
           return true;
         },
         () => done(true),
@@ -91,9 +87,7 @@ export function useSettingsScreen() {
       const data = await patchJson("/api/settings", payload);
       const settings = readSettings(data);
       if (settings) {
-        const next = toFormState(settings);
-        yearsSaved.current = next.training_years;
-        setForm(next);
+        setForm(toFormState(settings));
         writeJson("/api/settings", data);
       }
       setSaved(true);
@@ -107,6 +101,13 @@ export function useSettingsScreen() {
   function updateField(key: MacroFieldKey, value: string) {
     setSaved(false);
     setForm((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  function updateYears(value: string) {
+    setSaved(false);
+    setForm((current) =>
+      current ? { ...current, training_years: value } : current,
+    );
   }
 
   async function setReminders(enabled: boolean) {
@@ -134,59 +135,6 @@ export function useSettingsScreen() {
     } catch (caught) {
       setForm((current) =>
         current ? { ...current, reminders_enabled: previous } : current,
-      );
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    }
-  }
-
-  function setTrainingYearsDraft(value: string) {
-    setForm((current) =>
-      current ? { ...current, training_years: value } : current,
-    );
-  }
-
-  async function commitTrainingYears() {
-    if (!form) {
-      return;
-    }
-
-    const parsed = parseTrainingYearsInput(form.training_years);
-    if (parsed === undefined) {
-      setForm((current) =>
-        current ? { ...current, training_years: yearsSaved.current } : current,
-      );
-      return;
-    }
-
-    const next = parsed == null ? "" : String(parsed);
-    if (next === yearsSaved.current) {
-      setForm((current) =>
-        current ? { ...current, training_years: next } : current,
-      );
-      return;
-    }
-
-    setForm((current) =>
-      current ? { ...current, training_years: next } : current,
-    );
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/settings", { training_years: parsed });
-      const settings = readSettings(data);
-      if (settings) {
-        const saved = toFormState(settings);
-        yearsSaved.current = saved.training_years;
-        setForm((current) =>
-          current
-            ? { ...current, training_years: saved.training_years }
-            : current,
-        );
-        writeJson("/api/settings", data);
-      }
-    } catch (caught) {
-      setForm((current) =>
-        current ? { ...current, training_years: yearsSaved.current } : current,
       );
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
@@ -231,9 +179,8 @@ export function useSettingsScreen() {
     load,
     onSubmit,
     updateField,
+    updateYears,
     setReminders,
     setTimezone,
-    setTrainingYearsDraft,
-    commitTrainingYears,
   };
 }

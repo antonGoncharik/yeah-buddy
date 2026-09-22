@@ -4,7 +4,7 @@ export const DONATE_MAX = 10_000;
 export const DONATE_CONFIRM_ABOVE = 1000;
 export const DONATE_CURRENCY = "XTR";
 export const DONATE_TITLE = "Автору";
-export const DONATE_DESCRIPTION = "Донат автору дневника.";
+export const DONATE_DESCRIPTION = "На развитие дневника.";
 export const DONATE_PRICE_LABEL = "Stars";
 
 const PAYLOAD_PREFIX = "donate:";
