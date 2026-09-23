@@ -81,6 +81,7 @@ export function TodayScreen({
 
   const fromHistory = readOnly;
   const guideTip = useGuideTip("today");
+  const dayTypeTip = useGuideTip("day-type");
   const [pickerOpen, setPickerOpen] = useState(false);
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
@@ -130,6 +131,7 @@ export function TodayScreen({
         !loadError &&
         !viewOnly &&
         guideTip.tip &&
+        !dayTypeTip.tip &&
         !(retentionTail && isToday && !dayHasItems) ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}

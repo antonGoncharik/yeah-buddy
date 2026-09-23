@@ -37,7 +37,7 @@ assert(
   "intro is short enough to read before setup",
 );
 assert(GUIDE_PAGES.length >= 6, "reference covers the whole diary");
-assert(GUIDE_TIPS.length === 2, "today and workouts tips");
+assert(GUIDE_TIPS.length === 4, "today, day type, body, and workouts tips");
 
 const ids = [...GUIDE_INTRO_PAGES, ...GUIDE_PAGES].map((page) => page.id);
 assertEqual(new Set(ids).size, ids.length, "page ids unique");
@@ -136,6 +136,7 @@ for (const needle of GUIDE_TOPIC_NEEDLES) {
 assertEqual(guidePageById("what")?.title, "Что это", "first page");
 assertEqual(guidePageById("missing"), null, "unknown page");
 assertEqual(guideTipById("today")?.title, "Сегодня", "today tip");
+assertEqual(guideTipById("body")?.title, "Вес и талия", "body tip");
 assertEqual(guideTipById("workouts")?.id, "workouts", "workouts tip");
 
 assert(isGuideTipId("today"), "today is a tip id");

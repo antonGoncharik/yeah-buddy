@@ -19,6 +19,7 @@ import {
   saveUserSettings,
 } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { pickLiveExerciseId } from "@/lib/workout/dedupe-exercises";
 import {
   correctStartingMax,
   listExercises,
@@ -199,11 +200,9 @@ async function applyStartingMaxes(
 
   const exercises = await listExercises(userId, "active");
   const byId = new Map(exercises.map((item) => [item.id, item]));
+  const wanted = new Map<string, number>();
 
-  const explicit = input.maxes.filter((item) => byId.has(item.exerciseId));
-  const filledIds = new Set<string>();
-
-  for (const item of explicit) {
+  for (const item of input.maxes) {
     const exercise = byId.get(item.exerciseId);
     if (!exercise) {
       continue;
@@ -211,60 +210,105 @@ async function applyStartingMaxes(
     if (!firstRun && exercise.current_max) {
       continue;
     }
-    try {
-      await correctStartingMax({
-        userId,
-        exerciseId: item.exerciseId,
-        maxWeight: item.maxWeight,
-      });
-      filledIds.add(item.exerciseId);
-    } catch (error) {
-      if (error instanceof StartingMaxLockedError) {
-        return;
-      }
-      throw error;
-    }
+    wanted.set(exercise.name, item.maxWeight);
   }
 
   const sex = input.sex ?? settings?.sex ?? null;
   const trainingAge = input.training_age ?? settings?.training_age ?? null;
   const weightKg = input.body_weight;
-  if (sex == null || trainingAge == null || weightKg == null) {
-    return;
+  if (sex != null && trainingAge != null && weightKg != null) {
+    const estimated = estimateExerciseMaxes({
+      sex,
+      trainingAge,
+      weightKg,
+      known: {
+        squat: input.anchors?.squat ?? null,
+        bench: input.anchors?.bench ?? null,
+        deadlift: input.anchors?.deadlift ?? null,
+      },
+      exercises: exercises.map((item) => ({
+        id: item.id,
+        name: item.name,
+        weight_step: item.weight_step,
+        workout_type: item.workout_type,
+        has_max: Boolean(item.current_max) || wanted.has(item.name),
+      })),
+    });
+
+    for (const item of estimated) {
+      if (!wanted.has(item.name)) {
+        wanted.set(item.name, item.maxWeight);
+      }
+    }
   }
 
-  const estimated = estimateExerciseMaxes({
-    sex,
-    trainingAge,
-    weightKg,
-    known: {
-      squat: input.anchors?.squat ?? null,
-      bench: input.anchors?.bench ?? null,
-      deadlift: input.anchors?.deadlift ?? null,
-    },
-    exercises: exercises.map((item) => ({
-      id: item.id,
-      name: item.name,
-      weight_step: item.weight_step,
-      workout_type: item.workout_type,
-      has_max: Boolean(item.current_max) || filledIds.has(item.id),
-    })),
-  });
+  await writeStartingMaxes(userId, wanted);
+}
 
-  for (const item of estimated) {
+async function writeStartingMaxes(
+  userId: string,
+  wanted: Map<string, number>,
+): Promise<void> {
+  let exercises = await listExercises(userId, "active");
+  for (const [name, maxWeight] of wanted) {
+    const exerciseId = liveExerciseId(exercises, name);
+    if (!exerciseId) {
+      continue;
+    }
     try {
-      await correctStartingMax({
-        userId,
-        exerciseId: item.exerciseId,
-        maxWeight: item.maxWeight,
-      });
+      await correctStartingMax({ userId, exerciseId, maxWeight });
     } catch (error) {
       if (error instanceof StartingMaxLockedError) {
         return;
       }
-      throw error;
+      if (!isForeignKeyViolation(error)) {
+        throw error;
+      }
+      exercises = await listExercises(userId, "active");
+      const again = liveExerciseId(exercises, name);
+      if (!again || again === exerciseId) {
+        continue;
+      }
+      try {
+        await correctStartingMax({
+          userId,
+          exerciseId: again,
+          maxWeight,
+        });
+      } catch (retry) {
+        if (retry instanceof StartingMaxLockedError) {
+          return;
+        }
+        if (isForeignKeyViolation(retry)) {
+          continue;
+        }
+        throw retry;
+      }
     }
   }
+}
+
+function liveExerciseId(
+  exercises: Awaited<ReturnType<typeof listExercises>>,
+  name: string,
+): string | null {
+  return pickLiveExerciseId(
+    exercises.map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name,
+      hasMax: exercise.current_max != null,
+    })),
+    name,
+  );
+}
+
+function isForeignKeyViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "23503"
+  );
 }
 
 async function scaleMealTemplatesToProtein(

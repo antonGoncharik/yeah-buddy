@@ -8,7 +8,7 @@ export const GUIDE_DOODLES = [
 
 export type GuideDoodle = (typeof GUIDE_DOODLES)[number];
 
-export const GUIDE_TIP_IDS = ["today", "workouts"] as const;
+export const GUIDE_TIP_IDS = ["today", "day-type", "body", "workouts"] as const;
 
 export type GuideTipId = (typeof GUIDE_TIP_IDS)[number];
 

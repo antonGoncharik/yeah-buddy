@@ -3,6 +3,8 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { BodyWeightField } from "@/components/day/body-weight-field";
+import { GuideTipCard } from "@/components/guide/guide-tip-card";
+import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
 import { JoyShareButton } from "@/components/share/joy-share-button";
@@ -84,6 +86,7 @@ export function DaySummary({
   const wasClosed = useRef(false);
   const cookie = useWiggle();
   const wiggleCookie = cookie.play;
+  const bodyTip = useGuideTip("body");
   const almost = flashClosed
     ? null
     : proteinAlmostLine(remainingProtein, fact.protein);
@@ -254,18 +257,24 @@ export function DaySummary({
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
       {bodyMetrics ? (
-        <WeightBlock
-          bodyWeight={bodyWeight}
-          lastBodyWeight={lastBodyWeight}
-          waist={waist}
-          lastWaist={lastWaist}
-          readOnly={bodyWeightReadOnly}
-          busy={bodyWeightBusy}
-          note={weightNote}
-          wide
-          onSave={onSaveBodyWeight}
-          onSaveWaist={onSaveWaist}
-        />
+        <div className="flex flex-col gap-3 border-t border-border pt-4">
+          {bodyTip.tip ? (
+            <GuideTipCard tip={bodyTip.tip} onDismiss={bodyTip.dismiss} />
+          ) : null}
+          <WeightBlock
+            bodyWeight={bodyWeight}
+            lastBodyWeight={lastBodyWeight}
+            waist={waist}
+            lastWaist={lastWaist}
+            readOnly={bodyWeightReadOnly}
+            busy={bodyWeightBusy}
+            note={weightNote}
+            wide
+            divided={false}
+            onSave={onSaveBodyWeight}
+            onSaveWaist={onSaveWaist}
+          />
+        </div>
       ) : null}
     </section>
   );
@@ -397,6 +406,7 @@ function WeightBlock({
   busy,
   note,
   wide = false,
+  divided,
   onSave,
   onSaveWaist,
 }: {
@@ -408,15 +418,21 @@ function WeightBlock({
   busy: boolean;
   note: string | null;
   wide?: boolean;
+  divided?: boolean;
   onSave?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
   const showWaist = onSaveWaist != null || waist != null;
+  const showDivider = divided ?? wide;
 
   return (
     <div
       className={cn(
-        wide ? "border-t border-border pt-4" : "shrink-0 text-right",
+        showDivider
+          ? "border-t border-border pt-4"
+          : wide
+            ? undefined
+            : "shrink-0 text-right",
       )}
     >
       <div

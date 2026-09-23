@@ -2,6 +2,7 @@ import {
   type DedupeExerciseCandidate,
   exerciseNameKey,
   pickExerciseKeeper,
+  pickLiveExerciseId,
   STARTER_EXERCISE_NAME_KEYS,
 } from "@/lib/workout/dedupe-exercises";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
@@ -91,5 +92,16 @@ const older = pickExerciseKeeper([
   },
 ]);
 assert(older.id === "older", "prefer the older row when ties remain");
+
+const squat = { id: "gone", name: "Приседания со штангой", hasMax: false };
+const keeper = { id: "live", name: "Приседания со штангой", hasMax: true };
+assert(
+  pickLiveExerciseId([squat, keeper], "приседания со штангой") === "live",
+  "a max follows the surviving squat, even if the name case differs",
+);
+assert(
+  pickLiveExerciseId([squat], "Жим лёжа") === null,
+  "a missing lift is skipped",
+);
 
 console.log("dedupe exercises ok");

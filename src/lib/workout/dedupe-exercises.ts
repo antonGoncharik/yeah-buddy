@@ -6,6 +6,19 @@ export function exerciseNameKey(name: string): string {
   return name.trim().toLowerCase();
 }
 
+/** Id to attach a max to. Prefers the row that already has one. */
+export function pickLiveExerciseId(
+  exercises: ReadonlyArray<{ id: string; name: string; hasMax: boolean }>,
+  name: string,
+): string | null {
+  const key = exerciseNameKey(name);
+  const matches = exercises.filter(
+    (exercise) => exerciseNameKey(exercise.name) === key,
+  );
+  const withMax = matches.find((exercise) => exercise.hasMax);
+  return (withMax ?? matches[0])?.id ?? null;
+}
+
 export const STARTER_EXERCISE_NAME_KEYS = new Set(
   STARTER_EXERCISES.map((exercise) => exerciseNameKey(exercise.name)),
 );
