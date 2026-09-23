@@ -55,14 +55,159 @@ const REVIEW_MODEL = "gemini-3.5-flash";
 
 export type GeminiPurpose = "plate" | "review";
 
+const GEMINI_KEY_LIMIT = 3;
+const MINUTE_COOLDOWN_MS = 60_000;
+const DEFAULT_COOLDOWN_MS = 15 * 60_000;
+const MAX_COOLDOWN_MS = 86_400_000;
+
+const cooledUntil = new Map<string, number>();
+
+export function readGeminiKeys(
+  purpose: GeminiPurpose,
+  env: Record<string, string | undefined> = process.env,
+): string[] {
+  const raw =
+    purpose === "plate" ? env.GEMINI_PLATE_API_KEY : env.GEMINI_API_KEY;
+  if (!raw) {
+    return [];
+  }
+
+  const keys: string[] = [];
+  for (const part of raw.split(",")) {
+    const key = part.trim();
+    if (!key || keys.includes(key)) {
+      continue;
+    }
+    keys.push(key);
+    if (keys.length >= GEMINI_KEY_LIMIT) {
+      break;
+    }
+  }
+  return keys;
+}
+
 export function readGeminiKey(
   purpose: GeminiPurpose,
   env: Record<string, string | undefined> = process.env,
 ): string | null {
-  const raw =
-    purpose === "plate" ? env.GEMINI_PLATE_API_KEY : env.GEMINI_API_KEY;
-  const key = raw?.trim();
-  return key ? key : null;
+  return readGeminiKeys(purpose, env)[0] ?? null;
+}
+
+export function noteGeminiLimited(
+  key: string,
+  until: number,
+  store: Map<string, number> = cooledUntil,
+): void {
+  const current = store.get(key) ?? 0;
+  if (until > current) {
+    store.set(key, until);
+  }
+}
+
+export function availableGeminiKeys(
+  keys: string[],
+  now: number,
+  store: Map<string, number> = cooledUntil,
+): string[] {
+  return keys.filter((key) => (store.get(key) ?? 0) <= now);
+}
+
+export function geminiCooldownUntil(payload: unknown, now: number): number {
+  return now + geminiCooldownMs(payload, now);
+}
+
+function geminiCooldownMs(payload: unknown, now: number): number {
+  if (quotaText(payload).includes("perday")) {
+    return Math.min(
+      Math.max(msUntilPacificMidnight(now), MINUTE_COOLDOWN_MS),
+      MAX_COOLDOWN_MS,
+    );
+  }
+
+  const retryMs = readRetryDelayMs(payload);
+  if (quotaText(payload).includes("perminute")) {
+    return clampCooldown(retryMs ?? MINUTE_COOLDOWN_MS);
+  }
+  if (retryMs != null) {
+    return clampCooldown(retryMs);
+  }
+  return DEFAULT_COOLDOWN_MS;
+}
+
+function clampCooldown(ms: number): number {
+  if (!Number.isFinite(ms) || ms <= 0) {
+    return MINUTE_COOLDOWN_MS;
+  }
+  return Math.min(ms, MAX_COOLDOWN_MS);
+}
+
+function quotaText(payload: unknown): string {
+  try {
+    return JSON.stringify(payload).toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function readRetryDelayMs(payload: unknown): number | null {
+  const delay = findRetryDelay(payload);
+  if (typeof delay === "number") {
+    return delay > 0 ? Math.round(delay * 1000) : null;
+  }
+  if (typeof delay === "string") {
+    const match = /^(\d+(?:\.\d+)?)s$/.exec(delay.trim());
+    if (!match?.[1]) {
+      return null;
+    }
+    const ms = Math.round(Number(match[1]) * 1000);
+    return ms > 0 ? ms : null;
+  }
+  if (!delay || typeof delay !== "object") {
+    return null;
+  }
+  const seconds = Reflect.get(delay, "seconds");
+  const nanos = Reflect.get(delay, "nanos");
+  const sec =
+    typeof seconds === "number"
+      ? seconds
+      : typeof seconds === "string"
+        ? Number(seconds)
+        : 0;
+  const nano = typeof nanos === "number" ? nanos : 0;
+  const ms = sec * 1000 + nano / 1_000_000;
+  return ms > 0 ? Math.round(ms) : null;
+}
+
+function findRetryDelay(value: unknown): unknown {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  if (Reflect.has(value, "retryDelay")) {
+    return Reflect.get(value, "retryDelay");
+  }
+  for (const child of Object.values(value)) {
+    const found = findRetryDelay(child);
+    if (found != null) {
+      return found;
+    }
+  }
+  return null;
+}
+
+function msUntilPacificMidnight(now: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(new Date(now));
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+  const elapsed =
+    pick("hour") * 3_600_000 + pick("minute") * 60_000 + pick("second") * 1000;
+  const left = MAX_COOLDOWN_MS - elapsed;
+  return left > 0 ? left : MAX_COOLDOWN_MS;
 }
 
 export function getGeminiReviewApiKey(): string | null {
@@ -95,7 +240,7 @@ export type GeminiUserPart =
   | { inlineData: { mimeType: string; data: string } };
 
 export async function generateGeminiJson({
-  key,
+  keys,
   system,
   parts,
   schema,
@@ -107,7 +252,7 @@ export async function generateGeminiJson({
   model: modelOverride,
   thinkingLevel,
 }: {
-  key: string;
+  keys: string[];
   system: string;
   parts: GeminiUserPart[];
   schema: object;
@@ -119,80 +264,99 @@ export async function generateGeminiJson({
   model?: string;
   thinkingLevel?: "minimal" | "low" | "medium" | "high";
 }): Promise<unknown> {
-  if (!key) {
+  if (keys.length === 0) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 
-  const model = encodeURIComponent(modelOverride?.trim() || PLATE_MODEL);
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": key,
-      },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: system }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts,
-          },
-        ],
-        generationConfig: {
-          temperature,
-          maxOutputTokens,
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          ...(thinkingLevel
-            ? {
-                thinkingConfig: {
-                  thinkingLevel: thinkingLevel.toUpperCase(),
-                },
-              }
-            : {}),
-        },
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
-    },
-  );
+  const attempt = availableGeminiKeys(keys, Date.now());
+  if (attempt.length === 0) {
+    throw new ReviewError("LIMIT", limitMessage ?? failedMessage);
+  }
 
-  const payload: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    console.error("gemini request failed", response.status, payload);
-    if (isGeminiLimit(response.status, payload)) {
+  const model = encodeURIComponent(modelOverride?.trim() || PLATE_MODEL);
+  const body = JSON.stringify({
+    systemInstruction: {
+      parts: [{ text: system }],
+    },
+    contents: [
+      {
+        role: "user",
+        parts,
+      },
+    ],
+    generationConfig: {
+      temperature,
+      maxOutputTokens,
+      responseMimeType: "application/json",
+      responseSchema: schema,
+      ...(thinkingLevel
+        ? {
+            thinkingConfig: {
+              thinkingLevel: thinkingLevel.toUpperCase(),
+            },
+          }
+        : {}),
+    },
+  });
+
+  for (let index = 0; index < attempt.length; index += 1) {
+    const key = attempt[index];
+    if (!key) {
+      continue;
+    }
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": key,
+        },
+        body,
+        signal: AbortSignal.timeout(timeoutMs),
+      },
+    );
+
+    const payload: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      console.error("gemini request failed", response.status, payload);
+      if (!isGeminiLimit(response.status, payload)) {
+        throw new ReviewError("GEMINI", failedMessage);
+      }
+      noteGeminiLimited(key, geminiCooldownUntil(payload, Date.now()));
+      if (index < attempt.length - 1) {
+        continue;
+      }
       throw new ReviewError("LIMIT", limitMessage ?? failedMessage);
     }
-    throw new ReviewError("GEMINI", failedMessage);
+
+    const text = readCandidateText(payload);
+    if (!text) {
+      console.error("gemini empty candidate", summarizeGeminiFailure(payload));
+      throw new ReviewError("GEMINI", failedMessage);
+    }
+
+    try {
+      return readJson(text);
+    } catch {
+      throw new ReviewError("GEMINI", failedMessage);
+    }
   }
 
-  const text = readCandidateText(payload);
-  if (!text) {
-    console.error("gemini empty candidate", summarizeGeminiFailure(payload));
-    throw new ReviewError("GEMINI", failedMessage);
-  }
-
-  try {
-    return readJson(text);
-  } catch {
-    throw new ReviewError("GEMINI", failedMessage);
-  }
+  throw new ReviewError("LIMIT", limitMessage ?? failedMessage);
 }
 
 export async function writeReview(
   brief: ReviewBrief,
   previous: StoredReview | null = null,
 ): Promise<ReviewText> {
-  const key = getGeminiReviewApiKey();
-  if (!key) {
+  const keys = readGeminiKeys("review");
+  if (keys.length === 0) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 
   const payload = await generateGeminiJson({
-    key,
+    keys,
     system: REVIEW_SYSTEM_PROMPT,
     parts: [
       { text: REVIEW_USER_LEAD },

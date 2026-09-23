@@ -1,4 +1,11 @@
-import { isGeminiLimit, readGeminiKey } from "@/lib/ai/gemini";
+import {
+  availableGeminiKeys,
+  geminiCooldownUntil,
+  isGeminiLimit,
+  noteGeminiLimited,
+  readGeminiKey,
+  readGeminiKeys,
+} from "@/lib/ai/gemini";
 import {
   dailyLimit,
   plateRemainingLine,
@@ -36,6 +43,72 @@ assertEqual(
   readGeminiKey("review", { GEMINI_PLATE_API_KEY: "pic" }),
   null,
   "review does not share plate key",
+);
+assertEqual(
+  readGeminiKeys("review", {
+    GEMINI_API_KEY: " a, b , a , c , d ",
+  }).join("|"),
+  "a|b|c",
+  "review pool keeps three distinct keys",
+);
+assertEqual(
+  readGeminiKeys("plate", { GEMINI_PLATE_API_KEY: " , pic , " }).join("|"),
+  "pic",
+  "plate pool skips blanks",
+);
+assertEqual(
+  readGeminiKeys("plate", { GEMINI_API_KEY: "wow,two" }).join("|"),
+  "",
+  "plate pool ignores review keys",
+);
+
+const cooled = new Map<string, number>();
+noteGeminiLimited("a", 1_000, cooled);
+noteGeminiLimited("a", 500, cooled);
+assertEqual(cooled.get("a"), 1_000, "cooldown does not shrink");
+assertEqual(
+  availableGeminiKeys(["a", "b"], 500, cooled).join("|"),
+  "b",
+  "cooling key is skipped",
+);
+assertEqual(
+  availableGeminiKeys(["a", "b"], 1_000, cooled).join("|"),
+  "a|b",
+  "expired cooldown returns",
+);
+
+const now = Date.UTC(2026, 8, 23, 12, 0, 0);
+assertEqual(
+  geminiCooldownUntil(
+    { error: { quotaId: "GenerateRequestsPerMinutePerProjectPerModel" } },
+    now,
+  ) - now,
+  60_000,
+  "minute quota waits a minute",
+);
+assertEqual(
+  geminiCooldownUntil({ error: { details: [{ retryDelay: "30s" }] } }, now) -
+    now,
+  30_000,
+  "retry delay is honored",
+);
+const dailyWait =
+  geminiCooldownUntil(
+    {
+      error: {
+        quotaId: "GenerateRequestsPerDayPerProjectPerModel",
+        details: [{ retryDelay: "30s" }],
+      },
+    },
+    now,
+  ) - now;
+if (dailyWait <= 60_000 || dailyWait > 86_400_000) {
+  throw new Error(`daily quota wait out of range: ${dailyWait}`);
+}
+assertEqual(
+  geminiCooldownUntil({ error: { status: "RESOURCE_EXHAUSTED" } }, now) - now,
+  15 * 60_000,
+  "unknown limit waits fifteen minutes",
 );
 
 assertEqual(dailyLimit("plate"), 2, "two photos");

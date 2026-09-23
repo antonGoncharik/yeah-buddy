@@ -54,8 +54,8 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 | `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
-| `GEMINI_API_KEY` | no | text review «Как прошло»; without it the screen still shows numbers |
-| `GEMINI_PLATE_API_KEY` | no | plate photo; without it the camera link is hidden, food still logs by hand. Prefer a second Google project — keys in one project share Gemini quota |
+| `GEMINI_API_KEY` | no | text review «Как прошло». Up to three comma-separated keys, each from its own Google project (one project shares one Gemini quota). A limited key is skipped for the next call. Without a key the screen still shows numbers |
+| `GEMINI_PLATE_API_KEY` | no | plate photo, same pool of up to three keys from separate projects. Without a key the camera link is hidden, food still logs by hand |
 
 Migrations: `supabase/migrations/0001_init.sql` … `0034_inbox_topics.sql` — apply in order in the SQL Editor or with the Supabase CLI. `0034` is the mailbox for Написать.
 

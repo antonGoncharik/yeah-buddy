@@ -1,5 +1,5 @@
 import { ReviewError } from "@/lib/ai/errors";
-import { generateGeminiJson, getGeminiPlateApiKey } from "@/lib/ai/gemini";
+import { generateGeminiJson, readGeminiKeys } from "@/lib/ai/gemini";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
 import { takeReadyPlateItems } from "@/lib/ai/plate-match";
 import { parsePlateModelItems } from "@/lib/ai/plate-parse";
@@ -78,8 +78,8 @@ export async function analyzePlate(
   image: { mimeType: string; data: string },
   allFoods: PlateFoodRef[] = catalogFoods,
 ): Promise<PlateDraft & { remaining: number | null }> {
-  const key = getGeminiPlateApiKey();
-  if (!key) {
+  const keys = readGeminiKeys("plate");
+  if (keys.length === 0) {
     throw new ReviewError("NO_KEY", AI_PLATE_OFF);
   }
 
@@ -93,7 +93,7 @@ export async function analyzePlate(
   try {
     const catalog = compactPlateCatalog(catalogFoods);
     const payload = await generateGeminiJson({
-      key,
+      keys,
       system: SYSTEM_PROMPT,
       parts: [
         { inlineData: { mimeType: image.mimeType, data: image.data } },
