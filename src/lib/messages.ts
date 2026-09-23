@@ -51,11 +51,6 @@ export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
 export const STARTER_CATALOG_NOTE =
   "Обычные продукты на старте. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.";
-export const STARTER_DAY_NOTE =
-  "Это пример дня под твой белок: овсянка, яйца, курица, творог. Он стоит, чтобы было с чего начать. Ешь так — оставь. Ешь другое — убери пример и запиши своё.";
-export const STARTER_DAY_CLEAR =
-  "Убрать пример? День станет пустым, и можно записать то, что ешь.";
-export const STARTER_DAY_CLEAR_LABEL = "Убрать пример";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 
@@ -158,13 +153,15 @@ export const ACCOUNT_DELETE_CONFIRM =
 export const DONATE_THANKS = "Спасибо";
 export const DONATE_REJECT = "Этот счёт не принять.";
 export const DONATE_HINT = "Звёзды Telegram. Уходят автору.";
+export const DONATE_STARS_INVALID = "От 1 до 10 000 звёзд.";
 export const INBOX_SETTINGS_TITLE = "Написать";
 export const INBOX_SETTINGS_HINT =
-  "Своя программа, что улучшить или что изменить.";
+  "Что улучшить, пожаловаться или заказать программу питания и тренировок.";
 export const INBOX_MENU = "О чём написать?";
-export const INBOX_TOPIC_PROGRAM = "Своя программа";
 export const INBOX_TOPIC_IMPROVE = "Что улучшить";
-export const INBOX_TOPIC_CHANGE = "Изменить приложение";
+export const INBOX_TOPIC_CHANGE = "Пожаловаться";
+export const INBOX_TOPIC_PROGRAM =
+  "Заказать программу питания или тренировок";
 export const INBOX_OTHER = "Другая тема";
 export const INBOX_HOLD = "Выбери тему — и это уйдёт.";
 export const INBOX_PICK_FIRST = "Сначала выбери тему, потом пришли ещё раз.";

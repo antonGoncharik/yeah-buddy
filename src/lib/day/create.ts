@@ -3,6 +3,7 @@ import type { DayWithMeals } from "@/lib/day/map";
 import { buildMealItemRow } from "@/lib/day/meal-items";
 import { getDayByDate } from "@/lib/day/store";
 import { assertUserDayWritable } from "@/lib/day/writable";
+import { isStarterMealTemplate } from "@/lib/food/starter";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import {
   calcKcalFromMacros,
@@ -74,6 +75,10 @@ export async function writeTemplateItems(
   template: MealTemplateDetail | null,
 ): Promise<void> {
   if (!template || template.items.length === 0) {
+    return;
+  }
+  // Old accounts may still hold the built-in oatmeal menu — leave the day empty.
+  if (isStarterMealTemplate(template)) {
     return;
   }
 

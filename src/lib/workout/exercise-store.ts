@@ -1,6 +1,8 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
+import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Exercise, ExerciseWithMax } from "@/lib/types";
+import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
 import type {
   ExerciseCreateInput,
   ExerciseUpdateInput,
@@ -92,9 +94,9 @@ export async function ensureNamedExercise(
   },
 ): Promise<Exercise> {
   const catalog = await listExercises(userId, "all");
-  const needle = input.name.trim().toLowerCase();
+  const needle = exerciseNameKey(input.name);
   const found = catalog.find(
-    (exercise) => exercise.name.trim().toLowerCase() === needle,
+    (exercise) => exerciseNameKey(exercise.name) === needle,
   );
   if (found) {
     if (!found.is_active) {
@@ -118,6 +120,19 @@ export async function ensureNamedExercise(
     })
     .select("*")
     .single();
+
+  if (inserted.error?.code === UNIQUE_VIOLATION) {
+    const raced = await listExercises(userId, "all");
+    const existing = raced.find(
+      (exercise) => exerciseNameKey(exercise.name) === needle,
+    );
+    if (existing) {
+      if (!existing.is_active) {
+        await archiveExercise(userId, existing.id, false);
+      }
+      return existing;
+    }
+  }
 
   if (inserted.error || !inserted.data) {
     throw inserted.error ?? new Error("Exercise insert failed");

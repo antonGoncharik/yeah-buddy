@@ -1,15 +1,23 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { seededNames, throwUnlessUniqueViolation } from "@/lib/seed-missing";
+import {
+  dedupeStarterExercises,
+  exerciseNameKey,
+} from "@/lib/workout/dedupe-exercises";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
 export async function ensureStarterExercises(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
+  // Login can race itself; collapse starter-name copies before inserting.
+  await dedupeStarterExercises(supabase, userId);
+
   const have = await seededNames(supabase, "exercises", userId);
+  const haveKeys = new Set([...have].map((name) => exerciseNameKey(name)));
   const missing = STARTER_EXERCISES.filter(
-    (exercise) => !have.has(exercise.name),
+    (exercise) => !haveKeys.has(exerciseNameKey(exercise.name)),
   );
   if (missing.length === 0) {
     return;
@@ -30,4 +38,6 @@ export async function ensureStarterExercises(
   );
 
   throwUnlessUniqueViolation(inserted.error);
+  // A parallel seed may have won the insert; drop any leftover copies.
+  await dedupeStarterExercises(supabase, userId);
 }

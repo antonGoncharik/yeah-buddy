@@ -16,6 +16,7 @@ import {
 } from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import {
   type OnboardingGoal,
   type OnboardingSex,
@@ -47,6 +48,10 @@ function proteinValid(value: number | null): value is number {
 
 function weightValid(value: number | null): value is number {
   return value != null && value >= 30 && value <= 250;
+}
+
+function weightDraftOk(raw: string): boolean {
+  return decimalDraftLooksValid(raw) && weightValid(parseDecimal(raw));
 }
 
 function emptyLiftAnswers(): LiftAnswers {
@@ -183,7 +188,7 @@ export function useOnboardingScreen() {
         setError(WEIGHT_REQUIRED);
         return;
       }
-      if (!weightValid(weightKg)) {
+      if (!weightDraftOk(weight)) {
         haptic("warn");
         setError(WEIGHT_INVALID);
         return;
@@ -218,7 +223,7 @@ export function useOnboardingScreen() {
         setStep("sex");
         return;
       }
-      if (!weightValid(weightKg)) {
+      if (!weightDraftOk(weight)) {
         haptic("warn");
         setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
         setStep("weight");

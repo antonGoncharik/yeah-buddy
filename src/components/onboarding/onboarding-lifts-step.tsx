@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { haptic } from "@/lib/telegram/haptic";
 
 export type LiftKey = "squat" | "bench" | "deadlift";
@@ -58,7 +59,9 @@ export function OnboardingLiftsStep({
                 disabled={unknown}
                 value={unknown ? "" : value}
                 placeholder={unknown ? "не знаю" : "кг"}
-                onChange={(event) => onChange(field.id, event.target.value)}
+                onChange={(event) =>
+                  onChange(field.id, sanitizeDecimalDraft(event.target.value))
+                }
                 className="h-12 text-base"
               />
               <Button

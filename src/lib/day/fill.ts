@@ -3,6 +3,7 @@ import { buildMealItemRow, getDateForMeal } from "@/lib/day/meal-items";
 import { recipeFromTemplate, remainingFills } from "@/lib/day/remaining";
 import { getDayByDate } from "@/lib/day/store";
 import { assertUserDayWritable } from "@/lib/day/writable";
+import { isStarterMealTemplate } from "@/lib/food/starter";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { calcMacrosFromPer100, roundMacros } from "@/lib/nutrition";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -83,6 +84,9 @@ async function applyRemainingFills(
     userId,
     day.is_training_day ? "training" : "rest",
   );
+  if (template && isStarterMealTemplate(template)) {
+    return day;
+  }
   const fills = remainingFills(
     recipeFromTemplate(template),
     day.meals,

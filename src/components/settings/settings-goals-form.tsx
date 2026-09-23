@@ -19,6 +19,7 @@ import type { UserTrainingAge } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { formatWeight } from "@/lib/workout/numbers";
+import { sanitizeIntegerDraft } from "@/lib/form/numeric-draft";
 
 export function SettingsGoalsForm({
   form,
@@ -221,9 +222,16 @@ export function SettingsGoalsForm({
             aria-label="Сколько лет в зале"
             value={form.training_years}
             placeholder="не указано"
-            onChange={(event) => updateYears(event.target.value)}
+            onChange={(event) =>
+              updateYears(sanitizeIntegerDraft(event.target.value))
+            }
             className="field-control h-12 w-24 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
+          {form.training_years.trim() !== "" &&
+          (Number(form.training_years) > 80 ||
+            !/^\d+$/.test(form.training_years)) ? (
+            <p className="text-sm text-destructive">От 0 до 80 лет.</p>
+          ) : null}
         </label>
       </section>
 

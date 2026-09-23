@@ -12,6 +12,7 @@ import {
   toNativeGrams,
 } from "@/lib/food/yield";
 import { gramsChipForMode, yieldEquivalentLabel } from "@/lib/food/yield-copy";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { calcMacrosFromPer100 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { FoodState } from "@/lib/types";
@@ -102,7 +103,10 @@ export function useGramsScreen({
 
   return {
     gramsInput,
-    setGramsInput,
+    setGramsInput: (value: string) => {
+      setError(null);
+      setGramsInput(sanitizeDecimalDraft(value));
+    },
     gramsMode,
     pair,
     nativeGrams,

@@ -180,6 +180,24 @@ export function isStarterDayMenu(
   return true;
 }
 
+/** Built-in oatmeal day — do not copy onto a new day; person saves their own. */
+export function isStarterMealTemplate(template: {
+  day_type: DayType;
+  items: ReadonlyArray<{ meal_type: MealType; food: { name: string } }>;
+}): boolean {
+  const byMeal = new Map<MealType, string[]>();
+  for (const item of template.items) {
+    const names = byMeal.get(item.meal_type) ?? [];
+    names.push(item.food.name);
+    byMeal.set(item.meal_type, names);
+  }
+  const meals = [...byMeal.entries()].map(([mealType, names]) => ({
+    mealType,
+    names,
+  }));
+  return isStarterDayMenu(meals, template.day_type);
+}
+
 function sameFoodNames(
   left: readonly string[],
   right: readonly string[],

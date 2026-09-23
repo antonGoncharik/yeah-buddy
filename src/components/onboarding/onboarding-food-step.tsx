@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import {
   formatKcal,
   ONBOARDING_GOAL_OPTIONS,
@@ -70,10 +71,12 @@ export function OnboardingSexStep({
 export function OnboardingWeightStep({
   weight,
   invalid,
+  message,
   onChange,
 }: {
   weight: string;
   invalid: boolean;
+  message: string | null;
   onChange: (value: string) => void;
 }) {
   return (
@@ -91,9 +94,12 @@ export function OnboardingWeightStep({
         autoComplete="off"
         value={weight}
         aria-invalid={invalid || undefined}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => onChange(sanitizeDecimalDraft(event.target.value))}
         className="h-12 text-base"
       />
+      {invalid && message ? (
+        <p className="text-sm text-destructive">{message}</p>
+      ) : null}
     </div>
   );
 }
@@ -116,8 +122,10 @@ export function OnboardingGoalStep({
           type="button"
           aria-pressed={goal === option.id}
           className={cn(
-            "card-surface w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
-            goal === option.id && "ring-2 ring-primary",
+            "w-full rounded-2xl px-5 py-4 text-left transition-[transform,box-shadow,background-color,color] duration-300 ease-[var(--ease-out-soft)] active:scale-[0.97] motion-reduce:transition-none",
+            goal === option.id
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "card-surface hover:bg-muted/30",
           )}
           onClick={() => {
             if (goal !== option.id) {
@@ -129,7 +137,16 @@ export function OnboardingGoalStep({
           }}
         >
           <p className="text-lg font-medium">{option.label}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{option.hint}</p>
+          <p
+            className={cn(
+              "mt-1 text-sm",
+              goal === option.id
+                ? "text-primary-foreground/80"
+                : "text-muted-foreground",
+            )}
+          >
+            {option.hint}
+          </p>
         </button>
       ))}
     </div>
@@ -241,7 +258,9 @@ export function OnboardingMacrosStep({
             autoComplete="off"
             value={proteinOverride ?? String(protein)}
             aria-invalid={proteinInvalid || undefined}
-            onChange={(event) => onProteinOverride(event.target.value)}
+            onChange={(event) =>
+              onProteinOverride(sanitizeDecimalDraft(event.target.value))
+            }
             className="h-12 text-base"
           />
         </div>

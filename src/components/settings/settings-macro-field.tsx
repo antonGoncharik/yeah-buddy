@@ -4,6 +4,7 @@ import { parseMacro } from "@/components/settings/settings-form-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { formatKcal } from "@/lib/nutrition";
 
 export function SettingsMacroField({
@@ -21,6 +22,7 @@ export function SettingsMacroField({
 }) {
   const grams = parseMacro(value);
   const kcal = grams == null ? null : grams * kcalPerGram;
+  const invalid = value.trim() !== "" && grams == null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -37,10 +39,16 @@ export function SettingsMacroField({
         inputMode="decimal"
         enterKeyHint={enterKeyHint}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        aria-invalid={invalid || undefined}
+        onChange={(event) =>
+          onChange(sanitizeDecimalDraft(event.target.value))
+        }
         onKeyDown={handleNumericEnter}
         className="h-12 text-base"
       />
+      {invalid ? (
+        <p className="text-sm text-destructive">Число от 0 и выше.</p>
+      ) : null}
     </div>
   );
 }

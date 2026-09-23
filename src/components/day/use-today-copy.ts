@@ -23,7 +23,6 @@ import type { DayWithMeals } from "@/lib/day/map";
 import {
   copyMealsFrom,
   isTempId,
-  withClearedItems,
 } from "@/lib/day/optimistic";
 import { recipeFromTemplate } from "@/lib/day/remaining";
 import { readRecipes } from "@/lib/day/today-payload";
@@ -32,7 +31,6 @@ import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
-  STARTER_DAY_CLEAR,
   saveDayTemplateReplace,
 } from "@/lib/messages";
 import { mealExistsReplace } from "@/lib/nutrition";
@@ -133,30 +131,6 @@ export function useTodayCopy({
     } finally {
       setBusy(false);
     }
-  }
-
-  async function clearDayFood(dayId: string) {
-    if (viewOnly || !day || isTempId(day.id) || day.id !== dayId) {
-      return;
-    }
-
-    const ok = await confirm({
-      message: STARTER_DAY_CLEAR,
-      confirmLabel: "Убрать",
-      cancelLabel: "Оставить",
-      destructive: true,
-    });
-    if (!ok) {
-      return;
-    }
-
-    haptic("commit");
-    await withDayOptimistic(date, withClearedItems(day), async () => {
-      const data = await postJson(`/api/days/${dayId}/clear-food`, {});
-      const next = writeDayResponse(date, data);
-      haptic("success");
-      return next ?? "keep";
-    });
   }
 
   async function fillFromTemplate(url: string, mealType?: MealType) {
@@ -300,7 +274,6 @@ export function useTodayCopy({
     deleteNamedMeal: named.deleteNamedMeal,
     shareMeal: named.shareMeal,
     shareNamedMeal: named.shareNamedMeal,
-    clearDayFood,
     saveDayAsTemplate,
     fillDayFromTemplate: (dayId: string) =>
       fillFromTemplate(`/api/days/${dayId}/fill-template`),

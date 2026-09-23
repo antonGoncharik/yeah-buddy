@@ -349,11 +349,11 @@ async function present(
 
 function menuKeyboard(): InlineKeyboard {
   return new InlineKeyboard()
-    .text(INBOX_TOPIC_PROGRAM, "inbox:program")
-    .row()
     .text(INBOX_TOPIC_IMPROVE, "inbox:improve")
     .row()
-    .text(INBOX_TOPIC_CHANGE, "inbox:change");
+    .text(INBOX_TOPIC_CHANGE, "inbox:change")
+    .row()
+    .text(INBOX_TOPIC_PROGRAM, "inbox:program");
 }
 
 function otherKeyboard(): InlineKeyboard {

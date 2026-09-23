@@ -2,6 +2,7 @@ import { getUserCalendarToday } from "@/lib/day/writable";
 import { getUserSettings } from "@/lib/settings";
 import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
 import { withCycle } from "@/lib/workout/cycle";
+import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
 import {
   archiveExercise,
   ensureNamedExercise,
@@ -51,9 +52,31 @@ export async function applyProgramPreset(
   }
 
   const catalog = await listExercises(userId, "all");
-  const byName = new Map(
-    catalog.map((exercise) => [exercise.name, exercise.id] as const),
-  );
+  // Prefer an active / earlier row when seed raced and left name copies.
+  const byName = new Map<string, string>();
+  for (const exercise of catalog) {
+    const key = exerciseNameKey(exercise.name);
+    const currentId = byName.get(key);
+    if (!currentId) {
+      byName.set(key, exercise.id);
+      continue;
+    }
+    const current = catalog.find((item) => item.id === currentId);
+    if (!current) {
+      byName.set(key, exercise.id);
+      continue;
+    }
+    if (!current.is_active && exercise.is_active) {
+      byName.set(key, exercise.id);
+      continue;
+    }
+    if (
+      current.is_active === exercise.is_active &&
+      exercise.created_at < current.created_at
+    ) {
+      byName.set(key, exercise.id);
+    }
+  }
   const archived = new Set(
     catalog.filter((exercise) => !exercise.is_active).map((item) => item.id),
   );
@@ -66,11 +89,12 @@ export async function applyProgramPreset(
   for (const day of preset.templates) {
     const slots: TemplateSlot[] = [];
     for (const slot of day.exercises) {
-      let exerciseId = byName.get(slot.name);
+      const nameKey = exerciseNameKey(slot.name);
+      let exerciseId = byName.get(nameKey);
       if (!exerciseId) {
         // A lift the user never had (e.g. added to the starter list later).
         const starter = STARTER_EXERCISES.find(
-          (item) => item.name === slot.name,
+          (item) => exerciseNameKey(item.name) === nameKey,
         );
         if (!starter) {
           continue;
@@ -85,7 +109,7 @@ export async function applyProgramPreset(
           formula_preset: starter.formula_preset,
         });
         exerciseId = created.id;
-        byName.set(slot.name, exerciseId);
+        byName.set(nameKey, exerciseId);
       } else if (archived.has(exerciseId)) {
         await archiveExercise(userId, exerciseId, false);
         archived.delete(exerciseId);

@@ -451,6 +451,7 @@ function WeightBlock({
                 onSave={onSaveWaist}
                 unit="см"
                 ariaLabel="Талия"
+                invalidHint="Талия от 40 до 200 см."
                 parse={parseWaist}
               />
             </div>

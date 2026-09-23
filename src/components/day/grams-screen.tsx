@@ -101,6 +101,7 @@ export function GramsScreen({
             inputMode="decimal"
             enterKeyHint="done"
             value={grams.gramsInput}
+            aria-invalid={grams.error ? true : undefined}
             onChange={(event) => grams.setGramsInput(event.target.value)}
             onKeyDown={handleNumericEnter}
             className="h-14 text-lg"

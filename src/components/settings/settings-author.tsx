@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import {
   DONATE_PRESETS,
+  DONATE_MAX,
+  DONATE_MIN,
   donateConfirmMessage,
   donateNeedsConfirm,
   donateStarsLabel,
@@ -14,14 +16,17 @@ import {
   parseDonateStars,
 } from "@/lib/donate/amount";
 import { openDonateInvoice } from "@/lib/donate/open";
+import { sanitizeIntegerDraft } from "@/lib/form/numeric-draft";
 import {
   DONATE_HINT,
+  DONATE_STARS_INVALID,
   DONATE_THANKS,
   LOAD_FAILED,
   OPEN_VIA_BOT,
 } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
+import { cn } from "@/lib/utils";
 
 function readInvoiceUrl(data: unknown): string | null {
   if (!isRecord(data) || typeof data.url !== "string") {
@@ -42,7 +47,12 @@ export function SettingsAuthor() {
   const [busy, setBusy] = useState(false);
   const [thanks, setThanks] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [starsTouched, setStarsTouched] = useState(false);
   const customStars = parseDonateStars(custom);
+  const starsInvalid =
+    starsTouched &&
+    custom.trim() !== "" &&
+    customStars == null;
 
   useEffect(() => {
     let cancelled = false;
@@ -111,9 +121,13 @@ export function SettingsAuthor() {
 
   function onCustom(event: FormEvent) {
     event.preventDefault();
-    if (customStars == null) {
+    setStarsTouched(true);
+    if (custom.trim() === "" || customStars == null) {
+      haptic("warn");
+      setError(DONATE_STARS_INVALID);
       return;
     }
+    setError(null);
     void pay(customStars);
   }
 
@@ -150,24 +164,42 @@ export function SettingsAuthor() {
             enterKeyHint="done"
             value={custom}
             disabled={busy}
+            aria-invalid={starsInvalid || undefined}
             onChange={(event) => {
-              setCustom(event.target.value);
+              setCustom(sanitizeIntegerDraft(event.target.value));
               setThanks(false);
+              setError(null);
+              setStarsTouched(true);
             }}
-            className="field-control h-12 min-w-0 flex-1 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className={cn(
+              "field-control h-12 min-w-0 flex-1 rounded-xl border border-input/70 bg-input-bg px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+              starsInvalid &&
+                "border-destructive ring-3 ring-destructive/20 focus-visible:border-destructive",
+            )}
           />
           <Button
             type="submit"
             variant="secondary"
             className="h-12 px-4 text-base"
-            disabled={busy || customStars == null}
+            disabled={busy}
           >
             Ок
           </Button>
         </span>
+        {starsInvalid ? (
+          <p className="text-sm text-destructive">
+            {DONATE_STARS_INVALID}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Целое число, {DONATE_MIN}–{DONATE_MAX.toLocaleString("ru-RU")}.
+          </p>
+        )}
       </form>
       {thanks ? <p className="text-lg font-medium">{DONATE_THANKS}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error && !starsInvalid ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : null}
     </section>
   );
 }

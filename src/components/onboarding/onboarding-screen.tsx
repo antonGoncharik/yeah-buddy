@@ -128,6 +128,7 @@ export function OnboardingScreen() {
           <OnboardingWeightStep
             weight={weight}
             invalid={weightInvalid}
+            message={weightInvalid ? error : null}
             onChange={onWeightChange}
           />
         ) : null}
@@ -166,7 +167,7 @@ export function OnboardingScreen() {
           />
         ) : null}
 
-        {error ? (
+        {error && step !== "weight" ? (
           <p className="animate-rise text-center text-base text-destructive">
             {error}
           </p>
@@ -180,7 +181,7 @@ export function OnboardingScreen() {
             disabled={saving}
             onClick={() => void goNext()}
           >
-            {saving ? "Сохранение…" : isLast ? "Готово" : "Дальше"}
+            {saving ? "Yeah buddy…" : isLast ? "Готово" : "Дальше"}
           </Button>
         </StickyActions>
       ) : null}

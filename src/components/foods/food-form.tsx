@@ -11,6 +11,7 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { Food } from "@/lib/types";
 
 export function FoodForm({
@@ -78,7 +79,11 @@ export function FoodForm({
           inputMode="decimal"
           enterKeyHint="next"
           value={form.default_portion_g}
-          onChange={(event) => patch({ default_portion_g: event.target.value })}
+          onChange={(event) =>
+            patch({
+              default_portion_g: sanitizeDecimalDraft(event.target.value),
+            })
+          }
           onKeyDown={handleNumericEnter}
           className="h-12 text-base"
         />

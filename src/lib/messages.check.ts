@@ -19,8 +19,6 @@ import {
   PROGRAM_SHELF_LEAD,
   PROGRAM_SHELF_TITLE,
   STARTER_CATALOG_NOTE,
-  STARTER_DAY_CLEAR,
-  STARTER_DAY_NOTE,
   saveDayTemplateLabel,
   saveDayTemplateReplace,
   switchRestToTrainingMessage,
@@ -96,16 +94,6 @@ assertEqual(
   saveDayTemplateReplace(true),
   "Уже есть еда на дни с залом. Заменить этим днём?",
   "training day template replace",
-);
-assertEqual(
-  STARTER_DAY_NOTE,
-  "Это пример дня под твой белок: овсянка, яйца, курица, творог. Он стоит, чтобы было с чего начать. Ешь так — оставь. Ешь другое — убери пример и запиши своё.",
-  "starter day explains itself",
-);
-assertEqual(
-  STARTER_DAY_CLEAR,
-  "Убрать пример? День станет пустым, и можно записать то, что ешь.",
-  "clear starter day",
 );
 assertEqual(
   STARTER_CATALOG_NOTE,

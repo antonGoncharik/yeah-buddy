@@ -18,8 +18,8 @@ export function OnboardingCircleStep({
     <>
       <p className="animate-rise text-base text-muted-foreground">
         {fromMealPack
-          ? "Еда на день возьмётся из ссылки. Сверху — «Всё тело», остальные за «Ещё программы». Максимум на раз спросим в зале."
-          : "Сверху — «Всё тело». Остальные программы за «Ещё программы». Если у выбранной есть недели — они встанут сами. Максимум на раз спросим в зале."}
+          ? "Еда на день возьмётся из ссылки. Сверху — «Всё тело», остальные за «Ещё программы»."
+          : "Сверху — «Всё тело». Остальные программы за «Ещё программы». Если у выбранной есть недели — они встанут сами."}
       </p>
       <ProgramPresetCatalog
         value={isProgramPresetId(value) ? value : null}
@@ -29,13 +29,22 @@ export function OnboardingCircleStep({
         type="button"
         aria-pressed={value === "empty"}
         className={cn(
-          "card-surface w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
-          value === "empty" && "ring-2 ring-primary",
+          "w-full rounded-2xl px-5 py-4 text-left transition-[transform,box-shadow,background-color,color] duration-300 ease-[var(--ease-out-soft)] active:scale-[0.97] motion-reduce:transition-none",
+          value === "empty"
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "card-surface hover:bg-muted/30",
         )}
         onClick={() => onChange("empty")}
       >
         <p className="text-lg font-medium">Без программы</p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p
+          className={cn(
+            "mt-1 text-sm",
+            value === "empty"
+              ? "text-primary-foreground/80"
+              : "text-muted-foreground",
+          )}
+        >
           Не хожу в зал или соберу тренировки сам.
         </p>
       </button>

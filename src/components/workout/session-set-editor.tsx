@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import type { SetDraft } from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { sanitizeDecimalDraft, sanitizeIntegerDraft } from "@/lib/form/numeric-draft";
 import type { WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { setRirLabel, setUsesSeconds } from "@/lib/workout/session-format";
@@ -126,7 +127,13 @@ function FieldInput({
         value={value}
         placeholder={placeholder}
         disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) =>
+          onChange(
+            inputMode === "numeric"
+              ? sanitizeIntegerDraft(event.target.value)
+              : sanitizeDecimalDraft(event.target.value),
+          )
+        }
         onKeyDown={handleNumericEnter}
         className="h-11 text-base"
         aria-label={label}

@@ -89,7 +89,9 @@ assertEqual(readInboxChatId("12a"), null, "junk chat");
 assertEqual(readInboxChatId(undefined), null, "missing chat");
 
 assertEqual(
-  parseInboxUserId("#u99\nСвоя программа\n\nпривет"),
+  parseInboxUserId(
+    "#u99\nЗаказать программу питания или тренировок\n\nпривет",
+  ),
   99,
   "marker is the first line",
 );
@@ -152,6 +154,16 @@ assertEqual(
   inboxPrompt("improve"),
   "Что улучшить. Напиши сюда — ответ придёт в этот чат.",
   "ask names the topic",
+);
+assertEqual(
+  inboxPrompt("change"),
+  "Пожаловаться. Напиши сюда — ответ придёт в этот чат.",
+  "complain topic ask",
+);
+assertEqual(
+  inboxPrompt("program"),
+  "Заказать программу питания или тренировок. Напиши сюда — ответ придёт в этот чат.",
+  "order program topic ask",
 );
 
 assert(messageHasRelayMedia({ photo: [{}] }), "photo relays");

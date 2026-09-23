@@ -10,8 +10,9 @@ import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
 import { ExerciseTypeFields } from "@/components/workout/exercise-type-fields";
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { ExerciseWithMax } from "@/lib/types";
-import { formatWeight } from "@/lib/workout/numbers";
+import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const {
@@ -60,10 +61,18 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             inputMode="decimal"
             enterKeyHint="done"
             value={form.max_weight}
+            aria-invalid={
+              form.max_weight.trim() !== "" &&
+              (parseDecimal(form.max_weight) == null ||
+                !(parseDecimal(form.max_weight)! > 0) ||
+                parseDecimal(form.max_weight)! > 1000)
+                ? true
+                : undefined
+            }
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
-                max_weight: event.target.value,
+                max_weight: sanitizeDecimalDraft(event.target.value),
               }))
             }
             onKeyDown={handleNumericEnter}
@@ -74,6 +83,12 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               ? "От этого максимума считаются проценты. Без цикла меняй здесь."
               : "От этого максимума считаются проценты в подходах."}
           </p>
+          {form.max_weight.trim() !== "" &&
+          (parseDecimal(form.max_weight) == null ||
+            !(parseDecimal(form.max_weight)! > 0) ||
+            parseDecimal(form.max_weight)! > 1000) ? (
+            <p className="text-sm text-destructive">Вес от 0,1 до 1000 кг.</p>
+          ) : null}
         </Field>
       )}
 

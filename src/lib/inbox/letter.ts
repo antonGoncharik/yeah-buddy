@@ -10,7 +10,7 @@ import {
 } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
-export const INBOX_TOPICS = ["program", "improve", "change"] as const;
+export const INBOX_TOPICS = ["improve", "change", "program"] as const;
 
 export type InboxTopic = (typeof INBOX_TOPICS)[number];
 
@@ -19,9 +19,9 @@ export const INBOX_TEXT_LIMIT = 4096;
 export const INBOX_DRAFT_LIMIT = 3500;
 
 const TOPIC_LABEL: Record<InboxTopic, string> = {
-  program: INBOX_TOPIC_PROGRAM,
   improve: INBOX_TOPIC_IMPROVE,
   change: INBOX_TOPIC_CHANGE,
+  program: INBOX_TOPIC_PROGRAM,
 };
 
 export interface InboxThread {

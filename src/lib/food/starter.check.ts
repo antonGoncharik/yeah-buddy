@@ -2,6 +2,7 @@ import { readStarterOnly } from "@/lib/food/map";
 import {
   isStarterDayMenu,
   isStarterFoodList,
+  isStarterMealTemplate,
   STARTER_FOODS,
   STARTER_MEAL_TEMPLATES,
 } from "@/lib/food/starter";
@@ -96,4 +97,38 @@ assertEqual(
   "an extra product leaves the example",
 );
 
+const restTemplate = STARTER_MEAL_TEMPLATES.find(
+  (item) => item.dayType === "rest",
+);
+assert(
+  restTemplate != null &&
+    isStarterMealTemplate({
+      day_type: "rest",
+      items: restTemplate.items.map((item) => ({
+        meal_type: item.mealType,
+        food: { name: item.foodName },
+      })),
+    }),
+  "starter meal template matches the built-in menu",
+);
+assertEqual(
+  isStarterMealTemplate({
+    day_type: "rest",
+    items: [
+      {
+        meal_type: "breakfast",
+        food: { name: "Овсянка сухая" },
+      },
+    ],
+  }),
+  false,
+  "partial template is not the starter menu",
+);
+
 console.log("starter food list ok");
+
+function assert(condition: boolean, message: string): void {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
