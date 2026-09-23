@@ -97,8 +97,9 @@ export function DaySummary({
         proteinHits: hits,
       })
     : null;
+  const knownWeight = bodyWeight ?? lastBodyWeight;
   const perKg =
-    bodyWeight != null ? proteinPerKg(fact.protein, bodyWeight) : null;
+    knownWeight != null ? proteinPerKg(fact.protein, knownWeight) : null;
   const loop = gym != null;
   const proteinGlance = proteinLoopLine(remainingProtein, fact.protein);
 
