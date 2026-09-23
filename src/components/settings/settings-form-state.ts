@@ -16,7 +16,6 @@ export interface SettingsFormState {
   training_carbs: string;
   reminders_enabled: boolean;
   timezone: string;
-  training_years: string;
   sex: OnboardingSex | null;
   goal: OnboardingGoal | null;
   training_age: UserTrainingAge | null;
@@ -26,7 +25,6 @@ export type MacroFieldKey = Exclude<
   keyof SettingsFormState,
   | "reminders_enabled"
   | "timezone"
-  | "training_years"
   | "sex"
   | "goal"
   | "training_age"
@@ -42,31 +40,10 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     training_carbs: String(settings.training_carbs),
     reminders_enabled: settings.reminders_enabled,
     timezone: settings.timezone,
-    training_years:
-      settings.training_years == null ? "" : String(settings.training_years),
     sex: settings.sex,
     goal: settings.goal,
     training_age: settings.training_age,
   };
-}
-
-export function parseTrainingYearsInput(
-  raw: string,
-): number | null | undefined {
-  const trimmed = raw.trim();
-  if (trimmed === "") {
-    return null;
-  }
-  if (!/^\d{1,2}$/.test(trimmed)) {
-    return undefined;
-  }
-
-  const value = Number(trimmed);
-  if (value > 80) {
-    return undefined;
-  }
-
-  return value;
 }
 
 export function toPayload(form: SettingsFormState) {
@@ -77,15 +54,13 @@ export function toPayload(form: SettingsFormState) {
   const training_fat = parseMacro(form.training_fat);
   const training_carbs = parseMacro(form.training_carbs);
 
-  const training_years = parseTrainingYearsInput(form.training_years);
   if (
     rest_protein == null ||
     rest_fat == null ||
     rest_carbs == null ||
     training_protein == null ||
     training_fat == null ||
-    training_carbs == null ||
-    training_years === undefined
+    training_carbs == null
   ) {
     return null;
   }
@@ -97,7 +72,6 @@ export function toPayload(form: SettingsFormState) {
     training_protein,
     training_fat,
     training_carbs,
-    training_years,
     sex: form.sex,
     goal: form.goal,
     training_age: form.training_age,

@@ -127,18 +127,15 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       last_recap: parseLastRecap(value.maxes.last_recap),
     },
     signals: stringList(value.signals),
-    training_years: parseStoredYears(value.training_years),
+    training_age: parseStoredTrainingAgeLabel(value.training_age),
   };
 }
 
-function parseStoredYears(value: unknown): number | null {
-  if (typeof value !== "number" || !Number.isInteger(value)) {
-    return null;
+function parseStoredTrainingAgeLabel(value: unknown): string | null {
+  if (value === "новичок" || value === "около года" || value === "несколько лет") {
+    return value;
   }
-  if (value < 0 || value > 80) {
-    return null;
-  }
-  return value;
+  return null;
 }
 
 export function parseReviewText(value: unknown): ReviewText | null {

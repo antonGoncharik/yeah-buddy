@@ -558,8 +558,70 @@ assertEqual(
   0,
   "food split stays empty",
 );
-assertEqual(seedBrief.training_years, null, "years stay empty");
-assertEqual(prompt.training_years, null, "prompt keeps years");
+assertEqual(seedBrief.training_age, null, "age stays empty");
+assertEqual(prompt.training_age, null, "prompt keeps age");
+assertEqual(
+  buildReviewBrief({
+    range: 14,
+    from: "2026-09-01",
+    to: "2026-09-14",
+    days: [],
+    sessions: [],
+    foods: [],
+    macro: {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      planned_cycle: [],
+      phase_circle: null,
+      last_recap: null,
+    },
+    progress: {
+      exercises: [],
+      grown_count: 0,
+      avg_percent: null,
+      avg_relative_percent: null,
+      weights: [],
+      circle_size: 0,
+      sessions: [],
+    },
+    trainingAge: "years",
+  }).training_age,
+  "несколько лет",
+  "brief maps years age",
+);
+assertEqual(
+  buildReviewBrief({
+    range: 14,
+    from: "2026-09-01",
+    to: "2026-09-14",
+    days: [],
+    sessions: [],
+    foods: [],
+    macro: {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      planned_cycle: [],
+      phase_circle: null,
+      last_recap: null,
+    },
+    progress: {
+      exercises: [],
+      grown_count: 0,
+      avg_percent: null,
+      avg_relative_percent: null,
+      weights: [],
+      circle_size: 0,
+      sessions: [],
+    },
+    trainingAge: "beginner",
+  }).training_age,
+  "новичок",
+  "brief maps beginner age",
+);
 assertEqual(
   prompt.nutrition.foods_training.length,
   0,
@@ -581,9 +643,19 @@ assertEqual(
   "prompt reads the training plate",
 );
 assertEqual(
-  REVIEW_SYSTEM_PROMPT.includes("training_years"),
+  REVIEW_SYSTEM_PROMPT.includes("training_age"),
   true,
-  "prompt reads training years",
+  "prompt reads training age",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("новичок"),
+  true,
+  "prompt names beginner age",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("training_years"),
+  false,
+  "prompt drops year count",
 );
 
 console.log("ai signals ok");

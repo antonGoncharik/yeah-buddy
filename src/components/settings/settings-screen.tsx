@@ -56,7 +56,6 @@ export function SettingsScreen() {
     load,
     onSubmit,
     updateField,
-    updateYears,
     updateSex,
     updateGoal,
     updateTrainingAge,
@@ -148,7 +147,6 @@ export function SettingsScreen() {
               saving={saving}
               onSubmit={onSubmit}
               updateField={updateField}
-              updateYears={updateYears}
               updateSex={updateSex}
               updateGoal={updateGoal}
               updateTrainingAge={updateTrainingAge}

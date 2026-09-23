@@ -146,7 +146,7 @@ async function loadReviewBrief(
     progress,
     seedWeight,
     seedWaist,
-    trainingYears: settings?.training_years ?? null,
+    trainingAge: settings?.training_age ?? null,
   });
 }
 

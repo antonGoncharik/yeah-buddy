@@ -116,7 +116,7 @@ const brief = {
     last_recap: null,
   },
   signals: [],
-  training_years: null,
+  training_age: null,
 } satisfies ReviewBrief;
 
 assertEqual(
@@ -233,7 +233,7 @@ assertEqual(
 assertEqual(
   parseReviewBrief({
     ...brief,
-    training_years: undefined,
+    training_age: undefined,
     nutrition: {
       ...brief.nutrition,
       waist: undefined,
@@ -243,6 +243,30 @@ assertEqual(
   })?.nutrition.foods_training.length,
   0,
   "old brief without food split",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    training_age: "несколько лет",
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.training_age,
+  "несколько лет",
+  "training age label parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    training_years: 8,
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.training_age,
+  null,
+  "old year count is ignored",
 );
 assertEqual(
   parseReviewBrief({

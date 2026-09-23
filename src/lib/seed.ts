@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  dedupeStarterFoods,
+  foodNameKey,
+} from "@/lib/food/dedupe-foods";
 import { FAVORITE_FOODS, STARTER_FOODS } from "@/lib/food/starter";
 import {
   seededNames,
@@ -21,8 +25,14 @@ async function ensureStarterFoods(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<void> {
+  // Login can race itself; collapse starter-name copies before inserting.
+  await dedupeStarterFoods(supabase, userId);
+
   const have = await seededNames(supabase, "foods", userId);
-  const missing = STARTER_FOODS.filter((food) => !have.has(food.name));
+  const haveKeys = new Set([...have].map((name) => foodNameKey(name)));
+  const missing = STARTER_FOODS.filter(
+    (food) => !haveKeys.has(foodNameKey(food.name)),
+  );
   if (missing.length === 0) {
     return;
   }
@@ -45,4 +55,6 @@ async function ensureStarterFoods(
   );
 
   throwUnlessUniqueViolation(inserted.error);
+  // A parallel seed may have won the insert; drop any leftover copies.
+  await dedupeStarterFoods(supabase, userId);
 }

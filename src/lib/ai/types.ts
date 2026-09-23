@@ -144,7 +144,8 @@ export type ReviewBrief = {
     } | null;
   };
   signals: string[];
-  training_years: number | null;
+  /** Plain Russian стаж for the model, or null when unknown. */
+  training_age: string | null;
 };
 
 export type ReviewText = {

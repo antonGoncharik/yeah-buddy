@@ -209,6 +209,22 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
         : null,
     },
     signals,
-    training_years: source.trainingYears ?? null,
+    training_age: trainingAgeLabel(source.trainingAge),
   };
+}
+
+/** Стаж for the review model — plain Russian, no year count. */
+function trainingAgeLabel(
+  age: ReviewSource["trainingAge"],
+): string | null {
+  if (age === "beginner") {
+    return "новичок";
+  }
+  if (age === "year") {
+    return "около года";
+  }
+  if (age === "years") {
+    return "несколько лет";
+  }
+  return null;
 }

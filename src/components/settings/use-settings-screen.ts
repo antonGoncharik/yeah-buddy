@@ -127,13 +127,6 @@ export function useSettingsScreen() {
     setForm((current) => (current ? { ...current, [key]: value } : current));
   }
 
-  function updateYears(value: string) {
-    setSaved(false);
-    setForm((current) =>
-      current ? { ...current, training_years: value } : current,
-    );
-  }
-
   function updateSex(value: OnboardingSex) {
     setSaved(false);
     setError(null);
@@ -253,7 +246,6 @@ export function useSettingsScreen() {
     load,
     onSubmit,
     updateField,
-    updateYears,
     updateSex,
     updateGoal,
     updateTrainingAge,
