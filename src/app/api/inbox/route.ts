@@ -3,7 +3,7 @@ import type { NextResponse } from "next/server";
 import { failRoute, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { getServerEnv } from "@/lib/env";
-import { readInboxChatId } from "@/lib/inbox/letter";
+import { isInboxAuthor, readInboxChatId } from "@/lib/inbox/letter";
 import { getInboxOpenUrl } from "@/lib/telegram/bot";
 
 export async function GET(): Promise<NextResponse> {
@@ -13,8 +13,11 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    const adminId = readInboxChatId(getServerEnv().INBOX_CHAT_ID);
-    if (adminId == null || adminId === auth.session.telegramId) {
+    const inboxChatId = getServerEnv().INBOX_CHAT_ID;
+    if (
+      readInboxChatId(inboxChatId) == null ||
+      isInboxAuthor(auth.session.telegramId, inboxChatId)
+    ) {
       return jsonOk({ url: null });
     }
 

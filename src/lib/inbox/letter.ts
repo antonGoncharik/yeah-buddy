@@ -49,6 +49,14 @@ export function inboxPrompt(topic: InboxTopic): string {
   return inboxAsk(inboxTopicLabel(topic));
 }
 
+export function isInboxAuthor(
+  telegramId: number,
+  inboxChatId: string | undefined,
+): boolean {
+  const adminId = readInboxChatId(inboxChatId);
+  return adminId != null && adminId === telegramId;
+}
+
 export function readInboxChatId(raw: string | undefined): number | null {
   const trimmed = raw?.trim() ?? "";
   if (!/^\d{1,16}$/.test(trimmed)) {

@@ -1,19 +1,25 @@
 "use client";
 
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
-import { postJson } from "@/lib/api-cache";
+import { mutateJson, postJson } from "@/lib/api-cache";
 import {
   DONATE_PRESETS,
   donateConfirmMessage,
   donateNeedsConfirm,
+  donateStarsLabel,
   isDonateInvoiceUrl,
   parseDonateStars,
 } from "@/lib/donate/amount";
 import { openDonateInvoice } from "@/lib/donate/open";
-import { DONATE_THANKS, LOAD_FAILED, OPEN_VIA_BOT } from "@/lib/messages";
+import {
+  DONATE_HINT,
+  DONATE_THANKS,
+  LOAD_FAILED,
+  OPEN_VIA_BOT,
+} from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 
@@ -24,14 +30,39 @@ function readInvoiceUrl(data: unknown): string | null {
   return isDonateInvoiceUrl(data.url) ? data.url : null;
 }
 
+function readDonateOpen(data: unknown): boolean {
+  return isRecord(data) && data.open === true;
+}
+
 export function SettingsAuthor() {
   const confirm = useConfirm();
   const pending = useRef(false);
+  const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState("");
   const [busy, setBusy] = useState(false);
   const [thanks, setThanks] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const customStars = parseDonateStars(custom);
+
+  useEffect(() => {
+    let cancelled = false;
+    void mutateJson("/api/donate")
+      .then((data) => {
+        if (!cancelled && readDonateOpen(data)) {
+          setOpen(true);
+        }
+      })
+      .catch(() => {
+        // Hidden when the check fails, same as «Написать».
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!open) {
+    return null;
+  }
 
   async function pay(stars: number) {
     if (pending.current || parseDonateStars(String(stars)) !== stars) {
@@ -89,7 +120,7 @@ export function SettingsAuthor() {
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <h2 className="text-xl font-semibold">Автору</h2>
-      <p className="text-sm text-muted-foreground">На развитие дневника.</p>
+      <p className="text-sm text-muted-foreground">{DONATE_HINT}</p>
       <div className="grid grid-cols-3 gap-2">
         {DONATE_PRESETS.map((stars) => (
           <Button
@@ -100,7 +131,7 @@ export function SettingsAuthor() {
             disabled={busy}
             onClick={() => void pay(stars)}
           >
-            {stars}
+            {donateStarsLabel(stars)}
           </Button>
         ))}
       </div>
@@ -109,7 +140,7 @@ export function SettingsAuthor() {
           className="text-sm text-muted-foreground"
           htmlFor="donate-custom"
         >
-          Другая сумма
+          Сколько звёзд
         </label>
         <span className="flex gap-2">
           <input

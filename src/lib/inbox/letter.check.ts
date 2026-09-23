@@ -11,6 +11,7 @@ import {
   inboxMenuStartPayload,
   inboxPersonLine,
   inboxPrompt,
+  isInboxAuthor,
   messageHasRelayMedia,
   parseInboxCallback,
   parseInboxStart,
@@ -161,6 +162,11 @@ assertEqual(
   "https://t.me/yeahbuddy?start=w",
   "open url",
 );
+assertEqual(isInboxAuthor(7, "7"), true, "author is the inbox chat");
+assertEqual(isInboxAuthor(8, "7"), false, "someone else can write and pay");
+assertEqual(isInboxAuthor(7, undefined), false, "no inbox means no author");
+assertEqual(isInboxAuthor(7, "0"), false, "bad inbox id is not an author");
+
 assertEqual(readInboxOpenUrl({ url: null }), null, "hidden inbox");
 assertEqual(
   readInboxOpenUrl({ url: "https://example.com" }),

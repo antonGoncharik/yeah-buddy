@@ -143,6 +143,7 @@ export const ACCOUNT_DELETE_CONFIRM =
   "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
 export const DONATE_THANKS = "Спасибо";
 export const DONATE_REJECT = "Этот счёт не принять.";
+export const DONATE_HINT = "Звёзды Telegram. Уходят автору.";
 export const INBOX_SETTINGS_TITLE = "Написать";
 export const INBOX_SETTINGS_HINT =
   "Своя программа, что улучшить или что изменить.";

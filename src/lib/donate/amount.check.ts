@@ -1,10 +1,12 @@
 import {
+  DONATE_DESCRIPTION,
   DONATE_MAX,
   DONATE_PRESETS,
   donateCheckoutOk,
   donateConfirmMessage,
   donateInvoicePayload,
   donateNeedsConfirm,
+  donateStarsLabel,
   isDonateInvoiceUrl,
   parseDonatePayload,
   parseDonateStars,
@@ -40,7 +42,13 @@ for (const preset of DONATE_PRESETS) {
 
 assertEqual(donateNeedsConfirm(1000), false, "1000 skips confirm");
 assertEqual(donateNeedsConfirm(1001), true, "1001 confirms");
-assertEqual(donateConfirmMessage(1500), "1500 Stars", "confirm shows number");
+assertEqual(donateStarsLabel(50), "50\u00a0★", "preset label");
+assertEqual(donateConfirmMessage(1500), "1500\u00a0★", "confirm shows stars");
+assertEqual(
+  DONATE_DESCRIPTION,
+  "Звёзды Telegram. Уходят автору.",
+  "description names stars",
+);
 assertEqual(DONATE_THANKS, "Спасибо", "thanks");
 
 assertEqual(parseDonatePayload("donate:50"), 50, "payload");

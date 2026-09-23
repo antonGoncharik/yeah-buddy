@@ -1,11 +1,13 @@
+import { DONATE_HINT } from "@/lib/messages";
+
 export const DONATE_PRESETS = [50, 100, 250] as const;
 export const DONATE_MIN = 1;
 export const DONATE_MAX = 10_000;
 export const DONATE_CONFIRM_ABOVE = 1000;
 export const DONATE_CURRENCY = "XTR";
 export const DONATE_TITLE = "Автору";
-export const DONATE_DESCRIPTION = "На развитие дневника.";
-export const DONATE_PRICE_LABEL = "Stars";
+export const DONATE_DESCRIPTION = DONATE_HINT;
+export const DONATE_PRICE_LABEL = "Звёзды";
 
 const PAYLOAD_PREFIX = "donate:";
 
@@ -30,8 +32,12 @@ export function donateNeedsConfirm(stars: number): boolean {
   return stars > DONATE_CONFIRM_ABOVE;
 }
 
+export function donateStarsLabel(stars: number): string {
+  return `${stars}\u00a0★`;
+}
+
 export function donateConfirmMessage(stars: number): string {
-  return `${stars} Stars`;
+  return donateStarsLabel(stars);
 }
 
 export function donateInvoicePayload(stars: number): string {
