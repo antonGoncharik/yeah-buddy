@@ -4,7 +4,7 @@ import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
 /** Calendar days after onboarding, inclusive of day 0. */
 export const RETENTION_TAIL_DAYS = 3;
 
-export type EmptyStartCopy = "repeat" | "scan";
+export type EmptyStartCopy = "repeat" | "add";
 
 export function onboardingAgeDays(
   onboardedAt: string | null | undefined,
@@ -44,5 +44,5 @@ export function emptyStartCopy(input: {
   ) {
     return null;
   }
-  return input.yesterdayHasFood ? "repeat" : "scan";
+  return input.yesterdayHasFood ? "repeat" : "add";
 }

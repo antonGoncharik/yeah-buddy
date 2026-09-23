@@ -9,6 +9,10 @@ export interface User {
   updated_at: string;
 }
 
+export type UserSex = "male" | "female";
+export type UserGoal = "lose" | "keep" | "gain";
+export type UserTrainingAge = "beginner" | "year" | "years";
+
 export interface UserSettings {
   user_id: string;
   rest_protein: number;
@@ -21,6 +25,12 @@ export interface UserSettings {
   reminders_enabled: boolean;
   timezone: string;
   training_years: number | null;
+  /** Who they are — input to the protein suggestion. */
+  sex: UserSex | null;
+  /** Похудеть / держать / набрать — input to the protein suggestion. */
+  goal: UserGoal | null;
+  /** Стаж: только начал / около года / несколько лет. */
+  training_age: UserTrainingAge | null;
   /** Hidden preset ids this person may pick. General programs are not stored here. */
   granted_programs: string[];
   updated_at: string;

@@ -21,7 +21,7 @@ import {
 import { formatSignedWeight, formatWeight } from "@/lib/workout/numbers";
 
 /**
- * Work sets in the default scheme sit at 80 % of 1ПМ, so a kilogram-based
+ * Work sets in the default scheme sit at 80 % of 1RM, so a kilogram-based
  * top set is treated as that 80 % when warmups are derived.
  */
 export const WORK_REFERENCE_PERCENT = 80;
@@ -52,8 +52,8 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 ];
 
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
-  percent: "% 1ПМ",
-  orm: "% 1ПМ",
+  percent: "% на раз",
+  orm: "% на раз",
   track: "Кг",
   fixed: "Один",
   feel: "Сам",
@@ -61,8 +61,8 @@ export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
 
 export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
   percent:
-    "Процент от 1ПМ в карточке. На другой неделе процент может быть другим.",
-  orm: "Процент от 1ПМ в карточке. На другой неделе процент может быть другим.",
+    "Процент от максимума на раз в карточке. На другой неделе процент может быть другим.",
+  orm: "Процент от максимума на раз в карточке. На другой неделе процент может быть другим.",
   track:
     "Рабочий кг в карточке упражнения. После недели, если в цикле стоит прибавка, иначе — после тренировки.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
@@ -84,7 +84,7 @@ export interface SlotPlanContext {
   exercise: Pick<Exercise, "weight_step" | "formula_preset">;
   formulas: WorkoutFormulas;
   phaseKey: string | null;
-  /** 1ПМ of the exercise (phase max inside a cycle). */
+  /** 1RM of the exercise (phase max inside a cycle). */
   maxWeight: number | null;
   /** Current working kilograms on the exercise. */
   trackWeight: number | null;
@@ -172,7 +172,7 @@ export function percentLoad(percent: number): SlotLoad {
   return { type: "percent", percent };
 }
 
-/** @deprecated Same as percentLoad: there is one max, and it is 1ПМ. */
+/** @deprecated Same as percentLoad: there is one max, and it is 1RM. */
 export function ormLoad(percent: number): SlotLoad {
   return percentLoad(percent);
 }
@@ -244,7 +244,7 @@ export function normalizeSlotPlan(plan: SlotPlan | null): SlotPlan | null {
   return { ...collapsed, phases };
 }
 
-/** Old «% от 1ПМ» was a second max. Same number now — rewrite to percent. */
+/** Old «% от максимума на раз» was a second max. Same number now — rewrite to percent. */
 export function collapseOrmLoad(load: SlotLoad): SlotLoad {
   return load.type === "orm" ? percentLoad(load.percent) : load;
 }
@@ -268,7 +268,7 @@ export function collapseOrmPlan(plan: SlotPlan): SlotPlan {
   };
 }
 
-/** 1ПМ нужен, если схема считает подходы процентом от максимума. */
+/** 1RM нужен, если схема считает подходы процентом от максимума. */
 export function slotNeedsMax(
   plan: SlotPlan | null,
   exercise: Pick<Exercise, "formula_preset">,
@@ -301,7 +301,7 @@ export function exerciseIdsNeedingTrack(
   return ids;
 }
 
-/** 1ПМ нужен только тем упражнениям в программе, у которых вес считается процентом. */
+/** 1RM нужен только тем упражнениям в программе, у которых вес считается процентом. */
 export function exerciseIdsNeedingMax(
   templates: Array<{
     exercises: Array<Pick<Exercise, "id" | "formula_preset">>;
@@ -360,7 +360,7 @@ export function slotFor(
 
 /**
  * Planned sets for one slot. `null` means the slot cannot be planned yet:
- * a percent load without 1ПМ or a track load without a line.
+ * a percent load without 1RM or a track load without a line.
  */
 export function plannedSetsForSlot(
   plan: SlotPlan | null,
@@ -507,9 +507,9 @@ function warmupRows(
 }
 
 /**
- * От чего считать разминку: проценты от 1ПМ — от максимума упражнения,
+ * От чего считать разминку: проценты от максимума на раз — от максимума упражнения,
  * остальное (рабочий кг, один вес, самочувствие) — от верхнего рабочего
- * подхода, как от 80 % 1ПМ.
+ * подхода, как от 80 % на раз.
  */
 function warmupReference(
   groups: SlotSetGroup[],

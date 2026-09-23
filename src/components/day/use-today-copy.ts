@@ -8,10 +8,12 @@ import {
 import { useTodayNamedMeals } from "@/components/day/use-today-named";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { reportActionError } from "@/lib/action-error";
-import { postJson } from "@/lib/api-cache";
+import { peekJson, postJson, writeJson } from "@/lib/api-cache";
 import {
   applyRemainingFromCache,
+  daysUrl,
   optimisticCreatedDay,
+  peekTemplate,
   readCachedDay,
   withDayOptimistic,
   writeDayResponse,
@@ -23,14 +25,20 @@ import {
   isTempId,
   withClearedItems,
 } from "@/lib/day/optimistic";
+import { recipeFromTemplate } from "@/lib/day/remaining";
+import { readRecipes } from "@/lib/day/today-payload";
+import { readMealTemplatePayload } from "@/lib/meal/parse";
+import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
   STARTER_DAY_CLEAR,
+  saveDayTemplateReplace,
 } from "@/lib/messages";
 import { mealExistsReplace } from "@/lib/nutrition";
+import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
-import type { MealType, NamedMealHint } from "@/lib/types";
+import type { DayType, MealType, NamedMealHint } from "@/lib/types";
 
 export function useTodayCopy({
   viewOnly,
@@ -181,6 +189,58 @@ export function useTodayCopy({
     }
   }
 
+  async function saveDayAsTemplate(dayId: string) {
+    if (viewOnly || !day || isTempId(day.id) || day.id !== dayId) {
+      return;
+    }
+
+    const dayType: DayType = day.is_training_day ? "training" : "rest";
+    const recipes = readRecipes(peekJson(daysUrl(date)));
+    const recipe = dayType === "training" ? recipes.training : recipes.rest;
+    const cached = peekTemplate(dayType);
+    const hasTemplate =
+      recipe.length > 0 || Boolean(cached && cached.items.length > 0);
+    if (hasTemplate) {
+      const ok = await confirm({
+        message: saveDayTemplateReplace(day.is_training_day),
+        confirmLabel: "Заменить",
+        cancelLabel: "Оставить",
+        destructive: true,
+      });
+      if (!ok) {
+        return;
+      }
+    }
+
+    haptic("commit");
+    setBusy(true);
+    try {
+      const data = await postJson(`/api/days/${dayId}/save-template`, {});
+      const template = readMealTemplatePayload(data);
+      if (template) {
+        writeCachedTemplate(dayType, template);
+        const url = daysUrl(date);
+        const current = peekJson(url);
+        if (isRecord(current)) {
+          const recipes = readRecipes(current);
+          writeJson(url, {
+            ...current,
+            recipes: {
+              ...recipes,
+              [dayType]: recipeFromTemplate(template),
+            },
+          });
+        }
+      }
+      haptic("success");
+    } catch (caught) {
+      haptic("error");
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function copyYesterday() {
     const source = readCachedDay(previousIsoDate(date));
     const base = day ?? optimisticCreatedDay(date, "rest");
@@ -241,6 +301,7 @@ export function useTodayCopy({
     shareMeal: named.shareMeal,
     shareNamedMeal: named.shareNamedMeal,
     clearDayFood,
+    saveDayAsTemplate,
     fillDayFromTemplate: (dayId: string) =>
       fillFromTemplate(`/api/days/${dayId}/fill-template`),
     fillMealFromTemplate: (mealId: string) =>

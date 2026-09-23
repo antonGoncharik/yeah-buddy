@@ -212,7 +212,7 @@ export function SessionCompletedPanel({
           disabled={busy}
           onClick={() => void raise()}
         >
-          Поднять 1ПМ
+          Поднять максимум
         </Button>
       ) : null}
       {nextName ? (

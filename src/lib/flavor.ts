@@ -71,9 +71,9 @@ export function sessionRaiseLine(
   _feel: SessionFeel | null,
 ): string {
   if (abovePlan) {
-    return "Где-то взял больше плана. 1ПМ сам не вырастет.";
+    return "Где-то взял больше плана. Максимум сам не вырастет.";
   }
-  return "Можно поднять 1ПМ.";
+  return "Можно поднять максимум.";
 }
 
 export function sessionMilestoneLine(count: number): string | null {
@@ -109,7 +109,7 @@ export function firstPhaseLine(
     return `${name || "Рывок"}. Не плюсуй сгоряча.`;
   }
   if (circle.phase_type === "volume") {
-    return `${name || "Набор"}. Тот же 1ПМ, больше работы.`;
+    return `${name || "Набор"}. Тот же максимум, больше работы.`;
   }
   if (circle.phase_type === "ramp") {
     return `${name || "Разгон"}. Не гони вес.`;

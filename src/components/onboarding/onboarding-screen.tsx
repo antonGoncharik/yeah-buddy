@@ -7,11 +7,19 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
 import { OnboardingCircleStep } from "@/components/onboarding/onboarding-circle-step";
-import { OnboardingFoodStep } from "@/components/onboarding/onboarding-food-step";
+import {
+  OnboardingGoalStep,
+  OnboardingMacrosStep,
+  OnboardingSexStep,
+  OnboardingTrainingAgeStep,
+  OnboardingWeightStep,
+} from "@/components/onboarding/onboarding-food-step";
+import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
 import {
   type OnboardingStep,
-  useOnboardingScreen,
-} from "@/components/onboarding/use-onboarding-screen";
+  onboardingStepNeedsNext,
+} from "@/components/onboarding/onboarding-steps";
+import { useOnboardingScreen } from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL } from "@/lib/guide";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -31,14 +39,24 @@ export function OnboardingScreen() {
     replay,
     pendingKind,
     pendingProgramId,
-    protein,
-    preview,
+    sex,
+    weight,
+    goal,
+    trainingAge,
+    proteinOverride,
+    lifts,
     circle,
     setCircle,
     goBack,
     goNext,
-    skipFoodStep,
-    onProteinChange,
+    weightInvalid,
+    proteinInvalid,
+    onSexPick,
+    onWeightChange,
+    onGoalPick,
+    onTrainingAgePick,
+    onLiftChange,
+    onProteinOverride,
   } = useOnboardingScreen();
 
   if (loading) {
@@ -64,8 +82,10 @@ export function OnboardingScreen() {
     return <GuideTour error={error} onDone={goNext} onSkip={goNext} />;
   }
 
+  const showNext = onboardingStepNeedsNext(step);
+
   return (
-    <div className="flex flex-col gap-4 pb-44">
+    <div className={cn("flex flex-col gap-4", showNext ? "pb-44" : "pb-8")}>
       {stepIndex > 0 ? <TelegramBackButton onBack={goBack} /> : null}
       <header className="flex items-center gap-2 px-4 py-4">
         {stepIndex > 0 ? (
@@ -93,16 +113,49 @@ export function OnboardingScreen() {
       </header>
 
       <div key={step} className="flex flex-col gap-4 px-4">
-        {step === "food" ? (
-          <OnboardingFoodStep
-            protein={protein}
-            preview={preview}
+        {step === "sex" ? (
+          <OnboardingSexStep
+            sex={sex}
             replay={replay}
             fromWorkoutPack={
               pendingKind === "workouts" || pendingProgramId != null
             }
-            onProteinChange={onProteinChange}
+            onPick={onSexPick}
           />
+        ) : null}
+
+        {step === "weight" ? (
+          <OnboardingWeightStep
+            weight={weight}
+            invalid={weightInvalid}
+            onChange={onWeightChange}
+          />
+        ) : null}
+
+        {step === "goal" ? (
+          <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
+        ) : null}
+
+        {step === "training_age" ? (
+          <OnboardingTrainingAgeStep
+            trainingAge={trainingAge}
+            onPick={onTrainingAgePick}
+          />
+        ) : null}
+
+        {step === "macros" ? (
+          <OnboardingMacrosStep
+            sex={sex}
+            weight={weight}
+            goal={goal}
+            proteinOverride={proteinOverride}
+            proteinInvalid={proteinInvalid}
+            onProteinOverride={onProteinOverride}
+          />
+        ) : null}
+
+        {step === "lifts" ? (
+          <OnboardingLiftsStep answers={lifts} onChange={onLiftChange} />
         ) : null}
 
         {step === "circle" ? (
@@ -120,27 +173,17 @@ export function OnboardingScreen() {
         ) : null}
       </div>
 
-      <StickyActions withNav={false}>
-        {step === "food" ? (
+      {showNext ? (
+        <StickyActions withNav={false}>
           <Button
-            type="button"
-            variant="ghost"
-            className="h-12 w-full text-base"
+            className="h-14 w-full text-lg"
             disabled={saving}
-            data-keyboard-secondary
-            onClick={() => skipFoodStep()}
+            onClick={() => void goNext()}
           >
-            Пропустить
+            {saving ? "Сохранение…" : isLast ? "Готово" : "Дальше"}
           </Button>
-        ) : null}
-        <Button
-          className="h-14 w-full text-lg"
-          disabled={saving}
-          onClick={() => void goNext()}
-        >
-          {saving ? "Сохранение…" : isLast ? "Готово" : "Дальше"}
-        </Button>
-      </StickyActions>
+        </StickyActions>
+      ) : null}
     </div>
   );
 }
@@ -168,8 +211,23 @@ function StepDots({
 }
 
 function titleForStep(step: OnboardingStep): string {
-  if (step === "food") {
-    return "Белок на день";
+  if (step === "sex") {
+    return "Кто ты";
+  }
+  if (step === "weight") {
+    return "Вес, кг";
+  }
+  if (step === "goal") {
+    return "Цель";
+  }
+  if (step === "training_age") {
+    return "Стаж";
+  }
+  if (step === "macros") {
+    return "Твои цифры";
+  }
+  if (step === "lifts") {
+    return "Сила";
   }
   if (step === "circle") {
     return "Программа тренировок";

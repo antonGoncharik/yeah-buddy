@@ -60,6 +60,49 @@ for (const page of GUIDE_INTRO_PAGES) {
   );
 }
 
+const introGym = GUIDE_INTRO_PAGES.find((page) => page.id === "intro-gym");
+assert(introGym != null, "intro-gym exists");
+assert(introGym?.remember == null, "intro-gym has no remember takeaway");
+const introFood = GUIDE_INTRO_PAGES.find((page) => page.id === "intro-food");
+assert(introFood != null, "intro-food exists");
+assert(introFood?.remember == null, "intro-food has no remember takeaway");
+assert(
+  !guideAllText().includes("1ПМ"),
+  "guide never uses the 1ПМ abbreviation",
+);
+assert(
+  !GUIDE_INTRO_PAGES.some((page) =>
+    guidePageText(page).includes("очередь или"),
+  ),
+  "intro does not explain the day with «очередь»",
+);
+assert(
+  GUIDE_INTRO_PAGES.some(
+    (page) =>
+      page.lead.includes("сколько его ещё съесть") &&
+      page.lead.includes("без зала"),
+  ),
+  "intro food lead says protein left and no-gym vs gym",
+);
+assert(
+  !GUIDE_INTRO_PAGES.some((page) =>
+    (page.remember ?? "").includes(
+      "Сначала отметь, какой это день — отдых или тренировка",
+    ),
+  ),
+  "intro food has no rest-vs-training remember",
+);
+assert(
+  guidePageById("day")?.remember?.includes(
+    "Сначала отметь, какой это день. Потом записывай еду",
+  ) === true,
+  "day page keeps the longer remember",
+);
+assert(
+  !guideAllText().includes("овсянка, яйца, курица, творог"),
+  "guide does not promise a prefilled example day",
+);
+
 for (const page of GUIDE_PAGES) {
   const text = guidePageText(page);
   assert(page.title.trim().length > 0, `${page.id} has title`);

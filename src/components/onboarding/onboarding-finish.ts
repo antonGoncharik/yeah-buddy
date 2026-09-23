@@ -1,4 +1,9 @@
-import { mutateJson, postJson, writeJson } from "@/lib/api-cache";
+import {
+  mutateJson,
+  patchJson,
+  postJson,
+  writeJson,
+} from "@/lib/api-cache";
 import { ensureTodayDay } from "@/lib/day/ensure-today";
 import type { OnboardingCircle } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
@@ -11,6 +16,7 @@ import {
 } from "@/lib/share/pending";
 import type { FeaturedProgramId } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
+import type { UserTrainingAge } from "@/lib/types";
 
 export async function loadPendingPackKind(): Promise<SharePackKind | null> {
   const token = peekPendingPackToken();
@@ -29,6 +35,11 @@ export async function loadPendingPackKind(): Promise<SharePackKind | null> {
 export async function submitOnboardingFinish({
   omitProtein,
   proteinValue,
+  sex,
+  goal,
+  trainingAge,
+  bodyWeight,
+  anchors,
   pendingKind,
   pendingProgramId,
   replay,
@@ -36,15 +47,32 @@ export async function submitOnboardingFinish({
 }: {
   omitProtein: boolean;
   proteinValue: number | null;
+  sex: "male" | "female" | null;
+  goal: "lose" | "keep" | "gain" | null;
+  trainingAge: UserTrainingAge | null;
+  bodyWeight: number | null;
+  anchors: {
+    squat: number | null;
+    bench: number | null;
+    deadlift: number | null;
+  };
   pendingKind: SharePackKind | null;
   pendingProgramId: FeaturedProgramId | null;
   replay: boolean;
   circle: OnboardingCircle;
 }): Promise<string> {
+  const skipGoals = omitProtein || pendingKind === "meals";
   const data = await postJson("/api/onboarding", {
-    ...(omitProtein || pendingKind === "meals"
+    ...(skipGoals
       ? {}
-      : { protein: proteinValue }),
+      : {
+          protein: proteinValue,
+          sex,
+          goal,
+          training_age: trainingAge,
+          body_weight: bodyWeight,
+          anchors,
+        }),
     circle: onboardingFinishCircle({
       pendingProgramId,
       pendingKind,
@@ -67,7 +95,10 @@ export async function submitOnboardingFinish({
   const pending = peekPendingPackToken();
   if (!replay && pendingKind !== "meals") {
     try {
-      await ensureTodayDay("rest");
+      const dayId = await ensureTodayDay("rest");
+      if (dayId && bodyWeight != null && bodyWeight > 0) {
+        await patchJson(`/api/days/${dayId}`, { bodyWeight });
+      }
     } catch {
       // still leave the master
     }

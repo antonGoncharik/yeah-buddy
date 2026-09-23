@@ -80,7 +80,7 @@ export function ProgramDetailScreen({ id }: { id: string }) {
               ) : null}
               {program.applied ? (
                 <p className="px-1 text-sm text-muted-foreground">
-                  Уже стоит. 1ПМ спросит в зале, если его нет.
+                  Уже стоит. Максимум на раз спросит в зале, если его нет.
                 </p>
               ) : null}
               {copied ? (

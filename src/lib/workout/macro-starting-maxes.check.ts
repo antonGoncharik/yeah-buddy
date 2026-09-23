@@ -70,7 +70,7 @@ assertEqual(
     .map((item) => item.exercise_id)
     .join(","),
   "squat",
-  "missing 1ПМ is skipped so the cycle can still start",
+  "missing 1RM is skipped so the cycle can still start",
 );
 
 let thrown: string | null = null;

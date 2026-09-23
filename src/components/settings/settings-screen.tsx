@@ -44,6 +44,7 @@ export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
   const {
     form,
+    bodyWeight,
     loading,
     error,
     saved,
@@ -56,6 +57,10 @@ export function SettingsScreen() {
     onSubmit,
     updateField,
     updateYears,
+    updateSex,
+    updateGoal,
+    updateTrainingAge,
+    onRecount,
     setReminders,
     setTimezone,
   } = useSettingsScreen();
@@ -137,12 +142,17 @@ export function SettingsScreen() {
               form={form}
               restKcal={restKcal}
               trainingKcal={trainingKcal}
+              bodyWeight={bodyWeight}
               error={error}
               saved={saved}
               saving={saving}
               onSubmit={onSubmit}
               updateField={updateField}
               updateYears={updateYears}
+              updateSex={updateSex}
+              updateGoal={updateGoal}
+              updateTrainingAge={updateTrainingAge}
+              onRecount={onRecount}
             />
           ) : null}
         </section>

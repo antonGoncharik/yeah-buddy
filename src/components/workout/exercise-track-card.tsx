@@ -15,7 +15,7 @@ import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import { trackCurrentWeight } from "@/lib/workout/track-line";
 
 /**
- * Working kilograms for slots that use kg, same role as 1ПМ for percent.
+ * Working kilograms for slots that use kg, same role as 1RM for percent.
  */
 export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
   const confirm = useConfirm();
@@ -89,7 +89,7 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
         <p className="text-base font-medium">Рабочий кг</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
           Нужен, если в дне стоит «Кг». После недели, если в цикле стоит
-          прибавка, иначе — после тренировки. 1ПМ отдельно.
+          прибавка, иначе — после тренировки. Максимум на раз отдельно.
         </p>
       </div>
 

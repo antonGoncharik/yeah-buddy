@@ -76,7 +76,7 @@ export function NewMacroScreen() {
                 <h2 className="text-xl font-semibold">Сначала недели</h2>
                 <p className="text-base leading-relaxed text-muted-foreground">
                   Тренировки те же, что в программе. Недели меняют вес: проценты
-                  от 1ПМ или рабочие килограммы.
+                  от максимума на раз или рабочие килограммы.
                 </p>
                 <FormulaCycleTemplates
                   disabled={applying || !formulas}

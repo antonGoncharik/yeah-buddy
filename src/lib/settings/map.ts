@@ -1,6 +1,16 @@
+import {
+  isOnboardingGoal,
+  isOnboardingSex,
+} from "@/lib/nutrition/suggest-protein";
 import { isRecord, toNumber } from "@/lib/read";
 import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
-import type { UserSettings } from "@/lib/types";
+import type {
+  UserGoal,
+  UserSettings,
+  UserSex,
+  UserTrainingAge,
+} from "@/lib/types";
+import { isTrainingAge } from "@/lib/workout/estimate-maxes";
 import { parseGrantedPrograms } from "@/lib/workout/program-presets";
 
 export function mapSettings(row: Record<string, unknown>): UserSettings {
@@ -21,9 +31,26 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
       typeof row.timezone === "string" ? row.timezone : null,
     ),
     training_years: parseStoredTrainingYears(row.training_years),
+    sex: parseStoredSex(row.sex),
+    goal: parseStoredGoal(row.goal),
+    training_age: parseStoredTrainingAge(row.training_age),
     granted_programs: parseGrantedPrograms(row.granted_programs),
     updated_at: String(row.updated_at),
   };
+}
+
+export function parseStoredSex(value: unknown): UserSex | null {
+  return isOnboardingSex(value) ? value : null;
+}
+
+export function parseStoredGoal(value: unknown): UserGoal | null {
+  return isOnboardingGoal(value) ? value : null;
+}
+
+export function parseStoredTrainingAge(
+  value: unknown,
+): UserTrainingAge | null {
+  return isTrainingAge(value) ? value : null;
 }
 
 export function parseUserSettings(value: unknown): UserSettings | null {

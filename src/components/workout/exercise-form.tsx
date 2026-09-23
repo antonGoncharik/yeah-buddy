@@ -41,7 +41,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {exercise && !canCorrectMax ? (
         <div className="card-surface flex scroll-mb-36 flex-col gap-2 px-5 py-4">
-          <p className="text-base font-medium">1ПМ</p>
+          <p className="text-base font-medium">Максимум на раз</p>
           <p className="text-2xl font-semibold tracking-tight">
             {exercise.current_max
               ? `${formatWeight(exercise.current_max.max_weight)} кг`
@@ -54,7 +54,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           </p>
         </div>
       ) : (
-        <Field label="1ПМ, кг">
+        <Field label="На раз, кг">
           <Input
             required
             inputMode="decimal"

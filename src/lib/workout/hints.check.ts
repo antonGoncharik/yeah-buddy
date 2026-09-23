@@ -84,19 +84,19 @@ const circle: PhaseCircleProgress = {
 
 assertEqual(
   phaseHoldHint(circle),
-  "Не пошло — 1ПМ и рабочий кг не трогаем.",
+  "Не пошло — максимум на раз и рабочий кг не трогаем.",
   "hold copy",
 );
 
 assertEqual(
   completePhaseHint(circle),
-  "Не пошло — 1ПМ и рабочий кг не трогаем.",
+  "Не пошло — максимум на раз и рабочий кг не трогаем.",
   "hold beats raise on close",
 );
 
 assertEqual(
   completePhaseHint({ ...circle, hold_weights: false }),
-  "Дальше «Рывок». Можно поднять 1ПМ — не всем сразу.",
+  "Дальше «Рывок». Можно поднять максимум — не всем сразу.",
   "raise when not holding",
 );
 
@@ -107,7 +107,7 @@ assertEqual(
     next_phase_type: null,
     next_phase_name: null,
   }),
-  "Не пошло — 1ПМ и рабочий кг не трогаем.",
+  "Не пошло — максимум на раз и рабочий кг не трогаем.",
   "hold beats new cycle",
 );
 
@@ -119,7 +119,7 @@ assertEqual(
     next_phase_type: null,
     next_phase_name: null,
   }),
-  "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.",
+  "Цикл закроется и начнётся новый. Можно поднять максимум — не всем сразу.",
   "last stage still raises",
 );
 
@@ -144,7 +144,7 @@ assertEqual(
     kg_increase_on_end: 2.5,
   }),
   "Дальше «Рывок». Рабочий вес +2.5 кг.",
-  "week end can raise kilograms instead of 1ПМ",
+  "week end can raise kilograms instead of 1RM",
 );
 
 const planned = [
@@ -259,7 +259,7 @@ assertEqual(
 assertEqual(
   JSON.stringify(templateExerciseLoadPreview({ slots: [] }, squat)),
   JSON.stringify({ value: 100, kind: "max" }),
-  "shared percent plan previews 1ПМ",
+  "shared percent plan previews 1RM",
 );
 assertEqual(
   templateExerciseLoadPreview({ slots: [] }, plank),
@@ -308,7 +308,7 @@ assertEqual(
     ),
   ),
   JSON.stringify({ value: 82.5, kind: "track" }),
-  "a track slot previews the next kilogram, not 1ПМ",
+  "a track slot previews the next kilogram, not 1RM",
 );
 
 console.log("workout hints ok");

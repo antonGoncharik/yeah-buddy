@@ -66,7 +66,7 @@ export interface SessionExercise {
   session_id: string;
   exercise_id: string;
   sort_order: number;
-  /** 1ПМ, от которого считались проценты; null для кг / одного веса / по самочувствию. */
+  /** 1RM, от которого считались проценты; null для кг / одного веса / по самочувствию. */
   max_weight: number | null;
   intensity: SlotIntensity | null;
   note: string | null;
@@ -114,7 +114,7 @@ export interface SessionDetail {
   template: WorkoutTemplate | null;
   phase: WorkoutPhase | null;
   exercises: SessionExerciseDetail[];
-  /** Template exercises left out of the plan because they have no 1ПМ yet. */
+  /** Template exercises left out of the plan because they have no 1RM yet. */
   missing_maxes: Exercise[];
   /** Template exercises whose slot uses working kg that is not set yet. */
   missing_tracks: Exercise[];

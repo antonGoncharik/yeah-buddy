@@ -84,7 +84,7 @@ assertEqual(
     dayHasItems: false,
     yesterdayHasFood: false,
   }),
-  "scan",
+  "add",
   "day 2 with nothing to copy",
 );
 assertEqual(

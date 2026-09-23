@@ -27,7 +27,7 @@ assert(
 );
 assert(
   !shouldAutoEndPhase(true, { ...ready, increases_on_end: true }),
-  "a 1ПМ bump waits for a look at the weights",
+  "a 1RM bump waits for a look at the weights",
 );
 assert(!shouldAutoEndPhase(true, null), "no progress, no auto-end");
 

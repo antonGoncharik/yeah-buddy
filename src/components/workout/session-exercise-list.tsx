@@ -61,7 +61,7 @@ export function SessionExerciseList({
         <p className="text-lg font-medium">Нет упражнений в плане</p>
         <p className="text-base leading-relaxed text-muted-foreground">
           {canFillBelow
-            ? "Ни у одного упражнения ещё нет 1ПМ или рабочего кг. Заполни ниже — план посчитается."
+            ? "Ни у одного упражнения ещё нет максимума на раз или рабочего кг. Заполни ниже — план посчитается."
             : SESSION_PLAN_EMPTY}
         </p>
         {session.status === "planned" && !canFillBelow ? (
@@ -69,7 +69,7 @@ export function SessionExerciseList({
             href="/workouts/exercises"
             className={cn(buttonVariants(), "h-14 text-lg")}
           >
-            Указать 1ПМ
+            Указать максимум
           </Link>
         ) : null}
       </section>

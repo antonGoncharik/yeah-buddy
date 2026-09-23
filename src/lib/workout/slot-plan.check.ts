@@ -96,7 +96,7 @@ assertEqual(
     "w7:70×6",
     "w8:70×6",
   ],
-  "bench by the line: warmup derived from the top set, no 1ПМ needed",
+  "bench by the line: warmup derived from the top set, no 1RM needed",
 );
 
 assertEqual(
@@ -142,7 +142,7 @@ assertEqual(
 assertEqual(
   plannedSetsForSlot(heavyPulls, ctx({ maxWeight: null })),
   null,
-  "percent slot without 1ПМ cannot be planned",
+  "percent slot without 1RM cannot be planned",
 );
 
 assertEqual(
@@ -544,7 +544,7 @@ assertEqual(
   "summary names the phases with their own scheme",
 );
 
-// ---------- percent of 1ПМ (legacy `orm` load is the same max) ----------
+// ---------- percent of 1RM (legacy `orm` load is the same max) ----------
 
 const ormPlan: SlotPlan = {
   groups: [
@@ -585,7 +585,7 @@ assertEqual(
     plannedSetsForSlot({ ...ormPlan, warmup: true }, ctx({ maxWeight: 200 })),
   ).filter((row) => row.startsWith("w1")),
   ["w1:100×5"],
-  "warmup for a table slot is counted from 1ПМ",
+  "warmup for a table slot is counted from 1RM",
 );
 
 console.log("slot plans ok");

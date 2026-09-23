@@ -32,8 +32,8 @@ export function MacroRecapCard({
       : avg > 0
         ? "Стал сильнее"
         : avg < 0
-          ? "1ПМ снизился"
-          : "1ПМ тот же";
+          ? "Максимум снизился"
+          : "Максимум тот же";
 
   return (
     <section

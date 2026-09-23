@@ -1,108 +1,273 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatKcal, type macroGoalsFromProtein } from "@/lib/nutrition";
+import {
+  formatKcal,
+  ONBOARDING_GOAL_OPTIONS,
+  ONBOARDING_SEX_OPTIONS,
+  type OnboardingGoal,
+  type OnboardingSex,
+  suggestMacroGoals,
+} from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
+import type { UserTrainingAge } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { parseDecimal } from "@/lib/workout/numbers";
 
-const PROTEIN_PRESETS = [100, 120, 150] as const;
-
-export function OnboardingFoodStep({
-  protein,
-  preview,
+export function OnboardingSexStep({
+  sex,
   replay,
   fromWorkoutPack,
-  onProteinChange,
+  onPick,
 }: {
-  protein: string;
-  preview: ReturnType<typeof macroGoalsFromProtein> | null;
+  sex: OnboardingSex | null;
   replay: boolean;
   fromWorkoutPack: boolean;
-  onProteinChange: (value: string) => void;
+  onPick: (value: OnboardingSex) => void;
 }) {
-  const selected = parseDecimal(protein);
-
   return (
     <>
-      <p
-        className="animate-rise text-base text-muted-foreground"
-        style={{ animationDelay: "40ms" }}
-      >
-        {foodLead(replay, fromWorkoutPack)}
-      </p>
+      {sexLead(replay, fromWorkoutPack) ? (
+        <p
+          className="animate-rise text-base text-muted-foreground"
+          style={{ animationDelay: "40ms" }}
+        >
+          {sexLead(replay, fromWorkoutPack)}
+        </p>
+      ) : null}
       <div
-        className="animate-rise flex gap-2"
+        className="animate-rise grid grid-cols-2 gap-3"
         style={{ animationDelay: "80ms" }}
       >
-        {PROTEIN_PRESETS.map((value) => (
+        {ONBOARDING_SEX_OPTIONS.map((option) => (
           <Button
-            key={value}
+            key={option.id}
             type="button"
-            variant={selected === value ? "default" : "outline"}
-            className="h-12 flex-1 text-base"
+            variant={sex === option.id ? "default" : "outline"}
+            className="h-16 text-lg"
             onClick={() => {
-              if (selected !== value) {
+              if (sex !== option.id) {
                 haptic("tick");
+              } else {
+                haptic("tap");
               }
-              onProteinChange(String(value));
+              onPick(option.id);
             }}
           >
-            {value} г
+            {option.label}
           </Button>
         ))}
       </div>
-      <div
-        className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
-        style={{ animationDelay: "120ms" }}
-      >
-        <Label htmlFor="onboarding-protein" className="text-base">
-          Белок, г
-        </Label>
-        <Input
-          id="onboarding-protein"
-          inputMode="decimal"
-          enterKeyHint="done"
-          autoComplete="off"
-          value={protein}
-          onChange={(event) => onProteinChange(event.target.value)}
-          className="h-12 text-base"
-        />
-        {preview ? (
-          <p className="text-sm text-muted-foreground">
-            Получится: день отдыха — {formatKcal(preview.rest.kcal)} ккал, день
-            тренировки — {formatKcal(preview.training.kcal)} ккал.
-          </p>
-        ) : null}
-      </div>
-      <p
-        className="animate-rise px-1 text-sm leading-relaxed text-muted-foreground"
-        style={{ animationDelay: "160ms" }}
-      >
-        Не знаешь, сколько ставить? Обычный ориентир — 1,6–2 г на килограмм
-        веса. Потом это можно поменять в Настройках → «Цели на день».
-      </p>
-      {replay ? null : (
-        <p
-          className="animate-rise px-1 text-sm leading-relaxed text-muted-foreground"
-          style={{ animationDelay: "200ms" }}
-        >
-          Первый день откроется с примером: овсянка, яйца, курица, творог.
-          Граммы подгоним под белок. Ешь другое — на «Сегодня» нажми «Убрать
-          пример» и запиши своё.
-        </p>
-      )}
     </>
   );
 }
 
-function foodLead(replay: boolean, fromWorkoutPack: boolean): string {
+export function OnboardingWeightStep({
+  weight,
+  invalid,
+  onChange,
+}: {
+  weight: string;
+  invalid: boolean;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div
+      className="animate-rise flex flex-col gap-2"
+      style={{ animationDelay: "40ms" }}
+    >
+      <Label htmlFor="onboarding-weight" className="text-base">
+        Вес, кг
+      </Label>
+      <Input
+        id="onboarding-weight"
+        inputMode="decimal"
+        enterKeyHint="done"
+        autoComplete="off"
+        value={weight}
+        aria-invalid={invalid || undefined}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 text-base"
+      />
+    </div>
+  );
+}
+
+export function OnboardingGoalStep({
+  goal,
+  onPick,
+}: {
+  goal: OnboardingGoal | null;
+  onPick: (value: OnboardingGoal) => void;
+}) {
+  return (
+    <div
+      className="animate-rise flex flex-col gap-2"
+      style={{ animationDelay: "40ms" }}
+    >
+      {ONBOARDING_GOAL_OPTIONS.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={goal === option.id}
+          className={cn(
+            "card-surface w-full px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none",
+            goal === option.id && "ring-2 ring-primary",
+          )}
+          onClick={() => {
+            if (goal !== option.id) {
+              haptic("tick");
+            } else {
+              haptic("tap");
+            }
+            onPick(option.id);
+          }}
+        >
+          <p className="text-lg font-medium">{option.label}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{option.hint}</p>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function OnboardingTrainingAgeStep({
+  trainingAge,
+  onPick,
+}: {
+  trainingAge: UserTrainingAge | null;
+  onPick: (value: UserTrainingAge) => void;
+}) {
+  return (
+    <div
+      className="animate-rise flex flex-col gap-2"
+      style={{ animationDelay: "40ms" }}
+    >
+      {TRAINING_AGE_OPTIONS.map((option) => (
+        <Button
+          key={option.id}
+          type="button"
+          variant={trainingAge === option.id ? "default" : "outline"}
+          className="h-14 justify-start text-base"
+          onClick={() => {
+            if (trainingAge !== option.id) {
+              haptic("tick");
+            } else {
+              haptic("tap");
+            }
+            onPick(option.id);
+          }}
+        >
+          {option.label}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+export function OnboardingMacrosStep({
+  sex,
+  weight,
+  goal,
+  proteinOverride,
+  proteinInvalid,
+  onProteinOverride,
+}: {
+  sex: OnboardingSex | null;
+  weight: string;
+  goal: OnboardingGoal | null;
+  proteinOverride: string | null;
+  proteinInvalid: boolean;
+  onProteinOverride: (value: string | null) => void;
+}) {
+  const [showCustom, setShowCustom] = useState(false);
+  const weightKg = parseDecimal(weight);
+  const override =
+    proteinOverride != null ? parseDecimal(proteinOverride) : null;
+  const preview =
+    sex && goal && weightKg != null
+      ? suggestMacroGoals({
+          sex,
+          weightKg,
+          goal,
+          protein:
+            override != null && override > 0 && override <= 400
+              ? override
+              : null,
+        })
+      : null;
+  const protein = preview?.protein ?? null;
+
+  if (preview == null || protein == null) {
+    return (
+      <p
+        className="animate-rise text-base text-muted-foreground"
+        style={{ animationDelay: "40ms" }}
+      >
+        Вернись назад и проверь вес, пол и цель — без них цифры не посчитать.
+      </p>
+    );
+  }
+
+  return (
+    <div
+      className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
+      style={{ animationDelay: "40ms" }}
+    >
+      <p className="text-3xl font-semibold tracking-tight tabular-nums">
+        {protein} г белка
+      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир{" "}
+        {preview.rest.fat} г, углеводы {preview.rest.carbs} г. В день
+        тренировки — {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
+        {preview.training.carbs} г. Потом можно поменять в Настройках → «Цели
+        на день».
+      </p>
+      {showCustom || proteinOverride != null ? (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="onboarding-protein" className="text-sm">
+            Свой белок, г
+          </Label>
+          <Input
+            id="onboarding-protein"
+            inputMode="decimal"
+            enterKeyHint="done"
+            autoComplete="off"
+            value={proteinOverride ?? String(protein)}
+            aria-invalid={proteinInvalid || undefined}
+            onChange={(event) => onProteinOverride(event.target.value)}
+            className="h-12 text-base"
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="text-left text-sm font-medium text-primary"
+          onClick={() => {
+            haptic("tap");
+            setShowCustom(true);
+            onProteinOverride(String(protein));
+          }}
+        >
+          Поставить другой белок
+        </button>
+      )}
+    </div>
+  );
+}
+
+function sexLead(replay: boolean, fromWorkoutPack: boolean): string | null {
   if (fromWorkoutPack) {
-    return "Программа тренировок возьмётся из ссылки. Осталось указать, сколько белка ты хочешь съедать в день.";
+    return "Программа тренировок возьмётся из ссылки. Сначала — кто ты.";
   }
   if (replay) {
-    return "Сколько белка ты хочешь съедать в день. Изменятся только цели — еда на день и записи останутся.";
+    return "Заново посчитаем белок и калории. Еда на день и записи останутся.";
   }
-  return "Сколько белка ты хочешь съедать в день. От этой цифры посчитаем калории и цели на дни отдыха и тренировок.";
+  return null;
 }

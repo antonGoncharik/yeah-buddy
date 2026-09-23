@@ -73,7 +73,7 @@ export function useMacroScreen() {
     const weight = parseDecimal(drafts[exerciseId] ?? "");
     if (weight == null || weight <= 0) {
       haptic("warn");
-      setError("Проверь 1ПМ.");
+      setError("Проверь максимум на раз.");
       return;
     }
 
@@ -136,7 +136,7 @@ export function useMacroScreen() {
 
     if (!preview || maxes.length !== preview.maxes.length) {
       haptic("warn");
-      setError("Проверь предложенные 1ПМ.");
+      setError("Проверь предложенные максимумы на раз.");
       return;
     }
 

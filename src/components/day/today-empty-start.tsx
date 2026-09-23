@@ -1,11 +1,11 @@
 "use client";
 
-import { Plus, ScanBarcode } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
 import { buttonVariants } from "@/components/ui/button";
-import { EMPTY_START_REPEAT, EMPTY_START_SCAN } from "@/lib/messages";
+import { EMPTY_START_ADD, EMPTY_START_REPEAT } from "@/lib/messages";
 import type { EmptyStartCopy } from "@/lib/retention";
 import { cn } from "@/lib/utils";
 
@@ -13,14 +13,12 @@ export function TodayEmptyStart({
   yesterdayHasFood,
   copy,
   addHref,
-  scanHref,
   busy,
   onCopyYesterday,
 }: {
   yesterdayHasFood: boolean;
   copy: EmptyStartCopy | null;
   addHref: string | null;
-  scanHref: string | null;
   busy: boolean;
   onCopyYesterday: () => void;
 }) {
@@ -28,7 +26,6 @@ export function TodayEmptyStart({
     return null;
   }
 
-  const scanFirst = copy === "scan" && scanHref;
   const repeat = yesterdayHasFood;
 
   return (
@@ -36,8 +33,8 @@ export function TodayEmptyStart({
       {copy === "repeat" ? (
         <p className="text-base text-muted-foreground">{EMPTY_START_REPEAT}</p>
       ) : null}
-      {copy === "scan" ? (
-        <p className="text-base text-muted-foreground">{EMPTY_START_SCAN}</p>
+      {copy === "add" ? (
+        <p className="text-base text-muted-foreground">{EMPTY_START_ADD}</p>
       ) : null}
       {repeat ? (
         <CopyYesterdayButton
@@ -47,21 +44,12 @@ export function TodayEmptyStart({
           onCopy={onCopyYesterday}
         />
       ) : null}
-      {scanFirst ? (
-        <Link
-          href={scanFirst}
-          className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
-        >
-          <ScanBarcode className="size-5" aria-hidden />
-          Сканировать
-        </Link>
-      ) : null}
       {addHref ? (
         <Link
           href={addHref}
           className={cn(
             buttonVariants({
-              variant: repeat || scanFirst ? "outline" : "default",
+              variant: repeat ? "outline" : "default",
             }),
             "h-14 w-full gap-2 text-lg",
           )}
@@ -70,18 +58,6 @@ export function TodayEmptyStart({
           {repeat ? "Добавить" : "Добавь первое"}
         </Link>
       ) : null}
-      {repeat || scanFirst || !scanHref ? null : (
-        <Link
-          href={scanHref}
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "h-14 w-full gap-2 text-lg",
-          )}
-        >
-          <ScanBarcode className="size-5" aria-hidden />
-          Сканировать
-        </Link>
-      )}
     </div>
   );
 }

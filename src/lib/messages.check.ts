@@ -4,8 +4,8 @@ import {
   CATCH_UP_MARK,
   CATCH_UP_TITLE,
   CATCH_UP_YESTERDAY_HINT,
+  EMPTY_START_ADD,
   EMPTY_START_REPEAT,
-  EMPTY_START_SCAN,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
@@ -21,6 +21,8 @@ import {
   STARTER_CATALOG_NOTE,
   STARTER_DAY_CLEAR,
   STARTER_DAY_NOTE,
+  saveDayTemplateLabel,
+  saveDayTemplateReplace,
   switchRestToTrainingMessage,
 } from "@/lib/messages";
 
@@ -71,9 +73,29 @@ assertEqual(
   "empty today after a logged yesterday",
 );
 assertEqual(
-  EMPTY_START_SCAN,
-  "Отсканируй то, что ешь каждый день.",
+  EMPTY_START_ADD,
+  "Еды ещё нет. Добавь первое.",
   "empty today with nothing to copy",
+);
+assertEqual(
+  saveDayTemplateLabel(false),
+  "Запомнить на дни без зала",
+  "rest day template action",
+);
+assertEqual(
+  saveDayTemplateLabel(true),
+  "Запомнить на дни с залом",
+  "training day template action",
+);
+assertEqual(
+  saveDayTemplateReplace(false),
+  "Уже есть еда на дни без зала. Заменить этим днём?",
+  "rest day template replace",
+);
+assertEqual(
+  saveDayTemplateReplace(true),
+  "Уже есть еда на дни с залом. Заменить этим днём?",
+  "training day template replace",
 );
 assertEqual(
   STARTER_DAY_NOTE,
@@ -87,7 +109,7 @@ assertEqual(
 );
 assertEqual(
   STARTER_CATALOG_NOTE,
-  "Обычные продукты, из них собран пример дня. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.",
+  "Обычные продукты на старте. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.",
   "starter catalog explains itself",
 );
 assertEqual(

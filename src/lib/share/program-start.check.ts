@@ -116,7 +116,7 @@ assert(poster.startsWith("Всё тело\n"), "chat opens with the name");
 assert(poster.includes("День 1"), "chat lists day 1");
 assert(poster.includes("День 2"), "chat lists day 2");
 assert(!poster.includes("От "), "bot-authored, no person");
-assert(poster.includes("1ПМ"), "1RM stays in the gym");
+assert(poster.includes("максимума на раз"), "1RM stays in the gym");
 
 const wave = programPresetById("five_three_one");
 if (!wave) {

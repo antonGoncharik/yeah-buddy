@@ -156,7 +156,7 @@ export async function insertSessionExercise(
       session_id: session.id,
       exercise_id: exercise.id,
       sort_order: sortOrder,
-      // Only percent-based slots are anchored to 1ПМ.
+      // Only percent-based slots are anchored to 1RM.
       max_weight: slotNeedsMax(plan, exercise, ctx.phaseKey) ? maxWeight : null,
       intensity: plan?.intensity ?? null,
       note: plan?.note ?? null,

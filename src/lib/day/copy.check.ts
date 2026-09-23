@@ -41,11 +41,11 @@ assertEqual(
   "pre workout",
 );
 
-assertEqual(shareMealLine("lunch"), "Вот обед", "lunch throw");
+assertEqual(shareMealLine("lunch"), "Отправить в чат", "lunch share");
 assertEqual(
   shareMealLine("pre_workout"),
-  "Вот до тренировки",
-  "pre workout throw",
+  "Отправить в чат",
+  "pre workout share",
 );
 
 assertEqual(

@@ -49,7 +49,7 @@ export const exerciseCreateSchema = z
 
 export class StartingMaxLockedError extends Error {
   constructor() {
-    super("Пока идёт цикл, 1ПМ поднимается на смене этапа.");
+    super("Пока идёт цикл, максимум поднимается на смене этапа.");
   }
 }
 

@@ -50,7 +50,7 @@ export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
 export const STARTER_CATALOG_NOTE =
-  "Обычные продукты, из них собран пример дня. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.";
+  "Обычные продукты на старте. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.";
 export const STARTER_DAY_NOTE =
   "Это пример дня под твой белок: овсянка, яйца, курица, творог. Он стоит, чтобы было с чего начать. Ешь так — оставь. Ешь другое — убери пример и запиши своё.";
 export const STARTER_DAY_CLEAR =
@@ -81,7 +81,20 @@ export const CATCH_UP_EMPTY_HINT =
   "День пустой. Можно догнать — в истории будет пометка «догонял».";
 export const CATCH_UP_YESTERDAY_HINT = "Вчера пустой — можно догнать.";
 export const EMPTY_START_REPEAT = "Вчера было так. Повторить.";
-export const EMPTY_START_SCAN = "Отсканируй то, что ешь каждый день.";
+export const EMPTY_START_ADD = "Еды ещё нет. Добавь первое.";
+export const DAY_TEMPLATE_EMPTY = "Нужен хотя бы один продукт из списка.";
+
+export function saveDayTemplateLabel(isTrainingDay: boolean): string {
+  return isTrainingDay
+    ? "Запомнить на дни с залом"
+    : "Запомнить на дни без зала";
+}
+
+export function saveDayTemplateReplace(isTrainingDay: boolean): string {
+  return isTrainingDay
+    ? "Уже есть еда на дни с залом. Заменить этим днём?"
+    : "Уже есть еда на дни без зала. Заменить этим днём?";
+}
 export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
@@ -103,7 +116,8 @@ export const WORKOUTS_NEED_TEMPLATES =
   "Программа пустая. Поставь готовую или собери тренировку сам.";
 export const WORKOUT_TEMPLATE_EMPTY =
   "В этой тренировке нет упражнений с планом подходов. Добавь их в программе.";
-export const NEED_ALL_WORKING_WEIGHTS = "Нужен 1ПМ у каждого упражнения.";
+export const NEED_ALL_WORKING_WEIGHTS =
+  "Нужен максимум на раз у каждого упражнения.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
 export const CYCLE_RAISE_LATER =
   "Идёт цикл: вес растёт на смене недели, а не после одной тренировки.";
@@ -117,7 +131,7 @@ export const NUTRITION_HISTORY_EMPTY_HINT = "Запиши еду — день п
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
-  "Нет веса для плана. Напиши 1ПМ или первый кг — прямо здесь.";
+  "Нет веса для плана. Напиши максимум на раз или первый кг — прямо здесь.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
 export const AI_REVIEW_EMPTY = "Пока мало записей. Другу не о чем говорить.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";

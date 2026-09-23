@@ -8,8 +8,8 @@ export interface StartingPhaseMax {
 }
 
 /**
- * Starting 1ПМ for the first phase of a cycle. Only lifts whose plan uses
- * a percent of 1ПМ must have a max. Linear kg and feel slots are skipped.
+ * Starting 1RM for the first phase of a cycle. Only lifts whose plan uses
+ * a percent of 1RM must have a max. Linear kg and feel slots are skipped.
  * Missing weights are omitted so the cycle can still start; the session
  * will ask later.
  */

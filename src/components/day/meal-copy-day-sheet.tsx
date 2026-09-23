@@ -2,6 +2,7 @@
 
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
+import { shareMealLine } from "@/lib/nutrition";
 import type { NamedMealHint } from "@/lib/types";
 
 export function MealCopyDaySheet({
@@ -15,6 +16,7 @@ export function MealCopyDaySheet({
   onCopyDate,
   onApplyNamed,
   onSaveNamed,
+  onShareMeal,
   onShareNamed,
   onDeleteNamed,
   onCancel,
@@ -29,6 +31,7 @@ export function MealCopyDaySheet({
   onCopyDate?: (date: string) => void;
   onApplyNamed?: (namedMealId: string) => void;
   onSaveNamed?: () => void;
+  onShareMeal?: () => void;
   onShareNamed?: (namedMealId: string) => void;
   onDeleteNamed?: (namedMealId: string, name: string) => void;
   onCancel: () => void;
@@ -102,6 +105,17 @@ export function MealCopyDaySheet({
           onClick={onSaveNamed}
         >
           Сохранить приём
+        </Button>
+      ) : null}
+      {hasItems && onShareMeal ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-12 w-full text-base text-muted-foreground"
+          disabled={busy}
+          onClick={onShareMeal}
+        >
+          {shareMealLine()}
         </Button>
       ) : null}
       <Button

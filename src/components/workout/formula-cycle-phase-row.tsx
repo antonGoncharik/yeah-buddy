@@ -61,7 +61,7 @@ export function FormulaCyclePhaseRow({
   );
   const tags = [
     phase.skip_warmup ? "без разминки" : null,
-    phase.increase_on_end ? "в конце поднять 1ПМ" : null,
+    phase.increase_on_end ? "в конце поднять максимум" : null,
     phase.kg_increase_on_end
       ? `в конце +${formatWeight(phase.kg_increase_on_end)} кг`
       : null,
@@ -124,7 +124,7 @@ export function FormulaCyclePhaseRow({
             />
             <Toggle
               on={phase.increase_on_end}
-              label="В конце поднять 1ПМ"
+              label="В конце поднять максимум"
               hint="На шаг вверх, когда этап закрывается"
               onClick={() => patch({ increase_on_end: !phase.increase_on_end })}
             />

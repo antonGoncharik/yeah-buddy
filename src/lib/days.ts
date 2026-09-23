@@ -67,6 +67,11 @@ export {
   remainingFills,
   remainingRecipe,
 } from "@/lib/day/remaining";
+export {
+  DayTemplateEmptyError,
+  saveDayAsMealTemplate,
+  templateItemsFromDay,
+} from "@/lib/day/save-template";
 export { dateHasDay, getDayByDate } from "@/lib/day/store";
 export {
   assertUserDayWritable,

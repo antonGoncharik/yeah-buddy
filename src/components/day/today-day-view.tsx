@@ -4,6 +4,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
+import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { StarterDayNote } from "@/components/day/starter-day-note";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
@@ -62,6 +63,7 @@ export function TodayDayView({
   saveWaist,
   copyYesterday,
   clearStarterDay,
+  saveDayAsTemplate,
   fillDayFromTemplate,
   fillMealFromTemplate,
   copyMealFromDate,
@@ -106,6 +108,7 @@ export function TodayDayView({
   saveWaist: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
   clearStarterDay: () => Promise<void>;
+  saveDayAsTemplate: () => Promise<void>;
   fillDayFromTemplate: () => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
   copyMealFromDate: (
@@ -149,10 +152,8 @@ export function TodayDayView({
   const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
   const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
-  const scanHref = addPath
-    ? withDateQuery(`${addPath}?scan=1`, date, today)
-    : null;
   const showEmptyStart = !viewOnly && !dayHasItems;
+  const showSaveTemplate = !viewOnly && dayHasItems && !isTempId(shownDay.id);
   const showStarterDay =
     !viewOnly &&
     retentionTail &&
@@ -233,7 +234,6 @@ export function TodayDayView({
             yesterdayHasFood={yesterdayHasFood}
             copy={startCopy}
             addHref={addHref}
-            scanHref={scanHref}
             busy={busy}
             onCopyYesterday={() => void copyYesterday()}
           />
@@ -272,11 +272,26 @@ export function TodayDayView({
         />
       ) : null}
 
-      {remainingFullGap ? null : remainingAction ? (
+      {showSaveTemplate ? (
         <div
           className="animate-rise"
           style={{
             animationDelay: `${80 + visibleMeals.length * 50}ms`,
+          }}
+        >
+          <SaveDayTemplateButton
+            isTrainingDay={shownDay.is_training_day}
+            busy={busy}
+            onSave={() => void saveDayAsTemplate()}
+          />
+        </div>
+      ) : null}
+
+      {remainingFullGap ? null : remainingAction ? (
+        <div
+          className="animate-rise"
+          style={{
+            animationDelay: `${80 + visibleMeals.length * 50 + (showSaveTemplate ? 50 : 0)}ms`,
           }}
         >
           {remainingAction}

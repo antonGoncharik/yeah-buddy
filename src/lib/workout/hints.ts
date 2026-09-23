@@ -118,7 +118,7 @@ export function templateCanPlan(template: TemplateLike): boolean {
 }
 
 /**
- * Number shown next to a lift on the hub: 1ПМ, or the next kilogram on a
+ * Number shown next to a lift on the hub: 1RM, or the next kilogram on a
  * track. Null means a dash — we'll ask in the session.
  */
 export function templateExerciseLoadPreview(
@@ -140,7 +140,7 @@ export function templateExerciseLoadPreview(
 }
 
 /**
- * Template exercises that need 1ПМ before they can get a plan.
+ * Template exercises that need 1RM before they can get a plan.
  * `phaseKey` omitted — «где угодно в цикле»: спросим вес заранее.
  */
 export function templateMissingMaxes(
@@ -239,18 +239,18 @@ export function completePhaseHint(
   progress: PhaseCircleProgress | null,
 ): string {
   if (!progress) {
-    return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
+    return "Максимум перейдёт как есть. Перед подтверждением можно поправить.";
   }
   if (progress.hold_weights) {
-    return "Не пошло — 1ПМ и рабочий кг не трогаем.";
+    return "Не пошло — максимум на раз и рабочий кг не трогаем.";
   }
   const kg = kgBumpLabel(progress.kg_increase_on_end);
   if (progress.last_in_cycle) {
     if (progress.increases_on_end && kg) {
-      return `Цикл закроется и начнётся новый. Можно поднять 1ПМ, ${kg}.`;
+      return `Цикл закроется и начнётся новый. Можно поднять максимум, ${kg}.`;
     }
     if (progress.increases_on_end) {
-      return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
+      return "Цикл закроется и начнётся новый. Можно поднять максимум — не всем сразу.";
     }
     if (kg) {
       return `Цикл закроется и начнётся новый. ${capitalize(kg)}.`;
@@ -258,10 +258,10 @@ export function completePhaseHint(
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели.";
   }
   if (progress.increases_on_end && kg) {
-    return `Дальше «${progress.next_phase_name}». Можно поднять 1ПМ, ${kg}.`;
+    return `Дальше «${progress.next_phase_name}». Можно поднять максимум, ${kg}.`;
   }
   if (progress.increases_on_end) {
-    return `Дальше «${progress.next_phase_name}». Можно поднять 1ПМ — не всем сразу.`;
+    return `Дальше «${progress.next_phase_name}». Можно поднять максимум — не всем сразу.`;
   }
   if (kg && progress.next_phase_name) {
     return `Дальше «${progress.next_phase_name}». ${capitalize(kg)}.`;
@@ -269,26 +269,26 @@ export function completePhaseHint(
   if (progress.next_phase_name) {
     return `Дальше «${progress.next_phase_name}». Веса те же, можно поправить.`;
   }
-  return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
+  return "Максимум перейдёт как есть. Перед подтверждением можно поправить.";
 }
 
 export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
   if (!progress.hold_weights) {
     return null;
   }
-  return "Не пошло — 1ПМ и рабочий кг не трогаем.";
+  return "Не пошло — максимум на раз и рабочий кг не трогаем.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
-    return "Не пошло — 1ПМ и рабочий кг не трогаем, можно поправить.";
+    return "Не пошло — максимум на раз и рабочий кг не трогаем, можно поправить.";
   }
   const kg = kgBumpLabel(preview.kg_increase);
   if (preview.new_macro && preview.increased && kg) {
-    return `Цикл закроется и начнётся новый. Можно поднять 1ПМ, ${kg}.`;
+    return `Цикл закроется и начнётся новый. Можно поднять максимум, ${kg}.`;
   }
   if (preview.new_macro && preview.increased) {
-    return "Цикл закроется и начнётся новый. Можно поднять 1ПМ — не всем сразу.";
+    return "Цикл закроется и начнётся новый. Можно поднять максимум — не всем сразу.";
   }
   if (preview.new_macro && kg) {
     return `Цикл закроется и начнётся новый. ${capitalize(kg)}.`;
@@ -297,10 +297,10 @@ export function transitionExplain(preview: TransitionPreview): string {
     return "Цикл закроется и начнётся новый. Веса возьмём с последней тяжёлой недели, можно поправить.";
   }
   if (preview.increased && kg) {
-    return `На «${preview.to_name}» можно поднять 1ПМ, ${kg}.`;
+    return `На «${preview.to_name}» можно поднять максимум, ${kg}.`;
   }
   if (preview.increased) {
-    return `На «${preview.to_name}» можно поднять 1ПМ. Не всем сразу.`;
+    return `На «${preview.to_name}» можно поднять максимум. Не всем сразу.`;
   }
   if (kg && preview.to_name) {
     return `Дальше «${preview.to_name}». ${capitalize(kg)}.`;
@@ -308,7 +308,7 @@ export function transitionExplain(preview: TransitionPreview): string {
   if (preview.to_name) {
     return `Дальше «${preview.to_name}». Веса те же, можно поправить.`;
   }
-  return "1ПМ перейдёт как есть. Перед подтверждением можно поправить.";
+  return "Максимум перейдёт как есть. Перед подтверждением можно поправить.";
 }
 
 function kgBumpLabel(kg: number | null | undefined): string | null {

@@ -14,7 +14,7 @@ import { parseDecimal } from "@/lib/workout/numbers";
 
 const SETTINGS_URL = "/api/workout-settings";
 
-/** Example 1ПМ for the kg column; only for display. */
+/** Example 1RM for the kg column; only for display. */
 const EXAMPLE_MAX: Record<WorkoutKind, string> = {
   dynamic: "100",
   static: "60",

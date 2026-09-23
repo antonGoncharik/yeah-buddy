@@ -136,7 +136,7 @@ export function WorkoutsHubQueueCta({
                         {formatWeight(preview.value)}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {preview.kind === "max" ? " 1ПМ" : " кг"}
+                        {preview.kind === "max" ? " на раз" : " кг"}
                       </span>
                     </>
                   ) : (
@@ -197,7 +197,7 @@ function loadMissingHint(maxes: number, tracks: number): string | null {
     return null;
   }
   if (maxes > 0 && tracks > 0) {
-    return "Где прочерк — спросим 1ПМ или первый кг.";
+    return "Где прочерк — спросим максимум на раз или первый кг.";
   }
   if (tracks > 0) {
     return tracks === 1
@@ -205,6 +205,6 @@ function loadMissingHint(maxes: number, tracks: number): string | null {
       : "Где прочерки — кг спросим в тренировке.";
   }
   return maxes === 1
-    ? "Где прочерк — 1ПМ спросим в тренировке."
-    : "Где прочерки — 1ПМ спросим в тренировке.";
+    ? "Где прочерк — максимум на раз спросим в тренировке."
+    : "Где прочерки — максимум на раз спросим в тренировке.";
 }

@@ -60,7 +60,7 @@ export function FormulaWarmupScreen() {
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
               Какая разминка — зависит от упражнения: в каждом выбрано «штанга»
-              или «блок». Проценты от 1ПМ.
+              или «блок». Проценты от максимума на раз.
               {kind === "static"
                 ? " На время разминка обычно в повторах, а рабочие — в секундах."
                 : ""}

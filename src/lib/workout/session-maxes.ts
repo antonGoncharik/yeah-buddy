@@ -27,9 +27,9 @@ export const sessionMaxesSchema = z.object({
 export type SessionMaxesInput = z.infer<typeof sessionMaxesSchema>;
 
 /**
- * Sets 1ПМ for exercises that were left out of a planned session and adds
+ * Sets 1RM for exercises that were left out of a planned session and adds
  * them to the plan. Inside a cycle the number becomes a phase max; outside
- * it corrects the starting 1ПМ.
+ * it corrects the starting 1RM.
  */
 export async function setSessionMaxes(
   userId: string,

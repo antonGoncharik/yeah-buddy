@@ -575,7 +575,7 @@ function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max
-      ? `От 1ПМ ${formatWeight(exercise.current_max.max_weight)} кг.`
+      ? `От максимума на раз ${formatWeight(exercise.current_max.max_weight)} кг.`
       : SLOT_LOAD_HINTS.percent;
   }
   return SLOT_LOAD_HINTS[load.type];

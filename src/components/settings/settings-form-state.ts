@@ -1,6 +1,11 @@
-import { calcKcalFromMacros } from "@/lib/nutrition";
+import {
+  calcKcalFromMacros,
+  type OnboardingGoal,
+  type OnboardingSex,
+  suggestMacroGoals,
+} from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings/map";
-import type { UserSettings } from "@/lib/types";
+import type { UserSettings, UserTrainingAge } from "@/lib/types";
 
 export interface SettingsFormState {
   rest_protein: string;
@@ -12,11 +17,19 @@ export interface SettingsFormState {
   reminders_enabled: boolean;
   timezone: string;
   training_years: string;
+  sex: OnboardingSex | null;
+  goal: OnboardingGoal | null;
+  training_age: UserTrainingAge | null;
 }
 
 export type MacroFieldKey = Exclude<
   keyof SettingsFormState,
-  "reminders_enabled" | "timezone" | "training_years"
+  | "reminders_enabled"
+  | "timezone"
+  | "training_years"
+  | "sex"
+  | "goal"
+  | "training_age"
 >;
 
 export function toFormState(settings: UserSettings): SettingsFormState {
@@ -31,6 +44,9 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     timezone: settings.timezone,
     training_years:
       settings.training_years == null ? "" : String(settings.training_years),
+    sex: settings.sex,
+    goal: settings.goal,
+    training_age: settings.training_age,
   };
 }
 
@@ -82,6 +98,9 @@ export function toPayload(form: SettingsFormState) {
     training_fat,
     training_carbs,
     training_years,
+    sex: form.sex,
+    goal: form.goal,
+    training_age: form.training_age,
   };
 }
 
@@ -116,6 +135,35 @@ export function kcalFromFields(
   }
 
   return calcKcalFromMacros(protein, fat, carbs);
+}
+
+/** Recount protein, fat and carbs from sex, goal and body weight. */
+export function withRecountedProtein(
+  form: SettingsFormState,
+  weightKg: number,
+): SettingsFormState | null {
+  if (form.sex == null || form.goal == null) {
+    return null;
+  }
+
+  const goals = suggestMacroGoals({
+    sex: form.sex,
+    weightKg,
+    goal: form.goal,
+  });
+  if (goals == null) {
+    return null;
+  }
+
+  return {
+    ...form,
+    rest_protein: String(goals.rest.protein),
+    rest_fat: String(goals.rest.fat),
+    rest_carbs: String(goals.rest.carbs),
+    training_protein: String(goals.training.protein),
+    training_fat: String(goals.training.fat),
+    training_carbs: String(goals.training.carbs),
+  };
 }
 
 export function readSettings(data: unknown): UserSettings | null {

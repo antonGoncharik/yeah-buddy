@@ -16,7 +16,7 @@ export function NewMacroMaxes({
 }) {
   return (
     <section className="flex flex-col gap-3" data-field-group>
-      <h2 className="text-xl font-semibold">1ПМ на цикл</h2>
+      <h2 className="text-xl font-semibold">Максимум на цикл</h2>
       <p className="text-sm text-muted-foreground">
         Упражнения из программы, с этих максимумов начнётся цикл. Подставлены
         текущие. Если давно не тренировался — поставь меньше.

@@ -64,6 +64,7 @@ export function TodayScreen({
     createDay,
     copyYesterday,
     clearDayFood,
+    saveDayAsTemplate,
     fillDayFromTemplate,
     fillMealFromTemplate,
     copyMealFromDate,
@@ -216,6 +217,12 @@ export function TodayScreen({
                 return Promise.resolve();
               }
               return clearDayFood(shownDay.id);
+            }}
+            saveDayAsTemplate={() => {
+              if (!shownDay) {
+                return Promise.resolve();
+              }
+              return saveDayAsTemplate(shownDay.id);
             }}
             fillDayFromTemplate={() => {
               if (!shownDay) {

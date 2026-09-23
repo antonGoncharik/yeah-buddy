@@ -35,7 +35,7 @@ export function SessionMissingMaxes({
       <div>
         <p className="text-xl font-semibold tracking-tight">Ещё без плана</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Напиши 1ПМ — подходы с процентами посчитаются от него.
+          Напиши максимум на раз — подходы с процентами посчитаются от него.
         </p>
       </div>
       <div className="divide-y divide-border/70" data-field-group>

@@ -25,7 +25,7 @@ import { slotNeedsMax } from "@/lib/workout/slot-plan";
 
 type MaxDraft = Record<string, string>;
 
-/** Exercises in the queue whose plan uses a percent of 1ПМ. */
+/** Exercises in the queue whose plan uses a percent of 1RM. */
 function queueExercises(
   exercises: ExerciseWithMax[],
   templates: WorkoutTemplateDetail[],

@@ -15,7 +15,7 @@ export interface ProgressPoint {
   relative: number | null;
   phase_type: PhaseType | null;
   macro_number: number | null;
-  /** Dynamic vs static session. Null on 1ПМ history without a session. */
+  /** Dynamic vs static session. Null on 1RM history without a session. */
   kind?: WorkoutKind | null;
   /** True when the working set was copied from the plan, not written. */
   from_plan?: boolean;

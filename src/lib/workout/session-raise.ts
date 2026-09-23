@@ -108,7 +108,7 @@ export function sessionRaiseOffers(
     feel: detail.session.feel,
     increasePercent,
     currentMaxByExercise,
-    // Only exercises planned from 1ПМ can raise it; lines,
+    // Only exercises planned from 1RM can raise it; lines,
     // fixed kilograms and «по самочувствию» have nothing to scale.
     exercises: detail.exercises.flatMap((item) =>
       item.max_weight != null
@@ -135,7 +135,7 @@ export function raiseMaxConfirmMessage(offers: SessionMaxRaiseOffer[]): string {
       `${item.name} ${formatWeight(item.from_weight)} → ${formatWeight(item.to_weight)}`,
   );
   if (parts.length === 1) {
-    return `Поднять 1ПМ: ${parts[0]} кг?`;
+    return `Поднять максимум: ${parts[0]} кг?`;
   }
-  return `Поднять 1ПМ: ${parts.join(", ")}?`;
+  return `Поднять максимум: ${parts.join(", ")}?`;
 }
