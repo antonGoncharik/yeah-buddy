@@ -22,7 +22,7 @@ export function AppHeader({
   const headingClass = "truncate text-2xl font-semibold tracking-tight";
 
   return (
-    <header className="flex items-center gap-2 px-4 py-4">
+    <header className="flex w-full items-center gap-2 px-4 py-4">
       {backHref ? (
         <>
           <TelegramBackButton href={backHref} />
@@ -58,7 +58,9 @@ export function AppHeader({
         ) : null}
       </div>
       {trailing ? (
-        <div className="flex shrink-0 items-center gap-1">{trailing}</div>
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {trailing}
+        </div>
       ) : null}
     </header>
   );

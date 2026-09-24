@@ -49,7 +49,7 @@ export function BottomNav() {
 
   return (
     <nav className="app-bottom-nav app-chrome-bar app-fixed-bottom fixed inset-x-0 z-10 overflow-hidden pb-[var(--app-safe-bottom)]">
-      <ul className="mx-auto grid h-16 max-w-lg grid-cols-3">
+      <ul className="mx-auto grid h-16 w-full max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active = item.href === activeHref;
           const Icon = item.icon;

@@ -163,7 +163,7 @@ export function TodayDayView({
   });
 
   return (
-    <div className={cn("flex flex-col", compact ? "gap-3" : "gap-4")}>
+    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
       <TodayDayHeader
         date={date}
         today={today}
