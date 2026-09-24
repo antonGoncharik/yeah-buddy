@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Script from "next/script";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
+import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import {
   APP_DESCRIPTION,
@@ -11,6 +12,7 @@ import {
   APP_SHORT_NAME,
   APP_TITLE,
 } from "@/lib/brand";
+import { DIARY_DENSITY_COOKIE, parseDiaryDensity } from "@/lib/diary-density";
 import { siteOriginUrl } from "@/lib/site-url";
 import { TELEGRAM_BOOT_SCRIPT } from "@/lib/telegram/boot-script";
 import {
@@ -103,10 +105,14 @@ export async function generateViewport(): Promise<Viewport> {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
   const theme = parseTheme(cookieStore.get(THEME_COOKIE)?.value);
+  const density = parseDiaryDensity(
+    cookieStore.get(DIARY_DENSITY_COOKIE)?.value,
+  );
 
   return (
     <html
       lang="ru"
+      data-density={density}
       className={cn("font-sans", manrope.variable, theme === "dark" && "dark")}
       style={{ colorScheme: theme }}
     >
@@ -115,12 +121,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {TELEGRAM_BOOT_SCRIPT}
         </Script>
         <ThemeProvider initialTheme={theme}>
-          <ConfirmProvider>
-            <DayMoodProvider>
-              <DayBackdrop />
-              <div className="relative z-10">{children}</div>
-            </DayMoodProvider>
-          </ConfirmProvider>
+          <DiaryDensityProvider initialDensity={density}>
+            <ConfirmProvider>
+              <DayMoodProvider>
+                <DayBackdrop />
+                <div className="relative z-10">{children}</div>
+              </DayMoodProvider>
+            </ConfirmProvider>
+          </DiaryDensityProvider>
         </ThemeProvider>
       </body>
     </html>

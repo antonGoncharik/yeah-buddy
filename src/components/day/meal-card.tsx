@@ -9,6 +9,7 @@ import {
   type MealLine,
 } from "@/components/day/meal-item-row";
 import { MealTypeMark } from "@/components/day/meal-type-mark";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
 import { SortableList } from "@/components/workout/sortable-list";
 import { mealEmptyLine } from "@/lib/flavor";
@@ -64,6 +65,8 @@ export function MealCard({
   className?: string;
   style?: CSSProperties;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const totals = sumMealItems(items);
   const copy =
     !readOnly &&
@@ -87,7 +90,11 @@ export function MealCard({
 
   return (
     <section
-      className={cn("card-surface flex flex-col gap-3 px-5 py-5", className)}
+      className={cn(
+        "card-surface flex flex-col px-5",
+        compact ? "gap-2 py-3" : "gap-3 py-5",
+        className,
+      )}
       style={style}
     >
       <div className="flex items-center justify-between gap-3">
@@ -153,14 +160,26 @@ export function MealCard({
       )}
 
       {items.length > 0 ? (
-        <p className="text-lg font-semibold tabular-nums tracking-tight">
+        <p
+          className={cn(
+            "tabular-nums tracking-tight",
+            compact ? "text-sm text-muted-foreground" : "text-lg font-semibold",
+          )}
+        >
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
         </p>
       ) : null}
 
       {showFill || showAdd ? (
-        <div className="flex flex-col gap-2">
+        <div
+          className={cn(
+            "flex gap-2",
+            compact && items.length > 0 && showAdd && showFill
+              ? "flex-row"
+              : "flex-col",
+          )}
+        >
           {showAdd && addHref ? (
             <MealAddLink href={addHref} prominent={items.length === 0} />
           ) : null}

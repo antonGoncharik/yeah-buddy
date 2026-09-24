@@ -2,7 +2,7 @@
 
 import { Star } from "lucide-react";
 import Link from "next/link";
-
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
 import type { CatalogFood } from "@/lib/food/catalog-map";
 import { quickAddPortionLabel } from "@/lib/food/quick-add";
@@ -50,8 +50,12 @@ export function FoodList({
   onToggleFavorite?: (food: Food) => void;
 }) {
   const favoriteVisible = showFavorite && onToggleFavorite;
-  const rowClass =
-    "flex min-w-0 flex-1 items-center gap-3 py-3 text-left transition-colors hover:bg-muted/40";
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
+  const rowClass = cn(
+    "flex min-w-0 flex-1 items-center gap-3 text-left transition-colors hover:bg-muted/40",
+    compact ? "py-2" : "py-3",
+  );
 
   return (
     <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
@@ -109,13 +113,19 @@ export function CatalogFoodList({
   pendingId?: string | null;
   onSelectFood: (food: CatalogFood) => void;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
+
   return (
     <ul className="card-surface animate-rise divide-y divide-border/70 px-5 py-1">
       {foods.map((food) => (
         <li key={food.id}>
           <button
             type="button"
-            className="flex min-w-0 w-full items-center gap-3 py-3 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
+            className={cn(
+              "flex min-w-0 w-full items-center gap-3 text-left transition-colors hover:bg-muted/40 disabled:opacity-50",
+              compact ? "py-2" : "py-3",
+            )}
             disabled={pendingId === food.id}
             onClick={() => onSelectFood(food)}
           >
@@ -128,6 +138,8 @@ export function CatalogFoodList({
 }
 
 function FoodListBody({ food }: { food: FoodRowData }) {
+  const { density } = useDiaryDensity();
+  const expanded = density === "expanded";
   const yieldPair = parseFoodYield({
     state: food.state ?? "as_is",
     yield_from_g: food.yield_from_g ?? null,
@@ -161,11 +173,14 @@ function FoodListBody({ food }: { food: FoodRowData }) {
         <span className="block truncate text-base font-medium">
           {food.name}
         </span>
-        <span className="block truncate text-sm text-muted-foreground">
-          {subtitle ? `${subtitle} · ` : null}Б{" "}
-          {formatMacro(food.protein_per_100)} · Ж{" "}
-          {formatMacro(food.fat_per_100)} · У {formatMacro(food.carbs_per_100)}
-        </span>
+        {subtitle || expanded ? (
+          <span className="block truncate text-sm text-muted-foreground">
+            {subtitle ? `${subtitle}${expanded ? " · " : ""}` : null}
+            {expanded
+              ? `Б ${formatMacro(food.protein_per_100)} · Ж ${formatMacro(food.fat_per_100)} · У ${formatMacro(food.carbs_per_100)}`
+              : null}
+          </span>
+        ) : null}
       </span>
       <span className="shrink-0 text-right text-sm text-muted-foreground">
         <span className="block tabular-nums">

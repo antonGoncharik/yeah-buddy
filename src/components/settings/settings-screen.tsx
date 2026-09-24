@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
   CookieDoodle,
   LinkDoodle,
@@ -42,6 +43,7 @@ import { MEAL_TEMPLATES_LABEL, PACKS_LABEL } from "@/lib/workout/labels";
 
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
+  const { density, setDensity } = useDiaryDensity();
   const {
     form,
     bodyWeight,
@@ -191,6 +193,23 @@ export function SettingsScreen() {
             ]}
             onChange={setTheme}
           />
+        </section>
+
+        <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+          <h2 className="text-xl font-semibold">Вид</h2>
+          <Segmented
+            value={density}
+            options={[
+              { id: "compact", label: "Компактный" },
+              { id: "expanded", label: "Расширенный" },
+            ]}
+            onChange={setDensity}
+          />
+          <p className="text-sm text-muted-foreground">
+            Компактный ужимает сводку дня и ставит граммы с калориями в одну
+            строку с названием. Расширенный добавляет БЖУ к продукту. Сумма
+            приёма остаётся в обоих.
+          </p>
         </section>
 
         {!loading && form ? (

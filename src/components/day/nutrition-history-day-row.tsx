@@ -2,7 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { MeterBar } from "@/components/ui/meter-bar";
@@ -12,6 +12,7 @@ import { formatIsoDate } from "@/lib/day/format";
 import { CATCH_UP_MARK } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
 import type { DayHistoryRow } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function NutritionHistoryDayRow({
   item,
@@ -20,15 +21,26 @@ export function NutritionHistoryDayRow({
   item: DayHistoryRow;
   fromSettings: boolean;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
+
   return (
     <Link
       href={todayHistoryDayHref(item.date, fromSettings)}
-      className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+      className={cn(
+        "card-surface flex items-center gap-3 px-5 transition-colors hover:bg-muted/40",
+        compact ? "py-3" : "py-4",
+      )}
     >
       <MarkBadge className="size-9 rounded-xl">
         {item.is_training_day ? <DumbbellDoodle /> : <CookieDoodle />}
       </MarkBadge>
-      <span className="flex min-w-0 flex-1 flex-col gap-3">
+      <span
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          compact ? "gap-1" : "gap-3",
+        )}
+      >
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-base font-medium">
             {formatIsoDate(item.date, "EEEE, d MMMM")}
@@ -53,23 +65,25 @@ export function NutritionHistoryDayRow({
             ? null
             : ` · ${formatBodyWeight(item.waist_cm)} см`}
         </p>
-        <div className="flex flex-col gap-1.5">
-          <MiniBar
-            fact={item.fact_protein}
-            plan={item.target_protein}
-            barClass="bg-[var(--macro-protein)]"
-          />
-          <MiniBar
-            fact={item.fact_fat}
-            plan={item.target_fat}
-            barClass="bg-[var(--macro-fat)]"
-          />
-          <MiniBar
-            fact={item.fact_carbs}
-            plan={item.target_carbs}
-            barClass="bg-[var(--macro-carbs)]"
-          />
-        </div>
+        {compact ? null : (
+          <div className="flex flex-col gap-1.5">
+            <MiniBar
+              fact={item.fact_protein}
+              plan={item.target_protein}
+              barClass="bg-[var(--macro-protein)]"
+            />
+            <MiniBar
+              fact={item.fact_fat}
+              plan={item.target_fat}
+              barClass="bg-[var(--macro-fat)]"
+            />
+            <MiniBar
+              fact={item.fact_carbs}
+              plan={item.target_carbs}
+              barClass="bg-[var(--macro-carbs)]"
+            />
+          </div>
+        )}
       </span>
       <ChevronRight
         className="size-5 shrink-0 text-muted-foreground"

@@ -13,6 +13,7 @@ import {
   showYesterdayCatchUpHint,
   YesterdayCatchUpHint,
 } from "@/components/day/yesterday-catch-up-hint";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
@@ -26,6 +27,7 @@ import type {
   MealType,
   NamedMealHint,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function TodayDayView({
   date,
@@ -124,6 +126,8 @@ export function TodayDayView({
   deleteItem: (item: MealItem) => Promise<void>;
   startQueuedWorkout: (templateId: string) => Promise<void>;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const hiddenNote = hiddenMealSlotsNote(
     hiddenMealKcal,
     hiddenMealTypes,
@@ -159,7 +163,7 @@ export function TodayDayView({
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={cn("flex flex-col", compact ? "gap-3" : "gap-4")}>
       <TodayDayHeader
         date={date}
         today={today}

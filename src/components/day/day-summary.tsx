@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { BodyWeightField } from "@/components/day/body-weight-field";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
 import { JoyShareButton } from "@/components/share/joy-share-button";
@@ -75,6 +76,8 @@ export function DaySummary({
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const remainingKcal = day.target_kcal - fact.kcal;
   const overflow = remainingKcal < 0;
   const remainingProtein = day.target_protein - fact.protein;
@@ -136,7 +139,12 @@ export function DaySummary({
   const bodyMetrics = loop && showWeight;
 
   return (
-    <section className="card-surface flex flex-col gap-5 px-5 py-5">
+    <section
+      className={cn(
+        "card-surface flex flex-col px-5",
+        compact ? "gap-3 py-3" : "gap-5 py-5",
+      )}
+    >
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -159,7 +167,8 @@ export function DaySummary({
             </div>
             <p
               className={cn(
-                "mt-1 text-2xl font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                compact ? "text-xl" : "text-2xl",
                 flashClosed ? "animate-fade" : "tabular-nums",
                 proteinOverflow &&
                   !flashClosed &&
@@ -233,31 +242,39 @@ export function DaySummary({
 
       {joy ? <JoyShareButton moment={joy} /> : null}
 
-      <div className={cn("flex flex-col", loop ? "gap-3" : "gap-3.5")}>
+      <div className={cn("flex flex-col", compact ? "gap-2" : "gap-3.5")}>
         <MacroBar
           label="Белки"
           fact={fact.protein}
           plan={day.target_protein}
           barClass="bg-[var(--macro-protein)]"
+          compact={compact}
         />
         <MacroBar
           label="Жиры"
           fact={fact.fat}
           plan={day.target_fat}
           barClass="bg-[var(--macro-fat)]"
+          compact={compact}
         />
         <MacroBar
           label="Углеводы"
           fact={fact.carbs}
           plan={day.target_carbs}
           barClass="bg-[var(--macro-carbs)]"
+          compact={compact}
         />
       </div>
       {macros ? (
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
       {bodyMetrics ? (
-        <div className="flex flex-col gap-3 border-t border-border pt-4">
+        <div
+          className={cn(
+            "flex flex-col border-t border-border",
+            compact ? "gap-2 pt-3" : "gap-3 pt-4",
+          )}
+        >
           {bodyTip.tip ? (
             <GuideTipCard tip={bodyTip.tip} onDismiss={bodyTip.dismiss} />
           ) : null}
@@ -493,19 +510,26 @@ function MacroBar({
   fact,
   plan,
   barClass,
+  compact = false,
 }: {
   label: string;
   fact: number;
   plan: number;
   barClass: string;
+  compact?: boolean;
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-3 text-base">
+    <div className={cn("flex flex-col", compact ? "gap-1" : "gap-1.5")}>
+      <div
+        className={cn(
+          "flex items-baseline justify-between gap-3",
+          compact ? "text-sm" : "text-base",
+        )}
+      >
         <p className="font-medium">{label}</p>
         <p
           className={cn(
@@ -517,7 +541,12 @@ function MacroBar({
           <span> / {formatMacro(plan)}</span>
         </p>
       </div>
-      <MeterBar ratio={ratio} barClass={barClass} overflow={overflow} />
+      <MeterBar
+        ratio={ratio}
+        barClass={barClass}
+        overflow={overflow}
+        size={compact ? "sm" : "md"}
+      />
     </div>
   );
 }
