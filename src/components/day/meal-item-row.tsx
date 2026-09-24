@@ -29,14 +29,16 @@ export function MealItemRow({
   href?: string;
   onDelete?: () => void;
 }) {
+  const amount = item.lump
+    ? `${formatKcal(item.kcal)} ккал`
+    : `${formatGrams(item.grams)} г · ${formatKcal(item.kcal)} ккал`;
+  const macros = `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`;
+
   const body = (
     <>
       <p className="truncate text-lg font-medium">{item.name}</p>
-      <p className="text-sm text-muted-foreground">
-        {item.lump
-          ? `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`
-          : `${formatGrams(item.grams)} г · ${formatKcal(item.kcal)} ккал`}
-      </p>
+      <p className="text-sm text-muted-foreground tabular-nums">{amount}</p>
+      <p className="text-sm text-muted-foreground tabular-nums">{macros}</p>
     </>
   );
 

@@ -97,7 +97,7 @@ assertEqual(
 );
 assertEqual(
   STARTER_CATALOG_NOTE,
-  "Обычные продукты на старте. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.",
+  "",
   "starter catalog explains itself",
 );
 assertEqual(

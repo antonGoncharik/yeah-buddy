@@ -86,7 +86,7 @@ export function ProgressScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Рабочие веса"
-        subtitle="Сильнее ли стал — за 90 дней или с первой записи"
+        subtitle="Сильнее ли стал"
         backHref="/workouts"
       />
 

@@ -192,7 +192,7 @@ export function SettingsAuthor() {
           </p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            От {DONATE_MIN}–{DONATE_MAX.toLocaleString("ru-RU")}.
+            От {DONATE_MIN} до {DONATE_MAX.toLocaleString("ru-RU")}.
           </p>
         )}
       </form>

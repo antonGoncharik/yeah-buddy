@@ -2,7 +2,7 @@ import type { GuidePage, GuideTip } from "@/lib/guide/types";
 
 export const GUIDE_LABEL = "Как пользоваться";
 export const GUIDE_HREF = "/settings/guide";
-export const GUIDE_HINT = "Еда, зал, недели — без календаря на стене";
+export const GUIDE_HINT = "";
 
 /** Short walkthrough shown once, before setup. */
 export const GUIDE_INTRO_PAGES: GuidePage[] = [

@@ -50,7 +50,7 @@ export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
 export const STARTER_CATALOG_NOTE =
-  "Обычные продукты на старте. Свой найдёшь по названию или штрихкоду. Лишние можно удалить.";
+  "";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 
