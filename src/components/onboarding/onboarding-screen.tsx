@@ -181,7 +181,7 @@ export function OnboardingScreen() {
             disabled={saving}
             onClick={() => void goNext()}
           >
-            {saving ? "Yeah buddy…" : isLast ? "Готово" : "Дальше"}
+            {saving ? "Секунду…" : isLast ? "Готово" : "Дальше"}
           </Button>
         </StickyActions>
       ) : null}

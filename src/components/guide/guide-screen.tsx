@@ -76,7 +76,7 @@ export function GuideScreen() {
           onClick={onRestoreTips}
         >
           {restored
-            ? "Подсказки снова на «Сегодня» и в «Тренировках»"
+            ? "Снова на местах. Ждали."
             : "Вернуть подсказки на экраны"}
         </Button>
       </StickyActions>

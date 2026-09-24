@@ -139,7 +139,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "Тренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
+  "Тренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "food done gym still due",
 );
 assertEqual(
@@ -157,8 +157,8 @@ assertEqual(
     gymDone: true,
     nextTemplateName: "Сила A",
   }),
-  "День в порядке. Yeah buddy.",
-  "both logged is Yeah buddy",
+  "День в порядке. Холодильник кивает.",
+  "both logged is done day",
 );
 assertEqual(
   reminderText({
@@ -166,7 +166,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: null,
   }),
-  "День в порядке. Yeah buddy.",
+  "День в порядке. Холодильник кивает.",
   "food done and no circle",
 );
 assertEqual(
@@ -184,7 +184,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.\nТренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.\nТренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "food and circle",
 );
 assertEqual(
@@ -195,7 +195,7 @@ assertEqual(
     nextTemplateName: "Сила A",
     early: true,
   }),
-  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.\nТренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
+  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.\nТренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "first evenings nag food and the queued gym even on rest",
 );
 assertEqual(
@@ -206,7 +206,7 @@ assertEqual(
     nextTemplateName: "Сила A",
     early: true,
   }),
-  "День в порядке. Yeah buddy.",
+  "День в порядке. Холодильник кивает.",
   "first evening stays quiet when the day is done",
 );
 
@@ -245,11 +245,11 @@ assertEqual(
 
 assertEqual(
   composeReminderMessage(
-    "День в порядке. Yeah buddy.",
+    "День в порядке. Холодильник кивает.",
     "За 14 дней:\nБелок дотянули: 5 из 7 дней.",
   ),
-  "День в порядке. Yeah buddy.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
-  "sunday recap sits under yeah buddy",
+  "День в порядке. Холодильник кивает.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  "sunday recap sits under done day",
 );
 assertEqual(
   composeReminderMessage(null, "За 14 дней:\nЗал: 4."),
@@ -259,7 +259,7 @@ assertEqual(
 assertEqual(composeReminderMessage(null, null), null, "nothing to send");
 assertEqual(
   composeEveningMessage(
-    "День в порядке. Yeah buddy.",
+    "День в порядке. Холодильник кивает.",
     null,
     reminderDayCard({
       protein: 142,
@@ -268,7 +268,7 @@ assertEqual(
       gym: "gym",
     }),
   ),
-  `День в порядке. Yeah buddy.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
+  `День в порядке. Холодильник кивает.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
   "evening text keeps the nag and the day card",
 );
 assertEqual(

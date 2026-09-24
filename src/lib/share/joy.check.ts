@@ -51,7 +51,7 @@ assertEqual(
 assertEqual(JOY_PROTEIN_HITS, 7, "protein share is a week");
 assertEqual(
   sessionJoyMoment({ feel: "easy", completedSessions: 1, workKg: 80 })?.line,
-  "Первый. Yeah buddy.",
+  "Первый. Штанга заметила.",
   "first workout shares",
 );
 assertEqual(
@@ -66,7 +66,7 @@ assertEqual(
 );
 assertEqual(
   sessionJoyMoment({ feel: "easy", completedSessions: 50, workKg: 80 })?.line,
-  "Пятьдесят. Yeah buddy.",
+  "Пятьдесят. Уже не случайность.",
   "fiftieth workout",
 );
 assertEqual(

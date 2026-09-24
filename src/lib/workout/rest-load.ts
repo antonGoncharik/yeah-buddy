@@ -1,8 +1,4 @@
-import {
-  hundredWeightLine,
-  LIGHT_WEIGHT_LINE,
-  YEAH_BUDDY_LINE,
-} from "@/lib/flavor";
+import { hundredWeightLine, LIGHT_WEIGHT_LINE } from "@/lib/flavor";
 
 export const BAR_KG = 20;
 export const SIDE_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25] as const;
@@ -15,6 +11,7 @@ const PAIR_STEP_UNITS = 10;
 export type RestLoadStatus = "empty" | "under" | "hit" | "over";
 
 export const REST_LOAD_OVER_LINE = "Много.";
+export const REST_LOAD_HIT_LINE = "Встало.";
 
 export function toKgUnits(kg: number): number {
   return Math.round(kg * KG_UNITS);
@@ -131,7 +128,7 @@ export function restLoadTargetKg(
 export function restLoadHitLine(targetKg: number): string {
   return (
     hundredWeightLine(targetKg) ??
-    (targetKg <= 40 ? LIGHT_WEIGHT_LINE : YEAH_BUDDY_LINE)
+    (targetKg <= 40 ? LIGHT_WEIGHT_LINE : REST_LOAD_HIT_LINE)
   );
 }
 

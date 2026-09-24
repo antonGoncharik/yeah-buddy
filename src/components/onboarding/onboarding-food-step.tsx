@@ -283,10 +283,10 @@ export function OnboardingMacrosStep({
 
 function sexLead(replay: boolean, fromWorkoutPack: boolean): string | null {
   if (fromWorkoutPack) {
-    return "Программа тренировок возьмётся из ссылки. Сначала — кто ты.";
+    return "Программа возьмётся из ссылки. Сначала скажи, кто ты — без пола белок не посчитать.";
   }
   if (replay) {
-    return "Заново посчитаем белок и калории. Еда на день и записи останутся.";
+    return "Заново посчитаем белок и калории. Еда на день и записи останутся на месте.";
   }
   return null;
 }

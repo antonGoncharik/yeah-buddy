@@ -78,7 +78,7 @@ export function sessionRaiseLine(
 
 export function sessionMilestoneLine(count: number): string | null {
   if (count === 1) {
-    return "Первый. Yeah buddy.";
+    return "Первый. Штанга заметила.";
   }
   if (count === 10) {
     return "Десять. Уже не разовый заход.";
@@ -87,7 +87,7 @@ export function sessionMilestoneLine(count: number): string | null {
     return "Двадцать пять. Уже привычка.";
   }
   if (count === 50) {
-    return "Пятьдесят. Yeah buddy.";
+    return "Пятьдесят. Уже не случайность.";
   }
   if (count === 100) {
     return "Сотня. Можно не считать, но мы посчитали.";
@@ -233,7 +233,7 @@ export const LATE_NIGHT_LINE = "Ещё не спишь.";
 export const EARLY_LINE = "Рано. Белок не спит.";
 export const EVENING_LINE = "Вечер. Ещё можно добрать.";
 export const INVITE_QR_CAPTION =
-  "Наведи камеру. Бот скажет yeah buddy — жми Start.";
+  "Наведи камеру. Бот кивнёт — жми Start.";
 export const PACK_MEALS_QR_CAPTION = "Наведи камеру — откроется еда на день.";
 export const PACK_WORKOUTS_QR_CAPTION = "Наведи камеру — откроется программа.";
 export const PACK_MEAL_QR_CAPTION = "Наведи камеру — откроется приём.";

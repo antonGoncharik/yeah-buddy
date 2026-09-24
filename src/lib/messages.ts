@@ -76,7 +76,7 @@ export const CATCH_UP_EMPTY_HINT =
   "День пустой. Можно догнать — в истории будет пометка «догонял».";
 export const CATCH_UP_YESTERDAY_HINT = "Вчера пустой — можно догнать.";
 export const EMPTY_START_REPEAT = "Вчера было так. Повторить.";
-export const EMPTY_START_ADD = "Еды ещё нет. Добавь первое.";
+export const EMPTY_START_ADD = "Еды ещё нет. Тарелка сама не запишется.";
 export const DAY_TEMPLATE_EMPTY = "Нужен хотя бы один продукт из списка.";
 
 export function saveDayTemplateLabel(isTrainingDay: boolean): string {
@@ -101,10 +101,10 @@ export const BOT_REMINDER_FOOD =
 export const BOT_REMINDER_FOOD_EARLY =
   "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
-export const BOT_REMINDER_DONE = "День в порядке. Yeah buddy.";
+export const BOT_REMINDER_DONE = "День в порядке. Холодильник кивает.";
 
 export function botReminderGym(name: string): string {
-  return `Тренировка «${name}» ещё не закрыта. Можно дописать сейчас или оставить на завтра.`;
+  return `Тренировка «${name}» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.`;
 }
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение — штанга сама не встанет.";
@@ -122,9 +122,10 @@ export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
 export const SESSION_HISTORY_EMPTY = "Пока пусто. Первый подход ещё впереди.";
 export const NUTRITION_HISTORY_EMPTY = "Пока пусто. Первый приём ещё впереди.";
 export const WEEK_EMPTY = "Пока пусто. Неделя сама себя не запишет.";
-export const WEEK_EMPTY_HINT = "Запиши еду или зал — день появится здесь.";
+export const WEEK_EMPTY_HINT = "Запиши еду или зал — день сам себя не нарисует.";
 export const SESSION_HISTORY_EMPTY_HINT = "Сделай тренировку — она ляжет сюда.";
-export const NUTRITION_HISTORY_EMPTY_HINT = "Запиши еду — день появится здесь.";
+export const NUTRITION_HISTORY_EMPTY_HINT =
+  "Запиши еду — день появится здесь. Холодильник ждёт.";
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =

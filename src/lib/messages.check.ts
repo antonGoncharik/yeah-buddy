@@ -72,7 +72,7 @@ assertEqual(
 );
 assertEqual(
   EMPTY_START_ADD,
-  "Еды ещё нет. Добавь первое.",
+  "Еды ещё нет. Тарелка сама не запишется.",
   "empty today with nothing to copy",
 );
 assertEqual(

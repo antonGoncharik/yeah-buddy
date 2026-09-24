@@ -108,9 +108,9 @@ assertEqual(
 );
 assertEqual(restLoadHitLine(100), "Сотня. Круглая.", "hundred");
 assertEqual(restLoadHitLine(40), "Лёгкий вес.", "light bar");
-assertEqual(restLoadHitLine(80), "Yeah buddy.", "working hit");
+assertEqual(restLoadHitLine(80), "Встало.", "working hit");
 assertEqual(restLoadLine(20, 80), "20 / 80 кг", "progress");
-assertEqual(restLoadLine(80, 80), "Yeah buddy.", "hit line");
+assertEqual(restLoadLine(80, 80), "Встало.", "hit line");
 assertEqual(restLoadLine(90, 80), REST_LOAD_OVER_LINE, "over line");
 
 console.log("rest load ok");

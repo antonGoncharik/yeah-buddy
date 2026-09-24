@@ -45,7 +45,7 @@ export function OnboardingCircleStep({
               : "text-muted-foreground",
           )}
         >
-          Не хожу в зал или соберу тренировки сам.
+          Не хожу в зал или соберу очередь сам.
         </p>
       </button>
     </>

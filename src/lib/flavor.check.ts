@@ -105,14 +105,18 @@ assertEqual(
 );
 
 assertEqual(sessionMilestoneLine(9), null, "not yet ten");
-assertEqual(sessionMilestoneLine(1), "Первый. Yeah buddy.", "first session");
+assertEqual(sessionMilestoneLine(1), "Первый. Штанга заметила.", "first session");
 assertEqual(
   sessionMilestoneLine(10),
   "Десять. Уже не разовый заход.",
   "tenth session",
 );
 assertEqual(sessionMilestoneLine(25), "Двадцать пять. Уже привычка.", "25th");
-assertEqual(sessionMilestoneLine(50), "Пятьдесят. Yeah buddy.", "fiftieth");
+assertEqual(
+  sessionMilestoneLine(50),
+  "Пятьдесят. Уже не случайность.",
+  "fiftieth",
+);
 assertEqual(
   sessionMilestoneLine(100),
   "Сотня. Можно не считать, но мы посчитали.",
@@ -405,9 +409,14 @@ assertEqual(
   "meal qr",
 );
 assertEqual(
-  INVITE_QR_CAPTION.includes("yeah buddy"),
+  INVITE_QR_CAPTION.includes("жми Start"),
   true,
-  "invite qr keeps the line",
+  "invite qr keeps the start cue",
+);
+assertEqual(
+  INVITE_QR_CAPTION.toLowerCase().includes("yeah buddy"),
+  false,
+  "invite qr does not lean on the catchphrase",
 );
 assertEqual(
   nightLoadingLine(new Date(2026, 8, 18, 2).getTime()),
