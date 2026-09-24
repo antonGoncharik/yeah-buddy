@@ -114,7 +114,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       writable: isDayWritable(date, today, writeStateFromDay(day)),
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
-      lastBodyWeight,
+      lastBodyWeight: lastBodyWeight?.weight ?? null,
+      lastBodyWeightDate: lastBodyWeight?.date ?? null,
       lastWaist: lastWaist?.cm ?? null,
       lastWaistDate: lastWaist?.date ?? null,
       accountAgeDays: onboardingAgeDays(

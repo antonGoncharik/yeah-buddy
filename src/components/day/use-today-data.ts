@@ -20,6 +20,7 @@ import {
   readCopyDays,
   readDay,
   readLastBodyWeight,
+  readLastBodyWeightDate,
   readLastWaist,
   readLastWaistDate,
   readMacroGoals,
@@ -53,6 +54,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     training: RecipeLine[];
   }>({ rest: [], training: [] });
   const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
+  const [lastBodyWeightDate, setLastBodyWeightDate] = useState<string | null>(
+    null,
+  );
   const [lastWaist, setLastWaist] = useState<number | null>(null);
   const [lastWaistDate, setLastWaistDate] = useState<string | null>(null);
   const [accountAgeDays, setAccountAgeDays] = useState<number | null>(null);
@@ -86,6 +90,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setNamedMeals(readNamedMeals(data));
       setRecipes(readRecipes(data));
       setLastBodyWeight(readLastBodyWeight(data));
+      setLastBodyWeightDate(readLastBodyWeightDate(data));
       setLastWaist(readLastWaist(data));
       setLastWaistDate(readLastWaistDate(data));
       setAccountAgeDays(readAccountAgeDays(data));
@@ -183,6 +188,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setYesterdayMealTypes([]);
     setCopyDays([]);
     setLastBodyWeight(null);
+    setLastBodyWeightDate(null);
     setLastWaist(null);
     setLastWaistDate(null);
     setAccountAgeDays(null);
@@ -224,6 +230,8 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     recipes: cached != null ? readRecipes(cached) : recipes,
     lastBodyWeight:
       cached != null ? readLastBodyWeight(cached) : lastBodyWeight,
+    lastBodyWeightDate:
+      cached != null ? readLastBodyWeightDate(cached) : lastBodyWeightDate,
     lastWaist: cached != null ? readLastWaist(cached) : lastWaist,
     lastWaistDate: cached != null ? readLastWaistDate(cached) : lastWaistDate,
     accountAgeDays:

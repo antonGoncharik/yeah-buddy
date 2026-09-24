@@ -144,7 +144,7 @@ async function loadReviewBrief(
     foodsTraining: foods.training,
     macro,
     progress,
-    seedWeight,
+    seedWeight: seedWeight?.weight ?? null,
     seedWaist: seedWaist?.cm ?? null,
     sex: settings?.sex ?? null,
     goal: settings?.goal ?? null,

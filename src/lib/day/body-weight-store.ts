@@ -10,7 +10,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function getLastBodyWeight(
   userId: string,
   beforeDate: string,
-): Promise<number | null> {
+): Promise<{ weight: number; date: string } | null> {
   if (!isIsoDate(beforeDate)) {
     return null;
   }
@@ -18,7 +18,7 @@ export async function getLastBodyWeight(
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("days")
-    .select("body_weight")
+    .select("date, body_weight")
     .eq("user_id", userId)
     .not("body_weight", "is", null)
     .lt("date", beforeDate)
@@ -30,7 +30,13 @@ export async function getLastBodyWeight(
     throw result.error;
   }
 
-  return toNullableNumber(result.data?.body_weight);
+  const weight = toNullableNumber(result.data?.body_weight);
+  const date = result.data ? String(result.data.date).slice(0, 10) : "";
+  if (weight == null || !isIsoDate(date)) {
+    return null;
+  }
+
+  return { weight, date };
 }
 
 export async function listBodyWeightsInRange(

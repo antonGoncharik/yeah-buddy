@@ -2,6 +2,7 @@ import {
   readAccountAgeDays,
   readDayWritable,
   readLastBodyWeight,
+  readLastBodyWeightDate,
   readLastWaist,
   readLastWaistDate,
   readMacroGoals,
@@ -67,6 +68,12 @@ assertEqual(
   "last body weight",
 );
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
+assertEqual(
+  readLastBodyWeightDate({ lastBodyWeightDate: "2026-09-01" }),
+  "2026-09-01",
+  "last weight date",
+);
+assertEqual(readLastBodyWeightDate({}), null, "missing weight date");
 assertEqual(readLastWaist({ lastWaist: 84 }), 84, "last waist");
 assertEqual(readLastWaist({}), null, "missing last waist");
 assertEqual(

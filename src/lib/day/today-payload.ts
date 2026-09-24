@@ -50,6 +50,13 @@ export function readLastWaist(data: unknown): number | null {
   return toNullableNumber(data.lastWaist);
 }
 
+export function readLastBodyWeightDate(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.lastBodyWeightDate !== "string") {
+    return null;
+  }
+  return isIsoDate(data.lastBodyWeightDate) ? data.lastBodyWeightDate : null;
+}
+
 export function readLastWaistDate(data: unknown): string | null {
   if (!isRecord(data) || typeof data.lastWaistDate !== "string") {
     return null;

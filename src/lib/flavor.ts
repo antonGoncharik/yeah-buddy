@@ -244,6 +244,7 @@ export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
 export const WAIST_GAP_DAYS = 21;
 export const WAIST_GAP_LINE = "Талию не мерили.";
+export const WEIGHT_GAP_LINE = "Вес не писали.";
 export const PROTEIN_SHARE_FLOOR_G = 40;
 export const PROTEIN_SHARE_PILE = 0.6;
 export const TRAINING_GAP_FLOOR_G = 5;
@@ -485,15 +486,53 @@ export function waistGapLine(input: {
   date: string;
   canLog: boolean;
 }): string | null {
-  if (!input.canLog || input.waist != null) {
+  return missedMeasureLine({
+    value: input.waist,
+    lastDate: input.lastWaistDate,
+    accountAgeDays: input.accountAgeDays,
+    date: input.date,
+    canLog: input.canLog,
+    gapDays: WAIST_GAP_DAYS,
+    line: WAIST_GAP_LINE,
+  });
+}
+
+export function weightGapLine(input: {
+  weight: number | null;
+  lastWeightDate: string | null;
+  accountAgeDays: number | null;
+  date: string;
+  canLog: boolean;
+}): string | null {
+  return missedMeasureLine({
+    value: input.weight,
+    lastDate: input.lastWeightDate,
+    accountAgeDays: input.accountAgeDays,
+    date: input.date,
+    canLog: input.canLog,
+    gapDays: STEADY_WEIGHT_DAYS,
+    line: WEIGHT_GAP_LINE,
+  });
+}
+
+function missedMeasureLine(input: {
+  value: number | null;
+  lastDate: string | null;
+  accountAgeDays: number | null;
+  date: string;
+  canLog: boolean;
+  gapDays: number;
+  line: string;
+}): string | null {
+  if (!input.canLog || input.value != null) {
     return null;
   }
-  if (input.lastWaistDate != null) {
-    const cutoff = shiftIsoDate(input.date, -WAIST_GAP_DAYS);
-    return input.lastWaistDate <= cutoff ? WAIST_GAP_LINE : null;
+  if (input.lastDate != null) {
+    const cutoff = shiftIsoDate(input.date, -input.gapDays);
+    return input.lastDate <= cutoff ? input.line : null;
   }
-  if (input.accountAgeDays != null && input.accountAgeDays >= WAIST_GAP_DAYS) {
-    return WAIST_GAP_LINE;
+  if (input.accountAgeDays != null && input.accountAgeDays >= input.gapDays) {
+    return input.line;
   }
   return null;
 }

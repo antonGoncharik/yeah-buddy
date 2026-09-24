@@ -39,7 +39,9 @@ import {
   steadyWeightLine,
   trainingDayGapLine,
   WAIST_GAP_LINE,
+  WEIGHT_GAP_LINE,
   waistGapLine,
+  weightGapLine,
 } from "@/lib/flavor";
 import type { PhaseCircleProgress } from "@/lib/types";
 
@@ -552,6 +554,50 @@ assertEqual(
   }),
   null,
   "today's waist closes the gap",
+);
+assertEqual(
+  weightGapLine({
+    weight: null,
+    lastWeightDate: "2026-09-01",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  WEIGHT_GAP_LINE,
+  "two weeks without a weigh-in",
+);
+assertEqual(
+  weightGapLine({
+    weight: null,
+    lastWeightDate: "2026-09-18",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  null,
+  "last week's weight stays quiet",
+);
+assertEqual(
+  weightGapLine({
+    weight: null,
+    lastWeightDate: null,
+    accountAgeDays: 14,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  WEIGHT_GAP_LINE,
+  "never weighed after two weeks",
+);
+assertEqual(
+  weightGapLine({
+    weight: 83,
+    lastWeightDate: "2026-09-01",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  null,
+  "today's weight closes the gap",
 );
 
 console.log("flavor ok");

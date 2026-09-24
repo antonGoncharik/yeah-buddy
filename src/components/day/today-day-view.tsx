@@ -19,7 +19,7 @@ import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
 import type { MacroGoals } from "@/lib/day/today-payload";
-import { trainingDayGapLine, waistGapLine } from "@/lib/flavor";
+import { trainingDayGapLine, waistGapLine, weightGapLine } from "@/lib/flavor";
 import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import { emptyStartCopy } from "@/lib/retention";
 import type {
@@ -54,6 +54,7 @@ export function TodayDayView({
   copyDays,
   namedMeals,
   lastBodyWeight,
+  lastBodyWeightDate,
   lastWaist,
   lastWaistDate,
   accountAgeDays,
@@ -101,6 +102,7 @@ export function TodayDayView({
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
+  lastBodyWeightDate: string | null;
   lastWaist: number | null;
   lastWaistDate: string | null;
   accountAgeDays: number | null;
@@ -171,6 +173,13 @@ export function TodayDayView({
     rest: { protein: goals.restProtein, carbs: goals.restCarbs },
     day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
   });
+  const weightGap = weightGapLine({
+    weight: shownDay.body_weight,
+    lastWeightDate: lastBodyWeightDate,
+    accountAgeDays,
+    date,
+    canLog: !viewOnly,
+  });
   const waistGap = waistGapLine({
     waist: shownDay.waist_cm,
     lastWaistDate,
@@ -218,6 +227,7 @@ export function TodayDayView({
           weightSteady={weightSteady}
           priorProteinHits={priorProteinHits}
           trainingGap={trainingGap}
+          weightGap={weightGap}
           waistGap={waistGap}
           share={writable}
           gym={

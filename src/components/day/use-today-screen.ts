@@ -238,6 +238,7 @@ export function useTodayScreen({
     copyDays: data.copyDays,
     namedMeals: data.namedMeals,
     lastBodyWeight: data.lastBodyWeight,
+    lastBodyWeightDate: data.lastBodyWeightDate,
     lastWaist: data.lastWaist,
     lastWaistDate: data.lastWaistDate,
     accountAgeDays: data.accountAgeDays,

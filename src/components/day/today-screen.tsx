@@ -50,6 +50,7 @@ export function TodayScreen({
     copyDays,
     namedMeals,
     lastBodyWeight,
+    lastBodyWeightDate,
     lastWaist,
     lastWaistDate,
     accountAgeDays,
@@ -206,6 +207,7 @@ export function TodayScreen({
             copyDays={copyDays}
             namedMeals={namedMeals}
             lastBodyWeight={lastBodyWeight}
+            lastBodyWeightDate={lastBodyWeightDate}
             lastWaist={lastWaist}
             lastWaistDate={lastWaistDate}
             accountAgeDays={accountAgeDays}

@@ -47,6 +47,7 @@ export function DaySummary({
   weightSteady = false,
   priorProteinHits = 0,
   trainingGap = null,
+  weightGap = null,
   waistGap = null,
   share = false,
   gym = null,
@@ -74,6 +75,7 @@ export function DaySummary({
   weightSteady?: boolean;
   priorProteinHits?: number;
   trainingGap?: string | null;
+  weightGap?: string | null;
   waistGap?: string | null;
   share?: boolean;
   gym?: ReactNode;
@@ -295,6 +297,7 @@ export function DaySummary({
             readOnly={bodyWeightReadOnly}
             busy={bodyWeightBusy}
             note={weightNote}
+            weightGap={weightGap}
             waistGap={waistGap}
             wide
             divided={false}
@@ -432,6 +435,7 @@ function WeightBlock({
   readOnly,
   busy,
   note,
+  weightGap = null,
   waistGap = null,
   wide = false,
   divided,
@@ -445,6 +449,7 @@ function WeightBlock({
   readOnly: boolean;
   busy: boolean;
   note: string | null;
+  weightGap?: string | null;
   waistGap?: string | null;
   wide?: boolean;
   divided?: boolean;
@@ -482,6 +487,9 @@ function WeightBlock({
               onSave={onSave}
             />
           </div>
+          {weightGap ? (
+            <p className="mt-1 text-sm text-muted-foreground">{weightGap}</p>
+          ) : null}
         </div>
         {showWaist ? (
           <div className={wide ? undefined : "text-right"}>
