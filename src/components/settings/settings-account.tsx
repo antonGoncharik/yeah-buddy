@@ -66,7 +66,7 @@ export function SettingsAccount() {
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <h2 className="text-xl font-semibold">Данные</h2>
       <p className="text-sm text-muted-foreground">
-        Скачай копию дневника или удали всё с сервера.
+        Скачай копию дневника или удали всё с сервера
       </p>
       <Button
         type="button"

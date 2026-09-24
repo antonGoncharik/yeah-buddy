@@ -42,10 +42,10 @@ assertEqual(readInvitePayload({ url: "  " }), null, "blank url");
 assertEqual(readInvitePayload({ text: "hi" }), null, "missing url");
 assertEqual(INVITE_HREF, "/settings/invite", "invite lives in settings");
 assertEqual(BOT_INVITE_LABEL, "Бот другу", "invite label");
-assertEqual(BOT_INVITE_HINT, "QR. Твоей еды и зала там нет.", "invite hint");
+assertEqual(BOT_INVITE_HINT, "QR чтобы поделиться приложением", "invite hint");
 assertEqual(
   BOT_INVITE_SUBTITLE,
-  "Ссылка на бот. Твоей еды и зала там нет.",
+  "Ссылка на бот",
   "invite subtitle",
 );
 

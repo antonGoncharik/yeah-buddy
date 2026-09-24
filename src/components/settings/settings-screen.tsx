@@ -132,7 +132,7 @@ export function SettingsScreen() {
             <NavRow
               href="/foods"
               title="Продукты"
-              hint="Свои продукты. Из них собирается день."
+              hint="Каталог продуктов. Из них собирается еда на день"
               icon={<CookieDoodle />}
             />
           </div>
@@ -161,7 +161,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
-              hint="Еда на день и программа. Один приём — с карточки на Сегодня"
+              hint="Поделись обедом, едой на день или программой тренировок"
               icon={<LinkDoodle />}
             />
             <NavRow

@@ -154,11 +154,11 @@ export const ACCOUNT_DELETE_CONFIRM =
   "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
 export const DONATE_THANKS = "Спасибо";
 export const DONATE_REJECT = "Этот счёт не принять.";
-export const DONATE_HINT = "Звёзды Telegram. Уходят автору на протеин.";
+export const DONATE_HINT = "Звёзды Telegram. Уходят автору на протеин💪";
 export const DONATE_STARS_INVALID = "От 1 до 10 000 звёзд.";
 export const INBOX_SETTINGS_TITLE = "Написать";
 export const INBOX_SETTINGS_HINT =
-  "Что улучшить, пожаловаться или заказать программу питания и тренировок.";
+  "Что улучшить, пожаловаться или заказать программу питания и тренировок";
 export const INBOX_MENU = "О чём написать?";
 export const INBOX_TOPIC_IMPROVE = "Что улучшить";
 export const INBOX_TOPIC_CHANGE = "Пожаловаться";
