@@ -121,7 +121,7 @@ assertEqual(
 assertEqual(OPEN_VIA_BOT_STEPS_TITLE, "Как начать", "outside Telegram steps");
 assertEqual(
   OPEN_VIA_BOT_STEPS.map((step) => `${step.title}: ${step.body}`).join("\n"),
-  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Еда в граммах, зал по программе.\nВечером: Одно сообщение: белок из цели, калории, был ли зал.",
+  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Еда в граммах, зал по программе.\nВечером: Одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
   "outside Telegram steps copy",
 );
 assertEqual(

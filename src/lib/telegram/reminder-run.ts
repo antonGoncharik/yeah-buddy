@@ -28,6 +28,7 @@ import {
   gymDoneForReminder,
   reminderText,
 } from "@/lib/telegram/reminder-text";
+import { templateNamesById } from "@/lib/workout/session-names";
 import { getSessionOnDate } from "@/lib/workout/sessions";
 
 const CANDIDATE_PAGE = 100;
@@ -101,14 +102,22 @@ export async function runEveningReminders(
       sessionStatus: session?.status ?? null,
       isTrainingDay,
     });
+    const gymName = await completedGymName(candidate.userId, session);
     const text = composeEveningMessage(
       nag,
       recap,
       reminderDayCard({
         protein: facts.protein,
-        targetProtein: snapshot?.targetProtein ?? 0,
+        fat: snapshot?.fat ?? 0,
+        carbs: snapshot?.carbs ?? 0,
         kcal: facts.kcal,
+        targetProtein: snapshot?.targetProtein ?? 0,
+        targetFat: snapshot?.targetFat ?? 0,
+        targetCarbs: snapshot?.targetCarbs ?? 0,
+        targetKcal: snapshot?.targetKcal ?? 0,
         gym: facts.gym,
+        gymName,
+        nextName: facts.gym === "none" ? null : nextTemplateName,
       }),
     );
     if (!text) {
@@ -144,6 +153,18 @@ export async function runEveningReminders(
   }
 
   return result;
+}
+
+async function completedGymName(
+  userId: string,
+  session: { status: string; template_id: string | null } | null,
+): Promise<string | null> {
+  if (session?.status !== "completed" || !session.template_id) {
+    return null;
+  }
+
+  const names = await templateNamesById(userId, [session.template_id]);
+  return names.get(session.template_id) ?? null;
 }
 
 async function sundayRecap(

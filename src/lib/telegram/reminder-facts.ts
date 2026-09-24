@@ -48,7 +48,16 @@ export async function dateHasFoodRecord(
 export async function dateShareSnapshot(
   userId: string,
   date: string,
-): Promise<{ protein: number; kcal: number; targetProtein: number } | null> {
+): Promise<{
+  protein: number;
+  fat: number;
+  carbs: number;
+  kcal: number;
+  targetProtein: number;
+  targetFat: number;
+  targetCarbs: number;
+  targetKcal: number;
+} | null> {
   const days = await listDaysInRange(userId, date, date);
   const day = days[0];
   if (!day) {
@@ -57,8 +66,13 @@ export async function dateShareSnapshot(
 
   return {
     protein: day.fact_protein,
+    fat: day.fact_fat,
+    carbs: day.fact_carbs,
     kcal: day.fact_kcal,
     targetProtein: day.target_protein,
+    targetFat: day.target_fat,
+    targetCarbs: day.target_carbs,
+    targetKcal: day.target_kcal,
   };
 }
 

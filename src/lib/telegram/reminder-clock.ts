@@ -1,7 +1,7 @@
 import { saveUserTimezone } from "@/lib/settings";
 
 export const DEFAULT_TIMEZONE = "Europe/Moscow";
-export const REMINDER_HOUR = 20;
+export const REMINDER_HOUR = 21;
 
 export function resolveTimeZone(value: string | null | undefined): string {
   const trimmed = value?.trim() ?? "";
@@ -40,7 +40,7 @@ export function localClock(
   };
 }
 
-/** Local calendar date to remind for, or null if 20:00 has not arrived. */
+/** Local calendar date to remind for, or null if 21:00 has not arrived. */
 export function reminderDateIfDue(clock: {
   date: string;
   hour: number;

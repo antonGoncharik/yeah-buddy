@@ -40,19 +40,19 @@ for (const choice of TIMEZONE_CHOICES) {
   assertEqual(resolveTimeZone(choice.id), choice.id, `${choice.id} is valid`);
 }
 assertEqual(
-  reminderDateIfDue({ date: "2026-09-11", hour: 20 }),
-  "2026-09-11",
-  "20:00 is tonight",
-);
-assertEqual(
   reminderDateIfDue({ date: "2026-09-11", hour: 21 }),
   "2026-09-11",
-  "after 20:00 still tonight",
+  "21:00 is tonight",
 );
 assertEqual(
-  reminderDateIfDue({ date: "2026-09-11", hour: 19 }),
+  reminderDateIfDue({ date: "2026-09-11", hour: 22 }),
+  "2026-09-11",
+  "after 21:00 still tonight",
+);
+assertEqual(
+  reminderDateIfDue({ date: "2026-09-11", hour: 20 }),
   null,
-  "before 20:00 waits",
+  "before 21:00 waits",
 );
 assertEqual(
   reminderDateIfDue({ date: "2026-09-01", hour: 3 }),
@@ -268,7 +268,7 @@ assertEqual(
       gym: "gym",
     }),
   ),
-  `День в порядке. Холодильник кивает.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
+  `День в порядке. Холодильник кивает.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2100)} ккал\nЗал был`,
   "evening text keeps the nag and the day card",
 );
 assertEqual(
@@ -292,8 +292,81 @@ assertEqual(
     kcal: 2100,
     gym: "gym",
   }),
-  `Белок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
+  `Белок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2100)} ккал\nЗал был`,
   "day card shows protein against the goal",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 218.8,
+    fat: 80,
+    carbs: 160,
+    kcal: 1936,
+    targetProtein: 200,
+    targetFat: 70,
+    targetCarbs: 180,
+    targetKcal: 2200,
+    gym: "rest",
+    nextName: "Ноги",
+  }),
+  [
+    `Белок ${formatMacro(218.8)} из ${formatMacro(200)} г · +${formatMacro(18.8)}`,
+    `Жир ${formatMacro(80)} из ${formatMacro(70)} г · +${formatMacro(10)}`,
+    `Углеводы ${formatMacro(160)} из ${formatMacro(180)} г · ещё ${formatMacro(20)}`,
+    `${formatKcal(1936)} из ${formatKcal(2200)} ккал · ещё ${formatKcal(264)}`,
+    "Отдых · дальше «Ноги»",
+  ].join("\n"),
+  "logged rest day shows gaps and the next workout",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 150,
+    fat: 70,
+    carbs: 180,
+    kcal: 2200,
+    targetProtein: 150,
+    targetFat: 70,
+    targetCarbs: 180,
+    targetKcal: 2200,
+    gym: "gym",
+    gymName: "Сила A",
+    nextName: "Сила B",
+  }),
+  [
+    `Белок ${formatMacro(150)} из ${formatMacro(150)} г`,
+    `Жир ${formatMacro(70)} из ${formatMacro(70)} г`,
+    `Углеводы ${formatMacro(180)} из ${formatMacro(180)} г`,
+    `${formatKcal(2200)} из ${formatKcal(2200)} ккал`,
+    "Зал был «Сила A» · дальше «Сила B»",
+  ].join("\n"),
+  "a hit day names the gym and what is next",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 0,
+    fat: 0,
+    carbs: 0,
+    kcal: 0,
+    targetProtein: 200,
+    targetFat: 70,
+    targetCarbs: 180,
+    targetKcal: 2200,
+    gym: "rest",
+    nextName: "Сила A",
+  }),
+  `Белок ${formatMacro(0)} из ${formatMacro(200)} г\n${formatKcal(0)} из ${formatKcal(2200)} ккал\nОтдых · дальше «Сила A»`,
+  "empty day keeps the targets without a gap wall",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 142,
+    kcal: 2180,
+    targetProtein: 150,
+    targetKcal: 2200,
+    gym: "none",
+    nextName: "Сила A",
+  }),
+  `Белок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2180)} из ${formatKcal(2200)} ккал\nЗала не было`,
+  "open gym stays in the nag, small kcal gap stays quiet",
 );
 assertEqual(
   reminderDayCard({
