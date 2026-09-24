@@ -127,8 +127,24 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       last_recap: parseLastRecap(value.maxes.last_recap),
     },
     signals: stringList(value.signals),
+    sex: parseStoredSexLabel(value.sex),
+    goal: parseStoredGoalLabel(value.goal),
     training_age: parseStoredTrainingAgeLabel(value.training_age),
   };
+}
+
+function parseStoredSexLabel(value: unknown): string | null {
+  if (value === "мужчина" || value === "женщина") {
+    return value;
+  }
+  return null;
+}
+
+function parseStoredGoalLabel(value: unknown): string | null {
+  if (value === "похудеть" || value === "держать" || value === "набрать") {
+    return value;
+  }
+  return null;
 }
 
 function parseStoredTrainingAgeLabel(value: unknown): string | null {

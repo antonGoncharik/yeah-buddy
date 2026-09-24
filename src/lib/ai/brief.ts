@@ -209,8 +209,35 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
         : null,
     },
     signals,
+    sex: sexLabel(source.sex),
+    goal: goalLabel(source.goal),
     training_age: trainingAgeLabel(source.trainingAge),
   };
+}
+
+/** Пол for the review model — plain Russian. */
+function sexLabel(sex: ReviewSource["sex"]): string | null {
+  if (sex === "male") {
+    return "мужчина";
+  }
+  if (sex === "female") {
+    return "женщина";
+  }
+  return null;
+}
+
+/** Цель for the review model — plain Russian. */
+function goalLabel(goal: ReviewSource["goal"]): string | null {
+  if (goal === "lose") {
+    return "похудеть";
+  }
+  if (goal === "keep") {
+    return "держать";
+  }
+  if (goal === "gain") {
+    return "набрать";
+  }
+  return null;
 }
 
 /** Стаж for the review model — plain Russian, no year count. */

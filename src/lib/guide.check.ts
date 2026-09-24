@@ -80,9 +80,14 @@ assert(
   GUIDE_INTRO_PAGES.some(
     (page) =>
       page.lead.includes("сколько его ещё съесть") &&
-      page.lead.includes("без зала"),
+      page.lead.includes("«Отдых»") &&
+      page.lead.includes("«Тренировка»"),
   ),
-  "intro food lead says protein left and no-gym vs gym",
+  "intro food lead says protein left and the two day modes",
+);
+assert(
+  guidePageById("day")?.lead.includes("приёмы еды") === true,
+  "day page uses the onboarding meal wording",
 );
 assert(
   !GUIDE_INTRO_PAGES.some((page) =>

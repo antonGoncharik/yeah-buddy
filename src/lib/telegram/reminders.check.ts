@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { formatKcal, formatMacro } from "@/lib/nutrition";
 import {
-  composeEveningCaption,
+  composeEveningMessage,
   composeReminderMessage,
+  reminderDayCard,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
 import {
@@ -137,7 +139,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "В очереди Сила A.",
+  "Тренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
   "food done gym still due",
 );
 assertEqual(
@@ -146,7 +148,7 @@ assertEqual(
     gymDone: true,
     nextTemplateName: "Сила A",
   }),
-  "День еды пустой. Холодильник сам не запишет.",
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.",
   "gym done food still empty",
 );
 assertEqual(
@@ -155,7 +157,7 @@ assertEqual(
     gymDone: true,
     nextTemplateName: "Сила A",
   }),
-  "Yeah buddy.",
+  "День в порядке. Yeah buddy.",
   "both logged is Yeah buddy",
 );
 assertEqual(
@@ -164,7 +166,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: null,
   }),
-  "Yeah buddy.",
+  "День в порядке. Yeah buddy.",
   "food done and no circle",
 );
 assertEqual(
@@ -173,7 +175,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: null,
   }),
-  "День еды пустой. Холодильник сам не запишет.",
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.",
   "food only",
 );
 assertEqual(
@@ -182,7 +184,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: "Сила A",
   }),
-  "День еды пустой. Холодильник сам не запишет.\nВ очереди Сила A.",
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.\nТренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
   "food and circle",
 );
 assertEqual(
@@ -193,7 +195,7 @@ assertEqual(
     nextTemplateName: "Сила A",
     early: true,
   }),
-  "День еды пустой. Запиши, что ешь — завтра будет что повторить.\nВ очереди Сила A.",
+  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.\nТренировка «Сила A» ещё не закрыта. Можно дописать сейчас или оставить на завтра.",
   "first evenings nag food and the queued gym even on rest",
 );
 assertEqual(
@@ -204,7 +206,7 @@ assertEqual(
     nextTemplateName: "Сила A",
     early: true,
   }),
-  "Yeah buddy.",
+  "День в порядке. Yeah buddy.",
   "first evening stays quiet when the day is done",
 );
 
@@ -243,10 +245,10 @@ assertEqual(
 
 assertEqual(
   composeReminderMessage(
-    "Yeah buddy.",
+    "День в порядке. Yeah buddy.",
     "За 14 дней:\nБелок дотянули: 5 из 7 дней.",
   ),
-  "Yeah buddy.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  "День в порядке. Yeah buddy.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
   "sunday recap sits under yeah buddy",
 );
 assertEqual(
@@ -256,14 +258,52 @@ assertEqual(
 );
 assertEqual(composeReminderMessage(null, null), null, "nothing to send");
 assertEqual(
-  composeEveningCaption("Yeah buddy.", null, "Б 142,0 г\n2 100 ккал\nЗал был"),
-  "Yeah buddy.\n\nБ 142,0 г\n2 100 ккал\nЗал был",
-  "evening photo caption keeps the nag and the day card",
+  composeEveningMessage(
+    "День в порядке. Yeah buddy.",
+    null,
+    reminderDayCard({
+      protein: 142,
+      targetProtein: 150,
+      kcal: 2100,
+      gym: "gym",
+    }),
+  ),
+  `День в порядке. Yeah buddy.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
+  "evening text keeps the nag and the day card",
 );
 assertEqual(
-  composeEveningCaption(null, null, "Б 0,0 г\n0 ккал\nОтдых"),
-  "Б 0,0 г\n0 ккал\nОтдых",
+  composeEveningMessage(
+    null,
+    null,
+    reminderDayCard({
+      protein: 0,
+      targetProtein: 0,
+      kcal: 0,
+      gym: "rest",
+    }),
+  ),
+  `Белок ${formatMacro(0)} г\n${formatKcal(0)} ккал\nОтдых`,
   "day card still sends without a nag",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 142,
+    targetProtein: 150,
+    kcal: 2100,
+    gym: "gym",
+  }),
+  `Белок ${formatMacro(142)} из ${formatMacro(150)} г\n${formatKcal(2100)} ккал\nЗал был`,
+  "day card shows protein against the goal",
+);
+assertEqual(
+  reminderDayCard({
+    protein: 0,
+    targetProtein: 0,
+    kcal: 0,
+    gym: "rest",
+  }),
+  `Белок ${formatMacro(0)} г\n${formatKcal(0)} ккал\nОтдых`,
+  "day card without a goal stays plain",
 );
 assertEqual(
   weekRecapText(["Белок дотянули: 12 из 14 дней.", "Смотри ужин."]),

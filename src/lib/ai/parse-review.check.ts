@@ -116,6 +116,8 @@ const brief = {
     last_recap: null,
   },
   signals: [],
+  sex: null,
+  goal: null,
   training_age: null,
 } satisfies ReviewBrief;
 
@@ -233,6 +235,8 @@ assertEqual(
 assertEqual(
   parseReviewBrief({
     ...brief,
+    sex: undefined,
+    goal: undefined,
     training_age: undefined,
     nutrition: {
       ...brief.nutrition,
@@ -247,6 +251,36 @@ assertEqual(
 assertEqual(
   parseReviewBrief({
     ...brief,
+    sex: "женщина",
+    goal: "похудеть",
+    training_age: "несколько лет",
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.sex,
+  "женщина",
+  "sex label parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    sex: "женщина",
+    goal: "похудеть",
+    training_age: "несколько лет",
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.goal,
+  "похудеть",
+  "goal label parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    sex: "женщина",
+    goal: "похудеть",
     training_age: "несколько лет",
     nutrition: {
       ...brief.nutrition,
@@ -255,6 +289,34 @@ assertEqual(
   })?.training_age,
   "несколько лет",
   "training age label parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    sex: "male",
+    goal: "lose",
+    training_years: 8,
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.sex,
+  null,
+  "raw sex id is ignored",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    sex: "male",
+    goal: "lose",
+    training_years: 8,
+    nutrition: {
+      ...brief.nutrition,
+      waist: { logged: 2, start: 86, end: 84, delta: -2 },
+    },
+  })?.goal,
+  null,
+  "raw goal id is ignored",
 );
 assertEqual(
   parseReviewBrief({

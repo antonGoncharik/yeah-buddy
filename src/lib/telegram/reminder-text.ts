@@ -1,7 +1,7 @@
 import {
+  BOT_REMINDER_DONE,
   BOT_REMINDER_FOOD,
   BOT_REMINDER_FOOD_EARLY,
-  BOT_YEAH_BUDDY,
   botReminderGym,
 } from "@/lib/messages";
 import type { SessionStatus } from "@/lib/types";
@@ -48,5 +48,5 @@ export function reminderText(facts: ReminderFacts): string {
     return lines.join("\n");
   }
 
-  return BOT_YEAH_BUDDY;
+  return BOT_REMINDER_DONE;
 }

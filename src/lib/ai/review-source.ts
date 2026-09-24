@@ -5,6 +5,8 @@ import type {
   DayHistoryRow,
   RecentWorkoutSession,
   StrengthProgress,
+  UserGoal,
+  UserSex,
   UserTrainingAge,
 } from "@/lib/types";
 
@@ -21,5 +23,7 @@ export type ReviewSource = {
   progress: StrengthProgress;
   seedWeight?: number | null;
   seedWaist?: number | null;
+  sex?: UserSex | null;
+  goal?: UserGoal | null;
   trainingAge?: UserTrainingAge | null;
 };

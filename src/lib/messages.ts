@@ -35,7 +35,7 @@ export const OPEN_VIA_BOT_STEPS = [
   },
   {
     title: "Вечером",
-    body: "Одно сообщение: белок, калории, был ли зал.",
+    body: "Одно сообщение: белок из цели, калории, был ли зал.",
   },
 ] as const;
 export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
@@ -96,13 +96,15 @@ export const NAMED_MEAL_LIMIT = "Слишком много сохранённы�
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_PACK_START = "Start";
 export const BOT_PROGRAM_START = "Поставить";
-export const BOT_REMINDER_FOOD = "День еды пустой. Холодильник сам не запишет.";
+export const BOT_REMINDER_FOOD =
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.";
 export const BOT_REMINDER_FOOD_EARLY =
-  "День еды пустой. Запиши, что ешь — завтра будет что повторить.";
+  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
+export const BOT_REMINDER_DONE = "День в порядке. Yeah buddy.";
 
 export function botReminderGym(name: string): string {
-  return `В очереди ${name}.`;
+  return `Тренировка «${name}» ещё не закрыта. Можно дописать сейчас или оставить на завтра.`;
 }
 export const EXERCISES_EMPTY =
   "Пока пусто. Добавь упражнение — штанга сама не встанет.";
@@ -160,8 +162,7 @@ export const INBOX_SETTINGS_HINT =
 export const INBOX_MENU = "О чём написать?";
 export const INBOX_TOPIC_IMPROVE = "Что улучшить";
 export const INBOX_TOPIC_CHANGE = "Пожаловаться";
-export const INBOX_TOPIC_PROGRAM =
-  "Заказать программу питания или тренировок";
+export const INBOX_TOPIC_PROGRAM = "Заказать программу питания или тренировок";
 export const INBOX_OTHER = "Другая тема";
 export const INBOX_HOLD = "Выбери тему — и это уйдёт.";
 export const INBOX_PICK_FIRST = "Сначала выбери тему, потом пришли ещё раз.";

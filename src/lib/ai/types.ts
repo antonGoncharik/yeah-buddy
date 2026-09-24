@@ -144,6 +144,10 @@ export type ReviewBrief = {
     } | null;
   };
   signals: string[];
+  /** Plain Russian пол for the model, or null when unknown. */
+  sex: string | null;
+  /** Plain Russian цель for the model, or null when unknown. */
+  goal: string | null;
   /** Plain Russian стаж for the model, or null when unknown. */
   training_age: string | null;
 };

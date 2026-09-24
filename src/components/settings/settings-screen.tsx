@@ -233,9 +233,6 @@ export function SettingsScreen() {
             >
               Как на телефоне
             </Button>
-            <p className="text-sm text-muted-foreground">
-              В 20:00 — одна картинка: белок, ккал, был ли зал.
-            </p>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}
               options={[

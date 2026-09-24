@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   defaultOnboardingCircle,
   isExtraProgram,
@@ -10,6 +12,18 @@ function assert(condition: boolean, message: string): void {
     throw new Error(message);
   }
 }
+
+const completeSource = readFileSync(
+  join(process.cwd(), "src/lib/onboarding/complete.ts"),
+  "utf8",
+);
+const maxesAt = completeSource.indexOf("await applyStartingMaxes(");
+const presetAt = completeSource.indexOf("await applyProgramPreset(");
+assert(maxesAt >= 0 && presetAt >= 0, "complete.ts still writes maxes and preset");
+assert(
+  maxesAt < presetAt,
+  "starting maxes must land before the program preset so cycle phases inherit them",
+);
 
 assert(
   RECOMMENDED_PROGRAM_PRESET_ID === "full_body",

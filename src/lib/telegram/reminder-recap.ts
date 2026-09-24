@@ -1,4 +1,6 @@
 import { reviewScoreboardSignals } from "@/lib/ai/signal-lines";
+import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { type DayShareGym, dayShareGymLine } from "@/lib/share/day";
 
 const RECAP_LINES = 5;
 
@@ -22,7 +24,25 @@ export function composeReminderMessage(
   return nag ?? recap;
 }
 
-export function composeEveningCaption(
+export function reminderDayCard(input: {
+  protein: number;
+  targetProtein: number;
+  kcal: number;
+  gym: DayShareGym;
+}): string {
+  const protein =
+    input.targetProtein > 0
+      ? `Белок ${formatMacro(input.protein)} из ${formatMacro(input.targetProtein)} г`
+      : `Белок ${formatMacro(input.protein)} г`;
+  return [
+    protein,
+    `${formatKcal(input.kcal)} ккал`,
+    dayShareGymLine(input.gym),
+  ].join("\n");
+}
+
+/** Evening chat text: nag, optional Sunday recap, then today's numbers. */
+export function composeEveningMessage(
   nag: string | null,
   recap: string | null,
   dayCard: string,

@@ -67,6 +67,18 @@ assertEqual(
   "known lift wins over the table",
 );
 
+assertEqual(
+  estimateAnchorMax({
+    sex: "female",
+    trainingAge: "beginner",
+    weightKg: 55,
+    lift: "bench",
+    knownKg: 15,
+  }),
+  15,
+  "typed light bench is not floored to 20",
+);
+
 const filled = estimateExerciseMaxes({
   sex: "male",
   trainingAge: "year",

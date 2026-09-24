@@ -129,7 +129,8 @@ export function estimateAnchorMax(input: {
 }): number {
   const step = input.step != null && input.step > 0 ? input.step : 2.5;
   if (input.knownKg != null && input.knownKg > 0) {
-    return clampMax(roundToStep(input.knownKg, step));
+    // Keep the typed lift; only snap to the plate step and the hard ceiling.
+    return clampMax(roundToStep(input.knownKg, step), step);
   }
   const coef = ANCHOR_COEF[input.sex][input.trainingAge][input.lift];
   return clampMax(roundToStep(input.weightKg * coef, step));

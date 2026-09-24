@@ -121,6 +121,10 @@ export async function completeOnboarding(
     await saveUserSettings(userId, profilePatch);
   }
 
+  // Maxes before the program: cycle presets start a phase that locks
+  // starting maxes, and createFirstMacro copies current_max into the phase.
+  await applyStartingMaxes(userId, input, firstRun, current);
+
   if (isProgramPresetId(input.circle)) {
     await applyProgramPreset(userId, input.circle);
   } else if (input.circle === "empty") {
@@ -135,8 +139,6 @@ export async function completeOnboarding(
       });
     }
   }
-
-  await applyStartingMaxes(userId, input, firstRun, current);
 
   const supabase = createSupabaseServerClient();
   const stamped = await supabase

@@ -146,6 +146,8 @@ async function loadReviewBrief(
     progress,
     seedWeight,
     seedWaist,
+    sex: settings?.sex ?? null,
+    goal: settings?.goal ?? null,
     trainingAge: settings?.training_age ?? null,
   });
 }

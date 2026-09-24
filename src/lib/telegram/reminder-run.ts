@@ -3,15 +3,9 @@ import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
 import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
-import {
-  dayInlineQuery,
-  dayShareCard,
-  dayShareDoodle,
-  dayShareFacts,
-} from "@/lib/share/day";
-import { joyPhotoOrigin } from "@/lib/share/prepared";
+import { dayShareFacts } from "@/lib/share/day";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { sendDiaryMessage, sendDiaryPhoto } from "@/lib/telegram/bot";
+import { sendDiaryMessage } from "@/lib/telegram/bot";
 import {
   isoWeekdaySun0,
   localClock,
@@ -25,7 +19,8 @@ import {
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
 import {
-  composeEveningCaption,
+  composeEveningMessage,
+  reminderDayCard,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
 import {
@@ -106,12 +101,17 @@ export async function runEveningReminders(
       sessionStatus: session?.status ?? null,
       isTrainingDay,
     });
-    const doodle = dayShareDoodle({
-      protein: snapshot?.protein ?? 0,
-      targetProtein: snapshot?.targetProtein ?? 0,
-    });
-    const caption = composeEveningCaption(nag, recap, dayShareCard(facts));
-    if (!caption) {
+    const text = composeEveningMessage(
+      nag,
+      recap,
+      reminderDayCard({
+        protein: facts.protein,
+        targetProtein: snapshot?.targetProtein ?? 0,
+        kcal: facts.kcal,
+        gym: facts.gym,
+      }),
+    );
+    if (!text) {
       result.skipped += 1;
       continue;
     }
@@ -123,21 +123,7 @@ export async function runEveningReminders(
     }
 
     const env = getServerEnv();
-    const canInline =
-      joyPhotoOrigin(env.NEXT_PUBLIC_APP_URL) != null ||
-      joyPhotoOrigin(env.TELEGRAM_MINI_APP_URL) != null;
-    let sent = await sendDiaryPhoto(
-      candidate.telegramId,
-      {
-        doodle,
-        caption,
-        inlineQuery: canInline ? dayInlineQuery(facts, doodle) : null,
-      },
-      env,
-    );
-    if (sent === "failed") {
-      sent = await sendDiaryMessage(candidate.telegramId, caption, env);
-    }
+    const sent = await sendDiaryMessage(candidate.telegramId, text, env);
     if (sent === "sent") {
       result.sent += 1;
       continue;

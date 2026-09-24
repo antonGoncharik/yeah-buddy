@@ -558,8 +558,78 @@ assertEqual(
   0,
   "food split stays empty",
 );
+assertEqual(seedBrief.sex, null, "sex stays empty");
+assertEqual(seedBrief.goal, null, "goal stays empty");
 assertEqual(seedBrief.training_age, null, "age stays empty");
+assertEqual(prompt.sex, null, "prompt keeps sex");
+assertEqual(prompt.goal, null, "prompt keeps goal");
 assertEqual(prompt.training_age, null, "prompt keeps age");
+assertEqual(
+  buildReviewBrief({
+    range: 14,
+    from: "2026-09-01",
+    to: "2026-09-14",
+    days: [],
+    sessions: [],
+    foods: [],
+    macro: {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      planned_cycle: [],
+      phase_circle: null,
+      last_recap: null,
+    },
+    progress: {
+      exercises: [],
+      grown_count: 0,
+      avg_percent: null,
+      avg_relative_percent: null,
+      weights: [],
+      circle_size: 0,
+      sessions: [],
+    },
+    sex: "female",
+    goal: "lose",
+    trainingAge: "years",
+  }).sex,
+  "женщина",
+  "brief maps sex",
+);
+assertEqual(
+  buildReviewBrief({
+    range: 14,
+    from: "2026-09-01",
+    to: "2026-09-14",
+    days: [],
+    sessions: [],
+    foods: [],
+    macro: {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      planned_cycle: [],
+      phase_circle: null,
+      last_recap: null,
+    },
+    progress: {
+      exercises: [],
+      grown_count: 0,
+      avg_percent: null,
+      avg_relative_percent: null,
+      weights: [],
+      circle_size: 0,
+      sessions: [],
+    },
+    sex: "female",
+    goal: "lose",
+    trainingAge: "years",
+  }).goal,
+  "похудеть",
+  "brief maps goal",
+);
 assertEqual(
   buildReviewBrief({
     range: 14,
@@ -617,6 +687,39 @@ assertEqual(
       circle_size: 0,
       sessions: [],
     },
+    sex: "male",
+    goal: "gain",
+    trainingAge: "beginner",
+  }).goal,
+  "набрать",
+  "brief maps gain goal",
+);
+assertEqual(
+  buildReviewBrief({
+    range: 14,
+    from: "2026-09-01",
+    to: "2026-09-14",
+    days: [],
+    sessions: [],
+    foods: [],
+    macro: {
+      macro: null,
+      phase: null,
+      phases: [],
+      maxes: [],
+      planned_cycle: [],
+      phase_circle: null,
+      last_recap: null,
+    },
+    progress: {
+      exercises: [],
+      grown_count: 0,
+      avg_percent: null,
+      avg_relative_percent: null,
+      weights: [],
+      circle_size: 0,
+      sessions: [],
+    },
     trainingAge: "beginner",
   }).training_age,
   "новичок",
@@ -643,6 +746,16 @@ assertEqual(
   "prompt reads the training plate",
 );
 assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("sex —"),
+  true,
+  "prompt reads sex",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("goal —"),
+  true,
+  "prompt reads goal",
+);
+assertEqual(
   REVIEW_SYSTEM_PROMPT.includes("training_age"),
   true,
   "prompt reads training age",
@@ -653,9 +766,54 @@ assertEqual(
   "prompt names beginner age",
 );
 assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("похудеть"),
+  true,
+  "prompt names lose goal",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("женщина"),
+  true,
+  "prompt names female sex",
+);
+assertEqual(
   REVIEW_SYSTEM_PROMPT.includes("training_years"),
   false,
   "prompt drops year count",
+);
+assertEqual(
+  reviewPromptPayload(
+    buildReviewBrief({
+      range: 14,
+      from: "2026-09-01",
+      to: "2026-09-14",
+      days: [],
+      sessions: [],
+      foods: [],
+      macro: {
+        macro: null,
+        phase: null,
+        phases: [],
+        maxes: [],
+        planned_cycle: [],
+        phase_circle: null,
+        last_recap: null,
+      },
+      progress: {
+        exercises: [],
+        grown_count: 0,
+        avg_percent: null,
+        avg_relative_percent: null,
+        weights: [],
+        circle_size: 0,
+        sessions: [],
+      },
+      sex: "female",
+      goal: "keep",
+      trainingAge: "year",
+    }),
+  ).goal,
+  "держать",
+  "prompt keeps goal label",
 );
 
 console.log("ai signals ok");
