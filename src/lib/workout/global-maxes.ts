@@ -56,6 +56,84 @@ export async function correctStartingMax(input: {
   return mapGlobalMax(updated.data as Record<string, unknown>);
 }
 
+/** One phase check and one insert for every new starting max. */
+export async function setStartingMaxes(
+  userId: string,
+  rows: Array<{ exerciseId: string; maxWeight: number }>,
+): Promise<void> {
+  const byExercise = new Map<string, number>();
+  for (const row of rows) {
+    byExercise.set(row.exerciseId, row.maxWeight);
+  }
+  if (byExercise.size === 0) {
+    return;
+  }
+
+  if (await hasCurrentPhase(userId)) {
+    throw new StartingMaxLockedError();
+  }
+
+  const existing = await listGlobalMaxes(userId, [...byExercise.keys()]);
+  const achievedAt = resolveAchievedAt(
+    undefined,
+    await getUserCalendarToday(userId),
+  );
+  const inserts: Array<{
+    user_id: string;
+    exercise_id: string;
+    max_weight: number;
+    achieved_at: string;
+    phase_id: null;
+    workout_session_id: null;
+  }> = [];
+  const updates: Array<{ id: string; maxWeight: number }> = [];
+
+  for (const [exerciseId, maxWeight] of byExercise) {
+    const current = pickCurrentMax(existing.get(exerciseId) ?? []);
+    if (!current) {
+      inserts.push({
+        user_id: userId,
+        exercise_id: exerciseId,
+        max_weight: maxWeight,
+        achieved_at: achievedAt,
+        phase_id: null,
+        workout_session_id: null,
+      });
+      continue;
+    }
+    if (current.max_weight === maxWeight) {
+      continue;
+    }
+    updates.push({ id: current.id, maxWeight });
+  }
+
+  const supabase = createSupabaseServerClient();
+  if (inserts.length > 0) {
+    const inserted = await supabase.from("global_maxes").insert(inserts);
+    if (inserted.error) {
+      throw inserted.error;
+    }
+  }
+
+  if (updates.length === 0) {
+    return;
+  }
+
+  const updated = await Promise.all(
+    updates.map((row) =>
+      supabase
+        .from("global_maxes")
+        .update({ max_weight: row.maxWeight })
+        .eq("user_id", userId)
+        .eq("id", row.id),
+    ),
+  );
+  const failed = updated.find((result) => result.error);
+  if (failed?.error) {
+    throw failed.error;
+  }
+}
+
 export async function raiseGlobalMax(input: {
   userId: string;
   exerciseId: string;

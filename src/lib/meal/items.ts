@@ -120,6 +120,37 @@ export async function updateTemplateItemGrams(
   );
 }
 
+export async function updateTemplateItemsGrams(
+  userId: string,
+  updates: Array<{ id: string; grams: number }>,
+): Promise<void> {
+  if (updates.length === 0) {
+    return;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const results = await Promise.all(
+    updates.map((update) =>
+      supabase
+        .from("meal_template_items")
+        .update({ grams: update.grams })
+        .eq("id", update.id)
+        .eq("user_id", userId)
+        .select("id")
+        .maybeSingle(),
+    ),
+  );
+
+  for (const result of results) {
+    if (result.error) {
+      throw result.error;
+    }
+    if (!result.data) {
+      throw new MealTemplateItemNotFoundError();
+    }
+  }
+}
+
 export async function deleteTemplateItem(
   userId: string,
   itemId: string,

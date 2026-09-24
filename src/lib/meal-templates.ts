@@ -10,6 +10,7 @@ export {
   reorderTemplateItems,
   replaceMealTemplateItems,
   updateTemplateItemGrams,
+  updateTemplateItemsGrams,
 } from "@/lib/meal/items";
 export {
   type TemplateItemWriteInput,

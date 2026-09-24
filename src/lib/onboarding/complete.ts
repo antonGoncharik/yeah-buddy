@@ -1,14 +1,12 @@
 import { z } from "zod";
-
-import type { UserGoal, UserSex } from "@/lib/types";
 import { recordFunnelEvent } from "@/lib/funnel";
 import {
   listMealTemplates,
-  updateTemplateItemGrams,
+  updateTemplateItemsGrams,
 } from "@/lib/meal-templates";
 import {
-  macroGoalsFromProtein,
   type Macros,
+  macroGoalsFromProtein,
   suggestMacroGoals,
 } from "@/lib/nutrition";
 import { scaledTemplateGrams } from "@/lib/onboarding/setup";
@@ -19,13 +17,15 @@ import {
   saveUserSettings,
 } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { UserGoal, UserSex } from "@/lib/types";
 import { pickLiveExerciseId } from "@/lib/workout/dedupe-exercises";
+import { estimateExerciseMaxes } from "@/lib/workout/estimate-maxes";
 import {
   correctStartingMax,
   listExercises,
   StartingMaxLockedError,
 } from "@/lib/workout/exercises";
-import { estimateExerciseMaxes } from "@/lib/workout/estimate-maxes";
+import { setStartingMaxes } from "@/lib/workout/global-maxes";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import {
   isProgramPresetId,
@@ -249,6 +249,35 @@ async function writeStartingMaxes(
   userId: string,
   wanted: Map<string, number>,
 ): Promise<void> {
+  const exercises = await listExercises(userId, "active");
+  const rows: Array<{ exerciseId: string; maxWeight: number }> = [];
+  for (const [name, maxWeight] of wanted) {
+    const exerciseId = liveExerciseId(exercises, name);
+    if (!exerciseId) {
+      continue;
+    }
+    rows.push({ exerciseId, maxWeight });
+  }
+
+  try {
+    await setStartingMaxes(userId, rows);
+    return;
+  } catch (error) {
+    if (error instanceof StartingMaxLockedError) {
+      return;
+    }
+    if (!isForeignKeyViolation(error)) {
+      throw error;
+    }
+  }
+
+  await writeStartingMaxesOneByOne(userId, wanted);
+}
+
+async function writeStartingMaxesOneByOne(
+  userId: string,
+  wanted: Map<string, number>,
+): Promise<void> {
   let exercises = await listExercises(userId, "active");
   for (const [name, maxWeight] of wanted) {
     const exerciseId = liveExerciseId(exercises, name);
@@ -316,10 +345,8 @@ async function scaleMealTemplatesToProtein(
   protein: number,
 ): Promise<void> {
   const templates = await listMealTemplates(userId);
-  for (const template of templates) {
-    const updates = scaledTemplateGrams(template.items, protein);
-    for (const update of updates) {
-      await updateTemplateItemGrams(userId, update.id, update.grams);
-    }
-  }
+  const updates = templates.flatMap((template) =>
+    scaledTemplateGrams(template.items, protein),
+  );
+  await updateTemplateItemsGrams(userId, updates);
 }

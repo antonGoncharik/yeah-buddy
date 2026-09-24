@@ -21,8 +21,10 @@ const TEMPLATE_NAMES: Record<DayType, string> = {
 export async function listMealTemplates(
   userId: string,
 ): Promise<MealTemplateDetail[]> {
-  const rest = await ensureMealTemplate(userId, "rest");
-  const training = await ensureMealTemplate(userId, "training");
+  const [rest, training] = await Promise.all([
+    ensureMealTemplate(userId, "rest"),
+    ensureMealTemplate(userId, "training"),
+  ]);
   return [rest, training];
 }
 
