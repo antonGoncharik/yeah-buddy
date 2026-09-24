@@ -37,6 +37,10 @@ import {
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
+import {
+  DEFAULT_REST_MACRO_GOALS,
+  DEFAULT_TRAINING_MACRO_GOALS,
+} from "@/lib/nutrition";
 import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { getUserSettings } from "@/lib/settings";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
@@ -111,7 +115,21 @@ export async function GET(request: Request): Promise<NextResponse> {
       yesterdayExists: yesterday.exists,
       yesterdayMealTypes: yesterday.mealTypes,
       lastBodyWeight,
-      lastWaist,
+      lastWaist: lastWaist?.cm ?? null,
+      lastWaistDate: lastWaist?.date ?? null,
+      accountAgeDays: onboardingAgeDays(
+        settings?.onboarding_completed_at,
+        date,
+        timeZone,
+      ),
+      goals: {
+        restProtein: settings?.rest_protein ?? DEFAULT_REST_MACRO_GOALS.protein,
+        restCarbs: settings?.rest_carbs ?? DEFAULT_REST_MACRO_GOALS.carbs,
+        trainingProtein:
+          settings?.training_protein ?? DEFAULT_TRAINING_MACRO_GOALS.protein,
+        trainingCarbs:
+          settings?.training_carbs ?? DEFAULT_TRAINING_MACRO_GOALS.carbs,
+      },
       weightSteady:
         steadyWeightLine(
           new Map(recentWeights.map((row) => [row.date, row.weight])),

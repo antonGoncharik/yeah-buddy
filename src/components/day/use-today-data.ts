@@ -13,12 +13,16 @@ import { daysUrl, subscribeDayCache } from "@/lib/day/cache";
 import { calendarToday } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import type { RecipeLine } from "@/lib/day/remaining";
+import type { MacroGoals } from "@/lib/day/today-payload";
 import {
+  readAccountAgeDays,
   readCalendarToday,
   readCopyDays,
   readDay,
   readLastBodyWeight,
   readLastWaist,
+  readLastWaistDate,
+  readMacroGoals,
   readNamedMeals,
   readPriorProteinHits,
   readRecipes,
@@ -50,6 +54,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   }>({ rest: [], training: [] });
   const [lastBodyWeight, setLastBodyWeight] = useState<number | null>(null);
   const [lastWaist, setLastWaist] = useState<number | null>(null);
+  const [lastWaistDate, setLastWaistDate] = useState<string | null>(null);
+  const [accountAgeDays, setAccountAgeDays] = useState<number | null>(null);
+  const [goals, setGoals] = useState<MacroGoals>(() => readMacroGoals(null));
   const [weightSteady, setWeightSteady] = useState(false);
   const [priorProteinHits, setPriorProteinHits] = useState(0);
   const [reviewReady, setReviewReady] = useState(false);
@@ -80,6 +87,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setRecipes(readRecipes(data));
       setLastBodyWeight(readLastBodyWeight(data));
       setLastWaist(readLastWaist(data));
+      setLastWaistDate(readLastWaistDate(data));
+      setAccountAgeDays(readAccountAgeDays(data));
+      setGoals(readMacroGoals(data));
       setWeightSteady(readWeightSteady(data));
       setPriorProteinHits(readPriorProteinHits(data));
       setReviewReady(readReviewReady(data));
@@ -174,6 +184,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setCopyDays([]);
     setLastBodyWeight(null);
     setLastWaist(null);
+    setLastWaistDate(null);
+    setAccountAgeDays(null);
+    setGoals(readMacroGoals(null));
     setWeightSteady(false);
     setPriorProteinHits(0);
     setReviewReady(false);
@@ -212,6 +225,10 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     lastBodyWeight:
       cached != null ? readLastBodyWeight(cached) : lastBodyWeight,
     lastWaist: cached != null ? readLastWaist(cached) : lastWaist,
+    lastWaistDate: cached != null ? readLastWaistDate(cached) : lastWaistDate,
+    accountAgeDays:
+      cached != null ? readAccountAgeDays(cached) : accountAgeDays,
+    goals: cached != null ? readMacroGoals(cached) : goals,
     weightSteady: cached != null ? readWeightSteady(cached) : weightSteady,
     priorProteinHits:
       cached != null ? readPriorProteinHits(cached) : priorProteinHits,

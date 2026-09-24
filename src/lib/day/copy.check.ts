@@ -1,7 +1,10 @@
 import {
+  readAccountAgeDays,
   readDayWritable,
   readLastBodyWeight,
   readLastWaist,
+  readLastWaistDate,
+  readMacroGoals,
   readPriorProteinHits,
   readRetentionTail,
   readReviewReady,
@@ -66,6 +69,31 @@ assertEqual(
 assertEqual(readLastBodyWeight({}), null, "missing last weight");
 assertEqual(readLastWaist({ lastWaist: 84 }), 84, "last waist");
 assertEqual(readLastWaist({}), null, "missing last waist");
+assertEqual(
+  readLastWaistDate({ lastWaistDate: "2026-08-01" }),
+  "2026-08-01",
+  "last waist date",
+);
+assertEqual(
+  readLastWaistDate({ lastWaistDate: "nope" }),
+  null,
+  "bad waist date",
+);
+assertEqual(readAccountAgeDays({ accountAgeDays: 21 }), 21, "account age");
+assertEqual(readAccountAgeDays({ accountAgeDays: -1 }), null, "negative age");
+assertEqual(
+  readMacroGoals({
+    goals: {
+      restProtein: 130,
+      restCarbs: 180,
+      trainingProtein: 150,
+      trainingCarbs: 240,
+    },
+  }).trainingCarbs,
+  240,
+  "training carbs",
+);
+assertEqual(readMacroGoals({}).restProtein, 120, "goals fall back");
 assertEqual(readWeightSteady({ weightSteady: true }), true, "steady flag");
 assertEqual(readWeightSteady({}), false, "missing steady is false");
 assertEqual(readPriorProteinHits({ priorProteinHits: 4 }), 4, "prior hits");

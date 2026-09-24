@@ -4,6 +4,8 @@ import { MealCard } from "@/components/day/meal-card";
 import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
+import { mealProteinShareLine } from "@/lib/flavor";
+import { sumMealItems } from "@/lib/nutrition";
 import type {
   CopyDayHint,
   MealItem,
@@ -18,6 +20,8 @@ export function TodayDayMeals({
   visibleMeals,
   remainingMealTypes,
   remainingFullGap,
+  dayProtein,
+  proteinMealCount,
   copyDays,
   namedMeals,
   busy,
@@ -36,6 +40,8 @@ export function TodayDayMeals({
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
   remainingFullGap: boolean;
+  dayProtein: number;
+  proteinMealCount: number;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
   busy: boolean;
@@ -126,6 +132,11 @@ export function TodayDayMeals({
           }
           copyBusy={busy}
           readOnly={viewOnly}
+          proteinShare={mealProteinShareLine(
+            sumMealItems(meal.items).protein,
+            dayProtein,
+            proteinMealCount,
+          )}
           className="animate-rise"
           style={{ animationDelay: `${80 + index * 50}ms` }}
           onDeleteItem={

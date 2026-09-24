@@ -20,6 +20,7 @@ import {
   loadingLine,
   macrosClosedLine,
   mealEmptyLine,
+  mealProteinShareLine,
   nightLoadingLine,
   overflowKcalLabel,
   PEANUT_LINE,
@@ -36,6 +37,9 @@ import {
   sessionRaiseLine,
   splashBeatProgress,
   steadyWeightLine,
+  trainingDayGapLine,
+  WAIST_GAP_LINE,
+  waistGapLine,
 } from "@/lib/flavor";
 import type { PhaseCircleProgress } from "@/lib/types";
 
@@ -105,7 +109,11 @@ assertEqual(
 );
 
 assertEqual(sessionMilestoneLine(9), null, "not yet ten");
-assertEqual(sessionMilestoneLine(1), "Первый. Штанга заметила.", "first session");
+assertEqual(
+  sessionMilestoneLine(1),
+  "Первый. Штанга заметила.",
+  "first session",
+);
 assertEqual(
   sessionMilestoneLine(10),
   "Десять. Уже не разовый заход.",
@@ -449,5 +457,101 @@ assertEqual(splashBeatProgress(1, "cookie"), 0, "wrong resets");
 assertEqual(splashBeatProgress(1, "mug"), 1, "mug restarts");
 assertEqual(splashBeatProgress(3, "barbell"), 4, "sequence done");
 assertEqual(splashBeatProgress(4, "mug"), 4, "done stays done");
+
+assertEqual(
+  mealProteinShareLine(90, 140, 2),
+  "90 из 140 г. Почти весь белок здесь.",
+  "dinner holds the protein",
+);
+assertEqual(mealProteinShareLine(40, 140, 2), "40 из 140 г", "smaller meal");
+assertEqual(mealProteinShareLine(90, 90, 1), null, "one meal is not a split");
+assertEqual(mealProteinShareLine(20, 30, 2), null, "thin day stays quiet");
+
+assertEqual(
+  trainingDayGapLine({
+    training: true,
+    fact: { protein: 120, carbs: 200 },
+    rest: { protein: 120, carbs: 200 },
+    day: { protein: 140, carbs: 250 },
+  }),
+  "Как на отдыхе. Ещё 20 г белка и 50 г углеводов.",
+  "rest plate on a gym day",
+);
+assertEqual(
+  trainingDayGapLine({
+    training: true,
+    fact: { protein: 40, carbs: 80 },
+    rest: { protein: 120, carbs: 200 },
+    day: { protein: 140, carbs: 250 },
+  }),
+  null,
+  "early day is not a rest plate",
+);
+assertEqual(
+  trainingDayGapLine({
+    training: false,
+    fact: { protein: 120, carbs: 200 },
+    rest: { protein: 120, carbs: 200 },
+    day: { protein: 120, carbs: 200 },
+  }),
+  null,
+  "rest day has no gym gap",
+);
+
+assertEqual(
+  waistGapLine({
+    waist: null,
+    lastWaistDate: "2026-08-01",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  WAIST_GAP_LINE,
+  "weeks without a waist",
+);
+assertEqual(
+  waistGapLine({
+    waist: null,
+    lastWaistDate: "2026-09-20",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  null,
+  "recent waist stays quiet",
+);
+assertEqual(
+  waistGapLine({
+    waist: null,
+    lastWaistDate: null,
+    accountAgeDays: 21,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  WAIST_GAP_LINE,
+  "never measured after three weeks",
+);
+assertEqual(
+  waistGapLine({
+    waist: null,
+    lastWaistDate: null,
+    accountAgeDays: 3,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  null,
+  "new diary does not nag",
+);
+assertEqual(
+  waistGapLine({
+    waist: 84,
+    lastWaistDate: "2026-08-01",
+    accountAgeDays: 40,
+    date: "2026-09-24",
+    canLog: true,
+  }),
+  null,
+  "today's waist closes the gap",
+);
 
 console.log("flavor ok");

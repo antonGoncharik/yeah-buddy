@@ -1,6 +1,7 @@
 import { shiftIsoDate } from "@/lib/day/dates";
 import type { FoodListFilter } from "@/lib/food/schema";
 import { FOODS_EMPTY } from "@/lib/messages";
+import { formatGrams } from "@/lib/nutrition";
 import type { MealType, PhaseCircleProgress, SessionFeel } from "@/lib/types";
 
 export type LoadingFlavor = "boot" | "food" | "idle";
@@ -232,8 +233,7 @@ export const YEAH_BUDDY_LINE = "Yeah buddy.";
 export const LATE_NIGHT_LINE = "Ещё не спишь.";
 export const EARLY_LINE = "Рано. Белок не спит.";
 export const EVENING_LINE = "Вечер. Ещё можно добрать.";
-export const INVITE_QR_CAPTION =
-  "Наведи камеру. Бот кивнёт — жми Start.";
+export const INVITE_QR_CAPTION = "Наведи камеру. Бот кивнёт — жми Start.";
 export const PACK_MEALS_QR_CAPTION = "Наведи камеру — откроется еда на день.";
 export const PACK_WORKOUTS_QR_CAPTION = "Наведи камеру — откроется программа.";
 export const PACK_MEAL_QR_CAPTION = "Наведи камеру — откроется приём.";
@@ -242,6 +242,11 @@ export const PLATE_IDLE_LINE =
 export const PLATE_CAPTURE_LABEL = "Снять тарелку";
 export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
+export const WAIST_GAP_DAYS = 21;
+export const WAIST_GAP_LINE = "Талию не мерили.";
+export const PROTEIN_SHARE_FLOOR_G = 40;
+export const PROTEIN_SHARE_PILE = 0.6;
+export const TRAINING_GAP_FLOOR_G = 5;
 export const SPLASH_HOLD_MS = 480;
 export const PLATE_BURST_MS = 400;
 export const PROTEIN_CLOSED_MS = 1200;
@@ -413,6 +418,84 @@ export function splashBeatProgress(current: number, key: SplashBeat): number {
 
 export function overflowKcalLabel(overflow: boolean): string {
   return overflow ? OVERFLOW_KCAL_LABEL : "Осталось";
+}
+
+export function mealProteinShareLine(
+  mealProtein: number,
+  dayProtein: number,
+  mealsWithProtein: number,
+): string | null {
+  if (mealsWithProtein < 2 || dayProtein < PROTEIN_SHARE_FLOOR_G) {
+    return null;
+  }
+  if (!(mealProtein > 0) || !(dayProtein > mealProtein)) {
+    return null;
+  }
+  const line = `${formatGrams(mealProtein)} из ${formatGrams(dayProtein)} г`;
+  if (mealProtein / dayProtein >= PROTEIN_SHARE_PILE) {
+    return `${line}. Почти весь белок здесь.`;
+  }
+  return line;
+}
+
+export function trainingDayGapLine(input: {
+  training: boolean;
+  fact: { protein: number; carbs: number };
+  rest: { protein: number; carbs: number };
+  day: { protein: number; carbs: number };
+}): string | null {
+  if (!input.training) {
+    return null;
+  }
+  const parts = [
+    gapGrams(
+      input.fact.protein,
+      input.rest.protein,
+      input.day.protein,
+      "белка",
+    ),
+    gapGrams(input.fact.carbs, input.rest.carbs, input.day.carbs, "углеводов"),
+  ].filter((part) => part != null);
+  if (parts.length === 0) {
+    return null;
+  }
+  return `Как на отдыхе. Ещё ${parts.join(" и ")}.`;
+}
+
+function gapGrams(
+  fact: number,
+  rest: number,
+  training: number,
+  unit: string,
+): string | null {
+  if (!(training > rest + 0.5) || fact + 0.5 < rest) {
+    return null;
+  }
+  const left = training - fact;
+  if (left <= TRAINING_GAP_FLOOR_G) {
+    return null;
+  }
+  return `${formatGrams(left)} г ${unit}`;
+}
+
+export function waistGapLine(input: {
+  waist: number | null;
+  lastWaistDate: string | null;
+  accountAgeDays: number | null;
+  date: string;
+  canLog: boolean;
+}): string | null {
+  if (!input.canLog || input.waist != null) {
+    return null;
+  }
+  if (input.lastWaistDate != null) {
+    const cutoff = shiftIsoDate(input.date, -WAIST_GAP_DAYS);
+    return input.lastWaistDate <= cutoff ? WAIST_GAP_LINE : null;
+  }
+  if (input.accountAgeDays != null && input.accountAgeDays >= WAIST_GAP_DAYS) {
+    return WAIST_GAP_LINE;
+  }
+  return null;
 }
 
 export function steadyWeightLine(

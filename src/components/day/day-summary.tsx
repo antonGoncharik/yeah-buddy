@@ -46,6 +46,8 @@ export function DaySummary({
   bodyWeightBusy = false,
   weightSteady = false,
   priorProteinHits = 0,
+  trainingGap = null,
+  waistGap = null,
   share = false,
   gym = null,
   onSaveBodyWeight,
@@ -71,6 +73,8 @@ export function DaySummary({
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
   priorProteinHits?: number;
+  trainingGap?: string | null;
+  waistGap?: string | null;
   share?: boolean;
   gym?: ReactNode;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
@@ -186,6 +190,11 @@ export function DaySummary({
             {almost ? (
               <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
             ) : null}
+            {trainingGap ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {trainingGap}
+              </p>
+            ) : null}
             {weekLine ? (
               <p className="mt-1 text-base font-medium">{weekLine}</p>
             ) : null}
@@ -286,6 +295,7 @@ export function DaySummary({
             readOnly={bodyWeightReadOnly}
             busy={bodyWeightBusy}
             note={weightNote}
+            waistGap={waistGap}
             wide
             divided={false}
             onSave={onSaveBodyWeight}
@@ -422,6 +432,7 @@ function WeightBlock({
   readOnly,
   busy,
   note,
+  waistGap = null,
   wide = false,
   divided,
   onSave,
@@ -434,6 +445,7 @@ function WeightBlock({
   readOnly: boolean;
   busy: boolean;
   note: string | null;
+  waistGap?: string | null;
   wide?: boolean;
   divided?: boolean;
   onSave?: (value: number | null) => Promise<void>;
@@ -488,6 +500,9 @@ function WeightBlock({
                 parse={parseWaist}
               />
             </div>
+            {waistGap ? (
+              <p className="mt-1 text-sm text-muted-foreground">{waistGap}</p>
+            ) : null}
           </div>
         ) : null}
       </div>

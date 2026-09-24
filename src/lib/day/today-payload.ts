@@ -1,7 +1,11 @@
 import { isIsoDate, isWritableDayDate } from "@/lib/day/dates";
 import { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
 import type { RecipeLine } from "@/lib/day/remaining";
-import { isMealType } from "@/lib/nutrition";
+import {
+  DEFAULT_REST_MACRO_GOALS,
+  DEFAULT_TRAINING_MACRO_GOALS,
+  isMealType,
+} from "@/lib/nutrition";
 import {
   isRecord,
   mapRecordList,
@@ -44,6 +48,56 @@ export function readLastWaist(data: unknown): number | null {
   }
 
   return toNullableNumber(data.lastWaist);
+}
+
+export function readLastWaistDate(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.lastWaistDate !== "string") {
+    return null;
+  }
+  return isIsoDate(data.lastWaistDate) ? data.lastWaistDate : null;
+}
+
+export function readAccountAgeDays(data: unknown): number | null {
+  if (!isRecord(data) || typeof data.accountAgeDays !== "number") {
+    return null;
+  }
+  if (!Number.isInteger(data.accountAgeDays) || data.accountAgeDays < 0) {
+    return null;
+  }
+  return data.accountAgeDays;
+}
+
+export interface MacroGoals {
+  restProtein: number;
+  restCarbs: number;
+  trainingProtein: number;
+  trainingCarbs: number;
+}
+
+export function readMacroGoals(data: unknown): MacroGoals {
+  const fallback: MacroGoals = {
+    restProtein: DEFAULT_REST_MACRO_GOALS.protein,
+    restCarbs: DEFAULT_REST_MACRO_GOALS.carbs,
+    trainingProtein: DEFAULT_TRAINING_MACRO_GOALS.protein,
+    trainingCarbs: DEFAULT_TRAINING_MACRO_GOALS.carbs,
+  };
+  if (!isRecord(data) || !isRecord(data.goals)) {
+    return fallback;
+  }
+  return {
+    restProtein: macroOr(data.goals.restProtein, fallback.restProtein),
+    restCarbs: macroOr(data.goals.restCarbs, fallback.restCarbs),
+    trainingProtein: macroOr(
+      data.goals.trainingProtein,
+      fallback.trainingProtein,
+    ),
+    trainingCarbs: macroOr(data.goals.trainingCarbs, fallback.trainingCarbs),
+  };
+}
+
+function macroOr(value: unknown, fallback: number): number {
+  const parsed = toNumber(value);
+  return parsed >= 0 ? parsed : fallback;
 }
 
 export function readWeightSteady(data: unknown): boolean {

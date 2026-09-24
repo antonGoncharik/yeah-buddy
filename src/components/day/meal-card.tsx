@@ -41,6 +41,7 @@ export function MealCard({
   onFillTemplate,
   copyBusy = false,
   readOnly = false,
+  proteinShare = null,
   className,
   style,
 }: {
@@ -62,6 +63,7 @@ export function MealCard({
   onFillTemplate?: () => void;
   copyBusy?: boolean;
   readOnly?: boolean;
+  proteinShare?: string | null;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -168,6 +170,12 @@ export function MealCard({
         >
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
+        </p>
+      ) : null}
+
+      {items.length > 0 && proteinShare ? (
+        <p className="text-sm text-muted-foreground tabular-nums">
+          {proteinShare}
         </p>
       ) : null}
 

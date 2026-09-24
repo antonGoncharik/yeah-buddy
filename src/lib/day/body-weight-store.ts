@@ -146,7 +146,7 @@ export async function setBodyWeight(
 export async function getLastWaist(
   userId: string,
   beforeDate: string,
-): Promise<number | null> {
+): Promise<{ cm: number; date: string } | null> {
   if (!isIsoDate(beforeDate)) {
     return null;
   }
@@ -154,7 +154,7 @@ export async function getLastWaist(
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("days")
-    .select("waist_cm")
+    .select("date, waist_cm")
     .eq("user_id", userId)
     .not("waist_cm", "is", null)
     .lt("date", beforeDate)
@@ -166,7 +166,13 @@ export async function getLastWaist(
     throw result.error;
   }
 
-  return toNullableNumber(result.data?.waist_cm);
+  const cm = toNullableNumber(result.data?.waist_cm);
+  const date = result.data ? String(result.data.date).slice(0, 10) : "";
+  if (cm == null || !isIsoDate(date)) {
+    return null;
+  }
+
+  return { cm, date };
 }
 
 export async function setWaist(

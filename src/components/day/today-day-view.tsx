@@ -18,7 +18,9 @@ import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
-import { hiddenMealSlotsNote } from "@/lib/nutrition";
+import type { MacroGoals } from "@/lib/day/today-payload";
+import { trainingDayGapLine, waistGapLine } from "@/lib/flavor";
+import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import { emptyStartCopy } from "@/lib/retention";
 import type {
   CopyDayHint,
@@ -53,6 +55,9 @@ export function TodayDayView({
   namedMeals,
   lastBodyWeight,
   lastWaist,
+  lastWaistDate,
+  accountAgeDays,
+  goals,
   weightSteady,
   priorProteinHits,
   reviewReady,
@@ -97,6 +102,9 @@ export function TodayDayView({
   namedMeals: NamedMealHint[];
   lastBodyWeight: number | null;
   lastWaist: number | null;
+  lastWaistDate: string | null;
+  accountAgeDays: number | null;
+  goals: MacroGoals;
   weightSteady: boolean;
   priorProteinHits: number;
   reviewReady: boolean;
@@ -154,6 +162,22 @@ export function TodayDayView({
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
   const showEmptyStart = !viewOnly && !dayHasItems;
   const showSaveTemplate = !viewOnly && dayHasItems && !isTempId(shownDay.id);
+  const proteinMealCount = shownDay.meals.filter(
+    (meal) => sumMealItems(meal.items).protein > 0,
+  ).length;
+  const trainingGap = trainingDayGapLine({
+    training: shownDay.is_training_day,
+    fact,
+    rest: { protein: goals.restProtein, carbs: goals.restCarbs },
+    day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
+  });
+  const waistGap = waistGapLine({
+    waist: shownDay.waist_cm,
+    lastWaistDate,
+    accountAgeDays,
+    date,
+    canLog: !viewOnly,
+  });
   const startCopy = emptyStartCopy({
     retentionTail,
     isToday: date === today,
@@ -193,6 +217,8 @@ export function TodayDayView({
           lastWaist={lastWaist}
           weightSteady={weightSteady}
           priorProteinHits={priorProteinHits}
+          trainingGap={trainingGap}
+          waistGap={waistGap}
           share={writable}
           gym={
             <TodayGymStatus
@@ -241,6 +267,8 @@ export function TodayDayView({
           visibleMeals={visibleMeals}
           remainingMealTypes={remainingMealTypes}
           remainingFullGap={remainingFullGap}
+          dayProtein={fact.protein}
+          proteinMealCount={proteinMealCount}
           copyDays={copyDays}
           namedMeals={namedMeals}
           busy={busy}
