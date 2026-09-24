@@ -32,8 +32,8 @@ export function OnboardingLiftsStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Если знаешь присед, жим или становую — напиши. Нет — поставим примерные
-        максимумы на раз, потом поправишь.
+        Если знаешь присед, жим или становую — напиши. Если нет — поставим примерные
+        максимумы на раз, потом всегда сможешь поправишь, жми дальше.
       </p>
       <div className="flex flex-col gap-3">
         {ONBOARDING_LIFT_FIELDS.map((field, index) => {
@@ -64,17 +64,6 @@ export function OnboardingLiftsStep({
                 }
                 className="h-12 text-base"
               />
-              <Button
-                type="button"
-                variant={unknown ? "default" : "outline"}
-                className="h-11 text-base"
-                onClick={() => {
-                  haptic("tick");
-                  onChange(field.id, unknown ? "" : null);
-                }}
-              >
-                Не знаю
-              </Button>
             </div>
           );
         })}

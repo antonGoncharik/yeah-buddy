@@ -19,7 +19,7 @@ export function OnboardingCircleStep({
       <p className="animate-rise text-base text-muted-foreground">
         {fromMealPack
           ? "Еда на день возьмётся из ссылки. Сверху — «Всё тело», остальные за «Ещё программы»."
-          : "Сверху — «Всё тело». Остальные программы за «Ещё программы». Если у выбранной есть недели — они встанут сами."}
+          : ""}
       </p>
       <ProgramPresetCatalog
         value={isProgramPresetId(value) ? value : null}
