@@ -46,7 +46,7 @@ assertEqual(donateStarsLabel(50), "50\u00a0★", "preset label");
 assertEqual(donateConfirmMessage(1500), "1500\u00a0★", "confirm shows stars");
 assertEqual(
   DONATE_DESCRIPTION,
-  "Звёзды Telegram. Уходят автору.",
+  "Звёзды Telegram. Уходят автору на протеин.",
   "description names stars",
 );
 assertEqual(DONATE_THANKS, "Спасибо", "thanks");
