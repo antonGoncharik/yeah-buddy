@@ -38,14 +38,17 @@ function useGrantedPrograms(): ProgramPresetId[] {
   return granted;
 }
 
-/** Recommended start on top; the rest of the catalog behind «Ещё программы». */
+/** Recommended start on top; the rest of the catalog behind «Ещё программы».
+ * `expanded` shows the whole listed catalog at once, with level headings. */
 export function ProgramPresetCatalog({
   value,
   disabled,
+  expanded = false,
   onPick,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
+  expanded?: boolean;
   onPick: (id: ProgramPresetId) => void;
 }) {
   const granted = useGrantedPrograms();
@@ -59,6 +62,17 @@ export function ProgramPresetCatalog({
       setShowMore(true);
     }
   }, [extraSelected]);
+
+  if (expanded) {
+    return (
+      <ProgramPresetList
+        value={value}
+        disabled={disabled}
+        ids={catalogIds}
+        onPick={onPick}
+      />
+    );
+  }
 
   return (
     <>

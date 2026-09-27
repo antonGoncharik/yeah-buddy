@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { GuideTour } from "@/components/guide/guide-tour";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL } from "@/lib/guide";
 import { LOAD_FAILED } from "@/lib/messages";
 import { cn } from "@/lib/utils";
+import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
 export function OnboardingScreen() {
   const {
@@ -58,6 +60,13 @@ export function OnboardingScreen() {
     onLiftChange,
     onProteinOverride,
   } = useOnboardingScreen();
+  const [pickingProgram, setPickingProgram] = useState(false);
+
+  useEffect(() => {
+    if (step !== "circle") {
+      setPickingProgram(false);
+    }
+  }, [step]);
 
   if (loading) {
     return (
@@ -82,18 +91,28 @@ export function OnboardingScreen() {
     return <GuideTour error={error} onDone={goNext} onSkip={goNext} />;
   }
 
-  const showNext = onboardingStepNeedsNext(step);
+  const showNext =
+    step === "circle" ? pickingProgram : onboardingStepNeedsNext(step);
+  const canLeaveStep = stepIndex > 0 || pickingProgram;
+
+  function handleBack() {
+    if (step === "circle" && pickingProgram) {
+      setPickingProgram(false);
+      return;
+    }
+    goBack();
+  }
 
   return (
     <div className={cn("flex flex-col gap-4", showNext ? "pb-44" : "pb-8")}>
-      {stepIndex > 0 ? <TelegramBackButton onBack={goBack} /> : null}
+      {canLeaveStep ? <TelegramBackButton onBack={handleBack} /> : null}
       <header className="flex items-center gap-2 px-4 py-4">
-        {stepIndex > 0 ? (
+        {canLeaveStep ? (
           <button
             type="button"
             className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95 motion-reduce:transition-none"
             aria-label="Назад"
-            onClick={goBack}
+            onClick={handleBack}
           >
             <ChevronLeft className="size-6" />
           </button>
@@ -107,7 +126,7 @@ export function OnboardingScreen() {
             key={step}
             className="mt-1 truncate text-2xl font-semibold tracking-tight animate-fade"
           >
-            {titleForStep(step)}
+            {titleForStep(step, pickingProgram)}
           </h1>
         </div>
       </header>
@@ -163,7 +182,11 @@ export function OnboardingScreen() {
           <OnboardingCircleStep
             value={circle}
             fromMealPack={pendingKind === "meals"}
+            picking={pickingProgram}
+            saving={saving}
             onChange={setCircle}
+            onBeginner={() => void goNext(RECOMMENDED_PROGRAM_PRESET_ID)}
+            onPickYourself={() => setPickingProgram(true)}
           />
         ) : null}
 
@@ -211,7 +234,7 @@ function StepDots({
   );
 }
 
-function titleForStep(step: OnboardingStep): string {
+function titleForStep(step: OnboardingStep, pickingProgram: boolean): string {
   if (step === "sex") {
     return "Кто ты";
   }
@@ -231,7 +254,7 @@ function titleForStep(step: OnboardingStep): string {
     return "Сила";
   }
   if (step === "circle") {
-    return "Программа тренировок";
+    return pickingProgram ? "Выбери программу" : "Программа тренировок";
   }
   return GUIDE_LABEL;
 }

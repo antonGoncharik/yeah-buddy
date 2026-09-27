@@ -15,8 +15,8 @@ import {
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
+import { LOAD_FAILED } from "@/lib/messages";
 import {
   type OnboardingGoal,
   type OnboardingSex,
@@ -181,7 +181,7 @@ export function useOnboardingScreen() {
     [steps],
   );
 
-  function goNext() {
+  function goNext(circleOverride?: OnboardingCircle) {
     if (step === "weight") {
       if (weight.trim() === "") {
         haptic("warn");
@@ -207,14 +207,21 @@ export function useOnboardingScreen() {
 
     const following = steps[stepIndex + 1];
     if (following) {
+      if (circleOverride) {
+        setCircle(circleOverride);
+      }
       setStep(following);
       return;
     }
 
-    void finish();
+    void finish(circleOverride);
   }
 
-  async function finish() {
+  async function finish(circleOverride?: OnboardingCircle) {
+    const chosen = circleOverride ?? circle;
+    if (circleOverride) {
+      setCircle(circleOverride);
+    }
     const omitProtein = pendingKind === "meals";
     if (!omitProtein) {
       if (sex == null) {
@@ -267,7 +274,7 @@ export function useOnboardingScreen() {
         pendingKind,
         pendingProgramId,
         replay,
-        circle,
+        circle: chosen,
       });
       router.replace(href);
       haptic("success");
