@@ -1,31 +1,39 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 
 import { type WeekCard, weekCardSvg } from "@/lib/share/week-card";
 
-let fontCss: Promise<string> | null = null;
+const FONT_FILES = ["Manrope-Medium.ttf", "Manrope-Bold.ttf"] as const;
+
+let fontFiles: Promise<string[]> | null = null;
 
 export async function renderWeekCardJpeg(card: WeekCard): Promise<Buffer> {
-  const svg = weekCardSvg(card, await loadFontCss());
-  return sharp(Buffer.from(svg)).jpeg({ quality: 86 }).toBuffer();
+  const svg = weekCardSvg(card);
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: "original" },
+    textRendering: 1,
+    font: {
+      fontFiles: await loadFontFiles(),
+      loadSystemFonts: false,
+      defaultFontFamily: "Manrope",
+      sansSerifFamily: "Manrope",
+    },
+  });
+  const png = resvg.render().asPng();
+  return sharp(png).jpeg({ quality: 86 }).toBuffer();
 }
 
-function loadFontCss(): Promise<string> {
-  fontCss ??= readFonts();
-  return fontCss;
+function loadFontFiles(): Promise<string[]> {
+  fontFiles ??= readFontFiles();
+  return fontFiles;
 }
 
-async function readFonts(): Promise<string> {
+async function readFontFiles(): Promise<string[]> {
   const dir = join(process.cwd(), "src/assets/fonts");
-  const [medium, bold] = await Promise.all([
-    readFile(join(dir, "Manrope-Medium.ttf")),
-    readFile(join(dir, "Manrope-Bold.ttf")),
-  ]);
-  return `${face(medium, 500)}\n${face(bold, 700)}`;
-}
-
-function face(file: Buffer, weight: number): string {
-  return `@font-face{font-family:'Manrope';font-weight:${weight};src:url(data:font/ttf;base64,${file.toString("base64")});}`;
+  const paths = FONT_FILES.map((name) => join(dir, name));
+  await Promise.all(paths.map((path) => readFile(path)));
+  return paths;
 }
