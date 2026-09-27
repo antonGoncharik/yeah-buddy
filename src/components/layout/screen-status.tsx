@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useBootSplash } from "@/components/layout/boot-splash";
 import {
@@ -75,7 +75,7 @@ export function ScreenLoading({
   const [beatLine, setBeatLine] = useState<string | null>(null);
   const holdRef = useRef<number | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (splash || boot == null) {
       return;
     }

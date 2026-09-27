@@ -101,7 +101,7 @@ export const BOT_REMINDER_FOOD =
 export const BOT_REMINDER_FOOD_EARLY =
   "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
-export const BOT_REMINDER_DONE = "День в порядке. Холодильник кивает.";
+export const BOT_REMINDER_DONE = "День в порядке. На сегодня хватит.";
 
 export function botReminderGym(name: string): string {
   return `Тренировка «${name}» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.`;
@@ -125,7 +125,7 @@ export const WEEK_EMPTY = "Пока пусто. Неделя сама себя �
 export const WEEK_EMPTY_HINT = "Запиши еду или зал — день сам себя не нарисует.";
 export const SESSION_HISTORY_EMPTY_HINT = "Сделай тренировку — она ляжет сюда.";
 export const NUTRITION_HISTORY_EMPTY_HINT =
-  "Запиши еду — день появится здесь. Холодильник ждёт.";
+  "Запиши еду — день появится здесь. Сам не заполнится.";
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =

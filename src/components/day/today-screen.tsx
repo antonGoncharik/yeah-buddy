@@ -61,6 +61,7 @@ export function TodayScreen({
     retentionTail,
     busy,
     loadError,
+    loading,
     actionError,
     load,
     goToDate,
@@ -93,7 +94,7 @@ export function TodayScreen({
   const canGoForward = date < today;
   const openingToday =
     isToday && !viewOnly && !shownDay && !loadError && !actionError;
-  const showLoading = !contentReady || openingToday;
+  const showLoading = loading || !contentReady || openingToday;
 
   return (
     <div className="flex w-full flex-col gap-4">

@@ -225,7 +225,7 @@ assertEqual(
 );
 assertEqual(
   proteinWeekLine(7),
-  "Белок семь дней подряд. Холодильник в курсе.",
+  "Белок семь дней подряд. Стабильно.",
   "week closed",
 );
 assertEqual(

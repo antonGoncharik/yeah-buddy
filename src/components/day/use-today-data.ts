@@ -66,7 +66,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [reviewReady, setReviewReady] = useState(false);
   const [retentionTail, setRetentionTail] = useState(false);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
-  const { begin, done, reset } = useFirstLoad();
+  const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
   const [loadedDate, setLoadedDate] = useState<string | null>(null);
   const dateRef = useRef(date);
@@ -244,6 +244,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     retentionTail: cached != null ? readRetentionTail(cached) : retentionTail,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
+    loading,
     contentReady,
     shownDay,
     load,

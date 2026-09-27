@@ -157,7 +157,7 @@ assertEqual(
     gymDone: true,
     nextTemplateName: "Сила A",
   }),
-  "День в порядке. Холодильник кивает.",
+  "День в порядке. На сегодня хватит.",
   "both logged is done day",
 );
 assertEqual(
@@ -166,7 +166,7 @@ assertEqual(
     gymDone: false,
     nextTemplateName: null,
   }),
-  "День в порядке. Холодильник кивает.",
+  "День в порядке. На сегодня хватит.",
   "food done and no circle",
 );
 assertEqual(
@@ -206,7 +206,7 @@ assertEqual(
     nextTemplateName: "Сила A",
     early: true,
   }),
-  "День в порядке. Холодильник кивает.",
+  "День в порядке. На сегодня хватит.",
   "first evening stays quiet when the day is done",
 );
 
@@ -245,10 +245,10 @@ assertEqual(
 
 assertEqual(
   composeReminderMessage(
-    "День в порядке. Холодильник кивает.",
+    "День в порядке. На сегодня хватит.",
     "За 14 дней:\nБелок дотянули: 5 из 7 дней.",
   ),
-  "День в порядке. Холодильник кивает.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  "День в порядке. На сегодня хватит.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
   "sunday recap sits under done day",
 );
 assertEqual(
@@ -259,7 +259,7 @@ assertEqual(
 assertEqual(composeReminderMessage(null, null), null, "nothing to send");
 assertEqual(
   composeEveningMessage(
-    "День в порядке. Холодильник кивает.",
+    "День в порядке. На сегодня хватит.",
     null,
     reminderDayCard({
       protein: 142,
@@ -268,7 +268,7 @@ assertEqual(
       gym: "gym",
     }),
   ),
-  `День в порядке. Холодильник кивает.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2100)} ккал\nЗал был`,
+  `День в порядке. На сегодня хватит.\n\nБелок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2100)} ккал\nЗал был`,
   "evening text keeps the nag and the day card",
 );
 assertEqual(

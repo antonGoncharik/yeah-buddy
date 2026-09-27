@@ -206,7 +206,7 @@ export function proteinWeekLine(hits: number): string | null {
     return "Белок две недели подряд. Это уже характер.";
   }
   if (hits >= 7) {
-    return "Белок семь дней подряд. Холодильник в курсе.";
+    return "Белок семь дней подряд. Стабильно.";
   }
   if (hits >= 4) {
     return PROTEIN_STREAK_LINE;

@@ -249,6 +249,7 @@ export function useTodayScreen({
     retentionTail: data.retentionTail,
     busy,
     loadError: data.loadError,
+    loading: data.loading,
     actionError,
     load: data.load,
     goToDate,

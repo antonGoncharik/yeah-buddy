@@ -21,6 +21,7 @@ export function useFirstLoad() {
 
   const reset = useCallback(() => {
     seen.current = false;
+    setLoading(true);
   }, []);
 
   return { loading, begin, done, reset };
