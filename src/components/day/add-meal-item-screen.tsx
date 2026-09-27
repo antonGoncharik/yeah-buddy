@@ -240,8 +240,12 @@ export function AddMealItemScreen({
         {lumpHrefBase ? (
           <MealLumpLink href={lumpHrefBase} query={query} />
         ) : null}
-        {plateHref ? <MealPlateLink href={plateHref} /> : null}
-        {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
+        {plateHref || dictateHref ? (
+          <div className="flex gap-2">
+            {plateHref ? <MealPlateLink href={plateHref} /> : null}
+            {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
+          </div>
+        ) : null}
       </div>
 
       <div

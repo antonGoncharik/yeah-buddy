@@ -103,7 +103,7 @@ export function CoachBoardScreen({ grantId }: { grantId: string }) {
               ))}
             </div>
             <p className="text-sm text-muted-foreground">
-              Живой дневник. Цифры обновляются сами.
+              Online дневник. Цифры обновляются сами.
             </p>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </>

@@ -117,7 +117,7 @@ export function MealPlateLink({ href }: { href: string }) {
       href={href}
       className={cn(
         buttonVariants({ variant: "ghost" }),
-        "h-11 w-full gap-2 rounded-xl text-base text-muted-foreground",
+        "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
       )}
     >
       <Camera className="size-4" aria-hidden />
@@ -132,7 +132,7 @@ export function MealDictateLink({ href }: { href: string }) {
       href={href}
       className={cn(
         buttonVariants({ variant: "ghost" }),
-        "h-11 w-full gap-2 rounded-xl text-base text-muted-foreground",
+        "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
       )}
     >
       <Mic className="size-4" aria-hidden />

@@ -164,7 +164,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/coach"
               title="Тренер"
-              hint="Живой дневник: еда, зал и утренний вес"
+              hint="Online дневник: тренер может смотреть в реальном времени"
               icon={<PairDoodle />}
             />
             <NavRow

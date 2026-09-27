@@ -8,7 +8,7 @@ import { formatIsoDate } from "@/lib/day/format";
 import { dayHasFood, type WeekSlot, weekWindow } from "@/lib/day/week";
 import type { ExerciseCategory } from "@/lib/types";
 
-export const WEEK_PROGRESS_TITLE = "Твой прогресс";
+export const WEEK_PROGRESS_TITLE = "Поделиться прогрессом";
 export const WEEK_CARD_HEADING = "Неделя";
 export const WEEK_CARD_CAPTION_LEAD = "Как прошла неделя";
 export const WEEK_PROGRESS_HINT = "Вес, рабочие кг и БЖУ — картинкой в чат";

@@ -8,6 +8,7 @@ import {
   WEEK_CARD_HEADING,
   WEEK_CARD_QUERY_LIMIT,
   WEEK_PROGRESS_HINT,
+  WEEK_PROGRESS_TITLE,
   type WeekCardExercise,
   weekCardCaption,
   weekCardPhotoUrl,
@@ -194,7 +195,10 @@ assert(
 
 const svg = weekCardSvg(card, "");
 assert(svg.includes(WEEK_CARD_HEADING), "poster title");
-assert(!svg.includes("Твой прогресс"), "shared card does not say your");
+assert(
+  !svg.includes(WEEK_PROGRESS_TITLE),
+  "shared card does not use the button title",
+);
 assert(svg.includes("81,6 кг"), "last weight");
 assert(svg.includes("−0,8"), "weight fell");
 assert(svg.includes("#1F7A4D"), "falling weight is green");
