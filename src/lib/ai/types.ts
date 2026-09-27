@@ -41,6 +41,16 @@ export type ReviewWeight = {
   protein_per_kg_target: number | null;
 };
 
+/** Burn implied by what was eaten and how the scale moved. */
+export type ReviewEnergy = {
+  kcal: number;
+  intake: number;
+  target: number | null;
+  delta: number;
+  span: number;
+  logged: number;
+};
+
 export type ReviewSessionRow = {
   date: string;
   name: string;
@@ -93,6 +103,7 @@ export type ReviewBrief = {
     kcal_hit: number;
     kcal_total: number;
     weight: ReviewWeight;
+    energy: ReviewEnergy | null;
     waist: ReviewMeasure | null;
     halves: { first: ReviewAverages; second: ReviewAverages } | null;
     days: ReviewDayRow[];

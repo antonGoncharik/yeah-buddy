@@ -12,6 +12,7 @@ import {
   roundAverages,
 } from "@/lib/ai/compact-nutrition";
 import { reviewCoverage } from "@/lib/ai/coverage";
+import { dynamicExpenditure } from "@/lib/ai/energy";
 import { round1 } from "@/lib/ai/format";
 import type { ReviewSource } from "@/lib/ai/review-source";
 import { buildSignals } from "@/lib/ai/signal-lines";
@@ -62,6 +63,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   );
   const maxes = compactMaxes(progress);
   const weight = compactWeight(days, source.seedWeight ?? null, source.from);
+  const energy = dynamicExpenditure(days);
   const categories = categoryAverages(progress.exercises).map((row) => ({
     name: CATEGORY_SHORT_LABELS[row.id],
     percent: round1(row.avg_percent),
@@ -98,6 +100,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
     kcalHit: hits.kcalHit,
     kcalTotal: hits.kcalTotal,
     weight,
+    energy,
     foods: source.foods,
     gym: {
       completed: gymStats.count,
@@ -143,6 +146,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       kcal_hit: hits.kcalHit,
       kcal_total: hits.kcalTotal,
       weight,
+      energy,
       waist: compactWaist(days, source.seedWaist ?? null, source.from),
       halves: halfWindow(days),
       days: days.map(compactDay),
@@ -241,9 +245,7 @@ function goalLabel(goal: ReviewSource["goal"]): string | null {
 }
 
 /** Стаж for the review model — plain Russian, no year count. */
-function trainingAgeLabel(
-  age: ReviewSource["trainingAge"],
-): string | null {
+function trainingAgeLabel(age: ReviewSource["trainingAge"]): string | null {
   if (age === "beginner") {
     return "новичок";
   }

@@ -3,6 +3,7 @@ import { maxesSignalLines } from "@/lib/ai/signal-maxes";
 import { nutritionSignalLines } from "@/lib/ai/signal-nutrition";
 import type {
   ReviewAverages,
+  ReviewEnergy,
   ReviewMaxRow,
   ReviewWeight,
 } from "@/lib/ai/types";
@@ -22,6 +23,7 @@ export function buildSignals(input: {
   kcalHit: number;
   kcalTotal: number;
   weight: ReviewWeight;
+  energy?: ReviewEnergy | null;
   foods: FoodShare[];
   gym: {
     completed: number;

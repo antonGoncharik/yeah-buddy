@@ -1,6 +1,7 @@
 import {
   parseAverages,
   parseDayRow,
+  parseEnergy,
   parseFeels,
   parseFoodShare,
   parseGymNote,
@@ -74,6 +75,7 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       kcal_hit: toNumber(value.nutrition.kcal_hit),
       kcal_total: toNumber(value.nutrition.kcal_total),
       weight: parseWeight(value.nutrition.weight),
+      energy: parseEnergy(value.nutrition.energy),
       waist: parseMeasure(value.nutrition.waist),
       halves: parseHalves(value.nutrition.halves),
       days: mapRecordList(value.nutrition.days, parseDayRow),
@@ -148,7 +150,11 @@ function parseStoredGoalLabel(value: unknown): string | null {
 }
 
 function parseStoredTrainingAgeLabel(value: unknown): string | null {
-  if (value === "новичок" || value === "около года" || value === "несколько лет") {
+  if (
+    value === "новичок" ||
+    value === "около года" ||
+    value === "несколько лет"
+  ) {
     return value;
   }
   return null;

@@ -70,6 +70,7 @@ const brief = {
       protein_per_kg: null,
       protein_per_kg_target: null,
     },
+    energy: null,
     halves: null,
     days: [],
     foods: [],
@@ -341,6 +342,32 @@ assertEqual(
   })?.nutrition.waist?.delta,
   -2,
   "waist window parses",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    nutrition: { ...brief.nutrition, energy: undefined },
+  })?.nutrition.energy,
+  null,
+  "old brief without expenditure still reads",
+);
+assertEqual(
+  parseReviewBrief({
+    ...brief,
+    nutrition: {
+      ...brief.nutrition,
+      energy: {
+        kcal: 2390,
+        intake: 2000,
+        target: 2200,
+        delta: -0.7,
+        span: 14,
+        logged: 15,
+      },
+    },
+  })?.nutrition.energy?.kcal,
+  2390,
+  "expenditure parses",
 );
 
 console.log("ai review store parse ok");

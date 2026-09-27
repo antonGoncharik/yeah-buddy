@@ -1,8 +1,8 @@
 "use client";
 
-import { formatPct } from "@/lib/ai/format";
+import { formatKcalPlain, formatPct } from "@/lib/ai/format";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
-import type { ReviewBrief } from "@/lib/ai/types";
+import type { ReviewBrief, ReviewEnergy } from "@/lib/ai/types";
 import {
   formatBodyWeight,
   formatProteinPerKg,
@@ -70,6 +70,13 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         value={weightValue(brief)}
         hint={weightHint(brief)}
       />
+      {brief.nutrition.energy ? (
+        <FactRow
+          label="Расход"
+          value={`~${formatKcalPlain(brief.nutrition.energy.kcal)} ккал`}
+          hint={energyHint(brief.nutrition.energy)}
+        />
+      ) : null}
       {brief.nutrition.waist != null ? (
         <FactRow
           label="Талия"
@@ -180,6 +187,14 @@ function weightHint(brief: ReviewBrief): string | null {
     return null;
   }
   return `${formatBodyWeight(weight.start)} → ${formatBodyWeight(weight.end)}`;
+}
+
+function energyHint(energy: ReviewEnergy): string {
+  const eaten = `съедено ${formatKcalPlain(energy.intake)}`;
+  if (energy.target == null) {
+    return eaten;
+  }
+  return `${eaten} · цель ${formatKcalPlain(energy.target)}`;
 }
 
 function waistValue(brief: ReviewBrief): string {

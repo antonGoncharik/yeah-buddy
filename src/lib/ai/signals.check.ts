@@ -423,6 +423,7 @@ assertEqual(seedBrief.nutrition.weight.logged, 1, "one log in window");
 assertEqual(seedBrief.nutrition.weight.start, 84, "seed is start");
 assertEqual(seedBrief.nutrition.weight.end, 81, "log is end");
 assertEqual(seedBrief.nutrition.weight.delta, -3, "delta uses seed");
+assertEqual(seedBrief.nutrition.energy, null, "seed weight is not a burn");
 assertEqual(
   seedBrief.signals.some((line) => line.includes("84 → 81")),
   true,
@@ -745,16 +746,8 @@ assertEqual(
   true,
   "prompt reads the training plate",
 );
-assertEqual(
-  REVIEW_SYSTEM_PROMPT.includes("sex —"),
-  true,
-  "prompt reads sex",
-);
-assertEqual(
-  REVIEW_SYSTEM_PROMPT.includes("goal —"),
-  true,
-  "prompt reads goal",
-);
+assertEqual(REVIEW_SYSTEM_PROMPT.includes("sex —"), true, "prompt reads sex");
+assertEqual(REVIEW_SYSTEM_PROMPT.includes("goal —"), true, "prompt reads goal");
 assertEqual(
   REVIEW_SYSTEM_PROMPT.includes("training_age"),
   true,

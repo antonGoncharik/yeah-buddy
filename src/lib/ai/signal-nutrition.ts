@@ -1,3 +1,4 @@
+import { energySignalLine } from "@/lib/ai/energy";
 import { formatG, formatKcalPlain, formatPct } from "@/lib/ai/format";
 import {
   formatAverageLine,
@@ -6,7 +7,11 @@ import {
   worstKcalDays,
   worstProteinDays,
 } from "@/lib/ai/signal-nutrition-window";
-import type { ReviewAverages, ReviewWeight } from "@/lib/ai/types";
+import type {
+  ReviewAverages,
+  ReviewEnergy,
+  ReviewWeight,
+} from "@/lib/ai/types";
 import {
   formatBodyWeight,
   formatProteinPerKg,
@@ -37,6 +42,7 @@ export function nutritionSignalLines(input: {
   kcalHit: number;
   kcalTotal: number;
   weight: ReviewWeight;
+  energy?: ReviewEnergy | null;
   foods: FoodShare[];
 }): string[] {
   const lines: string[] = [];
@@ -70,6 +76,10 @@ export function nutritionSignalLines(input: {
   }
   if (input.training) {
     lines.push(formatAverageLine("Зал", input.training));
+  }
+
+  if (input.energy) {
+    lines.push(energySignalLine(input.energy));
   }
 
   const weight = input.weight;

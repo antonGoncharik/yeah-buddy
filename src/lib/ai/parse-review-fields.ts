@@ -279,6 +279,32 @@ export function parseMeasure(
   };
 }
 
+export function parseEnergy(
+  value: unknown,
+): ReviewBrief["nutrition"]["energy"] {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const kcal = toNumber(value.kcal);
+  const intake = toNumber(value.intake);
+  const span = toNumber(value.span);
+  const logged = toNumber(value.logged);
+  if (kcal <= 0 || intake <= 0 || span < 7 || logged < 1) {
+    return null;
+  }
+
+  const target = toNullableNumber(value.target);
+  return {
+    kcal,
+    intake,
+    target: target != null && target > 0 ? target : null,
+    delta: toNumber(value.delta),
+    span,
+    logged,
+  };
+}
+
 export function parseWeight(
   value: unknown,
 ): ReviewBrief["nutrition"]["weight"] {
