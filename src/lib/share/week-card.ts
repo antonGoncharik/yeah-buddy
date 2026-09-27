@@ -9,6 +9,8 @@ import { dayHasFood, type WeekSlot, weekWindow } from "@/lib/day/week";
 import type { ExerciseCategory } from "@/lib/types";
 
 export const WEEK_PROGRESS_TITLE = "Твой прогресс";
+export const WEEK_CARD_HEADING = "Неделя";
+export const WEEK_CARD_CAPTION_LEAD = "Как прошла неделя";
 export const WEEK_PROGRESS_HINT = "Вес, рабочие кг и БЖУ — картинкой в чат";
 export const WEEK_CARD_BUTTON = "Повторить в YeahBuddy";
 export const WEEK_CARD_EMPTY =
@@ -108,7 +110,7 @@ export function buildWeekCard(input: {
 }
 
 export function weekCardCaption(card: WeekCard): string {
-  return `${WEEK_PROGRESS_TITLE} · ${weekRangeLabel(card.from, card.to)}`;
+  return `${WEEK_CARD_CAPTION_LEAD} · ${weekRangeLabel(card.from, card.to)}`;
 }
 
 export function weekCardPhotoUrl(origin: string, query: string): string {
@@ -219,7 +221,7 @@ export function weekCardSvg(card: WeekCard, fontCss = ""): string {
       size: 68,
       weight: 700,
       fill: INK,
-      value: WEEK_PROGRESS_TITLE,
+      value: WEEK_CARD_HEADING,
     }),
   );
   y = 252;

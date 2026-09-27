@@ -12,7 +12,7 @@ import { programStartPayload } from "@/lib/share/program-start";
 import {
   encodeWeekCard,
   WEEK_CARD_BUTTON,
-  WEEK_PROGRESS_TITLE,
+  WEEK_CARD_HEADING,
 } from "@/lib/share/week-card";
 
 function assert(condition: boolean, message: string): void {
@@ -197,7 +197,7 @@ const weekQuery = botInlineResults({
 assertEqual(weekQuery.length, 1, "week query is one card");
 assertEqual(
   weekQuery[0] && "title" in weekQuery[0] ? weekQuery[0].title : null,
-  WEEK_PROGRESS_TITLE,
+  WEEK_CARD_HEADING,
   "week card title",
 );
 assertEqual(

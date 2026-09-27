@@ -26,7 +26,7 @@ import {
   decodeWeekCard,
   encodeWeekCard,
   WEEK_CARD_BUTTON,
-  WEEK_PROGRESS_TITLE,
+  WEEK_CARD_HEADING,
   weekCardCaption,
   weekCardPhotoUrl,
   weekCardSize,
@@ -192,7 +192,7 @@ export function weekInlineResults(input: {
       thumbnail_url: photo,
       photo_width: size.width,
       photo_height: size.height,
-      title: WEEK_PROGRESS_TITLE,
+      title: WEEK_CARD_HEADING,
       caption: weekCardCaption(card),
       reply_markup: {
         inline_keyboard: [[{ text: WEEK_CARD_BUTTON, url: input.installUrl }]],
