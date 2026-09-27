@@ -10,6 +10,7 @@ import {
   LinkDoodle,
   MacroDoodle,
   MugDoodle,
+  PairDoodle,
   PlateDoodle,
   QrDoodle,
 } from "@/components/layout/doodles";
@@ -160,6 +161,12 @@ export function SettingsScreen() {
         <section className="flex flex-col gap-2">
           <SectionHeading title="Ещё" />
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+            <NavRow
+              href="/settings/coach"
+              title="Тренер"
+              hint="Живой дневник: еда, зал и утренний вес"
+              icon={<PairDoodle />}
+            />
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}

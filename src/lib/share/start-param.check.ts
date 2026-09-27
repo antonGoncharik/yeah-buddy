@@ -1,3 +1,4 @@
+import { coachStartPayload } from "@/lib/coach/start";
 import { programStartPayload } from "@/lib/share/program-start";
 import {
   isIncomingStartPayload,
@@ -22,6 +23,10 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 
 const pack = createPackToken();
 assert(isIncomingStartPayload(pack), "pack is a start payload");
+assert(
+  isIncomingStartPayload(coachStartPayload(pack)),
+  "coach is a start payload",
+);
 assert(isIncomingStartPayload("p_full_body"), "program is a start payload");
 assert(isIncomingStartPayload("p_ppl"), "short program is a start payload");
 assert(!isIncomingStartPayload("ppl"), "bare ppl is not a start");

@@ -1,6 +1,6 @@
 const TOKEN_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-const TOKEN_LENGTH = 12;
+export const PACK_TOKEN_LENGTH = 12;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
 
 export function isPackToken(value: string): boolean {
@@ -8,7 +8,7 @@ export function isPackToken(value: string): boolean {
 }
 
 export function createPackToken(): string {
-  const bytes = new Uint8Array(TOKEN_LENGTH);
+  const bytes = new Uint8Array(PACK_TOKEN_LENGTH);
   crypto.getRandomValues(bytes);
   let token = "";
   for (const byte of bytes) {

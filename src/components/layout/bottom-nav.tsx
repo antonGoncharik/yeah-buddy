@@ -97,6 +97,9 @@ export function BottomNav() {
 }
 
 function navActiveHref(pathname: string, from: string | null): string {
+  if (pathname.startsWith("/coach")) {
+    return "/coach";
+  }
   if (pathname.startsWith("/progress")) {
     if (from === "gym" || from === "workouts") {
       return "/workouts";

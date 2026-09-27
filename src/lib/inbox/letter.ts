@@ -1,3 +1,4 @@
+import { parseCoachStartPayload } from "@/lib/coach/start";
 import {
   INBOX_TOPIC_CHANGE,
   INBOX_TOPIC_IMPROVE,
@@ -34,6 +35,7 @@ export const EMPTY_THREAD: InboxThread = { topic: null, draft: null };
 export type StartKind =
   | { kind: "inbox"; topic: InboxTopic | "menu" }
   | { kind: "program"; id: FeaturedProgramId }
+  | { kind: "coach"; token: string }
   | { kind: "pack"; token: string }
   | { kind: "plain" };
 
@@ -117,7 +119,7 @@ export function parseInboxCallback(data: string): InboxTopic | "menu" | null {
   return isInboxTopic(rest) ? rest : null;
 }
 
-/** Inbox before programs before packs: `w_program` is also a pack token. */
+/** Inbox, then programs, then coach (`c_` + token), then packs. */
 export function classifyStart(payload: string): StartKind {
   const inbox = parseInboxStart(payload);
   if (inbox) {
@@ -127,6 +129,11 @@ export function classifyStart(payload: string): StartKind {
   const programId = parseProgramStartPayload(payload);
   if (programId) {
     return { kind: "program", id: programId };
+  }
+
+  const coachToken = parseCoachStartPayload(payload);
+  if (coachToken) {
+    return { kind: "coach", token: coachToken };
   }
 
   if (isPackToken(payload)) {

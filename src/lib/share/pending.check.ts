@@ -1,9 +1,12 @@
+import { coachStartPayload } from "@/lib/coach/start";
 import {
+  dismissPendingCoachToken,
   dismissPendingPackToken,
   dismissPendingProgramId,
   packBackHref,
   packPath,
   parsePackBackFrom,
+  peekPendingCoachToken,
   peekPendingPackToken,
   peekPendingProgramId,
   rememberIncomingStart,
@@ -91,5 +94,16 @@ assert(
   peekPendingPackToken() === null,
   "remember pack rejects program payloads",
 );
+
+memory.clear();
+const coachToken = createPackToken();
+rememberIncomingStart(coachStartPayload(coachToken));
+assert(peekPendingCoachToken() === coachToken, "start payload queues coach");
+assert(peekPendingPackToken() === null, "coach start is not a pack");
+assert(peekPendingProgramId() === null, "coach start is not a program");
+dismissPendingCoachToken(coachToken);
+assert(peekPendingCoachToken() === null, "dismiss coach");
+rememberIncomingStart(coachStartPayload(coachToken));
+assert(peekPendingCoachToken() === null, "seen coach is not queued again");
 
 console.log("share pending ok");

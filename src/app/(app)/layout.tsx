@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-
+import { CoachCatcher } from "@/components/coach/coach-catcher";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { OutboxSync } from "@/components/layout/outbox-sync";
 import { ResetWindowScroll } from "@/components/layout/reset-window-scroll";
@@ -21,7 +21,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <OnboardingGate>
         <div className="app-safe-pad app-viewport-min mx-auto w-full max-w-lg pb-[var(--app-nav-clearance)]">
           <ResetWindowScroll />
-          <PackCatcher>{children}</PackCatcher>
+          <CoachCatcher>
+            <PackCatcher>{children}</PackCatcher>
+          </CoachCatcher>
           <OutboxSync />
         </div>
         <BottomNav />

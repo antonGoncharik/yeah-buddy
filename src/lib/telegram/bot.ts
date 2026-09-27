@@ -1,7 +1,7 @@
 import { join } from "node:path";
 
 import { Bot, GrammyError, InlineKeyboard, InputFile } from "grammy";
-
+import { coachStartPayload } from "@/lib/coach/start";
 import { registerDonatePayments } from "@/lib/donate/payments";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
 import {
@@ -16,6 +16,8 @@ import {
   BOT_PROGRAM_START,
   BOT_START,
   BOT_YEAH_BUDDY,
+  COACH_BOT_OPEN,
+  COACH_BOT_TEXT,
 } from "@/lib/messages";
 import { type JoyDoodle, joyPhotoPath, SHARE_TO_CHAT } from "@/lib/share/joy";
 import { botInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
@@ -27,6 +29,7 @@ import {
 } from "@/lib/share/program-start";
 import {
   resolveAppShareUrl,
+  resolveCoachShareUrl,
   resolvePackShareUrl,
   resolveProgramShareUrl,
   telegramBotChatUrl,
@@ -69,6 +72,10 @@ export async function getAppShareUrl(
 
 export async function getPackShareUrl(token: string): Promise<string | null> {
   return resolvePackShareUrl(token, await getAppShareUrl());
+}
+
+export async function getCoachShareUrl(token: string): Promise<string | null> {
+  return resolveCoachShareUrl(token, await getAppShareUrl());
 }
 
 export async function getProgramShareUrl(
@@ -124,6 +131,17 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
       const buttonUrl = withStartApp(miniAppUrl, programStartPayload(start.id));
       await ctx.reply(programChatMessage(featuredProgramPreset(start.id)), {
         reply_markup: new InlineKeyboard().webApp(BOT_PROGRAM_START, buttonUrl),
+      });
+      return;
+    }
+
+    if (start.kind === "coach") {
+      const buttonUrl = withStartApp(
+        miniAppUrl,
+        coachStartPayload(start.token),
+      );
+      await ctx.reply(COACH_BOT_TEXT, {
+        reply_markup: new InlineKeyboard().webApp(COACH_BOT_OPEN, buttonUrl),
       });
       return;
     }

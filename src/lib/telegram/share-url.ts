@@ -1,3 +1,4 @@
+import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import {
   type FeaturedProgramId,
   programStartPayload,
@@ -54,6 +55,18 @@ export function resolveAppShareUrl(input: {
     return telegramBotChatUrl(input.miniAppUrl) ?? input.miniAppUrl;
   }
   return null;
+}
+
+export function resolveCoachShareUrl(
+  token: string,
+  appUrl: string | null,
+): string | null {
+  const payload = coachStartPayload(token);
+  if (!appUrl || !parseCoachStartPayload(payload)) {
+    return null;
+  }
+
+  return botOrAppStart(appUrl, payload);
 }
 
 export function resolvePackShareUrl(

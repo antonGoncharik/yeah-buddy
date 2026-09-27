@@ -1,8 +1,10 @@
+import { coachStartPayload } from "@/lib/coach/start";
 import { programStartPayload } from "@/lib/share/program-start";
 import { createPackToken, isPackToken } from "@/lib/share/token";
 import {
   isTelegramMeUrl,
   resolveAppShareUrl,
+  resolveCoachShareUrl,
   resolvePackShareUrl,
   resolveProgramShareUrl,
   telegramBotChatUrl,
@@ -149,5 +151,23 @@ assertEqual(
   null,
   "no app, no program link",
 );
+
+const coach = createPackToken();
+assertEqual(
+  resolveCoachShareUrl(coach, "https://t.me/yeahbuddybot"),
+  `https://t.me/yeahbuddybot?start=${coachStartPayload(coach)}`,
+  "coach opens bot with start",
+);
+assertEqual(
+  resolveCoachShareUrl(coach, "https://t.me/yeahbuddy/app?startapp=open"),
+  `https://t.me/yeahbuddy?start=${coachStartPayload(coach)}`,
+  "coach strips mini app path",
+);
+assertEqual(
+  resolveCoachShareUrl("nope", "https://t.me/yeahbuddybot"),
+  null,
+  "bad coach token",
+);
+assertEqual(resolveCoachShareUrl(coach, null), null, "no app, no coach link");
 
 console.log("telegram share url ok");

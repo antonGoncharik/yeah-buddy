@@ -49,8 +49,7 @@ export const CHECK_DATE = "Проверь дату.";
 export const NOT_FOUND = "Запись не найдена.";
 export const FOODS_EMPTY =
   "Пока пусто. Добавь продукты — из них соберёшь день.";
-export const STARTER_CATALOG_NOTE =
-  "";
+export const STARTER_CATALOG_NOTE = "";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 
@@ -96,6 +95,16 @@ export const NAMED_MEAL_LIMIT = "Слишком много сохранённы�
 export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_PACK_START = "Start";
 export const BOT_PROGRAM_START = "Поставить";
+export const COACH_SHARE_TEXT =
+  "Открываю тебе дневник. Еда, зал и утренний вес — только смотреть.";
+export const COACH_BOT_TEXT =
+  "Тебе открыли дневник. Еда, зал и утренний вес — только смотреть.";
+export const COACH_BOT_OPEN = "Открыть дневник";
+export const COACH_LINK_DEAD = "Ссылка уже не работает.";
+export const COACH_LINK_TAKEN = "Эту ссылку уже открыл другой тренер.";
+export const COACH_LINK_OWN = "Это твоя ссылка. Её открывает тренер.";
+export const COACH_LINK_LIMIT = "Три ссылки уже живые. Закрой одну.";
+export const COACH_LINK_UNAVAILABLE = "Не получилось собрать ссылку.";
 export const BOT_REMINDER_FOOD =
   "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.";
 export const BOT_REMINDER_FOOD_EARLY =
@@ -122,7 +131,8 @@ export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
 export const SESSION_HISTORY_EMPTY = "Пока пусто. Первый подход ещё впереди.";
 export const NUTRITION_HISTORY_EMPTY = "Пока пусто. Первый приём ещё впереди.";
 export const WEEK_EMPTY = "Пока пусто. Неделя сама себя не запишет.";
-export const WEEK_EMPTY_HINT = "Запиши еду или зал — день сам себя не нарисует.";
+export const WEEK_EMPTY_HINT =
+  "Запиши еду или зал — день сам себя не нарисует.";
 export const SESSION_HISTORY_EMPTY_HINT = "Сделай тренировку — она ляжет сюда.";
 export const NUTRITION_HISTORY_EMPTY_HINT =
   "Запиши еду — день появится здесь. Сам не заполнится.";

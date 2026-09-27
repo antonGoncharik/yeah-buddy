@@ -1,8 +1,13 @@
+import { parseCoachStartPayload } from "@/lib/coach/start";
 import { parseProgramStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 export function isIncomingStartPayload(value: string): boolean {
-  return parseProgramStartPayload(value) != null || isPackToken(value);
+  return (
+    parseCoachStartPayload(value) != null ||
+    parseProgramStartPayload(value) != null ||
+    isPackToken(value)
+  );
 }
 
 export function pickStartPayload(

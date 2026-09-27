@@ -1,3 +1,4 @@
+import { coachStartPayload } from "@/lib/coach/start";
 import {
   classifyStart,
   cleanInboxName,
@@ -19,7 +20,7 @@ import {
   readInboxChatId,
 } from "@/lib/inbox/letter";
 import { readInboxOpenUrl } from "@/lib/inbox/open-url";
-import { isPackToken } from "@/lib/share/token";
+import { createPackToken, isPackToken } from "@/lib/share/token";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -68,6 +69,21 @@ assertEqual(
   { kind: "pack", token: "abcdEF12_xyz" },
   "pack still works",
 );
+const coachToken = createPackToken();
+assert(
+  isPackToken(coachStartPayload(coachToken)),
+  "coach payload looks like a pack",
+);
+assertEqual(
+  classifyStart(coachStartPayload(coachToken)),
+  { kind: "coach", token: coachToken },
+  "coach wins over pack",
+);
+assertEqual(
+  classifyStart(coachToken),
+  { kind: "pack", token: coachToken },
+  "raw token stays a pack",
+);
 assertEqual(classifyStart(""), { kind: "plain" }, "empty start");
 
 assertEqual(
@@ -89,9 +105,7 @@ assertEqual(readInboxChatId("12a"), null, "junk chat");
 assertEqual(readInboxChatId(undefined), null, "missing chat");
 
 assertEqual(
-  parseInboxUserId(
-    "#u99\nЗаказать программу питания или тренировок\n\nпривет",
-  ),
+  parseInboxUserId("#u99\nЗаказать программу питания или тренировок\n\nпривет"),
   99,
   "marker is the first line",
 );

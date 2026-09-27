@@ -1,3 +1,4 @@
+import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import {
   type FeaturedProgramId,
   isFeaturedProgramId,
@@ -9,6 +10,8 @@ const PACK_PENDING_KEY = "yb.pack";
 const PACK_SEEN_KEY = "yb.pack.seen";
 const PROGRAM_PENDING_KEY = "yb.program";
 const PROGRAM_SEEN_KEY = "yb.program.seen";
+const COACH_PENDING_KEY = "yb.coach";
+const COACH_SEEN_KEY = "yb.coach.seen";
 
 export type PackBackFrom = "meals" | "schedule" | "packs" | "today";
 
@@ -27,6 +30,12 @@ export function rememberIncomingStart(value: string | null | undefined): void {
   const programId = parseProgramStartPayload(value);
   if (programId) {
     rememberProgramStart(programId);
+    return;
+  }
+
+  const coachToken = parseCoachStartPayload(value);
+  if (coachToken) {
+    rememberCoachToken(coachToken);
     return;
   }
 
@@ -63,8 +72,54 @@ export function dismissPendingProgramId(id: FeaturedProgramId): void {
   store.setItem(PROGRAM_SEEN_KEY, id);
 }
 
+export function rememberCoachToken(token: string | null | undefined): void {
+  if (!token || parseCoachStartPayload(coachStartPayload(token)) == null) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(COACH_SEEN_KEY) === token) {
+    return;
+  }
+
+  store.setItem(COACH_PENDING_KEY, token);
+}
+
+export function peekPendingCoachToken(): string | null {
+  const token = storage()?.getItem(COACH_PENDING_KEY) ?? null;
+  if (!token || parseCoachStartPayload(coachStartPayload(token)) == null) {
+    return null;
+  }
+  return token;
+}
+
+export function dismissPendingCoachToken(token: string): void {
+  if (parseCoachStartPayload(coachStartPayload(token)) == null) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(COACH_PENDING_KEY) === token) {
+    store.removeItem(COACH_PENDING_KEY);
+  }
+  store.setItem(COACH_SEEN_KEY, token);
+}
+
 export function rememberPackToken(token: string | null | undefined): void {
-  if (!token || parseProgramStartPayload(token) || !isPackToken(token)) {
+  if (
+    !token ||
+    parseProgramStartPayload(token) ||
+    parseCoachStartPayload(token) ||
+    !isPackToken(token)
+  ) {
     return;
   }
 
