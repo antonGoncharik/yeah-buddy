@@ -18,6 +18,30 @@ export function readPreparedMessageId(data: unknown): string | null {
   return id === "" ? null : id;
 }
 
+export function readPreparedQuery(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.query !== "string") {
+    return null;
+  }
+  const query = data.query.trim();
+  return query === "" ? null : query;
+}
+
+export async function shareWeekToChat(): Promise<
+  "shared" | "cancelled" | "failed"
+> {
+  const data = await postJson("/api/share/week", {});
+  const query = readPreparedQuery(data);
+  if (!query) {
+    return "failed";
+  }
+
+  const sent = await openPreparedShare(readPreparedMessageId(data), query);
+  if (sent === "shared") {
+    haptic("success");
+  }
+  return sent;
+}
+
 export async function shareJoyToChat(
   moment: JoyMoment,
   lift: JoyLift | null,
@@ -53,6 +77,16 @@ export async function shareJoyToChat(
     haptic("success");
   }
   return fallback;
+}
+
+async function openPreparedShare(
+  id: string | null,
+  query: string,
+): Promise<"shared" | "cancelled" | "failed"> {
+  if (!id) {
+    return switchInlineShare(query);
+  }
+  return sendPreparedMessage(id, query);
 }
 
 async function sendPreparedMessage(

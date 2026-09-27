@@ -174,6 +174,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
         photoOrigin,
         installUrl,
         stickerFileId: trexStickerFileId(),
+        weekSecret: env.SESSION_SECRET,
       }),
       { cache_time: 15, is_personal: false },
     );

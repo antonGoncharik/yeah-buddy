@@ -14,6 +14,7 @@ import {
   YesterdayCatchUpHint,
 } from "@/components/day/yesterday-catch-up-hint";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
@@ -197,6 +198,8 @@ export function TodayDayView({
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
+      {viewOnly || date !== today ? null : <WeekProgressShare />}
+
       <TodayDayHeader
         date={date}
         today={today}

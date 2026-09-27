@@ -10,6 +10,7 @@ import { WeekDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { weekHasEntries } from "@/lib/day/week";
 import { consecutiveProteinHits, proteinWeekLine } from "@/lib/flavor";
 import { WEEK_EMPTY } from "@/lib/messages";
@@ -44,6 +45,7 @@ export function WeekScreen() {
               />
             ) : (
               <>
+                <WeekProgressShare />
                 <FlavorNote
                   line={proteinLine}
                   className="px-1 text-muted-foreground"

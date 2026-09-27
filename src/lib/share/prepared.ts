@@ -22,6 +22,15 @@ import {
   programChatMessage,
   programShareText,
 } from "@/lib/share/program-start";
+import {
+  decodeWeekCard,
+  encodeWeekCard,
+  WEEK_CARD_BUTTON,
+  WEEK_PROGRESS_TITLE,
+  weekCardCaption,
+  weekCardPhotoUrl,
+  weekCardSize,
+} from "@/lib/share/week-card";
 import { publicHttpOrigin } from "@/lib/site-url";
 import { resolveProgramShareUrl } from "@/lib/telegram/share-url";
 
@@ -161,12 +170,56 @@ export function dayInlineResults(input: {
   ];
 }
 
+export function weekInlineResults(input: {
+  query: string;
+  photoOrigin: string;
+  installUrl: string;
+  secret: string;
+}): InlineQueryResultPhoto[] {
+  const card = decodeWeekCard(input.query, input.secret);
+  if (!card) {
+    return [];
+  }
+
+  const query = encodeWeekCard(card, input.secret);
+  const photo = weekCardPhotoUrl(input.photoOrigin, query);
+  const size = weekCardSize(card);
+  return [
+    {
+      type: "photo",
+      id: `week-${card.to}`,
+      photo_url: photo,
+      thumbnail_url: photo,
+      photo_width: size.width,
+      photo_height: size.height,
+      title: WEEK_PROGRESS_TITLE,
+      caption: weekCardCaption(card),
+      reply_markup: {
+        inline_keyboard: [[{ text: WEEK_CARD_BUTTON, url: input.installUrl }]],
+      },
+    },
+  ];
+}
+
 export function botInlineResults(input: {
   query: string;
   photoOrigin: string;
   installUrl: string;
   stickerFileId: string | null;
+  weekSecret?: string | null;
 }): InlineQueryResult[] {
+  if (input.query.trim().startsWith("wk|")) {
+    if (!input.weekSecret) {
+      return [];
+    }
+    return weekInlineResults({
+      query: input.query,
+      photoOrigin: input.photoOrigin,
+      installUrl: input.installUrl,
+      secret: input.weekSecret,
+    });
+  }
+
   if (parseJoyInlineQuery(input.query)) {
     return joyInlineResults(input);
   }

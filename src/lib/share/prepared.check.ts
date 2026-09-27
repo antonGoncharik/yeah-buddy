@@ -9,6 +9,11 @@ import {
   joyPhotoOrigin,
 } from "@/lib/share/prepared";
 import { programStartPayload } from "@/lib/share/program-start";
+import {
+  encodeWeekCard,
+  WEEK_CARD_BUTTON,
+  WEEK_PROGRESS_TITLE,
+} from "@/lib/share/week-card";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -170,5 +175,55 @@ assertEqual(
   "closed protein keeps the cookie",
 );
 assert(!JSON.stringify(dayQuery[0]).includes("вес"), "day card has no weight");
+
+const weekQueryText = encodeWeekCard(
+  {
+    from: "2026-09-21",
+    to: "2026-09-27",
+    weights: [82.4, 81.6],
+    lifts: [{ name: "Присед", start: 140, end: 142.5 }],
+    macros: [{ key: "protein", fact: 150, target: 150 }],
+    gymDays: 2,
+  },
+  "week-card-secret-week-card-secret",
+);
+const weekQuery = botInlineResults({
+  query: weekQueryText,
+  photoOrigin: "https://diary.example",
+  installUrl: "https://t.me/yeahbuddybot",
+  stickerFileId: null,
+  weekSecret: "week-card-secret-week-card-secret",
+});
+assertEqual(weekQuery.length, 1, "week query is one card");
+assertEqual(
+  weekQuery[0] && "title" in weekQuery[0] ? weekQuery[0].title : null,
+  WEEK_PROGRESS_TITLE,
+  "week card title",
+);
+assertEqual(
+  weekQuery[0] && "reply_markup" in weekQuery[0]
+    ? weekQuery[0].reply_markup?.inline_keyboard[0]?.[0]?.text
+    : null,
+  WEEK_CARD_BUTTON,
+  "repeat button",
+);
+assert(
+  weekQuery[0] && "photo_url" in weekQuery[0]
+    ? weekQuery[0].photo_url.startsWith(
+        "https://diary.example/api/share/card?q=",
+      )
+    : false,
+  "week photo is the generated card",
+);
+assertEqual(
+  botInlineResults({
+    query: weekQueryText,
+    photoOrigin: "https://diary.example",
+    installUrl: "https://t.me/yeahbuddybot",
+    stickerFileId: null,
+  }).length,
+  0,
+  "week card without a secret stays hidden",
+);
 
 console.log("prepared share ok");
