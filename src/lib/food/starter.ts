@@ -180,22 +180,36 @@ export function isStarterDayMenu(
   return true;
 }
 
-/** Built-in oatmeal day — do not copy onto a new day; person saves their own. */
+/**
+ * Exact built-in menu, grams included. A chosen ration keeps the same foods
+ * at other portions and still copies onto a new day.
+ */
 export function isStarterMealTemplate(template: {
   day_type: DayType;
-  items: ReadonlyArray<{ meal_type: MealType; food: { name: string } }>;
+  items: ReadonlyArray<{
+    meal_type: MealType;
+    grams: number;
+    food: { name: string };
+  }>;
 }): boolean {
-  const byMeal = new Map<MealType, string[]>();
-  for (const item of template.items) {
-    const names = byMeal.get(item.meal_type) ?? [];
-    names.push(item.food.name);
-    byMeal.set(item.meal_type, names);
+  const expected = STARTER_MEAL_TEMPLATES.find(
+    (item) => item.dayType === template.day_type,
+  );
+  if (!expected || template.items.length !== expected.items.length) {
+    return false;
   }
-  const meals = [...byMeal.entries()].map(([mealType, names]) => ({
-    mealType,
-    names,
-  }));
-  return isStarterDayMenu(meals, template.day_type);
+
+  const actual = template.items
+    .map((item) => portionKey(item.meal_type, item.food.name, item.grams))
+    .sort();
+  const want = expected.items
+    .map((item) => portionKey(item.mealType, item.foodName, item.grams))
+    .sort();
+  return actual.every((key, index) => key === want[index]);
+}
+
+function portionKey(mealType: MealType, name: string, grams: number): string {
+  return `${mealType}\0${name}\0${grams}`;
 }
 
 function sameFoodNames(

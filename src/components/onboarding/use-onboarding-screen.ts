@@ -15,6 +15,7 @@ import {
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
+import { type RationId, RECOMMENDED_RATION_ID } from "@/lib/food/ration";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import { LOAD_FAILED } from "@/lib/messages";
 import {
@@ -82,6 +83,7 @@ export function useOnboardingScreen() {
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
   const [proteinOverride, setProteinOverride] = useState<string | null>(null);
+  const [ration, setRation] = useState<RationId>(RECOMMENDED_RATION_ID);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
   const [circle, setCircle] = useState<OnboardingCircle>(
     RECOMMENDED_PROGRAM_PRESET_ID,
@@ -275,6 +277,7 @@ export function useOnboardingScreen() {
         pendingProgramId,
         replay,
         circle: chosen,
+        ration,
       });
       router.replace(href);
       haptic("success");
@@ -304,6 +307,7 @@ export function useOnboardingScreen() {
     goal,
     trainingAge,
     proteinOverride,
+    ration,
     lifts,
     circle,
     setCircle,
@@ -337,6 +341,9 @@ export function useOnboardingScreen() {
     onProteinOverride: (value: string | null) => {
       setError(null);
       setProteinOverride(value);
+    },
+    onRationPick: (value: RationId) => {
+      setRation(value);
     },
   };
 }

@@ -7,6 +7,7 @@ export type OnboardingStep =
   | "goal"
   | "training_age"
   | "macros"
+  | "ration"
   | "lifts"
   | "circle";
 
@@ -26,13 +27,15 @@ export function isOnboardingFoodStep(
   return (ONBOARDING_FOOD_STEPS as readonly string[]).includes(step);
 }
 
-/** Weight and macros need «Дальше»; sex / goal / training age advance on tap.
- * Food steps are required — no in-step «Пропустить». Meal-pack flow omits them
- * from the step list entirely (`pendingKind === "meals"`). */
+/** Weight, macros and ration need «Дальше»; sex / goal / training age advance
+ * on tap. Food steps are required — no in-step «Пропустить». Meal-pack flow
+ * omits them from the step list entirely (`pendingKind === "meals"`). Replay
+ * recalculates protein and leaves the existing menu alone. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
   return (
     step === "weight" ||
     step === "macros" ||
+    step === "ration" ||
     step === "lifts" ||
     step === "circle"
   );
@@ -53,8 +56,7 @@ export function onboardingSteps({
 
   const next: OnboardingStep[] = ["guide"];
   if (pendingKind !== "meals") {
-    next.push(...ONBOARDING_FOOD_STEPS);
-    next.push("lifts");
+    next.push(...ONBOARDING_FOOD_STEPS, "ration", "lifts");
   }
   if (pendingKind !== "workouts" && !pendingProgram) {
     next.push("circle");

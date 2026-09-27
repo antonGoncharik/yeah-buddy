@@ -1,10 +1,6 @@
-import {
-  mutateJson,
-  patchJson,
-  postJson,
-  writeJson,
-} from "@/lib/api-cache";
+import { mutateJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
 import { ensureTodayDay } from "@/lib/day/ensure-today";
+import type { RationId } from "@/lib/food/ration";
 import type { OnboardingCircle } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
 import { readSharePackPayload } from "@/lib/share/map";
@@ -44,6 +40,7 @@ export async function submitOnboardingFinish({
   pendingProgramId,
   replay,
   circle,
+  ration,
 }: {
   omitProtein: boolean;
   proteinValue: number | null;
@@ -60,6 +57,7 @@ export async function submitOnboardingFinish({
   pendingProgramId: FeaturedProgramId | null;
   replay: boolean;
   circle: OnboardingCircle;
+  ration: RationId;
 }): Promise<string> {
   const skipGoals = omitProtein || pendingKind === "meals";
   const data = await postJson("/api/onboarding", {
@@ -72,6 +70,7 @@ export async function submitOnboardingFinish({
           training_age: trainingAge,
           body_weight: bodyWeight,
           anchors,
+          ...(replay ? {} : { ration }),
         }),
     circle: onboardingFinishCircle({
       pendingProgramId,

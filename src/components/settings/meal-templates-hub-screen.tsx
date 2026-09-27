@@ -2,17 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { RationCards } from "@/components/food/ration-cards";
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, postJson, writeJson } from "@/lib/api-cache";
+import {
+  macroGoalsFromSettings,
+  type RationId,
+  rationById,
+} from "@/lib/food/ration";
 import { readMealTemplatesPayload } from "@/lib/meal/parse";
+import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { DAY_TEMPLATE_TITLES, formatKcal, sumMealItems } from "@/lib/nutrition";
-import type { DayType, MealTemplateDetail } from "@/lib/types";
+import { readSettingsPayload } from "@/lib/settings/map";
+import { haptic } from "@/lib/telegram/haptic";
+import type { DayType, MealTemplateDetail, UserSettings } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { MEAL_TEMPLATES_LABEL } from "@/lib/workout/labels";
 
@@ -28,7 +38,10 @@ const CARDS: Array<{ dayType: DayType; hint: string }> = [
 ];
 
 export function MealTemplatesHubScreen() {
+  const confirm = useConfirm();
   const [templates, setTemplates] = useState<MealTemplateDetail[]>([]);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [applying, setApplying] = useState<RationId | null>(null);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
 
@@ -37,18 +50,41 @@ export function MealTemplatesHubScreen() {
     setError(null);
 
     try {
-      await cachedGet(
-        "/api/meal-templates",
-        (data) => {
-          const list = readTemplates(data);
-          if (!list) {
-            return false;
-          }
-          setTemplates(list);
-          return true;
-        },
-        () => done(true),
-      );
+      const [templatesOk] = await Promise.all([
+        cachedGet(
+          "/api/meal-templates",
+          (data) => {
+            const list = readTemplates(data);
+            if (!list) {
+              return false;
+            }
+            setTemplates(list);
+            return true;
+          },
+          () => done(true),
+        ).then(
+          () => true,
+          () => false,
+        ),
+        cachedGet(
+          "/api/settings",
+          (data) => {
+            const loaded = readSettingsPayload(data);
+            if (!loaded) {
+              return false;
+            }
+            setSettings(loaded);
+            return true;
+          },
+          () => done(true),
+        ).then(
+          () => true,
+          () => false,
+        ),
+      ]);
+      if (!templatesOk) {
+        throw new Error(LOAD_FAILED);
+      }
       done(true);
     } catch {
       setError(LOAD_FAILED);
@@ -60,6 +96,47 @@ export function MealTemplatesHubScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function applyRationChoice(id: RationId) {
+    const preset = rationById(id);
+    if (!preset || applying) {
+      return;
+    }
+    const dirty = templates.some((row) => row.items.length > 0);
+    if (dirty) {
+      const ok = await confirm({
+        message: `Подставить «${preset.name}»? Состав обоих дней заменится. Записи в дневнике останутся.`,
+        confirmLabel: "Подставить",
+        cancelLabel: "Оставить",
+      });
+      if (!ok) {
+        return;
+      }
+    }
+
+    setApplying(id);
+    setError(null);
+    try {
+      const data = await postJson("/api/meal-rations", { id });
+      const list = readTemplates(data);
+      if (!list) {
+        throw new Error(LOAD_FAILED);
+      }
+      setTemplates(list);
+      writeJson("/api/meal-templates", { templates: list });
+      for (const template of list) {
+        writeCachedTemplate(template.day_type, template);
+      }
+      haptic("success");
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setApplying(null);
+    }
+  }
+
+  const goals = settings ? macroGoalsFromSettings(settings) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,6 +187,26 @@ export function MealTemplatesHubScreen() {
               );
             })
           : null}
+
+        {!loading && templates.length > 0 ? (
+          <section className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xl font-semibold">Готовые рационы</h2>
+              <p className="text-base text-muted-foreground">
+                Подставим оба дня и подгоним граммы под цели.
+              </p>
+            </div>
+            <RationCards
+              selected={applying}
+              goals={goals}
+              disabled={applying != null}
+              onPick={(id) => void applyRationChoice(id)}
+            />
+            {error ? (
+              <p className="text-center text-base text-destructive">{error}</p>
+            ) : null}
+          </section>
+        ) : null}
       </div>
 
       {!loading && templates.length > 0 ? (

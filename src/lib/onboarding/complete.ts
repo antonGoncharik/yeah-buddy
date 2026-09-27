@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { applyRation } from "@/lib/food/apply-ration";
+import { RATION_IDS } from "@/lib/food/ration";
 import { recordFunnelEvent } from "@/lib/funnel";
 import {
   listMealTemplates,
@@ -54,6 +56,7 @@ export const onboardingCompleteSchema = z.object({
     })
     .optional(),
   circle: z.enum([...PROGRAM_PRESET_IDS, "empty", "keep"]),
+  ration: z.enum(RATION_IDS).optional(),
   fromStart: z.boolean().optional(),
   maxes: z
     .array(
@@ -114,7 +117,9 @@ export async function completeOnboarding(
       training_carbs: goals.training.carbs,
       ...profilePatch,
     });
-    if (firstRun) {
+    if (firstRun && input.ration) {
+      await applyRation(userId, input.ration);
+    } else if (firstRun) {
       await scaleMealTemplatesToProtein(userId, input.protein);
     }
   } else if (Object.keys(profilePatch).length > 0) {

@@ -106,6 +106,7 @@ assert(
       day_type: "rest",
       items: restTemplate.items.map((item) => ({
         meal_type: item.mealType,
+        grams: item.grams,
         food: { name: item.foodName },
       })),
     }),
@@ -114,9 +115,22 @@ assert(
 assertEqual(
   isStarterMealTemplate({
     day_type: "rest",
+    items: (restTemplate?.items ?? []).map((item, index) => ({
+      meal_type: item.mealType,
+      grams: item.grams + (index === 0 ? 5 : 0),
+      food: { name: item.foodName },
+    })),
+  }),
+  false,
+  "other grams are not the built-in menu",
+);
+assertEqual(
+  isStarterMealTemplate({
+    day_type: "rest",
     items: [
       {
         meal_type: "breakfast",
+        grams: 80,
         food: { name: "Овсянка сухая" },
       },
     ],

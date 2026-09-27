@@ -22,8 +22,8 @@ const food = "sex,weight,goal,training_age,macros";
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `guide,${food},lifts,circle`,
-  "first run is guide, then one question per screen, lifts, program",
+  `guide,${food},ration,lifts,circle`,
+  "first run is guide, then one question per screen, ration, lifts, program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
@@ -32,12 +32,12 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `guide,${food},lifts`,
+  `guide,${food},ration,lifts`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `guide,${food},lifts`,
+  `guide,${food},ration,lifts`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
@@ -47,8 +47,8 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `guide,${food},lifts,circle`,
-  "one meal pack still asks protein, lifts and program",
+  `guide,${food},ration,lifts,circle`,
+  "one meal pack still asks protein, ration, lifts and program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true, pendingKind: "meals" }).join(),
@@ -76,6 +76,12 @@ for (const step of ONBOARDING_FOOD_STEPS) {
   }
 }
 
+assertEqual(onboardingStepNeedsNext("ration"), true, "ration needs Дальше");
+assertEqual(
+  onboardingSteps({ ...empty, replay: true }).includes("ration"),
+  false,
+  "replay keeps the current menu",
+);
 assertEqual(onboardingStepNeedsNext("lifts"), true, "lifts needs Дальше");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(

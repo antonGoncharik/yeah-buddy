@@ -16,6 +16,7 @@ import {
   OnboardingWeightStep,
 } from "@/components/onboarding/onboarding-food-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
+import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
   type OnboardingStep,
   onboardingStepNeedsNext,
@@ -46,6 +47,7 @@ export function OnboardingScreen() {
     goal,
     trainingAge,
     proteinOverride,
+    ration,
     lifts,
     circle,
     setCircle,
@@ -59,6 +61,7 @@ export function OnboardingScreen() {
     onTrainingAgePick,
     onLiftChange,
     onProteinOverride,
+    onRationPick,
   } = useOnboardingScreen();
   const [pickingProgram, setPickingProgram] = useState(false);
 
@@ -174,6 +177,17 @@ export function OnboardingScreen() {
           />
         ) : null}
 
+        {step === "ration" ? (
+          <OnboardingRationStep
+            ration={ration}
+            sex={sex}
+            weight={weight}
+            goal={goal}
+            proteinOverride={proteinOverride}
+            onPick={onRationPick}
+          />
+        ) : null}
+
         {step === "lifts" ? (
           <OnboardingLiftsStep answers={lifts} onChange={onLiftChange} />
         ) : null}
@@ -249,6 +263,9 @@ function titleForStep(step: OnboardingStep, pickingProgram: boolean): string {
   }
   if (step === "macros") {
     return "Твои цифры";
+  }
+  if (step === "ration") {
+    return "Еда на день";
   }
   if (step === "lifts") {
     return "Сила";
