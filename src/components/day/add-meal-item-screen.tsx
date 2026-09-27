@@ -5,7 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
-import { MealLumpLink, MealPlateLink } from "@/components/day/meal-item-row";
+import {
+  MealDictateLink,
+  MealLumpLink,
+  MealPlateLink,
+} from "@/components/day/meal-item-row";
 import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
 import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
 import {
@@ -49,6 +53,7 @@ export function AddMealItemScreen({
   newFoodHref,
   lumpHrefBase,
   plateHref,
+  dictateHref,
   quickAdd,
   startScan = false,
 }: {
@@ -56,6 +61,7 @@ export function AddMealItemScreen({
   newFoodHref: string;
   lumpHrefBase?: string;
   plateHref?: string;
+  dictateHref?: string;
   quickAdd?: {
     mealId: string;
     date: string;
@@ -235,6 +241,7 @@ export function AddMealItemScreen({
           <MealLumpLink href={lumpHrefBase} query={query} />
         ) : null}
         {plateHref ? <MealPlateLink href={plateHref} /> : null}
+        {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
       </div>
 
       <div

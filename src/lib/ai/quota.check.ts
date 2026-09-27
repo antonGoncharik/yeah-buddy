@@ -8,10 +8,11 @@ import {
 } from "@/lib/ai/gemini";
 import {
   dailyLimit,
+  dictateRemainingLine,
   plateRemainingLine,
   remainingAfterUse,
 } from "@/lib/ai/quota-copy";
-import { AI_PLATE_QUOTA } from "@/lib/messages";
+import { AI_DICTATE_QUOTA, AI_PLATE_QUOTA } from "@/lib/messages";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
@@ -60,6 +61,29 @@ assertEqual(
   readGeminiKeys("plate", { GEMINI_API_KEY: "wow,two" }).join("|"),
   "",
   "plate pool ignores review keys",
+);
+assertEqual(
+  readGeminiKey("dictate", {
+    GEMINI_API_KEY: "wow",
+    GEMINI_PLATE_API_KEY: "pic",
+  }),
+  null,
+  "dictate does not share other keys",
+);
+assertEqual(
+  readGeminiKey("dictate", { GEMINI_DICTATE_API_KEY: " say " }),
+  "say",
+  "dictate key trims",
+);
+assertEqual(
+  readGeminiKeys("dictate", { GEMINI_DICTATE_API_KEY: " a, b , a " }).join("|"),
+  "a|b",
+  "dictate pool keeps distinct keys",
+);
+assertEqual(
+  readGeminiKey("plate", { GEMINI_DICTATE_API_KEY: "say" }),
+  null,
+  "plate does not share dictate key",
 );
 
 const cooled = new Map<string, number>();
@@ -113,6 +137,7 @@ assertEqual(
 
 assertEqual(dailyLimit("plate"), 2, "two photos");
 assertEqual(dailyLimit("review"), 1, "one review");
+assertEqual(dailyLimit("dictate"), 8, "eight spoken logs");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");
@@ -122,6 +147,29 @@ assertEqual(plateRemainingLine(null), null, "no line when untracked");
 assertEqual(plateRemainingLine(0), AI_PLATE_QUOTA, "exhausted copy");
 assertEqual(plateRemainingLine(1), "Ещё одно фото сегодня.", "one left");
 assertEqual(plateRemainingLine(2), "Ещё 2 фото сегодня.", "two left");
+
+assertEqual(dictateRemainingLine(null), null, "dictate untracked");
+assertEqual(dictateRemainingLine(0), AI_DICTATE_QUOTA, "dictate exhausted");
+assertEqual(
+  dictateRemainingLine(1),
+  "Ещё одна запись сегодня.",
+  "dictate one left",
+);
+assertEqual(
+  dictateRemainingLine(2),
+  "Ещё 2 записи сегодня.",
+  "dictate few left",
+);
+assertEqual(
+  dictateRemainingLine(5),
+  "Ещё 5 записей сегодня.",
+  "dictate many left",
+);
+assertEqual(
+  dictateRemainingLine(21),
+  "Ещё 21 запись сегодня.",
+  "dictate 21 left",
+);
 
 assertEqual(isGeminiLimit(429, null), true, "http 429 is limit");
 assertEqual(

@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Plus } from "lucide-react";
+import { Camera, Mic, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
@@ -122,6 +122,21 @@ export function MealPlateLink({ href }: { href: string }) {
     >
       <Camera className="size-4" aria-hidden />
       Фото тарелки
+    </Link>
+  );
+}
+
+export function MealDictateLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        buttonVariants({ variant: "ghost" }),
+        "h-11 w-full gap-2 rounded-xl text-base text-muted-foreground",
+      )}
+    >
+      <Mic className="size-4" aria-hidden />
+      Наговорить
     </Link>
   );
 }

@@ -1,14 +1,7 @@
 "use client";
 
-import { Plus } from "lucide-react";
-
 import { PlateCameraBar } from "@/components/day/plate-camera-bar";
-import {
-  type PlateRow,
-  rowNativeGrams,
-  rowYield,
-} from "@/components/day/plate-draft";
-import { PlateDraftRow } from "@/components/day/plate-draft-row";
+import { PlateDraftPanel } from "@/components/day/plate-draft-panel";
 import { PlateFoodPicker } from "@/components/day/plate-food-picker";
 import { PlateLiveCamera } from "@/components/day/plate-live-camera";
 import { PlateStatusCopy } from "@/components/day/plate-status";
@@ -16,14 +9,7 @@ import { usePlateScreen } from "@/components/day/use-plate-screen";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { SortableList } from "@/components/workout/sortable-list";
 import { AI_PLATE_RETRY } from "@/lib/messages";
-import {
-  calcMacrosFromPer100,
-  formatKcal,
-  formatMacro,
-  sumMealItems,
-} from "@/lib/nutrition";
 
 export function PlateScreen({
   mealId,
@@ -45,7 +31,6 @@ export function PlateScreen({
     configured,
     remaining,
   });
-  const totals = sumDraft(plate.items);
   const cameraPrimary =
     plate.view.status === "idle" ||
     plate.view.status === "empty" ||
@@ -96,79 +81,21 @@ export function PlateScreen({
           remaining={plate.remaining}
         />
 
-        {plate.items.length > 0 ? (
-          <SortableList
-            variant="cards"
-            items={plate.items.map((item) => ({ ...item, id: item.rowId }))}
-            disabled={plate.busy}
-            onReorder={(next) => plate.reorderItems(next)}
-            renderItem={(item) => (
-              <PlateDraftRow
-                item={item}
-                gramsInput={item.gramsInput}
-                gramsMode={item.gramsMode}
-                yieldPair={rowYield(item)}
-                proteinInput={item.proteinInput}
-                fatInput={item.fatInput}
-                carbsInput={item.carbsInput}
-                onGramsChange={(value) => plate.setGrams(item.rowId, value)}
-                onGramsModeChange={(mode) =>
-                  plate.setGramsMode(item.rowId, mode)
-                }
-                onRemove={() => plate.removeItem(item.rowId)}
-                onChangeFood={() =>
-                  plate.setPicker({ mode: "replace", rowId: item.rowId })
-                }
-                onToLump={
-                  item.kind === "food"
-                    ? () => plate.toLump(item.rowId)
-                    : undefined
-                }
-                onPatchLump={
-                  item.kind === "lump"
-                    ? (patch) => plate.patchLump(item.rowId, patch)
-                    : undefined
-                }
-              />
-            )}
-          />
-        ) : null}
-
-        {plate.canAddFood ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 w-full gap-2 text-base"
-              disabled={plate.busy}
-              onClick={plate.addLump}
-            >
-              <Plus className="size-4" aria-hidden />
-              Быстрая запись
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 w-full gap-2 text-base"
-              disabled={plate.busy}
-              onClick={() => plate.setPicker({ mode: "add" })}
-            >
-              <Plus className="size-4" aria-hidden />
-              Из своей базы
-            </Button>
-          </>
-        ) : null}
-
-        {totals ? (
-          <div className="card-surface px-5 py-4 text-lg">
-            Итого: Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)}{" "}
-            · У {formatMacro(totals.carbs)} · {formatKcal(totals.kcal)} ккал
-          </div>
-        ) : null}
-
-        {plate.error ? (
-          <p className="text-sm text-destructive">{plate.error}</p>
-        ) : null}
+        <PlateDraftPanel
+          items={plate.items}
+          busy={plate.busy}
+          error={plate.error}
+          canAddFood={plate.canAddFood}
+          onReorder={plate.reorderItems}
+          onGrams={plate.setGrams}
+          onGramsMode={plate.setGramsMode}
+          onRemove={plate.removeItem}
+          onChangeFood={(rowId) => plate.setPicker({ mode: "replace", rowId })}
+          onToLump={plate.toLump}
+          onPatchLump={plate.patchLump}
+          onAddLump={plate.addLump}
+          onAddFood={() => plate.setPicker({ mode: "add" })}
+        />
       </div>
 
       {showSticky ? (
@@ -213,44 +140,4 @@ export function PlateScreen({
       ) : null}
     </>
   );
-}
-
-function sumDraft(items: PlateRow[]) {
-  const macros = items.flatMap((item) => {
-    if (item.kind === "lump") {
-      if (item.protein + item.fat + item.carbs <= 0) {
-        return [];
-      }
-      return [
-        {
-          protein: item.protein,
-          fat: item.fat,
-          carbs: item.carbs,
-          kcal: item.kcal,
-        },
-      ];
-    }
-
-    const grams = rowNativeGrams(item);
-    if (grams == null) {
-      return [];
-    }
-    return [
-      calcMacrosFromPer100(
-        {
-          protein: item.protein_per_100,
-          fat: item.fat_per_100,
-          carbs: item.carbs_per_100,
-          kcal: item.kcal_per_100,
-        },
-        grams,
-      ),
-    ];
-  });
-
-  if (macros.length === 0) {
-    return null;
-  }
-
-  return sumMealItems(macros);
 }

@@ -37,7 +37,7 @@ const SYSTEM_PROMPT = `Ты смотришь на фото еды и раскл�
 - Не больше 8 позиций.
 - Стакан молока, кефира, коктейля, сока — позиция, если его видно. Воду, чёрный кофе и чай без молока не пиши. Напиток, которого не видно, не пиши.`;
 
-const RESPONSE_SCHEMA = {
+export const PLATE_RESPONSE_SCHEMA = {
   type: "object",
   properties: {
     items: {
@@ -100,7 +100,7 @@ export async function analyzePlate(
         { text: CATALOG_LEGEND },
         { text: JSON.stringify({ catalog }) },
       ],
-      schema: RESPONSE_SCHEMA,
+      schema: PLATE_RESPONSE_SCHEMA,
       timeoutMs: 35_000,
       maxOutputTokens: 4_096,
       failedMessage: AI_PLATE_FAILED,

@@ -53,7 +53,7 @@ const RESPONSE_SCHEMA = {
 const PLATE_MODEL = "gemini-3.5-flash-lite";
 const REVIEW_MODEL = "gemini-3.5-flash";
 
-export type GeminiPurpose = "plate" | "review";
+export type GeminiPurpose = "plate" | "review" | "dictate";
 
 const GEMINI_KEY_LIMIT = 3;
 const MINUTE_COOLDOWN_MS = 60_000;
@@ -66,8 +66,7 @@ export function readGeminiKeys(
   purpose: GeminiPurpose,
   env: Record<string, string | undefined> = process.env,
 ): string[] {
-  const raw =
-    purpose === "plate" ? env.GEMINI_PLATE_API_KEY : env.GEMINI_API_KEY;
+  const raw = geminiKeyRaw(purpose, env);
   if (!raw) {
     return [];
   }
@@ -216,6 +215,23 @@ export function getGeminiReviewApiKey(): string | null {
 
 export function getGeminiPlateApiKey(): string | null {
   return readGeminiKey("plate");
+}
+
+export function getGeminiDictateApiKey(): string | null {
+  return readGeminiKey("dictate");
+}
+
+function geminiKeyRaw(
+  purpose: GeminiPurpose,
+  env: Record<string, string | undefined>,
+): string | undefined {
+  if (purpose === "plate") {
+    return env.GEMINI_PLATE_API_KEY;
+  }
+  if (purpose === "dictate") {
+    return env.GEMINI_DICTATE_API_KEY;
+  }
+  return env.GEMINI_API_KEY;
 }
 
 export function isGeminiLimit(status: number, payload: unknown): boolean {

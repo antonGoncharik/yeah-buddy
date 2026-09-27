@@ -1,12 +1,20 @@
 import { ReviewError } from "@/lib/ai/errors";
-import { getGeminiPlateApiKey, getGeminiReviewApiKey } from "@/lib/ai/gemini";
+import {
+  getGeminiDictateApiKey,
+  getGeminiPlateApiKey,
+  getGeminiReviewApiKey,
+} from "@/lib/ai/gemini";
 import {
   type AiKind,
   dailyLimit,
   remainingAfterUse,
 } from "@/lib/ai/quota-copy";
 import { getUserCalendarToday } from "@/lib/day/writable";
-import { AI_PLATE_QUOTA, AI_REVIEW_QUOTA } from "@/lib/messages";
+import {
+  AI_DICTATE_QUOTA,
+  AI_PLATE_QUOTA,
+  AI_REVIEW_QUOTA,
+} from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type { AiKind } from "@/lib/ai/quota-copy";
@@ -20,9 +28,13 @@ export interface AiQuota {
 type UsageClient = ReturnType<typeof createSupabaseServerClient>;
 
 export function hasAiKey(kind: AiKind): boolean {
-  return kind === "plate"
-    ? getGeminiPlateApiKey() != null
-    : getGeminiReviewApiKey() != null;
+  if (kind === "plate") {
+    return getGeminiPlateApiKey() != null;
+  }
+  if (kind === "dictate") {
+    return getGeminiDictateApiKey() != null;
+  }
+  return getGeminiReviewApiKey() != null;
 }
 
 export async function getAiQuota(
@@ -52,10 +64,7 @@ export async function takeAiSlot(
   const usedOn = await getUserCalendarToday(userId);
   const result = await consumeAiUsage(userId, kind, usedOn);
   if (result === "exhausted") {
-    throw new ReviewError(
-      "QUOTA",
-      kind === "plate" ? AI_PLATE_QUOTA : AI_REVIEW_QUOTA,
-    );
+    throw new ReviewError("QUOTA", quotaMessage(kind));
   }
   if (result === "untracked") {
     return { remaining: null };
@@ -191,10 +200,23 @@ async function peekAiUsage(
   return typeof count === "number" && count > 0 ? count : 0;
 }
 
+function quotaMessage(kind: AiKind): string {
+  if (kind === "plate") {
+    return AI_PLATE_QUOTA;
+  }
+  if (kind === "dictate") {
+    return AI_DICTATE_QUOTA;
+  }
+  return AI_REVIEW_QUOTA;
+}
+
 function isMissingUsageTable(error: {
   code?: string;
   message?: string;
 }): boolean {
+  if (error.code === "23514") {
+    return false;
+  }
   return (
     error.code === "42P01" ||
     error.code === "PGRST205" ||
