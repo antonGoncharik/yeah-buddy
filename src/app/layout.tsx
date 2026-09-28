@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
-import Script from "next/script";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
@@ -14,7 +13,10 @@ import {
 } from "@/lib/brand";
 import { DIARY_DENSITY_COOKIE, parseDiaryDensity } from "@/lib/diary-density";
 import { siteOriginUrl } from "@/lib/site-url";
-import { TELEGRAM_BOOT_SCRIPT } from "@/lib/telegram/boot-script";
+import {
+  TELEGRAM_BOOT_SCRIPT,
+  TELEGRAM_BOOT_STYLE,
+} from "@/lib/telegram/boot-script";
 import {
   DARK_THEME_COLOR,
   LIGHT_THEME_COLOR,
@@ -117,9 +119,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       style={{ colorScheme: theme }}
     >
       <body className="app-viewport-min bg-background text-foreground antialiased">
-        <Script id="telegram-init-params" strategy="beforeInteractive">
-          {TELEGRAM_BOOT_SCRIPT}
-        </Script>
+        <style>{TELEGRAM_BOOT_STYLE}</style>
+        <script>{TELEGRAM_BOOT_SCRIPT}</script>
         <ThemeProvider initialTheme={theme}>
           <DiaryDensityProvider initialDensity={density}>
             <ConfirmProvider>

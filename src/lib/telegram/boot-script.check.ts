@@ -1,8 +1,13 @@
+import { runInNewContext } from "node:vm";
+
 import {
+  TELEGRAM_BOOT_HIDE_CLASS,
   TELEGRAM_BOOT_SCRIPT,
+  TELEGRAM_BOOT_STYLE,
   TELEGRAM_INIT_STORAGE_KEY,
   telegramInitParamsFromHash,
 } from "@/lib/telegram/boot-script";
+import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);
@@ -48,5 +53,88 @@ assertEqual(
   true,
   "boot script opens the diary from the public landing",
 );
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.indexOf(`classList.add("${TELEGRAM_BOOT_HIDE_CLASS}")`) <
+    TELEGRAM_BOOT_SCRIPT.indexOf("location.replace"),
+  true,
+  "boot script hides the landing before redirecting",
+);
+assertEqual(
+  TELEGRAM_BOOT_STYLE.includes(
+    `html.${TELEGRAM_BOOT_HIDE_CLASS} body{visibility:hidden}`,
+  ),
+  true,
+  "boot style hides the document",
+);
+assertEqual(
+  TELEGRAM_BOOT_STYLE.includes(LIGHT_THEME_COLOR) &&
+    TELEGRAM_BOOT_STYLE.includes(DARK_THEME_COLOR),
+  true,
+  "boot style keeps the theme background",
+);
+
+const launchHash = "#tgWebAppVersion=8.0&tgWebAppData=query_id%3D1";
+
+function runBoot(pathname: string, hash: string) {
+  const classes = new Set<string>();
+  let replaced: string | null = null;
+  let stored: string | null = null;
+  runInNewContext(TELEGRAM_BOOT_SCRIPT, {
+    location: {
+      hash,
+      pathname,
+      search: "",
+      replace(url: string) {
+        replaced = url;
+      },
+    },
+    sessionStorage: {
+      setItem(_key: string, value: string) {
+        stored = value;
+      },
+    },
+    document: {
+      documentElement: {
+        classList: {
+          add(name: string) {
+            classes.add(name);
+          },
+          contains(name: string) {
+            return classes.has(name);
+          },
+        },
+      },
+    },
+    MutationObserver: class {
+      observe() {}
+    },
+  });
+  return { classes, replaced, stored };
+}
+
+const opened = runBoot("/", launchHash);
+assertEqual(opened.classes.has(TELEGRAM_BOOT_HIDE_CLASS), true, "launch hides");
+assertEqual(opened.replaced, `/today${launchHash}`, "launch opens the diary");
+assertEqual(
+  opened.stored?.includes("tgWebAppData"),
+  true,
+  "launch stores init params",
+);
+
+const inside = runBoot("/today", launchHash);
+assertEqual(
+  inside.classes.has(TELEGRAM_BOOT_HIDE_CLASS),
+  false,
+  "diary stays visible",
+);
+assertEqual(inside.replaced, null, "diary is not redirected");
+
+const publicPage = runBoot("/", "#home");
+assertEqual(
+  publicPage.classes.has(TELEGRAM_BOOT_HIDE_CLASS),
+  false,
+  "public landing stays visible",
+);
+assertEqual(publicPage.replaced, null, "public landing is not redirected");
 
 console.log("telegram boot script ok");
