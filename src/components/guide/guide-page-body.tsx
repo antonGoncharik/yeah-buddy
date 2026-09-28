@@ -8,6 +8,8 @@ import {
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
+  FRIENDS_VIEWBOX,
+  FriendsMark,
   LINK_VIEWBOX,
   LinkMark,
   MUG_VIEWBOX,
@@ -89,6 +91,11 @@ const GUIDE_DOODLE_ICON: Record<
     Mark: BarbellMark,
   },
   link: { className: "h-8 w-auto", viewBox: LINK_VIEWBOX, Mark: LinkMark },
+  friends: {
+    className: "h-8 w-auto",
+    viewBox: FRIENDS_VIEWBOX,
+    Mark: FriendsMark,
+  },
 };
 
 export function GuideDoodleIcon({ kind }: { kind: GuideDoodle }) {

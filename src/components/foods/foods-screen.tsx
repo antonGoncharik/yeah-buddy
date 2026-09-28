@@ -13,7 +13,7 @@ import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle } from "@/components/layout/doodles";
+import { ProductDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
@@ -121,7 +121,7 @@ export function FoodsScreen() {
 
         {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
           <EmptyNote
-            icon={<CookieDoodle className="size-6" />}
+            icon={<ProductDoodle className="size-6" />}
             title={foodSearchEmptyLine(query, filter)}
           />
         ) : null}

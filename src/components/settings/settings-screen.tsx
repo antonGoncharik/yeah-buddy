@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
-  CookieDoodle,
-  LinkDoodle,
+  ProductDoodle,
+  FriendsDoodle,
   MacroDoodle,
-  MugDoodle,
-  PairDoodle,
-  PlateDoodle,
+  BookDoodle,
+  CoachDoodle,
+  MealDayDoodle,
   QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
@@ -89,7 +89,7 @@ export function SettingsScreen() {
               href={GUIDE_HREF}
               title={GUIDE_LABEL}
               hint={GUIDE_HINT}
-              icon={<MugDoodle />}
+              icon={<BookDoodle />}
             />
           </div>
         </section>
@@ -130,13 +130,13 @@ export function SettingsScreen() {
               href="/settings/meals"
               title={MEAL_TEMPLATES_LABEL}
               hint="Что подставлять в новый день"
-              icon={<PlateDoodle />}
+              icon={<MealDayDoodle />}
             />
             <NavRow
               href="/foods"
               title="Продукты"
               hint="Каталог продуктов. Из них собирается еда на день"
-              icon={<CookieDoodle />}
+              icon={<ProductDoodle />}
             />
           </div>
           {!loading && form && showGoals ? (
@@ -165,13 +165,13 @@ export function SettingsScreen() {
               href="/settings/coach"
               title="Тренер"
               hint="Online дневник: тренер может смотреть в реальном времени"
-              icon={<PairDoodle />}
+              icon={<CoachDoodle />}
             />
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделись обедом, едой на день или программой тренировок"
-              icon={<LinkDoodle />}
+              icon={<FriendsDoodle />}
             />
             <NavRow
               href={INVITE_HREF}

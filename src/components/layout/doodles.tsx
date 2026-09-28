@@ -158,6 +158,54 @@ export function PlateMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
+export function MealDayMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g>
+      <g {...STROKE} stroke={ink}>
+        <path
+          d="M-11.2 -5.8 H11.2 Q12.6 -5.8 12.6 -4.4 V6.8 Q12.6 8.2 11.2 8.2 H-11.2 Q-12.6 8.2 -12.6 6.8 V-4.4 Q-12.6 -5.8 -11.2 -5.8 Z"
+        />
+      </g>
+      <g fill={ink} stroke="none">
+        <circle cx="-5.6" cy="1.2" r="2.35" />
+        <rect x="-0.9" y="-1.4" width="4.4" height="4.4" rx="1.15" />
+        <circle cx="5.8" cy="1.4" r="2.05" />
+      </g>
+    </g>
+  );
+}
+
+export function ProductMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g {...STROKE} stroke={ink}>
+      <path d="M-4.1 -11.4 H4.1 L5.6 -8.2 H-5.6 Z" />
+      <path
+        d="M-6.2 -8.2 H6.2 Q7.8 -8.2 7.8 -6.6 V8.4 Q7.8 10 6.2 10 H-6.2 Q-7.8 10 -7.8 8.4 V-6.6 Q-7.8 -8.2 -6.2 -8.2 Z"
+      />
+      <path d="M-4.8 -2.6 H4.8" />
+      <path d="M-4.8 0.6 H4.8" />
+      <path d="M-4.8 4 H1.4" />
+    </g>
+  );
+}
+
+export function SandwichMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g {...STROKE} stroke={ink}>
+      <path
+        d="M-9.8 -6.4 H9.8 Q11.2 -6.4 11.2 -5 V-3.8 H-11.2 V-5 Q-11.2 -6.4 -9.8 -6.4 Z"
+      />
+      <path d="M-11.2 -0.8 H11.2" />
+      <path
+        d="M-9.8 1.6 H9.8 Q11.2 1.6 11.2 3 V4.2 H-11.2 V3 Q-11.2 1.6 -9.8 1.6 Z"
+      />
+      <path
+        d="M-9.8 6 H9.8 Q11.2 6 11.2 7.4 V8.6 H-11.2 V7.4 Q-11.2 6 -9.8 6 Z"
+      />
+    </g>
+  );
+}
+
 export function ChartMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g fill={ink} stroke="none">
@@ -220,6 +268,35 @@ export function LinkMark({ ink = "currentColor" }: { ink?: string }) {
         ry="4.25"
         transform="rotate(-34 3.7 -1.05)"
       />
+    </g>
+  );
+}
+
+export function FriendsMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g {...STROKE} stroke={ink}>
+      <circle cx="-4.65" cy="-5.55" r="3.15" />
+      <path d="M-9.35 10.1 C-7.05 4.15 -2.25 3.55 -4.65 1.15" />
+      <circle cx="4.65" cy="-5.55" r="3.15" />
+      <path d="M9.35 10.1 C7.05 4.15 2.25 3.55 4.65 1.15" />
+    </g>
+  );
+}
+
+export function BookMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g {...STROKE} stroke={ink}>
+      <path d="M0 -10.6 V10.6" />
+      <path
+        d="M0 -10.6 C-8.6 -10 -11.4 -5.4 -11.4 -0.2 C-11.4 5 -8.6 10 0 10.6"
+      />
+      <path d="M0 -10.6 C8.6 -10 11.4 -5.4 11.4 -0.2 C11.4 5 8.6 10 0 10.6" />
+      <path d="M-8.4 -5 H-3.6" />
+      <path d="M-8.4 -1.2 H-2.9" />
+      <path d="M-8.4 2.6 H-4.1" />
+      <path d="M3.6 -5 H8.4" />
+      <path d="M2.9 -1.2 H8.4" />
+      <path d="M4.1 2.6 H8.4" />
     </g>
   );
 }
@@ -317,15 +394,23 @@ export function SetsMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
-export function PairMark({ ink = "currentColor" }: { ink?: string }) {
+/** Тренер: дневник + глаз (только чтение, смотрит со стороны). */
+export function CoachMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g>
-      <g transform="translate(-5.3 0.2) scale(0.58)">
-        <CookieMark ink={ink} />
+      <g {...STROKE} stroke={ink}>
+        <path
+          d="M-11.2 -9.8 H5.8 Q7.8 -9.8 7.8 -7.8 V8.2 Q7.8 10.2 5.8 10.2 H-11.2 Q-13.2 10.2 -13.2 8.2 V-7.8 Q-13.2 -9.8 -11.2 -9.8 Z"
+        />
+        <path d="M-9.4 -3.2 H4.2" />
+        <path d="M-9.4 0.6 H0.8" />
+        <path d="M-9.4 4.4 H3.4" />
       </g>
-      <g transform="translate(6.1 0) scale(0.48)">
-        <DumbbellMark ink={ink} />
+      <g {...STROKE} stroke={ink}>
+        <path d="M9.8 -1.1 C13.6 0.35 13.6 3.85 9.8 5.3" />
+        <path d="M9.8 5.3 C6 3.85 6 0.35 9.8 -1.1 Z" />
       </g>
+      <circle cx="9.8" cy="2.1" r="1.2" fill={ink} stroke="none" />
     </g>
   );
 }
@@ -336,12 +421,17 @@ export const DUMBBELL_VIEWBOX = "-19.2 -7.6 38.4 15.2";
 export const BARBELL_VIEWBOX = "-28.2 -9.6 56.4 19.2";
 export const MACRO_VIEWBOX = "-12.8 -12.8 25.6 25.6";
 export const PLATE_VIEWBOX = "-13.2 -12.2 26.4 23.6";
+export const MEAL_DAY_VIEWBOX = "-13.4 -8.4 26.8 18.4";
+export const PRODUCT_VIEWBOX = "-10.2 -13.2 20.4 26.4";
+export const SANDWICH_VIEWBOX = "-12.6 -8.2 25.2 18.4";
 export const CHART_VIEWBOX = "-12.2 -10.4 24.8 22.4";
 export const WEEK_VIEWBOX = "-13.4 -11.2 26.8 23.8";
 export const LINK_VIEWBOX = "-13.2 -10.4 26.4 20.8";
+export const FRIENDS_VIEWBOX = "-12.2 -10.4 24.4 22.4";
+export const BOOK_VIEWBOX = "-12.8 -12.8 25.6 25.6";
 export const QR_VIEWBOX = "-12.2 -12.2 24.4 24.4";
 export const SETS_VIEWBOX = "-13.2 -10.2 26.8 20.4";
-export const PAIR_VIEWBOX = "-14.8 -9.6 29.6 19.2";
+export const COACH_VIEWBOX = "-14.8 -11.8 30.2 24.8";
 
 export function Doodle({
   children,
@@ -415,6 +505,42 @@ export function PlateDoodle({ className = "size-4" }: { className?: string }) {
   );
 }
 
+export function MealDayDoodle({
+  className = "size-4",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={MEAL_DAY_VIEWBOX}>
+      <MealDayMark />
+    </Doodle>
+  );
+}
+
+export function ProductDoodle({
+  className = "size-4",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={PRODUCT_VIEWBOX}>
+      <ProductMark />
+    </Doodle>
+  );
+}
+
+export function SandwichDoodle({
+  className = "size-4",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={SANDWICH_VIEWBOX}>
+      <SandwichMark />
+    </Doodle>
+  );
+}
+
 export function ChartDoodle({ className = "h-4 w-5" }: { className?: string }) {
   return (
     <Doodle className={className} viewBox={CHART_VIEWBOX}>
@@ -439,6 +565,26 @@ export function LinkDoodle({ className = "h-4 w-5" }: { className?: string }) {
   );
 }
 
+export function FriendsDoodle({
+  className = "h-4 w-5",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={FRIENDS_VIEWBOX}>
+      <FriendsMark />
+    </Doodle>
+  );
+}
+
+export function BookDoodle({ className = "h-4 w-5" }: { className?: string }) {
+  return (
+    <Doodle className={className} viewBox={BOOK_VIEWBOX}>
+      <BookMark />
+    </Doodle>
+  );
+}
+
 export function QrDoodle({ className = "size-4" }: { className?: string }) {
   return (
     <Doodle className={className} viewBox={QR_VIEWBOX}>
@@ -455,14 +601,14 @@ export function SetsDoodle({ className = "h-4 w-5" }: { className?: string }) {
   );
 }
 
-export function PairDoodle({
+export function CoachDoodle({
   className = "h-3.5 w-6",
 }: {
   className?: string;
 }) {
   return (
-    <Doodle className={className} viewBox={PAIR_VIEWBOX}>
-      <PairMark />
+    <Doodle className={className} viewBox={COACH_VIEWBOX}>
+      <CoachMark />
     </Doodle>
   );
 }

@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import {
   CookieDoodle,
   DumbbellDoodle,
-  LinkDoodle,
+  FriendsDoodle,
 } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { NavRow } from "@/components/layout/nav-row";
@@ -71,7 +71,7 @@ export function PacksLibraryScreen() {
 
         {!loading && !error && packs.length === 0 ? (
           <EmptyNote
-            icon={<LinkDoodle className="h-8 w-10" />}
+            icon={<FriendsDoodle className="h-8 w-10" />}
             title="Пока пусто."
             hint="Поделись обедом, едой на день или программой — ссылка появится здесь."
           />

@@ -4,6 +4,7 @@ export const GUIDE_DOODLES = [
   "dumbbell",
   "barbell",
   "link",
+  "friends",
 ] as const;
 
 export type GuideDoodle = (typeof GUIDE_DOODLES)[number];
