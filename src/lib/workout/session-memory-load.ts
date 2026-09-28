@@ -2,7 +2,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionPreviousWork, WorkoutSession } from "@/lib/types";
 import { toSessionFeel } from "@/lib/workout/map-enums";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
-import { previousWorkFromSets } from "@/lib/workout/session-memory";
+import {
+  previousWorkFromSets,
+  shouldHoldWeights,
+} from "@/lib/workout/session-memory";
 
 export async function loadPreviousWork(
   userId: string,
@@ -17,7 +20,7 @@ export async function loadPreviousWork(
   const supabase = createSupabaseServerClient();
   const previous = await supabase
     .from("workout_sessions")
-    .select("id, feel")
+    .select("id, feel, phase_id")
     .eq("user_id", userId)
     .eq("status", "completed")
     .eq("template_id", session.template_id)
@@ -25,22 +28,29 @@ export async function loadPreviousWork(
     .lt("session_date", session.session_date)
     .order("session_date", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(2);
 
   if (previous.error) {
     throw previous.error;
   }
-  if (!previous.data || typeof previous.data.id !== "string") {
+
+  const rows = previous.data ?? [];
+  const latest = rows[0];
+  if (!latest || typeof latest.id !== "string") {
     return found;
   }
 
-  const grouped = await loadWorkBySession(userId, [previous.data.id]);
-  const feel = toSessionFeel(previous.data.feel);
-  for (const item of grouped.get(previous.data.id) ?? []) {
+  const feels = [...rows].reverse().map((row) => toSessionFeel(row.feel));
+  const hold = shouldHoldWeights(feels);
+  const latestPhase =
+    typeof latest.phase_id === "string" ? latest.phase_id : null;
+  const samePhase = latestPhase === session.phase_id;
+  const grouped = await loadWorkBySession(userId, [latest.id]);
+  const feel = toSessionFeel(latest.feel);
+  for (const item of grouped.get(latest.id) ?? []) {
     const memory = previousWorkFromSets(item.sets, feel);
     if (memory) {
-      found.set(item.exercise_id, memory);
+      found.set(item.exercise_id, { ...memory, same_phase: samePhase, hold });
     }
   }
 

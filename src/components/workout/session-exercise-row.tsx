@@ -21,6 +21,7 @@ import {
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
 import { formatSetLine } from "@/lib/workout/session-format";
+import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
 import {
   SLOT_INTENSITY_HINTS,
@@ -72,6 +73,24 @@ export function SessionExerciseRow({
   const previousLine = item.previous
     ? formatPreviousWorkLine(item.previous)
     : null;
+  const lastWork = work.at(-1) ?? null;
+  const timedWork = work.some(
+    (set) => set.planned_seconds != null && set.planned_reps == null,
+  );
+  const loadHint =
+    item.previous && !showActual
+      ? formatNextLoadHint({
+          previous: item.previous,
+          step: item.exercise.weight_step,
+          reps: lastWork?.planned_reps ?? null,
+          repsTo: lastWork?.planned_reps_to ?? null,
+          enabled:
+            item.load_hint &&
+            track == null &&
+            item.track_id == null &&
+            !timedWork,
+        })
+      : null;
   const slotLine = [
     item.intensity ? SLOT_INTENSITY_HINTS[item.intensity] : null,
     track ? trackInfoLine(track, showActual) : null,
@@ -174,6 +193,11 @@ export function SessionExerciseRow({
             {previousLine ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {previousLine}
+              </p>
+            ) : null}
+            {loadHint ? (
+              <p className="text-xs leading-snug text-muted-foreground">
+                {loadHint}
               </p>
             ) : null}
             <SessionSetButtons

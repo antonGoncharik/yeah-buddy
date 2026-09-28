@@ -85,6 +85,7 @@ const row: SessionExerciseDetail = {
   exercise,
   sets: [set],
   previous: null,
+  load_hint: false,
 };
 
 const detail: SessionDetail = {

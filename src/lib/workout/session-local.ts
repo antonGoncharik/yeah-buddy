@@ -25,6 +25,7 @@ import {
 } from "@/lib/workout/hub-payload";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { readWorkoutSettingsPayload } from "@/lib/workout/map-settings";
+import { slotWantsLoadHint } from "@/lib/workout/session-load-hint";
 import {
   plannedSetsForSlot,
   slotFor,
@@ -162,6 +163,7 @@ export function sessionDetailFromTemplate({
       created_at: now,
       exercise,
       previous: null,
+      load_hint: slotWantsLoadHint(plan, exercise, phaseKey),
       sets: rows.map((row) => setFromPlan(row, sessionExerciseId, now)),
     });
     sortOrder += 10;

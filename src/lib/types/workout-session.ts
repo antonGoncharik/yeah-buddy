@@ -100,13 +100,21 @@ export interface SessionPreviousWork {
   weight: number | null;
   reps: number | null;
   seconds: number | null;
+  /** Запас на последнем рабочем подходе. Нет записи — подсказку не показываем. */
+  rir: number | null;
   feel: SessionFeel | null;
+  /** Прошлый раз был в том же этапе. Новый этап — подсказка молчит. */
+  same_phase: boolean;
+  /** Два «не зашло» подряд: вес не поднимаем. */
+  hold: boolean;
 }
 
 export interface SessionExerciseDetail extends SessionExercise {
   exercise: Exercise;
   sets: WorkoutSet[];
   previous: SessionPreviousWork | null;
+  /** Серая подсказка: прибавить кг или повторы. Линейка и фиксированный вес — нет. */
+  load_hint: boolean;
 }
 
 export interface SessionDetail {

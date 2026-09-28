@@ -22,8 +22,10 @@ import {
   mapWorkoutPhase,
   mapWorkoutSet,
 } from "@/lib/workout/map-rows";
+import { slotWantsLoadHint } from "@/lib/workout/session-load-hint";
 import { loadPreviousWork } from "@/lib/workout/session-memory-load";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
+import { slotFor } from "@/lib/workout/slot-plan";
 import { getTemplate } from "@/lib/workout/templates";
 import { trackWeightAt } from "@/lib/workout/track-line";
 
@@ -114,6 +116,13 @@ export async function loadSessionDetail(
           exercise,
           sets: setsByExercise.get(item.id) ?? [],
           previous: previousByExercise.get(item.exercise_id) ?? null,
+          load_hint: template
+            ? slotWantsLoadHint(
+                slotFor(template.slots, exercise.id),
+                exercise,
+                phase?.phase_type ?? null,
+              )
+            : item.track_id == null && item.max_weight != null,
         },
       ];
     }),

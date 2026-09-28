@@ -41,7 +41,10 @@ assertEqual(
     weight: 80,
     reps: 5,
     seconds: null,
+    rir: null,
     feel: "close",
+    same_phase: true,
+    hold: false,
   }),
   "прошлый: 80×5, было впритык",
   "close feel on last work",
@@ -52,7 +55,10 @@ assertEqual(
     weight: 80,
     reps: 5,
     seconds: null,
+    rir: null,
     feel: null,
+    same_phase: true,
+    hold: false,
   }),
   "прошлый: 80×5",
   "no feel keeps the set",
@@ -63,7 +69,10 @@ assertEqual(
     weight: 87,
     reps: null,
     seconds: 6,
+    rir: null,
     feel: "easy",
+    same_phase: true,
+    hold: false,
   }),
   "прошлый: 87×6с, было легко",
   "static previous",
@@ -81,9 +90,43 @@ assertEqual(
     weight: 82.5,
     reps: 4,
     seconds: null,
+    rir: null,
     feel: "miss",
+    same_phase: true,
+    hold: false,
   },
-  "first work actual plus feel",
+  "work actual plus feel",
+);
+
+assertEqual(
+  previousWorkFromSets(
+    [
+      workSet({
+        set_number: 1,
+        actual_weight: 100,
+        actual_reps: 8,
+        actual_rir: null,
+        planned_rir: 2,
+      }),
+      workSet({
+        set_number: 2,
+        actual_weight: 100,
+        actual_reps: 6,
+        actual_rir: 1,
+      }),
+    ],
+    "close",
+  ),
+  {
+    weight: 100,
+    reps: 6,
+    seconds: null,
+    rir: 1,
+    feel: "close",
+    same_phase: true,
+    hold: false,
+  },
+  "last loaded work set carries the reserve",
 );
 
 assertEqual(

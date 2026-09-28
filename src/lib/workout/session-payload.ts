@@ -76,6 +76,7 @@ function parseSessionExerciseDetail(
       typeof set.id === "string" ? mapWorkoutSet(set) : null,
     ),
     previous: parsePreviousWork(row.previous),
+    load_hint: row.load_hint === true,
   };
 }
 
@@ -92,11 +93,15 @@ function parsePreviousWork(value: unknown): SessionPreviousWork | null {
     return null;
   }
 
+  const rir = toNullableNumber(value.rir);
   return {
     weight: weight != null && weight > 0 ? weight : null,
     reps: reps != null && reps > 0 ? reps : null,
     seconds: seconds != null && seconds > 0 ? seconds : null,
+    rir: rir != null && rir >= 0 ? rir : null,
     feel,
+    same_phase: value.same_phase !== false,
+    hold: value.hold === true,
   };
 }
 
