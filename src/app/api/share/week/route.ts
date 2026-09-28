@@ -6,7 +6,12 @@ import { getServerEnv } from "@/lib/env";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { LOAD_FAILED } from "@/lib/messages";
 import { joyPhotoOrigin, weekInlineResults } from "@/lib/share/prepared";
-import { encodeWeekCard, WEEK_CARD_EMPTY } from "@/lib/share/week-card";
+import {
+  encodeWeekCard,
+  weekCardCaption,
+  weekCardPhotoUrl,
+  WEEK_CARD_EMPTY,
+} from "@/lib/share/week-card";
 import { loadWeekCard } from "@/lib/share/week-card-load";
 import { createBot, getAppShareUrl } from "@/lib/telegram/bot";
 
@@ -63,5 +68,11 @@ export async function POST(): Promise<NextResponse> {
   }
 
   await recordFunnelEvent(auth.session.userId, "share");
-  return jsonOk({ id, query });
+  return jsonOk({
+    id,
+    query,
+    photo_url: weekCardPhotoUrl(photoOrigin, query),
+    caption: weekCardCaption(card),
+    install_url: installUrl,
+  });
 }

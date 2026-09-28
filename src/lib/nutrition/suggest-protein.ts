@@ -62,9 +62,21 @@ export const ONBOARDING_GOAL_OPTIONS: Array<{
   label: string;
   hint: string;
 }> = [
-  { id: "lose", label: "Похудеть", hint: "Больше белка, чтобы сохранить мышцы" },
-  { id: "keep", label: "Держать", hint: "Обычный ориентир" },
-  { id: "gain", label: "Набрать", hint: "Белка хватает, остальное — еда" },
+  {
+    id: "lose",
+    label: "Сушка (похудеть)",
+    hint: "Больше белка, чтобы сохранить мышцы",
+  },
+  {
+    id: "keep",
+    label: "Баланс",
+    hint: "Вес стабильный — без явной сушки и набора",
+  },
+  {
+    id: "gain",
+    label: "Массонабор (набрать)",
+    hint: "Больше углеводов, чтобы набрать массу",
+  },
 ];
 
 export function suggestProteinGrams(input: {

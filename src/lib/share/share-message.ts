@@ -26,20 +26,84 @@ export function readPreparedQuery(data: unknown): string | null {
   return query === "" ? null : query;
 }
 
-export async function shareWeekToChat(): Promise<
-  "shared" | "cancelled" | "failed"
-> {
+export function readWeekSharePhotoUrl(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.photo_url !== "string") {
+    return null;
+  }
+  const url = data.photo_url.trim();
+  return url.startsWith("https://") ? url : null;
+}
+
+export type WeekSharePayload = {
+  id: string | null;
+  query: string;
+  photoUrl: string;
+  caption: string | null;
+  installUrl: string | null;
+};
+
+export async function prepareWeekShare(): Promise<WeekSharePayload | null> {
   const data = await postJson("/api/share/week", {});
   const query = readPreparedQuery(data);
-  if (!query) {
+  const photoUrl = readWeekSharePhotoUrl(data);
+  if (!query || !photoUrl) {
+    return null;
+  }
+
+  const caption =
+    isRecord(data) && typeof data.caption === "string"
+      ? data.caption.trim()
+      : null;
+  const installUrl =
+    isRecord(data) && typeof data.install_url === "string"
+      ? data.install_url.trim()
+      : null;
+
+  return {
+    id: readPreparedMessageId(data),
+    query,
+    photoUrl,
+    caption: caption === "" ? null : caption,
+    installUrl: installUrl === "" ? null : installUrl,
+  };
+}
+
+export async function shareWeekToChat(
+  cached?: WeekSharePayload | null,
+): Promise<"shared" | "cancelled" | "failed"> {
+  const payload = cached ?? (await prepareWeekShare());
+  if (!payload) {
     return "failed";
   }
 
-  const sent = await openPreparedShare(readPreparedMessageId(data), query);
+  const sent = await openPreparedShare(payload.id, payload.query);
   if (sent === "shared") {
     haptic("success");
   }
   return sent;
+}
+
+export async function shareWeekToStory(
+  payload: WeekSharePayload,
+): Promise<"opened" | "unavailable"> {
+  const { sharePhotoToStory } = await import("@/lib/telegram/share-story");
+  const { WEEK_CARD_BUTTON } = await import("@/lib/share/week-card");
+
+  const params =
+    payload.caption || payload.installUrl
+      ? {
+          text: payload.caption ?? undefined,
+          widget_link: payload.installUrl
+            ? { url: payload.installUrl, name: WEEK_CARD_BUTTON }
+            : undefined,
+        }
+      : undefined;
+
+  const result = await sharePhotoToStory(payload.photoUrl, params);
+  if (result === "opened") {
+    haptic("success");
+  }
+  return result;
 }
 
 export async function shareJoyToChat(

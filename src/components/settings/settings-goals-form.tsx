@@ -1,6 +1,7 @@
 "use client";
 
 import { StickyActions } from "@/components/layout/sticky-actions";
+import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import type {
   MacroFieldKey,
   SettingsFormState,
@@ -9,14 +10,12 @@ import { SettingsMacroField } from "@/components/settings/settings-macro-field";
 import { Button } from "@/components/ui/button";
 import {
   formatKcal,
-  ONBOARDING_GOAL_OPTIONS,
   ONBOARDING_SEX_OPTIONS,
   type OnboardingGoal,
   type OnboardingSex,
 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -53,7 +52,7 @@ export function SettingsGoalsForm({
     form.sex != null && form.goal != null && bodyWeight != null;
 
   return (
-    <form className="flex flex-col gap-4 pb-28" onSubmit={onSubmit}>
+    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
       <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
         <h2 className="text-xl font-semibold">Кто ты и цель</h2>
         <p className="text-sm text-muted-foreground">
@@ -77,30 +76,11 @@ export function SettingsGoalsForm({
             </Button>
           ))}
         </div>
-        <div className="flex flex-col gap-2">
-          {ONBOARDING_GOAL_OPTIONS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              aria-pressed={form.goal === option.id}
-              className={cn(
-                "rounded-2xl border border-border/70 px-4 py-3 text-left transition-[transform,background-color] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.98] motion-reduce:transition-none",
-                form.goal === option.id && "ring-2 ring-primary",
-              )}
-              onClick={() => {
-                if (form.goal !== option.id) {
-                  haptic("tick");
-                }
-                updateGoal(option.id);
-              }}
-            >
-              <p className="text-base font-medium">{option.label}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {option.hint}
-              </p>
-            </button>
-          ))}
-        </div>
+        <GoalOptionButtons
+          value={form.goal}
+          onPick={updateGoal}
+          size="compact"
+        />
         <p className="text-sm font-medium text-muted-foreground">Стаж</p>
         <div className="flex flex-col gap-2">
           {TRAINING_AGE_OPTIONS.map((option) => (

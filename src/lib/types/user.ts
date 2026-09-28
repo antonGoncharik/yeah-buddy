@@ -27,7 +27,7 @@ export interface UserSettings {
   training_years: number | null;
   /** Who they are — input to the protein suggestion. */
   sex: UserSex | null;
-  /** Похудеть / держать / набрать — input to the protein suggestion. */
+  /** lose / keep / gain — input to the protein suggestion. */
   goal: UserGoal | null;
   /** Стаж: только начал / около года / несколько лет. */
   training_age: UserTrainingAge | null;

@@ -11,7 +11,20 @@ import type { ExerciseCategory } from "@/lib/types";
 export const WEEK_PROGRESS_TITLE = "Поделиться прогрессом";
 export const WEEK_CARD_HEADING = "Неделя";
 export const WEEK_CARD_CAPTION_LEAD = "Как прошла неделя";
-export const WEEK_PROGRESS_HINT = "Вес, рабочие кг и БЖУ — картинкой в чат";
+export const WEEK_PROGRESS_HINT =
+  "Картинка за последние 7 дней — в чат или в сторис";
+export const WEEK_PROGRESS_CHAT_LABEL = "В чат";
+export const WEEK_PROGRESS_STORY_LABEL = "Сторис";
+export const WEEK_PROGRESS_DETAILS_TITLE = "Что на картинке";
+/** Plain-language rules for `buildWeekCard` — keep in sync with the code. */
+export const WEEK_PROGRESS_DETAIL_LINES: string[] = [
+  "Неделя — 7 дней до сегодня включительно, даты в шапке.",
+  "Вес тела — только дни, где ты его записал; на графике до 7 точек; плюс или минус от первого к последнему за неделю.",
+  "Зал — сколько дней с тренировкой, закрытой «Готово».",
+  "Рабочие — до трёх упражнений из зала: тяжёлый рабочий вес за день, сравнение начала и конца недели. Сначала база и то, где вес вырос. Если в логе правил вес — только правки; если всё как в плане — план.",
+  "БЖУ — среднее по дням, где в дневнике есть еда; цель — твои таргеты на эти дни. «В цели»: белок не ниже 90% цели, жир и углеводы в пределах ±10%.",
+  "Нет на картинке: талия, максимум на раз, тоннаж, упражнения без записи из зала, дни без еды и без целей.",
+];
 export const WEEK_CARD_BUTTON = "Попробовать YeahBuddy";
 export const WEEK_CARD_EMPTY =
   "Пока нечего на картинку. Нужен вес, рабочий кг или еда с целью.";

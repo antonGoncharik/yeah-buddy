@@ -22,6 +22,8 @@ import { useTheme } from "@/components/layout/theme-provider";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
+import { SettingsHomeScreenRow } from "@/components/settings/settings-home-screen-row";
+import { SettingsHomeScreenTip } from "@/components/settings/settings-home-screen-tip";
 import { SettingsInbox } from "@/components/settings/settings-inbox";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
@@ -76,7 +78,12 @@ export function SettingsScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Настройки" />
 
-      <div className="flex flex-col gap-6 px-4 pb-4">
+      <div
+        className={cn(
+          "flex flex-col gap-6 px-4 pb-4",
+          showGoals && "pb-[var(--app-field-scroll-pad)]",
+        )}
+      >
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !form ? (
@@ -96,8 +103,8 @@ export function SettingsScreen() {
 
         <section className="flex flex-col gap-2">
           <SectionHeading title="Еда" />
-          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            {!loading && form ? (
+          {!loading && form ? (
+            <div className="card-surface animate-rise px-5 py-2">
               <button
                 type="button"
                 className="flex w-full items-center gap-3 py-2.5 text-left transition-colors hover:bg-muted/40"
@@ -125,20 +132,8 @@ export function SettingsScreen() {
                   aria-hidden
                 />
               </button>
-            ) : null}
-            <NavRow
-              href="/settings/meals"
-              title={MEAL_TEMPLATES_LABEL}
-              hint="Что подставлять в новый день"
-              icon={<MealDayDoodle />}
-            />
-            <NavRow
-              href="/foods"
-              title="Продукты"
-              hint="Каталог продуктов. Из них собирается еда на день"
-              icon={<ProductDoodle />}
-            />
-          </div>
+            </div>
+          ) : null}
           {!loading && form && showGoals ? (
             <SettingsGoalsForm
               form={form}
@@ -156,10 +151,25 @@ export function SettingsScreen() {
               onRecount={onRecount}
             />
           ) : null}
+          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+            <NavRow
+              href="/settings/meals"
+              title={MEAL_TEMPLATES_LABEL}
+              hint="Что подставлять в новый день"
+              icon={<MealDayDoodle />}
+            />
+            <NavRow
+              href="/foods"
+              title="Продукты"
+              hint="Каталог продуктов. Из них собирается еда на день"
+              icon={<ProductDoodle />}
+            />
+          </div>
         </section>
 
         <section className="flex flex-col gap-2">
           <SectionHeading title="Ещё" />
+          <SettingsHomeScreenTip />
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
             <NavRow
               href="/settings/coach"
@@ -179,6 +189,7 @@ export function SettingsScreen() {
               hint={BOT_INVITE_HINT}
               icon={<QrDoodle />}
             />
+            <SettingsHomeScreenRow />
           </div>
         </section>
 

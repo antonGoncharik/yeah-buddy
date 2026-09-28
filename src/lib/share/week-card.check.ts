@@ -7,6 +7,7 @@ import {
   WEEK_CARD_BUTTON,
   WEEK_CARD_HEADING,
   WEEK_CARD_QUERY_LIMIT,
+  WEEK_PROGRESS_DETAIL_LINES,
   WEEK_PROGRESS_HINT,
   WEEK_PROGRESS_TITLE,
   type WeekCardExercise,
@@ -218,5 +219,13 @@ assertEqual(
 );
 assertEqual(WEEK_CARD_BUTTON, "Попробовать YeahBuddy", "chat button");
 assert(WEEK_PROGRESS_HINT.includes("чат"), "hint says where it goes");
+assert(
+  WEEK_PROGRESS_DETAIL_LINES.length >= 5,
+  "progress card has an honest explainer",
+);
+assert(
+  WEEK_PROGRESS_DETAIL_LINES.some((line) => line.includes("Нет на картинке")),
+  "explainer lists omissions",
+);
 
 console.log("week card ok");

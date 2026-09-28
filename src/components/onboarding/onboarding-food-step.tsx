@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
+import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import {
   formatKcal,
-  ONBOARDING_GOAL_OPTIONS,
   ONBOARDING_SEX_OPTIONS,
   type OnboardingGoal,
   type OnboardingSex,
@@ -16,7 +16,6 @@ import {
 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { parseDecimal } from "@/lib/workout/numbers";
 
@@ -112,43 +111,8 @@ export function OnboardingGoalStep({
   onPick: (value: OnboardingGoal) => void;
 }) {
   return (
-    <div
-      className="animate-rise flex flex-col gap-2"
-      style={{ animationDelay: "40ms" }}
-    >
-      {ONBOARDING_GOAL_OPTIONS.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          aria-pressed={goal === option.id}
-          className={cn(
-            "w-full rounded-2xl px-5 py-4 text-left transition-[transform,box-shadow,background-color,color] duration-300 ease-[var(--ease-out-soft)] active:scale-[0.97] motion-reduce:transition-none",
-            goal === option.id
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "card-surface hover:bg-muted/30",
-          )}
-          onClick={() => {
-            if (goal !== option.id) {
-              haptic("tick");
-            } else {
-              haptic("tap");
-            }
-            onPick(option.id);
-          }}
-        >
-          <p className="text-lg font-medium">{option.label}</p>
-          <p
-            className={cn(
-              "mt-1 text-sm",
-              goal === option.id
-                ? "text-primary-foreground/80"
-                : "text-muted-foreground",
-            )}
-          >
-            {option.hint}
-          </p>
-        </button>
-      ))}
+    <div className="animate-rise" style={{ animationDelay: "40ms" }}>
+      <GoalOptionButtons value={goal} onPick={onPick} />
     </div>
   );
 }
