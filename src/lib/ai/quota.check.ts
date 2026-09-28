@@ -137,7 +137,7 @@ assertEqual(
 
 assertEqual(dailyLimit("plate"), 2, "two photos");
 assertEqual(dailyLimit("review"), 1, "one review");
-assertEqual(dailyLimit("dictate"), 8, "eight spoken logs");
+assertEqual(dailyLimit("dictate"), 2, "two spoken logs");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");

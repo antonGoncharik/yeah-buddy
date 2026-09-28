@@ -4,7 +4,7 @@ export type AiKind = "plate" | "review" | "dictate";
 
 export const PLATE_DAILY_LIMIT = 2;
 export const REVIEW_DAILY_LIMIT = 1;
-export const DICTATE_DAILY_LIMIT = 8;
+export const DICTATE_DAILY_LIMIT = 2;
 
 export function dailyLimit(kind: AiKind): number {
   if (kind === "plate") {
