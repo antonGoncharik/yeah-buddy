@@ -216,7 +216,7 @@ assertEqual(
   `https://diary.example/api/share/card?q=${encodeURIComponent(query)}`,
   "photo is the card jpeg",
 );
-assertEqual(WEEK_CARD_BUTTON, "Повторить в YeahBuddy", "chat button");
+assertEqual(WEEK_CARD_BUTTON, "Попробовать YeahBuddy", "chat button");
 assert(WEEK_PROGRESS_HINT.includes("чат"), "hint says where it goes");
 
 console.log("week card ok");

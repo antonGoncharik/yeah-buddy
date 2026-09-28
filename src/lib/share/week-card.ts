@@ -12,7 +12,7 @@ export const WEEK_PROGRESS_TITLE = "Поделиться прогрессом";
 export const WEEK_CARD_HEADING = "Неделя";
 export const WEEK_CARD_CAPTION_LEAD = "Как прошла неделя";
 export const WEEK_PROGRESS_HINT = "Вес, рабочие кг и БЖУ — картинкой в чат";
-export const WEEK_CARD_BUTTON = "Повторить в YeahBuddy";
+export const WEEK_CARD_BUTTON = "Попробовать YeahBuddy";
 export const WEEK_CARD_EMPTY =
   "Пока нечего на картинку. Нужен вес, рабочий кг или еда с целью.";
 export const WEEK_CARD_QUERY_LIMIT = 256;
