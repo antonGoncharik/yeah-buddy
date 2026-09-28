@@ -130,13 +130,13 @@ assertEqual(
 );
 assertEqual(
   filled.find((item) => item.exerciseId === "r")?.maxWeight,
-  85,
-  "RDL scales from estimated deadlift 1.5×80=120 → 0.7×120=84 → 85",
+  97.5,
+  "squat 150 vs table 100 → factor 1.15; deadlift 120×1.15=137.5; RDL 0.7×137.5 → 97.5",
 );
 assertEqual(
   filled.find((item) => item.exerciseId === "b")?.maxWeight,
-  72.5,
-  "bench from table 0.9×80=72 → 72.5",
+  82.5,
+  "bench table 72.5 × person factor 1.15 → 82.5",
 );
 assert(
   filled.every((item) => item.exerciseId !== "skip"),
@@ -208,6 +208,93 @@ const lateral = catalog.find(
 assert(
   lateral != null && lateral.maxWeight <= 10,
   "lateral raise is not floored at 20 kg",
+);
+
+const onlyBench = estimateExerciseMaxes({
+  sex: "male",
+  trainingAge: "years",
+  weightKg: 105,
+  known: { bench: 70, squat: null, deadlift: null },
+  exercises: [
+    {
+      id: "bench",
+      name: "Жим лёжа",
+      weight_step: 2.5,
+      workout_type: "dynamic",
+      has_max: false,
+    },
+    {
+      id: "squat",
+      name: "Приседания со штангой",
+      weight_step: 2.5,
+      workout_type: "dynamic",
+      has_max: false,
+    },
+    {
+      id: "dead",
+      name: "Становая тяга",
+      weight_step: 2.5,
+      workout_type: "dynamic",
+      has_max: false,
+    },
+  ],
+});
+assertEqual(
+  onlyBench.find((item) => item.exerciseId === "bench")?.maxWeight,
+  70,
+  "typed bench stays 70",
+);
+assertEqual(
+  onlyBench.find((item) => item.exerciseId === "squat")?.maxWeight,
+  95,
+  "squat table 167.5 × 70/125 = 0.56 → 95, not 167.5",
+);
+assertEqual(
+  onlyBench.find((item) => item.exerciseId === "dead")?.maxWeight,
+  112.5,
+  "deadlift table 200 × 0.56 → 112.5",
+);
+
+const sandbag = estimateExerciseMaxes({
+  sex: "male",
+  trainingAge: "years",
+  weightKg: 105,
+  known: { bench: 20 },
+  exercises: [
+    {
+      id: "squat",
+      name: "Приседания со штангой",
+      weight_step: 2.5,
+      workout_type: "dynamic",
+      has_max: false,
+    },
+  ],
+});
+assertEqual(
+  sandbag[0]?.maxWeight,
+  92.5,
+  "20/125 is below 0.55, squat floors at 167.5×0.55 → 92.5",
+);
+
+const twoKnown = estimateExerciseMaxes({
+  sex: "male",
+  trainingAge: "years",
+  weightKg: 105,
+  known: { bench: 70, squat: 167.5, deadlift: null },
+  exercises: [
+    {
+      id: "dead",
+      name: "Становая тяга",
+      weight_step: 2.5,
+      workout_type: "dynamic",
+      has_max: false,
+    },
+  ],
+});
+assertEqual(
+  twoKnown[0]?.maxWeight,
+  155,
+  "median of 70/125 and 167.5/167.5 is 0.78; deadlift 200×0.78 → 155",
 );
 
 console.log("estimate maxes ok");

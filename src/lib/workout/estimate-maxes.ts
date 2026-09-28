@@ -95,6 +95,16 @@ const SCALE_BY_NAME = new Map(
   LIFT_SCALE.map((item) => [item.name, item] as const),
 );
 
+const ANCHOR_LIFTS: AnchorLift[] = ["squat", "bench", "deadlift"];
+
+/**
+ * A typed lift pulls empty anchors toward that person.
+ * 0.55 keeps a sandbagged number from wiping the bar;
+ * 1.15 keeps one strong lift from inventing the other two.
+ */
+const PERSON_FACTOR_MIN = 0.55;
+const PERSON_FACTOR_MAX = 1.15;
+
 export interface EstimateExerciseInput {
   id: string;
   name: string;
@@ -136,6 +146,89 @@ export function estimateAnchorMax(input: {
   return clampMax(roundToStep(input.weightKg * coef, step));
 }
 
+function tableAnchor(
+  input: Pick<EstimateMaxesInput, "sex" | "trainingAge" | "weightKg">,
+  lift: AnchorLift,
+): number {
+  return estimateAnchorMax({
+    sex: input.sex,
+    trainingAge: input.trainingAge,
+    weightKg: input.weightKg,
+    lift,
+    knownKg: null,
+  });
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) {
+    return sorted[mid] ?? 1;
+  }
+  const lower = sorted[mid - 1] ?? 1;
+  const upper = sorted[mid] ?? lower;
+  return (lower + upper) / 2;
+}
+
+/** 1 when every anchor is empty. Otherwise the median typed/table ratio, clamped. */
+function personFactor(
+  known: EstimateMaxesInput["known"],
+  table: Record<AnchorLift, number>,
+): number {
+  const ratios: number[] = [];
+  for (const lift of ANCHOR_LIFTS) {
+    const typed = known[lift];
+    const guessed = table[lift];
+    if (typed == null || !(typed > 0) || !(guessed > 0)) {
+      continue;
+    }
+    ratios.push(typed / guessed);
+  }
+  if (ratios.length === 0) {
+    return 1;
+  }
+  const factor = median(ratios);
+  if (factor < PERSON_FACTOR_MIN) {
+    return PERSON_FACTOR_MIN;
+  }
+  if (factor > PERSON_FACTOR_MAX) {
+    return PERSON_FACTOR_MAX;
+  }
+  return factor;
+}
+
+function calibratedAnchors(
+  input: Pick<EstimateMaxesInput, "sex" | "trainingAge" | "weightKg" | "known">,
+): Record<AnchorLift, number> {
+  const table: Record<AnchorLift, number> = {
+    squat: tableAnchor(input, "squat"),
+    bench: tableAnchor(input, "bench"),
+    deadlift: tableAnchor(input, "deadlift"),
+  };
+  const factor = personFactor(input.known, table);
+  const step = 2.5;
+
+  function anchor(lift: AnchorLift): number {
+    const known = input.known[lift];
+    if (known != null && known > 0) {
+      return estimateAnchorMax({
+        sex: input.sex,
+        trainingAge: input.trainingAge,
+        weightKg: input.weightKg,
+        lift,
+        knownKg: known,
+      });
+    }
+    return clampMax(roundToStep(table[lift] * factor, step));
+  }
+
+  return {
+    squat: anchor("squat"),
+    bench: anchor("bench"),
+    deadlift: anchor("deadlift"),
+  };
+}
+
 export function estimateExerciseMaxes(
   input: EstimateMaxesInput,
 ): EstimatedMax[] {
@@ -143,29 +236,7 @@ export function estimateExerciseMaxes(
     return [];
   }
 
-  const anchors: Record<AnchorLift, number> = {
-    squat: estimateAnchorMax({
-      sex: input.sex,
-      trainingAge: input.trainingAge,
-      weightKg: input.weightKg,
-      lift: "squat",
-      knownKg: input.known.squat,
-    }),
-    bench: estimateAnchorMax({
-      sex: input.sex,
-      trainingAge: input.trainingAge,
-      weightKg: input.weightKg,
-      lift: "bench",
-      knownKg: input.known.bench,
-    }),
-    deadlift: estimateAnchorMax({
-      sex: input.sex,
-      trainingAge: input.trainingAge,
-      weightKg: input.weightKg,
-      lift: "deadlift",
-      knownKg: input.known.deadlift,
-    }),
-  };
+  const anchors = calibratedAnchors(input);
 
   const out: EstimatedMax[] = [];
   for (const exercise of input.exercises) {
