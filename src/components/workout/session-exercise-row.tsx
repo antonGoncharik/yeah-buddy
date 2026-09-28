@@ -1,5 +1,6 @@
 "use client";
 
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
   draftFromSet,
@@ -62,6 +63,8 @@ export function SessionExerciseRow({
   onStartRest?: () => void;
   restSeconds?: number;
 }) {
+  const { density } = useDiaryDensity();
+  const diaryCompact = density === "compact";
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
   const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
@@ -112,7 +115,12 @@ export function SessionExerciseRow({
         }
       >
         <div className="flex w-full items-center gap-2">
-          <h3 className="min-w-0 flex-1 text-xl font-semibold tracking-tight">
+          <h3
+            className={cn(
+              "min-w-0 flex-1 font-semibold tracking-tight",
+              diaryCompact ? "text-lg" : "text-xl",
+            )}
+          >
             {item.exercise.short_name || item.exercise.name}
           </h3>
           {item.intensity ? (
