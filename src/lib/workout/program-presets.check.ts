@@ -42,8 +42,11 @@ assertEqual(
   [
     "Всё тело",
     "5×5 A/B",
+    "3×5 A/B",
+    "Сила A/B",
     "Верх / Низ",
     "Жим / Тяга / Ноги",
+    "Спина / Ноги / Грудь",
   ].join(" | "),
   "picker lists the general programs",
 );

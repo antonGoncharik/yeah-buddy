@@ -63,8 +63,11 @@ export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 export const LISTED_PROGRAM_PRESET_IDS = [
   "full_body",
   "five_by_five",
+  "starting_strength",
+  "strength",
   "upper_lower",
   "ppl",
+  "three_day",
 ] as const satisfies readonly ProgramPresetId[];
 
 export const PROGRAM_LEVELS = ["beginner", "intermediate", "advanced"] as const;
