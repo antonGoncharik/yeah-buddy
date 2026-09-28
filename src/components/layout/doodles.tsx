@@ -394,7 +394,6 @@ export function SetsMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
-/** Тренер: дневник + глаз (только чтение, смотрит со стороны). */
 export function CoachMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g>
