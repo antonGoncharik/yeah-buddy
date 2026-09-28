@@ -1,6 +1,7 @@
 "use client";
 
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { DayTypeMark } from "@/components/layout/day-type-mark";
+import { DumbbellDoodle } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
 import { CATCH_UP_EMPTY_HINT } from "@/lib/messages";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition";
@@ -29,7 +30,7 @@ export function CreateDayButtons({
       disabled={busy}
       onClick={onCreateRest}
     >
-      <CookieDoodle className="size-4" />
+      <DayTypeMark training={false} />
       {DAY_TYPE_LABELS.rest}
     </Button>
   );

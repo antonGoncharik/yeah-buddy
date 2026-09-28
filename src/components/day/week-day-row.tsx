@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { DayTypeMark } from "@/components/layout/day-type-mark";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { formatBodyWeight } from "@/lib/day/body-weight";
 import { formatIsoDate } from "@/lib/day/format";
@@ -65,7 +65,7 @@ export function WeekDayRow({
       <MarkBadge
         className={cn("size-9 rounded-xl", !food && !gym && "opacity-45")}
       >
-        {training ? <DumbbellDoodle /> : <CookieDoodle />}
+        <DayTypeMark training={training} />
       </MarkBadge>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-3">

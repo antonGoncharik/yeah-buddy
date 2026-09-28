@@ -8,7 +8,7 @@ import { NutritionHistoryDayRow } from "@/components/day/nutrition-history-day-r
 import { NutritionHistoryStats } from "@/components/day/nutrition-history-stats";
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
 import { AppHeader } from "@/components/layout/app-header";
-import { CookieDoodle } from "@/components/layout/doodles";
+import { MealDayDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
@@ -98,7 +98,7 @@ export function NutritionHistoryScreen() {
 
         {!loading && !error && items.length === 0 ? (
           <EmptyNote
-            icon={<CookieDoodle className="size-6" />}
+            icon={<MealDayDoodle className="size-6" />}
             title={NUTRITION_HISTORY_EMPTY}
             hint={NUTRITION_HISTORY_EMPTY_HINT}
           />

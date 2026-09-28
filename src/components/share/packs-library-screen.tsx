@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import {
-  CookieDoodle,
   DumbbellDoodle,
+  MealDayDoodle,
   FriendsDoodle,
 } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -89,7 +89,7 @@ export function PacksLibraryScreen() {
                   pack.kind === "workouts" ? (
                     <DumbbellDoodle />
                   ) : (
-                    <CookieDoodle />
+                    <MealDayDoodle />
                   )
                 }
               />

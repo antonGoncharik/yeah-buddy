@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { DayTypeMark } from "@/components/layout/day-type-mark";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatBodyWeight } from "@/lib/day/body-weight";
@@ -33,7 +33,7 @@ export function NutritionHistoryDayRow({
       )}
     >
       <MarkBadge className="size-9 rounded-xl">
-        {item.is_training_day ? <DumbbellDoodle /> : <CookieDoodle />}
+        <DayTypeMark training={item.is_training_day} />
       </MarkBadge>
       <span
         className={cn(

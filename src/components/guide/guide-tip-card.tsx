@@ -1,6 +1,6 @@
 "use client";
 
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { DumbbellDoodle, MealDayDoodle } from "@/components/layout/doodles";
 import { WiggleTap } from "@/components/layout/wiggle-tap";
 import { Button } from "@/components/ui/button";
 import type { GuideTip } from "@/lib/guide";
@@ -23,7 +23,7 @@ export function GuideTipCard({
             </WiggleTap>
           ) : (
             <WiggleTap>
-              <CookieDoodle className="size-4 text-primary/80" />
+              <MealDayDoodle className="size-4 text-primary/80" />
             </WiggleTap>
           )}
           Подсказка

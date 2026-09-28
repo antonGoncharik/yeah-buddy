@@ -1,6 +1,6 @@
 import {
   DumbbellDoodle,
-  PlateDoodle,
+  MealDayDoodle,
   QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
@@ -24,7 +24,7 @@ import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 import { cn } from "@/lib/utils";
 
 const POINT_ICONS = {
-  Еда: <PlateDoodle />,
+  Еда: <MealDayDoodle />,
   Зал: <DumbbellDoodle />,
   Штрихкод: <QrDoodle />,
 } as const;

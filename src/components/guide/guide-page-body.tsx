@@ -3,6 +3,8 @@ import type { ComponentType } from "react";
 import {
   BARBELL_VIEWBOX,
   BarbellMark,
+  BOOK_VIEWBOX,
+  BookMark,
   COOKIE_VIEWBOX,
   CookieMark,
   Doodle,
@@ -12,8 +14,14 @@ import {
   FriendsMark,
   LINK_VIEWBOX,
   LinkMark,
+  MACRO_VIEWBOX,
+  MacroMark,
+  MEAL_DAY_VIEWBOX,
+  MealDayMark,
   MUG_VIEWBOX,
   MugMark,
+  PRODUCT_VIEWBOX,
+  ProductMark,
 } from "@/components/layout/doodles";
 import { WiggleTap } from "@/components/layout/wiggle-tap";
 import type { GuideDoodle, GuidePage } from "@/lib/guide";
@@ -95,6 +103,26 @@ const GUIDE_DOODLE_ICON: Record<
     className: "h-8 w-auto",
     viewBox: FRIENDS_VIEWBOX,
     Mark: FriendsMark,
+  },
+  mealday: {
+    className: "h-8 w-auto",
+    viewBox: MEAL_DAY_VIEWBOX,
+    Mark: MealDayMark,
+  },
+  macro: {
+    className: "h-9 w-auto",
+    viewBox: MACRO_VIEWBOX,
+    Mark: MacroMark,
+  },
+  product: {
+    className: "h-9 w-auto",
+    viewBox: PRODUCT_VIEWBOX,
+    Mark: ProductMark,
+  },
+  book: {
+    className: "h-8 w-auto",
+    viewBox: BOOK_VIEWBOX,
+    Mark: BookMark,
   },
 };
 

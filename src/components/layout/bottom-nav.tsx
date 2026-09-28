@@ -5,10 +5,10 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ComponentType, type MouseEvent, useState } from "react";
 import {
-  CookieDoodle,
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
+  MealDayDoodle,
 } from "@/components/layout/doodles";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ const ITEMS: Array<{
   label: string;
   icon: ComponentType<{ className?: string }>;
 }> = [
-  { href: "/today", label: "Сегодня", icon: CookieDoodle },
+  { href: "/today", label: "Сегодня", icon: MealDayDoodle },
   { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];

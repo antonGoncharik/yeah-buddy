@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RationCards } from "@/components/food/ration-cards";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { CookieDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import { DayTypeMark } from "@/components/layout/day-type-mark";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
@@ -175,11 +175,7 @@ export function MealTemplatesHubScreen() {
                       : `${formatKcal(totals.kcal)} ккал · ${card.hint}`
                   }
                   icon={
-                    card.dayType === "training" ? (
-                      <DumbbellDoodle />
-                    ) : (
-                      <CookieDoodle />
-                    )
+                    <DayTypeMark training={card.dayType === "training"} />
                   }
                   className="card-surface animate-rise px-5 py-4 hover:bg-muted/30"
                   style={{ animationDelay: `${index * 50}ms` }}
