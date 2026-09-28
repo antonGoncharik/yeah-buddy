@@ -4,6 +4,7 @@ import {
   presetExerciseLine,
   programDayExerciseNames,
   programPresetById,
+  programPresetHint,
   programPresetSummary,
 } from "@/lib/workout/program-presets";
 
@@ -27,7 +28,7 @@ const PROGRAM_ALIASES: Record<FeaturedProgramId, readonly string[]> = {
     "full body",
     "fullbody",
   ],
-  five_by_five: ["5x5", "5 на 5", "пять на пять"],
+  five_by_five: ["5x5", "5 на 5", "пять на пять", "пять по пять"],
   ppl: ["жим тяга ноги", "жим тяга", "push pull legs", "push pull"],
 };
 
@@ -87,7 +88,7 @@ export function programChatMessage(preset: ProgramPreset): string {
   const weeks = preset.cycle
     ? `\nНедели: ${preset.cycle.map((phase) => phase.name).join(" → ")}`
     : "";
-  return `${preset.name}\n\n${days.join("\n")}${weeks}\n\n${preset.hint}`;
+  return `${preset.name}\n\n${days.join("\n")}${weeks}\n\n${programPresetHint(preset)}`;
 }
 
 export function programShareText(preset: ProgramPreset): string {
@@ -96,9 +97,9 @@ export function programShareText(preset: ProgramPreset): string {
 
 export function programApplyConfirmMessage(preset: ProgramPreset): string {
   if (preset.cycle) {
-    return `Поставить «${preset.name}»? Станут её дни и недели, цикл запустится сам. Свои дни не удалятся — отложатся.`;
+    return `Поставить «${preset.name}»? Подставятся её тренировки и недели по весу — сами. Твои дни не удалятся, отложатся.`;
   }
-  return `Поставить «${preset.name}»? Дни станут этой программой — свои не пропадут, отложатся. Если шли недели — закроются.`;
+  return `Поставить «${preset.name}»? Список тренировок станет этой программой — твои дни отложатся, не пропадут.`;
 }
 
 export interface FeaturedProgramDetail {
@@ -123,7 +124,7 @@ export function featuredProgramView(
   return {
     id: preset.id,
     name: preset.name,
-    hint: preset.hint,
+    hint: programPresetHint(preset),
     summary: programPresetSummary(preset),
     days: preset.templates.map((day) => ({
       name: day.name,

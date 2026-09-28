@@ -14,6 +14,7 @@ import {
   pickerProgramPresetIds,
   presetExerciseLine,
   programDayExerciseNames,
+  programPresetHint,
   programPresetSummary,
   programPresetsByLevel,
   RECOMMENDED_PROGRAM_PRESET_ID,
@@ -225,7 +226,7 @@ function ProgramPresetCard({
                 : "bg-muted text-muted-foreground",
             )}
           >
-            со своими неделями
+            вес меняется по неделям
           </span>
         ) : null}
       </div>
@@ -235,7 +236,7 @@ function ProgramPresetCard({
           pressed ? "text-primary-foreground/80" : "text-muted-foreground",
         )}
       >
-        {preset.hint}
+        {programPresetHint(preset)}
       </p>
       {compact ? (
         <p

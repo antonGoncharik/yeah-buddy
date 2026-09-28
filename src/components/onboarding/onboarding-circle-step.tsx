@@ -32,8 +32,8 @@ export function OnboardingCircleStep({
           </p>
         ) : null}
         <ChoiceCard
-          title="Не знаю, что делать"
-          hint="Поставим «Всё тело»: два дня на всё тело по кругу."
+          title="Не знаю что делать"
+          hint="Поставим «Всё тело»: 2 разные тренировки, обычно ходят 2–3 раза в неделю."
           disabled={saving}
           onClick={() => {
             haptic("tick");
@@ -41,7 +41,7 @@ export function OnboardingCircleStep({
           }}
         />
         <ChoiceCard
-          title="Знаю, что хочу"
+          title="Знаю что хочу"
           hint="Покажу все программы — выберешь сам."
           disabled={saving}
           onClick={() => {
@@ -92,7 +92,7 @@ export function OnboardingCircleStep({
               : "text-muted-foreground",
           )}
         >
-          Не хожу в зал или соберу очередь сам.
+          Не хожу в зал или соберу список тренировок сам.
         </p>
       </button>
     </>

@@ -134,7 +134,7 @@ const searched = botInlineResults({
 assertEqual(searched.length, 1, "5x5 is only 5×5");
 assertEqual(
   searched[0] && "title" in searched[0] ? searched[0].title : null,
-  "5×5 A/B",
+  "Пять по пять",
   "5x5 title",
 );
 

@@ -46,7 +46,7 @@ export function WorkoutsHubEmpty({
       <EmptyNote
         icon={<BarbellDoodle className="h-5 w-10" />}
         title={WORKOUTS_NEED_TEMPLATES}
-        hint="Без очереди зал не знает, что делать."
+        hint="Без программы непонятно, что делать в зале."
         action={
           <Link
             href="/workouts/schedule"

@@ -137,16 +137,16 @@ assertEqual(
   reminderText({
     foodLogged: true,
     gymDone: false,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
   }),
-  "Тренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
+  "Тренировка «День 1» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "food done gym still due",
 );
 assertEqual(
   reminderText({
     foodLogged: false,
     gymDone: true,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
   }),
   "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.",
   "gym done food still empty",
@@ -155,7 +155,7 @@ assertEqual(
   reminderText({
     foodLogged: true,
     gymDone: true,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
   }),
   "День в порядке. На сегодня хватит.",
   "both logged is done day",
@@ -182,9 +182,9 @@ assertEqual(
   reminderText({
     foodLogged: false,
     gymDone: false,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
   }),
-  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.\nТренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
+  "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.\nТренировка «День 1» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "food and circle",
 );
 assertEqual(
@@ -192,10 +192,10 @@ assertEqual(
     foodLogged: false,
     gymDone: true,
     gymClosed: false,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
     early: true,
   }),
-  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.\nТренировка «Сила A» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
+  "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.\nТренировка «День 1» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.",
   "first evenings nag food and the queued gym even on rest",
 );
 assertEqual(
@@ -203,7 +203,7 @@ assertEqual(
     foodLogged: true,
     gymDone: true,
     gymClosed: true,
-    nextTemplateName: "Сила A",
+    nextTemplateName: "День 1",
     early: true,
   }),
   "День в порядке. На сегодня хватит.",
@@ -328,15 +328,15 @@ assertEqual(
     targetCarbs: 180,
     targetKcal: 2200,
     gym: "gym",
-    gymName: "Сила A",
-    nextName: "Сила B",
+    gymName: "День 1",
+    nextName: "День 2",
   }),
   [
     `Белок ${formatMacro(150)} из ${formatMacro(150)} г`,
     `Жир ${formatMacro(70)} из ${formatMacro(70)} г`,
     `Углеводы ${formatMacro(180)} из ${formatMacro(180)} г`,
     `${formatKcal(2200)} из ${formatKcal(2200)} ккал`,
-    "Зал был «Сила A» · дальше «Сила B»",
+    "Зал был «День 1» · дальше «День 2»",
   ].join("\n"),
   "a hit day names the gym and what is next",
 );
@@ -351,9 +351,9 @@ assertEqual(
     targetCarbs: 180,
     targetKcal: 2200,
     gym: "rest",
-    nextName: "Сила A",
+    nextName: "День 1",
   }),
-  `Белок ${formatMacro(0)} из ${formatMacro(200)} г\n${formatKcal(0)} из ${formatKcal(2200)} ккал\nОтдых · дальше «Сила A»`,
+  `Белок ${formatMacro(0)} из ${formatMacro(200)} г\n${formatKcal(0)} из ${formatKcal(2200)} ккал\nОтдых · дальше «День 1»`,
   "empty day keeps the targets without a gap wall",
 );
 assertEqual(
@@ -363,7 +363,7 @@ assertEqual(
     targetProtein: 150,
     targetKcal: 2200,
     gym: "none",
-    nextName: "Сила A",
+    nextName: "День 1",
   }),
   `Белок ${formatMacro(142)} из ${formatMacro(150)} г · ещё ${formatMacro(8)}\n${formatKcal(2180)} из ${formatKcal(2200)} ккал\nЗала не было`,
   "open gym stays in the nag, small kcal gap stays quiet",

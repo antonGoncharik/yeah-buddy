@@ -138,12 +138,13 @@ assert(
 );
 assert(
   recommended != null &&
-    programPresetSummary(recommended).startsWith("2 тренировки"),
+    programPresetSummary(recommended).startsWith("2 разные тренировки"),
   "full body summary",
 );
 const oneDay = PROGRAM_PRESETS.find((preset) => preset.id === "one_day");
 assert(
-  oneDay != null && programPresetSummary(oneDay).startsWith("1 тренировка"),
+  oneDay != null &&
+    programPresetSummary(oneDay).startsWith("1 тренировка в программе"),
   "one day summary",
 );
 const fourDay = PROGRAM_PRESETS.find((preset) => preset.id === "four_day");

@@ -27,7 +27,7 @@ export function ExercisesList({
         <section className="flex flex-col gap-2">
           <SectionHeading
             title="В тренировках"
-            hint="Справа максимум на раз — если вес от процентов."
+            hint="Справа — сколько поднимаешь один раз, если вес считается от этого."
           />
           <ExerciseRows exercises={groups.queued} />
         </section>

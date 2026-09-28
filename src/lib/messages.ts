@@ -123,10 +123,10 @@ export const WORKOUTS_NEED_TEMPLATES =
 export const WORKOUT_TEMPLATE_EMPTY =
   "В этой тренировке нет упражнений с планом подходов. Добавь их в программе.";
 export const NEED_ALL_WORKING_WEIGHTS =
-  "Нужен максимум на раз у каждого упражнения.";
+  "Для каждого упражнения напиши, сколько поднимаешь один раз.";
 export const NEED_CYCLE_PHASES = "Сначала выбери этапы.";
 export const CYCLE_RAISE_LATER =
-  "Идёт цикл: вес растёт на смене недели, а не после одной тренировки.";
+  "Вес подрастёт на следующей неделе программы, не после одной тренировки.";
 export const WORKOUT_NOT_FOUND = "Тренировка не найдена.";
 export const SESSION_HISTORY_EMPTY = "Пока пусто. Первый подход ещё впереди.";
 export const NUTRITION_HISTORY_EMPTY = "Пока пусто. Первый приём ещё впереди.";
@@ -139,7 +139,7 @@ export const NUTRITION_HISTORY_EMPTY_HINT =
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
-  "Нет веса для плана. Напиши максимум на раз или первый кг — прямо здесь.";
+  "Нет веса для плана. Напиши, сколько поднимаешь один раз, или первый кг — прямо здесь.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
 export const AI_REVIEW_EMPTY = "Пока мало записей. Другу не о чем говорить.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";

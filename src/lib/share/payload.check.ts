@@ -233,7 +233,7 @@ const workouts = buildWorkoutsPayload(
     {
       id: "w1",
       user_id: "u1",
-      name: "Сила A",
+      name: "День 1",
       kind: "dynamic",
       sort_order: 10,
       is_active: true,
@@ -258,7 +258,7 @@ const workouts = buildWorkoutsPayload(
 );
 
 assert(workouts.templates.length === 1, "only active circle");
-assert(workouts.templates[0]?.name === "Сила A", "active day name");
+assert(workouts.templates[0]?.name === "День 1", "active day name");
 assert(workouts.exercises.length === 1, "exercise snapshot");
 assert(
   parseSharePayload("workouts", workouts) != null,
@@ -266,7 +266,7 @@ assert(
 );
 assert(formulaHint(DEFAULT_WORKOUT_FORMULAS) === "3×5", "3x5 hint");
 assert(
-  workoutsPackHint(workouts) === "Сила A · Присед",
+  workoutsPackHint(workouts) === "День 1 · Присед",
   "workouts poster is days and lifts",
 );
 

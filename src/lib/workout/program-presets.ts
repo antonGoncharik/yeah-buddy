@@ -22,6 +22,7 @@ export {
   programIsOffered,
   programPresetById,
   programPresetExerciseNames,
+  programPresetHint,
   programPresetSummary,
   programPresetsByLevel,
 } from "@/lib/workout/program-preset-utils";

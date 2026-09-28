@@ -203,7 +203,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"
-          hint="максимум на раз и рабочий кг"
+          hint="Сколько поднимаешь один раз и рабочий вес"
           icon={<DumbbellDoodle />}
         />
         <NavRow

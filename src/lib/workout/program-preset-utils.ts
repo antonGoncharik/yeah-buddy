@@ -1,5 +1,10 @@
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import {
+  programQueueDayLabel,
+  programVisitFrequencyLead,
+  programVisitFrequencyShort,
+} from "@/lib/workout/program-preset-visit";
+import {
   LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,
@@ -136,21 +141,15 @@ export function presetExerciseLine(names: string[]): string {
 const SUMMARY_LIFT_LIMIT = 5;
 
 export function programPresetSummary(preset: ProgramPreset): string {
+  const dayCount = preset.templates.length;
   const names = [...new Set(preset.templates.flatMap(programDayExerciseNames))];
   const shown = names.slice(0, SUMMARY_LIFT_LIMIT);
   const line = presetExerciseLine(shown);
   const suffix = names.length > SUMMARY_LIFT_LIMIT ? "…" : "";
-  return `${dayCountLabel(preset.templates.length)} · ${line}${suffix}`;
+  return `${programQueueDayLabel(dayCount)} · ${programVisitFrequencyShort(dayCount)} · ${line}${suffix}`;
 }
 
-function dayCountLabel(count: number): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return `${count} тренировка`;
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return `${count} тренировки`;
-  }
-  return `${count} тренировок`;
+export function programPresetHint(preset: ProgramPreset): string {
+  const dayCount = preset.templates.length;
+  return `${programVisitFrequencyLead(dayCount)} ${preset.hint}`;
 }

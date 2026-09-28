@@ -15,6 +15,7 @@ import {
 import { publicProgramCards } from "@/lib/share/program-public";
 import type { FeaturedProgramId } from "@/lib/share/program-start";
 import { featuredProgramPreset } from "@/lib/share/program-start";
+import { programPresetSummary } from "@/lib/workout/program-presets";
 
 export const PROGRAM_OG_SIZE = OG_SIZE;
 export const PROGRAM_OG_CONTENT_TYPE = OG_CONTENT_TYPE;
@@ -25,7 +26,7 @@ export async function programOgImage(
   const card = publicProgramCards().find((item) => item.id === id);
   const preset = featuredProgramPreset(id);
   const name = card?.name ?? preset.name;
-  const summary = clip(card?.summary ?? preset.hint, 90);
+  const summary = clip(card?.summary ?? programPresetSummary(preset), 90);
   const fonts = await loadOgFonts();
 
   return new ImageResponse(
