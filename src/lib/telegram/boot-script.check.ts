@@ -76,31 +76,37 @@ assertEqual(
 const launchHash = "#tgWebAppVersion=8.0&tgWebAppData=query_id%3D1";
 
 function runBoot(pathname: string, hash: string) {
-  const classes = new Set<string>();
-  let replaced: string | null = null;
-  let stored: string | null = null;
+  const result: {
+    classes: Set<string>;
+    replaced: string | null;
+    stored: string | null;
+  } = {
+    classes: new Set(),
+    replaced: null,
+    stored: null,
+  };
   runInNewContext(TELEGRAM_BOOT_SCRIPT, {
     location: {
       hash,
       pathname,
       search: "",
       replace(url: string) {
-        replaced = url;
+        result.replaced = url;
       },
     },
     sessionStorage: {
       setItem(_key: string, value: string) {
-        stored = value;
+        result.stored = value;
       },
     },
     document: {
       documentElement: {
         classList: {
           add(name: string) {
-            classes.add(name);
+            result.classes.add(name);
           },
           contains(name: string) {
-            return classes.has(name);
+            return result.classes.has(name);
           },
         },
       },
@@ -109,7 +115,7 @@ function runBoot(pathname: string, hash: string) {
       observe() {}
     },
   });
-  return { classes, replaced, stored };
+  return result;
 }
 
 const opened = runBoot("/", launchHash);
