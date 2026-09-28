@@ -13,8 +13,6 @@ import {
 } from "@/lib/share/share-message";
 import {
   WEEK_PROGRESS_CHAT_LABEL,
-  WEEK_PROGRESS_DETAIL_LINES,
-  WEEK_PROGRESS_DETAILS_TITLE,
   WEEK_PROGRESS_HINT,
   WEEK_PROGRESS_STORY_LABEL,
   WEEK_PROGRESS_TITLE,
@@ -144,19 +142,6 @@ export function WeekProgressShare({
           </Button>
         </div>
       </div>
-
-      <details className="card-surface animate-rise rounded-xl px-5 py-3">
-        <summary className="cursor-pointer text-sm font-medium">
-          {WEEK_PROGRESS_DETAILS_TITLE}
-        </summary>
-        <ul
-          className="mt-3 flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground"
-        >
-          {WEEK_PROGRESS_DETAIL_LINES.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      </details>
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
