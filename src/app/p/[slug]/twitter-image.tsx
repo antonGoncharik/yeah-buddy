@@ -5,7 +5,7 @@ import {
   PROGRAM_OG_SIZE,
   programOgImage,
 } from "@/lib/og/program-image";
-import { featuredProgramIdFromSlug } from "@/lib/share/program-public";
+import { publicProgramIdFromSlug } from "@/lib/share/program-public";
 
 export const alt = "Программа — Yeah Buddy";
 export const size = PROGRAM_OG_SIZE;
@@ -18,7 +18,7 @@ export default async function Image({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const id = featuredProgramIdFromSlug(slug);
+  const id = publicProgramIdFromSlug(slug);
   if (!id) {
     notFound();
   }

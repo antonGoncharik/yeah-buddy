@@ -5,10 +5,8 @@ import {
   INBOX_TOPIC_PROGRAM,
   inboxAsk,
 } from "@/lib/messages";
-import {
-  type FeaturedProgramId,
-  parseProgramStartPayload,
-} from "@/lib/share/program-start";
+import type { PublicProgramId } from "@/lib/share/program-public";
+import { parseProgramStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 export const INBOX_TOPICS = ["improve", "change", "program"] as const;
@@ -34,7 +32,7 @@ export const EMPTY_THREAD: InboxThread = { topic: null, draft: null };
 
 export type StartKind =
   | { kind: "inbox"; topic: InboxTopic | "menu" }
-  | { kind: "program"; id: FeaturedProgramId }
+  | { kind: "program"; id: PublicProgramId }
   | { kind: "coach"; token: string }
   | { kind: "pack"; token: string }
   | { kind: "plain" };

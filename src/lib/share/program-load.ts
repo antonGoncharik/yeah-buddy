@@ -1,8 +1,8 @@
+import { isPublicProgramId } from "@/lib/share/program-public";
 import {
   type FeaturedProgramDetail,
   featuredProgramPreset,
   featuredProgramView,
-  isFeaturedProgramId,
 } from "@/lib/share/program-start";
 import { getProgramShareUrl } from "@/lib/telegram/bot";
 import { matchProgramPresetId } from "@/lib/workout/program-presets";
@@ -19,7 +19,7 @@ export async function loadFeaturedProgramDetail(
   userId: string,
   id: string,
 ): Promise<FeaturedProgramDetail> {
-  if (!isFeaturedProgramId(id)) {
+  if (!isPublicProgramId(id)) {
     throw new FeaturedProgramNotFoundError();
   }
 

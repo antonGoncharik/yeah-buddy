@@ -1,5 +1,9 @@
 import { isRecord } from "@/lib/read";
 import {
+  isPublicProgramId,
+  type PublicProgramId,
+} from "@/lib/share/program-public";
+import {
   type ProgramPreset,
   presetExerciseLine,
   programDayExerciseNames,
@@ -38,27 +42,27 @@ export function isFeaturedProgramId(
   return FEATURED_PROGRAM_IDS.some((id) => id === value);
 }
 
-export function programStartPayload(id: FeaturedProgramId): string {
+export function programStartPayload(id: PublicProgramId): string {
   return `${PROGRAM_START_PREFIX}${id}`;
 }
 
 export function parseProgramStartPayload(
   value: string,
-): FeaturedProgramId | null {
+): PublicProgramId | null {
   const trimmed = value.trim();
   if (!trimmed.startsWith(PROGRAM_START_PREFIX)) {
     return null;
   }
 
   const id = trimmed.slice(PROGRAM_START_PREFIX.length);
-  return isFeaturedProgramId(id) ? id : null;
+  return isPublicProgramId(id) ? id : null;
 }
 
-export function programPath(id: FeaturedProgramId): string {
+export function programPath(id: PublicProgramId): string {
   return `/programs/${id}`;
 }
 
-export function featuredProgramPreset(id: FeaturedProgramId): ProgramPreset {
+export function featuredProgramPreset(id: PublicProgramId): ProgramPreset {
   const preset = programPresetById(id);
   if (!preset) {
     throw new Error("Нет такой программы.");
@@ -103,7 +107,7 @@ export function programApplyConfirmMessage(preset: ProgramPreset): string {
 }
 
 export interface FeaturedProgramDetail {
-  id: FeaturedProgramId;
+  id: PublicProgramId;
   name: string;
   hint: string;
   summary: string;
@@ -117,7 +121,7 @@ export function featuredProgramView(
   preset: ProgramPreset,
   extra: { share_url: string | null; applied: boolean },
 ): FeaturedProgramDetail {
-  if (!isFeaturedProgramId(preset.id)) {
+  if (!isPublicProgramId(preset.id)) {
     throw new Error("Нет такой программы.");
   }
 
@@ -144,7 +148,7 @@ export function readFeaturedProgramPayload(
   }
 
   const row = data.program;
-  if (!isFeaturedProgramId(row.id) || typeof row.name !== "string") {
+  if (!isPublicProgramId(row.id) || typeof row.name !== "string") {
     return null;
   }
   if (typeof row.hint !== "string" || typeof row.summary !== "string") {

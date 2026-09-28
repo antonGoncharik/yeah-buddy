@@ -1,8 +1,8 @@
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import {
-  type FeaturedProgramId,
   programStartPayload,
 } from "@/lib/share/program-start";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import { isPackToken } from "@/lib/share/token";
 
 export function isTelegramMeUrl(value: string): boolean {
@@ -81,7 +81,7 @@ export function resolvePackShareUrl(
 }
 
 export function resolveProgramShareUrl(
-  id: FeaturedProgramId,
+  id: PublicProgramId,
   appUrl: string | null,
 ): string | null {
   if (!appUrl) {

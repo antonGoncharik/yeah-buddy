@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PublicProgramScreen } from "@/components/share/public-program-screen";
 import { APP_NAME } from "@/lib/brand";
 import {
-  featuredProgramIdFromSlug,
+  publicProgramIdFromSlug,
   publicProgramCards,
   publicProgramPath,
 } from "@/lib/share/program-public";
@@ -56,7 +56,7 @@ export default async function PublicProgramPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const id = featuredProgramIdFromSlug(slug);
+  const id = publicProgramIdFromSlug(slug);
   if (!id) {
     notFound();
   }

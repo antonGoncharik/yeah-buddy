@@ -9,10 +9,10 @@ import { packQrCaption } from "@/lib/flavor";
 import { LOAD_FAILED } from "@/lib/messages";
 import { shareOrCopyLink } from "@/lib/share/client";
 import { dismissPendingProgramId } from "@/lib/share/pending";
+import { isPublicProgramId } from "@/lib/share/program-public";
 import {
   type FeaturedProgramDetail,
   featuredProgramPreset,
-  isFeaturedProgramId,
   programApplyConfirmMessage,
   programShareText,
   readFeaturedProgramPayload,
@@ -22,7 +22,7 @@ import { haptic } from "@/lib/telegram/haptic";
 export function useProgramDetailScreen(id: string) {
   const router = useRouter();
   const confirm = useConfirm();
-  const programId = isFeaturedProgramId(id) ? id : null;
+  const programId = isPublicProgramId(id) ? id : null;
   const [program, setProgram] = useState<FeaturedProgramDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,9 +1,9 @@
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import {
-  type FeaturedProgramId,
-  isFeaturedProgramId,
-  parseProgramStartPayload,
-} from "@/lib/share/program-start";
+  isPublicProgramId,
+  type PublicProgramId,
+} from "@/lib/share/program-public";
+import { parseProgramStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 const PACK_PENDING_KEY = "yb.pack";
@@ -42,7 +42,7 @@ export function rememberIncomingStart(value: string | null | undefined): void {
   rememberPackToken(value);
 }
 
-export function rememberProgramStart(id: FeaturedProgramId): void {
+export function rememberProgramStart(id: PublicProgramId): void {
   const store = storage();
   if (!store) {
     return;
@@ -55,12 +55,12 @@ export function rememberProgramStart(id: FeaturedProgramId): void {
   store.setItem(PROGRAM_PENDING_KEY, id);
 }
 
-export function peekPendingProgramId(): FeaturedProgramId | null {
+export function peekPendingProgramId(): PublicProgramId | null {
   const value = storage()?.getItem(PROGRAM_PENDING_KEY);
-  return isFeaturedProgramId(value) ? value : null;
+  return isPublicProgramId(value) ? value : null;
 }
 
-export function dismissPendingProgramId(id: FeaturedProgramId): void {
+export function dismissPendingProgramId(id: PublicProgramId): void {
   const store = storage();
   if (!store) {
     return;

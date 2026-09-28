@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProgramDetailScreen } from "@/components/share/program-detail-screen";
-import { isFeaturedProgramId } from "@/lib/share/program-start";
+import { isPublicProgramId } from "@/lib/share/program-public";
 
 export default async function ProgramPage({
   params,
@@ -9,7 +9,7 @@ export default async function ProgramPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  if (!isFeaturedProgramId(id)) {
+  if (!isPublicProgramId(id)) {
     notFound();
   }
 

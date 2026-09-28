@@ -13,7 +13,7 @@ import {
   OG_SIZE,
 } from "@/lib/og/landing-image";
 import { publicProgramCards } from "@/lib/share/program-public";
-import type { FeaturedProgramId } from "@/lib/share/program-start";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import { featuredProgramPreset } from "@/lib/share/program-start";
 import { programPresetSummary } from "@/lib/workout/program-presets";
 
@@ -21,7 +21,7 @@ export const PROGRAM_OG_SIZE = OG_SIZE;
 export const PROGRAM_OG_CONTENT_TYPE = OG_CONTENT_TYPE;
 
 export async function programOgImage(
-  id: FeaturedProgramId,
+  id: PublicProgramId,
 ): Promise<ImageResponse> {
   const card = publicProgramCards().find((item) => item.id === id);
   const preset = featuredProgramPreset(id);

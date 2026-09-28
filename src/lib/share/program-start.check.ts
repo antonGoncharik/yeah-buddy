@@ -12,6 +12,7 @@ import {
   readFeaturedProgramPayload,
 } from "@/lib/share/program-start";
 import { createPackToken, isPackToken } from "@/lib/share/token";
+import { PUBLIC_PROGRAM_IDS } from "@/lib/share/program-public";
 import { programPresetById } from "@/lib/workout/program-presets";
 
 function assert(condition: boolean, message: string): void {
@@ -29,13 +30,16 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assert(FEATURED_PROGRAM_IDS.length === 3, "storefront is three programs");
-for (const id of FEATURED_PROGRAM_IDS) {
+for (const id of PUBLIC_PROGRAM_IDS) {
   assert(programPresetById(id) != null, `${id} exists as a preset`);
   assertEqual(
     parseProgramStartPayload(programStartPayload(id)),
     id,
     `${id} roundtrip`,
   );
+}
+for (const id of FEATURED_PROGRAM_IDS) {
+  assert(programPresetById(id) != null, `${id} exists as a featured preset`);
 }
 
 assertEqual(
@@ -59,10 +63,14 @@ assertEqual(
   null,
   "extra beginner stays inside",
 );
+assertEqual(
+  parseProgramStartPayload("p_starting_strength"),
+  "starting_strength",
+  "listed program bot start",
+);
 assert(!isFeaturedProgramId("one_day"), "one day is not a bot object");
 for (const id of [
   "five_three_one",
-  "upper_lower",
   "press_two_week",
   "table_three_lifts",
   "table_squat",
@@ -75,6 +83,11 @@ for (const id of [
     `${id} start payload stays closed`,
   );
 }
+assertEqual(
+  parseProgramStartPayload("p_upper_lower"),
+  "upper_lower",
+  "listed program has bot start",
+);
 
 assert(
   isPackToken("p_full_body"),

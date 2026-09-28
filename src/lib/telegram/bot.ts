@@ -21,8 +21,8 @@ import {
 } from "@/lib/messages";
 import { type JoyDoodle, joyPhotoPath, SHARE_TO_CHAT } from "@/lib/share/joy";
 import { botInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import {
-  type FeaturedProgramId,
   featuredProgramPreset,
   programChatMessage,
   programStartPayload,
@@ -79,7 +79,7 @@ export async function getCoachShareUrl(token: string): Promise<string | null> {
 }
 
 export async function getProgramShareUrl(
-  id: FeaturedProgramId,
+  id: PublicProgramId,
 ): Promise<string | null> {
   return resolveProgramShareUrl(id, await getAppShareUrl());
 }

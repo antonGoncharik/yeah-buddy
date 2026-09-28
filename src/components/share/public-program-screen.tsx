@@ -6,8 +6,8 @@ import {
   PROGRAM_PAGE_BACK,
   PROGRAM_QR_CAPTION,
 } from "@/lib/messages";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import {
-  type FeaturedProgramId,
   featuredProgramPreset,
   featuredProgramView,
 } from "@/lib/share/program-start";
@@ -18,7 +18,7 @@ export function PublicProgramScreen({
   id,
   openUrl,
 }: {
-  id: FeaturedProgramId;
+  id: PublicProgramId;
   openUrl: string | null;
 }) {
   const preset = featuredProgramPreset(id);
