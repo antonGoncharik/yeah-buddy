@@ -142,7 +142,7 @@ assertEqual(
   gymLoopFromTodayState(null, { isToday: true, isTrainingDay: true }),
   {
     kind: "rest",
-    label: "нет очереди",
+    label: "нет программы",
     href: "/workouts",
     templateId: null,
   },

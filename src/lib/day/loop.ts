@@ -60,7 +60,7 @@ export function gymLoopFromTodayState(
 
   return {
     kind: "rest",
-    label: options.isTrainingDay && options.isToday ? "нет очереди" : "отдых",
+    label: options.isTrainingDay && options.isToday ? "нет программы" : "отдых",
     href: options.isTrainingDay && options.isToday ? "/workouts" : null,
     templateId: null,
   };
