@@ -55,6 +55,7 @@ export function TodayScreen({
     lastWaistDate,
     accountAgeDays,
     goals,
+    goal,
     weightSteady,
     priorProteinHits,
     reviewReady,
@@ -213,6 +214,7 @@ export function TodayScreen({
             lastWaistDate={lastWaistDate}
             accountAgeDays={accountAgeDays}
             goals={goals}
+            goal={goal}
             weightSteady={weightSteady}
             priorProteinHits={priorProteinHits}
             reviewReady={reviewReady && isToday}

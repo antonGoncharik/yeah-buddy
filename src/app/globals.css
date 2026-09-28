@@ -516,6 +516,36 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   transition: box-shadow var(--theme-duration) var(--ease-out-soft);
 }
 
+@utility goal-cut {
+  border-radius: var(--radius-2xl);
+  border: 1px solid color-mix(in oklch, var(--macro-carbs) 32%, var(--border));
+  background-color: color-mix(in oklch, var(--macro-carbs) 10%, var(--card));
+}
+
+@utility goal-bulk {
+  border-radius: var(--radius-2xl);
+  border: 1px solid color-mix(in oklch, var(--macro-fat) 40%, var(--border));
+  background-color: color-mix(in oklch, var(--macro-fat) 16%, var(--card));
+}
+
+@utility goal-cut-mark {
+  background-color: color-mix(in oklch, var(--macro-carbs) 18%, transparent);
+  color: var(--macro-carbs);
+}
+
+@utility goal-bulk-mark {
+  background-color: color-mix(in oklch, var(--macro-fat) 24%, transparent);
+  color: var(--macro-fat);
+}
+
+@utility goal-cut-ink {
+  color: var(--macro-carbs);
+}
+
+@utility goal-bulk-ink {
+  color: var(--macro-fat);
+}
+
 @utility field-control {
   border-width: 1px;
   border-style: solid;

@@ -10,11 +10,14 @@ import {
   firstPhaseLine,
   foodSearchEasterEgg,
   foodSearchEmptyLine,
+  GAIN_MODE_LINES,
+  goalModeLine,
   hundredWeightLine,
   INVITE_QR_CAPTION,
   LATE_NIGHT_LINE,
   LIGHT_WEIGHT_BABY_LINE,
   LIGHT_WEIGHT_LINE,
+  LOSE_MODE_LINES,
   liveProteinHits,
   loadingFlavor,
   loadingLine,
@@ -599,5 +602,40 @@ assertEqual(
   null,
   "today's weight closes the gap",
 );
+
+assertEqual(goalModeLine("keep", "2026-09-29"), null, "balance stays quiet");
+assertEqual(goalModeLine(null, "2026-09-29"), null, "no goal stays quiet");
+
+function listed(line: string, lines: readonly string[]): boolean {
+  return lines.includes(line);
+}
+
+const loseLines = new Set<string>();
+const gainLines = new Set<string>();
+for (let day = 1; day <= 28; day += 1) {
+  const date = `2026-09-${String(day).padStart(2, "0")}`;
+  const lose = goalModeLine("lose", date);
+  const gain = goalModeLine("gain", date);
+  assertEqual(goalModeLine("lose", date), lose, "cut line stays for the date");
+  assertEqual(goalModeLine("gain", date), gain, "bulk line stays for the date");
+  if (lose != null) {
+    loseLines.add(lose);
+    assertEqual(
+      listed(lose, LOSE_MODE_LINES),
+      true,
+      "cut line is from the cut list",
+    );
+  }
+  if (gain != null) {
+    gainLines.add(gain);
+    assertEqual(
+      listed(gain, GAIN_MODE_LINES),
+      true,
+      "bulk line is from the bulk list",
+    );
+  }
+}
+assertEqual(loseLines.size > 1, true, "cut rotates across the month");
+assertEqual(gainLines.size > 1, true, "bulk rotates across the month");
 
 console.log("flavor ok");

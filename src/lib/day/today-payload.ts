@@ -5,6 +5,7 @@ import {
   DEFAULT_REST_MACRO_GOALS,
   DEFAULT_TRAINING_MACRO_GOALS,
   isMealType,
+  isOnboardingGoal,
 } from "@/lib/nutrition";
 import {
   isRecord,
@@ -12,7 +13,12 @@ import {
   toNullableNumber,
   toNumber,
 } from "@/lib/read";
-import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
+import type {
+  CopyDayHint,
+  MealType,
+  NamedMealHint,
+  UserGoal,
+} from "@/lib/types";
 
 export function readDay(data: unknown): DayWithMeals | null {
   if (!isRecord(data) || !isRecord(data.day)) {
@@ -105,6 +111,13 @@ export function readMacroGoals(data: unknown): MacroGoals {
 function macroOr(value: unknown, fallback: number): number {
   const parsed = toNumber(value);
   return parsed >= 0 ? parsed : fallback;
+}
+
+export function readUserGoal(data: unknown): UserGoal | null {
+  if (!isRecord(data) || !isOnboardingGoal(data.goal)) {
+    return null;
+  }
+  return data.goal;
 }
 
 export function readWeightSteady(data: unknown): boolean {

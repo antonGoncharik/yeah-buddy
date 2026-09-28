@@ -9,6 +9,7 @@ import {
   readPriorProteinHits,
   readRetentionTail,
   readReviewReady,
+  readUserGoal,
   readWeightSteady,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
@@ -101,6 +102,11 @@ assertEqual(
   "training carbs",
 );
 assertEqual(readMacroGoals({}).restProtein, 120, "goals fall back");
+assertEqual(readUserGoal({ goal: "lose" }), "lose", "cut goal");
+assertEqual(readUserGoal({ goal: "gain" }), "gain", "bulk goal");
+assertEqual(readUserGoal({ goal: "keep" }), "keep", "balance goal");
+assertEqual(readUserGoal({ goal: "bulk" }), null, "unknown goal drops");
+assertEqual(readUserGoal({}), null, "missing goal");
 assertEqual(readWeightSteady({ weightSteady: true }), true, "steady flag");
 assertEqual(readWeightSteady({}), false, "missing steady is false");
 assertEqual(readPriorProteinHits({ priorProteinHits: 4 }), 4, "prior hits");

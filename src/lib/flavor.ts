@@ -2,7 +2,12 @@ import { shiftIsoDate } from "@/lib/day/dates";
 import type { FoodListFilter } from "@/lib/food/schema";
 import { FOODS_EMPTY } from "@/lib/messages";
 import { formatGrams } from "@/lib/nutrition";
-import type { MealType, PhaseCircleProgress, SessionFeel } from "@/lib/types";
+import type {
+  MealType,
+  PhaseCircleProgress,
+  SessionFeel,
+  UserGoal,
+} from "@/lib/types";
 
 export type LoadingFlavor = "boot" | "food" | "idle";
 
@@ -230,6 +235,53 @@ export const BODYBUILDER_LINE =
 export const HARD_WORK_LINE = "Hard work and training.";
 export const NAME_OF_GAME_LINE = "That's the name of the game.";
 export const YEAH_BUDDY_LINE = "Yeah buddy.";
+
+/** Dry lines for a cut. One per day, same date stays put. */
+export const LOSE_MODE_LINES = [
+  "Тарелка меньше. Штанга та же.",
+  "Вечерний холодильник — отдельная тренировка.",
+  "Белок закрыт — день уже не зря.",
+  "Дефицит — это план, не характер.",
+  "Жир уходит тихо. Штанга это проверяет.",
+  "Сладкое можно. Просто не вместо белка.",
+] as const;
+
+/** Dry lines for a bulk. One per day, same date stays put. */
+export const GAIN_MODE_LINES = [
+  "Есть по плану — тоже тренировка.",
+  "Не доел — штанга это заметит.",
+  "Профицит без зала — просто ужин.",
+  "После зала углеводы. До зала тоже можно.",
+  "Голод после штанги — нормальный голод.",
+  "Блины на грифе и на тарелке. Оба в зачёт.",
+] as const;
+
+export function goalModeLine(
+  goal: UserGoal | null,
+  date: string,
+): string | null {
+  const lines =
+    goal === "lose"
+      ? LOSE_MODE_LINES
+      : goal === "gain"
+        ? GAIN_MODE_LINES
+        : null;
+  if (lines == null) {
+    return null;
+  }
+  return lines[dateSlot(date, lines.length)] ?? lines[0];
+}
+
+function dateSlot(date: string, length: number): number {
+  if (length <= 0) {
+    return 0;
+  }
+  let hash = 0;
+  for (let index = 0; index < date.length; index += 1) {
+    hash = (Math.imul(hash, 33) + date.charCodeAt(index)) >>> 0;
+  }
+  return hash % length;
+}
 export const LATE_NIGHT_LINE = "Ещё не спишь.";
 export const EARLY_LINE = "Рано. Белок не спит.";
 export const EVENING_LINE = "Вечер. Ещё можно добрать.";

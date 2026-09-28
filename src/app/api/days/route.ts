@@ -123,6 +123,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         date,
         timeZone,
       ),
+      goal: settings?.goal ?? null,
       goals: {
         restProtein: settings?.rest_protein ?? DEFAULT_REST_MACRO_GOALS.protein,
         restCarbs: settings?.rest_carbs ?? DEFAULT_REST_MACRO_GOALS.carbs,
