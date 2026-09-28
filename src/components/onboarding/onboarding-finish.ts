@@ -10,7 +10,7 @@ import {
   packPath,
   peekPendingPackToken,
 } from "@/lib/share/pending";
-import type { FeaturedProgramId } from "@/lib/share/program-start";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import { isPackToken } from "@/lib/share/token";
 import type { UserTrainingAge } from "@/lib/types";
 
@@ -54,7 +54,7 @@ export async function submitOnboardingFinish({
     deadlift: number | null;
   };
   pendingKind: SharePackKind | null;
-  pendingProgramId: FeaturedProgramId | null;
+  pendingProgramId: PublicProgramId | null;
   replay: boolean;
   circle: OnboardingCircle;
   ration: RationId;
@@ -112,7 +112,7 @@ export function onboardingFinishCircle({
   replay,
   circle,
 }: {
-  pendingProgramId: FeaturedProgramId | null;
+  pendingProgramId: PublicProgramId | null;
   pendingKind: SharePackKind | null;
   replay: boolean;
   circle: OnboardingCircle;

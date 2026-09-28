@@ -107,8 +107,18 @@ assertEqual(programPath("five_by_five"), "/programs/five_by_five", "path");
 
 assertEqual(
   matchFeaturedPrograms("").join(),
-  FEATURED_PROGRAM_IDS.join(),
-  "empty query is the storefront",
+  PUBLIC_PROGRAM_IDS.join(),
+  "empty query is the full catalog",
+);
+assertEqual(
+  matchFeaturedPrograms("верх низ").join(),
+  "upper_lower",
+  "upper lower alias",
+);
+assertEqual(
+  matchFeaturedPrograms("3x5").join(),
+  "starting_strength",
+  "3x5 alias",
 );
 assertEqual(matchFeaturedPrograms("5x5").join(), "five_by_five", "5x5");
 assertEqual(matchFeaturedPrograms("пять на пять").join(), "five_by_five", "5×5");

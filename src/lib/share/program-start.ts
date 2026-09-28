@@ -1,6 +1,7 @@
 import { isRecord } from "@/lib/read";
 import {
   isPublicProgramId,
+  PUBLIC_PROGRAM_IDS,
   type PublicProgramId,
 } from "@/lib/share/program-public";
 import {
@@ -22,7 +23,7 @@ export type FeaturedProgramId = (typeof FEATURED_PROGRAM_IDS)[number];
 
 export const PROGRAM_START_PREFIX = "p_";
 
-const PROGRAM_ALIASES: Record<FeaturedProgramId, readonly string[]> = {
+const PROGRAM_ALIASES: Record<PublicProgramId, readonly string[]> = {
   full_body: [
     "фуллбади",
     "фулл боди",
@@ -33,7 +34,11 @@ const PROGRAM_ALIASES: Record<FeaturedProgramId, readonly string[]> = {
     "fullbody",
   ],
   five_by_five: ["5x5", "5 на 5", "пять на пять", "пять по пять"],
+  starting_strength: ["3x5", "3 на 5", "три по пять", "стартер"],
+  strength: ["2 силовых", "силовые дни", "2 silovyh"],
+  upper_lower: ["верх низ", "верх/низ", "upper lower", "verh niz"],
   ppl: ["жим тяга ноги", "жим тяга", "push pull legs", "push pull"],
+  three_day: ["спина ноги грудь", "3 дня", "spina nogi grud"],
 };
 
 export function isFeaturedProgramId(
@@ -70,16 +75,16 @@ export function featuredProgramPreset(id: PublicProgramId): ProgramPreset {
   return preset;
 }
 
-export function matchFeaturedPrograms(query: string): FeaturedProgramId[] {
+export function matchFeaturedPrograms(query: string): PublicProgramId[] {
   const needle = normalizeProgramSearch(query);
   if (needle === "") {
-    return [...FEATURED_PROGRAM_IDS];
+    return [...PUBLIC_PROGRAM_IDS];
   }
   if (needle.length < 2) {
     return [];
   }
 
-  return FEATURED_PROGRAM_IDS.filter((id) =>
+  return PUBLIC_PROGRAM_IDS.filter((id) =>
     programSearchHaystack(id).some((hay) => hay.includes(needle)),
   );
 }
@@ -205,7 +210,7 @@ function parseWeekNames(value: unknown): string[] | null | undefined {
   return weeks;
 }
 
-function programSearchHaystack(id: FeaturedProgramId): string[] {
+function programSearchHaystack(id: PublicProgramId): string[] {
   const preset = featuredProgramPreset(id);
   return [id.replaceAll("_", " "), preset.name, ...PROGRAM_ALIASES[id]].map(
     normalizeProgramSearch,

@@ -28,7 +28,7 @@ import { parseOnboardingState } from "@/lib/onboarding/map";
 import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { peekPendingProgramId } from "@/lib/share/pending";
-import type { FeaturedProgramId } from "@/lib/share/program-start";
+import type { PublicProgramId } from "@/lib/share/program-public";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
@@ -91,7 +91,7 @@ export function useOnboardingScreen() {
   const [saving, setSaving] = useState(false);
   const [pendingKind, setPendingKind] = useState<SharePackKind | null>(null);
   const [pendingProgramId, setPendingProgramId] =
-    useState<FeaturedProgramId | null>(null);
+    useState<PublicProgramId | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);

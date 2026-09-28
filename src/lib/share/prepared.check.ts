@@ -107,7 +107,12 @@ assertEqual(
   "first card is full body",
 );
 assertEqual(
-  storefront[3]?.type,
+  storefront.filter((item) => item.type === "article").length,
+  7,
+  "empty query lists every listed program",
+);
+assertEqual(
+  storefront[7]?.type,
   "sticker",
   "sticker still follows the programs",
 );
