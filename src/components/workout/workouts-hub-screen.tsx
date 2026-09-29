@@ -36,7 +36,6 @@ export function WorkoutsHubScreen() {
     sessionAction,
     phaseHint,
     nextCanStart,
-    nextMissingMaxes,
     createOnDate,
     unskipLast,
     skipNext,
@@ -84,7 +83,6 @@ export function WorkoutsHubScreen() {
             followingTemplate={followingTemplate}
             exercises={exercises}
             nextCanStart={nextCanStart}
-            nextMissingMaxes={nextMissingMaxes}
             creating={creating}
             skipping={skipping}
             canUnskip={canUnskip}

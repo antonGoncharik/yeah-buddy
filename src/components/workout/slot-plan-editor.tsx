@@ -571,7 +571,7 @@ function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   if (load.type === "track") {
     return exercise.track
       ? `Рабочий кг: ${trackSummary(exercise.track)}.`
-      : "Рабочего кг ещё нет — спросим на тренировке.";
+      : "Рабочий кг — в карточке упражнения.";
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max

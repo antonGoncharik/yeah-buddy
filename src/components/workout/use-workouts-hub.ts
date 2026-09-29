@@ -16,11 +16,7 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import {
-  phaseEndHint,
-  templateCanPlan,
-  templateMissingMaxes,
-} from "@/lib/workout/hints";
+import { phaseEndHint, templateCanPlan } from "@/lib/workout/hints";
 import {
   readExercises,
   readHubSessionState,
@@ -172,10 +168,6 @@ export function useWorkoutsHub() {
           : null;
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
   const nextCanStart = nextTemplate != null && templateCanPlan(nextTemplate);
-  const nextMissingMaxes = useMemo(
-    () => (nextTemplate ? templateMissingMaxes(nextTemplate, exercises) : []),
-    [nextTemplate, exercises],
-  );
 
   return {
     date,
@@ -200,7 +192,6 @@ export function useWorkoutsHub() {
     sessionAction,
     phaseHint,
     nextCanStart,
-    nextMissingMaxes,
     createOnDate,
     unskipLast,
     skipNext,

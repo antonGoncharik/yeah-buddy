@@ -4,15 +4,11 @@ import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { Button } from "@/components/ui/button";
 import type {
-  Exercise,
   ExerciseWithMax,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
-import {
-  templateExerciseLoadPreview,
-  templateMissingTracks,
-} from "@/lib/workout/hints";
+import { templateExerciseLoadPreview } from "@/lib/workout/hints";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -22,7 +18,6 @@ export function WorkoutsHubQueueCta({
   followingTemplate,
   exercises,
   nextCanStart,
-  nextMissingMaxes,
   creating,
   skipping,
   canUnskip,
@@ -37,7 +32,6 @@ export function WorkoutsHubQueueCta({
   followingTemplate: WorkoutTemplateDetail | null;
   exercises: ExerciseWithMax[];
   nextCanStart: boolean;
-  nextMissingMaxes: Exercise[];
   creating: boolean;
   skipping: boolean;
   canUnskip: boolean;
@@ -89,11 +83,6 @@ export function WorkoutsHubQueueCta({
   }
 
   const catalog = new Map(exercises.map((exercise) => [exercise.id, exercise]));
-  const missingTracks = templateMissingTracks(nextTemplate, exercises);
-  const missingHint = loadMissingHint(
-    nextMissingMaxes.length,
-    missingTracks.length,
-  );
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
@@ -149,11 +138,6 @@ export function WorkoutsHubQueueCta({
         </ul>
       ) : null}
 
-      {nextCanStart && missingHint ? (
-        <p className="text-sm leading-snug text-muted-foreground">
-          {missingHint}
-        </p>
-      ) : null}
       {!nextCanStart ? (
         <p className="text-sm leading-snug text-muted-foreground">
           В этой тренировке нет упражнений с планом подходов. Добавь их в
@@ -190,21 +174,4 @@ export function WorkoutsHubQueueCta({
       ) : null}
     </section>
   );
-}
-
-function loadMissingHint(maxes: number, tracks: number): string | null {
-  if (maxes === 0 && tracks === 0) {
-    return null;
-  }
-  if (maxes > 0 && tracks > 0) {
-    return "Где прочерк — спросим, сколько поднимаешь один раз, или первый кг.";
-  }
-  if (tracks > 0) {
-    return tracks === 1
-      ? "Где прочерк — кг спросим в тренировке."
-      : "Где прочерки — кг спросим в тренировке.";
-  }
-  return maxes === 1
-    ? "Где прочерк — спросим в тренировке, сколько поднимаешь один раз."
-    : "Где прочерки — спросим в тренировке, сколько поднимаешь один раз.";
 }
