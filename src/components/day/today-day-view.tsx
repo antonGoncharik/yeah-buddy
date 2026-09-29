@@ -195,10 +195,14 @@ export function TodayDayView({
     dayHasItems,
     yesterdayHasFood,
   });
+  const showWeekShare = !viewOnly && date === today;
+  const weekShare = showWeekShare ? (
+    <WeekProgressShare tone={compact ? "card" : "solid"} />
+  ) : null;
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
-      {viewOnly || date !== today || compact ? null : <WeekProgressShare />}
+      {compact ? null : weekShare}
 
       <TodayDayHeader
         date={date}
@@ -321,6 +325,8 @@ export function TodayDayView({
           {remainingAction}
         </div>
       ) : null}
+
+      {compact ? weekShare : null}
 
       {viewOnly || !reviewOffer.show ? null : (
         <ReviewCta from="today" onOpen={reviewOffer.open} />

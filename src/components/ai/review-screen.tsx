@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { BarbellDoodle, MealDayDoodle } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { reviewDetailSignals } from "@/lib/ai/signal-lines";
@@ -99,6 +100,8 @@ export function ReviewScreen() {
                 Записей пока мало.
               </p>
             ) : null}
+
+            <WeekProgressShare tone="card" />
 
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
               <NavRow
