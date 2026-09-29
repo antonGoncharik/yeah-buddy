@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api-cache";
+import { SHARE_STORY_LABEL, SHARE_STORY_UNAVAILABLE } from "@/lib/share/joy";
 import {
   prepareWeekShare,
   shareUnavailableMessage,
@@ -14,11 +15,10 @@ import {
 import {
   WEEK_PROGRESS_CHAT_LABEL,
   WEEK_PROGRESS_HINT,
-  WEEK_PROGRESS_STORY_LABEL,
   WEEK_PROGRESS_TITLE,
 } from "@/lib/share/week-card";
-import { isShareToStoryAvailable } from "@/lib/telegram/share-story";
 import { haptic } from "@/lib/telegram/haptic";
+import { isShareToStoryAvailable } from "@/lib/telegram/share-story";
 import { cn } from "@/lib/utils";
 
 export function WeekProgressShare({
@@ -83,9 +83,7 @@ export function WeekProgressShare({
       }
       const result = await shareWeekToStory(payload);
       if (result === "unavailable") {
-        setError(
-          "Сторис недоступны в этом Telegram — попробуй «В чат» или обнови приложение.",
-        );
+        setError(SHARE_STORY_UNAVAILABLE);
       }
     } catch (caught) {
       setError(
@@ -138,7 +136,7 @@ export function WeekProgressShare({
             aria-busy={busy === "story"}
             onClick={() => void shareStory()}
           >
-            {WEEK_PROGRESS_STORY_LABEL}
+            {SHARE_STORY_LABEL}
           </Button>
         </div>
       </div>

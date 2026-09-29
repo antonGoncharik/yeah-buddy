@@ -8,12 +8,17 @@ import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import {
   JOY_KINDS,
+  joyInlineQuery,
   joyMomentFromRequest,
   joyShareCaption,
   SHARE_FAILED,
   sanitizeJoyLift,
 } from "@/lib/share/joy";
-import { joyInlinePhotoResult, joyPhotoOrigin } from "@/lib/share/prepared";
+import {
+  joyInlinePhotoResult,
+  joyPhotoOrigin,
+  joyPhotoUrl,
+} from "@/lib/share/prepared";
 import { createBot, getAppShareUrl } from "@/lib/telegram/bot";
 import { SESSION_FEELS } from "@/lib/workout/labels";
 
@@ -76,7 +81,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     );
     await recordFunnelEvent(auth.session.userId, "share");
-    return jsonOk({ id: prepared.id });
+    return jsonOk({
+      id: prepared.id,
+      query: joyInlineQuery(moment, lift),
+      photo_url: joyPhotoUrl(photoOrigin, moment.doodle),
+      caption: line,
+      install_url: installUrl,
+    });
   } catch (error) {
     console.error(error);
     return jsonError(SHARE_FAILED, 400);

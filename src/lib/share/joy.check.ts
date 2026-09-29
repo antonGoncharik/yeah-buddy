@@ -8,6 +8,8 @@ import {
   joyInlineQuery,
   joyMomentFromRequest,
   joyShareCaption,
+  joyShareRequest,
+  SHARE_STORY_LABEL,
   parseJoyInlineQuery,
   SHARE_TO_CHAT,
   SHARE_WRITE_KG,
@@ -289,6 +291,12 @@ assertEqual(
 );
 
 assertEqual(SHARE_TO_CHAT, "В чат", "chat button");
+assertEqual(SHARE_STORY_LABEL, "Сторис", "story button");
+assertEqual(
+  joyShareRequest(recordMoment, { name: "Присед", kg: 140 }).kind,
+  "record",
+  "request from moment",
+);
 assertEqual(SHARE_WRITE_KG, "Написать кг", "kg is a separate gesture");
 assertEqual(
   BOT_INSTALL_DIARY,

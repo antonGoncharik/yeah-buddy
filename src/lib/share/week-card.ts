@@ -14,7 +14,6 @@ export const WEEK_CARD_CAPTION_LEAD = "Как прошла неделя";
 export const WEEK_PROGRESS_HINT =
   "Картинка за последние 7 дней — в чат или в сторис";
 export const WEEK_PROGRESS_CHAT_LABEL = "В чат";
-export const WEEK_PROGRESS_STORY_LABEL = "Сторис";
 export const WEEK_PROGRESS_DETAILS_TITLE = "Что на картинке";
 /** Plain-language rules for `buildWeekCard` — keep in sync with the code. */
 export const WEEK_PROGRESS_DETAIL_LINES: string[] = [

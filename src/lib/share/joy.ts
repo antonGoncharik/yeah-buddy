@@ -47,6 +47,9 @@ export interface JoyShareRequest {
 }
 
 export const SHARE_TO_CHAT = "В чат";
+export const SHARE_STORY_LABEL = "Сторис";
+export const SHARE_STORY_UNAVAILABLE =
+  "Сторис недоступны в этом Telegram — попробуй «В чат» или обнови приложение.";
 export const SHARE_WRITE_KG = "Написать кг";
 export const SHARE_HIDE_KG = "Без кг";
 export const BOT_INSTALL_DIARY = "Поставить дневник";
@@ -252,6 +255,21 @@ export function sanitizeJoyLift(
     return null;
   }
   return { name, kg: lift.kg };
+}
+
+export function joyShareRequest(
+  moment: JoyMoment,
+  lift: JoyLift | null,
+): JoyShareRequest {
+  const safeLift = moment.allowKg ? sanitizeJoyLift(lift) : null;
+  return {
+    kind: moment.kind,
+    feel: moment.feel ?? null,
+    sessions: moment.sessions,
+    proteinHits: moment.proteinHits,
+    recordName: moment.recordName,
+    lift: safeLift,
+  };
 }
 
 export function joyShareCaption(

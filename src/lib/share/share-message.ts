@@ -1,12 +1,11 @@
 import { postJson } from "@/lib/api-cache";
 import { isRecord } from "@/lib/read";
 import {
+  BOT_INSTALL_DIARY,
   type JoyLift,
   type JoyMoment,
-  type JoyShareRequest,
-  joyInlineQuery,
+  joyShareRequest,
   SHARE_FAILED,
-  sanitizeJoyLift,
 } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 
@@ -26,7 +25,7 @@ export function readPreparedQuery(data: unknown): string | null {
   return query === "" ? null : query;
 }
 
-export function readWeekSharePhotoUrl(data: unknown): string | null {
+function readHttpsPhotoUrl(data: unknown): string | null {
   if (!isRecord(data) || typeof data.photo_url !== "string") {
     return null;
   }
@@ -34,7 +33,23 @@ export function readWeekSharePhotoUrl(data: unknown): string | null {
   return url.startsWith("https://") ? url : null;
 }
 
-export type WeekSharePayload = {
+function readShareCaption(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.caption !== "string") {
+    return null;
+  }
+  const caption = data.caption.trim();
+  return caption === "" ? null : caption;
+}
+
+function readInstallUrl(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.install_url !== "string") {
+    return null;
+  }
+  const url = data.install_url.trim();
+  return url === "" ? null : url;
+}
+
+export type PhotoSharePayload = {
   id: string | null;
   query: string;
   photoUrl: string;
@@ -42,30 +57,38 @@ export type WeekSharePayload = {
   installUrl: string | null;
 };
 
-export async function prepareWeekShare(): Promise<WeekSharePayload | null> {
-  const data = await postJson("/api/share/week", {});
+function readPhotoSharePayload(data: unknown): PhotoSharePayload | null {
   const query = readPreparedQuery(data);
-  const photoUrl = readWeekSharePhotoUrl(data);
+  const photoUrl = readHttpsPhotoUrl(data);
   if (!query || !photoUrl) {
     return null;
   }
-
-  const caption =
-    isRecord(data) && typeof data.caption === "string"
-      ? data.caption.trim()
-      : null;
-  const installUrl =
-    isRecord(data) && typeof data.install_url === "string"
-      ? data.install_url.trim()
-      : null;
-
   return {
     id: readPreparedMessageId(data),
     query,
     photoUrl,
-    caption: caption === "" ? null : caption,
-    installUrl: installUrl === "" ? null : installUrl,
+    caption: readShareCaption(data),
+    installUrl: readInstallUrl(data),
   };
+}
+
+export type WeekSharePayload = PhotoSharePayload;
+export type JoySharePayload = PhotoSharePayload;
+
+export async function prepareWeekShare(): Promise<WeekSharePayload | null> {
+  const data = await postJson("/api/share/week", {});
+  return readPhotoSharePayload(data);
+}
+
+export async function prepareJoyShare(
+  moment: JoyMoment,
+  lift: JoyLift | null,
+): Promise<JoySharePayload | null> {
+  const data = await postJson(
+    "/api/share/prepared",
+    joyShareRequest(moment, lift),
+  );
+  return readPhotoSharePayload(data);
 }
 
 export async function shareWeekToChat(
@@ -86,15 +109,60 @@ export async function shareWeekToChat(
 export async function shareWeekToStory(
   payload: WeekSharePayload,
 ): Promise<"opened" | "unavailable"> {
-  const { sharePhotoToStory } = await import("@/lib/telegram/share-story");
   const { WEEK_CARD_BUTTON } = await import("@/lib/share/week-card");
+  return sharePayloadToStory(payload, WEEK_CARD_BUTTON);
+}
+
+export async function shareJoyToChat(
+  moment: JoyMoment,
+  lift: JoyLift | null,
+  cached?: JoySharePayload | null,
+): Promise<"shared" | "cancelled" | "failed"> {
+  let payload = cached;
+  if (!payload) {
+    try {
+      payload = await prepareJoyShare(moment, lift);
+    } catch {
+      payload = null;
+    }
+  }
+  if (payload) {
+    const sent = await openPreparedShare(payload.id, payload.query);
+    if (sent !== "failed") {
+      if (sent === "shared") {
+        haptic("success");
+      }
+      return sent;
+    }
+  }
+
+  const { joyInlineQuery, sanitizeJoyLift } = await import("@/lib/share/joy");
+  const safeLift = moment.allowKg ? sanitizeJoyLift(lift) : null;
+  const fallback = await switchInlineShare(joyInlineQuery(moment, safeLift));
+  if (fallback === "shared") {
+    haptic("success");
+  }
+  return fallback;
+}
+
+export async function shareJoyToStory(
+  payload: JoySharePayload,
+): Promise<"opened" | "unavailable"> {
+  return sharePayloadToStory(payload, BOT_INSTALL_DIARY);
+}
+
+async function sharePayloadToStory(
+  payload: PhotoSharePayload,
+  linkLabel: string,
+): Promise<"opened" | "unavailable"> {
+  const { sharePhotoToStory } = await import("@/lib/telegram/share-story");
 
   const params =
     payload.caption || payload.installUrl
       ? {
           text: payload.caption ?? undefined,
           widget_link: payload.installUrl
-            ? { url: payload.installUrl, name: WEEK_CARD_BUTTON }
+            ? { url: payload.installUrl, name: linkLabel }
             : undefined,
         }
       : undefined;
@@ -104,44 +172,6 @@ export async function shareWeekToStory(
     haptic("success");
   }
   return result;
-}
-
-export async function shareJoyToChat(
-  moment: JoyMoment,
-  lift: JoyLift | null,
-): Promise<"shared" | "cancelled" | "failed"> {
-  const safeLift = moment.allowKg ? sanitizeJoyLift(lift) : null;
-  const request: JoyShareRequest = {
-    kind: moment.kind,
-    feel: moment.feel ?? null,
-    sessions: moment.sessions,
-    proteinHits: moment.proteinHits,
-    recordName: moment.recordName,
-    lift: safeLift,
-  };
-  const query = joyInlineQuery(moment, safeLift);
-
-  try {
-    const data = await postJson("/api/share/prepared", request);
-    const id = readPreparedMessageId(data);
-    if (id) {
-      const sent = await sendPreparedMessage(id, query);
-      if (sent !== "failed") {
-        if (sent === "shared") {
-          haptic("success");
-        }
-        return sent;
-      }
-    }
-  } catch {
-    // prepared inline needs Bot API 8 and inline mode; fall back below
-  }
-
-  const fallback = await switchInlineShare(query);
-  if (fallback === "shared") {
-    haptic("success");
-  }
-  return fallback;
 }
 
 async function openPreparedShare(
