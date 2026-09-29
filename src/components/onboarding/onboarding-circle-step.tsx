@@ -61,7 +61,6 @@ export function OnboardingCircleStep({
         </p>
       ) : null}
       <ProgramPresetCatalog
-        expanded
         disabled={saving}
         value={isProgramPresetId(value) ? value : null}
         onPick={onChange}

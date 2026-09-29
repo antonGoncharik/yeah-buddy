@@ -56,8 +56,7 @@ export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
 export type ProgramPresetId = (typeof PROGRAM_PRESET_IDS)[number];
 
 /**
- * What everyone sees. «Всё тело» sits on top; the rest open under
- * «Ещё программы». Other presets stay in PROGRAM_PRESETS so a queue already
+ * What everyone sees in the program picker. Other presets stay in PROGRAM_PRESETS so a queue already
  * on one of them is left alone. A hidden one shows up only after a grant.
  * Bot start links stay on the featured three.
  */

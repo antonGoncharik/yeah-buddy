@@ -15,7 +15,6 @@ import {
   presetExerciseLine,
   programDayExerciseNames,
   programPresetHint,
-  programPresetSummary,
   programPresetsByLevel,
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
@@ -39,71 +38,27 @@ function useGrantedPrograms(): ProgramPresetId[] {
   return granted;
 }
 
-/** Recommended start on top; the rest of the catalog behind «Ещё программы».
- * `expanded` shows the whole listed catalog at once, with level headings. */
+/** Listed catalog with level headings; «Всё тело» marked as recommended. */
 export function ProgramPresetCatalog({
   value,
   disabled,
-  expanded = false,
   onPick,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
-  expanded?: boolean;
   onPick: (id: ProgramPresetId) => void;
 }) {
   const granted = useGrantedPrograms();
-  const extraSelected =
-    value != null && value !== RECOMMENDED_PROGRAM_PRESET_ID;
-  const [showMore, setShowMore] = useState(extraSelected);
   const catalogIds = pickerProgramPresetIds(value, granted);
 
-  useEffect(() => {
-    if (extraSelected) {
-      setShowMore(true);
-    }
-  }, [extraSelected]);
-
-  if (expanded) {
-    return (
-      <ProgramPresetList
-        value={value}
-        disabled={disabled}
-        ids={catalogIds}
-        onPick={onPick}
-      />
-    );
-  }
-
   return (
-    <>
-      <ProgramPresetList
-        value={value}
-        disabled={disabled}
-        recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
-        ids={[RECOMMENDED_PROGRAM_PRESET_ID]}
-        showLevelLabels={false}
-        onPick={onPick}
-      />
-      {showMore ? (
-        <ProgramPresetList
-          value={value}
-          disabled={disabled}
-          compact
-          ids={catalogIds}
-          excludeIds={[RECOMMENDED_PROGRAM_PRESET_ID]}
-          onPick={onPick}
-        />
-      ) : (
-        <button
-          type="button"
-          className="px-1 py-2 text-left text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
-          onClick={() => setShowMore(true)}
-        >
-          Ещё программы
-        </button>
-      )}
-    </>
+    <ProgramPresetList
+      value={value}
+      disabled={disabled}
+      recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
+      ids={catalogIds}
+      onPick={onPick}
+    />
   );
 }
 
@@ -111,22 +66,16 @@ export function ProgramPresetList({
   value,
   disabled,
   onPick,
-  compact,
   recommendedId,
   levels,
   ids,
-  excludeIds,
-  showLevelLabels = true,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
   onPick: (id: ProgramPresetId) => void;
-  compact?: boolean;
   recommendedId?: ProgramPresetId;
   levels?: readonly ProgramLevel[];
   ids?: readonly ProgramPresetId[];
-  excludeIds?: readonly ProgramPresetId[];
-  showLevelLabels?: boolean;
 }) {
   const groups = programPresetsByLevel()
     .map((group) => ({
@@ -138,9 +87,6 @@ export function ProgramPresetList({
         if (ids && !ids.includes(preset.id)) {
           return false;
         }
-        if (excludeIds?.includes(preset.id)) {
-          return false;
-        }
         return true;
       }),
     }))
@@ -150,18 +96,15 @@ export function ProgramPresetList({
     <>
       {groups.map((group) => (
         <div key={group.level} className="flex flex-col gap-2">
-          {showLevelLabels ? (
-            <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-              {group.label}
-            </h3>
-          ) : null}
+          <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
+            {group.label}
+          </h3>
           {group.presets.map((preset) => (
             <ProgramPresetCard
               key={preset.id}
               preset={preset}
               pressed={value === preset.id}
               disabled={disabled}
-              compact={compact}
               recommended={recommendedId === preset.id}
               onPick={() => onPick(preset.id)}
             />
@@ -176,14 +119,12 @@ function ProgramPresetCard({
   preset,
   pressed,
   disabled,
-  compact,
   recommended,
   onPick,
 }: {
   preset: ProgramPreset;
   pressed: boolean;
   disabled?: boolean;
-  compact?: boolean;
   recommended?: boolean;
   onPick: () => void;
 }) {
@@ -238,46 +179,35 @@ function ProgramPresetCard({
       >
         {programPresetHint(preset)}
       </p>
-      {compact ? (
-        <p
-          className={cn(
-            "mt-2 text-sm leading-snug",
-            pressed ? "text-primary-foreground/80" : "text-muted-foreground",
-          )}
-        >
-          {programPresetSummary(preset)}
-        </p>
-      ) : (
-        <div className="mt-3 flex flex-col gap-1.5">
-          {preset.templates.map((day) => (
-            <p key={day.name} className="text-sm leading-snug">
-              <span className="font-medium">{day.name}</span>
-              <span
-                className={
-                  pressed
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground"
-                }
-              >
-                {" "}
-                · {presetExerciseLine(programDayExerciseNames(day))}
-              </span>
-            </p>
-          ))}
-          {preset.cycle ? (
-            <p
-              className={cn(
-                "text-sm leading-snug",
+      <div className="mt-3 flex flex-col gap-1.5">
+        {preset.templates.map((day) => (
+          <p key={day.name} className="text-sm leading-snug">
+            <span className="font-medium">{day.name}</span>
+            <span
+              className={
                 pressed
                   ? "text-primary-foreground/80"
-                  : "text-muted-foreground",
-              )}
+                  : "text-muted-foreground"
+              }
             >
-              Недели: {preset.cycle.map((phase) => phase.name).join(" → ")}
-            </p>
-          ) : null}
-        </div>
-      )}
+              {" "}
+              · {presetExerciseLine(programDayExerciseNames(day))}
+            </span>
+          </p>
+        ))}
+        {preset.cycle ? (
+          <p
+            className={cn(
+              "text-sm leading-snug",
+              pressed
+                ? "text-primary-foreground/80"
+                : "text-muted-foreground",
+            )}
+          >
+            Недели: {preset.cycle.map((phase) => phase.name).join(" → ")}
+          </p>
+        ) : null}
+      </div>
     </button>
   );
 }
