@@ -10,8 +10,8 @@ import {
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
-  LINK_VIEWBOX,
-  LinkMark,
+  FRIENDS_VIEWBOX,
+  FriendsMark,
   MACRO_VIEWBOX,
   MacroMark,
   MEAL_DAY_VIEWBOX,
@@ -96,7 +96,11 @@ const GUIDE_DOODLE_ICON: Record<
     viewBox: BARBELL_VIEWBOX,
     Mark: BarbellMark,
   },
-  link: { className: "h-8 w-auto", viewBox: LINK_VIEWBOX, Mark: LinkMark },
+  friends: {
+    className: "h-8 w-auto",
+    viewBox: FRIENDS_VIEWBOX,
+    Mark: FriendsMark,
+  },
   mealday: {
     className: "h-8 w-auto",
     viewBox: MEAL_DAY_VIEWBOX,

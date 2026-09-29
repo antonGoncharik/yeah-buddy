@@ -7,7 +7,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
   ProductDoodle,
-  LinkDoodle,
+  FriendsDoodle,
   MacroDoodle,
   BookDoodle,
   CoachDoodle,
@@ -181,7 +181,7 @@ export function SettingsScreen() {
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделись обедом, едой на день или программой тренировок"
-              icon={<LinkDoodle />}
+              icon={<FriendsDoodle />}
             />
             <NavRow
               href={INVITE_HREF}

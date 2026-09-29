@@ -3,7 +3,7 @@ export const GUIDE_DOODLES = [
   "cookie",
   "dumbbell",
   "barbell",
-  "link",
+  "friends",
   "mealday",
   "macro",
   "product",

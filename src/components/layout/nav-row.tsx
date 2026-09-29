@@ -1,4 +1,4 @@
-import { ChevronRight, Share2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -44,14 +44,10 @@ export function NavRow(props: NavRowProps) {
           </span>
         ) : null}
       </span>
-      {props.href ? (
-        <ChevronRight
-          className="size-5 shrink-0 text-muted-foreground"
-          aria-hidden
-        />
-      ) : (
-        <Share2 className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-      )}
+      <ChevronRight
+        className="size-5 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
     </>
   );
 

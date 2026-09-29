@@ -251,6 +251,17 @@ export function WeekMark({ ink = "currentColor" }: { ink?: string }) {
   );
 }
 
+export function FriendsMark({ ink = "currentColor" }: { ink?: string }) {
+  return (
+    <g {...STROKE} stroke={ink}>
+      <circle cx="-4.65" cy="-5.55" r="3.15" />
+      <path d="M-9.35 10.1 C-7.05 4.15 -2.25 3.55 -4.65 1.15" />
+      <circle cx="4.65" cy="-5.55" r="3.15" />
+      <path d="M9.35 10.1 C7.05 4.15 2.25 3.55 4.65 1.15" />
+    </g>
+  );
+}
+
 /** Ссылка: симметричные звенья, как Material / Android «Копировать ссылку». */
 export function LinkMark({ ink = "currentColor" }: { ink?: string }) {
   const rx = 7.1;
@@ -418,6 +429,7 @@ export const SANDWICH_VIEWBOX = "-12.6 -8.2 25.2 18.4";
 export const CHART_VIEWBOX = "-12.2 -10.4 24.8 22.4";
 export const WEEK_VIEWBOX = "-13.4 -11.2 26.8 23.8";
 export const LINK_VIEWBOX = "-13.2 -10.4 26.4 20.8";
+export const FRIENDS_VIEWBOX = "-12.2 -10.4 24.4 22.4";
 export const BOOK_VIEWBOX = "-12.8 -12.8 25.6 25.6";
 export const QR_VIEWBOX = "-12.2 -12.2 24.4 24.4";
 export const SETS_VIEWBOX = "-13.2 -10.2 26.8 20.4";
@@ -551,6 +563,18 @@ export function LinkDoodle({ className = "h-4 w-5" }: { className?: string }) {
   return (
     <Doodle className={className} viewBox={LINK_VIEWBOX}>
       <LinkMark />
+    </Doodle>
+  );
+}
+
+export function FriendsDoodle({
+  className = "size-4",
+}: {
+  className?: string;
+}) {
+  return (
+    <Doodle className={className} viewBox={FRIENDS_VIEWBOX}>
+      <FriendsMark />
     </Doodle>
   );
 }
