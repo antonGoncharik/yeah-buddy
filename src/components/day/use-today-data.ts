@@ -197,7 +197,6 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setLastWaistDate(null);
     setAccountAgeDays(null);
     setGoals(readMacroGoals(null));
-    setGoal(null);
     setWeightSteady(false);
     setPriorProteinHits(0);
     setReviewReady(false);
