@@ -4,7 +4,7 @@ import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { firstWorkSet } from "@/lib/workout/session-format";
 
-export const CIRCLE_OPENED_LINE = "Круг закрыт. Дальше само.";
+export const CIRCLE_OPENED_LINE = "Неделя пройдена. Следующая уже идёт.";
 const OWN_WEIGHT = "Свой вес.";
 const SQUAT_AND_A_HALF = "Полтора.";
 
