@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
+import { GuideTipCard } from "@/components/guide/guide-tip-card";
+import { useGuideTip } from "@/components/guide/use-guide-tip";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
   CookieMark,
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
 } from "@/components/layout/doodles";
-import { GuideTipCard } from "@/components/guide/guide-tip-card";
-import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { todayHomeHref } from "@/lib/day/dates";
@@ -39,6 +39,8 @@ export function TodayDayHeader({
   switchType: (dayType: DayType) => Promise<void>;
 }) {
   const router = useRouter();
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const dayTypeTip = useGuideTip("day-type");
 
   if (viewOnly) {
@@ -71,7 +73,7 @@ export function TodayDayHeader({
 
   return (
     <div className="animate-rise flex flex-col gap-3">
-      {dayTypeTip.tip ? (
+      {!compact && dayTypeTip.tip ? (
         <GuideTipCard tip={dayTypeTip.tip} onDismiss={dayTypeTip.dismiss} />
       ) : null}
       <Segmented

@@ -189,15 +189,15 @@ export function DaySummary({
                 </span>
               )}
             </p>
-            {almost ? (
+            {!compact && almost ? (
               <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
             ) : null}
-            {trainingGap ? (
+            {!compact && trainingGap ? (
               <p className="mt-1 text-sm text-muted-foreground">
                 {trainingGap}
               </p>
             ) : null}
-            {weekLine ? (
+            {!compact && weekLine ? (
               <p className="mt-1 text-base font-medium">{weekLine}</p>
             ) : null}
             {loop ? null : (
@@ -223,7 +223,7 @@ export function DaySummary({
               lastWaist={lastWaist}
               readOnly={bodyWeightReadOnly}
               busy={bodyWeightBusy}
-              note={weightNote}
+              note={compact ? null : weightNote}
               onSave={onSaveBodyWeight}
               onSaveWaist={onSaveWaist}
             />
@@ -251,7 +251,7 @@ export function DaySummary({
         ) : null}
       </div>
 
-      {joy ? <JoyShareButton moment={joy} /> : null}
+      {joy && !compact ? <JoyShareButton moment={joy} /> : null}
 
       <div className={cn("flex flex-col", compact ? "gap-2" : "gap-3.5")}>
         <MacroBar
@@ -276,7 +276,7 @@ export function DaySummary({
           compact={compact}
         />
       </div>
-      {macros ? (
+      {!compact && macros ? (
         <p className="text-sm text-muted-foreground">{macros}</p>
       ) : null}
       {bodyMetrics ? (
@@ -286,7 +286,7 @@ export function DaySummary({
             compact ? "gap-2 pt-3" : "gap-3 pt-4",
           )}
         >
-          {bodyTip.tip ? (
+          {!compact && bodyTip.tip ? (
             <GuideTipCard tip={bodyTip.tip} onDismiss={bodyTip.dismiss} />
           ) : null}
           <WeightBlock
@@ -296,9 +296,9 @@ export function DaySummary({
             lastWaist={lastWaist}
             readOnly={bodyWeightReadOnly}
             busy={bodyWeightBusy}
-            note={weightNote}
-            weightGap={weightGap}
-            waistGap={waistGap}
+            note={compact ? null : weightNote}
+            weightGap={compact ? null : weightGap}
+            waistGap={compact ? null : waistGap}
             wide
             divided={false}
             onSave={onSaveBodyWeight}

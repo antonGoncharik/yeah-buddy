@@ -812,6 +812,11 @@ html[data-density="compact"] .text-2xl {
   line-height: 1.75rem;
 }
 
+html[data-density="compact"] .text-xl {
+  font-size: 1.125rem;
+  line-height: 1.625rem;
+}
+
 html[data-density="compact"] :where(button, a, [data-slot="button"]).text-lg {
   font-size: 1rem;
   line-height: 1.5rem;

@@ -12,6 +12,7 @@ import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
@@ -85,6 +86,8 @@ export function TodayScreen({
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const guideTip = useGuideTip("today");
   const dayTypeTip = useGuideTip("day-type");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -135,6 +138,7 @@ export function TodayScreen({
         {contentReady &&
         !loadError &&
         !viewOnly &&
+        !compact &&
         guideTip.tip &&
         !dayTypeTip.tip &&
         !(retentionTail && isToday && !dayHasItems) ? (

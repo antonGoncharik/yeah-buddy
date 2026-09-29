@@ -198,7 +198,7 @@ export function TodayDayView({
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
-      {viewOnly || date !== today ? null : <WeekProgressShare />}
+      {viewOnly || date !== today || compact ? null : <WeekProgressShare />}
 
       <TodayDayHeader
         date={date}

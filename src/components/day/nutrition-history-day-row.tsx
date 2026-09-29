@@ -32,7 +32,7 @@ export function NutritionHistoryDayRow({
         compact ? "py-3" : "py-4",
       )}
     >
-      <MarkBadge className="size-9 rounded-xl">
+      <MarkBadge className={cn("rounded-xl", compact ? "size-8" : "size-9")}>
         <DayTypeMark training={item.is_training_day} />
       </MarkBadge>
       <span
@@ -43,14 +43,16 @@ export function NutritionHistoryDayRow({
       >
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-base font-medium">
-            {formatIsoDate(item.date, "EEEE, d MMMM")}
+            {formatIsoDate(item.date, compact ? "d MMMM" : "EEEE, d MMMM")}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {item.is_training_day
-              ? DAY_TYPE_LABELS.training
-              : DAY_TYPE_LABELS.rest}
-            {item.caught_up ? ` · ${CATCH_UP_MARK}` : null}
-          </span>
+          {compact ? null : (
+            <span className="text-sm text-muted-foreground">
+              {item.is_training_day
+                ? DAY_TYPE_LABELS.training
+                : DAY_TYPE_LABELS.rest}
+              {item.caught_up ? ` · ${CATCH_UP_MARK}` : null}
+            </span>
+          )}
         </div>
         <p className="text-sm">
           {formatKcal(item.fact_kcal)}

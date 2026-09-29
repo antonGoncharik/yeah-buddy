@@ -3,23 +3,31 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { SessionCloseTrail } from "@/components/workout/session-close-trail";
 import { formatIsoDate } from "@/lib/day/format";
 import type { RecentWorkoutSession } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import {
   SESSION_STATUS_LABELS,
   WORKOUT_KIND_LABELS,
 } from "@/lib/workout/labels";
 
 export function WorkoutHistoryRow({ item }: { item: RecentWorkoutSession }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
+
   return (
     <Link
       href={`/workouts/sessions/${item.session.id}`}
-      className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+      className={cn(
+        "card-surface flex items-center gap-3 px-5 transition-colors hover:bg-muted/40",
+        compact ? "py-3" : "py-4",
+      )}
     >
-      <MarkBadge className="size-9 rounded-xl">
+      <MarkBadge className={cn("rounded-xl", compact ? "size-8" : "size-9")}>
         <DumbbellDoodle />
       </MarkBadge>
       <span className="min-w-0 flex-1">

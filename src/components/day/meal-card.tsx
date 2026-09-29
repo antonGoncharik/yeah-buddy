@@ -173,7 +173,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      {items.length > 0 && proteinShare ? (
+      {!compact && items.length > 0 && proteinShare ? (
         <p className="text-sm text-muted-foreground tabular-nums">
           {proteinShare}
         </p>

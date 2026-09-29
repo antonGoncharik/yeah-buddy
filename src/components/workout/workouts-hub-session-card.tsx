@@ -3,6 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 
@@ -12,6 +13,7 @@ import type {
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubSessionCard({
@@ -29,6 +31,9 @@ export function WorkoutsHubSessionCard({
   followingTemplate: WorkoutTemplateDetail | null;
   sessionAction: string | null;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
+
   return (
     <>
       {unfinished.length > 0 ? (
@@ -37,7 +42,10 @@ export function WorkoutsHubSessionCard({
             <li key={item.session.id}>
               <Link
                 href={`/workouts/sessions/${item.session.id}`}
-                className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
+                className={cn(
+                  "card-surface flex items-center gap-3 px-5 transition-colors hover:bg-muted/40",
+                  compact ? "py-3" : "py-4",
+                )}
               >
                 <MarkBadge>
                   <DumbbellDoodle />
@@ -50,9 +58,11 @@ export function WorkoutsHubSessionCard({
                     {item.template_name ??
                       WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Открыть и доделать или убрать
-                  </p>
+                  {compact ? null : (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Открыть и доделать или убрать
+                    </p>
+                  )}
                 </span>
                 <ChevronRight
                   className="size-5 shrink-0 text-muted-foreground"
@@ -67,7 +77,10 @@ export function WorkoutsHubSessionCard({
       {session ? (
         <Link
           href={`/workouts/sessions/${session.id}`}
-          className="card-surface animate-rise flex items-center gap-3 px-5 py-5 transition-colors hover:bg-muted/40"
+          className={cn(
+            "card-surface animate-rise flex items-center gap-3 px-5 transition-colors hover:bg-muted/40",
+            compact ? "py-4" : "py-5",
+          )}
         >
           <MarkBadge>
             <DumbbellDoodle />
@@ -89,12 +102,12 @@ export function WorkoutsHubSessionCard({
                 {sessionAction}
               </p>
             ) : null}
-            {session.status === "completed" && nextTemplate ? (
+            {!compact && session.status === "completed" && nextTemplate ? (
               <p className="mt-1 text-sm text-muted-foreground">
                 Дальше {nextTemplate.name}
               </p>
             ) : null}
-            {session.status === "planned" && followingTemplate ? (
+            {!compact && session.status === "planned" && followingTemplate ? (
               <p className="mt-1 text-sm text-muted-foreground">
                 Потом {followingTemplate.name}
               </p>
