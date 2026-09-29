@@ -136,6 +136,7 @@ export async function getTodayWorkoutState(
     can_unskip: settings.skip_template_ids.length > 0,
     can_backfill_yesterday: yesterdayGym == null,
     phase_circle: macro.phase_circle,
+    phase_id: macro.phase?.id ?? null,
     completed_sessions,
     last_completed_before,
   };

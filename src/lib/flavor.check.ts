@@ -68,6 +68,7 @@ const deload: PhaseCircleProgress = {
   completed_count: 1,
   circle_size: 3,
   suggest_end: false,
+  opened_itself: false,
 };
 
 assertEqual(loadingFlavor({ splash: true }), "boot", "splash is boot");

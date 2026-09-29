@@ -9,6 +9,7 @@ import type {
   WorkoutSet,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { loadSessionBeats } from "@/lib/workout/beats-load";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { listTracksById } from "@/lib/workout/exercise-tracks";
 import { listExercises, mapExercise } from "@/lib/workout/exercises";
@@ -60,6 +61,7 @@ export async function loadSessionDetail(
     missing,
     tracks,
     settings,
+    beats,
   ] = await Promise.all([
     mapExercisesById(userId, exerciseIds),
     listSetsBySessionExercises(
@@ -76,6 +78,9 @@ export async function loadSessionDetail(
     ),
     listTrackInfo(userId, sessionExercises),
     ensureWorkoutSettings(userId),
+    session.status === "completed"
+      ? loadSessionBeats(userId, session, exerciseIds)
+      : Promise.resolve(null),
   ]);
 
   const weekly = cycleDrivesTracks(settings.formulas.cycle);
@@ -127,6 +132,7 @@ export async function loadSessionDetail(
       ];
     }),
     raise_offers: [],
+    beats,
   };
 }
 

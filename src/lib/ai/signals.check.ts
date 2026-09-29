@@ -162,6 +162,7 @@ const lines = buildSignals({
       completed_count: 4,
       circle_size: 6,
       suggest_end: true,
+      opened_itself: false,
     },
     last_recap: {
       macro_id: "m",

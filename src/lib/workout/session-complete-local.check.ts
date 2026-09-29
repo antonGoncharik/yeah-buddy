@@ -102,6 +102,7 @@ const detail: SessionDetail = {
   missing_tracks: [],
   tracks: [],
   raise_offers: [],
+  beats: null,
 };
 
 const done = completeSessionLocally(detail, {

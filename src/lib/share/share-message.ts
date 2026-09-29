@@ -116,6 +116,7 @@ export async function shareJoyToChat(
     feel: moment.feel ?? null,
     sessions: moment.sessions,
     proteinHits: moment.proteinHits,
+    recordName: moment.recordName,
     lift: safeLift,
   };
   const query = joyInlineQuery(moment, safeLift);

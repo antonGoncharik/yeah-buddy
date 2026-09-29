@@ -111,6 +111,8 @@ export interface PhaseCircleProgress {
   completed_count: number;
   circle_size: number;
   suggest_end: boolean;
+  /** The previous week finished itself and this one has not started. */
+  opened_itself: boolean;
 }
 
 export interface PlannedCyclePhase {

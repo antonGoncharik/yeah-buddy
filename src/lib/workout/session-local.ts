@@ -214,6 +214,7 @@ export function sessionDetailFromTemplate({
       ];
     }),
     raise_offers: [],
+    beats: null,
   };
 }
 

@@ -7,6 +7,7 @@ import {
   sessionMilestoneLine,
 } from "@/lib/flavor";
 import type { SessionFeel } from "@/lib/types";
+import { recordLine } from "@/lib/workout/beats";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -15,6 +16,7 @@ export const JOY_KINDS = [
   "protein",
   "milestone",
   "hundred",
+  "record",
 ] as const;
 export type JoyKind = (typeof JOY_KINDS)[number];
 export type JoyDoodle = "cookie" | "trex";
@@ -32,6 +34,7 @@ export interface JoyMoment {
   feel?: SessionFeel | null;
   sessions?: number;
   proteinHits?: number;
+  recordName?: string;
 }
 
 export interface JoyShareRequest {
@@ -39,6 +42,7 @@ export interface JoyShareRequest {
   feel?: SessionFeel | null;
   sessions?: number;
   proteinHits?: number;
+  recordName?: string;
   lift?: JoyLift | null;
 }
 
@@ -97,6 +101,7 @@ export function sessionJoyMoment(input: {
   feel: SessionFeel | null;
   completedSessions: number;
   workKg: number | null;
+  record?: { name: string; kg: number } | null;
 }): JoyMoment | null {
   if (input.feel === "miss") {
     return null;
@@ -121,6 +126,17 @@ export function sessionJoyMoment(input: {
       line: HUNDRED_WEIGHT_LINE,
       doodle: "trex",
       allowKg: true,
+    };
+  }
+
+  const record = input.record;
+  if (record && record.name.trim() !== "" && record.kg > 0) {
+    return {
+      kind: "record",
+      line: recordLine(record.name),
+      doodle: "trex",
+      allowKg: true,
+      recordName: record.name,
     };
   }
 
@@ -198,6 +214,20 @@ export function joyMomentFromRequest(
     };
   }
 
+  if (request.kind === "record") {
+    const name = cleanRecordName(request.recordName);
+    if (!name) {
+      return null;
+    }
+    return {
+      kind: "record",
+      line: recordLine(name),
+      doodle: "trex",
+      allowKg: true,
+      recordName: name,
+    };
+  }
+
   return {
     kind: "hundred",
     line: HUNDRED_WEIGHT_LINE,
@@ -232,6 +262,9 @@ export function joyShareCaption(
   if (!allowKg || lift == null) {
     return line;
   }
+  if (line.startsWith(`${lift.name}.`)) {
+    return `${line} ${formatWeight(lift.kg)}`;
+  }
   return `${line} ${lift.name} ${formatWeight(lift.kg)}`;
 }
 
@@ -250,6 +283,16 @@ export function joyInlineQuery(
     parts.push(String(moment.sessions ?? 0));
   } else if (moment.kind === "protein" && (moment.proteinHits ?? 0) > 0) {
     parts.push(String(moment.proteinHits));
+  } else if (moment.kind === "record") {
+    const name = moment.recordName?.trim() ?? "";
+    if (name === "") {
+      return parts.join(" ");
+    }
+    const safe = sanitizeJoyLift(lift);
+    if (safe == null) {
+      return `${parts.join(" ")} | ${name}`;
+    }
+    return `${parts.join(" ")} | ${name} | ${formatWeight(safe.kg)}`;
   }
   const base = parts.join(" ");
   const safe = sanitizeJoyLift(lift);
@@ -290,7 +333,22 @@ export function parseJoyInlineQuery(query: string): JoyShareRequest | null {
     }
     return { kind, proteinHits: hits, lift: null };
   }
+  if (kind === "record") {
+    const recordName = cleanRecordName(nameRaw);
+    if (!recordName) {
+      return null;
+    }
+    return { kind, recordName, lift: parseInlineLift(recordName, kgRaw) };
+  }
   return { kind, lift };
+}
+
+function cleanRecordName(value: string | undefined): string | null {
+  if (value == null) {
+    return null;
+  }
+  const name = value.replaceAll(/\s+/g, " ").trim().slice(0, 40);
+  return name === "" ? null : name;
 }
 
 function parseInlineFeel(value: string | undefined): SessionFeel | null {

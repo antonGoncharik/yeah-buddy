@@ -1,5 +1,6 @@
 import { isRecord, mapRecordList } from "@/lib/read";
 import type {
+  SessionBeats,
   SessionDetail,
   SessionExerciseDetail,
   SessionMaxRaiseOffer,
@@ -40,6 +41,7 @@ export function readSessionDetail(data: unknown): SessionDetail | null {
     ),
     tracks: mapRecordList(data.tracks, parseTrackInfo),
     raise_offers: mapRecordList(data.raise_offers, parseRaiseOffer),
+    beats: parseBeats(data.beats),
   };
 }
 
@@ -102,6 +104,30 @@ function parsePreviousWork(value: unknown): SessionPreviousWork | null {
     feel,
     same_phase: value.same_phase !== false,
     hold: value.hold === true,
+  };
+}
+
+function parseBeats(value: unknown): SessionBeats | null {
+  if (!isRecord(value) || !Array.isArray(value.peaks)) {
+    return null;
+  }
+
+  const peaks = value.peaks.flatMap((row) => {
+    if (!isRecord(row) || typeof row.exercise_id !== "string") {
+      return [];
+    }
+    const prior = toNullableNumber(row.prior_peak);
+    return [
+      {
+        exercise_id: row.exercise_id,
+        prior_peak: prior != null && prior > 0 ? prior : null,
+      },
+    ];
+  });
+
+  return {
+    body_weight: toNullableNumber(value.body_weight),
+    peaks,
   };
 }
 

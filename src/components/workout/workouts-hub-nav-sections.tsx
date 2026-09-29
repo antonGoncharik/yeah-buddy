@@ -10,6 +10,7 @@ import {
 } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { CircleOpenedNote } from "@/components/workout/circle-opened-note";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { reviewHref } from "@/lib/ai/review-nav";
 import type {
@@ -90,6 +91,10 @@ export function WorkoutsHubNavSections({
               )}
             />
           ) : null}
+          <CircleOpenedNote
+            phaseId={macro.phase?.id ?? null}
+            open={(phaseCircle ?? macro.phase_circle)?.opened_itself === true}
+          />
           {phaseHint ? (
             <p className="text-base leading-snug">{phaseHint}</p>
           ) : null}

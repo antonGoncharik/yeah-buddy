@@ -14,6 +14,7 @@ import {
   sanitizeJoyLift,
   sessionJoyMoment,
 } from "@/lib/share/joy";
+import { recordLine } from "@/lib/workout/beats";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const left = JSON.stringify(actual);
@@ -78,6 +79,51 @@ assertEqual(
   sessionJoyMoment({ feel: "easy", completedSessions: 3, workKg: 100 })?.line,
   HUNDRED_WEIGHT_LINE,
   "hundred kilos on a work set",
+);
+assertEqual(
+  sessionJoyMoment({
+    feel: "easy",
+    completedSessions: 3,
+    workKg: 80,
+    record: { name: "Присед", kg: 140 },
+  })?.line,
+  recordLine("Присед"),
+  "a heavier bar can share",
+);
+assertEqual(
+  sessionJoyMoment({
+    feel: "miss",
+    completedSessions: 3,
+    workKg: 80,
+    record: { name: "Присед", kg: 140 },
+  }),
+  null,
+  "a miss does not share the record",
+);
+assertEqual(
+  sessionJoyMoment({
+    feel: "easy",
+    completedSessions: 10,
+    workKg: 80,
+    record: { name: "Присед", kg: 140 },
+  })?.kind,
+  "milestone",
+  "a round count still owns the share",
+);
+assertEqual(
+  joyShareCaption(recordLine("Присед"), { name: "Присед", kg: 140 }, true),
+  `${recordLine("Присед")} 140`,
+  "record kg does not repeat the name",
+);
+assertEqual(
+  joyMomentFromRequest({ kind: "record", recordName: "Присед" })?.line,
+  recordLine("Присед"),
+  "record from request",
+);
+assertEqual(
+  joyMomentFromRequest({ kind: "record" }),
+  null,
+  "record without a lift is rejected",
 );
 
 assertEqual(
@@ -213,6 +259,34 @@ assertEqual(
   "protein query",
 );
 assertEqual(parseJoyInlineQuery("yeah buddy"), null, "plain text is not joy");
+const recordMoment = sessionJoyMoment({
+  feel: "easy",
+  completedSessions: 4,
+  workKg: 80,
+  record: { name: "Присед", kg: 140 },
+});
+if (recordMoment == null) {
+  throw new Error("record should share");
+}
+const recordQuery = joyInlineQuery(recordMoment, {
+  name: "Присед",
+  kg: 140,
+});
+assertEqual(recordQuery, "joy record | Присед | 140", "record query with kg");
+assertEqual(
+  parseJoyInlineQuery(recordQuery),
+  {
+    kind: "record",
+    recordName: "Присед",
+    lift: { name: "Присед", kg: 140 },
+  },
+  "record query roundtrip",
+);
+assertEqual(
+  parseJoyInlineQuery("joy record | Присед")?.recordName,
+  "Присед",
+  "record query without kg keeps the name",
+);
 
 assertEqual(SHARE_TO_CHAT, "В чат", "chat button");
 assertEqual(SHARE_WRITE_KG, "Написать кг", "kg is a separate gesture");

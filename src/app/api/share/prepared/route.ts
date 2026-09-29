@@ -22,6 +22,7 @@ const joyShareRequestSchema = z.object({
   feel: z.enum(SESSION_FEELS).nullable().optional(),
   sessions: z.number().int().min(1).max(10_000).optional(),
   proteinHits: z.number().int().min(0).max(400).optional(),
+  recordName: z.string().min(1).max(40).optional(),
   lift: z
     .object({
       name: z.string().min(1).max(80),

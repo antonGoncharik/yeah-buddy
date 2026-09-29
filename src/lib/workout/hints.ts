@@ -381,6 +381,7 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     completed_count: row.completed_count,
     circle_size: row.circle_size,
     suggest_end: row.suggest_end,
+    opened_itself: row.opened_itself === true,
   };
 }
 

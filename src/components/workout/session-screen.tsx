@@ -12,8 +12,10 @@ import { SessionMissingTracks } from "@/components/workout/session-missing-track
 import { SessionNoteField } from "@/components/workout/session-note-field";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
+import { calendarToday } from "@/lib/day/dates";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
 import { heaviestWorkLift } from "@/lib/share/joy";
+import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 
 export function SessionScreen() {
@@ -44,6 +46,7 @@ export function SessionScreen() {
     completedSessions,
     lastCompletedBefore,
     phaseCircle,
+    phaseId,
     openSetIds,
     setOpenSetIds,
     warmupOpen,
@@ -154,6 +157,15 @@ export function SessionScreen() {
                 lastCompletedBefore={lastCompletedBefore}
                 sessionDate={session.session_date}
                 phaseCircle={phaseCircle}
+                beat={sessionDetailBeat(detail)}
+                circleOpen={sessionClosedCircle({
+                  sessionDate: session.session_date,
+                  today: calendarToday(),
+                  sessionPhaseId: session.phase_id,
+                  currentPhaseId: phaseId,
+                  openedItself: phaseCircle?.opened_itself === true,
+                })}
+                phaseId={phaseId}
                 workLift={heaviestWorkLift(detail.exercises)}
                 busy={busy}
                 onCorrect={() => setCorrecting(true)}

@@ -10,6 +10,7 @@ import {
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { JoyShareButton } from "@/components/share/joy-share-button";
 import { Button } from "@/components/ui/button";
+import { CircleOpenedNote } from "@/components/workout/circle-opened-note";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import {
   comebackLine,
@@ -30,6 +31,7 @@ import type {
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
+import type { SessionBeat } from "@/lib/workout/beats";
 
 export function SessionCompletedPanel({
   abovePlan,
@@ -43,6 +45,9 @@ export function SessionCompletedPanel({
   lastCompletedBefore,
   sessionDate,
   phaseCircle,
+  beat,
+  circleOpen,
+  phaseId,
   workLift,
   busy,
   onCorrect,
@@ -60,6 +65,9 @@ export function SessionCompletedPanel({
   lastCompletedBefore: string | null;
   sessionDate: string;
   phaseCircle: PhaseCircleProgress | null;
+  beat: SessionBeat | null;
+  circleOpen: boolean;
+  phaseId: string | null;
   workLift: JoyLift | null;
   busy: boolean;
   onCorrect: () => void;
@@ -68,11 +76,17 @@ export function SessionCompletedPanel({
 }) {
   const canRaise = raiseOffers.length > 0;
   const milestone = sessionMilestoneLine(completedSessions);
+  const record = beat?.kind === "record" ? beat : null;
   const joy = sessionJoyMoment({
     feel,
     completedSessions,
     workKg: workLift?.kg ?? null,
+    record,
   });
+  const shareLift =
+    joy?.kind === "record" && record
+      ? { name: record.name, kg: record.kg }
+      : workLift;
   const phase = firstPhaseLine(phaseCircle);
   const comeback = milestone
     ? null
@@ -185,13 +199,15 @@ export function SessionCompletedPanel({
         className="text-foreground"
       />
       <FlavorNote line={milestone} className="text-foreground" />
+      <CircleOpenedNote phaseId={phaseId} open={circleOpen} />
+      <FlavorNote line={beat?.line ?? null} className="text-foreground" />
       <FlavorNote line={phase} className="text-foreground" />
       <FlavorNote line={comeback} className="text-foreground" />
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-muted-foreground">Как прошло</p>
         <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       </div>
-      {joy ? <JoyShareButton moment={joy} lift={workLift} /> : null}
+      {joy ? <JoyShareButton moment={joy} lift={shareLift} /> : null}
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}

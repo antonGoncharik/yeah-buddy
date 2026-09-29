@@ -56,6 +56,8 @@ export interface TodayWorkoutState {
   can_unskip: boolean;
   can_backfill_yesterday: boolean;
   phase_circle: PhaseCircleProgress | null;
+  /** Current macro phase. Null when no cycle is running. */
+  phase_id: string | null;
   completed_sessions: number;
   last_completed_before: string | null;
 }
@@ -117,6 +119,12 @@ export interface SessionExerciseDetail extends SessionExercise {
   load_hint: boolean;
 }
 
+/** Prior working weights for a finished session. Missing object means not loaded. */
+export interface SessionBeats {
+  body_weight: number | null;
+  peaks: Array<{ exercise_id: string; prior_peak: number | null }>;
+}
+
 export interface SessionDetail {
   session: WorkoutSession;
   template: WorkoutTemplate | null;
@@ -128,4 +136,6 @@ export interface SessionDetail {
   missing_tracks: Exercise[];
   tracks: SessionTrackInfo[];
   raise_offers: SessionMaxRaiseOffer[];
+  /** Null until a completed session has been read from the server. */
+  beats: SessionBeats | null;
 }

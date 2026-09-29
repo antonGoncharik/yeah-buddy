@@ -17,6 +17,7 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
   completedSessions: number;
   lastCompletedBefore: string | null;
   phaseCircle: PhaseCircleProgress | null;
+  phaseId: string | null;
 }> {
   const empty = {
     nextName: null,
@@ -25,6 +26,7 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
     completedSessions: 0,
     lastCompletedBefore: null,
     phaseCircle: null,
+    phaseId: null,
   };
 
   try {
@@ -45,6 +47,12 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
           ? data.last_completed_before
           : null,
       phaseCircle: circle,
+      phaseId:
+        isRecord(data) &&
+        typeof data.phase_id === "string" &&
+        data.phase_id !== ""
+          ? data.phase_id
+          : null,
     };
   } catch {
     return empty;

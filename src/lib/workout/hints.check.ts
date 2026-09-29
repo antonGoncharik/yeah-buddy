@@ -80,6 +80,7 @@ const circle: PhaseCircleProgress = {
   completed_count: 4,
   circle_size: 2,
   suggest_end: true,
+  opened_itself: false,
 };
 
 assertEqual(

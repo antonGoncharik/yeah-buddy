@@ -47,6 +47,7 @@ export function useSessionScreen() {
   const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
     null,
   );
+  const [phaseId, setPhaseId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
@@ -61,6 +62,7 @@ export function useSessionScreen() {
     setCompletedSessions(followUp.completedSessions);
     setLastCompletedBefore(followUp.lastCompletedBefore);
     setPhaseCircle(followUp.phaseCircle);
+    setPhaseId(followUp.phaseId);
   }, []);
 
   const applyDetail = useCallback((next: SessionDetail) => {
@@ -236,6 +238,7 @@ export function useSessionScreen() {
     completedSessions,
     lastCompletedBefore,
     phaseCircle,
+    phaseId,
     openSetIds,
     setOpenSetIds,
     warmupOpen,
