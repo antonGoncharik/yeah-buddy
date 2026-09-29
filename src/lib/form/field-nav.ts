@@ -3,8 +3,19 @@ import type { KeyboardEvent } from "react";
 const FIELD_SELECTOR =
   "input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([disabled]):not([readonly])";
 const REVEAL_MS = 320;
+const REVEAL_MARGIN_PX = 48;
 
 let revealTimer = 0;
+
+export function fieldNeedsReveal(
+  rect: { top: number; bottom: number },
+  viewport: { height: number; offsetTop: number },
+  marginPx = REVEAL_MARGIN_PX,
+): boolean {
+  const visibleTop = viewport.offsetTop + marginPx;
+  const visibleBottom = viewport.offsetTop + viewport.height - marginPx;
+  return rect.top < visibleTop || rect.bottom > visibleBottom;
+}
 
 export function revealField(node: HTMLElement): void {
   if (typeof window === "undefined") {
@@ -18,6 +29,13 @@ export function revealField(node: HTMLElement): void {
       !node.contains(document.activeElement)
     ) {
       return;
+    }
+    const viewport = window.visualViewport;
+    if (viewport) {
+      const rect = node.getBoundingClientRect();
+      if (!fieldNeedsReveal(rect, viewport)) {
+        return;
+      }
     }
     node.scrollIntoView({ block: "center", inline: "nearest" });
   }, REVEAL_MS);

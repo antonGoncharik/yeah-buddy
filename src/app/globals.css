@@ -490,20 +490,21 @@ html.dark[data-day="deload"] {
 }
 
 html[data-keyboard="open"] {
-  --app-nav-clearance: 0.75rem;
   --app-field-scroll-pad: 5.5rem;
 }
 
 html[data-keyboard="open"] .app-bottom-nav {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 html[data-keyboard="open"] .app-sticky-actions {
-  padding-top: 0.5rem;
+  padding-bottom: max(0.75rem, var(--app-safe-bottom));
 }
 
 html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 @utility card-surface {
