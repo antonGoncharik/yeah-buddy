@@ -3,7 +3,6 @@
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
-import { GoalModeStrip } from "@/components/day/goal-mode-strip";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayHeader } from "@/components/day/today-day-header";
@@ -30,7 +29,6 @@ import type {
   MealItem,
   MealType,
   NamedMealHint,
-  UserGoal,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +60,6 @@ export function TodayDayView({
   lastWaistDate,
   accountAgeDays,
   goals,
-  goal,
   weightSteady,
   priorProteinHits,
   reviewReady,
@@ -111,7 +108,6 @@ export function TodayDayView({
   lastWaistDate: string | null;
   accountAgeDays: number | null;
   goals: MacroGoals;
-  goal: UserGoal | null;
   weightSteady: boolean;
   priorProteinHits: number;
   reviewReady: boolean;
@@ -215,8 +211,6 @@ export function TodayDayView({
         busy={busy || isTempId(shownDay.id)}
         switchType={switchType}
       />
-
-      <GoalModeStrip goal={goal} date={date} />
 
       {yesterdayCatchUp ? (
         <div className="animate-rise" style={{ animationDelay: "20ms" }}>

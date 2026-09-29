@@ -243,7 +243,6 @@ export function useTodayScreen({
     lastWaistDate: data.lastWaistDate,
     accountAgeDays: data.accountAgeDays,
     goals: data.goals,
-    goal: data.goal,
     weightSteady: data.weightSteady,
     priorProteinHits: data.priorProteinHits,
     reviewReady: data.reviewReady,

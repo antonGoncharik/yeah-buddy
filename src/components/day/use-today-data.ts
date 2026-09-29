@@ -29,7 +29,6 @@ import {
   readRecipes,
   readRetentionTail,
   readReviewReady,
-  readUserGoal,
   readWeightSteady,
   readYesterdayExists,
   readYesterdayMealTypes,
@@ -38,7 +37,6 @@ import type {
   CopyDayHint,
   MealType,
   NamedMealHint,
-  UserGoal,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { prefetchGymCache } from "@/lib/workout/session-local";
@@ -67,7 +65,6 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [lastWaistDate, setLastWaistDate] = useState<string | null>(null);
   const [accountAgeDays, setAccountAgeDays] = useState<number | null>(null);
   const [goals, setGoals] = useState<MacroGoals>(() => readMacroGoals(null));
-  const [goal, setGoal] = useState<UserGoal | null>(null);
   const [weightSteady, setWeightSteady] = useState(false);
   const [priorProteinHits, setPriorProteinHits] = useState(0);
   const [reviewReady, setReviewReady] = useState(false);
@@ -102,7 +99,6 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setLastWaistDate(readLastWaistDate(data));
       setAccountAgeDays(readAccountAgeDays(data));
       setGoals(readMacroGoals(data));
-      setGoal(readUserGoal(data));
       setWeightSteady(readWeightSteady(data));
       setPriorProteinHits(readPriorProteinHits(data));
       setReviewReady(readReviewReady(data));
@@ -246,7 +242,6 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     accountAgeDays:
       cached != null ? readAccountAgeDays(cached) : accountAgeDays,
     goals: cached != null ? readMacroGoals(cached) : goals,
-    goal: cached != null ? readUserGoal(cached) : goal,
     weightSteady: cached != null ? readWeightSteady(cached) : weightSteady,
     priorProteinHits:
       cached != null ? readPriorProteinHits(cached) : priorProteinHits,
