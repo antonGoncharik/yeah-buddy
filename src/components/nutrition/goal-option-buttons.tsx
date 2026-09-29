@@ -50,50 +50,35 @@ export function GoalOptionButtons({
               onPick(option.id);
             }}
           >
-            <span className="flex items-stretch gap-3">
-              {selected && voiced ? (
-                <span
-                  aria-hidden
-                  className={cn(
-                    "w-1 shrink-0 rounded-full",
-                    option.id === "lose"
-                      ? "bg-[var(--macro-carbs)]"
-                      : "bg-[var(--macro-fat)]",
-                  )}
-                />
-              ) : null}
-              <span className="min-w-0">
-                <p
-                  className={cn(
-                    "font-medium",
-                    compact ? "text-base" : "text-lg",
-                  )}
-                >
-                  {option.label}
-                </p>
-                <p
-                  className={cn(
-                    "text-sm",
-                    compact ? "mt-0.5" : "mt-1",
-                    selected
-                      ? "text-primary-foreground/80"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {option.hint}
-                </p>
-                {line ? (
-                  <p
-                    className={cn(
-                      "text-sm text-primary-foreground/90",
-                      compact ? "mt-1.5" : "mt-2",
-                    )}
-                  >
-                    {line}
-                  </p>
-                ) : null}
-              </span>
-            </span>
+            <p
+              className={cn(
+                "font-medium",
+                compact ? "text-base" : "text-lg",
+              )}
+            >
+              {option.label}
+            </p>
+            <p
+              className={cn(
+                "text-sm",
+                compact ? "mt-0.5" : "mt-1",
+                selected
+                  ? "text-primary-foreground/80"
+                  : "text-muted-foreground",
+              )}
+            >
+              {option.hint}
+            </p>
+            {line ? (
+              <p
+                className={cn(
+                  "text-sm text-primary-foreground/90",
+                  compact ? "mt-1.5" : "mt-2",
+                )}
+              >
+                {line}
+              </p>
+            ) : null}
           </button>
         );
       })}
