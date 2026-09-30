@@ -82,6 +82,7 @@ export function FoodForm({
           onChange={(event) =>
             patch({
               default_portion_g: sanitizeDecimalDraft(event.target.value),
+              default_portion_label: "",
             })
           }
           onKeyDown={handleNumericEnter}

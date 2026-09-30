@@ -9,6 +9,10 @@ import {
   toFormState,
   toPayload,
 } from "@/components/foods/food-form-state";
+import {
+  removeFoodFromCache,
+  syncSavedFoodInCache,
+} from "@/components/foods/food-favorite";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
@@ -56,10 +60,14 @@ export function useFoodForm({
         ? await patchJson(`/api/foods/${food.id}`, payload)
         : await postJson("/api/foods", payload);
 
+      const saved = readFood(data);
+      if (saved) {
+        syncSavedFoodInCache(saved);
+      }
+
       if (!food && afterCreateHref) {
-        const created = readFood(data);
-        if (created) {
-          router.push(afterCreateHref(created.id));
+        if (saved) {
+          router.push(afterCreateHref(saved.id));
           return;
         }
       }
@@ -92,6 +100,7 @@ export function useFoodForm({
 
     try {
       await deleteJson(`/api/foods/${food.id}`);
+      removeFoodFromCache(food.id);
       router.push("/foods");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);

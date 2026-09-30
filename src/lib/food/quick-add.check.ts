@@ -23,6 +23,15 @@ assertEqual(
   "150 г",
   "grams when the label is empty",
 );
+assertEqual(
+  quickAddPortionLabel({
+    ...cottage,
+    default_portion_g: 100,
+    default_portion_label: "80 г",
+  }),
+  "100 г",
+  "stale gram label follows portion g",
+);
 
 assertEqual(
   quickAddGrams({

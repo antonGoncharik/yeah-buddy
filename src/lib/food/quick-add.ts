@@ -23,6 +23,15 @@ export function quickAddGrams(
   return grams;
 }
 
+function gramsOnlyPortionLabel(label: string): number | null {
+  const match = /^([\d\s]+(?:[.,]\d+)?)\s*г$/u.exec(label.trim());
+  if (!match) {
+    return null;
+  }
+  const parsed = Number(match[1].replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function quickAddPortionLabel(
   food: Pick<
     Food,
@@ -39,7 +48,13 @@ export function quickAddPortionLabel(
   }
   const label = food.default_portion_label?.trim();
   if (label) {
-    return label;
+    const labelGrams = gramsOnlyPortionLabel(label);
+    if (labelGrams == null) {
+      return label;
+    }
+    if (Math.abs(labelGrams - grams) <= 0.01) {
+      return label;
+    }
   }
   return `${formatYieldGrams(grams)} г`;
 }

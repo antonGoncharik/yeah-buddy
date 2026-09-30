@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { patchJson, peekJson, writeJson } from "@/lib/api-cache";
 import { dismissFavoriteOffer } from "@/lib/food/favorite-offer";
 import type { FoodListFilter } from "@/lib/food/schema";
+import { parseFoodList } from "@/lib/foods";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
@@ -16,6 +17,51 @@ export function writeFoodsList(filter: FoodListFilter, foods: Food[]): void {
   const current = peekJson(url);
   const base = isRecord(current) ? current : {};
   writeJson(url, { ...base, foods });
+}
+
+const FOOD_LIST_FILTERS: FoodListFilter[] = ["all", "favorites", "recent"];
+
+function patchCachedFoodLists(
+  mutate: (foods: Food[], filter: FoodListFilter) => Food[] | null,
+): void {
+  for (const filter of FOOD_LIST_FILTERS) {
+    const cached = peekJson(foodsApiUrl(filter));
+    if (cached == null) {
+      continue;
+    }
+    const foods = parseFoodList(cached);
+    const next = mutate(foods, filter);
+    if (next == null) {
+      continue;
+    }
+    writeFoodsList(filter, next);
+  }
+}
+
+export function syncSavedFoodInCache(food: Food): void {
+  patchCachedFoodLists((foods, filter) => {
+    const index = foods.findIndex((item) => item.id === food.id);
+    if (filter === "favorites") {
+      if (!food.is_favorite) {
+        return index < 0 ? foods : foods.filter((item) => item.id !== food.id);
+      }
+      if (index >= 0) {
+        return foods.map((item) => (item.id === food.id ? food : item));
+      }
+      return [food, ...foods];
+    }
+    if (index >= 0) {
+      return foods.map((item) => (item.id === food.id ? food : item));
+    }
+    if (filter === "all" || filter === "recent") {
+      return [food, ...foods];
+    }
+    return foods;
+  });
+}
+
+export function removeFoodFromCache(foodId: string): void {
+  patchCachedFoodLists((foods) => foods.filter((item) => item.id !== foodId));
 }
 
 export async function toggleFoodFavorite(
