@@ -69,7 +69,7 @@ export function WorkoutsHubQueueCta({
       <Button
         type="button"
         variant="ghost"
-        className="h-11 text-base text-muted-foreground"
+        className="h-11 w-full max-w-full text-base text-muted-foreground"
         disabled={busy}
         onClick={onBackfill}
       >
@@ -157,13 +157,13 @@ export function WorkoutsHubQueueCta({
       ) : null}
 
       {secondary.length > 0 ? (
-        <div className="-mb-1 flex gap-2">
+        <div className="-mb-1 flex min-w-0 flex-col gap-2">
           {secondary.map((item) => (
             <Button
               key={item.key}
               type="button"
               variant="ghost"
-              className="h-11 flex-1 text-base text-muted-foreground"
+              className="h-auto min-h-11 w-full max-w-full whitespace-normal px-4 py-2.5 text-base leading-snug text-muted-foreground"
               disabled={busy}
               onClick={item.onClick}
             >
