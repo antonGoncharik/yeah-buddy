@@ -1,11 +1,13 @@
 import { coachStartPayload } from "@/lib/coach/start";
 import {
+  dismissPendingBarbell,
   dismissPendingCoachToken,
   dismissPendingPackToken,
   dismissPendingProgramId,
   packBackHref,
   packPath,
   parsePackBackFrom,
+  peekPendingBarbell,
   peekPendingCoachToken,
   peekPendingPackToken,
   peekPendingProgramId,
@@ -66,6 +68,14 @@ assert(parsePackBackFrom("nope") === null, "reject from");
 assert(packBackHref("meals") === "/settings/meals", "back to meals");
 assert(packBackHref("today") === "/today", "back to today");
 assert(packBackHref(null) === "/settings/packs", "back default");
+
+memory.clear();
+rememberIncomingStart("barbell");
+assert(peekPendingBarbell(), "barbell start queues game");
+dismissPendingBarbell();
+assert(!peekPendingBarbell(), "dismiss barbell");
+rememberIncomingStart("barbell");
+assert(!peekPendingBarbell(), "seen barbell is not queued again");
 
 memory.clear();
 rememberIncomingStart(programStartPayload("full_body"));

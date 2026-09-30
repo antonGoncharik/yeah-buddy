@@ -1,4 +1,5 @@
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
+import { BARBELL_START_PAYLOAD } from "@/lib/share/barbell-start";
 import type { PublicProgramId } from "@/lib/share/program-public";
 import { programStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
@@ -87,6 +88,19 @@ export function resolveProgramShareUrl(
   }
 
   return botOrAppStart(appUrl, programStartPayload(id));
+}
+
+export function resolveBarbellPlayUrl(input: {
+  miniAppUrl: string | null;
+  appUrl: string | null;
+}): string | null {
+  if (input.miniAppUrl) {
+    return withStartApp(input.miniAppUrl, BARBELL_START_PAYLOAD);
+  }
+  if (!input.appUrl) {
+    return null;
+  }
+  return botOrAppStart(input.appUrl, BARBELL_START_PAYLOAD);
 }
 
 function botOrAppStart(appUrl: string, payload: string): string {

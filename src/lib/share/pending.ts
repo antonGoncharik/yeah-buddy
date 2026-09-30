@@ -1,4 +1,6 @@
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
+import { BARBELL_GAME_HREF } from "@/lib/share/barbell-daily";
+import { parseBarbellStartPayload } from "@/lib/share/barbell-start";
 import {
   isPublicProgramId,
   type PublicProgramId,
@@ -12,6 +14,8 @@ const PROGRAM_PENDING_KEY = "yb.program";
 const PROGRAM_SEEN_KEY = "yb.program.seen";
 const COACH_PENDING_KEY = "yb.coach";
 const COACH_SEEN_KEY = "yb.coach.seen";
+const BARBELL_PENDING_KEY = "yb.barbell";
+const BARBELL_SEEN_KEY = "yb.barbell.seen";
 
 export type PackBackFrom = "meals" | "schedule" | "packs" | "today";
 
@@ -24,6 +28,11 @@ function storage(): Storage | null {
 
 export function rememberIncomingStart(value: string | null | undefined): void {
   if (!value) {
+    return;
+  }
+
+  if (parseBarbellStartPayload(value)) {
+    rememberBarbellStart();
     return;
   }
 
@@ -113,11 +122,42 @@ export function dismissPendingCoachToken(token: string): void {
   store.setItem(COACH_SEEN_KEY, token);
 }
 
+export function rememberBarbellStart(): void {
+  const store = storage();
+  if (!store) {
+    return;
+  }
+  if (store.getItem(BARBELL_SEEN_KEY) === "1") {
+    return;
+  }
+  store.setItem(BARBELL_PENDING_KEY, "1");
+}
+
+export function peekPendingBarbell(): boolean {
+  return storage()?.getItem(BARBELL_PENDING_KEY) === "1";
+}
+
+export function dismissPendingBarbell(): void {
+  const store = storage();
+  if (!store) {
+    return;
+  }
+  if (store.getItem(BARBELL_PENDING_KEY) === "1") {
+    store.removeItem(BARBELL_PENDING_KEY);
+  }
+  store.setItem(BARBELL_SEEN_KEY, "1");
+}
+
+export function barbellPath(): string {
+  return BARBELL_GAME_HREF;
+}
+
 export function rememberPackToken(token: string | null | undefined): void {
   if (
     !token ||
     parseProgramStartPayload(token) ||
     parseCoachStartPayload(token) ||
+    parseBarbellStartPayload(token) ||
     !isPackToken(token)
   ) {
     return;

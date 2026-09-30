@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
+  BarbellDoodle,
   BookDoodle,
   CoachDoodle,
   FriendsDoodle,
@@ -31,6 +32,11 @@ import { Segmented } from "@/components/ui/segmented";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
+import {
+  BARBELL_GAME_HINT,
+  BARBELL_GAME_HREF,
+  BARBELL_GAME_TITLE,
+} from "@/lib/share/barbell-daily";
 import {
   BOT_INVITE_HINT,
   BOT_INVITE_LABEL,
@@ -182,6 +188,12 @@ export function SettingsScreen() {
               title={PACKS_LABEL}
               hint="Еда на день, сохранённый приём или программа тренировок"
               icon={<FriendsDoodle />}
+            />
+            <NavRow
+              href={BARBELL_GAME_HREF}
+              title={BARBELL_GAME_TITLE}
+              hint={BARBELL_GAME_HINT}
+              icon={<BarbellDoodle />}
             />
             <NavRow
               href={INVITE_HREF}

@@ -29,6 +29,7 @@ assert(
 );
 assert(isIncomingStartPayload("p_full_body"), "program is a start payload");
 assert(isIncomingStartPayload("p_ppl"), "short program is a start payload");
+assert(isIncomingStartPayload("barbell"), "barbell is a start payload");
 assert(!isIncomingStartPayload("ppl"), "bare ppl is not a start");
 assert(!isIncomingStartPayload("open"), "junk is not a start");
 

@@ -6,6 +6,14 @@ import type {
 
 import { YEAH_BUDDY_LINE } from "@/lib/flavor";
 import { BOT_PROGRAM_START } from "@/lib/messages";
+import {
+  type BarbellShareFacts,
+  barbellShareCaption,
+  barbellShareTitle,
+  barbellTeaserCaption,
+  matchBarbellInlineSearch,
+  parseBarbellInlineQuery,
+} from "@/lib/share/barbell-daily";
 import { dayShareCard, parseDayInlineQuery } from "@/lib/share/day";
 import {
   BOT_INSTALL_DIARY,
@@ -32,7 +40,10 @@ import {
   weekCardSize,
 } from "@/lib/share/week-card";
 import { publicHttpOrigin } from "@/lib/site-url";
-import { resolveProgramShareUrl } from "@/lib/telegram/share-url";
+import {
+  resolveBarbellPlayUrl,
+  resolveProgramShareUrl,
+} from "@/lib/telegram/share-url";
 
 export function joyPhotoOrigin(
   value: string | null | undefined,
@@ -147,6 +158,79 @@ export function programInlineResults(input: {
   return results;
 }
 
+export function barbellInlineResults(input: {
+  facts?: BarbellShareFacts | null;
+  query?: string;
+  photoOrigin: string;
+  installUrl: string;
+  miniAppUrl?: string | null;
+}): InlineQueryResultPhoto[] {
+  const facts =
+    input.facts ?? (input.query ? parseBarbellInlineQuery(input.query) : null);
+  if (!facts) {
+    return [];
+  }
+
+  const line = barbellShareCaption(facts);
+  const playUrl =
+    resolveBarbellPlayUrl({
+      miniAppUrl: input.miniAppUrl ?? null,
+      appUrl: input.installUrl,
+    }) ?? input.installUrl;
+  const photo = joyPhotoUrl(input.photoOrigin, "trex");
+  const keyboard = [[{ text: BOT_INSTALL_DIARY, url: input.installUrl }]];
+  if (playUrl !== input.installUrl) {
+    keyboard.push([{ text: "Собрать штангу", url: playUrl }]);
+  }
+  return [
+    {
+      type: "photo",
+      id: `barbell-${facts.targetKg}-${facts.moves}`,
+      photo_url: photo,
+      thumbnail_url: photo,
+      photo_width: 512,
+      photo_height: 512,
+      title: barbellShareTitle(facts),
+      caption: line,
+      reply_markup: {
+        inline_keyboard: keyboard,
+      },
+    },
+  ];
+}
+
+export function barbellTeaserInlineResult(input: {
+  photoOrigin: string;
+  installUrl: string;
+  miniAppUrl?: string | null;
+}): InlineQueryResultPhoto {
+  const playUrl =
+    resolveBarbellPlayUrl({
+      miniAppUrl: input.miniAppUrl ?? null,
+      appUrl: input.installUrl,
+    }) ?? input.installUrl;
+  const photo = joyPhotoUrl(input.photoOrigin, "trex");
+  return {
+    type: "photo",
+    id: "barbell-teaser",
+    photo_url: photo,
+    thumbnail_url: photo,
+    photo_width: 512,
+    photo_height: 512,
+    title: "Собери штангу",
+    caption: barbellTeaserCaption(),
+    reply_markup: {
+      inline_keyboard:
+        playUrl === input.installUrl
+          ? [[{ text: BOT_INSTALL_DIARY, url: input.installUrl }]]
+          : [
+              [{ text: "Собрать штангу", url: playUrl }],
+              [{ text: BOT_INSTALL_DIARY, url: input.installUrl }],
+            ],
+    },
+  };
+}
+
 export function dayInlineResults(input: {
   query: string;
   photoOrigin: string;
@@ -205,6 +289,7 @@ export function botInlineResults(input: {
   query: string;
   photoOrigin: string;
   installUrl: string;
+  miniAppUrl?: string | null;
   stickerFileId: string | null;
   weekSecret?: string | null;
 }): InlineQueryResult[] {
@@ -224,6 +309,16 @@ export function botInlineResults(input: {
     return joyInlineResults(input);
   }
 
+  const barbell = parseBarbellInlineQuery(input.query);
+  if (barbell) {
+    return barbellInlineResults({
+      facts: barbell,
+      photoOrigin: input.photoOrigin,
+      installUrl: input.installUrl,
+      miniAppUrl: input.miniAppUrl,
+    });
+  }
+
   const day = dayInlineResults(input);
   if (day.length > 0) {
     return day;
@@ -235,6 +330,18 @@ export function botInlineResults(input: {
   });
   if (input.query.trim() !== "" && programs.length > 0) {
     return programs;
+  }
+
+  if (matchBarbellInlineSearch(input.query)) {
+    return [
+      barbellTeaserInlineResult({
+        photoOrigin: input.photoOrigin,
+        installUrl: input.installUrl,
+        miniAppUrl: input.miniAppUrl,
+      }),
+      ...programs,
+      ...joyInlineResults(input),
+    ];
   }
 
   return [...programs, ...joyInlineResults(input)];

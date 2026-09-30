@@ -1,6 +1,10 @@
 import { postJson } from "@/lib/api-cache";
 import { isRecord } from "@/lib/read";
 import {
+  type BarbellShareFacts,
+  barbellInlineQuery,
+} from "@/lib/share/barbell-daily";
+import {
   BOT_INSTALL_DIARY,
   type JoyLift,
   type JoyMoment,
@@ -74,10 +78,53 @@ function readPhotoSharePayload(data: unknown): PhotoSharePayload | null {
 
 export type WeekSharePayload = PhotoSharePayload;
 export type JoySharePayload = PhotoSharePayload;
+export type BarbellSharePayload = PhotoSharePayload;
 
 export async function prepareWeekShare(): Promise<WeekSharePayload | null> {
   const data = await postJson("/api/share/week", {});
   return readPhotoSharePayload(data);
+}
+
+export async function prepareBarbellShare(
+  facts: BarbellShareFacts,
+): Promise<BarbellSharePayload | null> {
+  const data = await postJson("/api/share/barbell", facts);
+  return readPhotoSharePayload(data);
+}
+
+export async function shareBarbellToChat(
+  facts: BarbellShareFacts,
+  cached?: BarbellSharePayload | null,
+): Promise<"shared" | "cancelled" | "failed"> {
+  let payload = cached;
+  if (!payload) {
+    try {
+      payload = await prepareBarbellShare(facts);
+    } catch {
+      payload = null;
+    }
+  }
+  if (payload) {
+    const sent = await openPreparedShare(payload.id, payload.query);
+    if (sent !== "failed") {
+      if (sent === "shared") {
+        haptic("success");
+      }
+      return sent;
+    }
+  }
+
+  const fallback = await switchInlineShare(barbellInlineQuery(facts));
+  if (fallback === "shared") {
+    haptic("success");
+  }
+  return fallback;
+}
+
+export async function shareBarbellToStory(
+  payload: BarbellSharePayload,
+): Promise<"opened" | "unavailable"> {
+  return sharePayloadToStory(payload, "Собрать штангу");
 }
 
 export async function prepareJoyShare(

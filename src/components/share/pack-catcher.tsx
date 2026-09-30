@@ -4,7 +4,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import {
+  barbellPath,
+  dismissPendingBarbell,
   packPath,
+  peekPendingBarbell,
   peekPendingPackToken,
   peekPendingProgramId,
 } from "@/lib/share/pending";
@@ -16,6 +19,16 @@ export function PackCatcher({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (peekPendingBarbell()) {
+      const target = barbellPath();
+      if (pathname === target || pathname.startsWith(`${target}/`)) {
+        dismissPendingBarbell();
+        return;
+      }
+      router.replace(target);
+      return;
+    }
+
     const programId = peekPendingProgramId();
     if (programId) {
       const target = programPath(programId);

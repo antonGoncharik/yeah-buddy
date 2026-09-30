@@ -191,6 +191,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
         query: ctx.inlineQuery.query,
         photoOrigin,
         installUrl,
+        miniAppUrl: getMiniAppUrl(env),
         stickerFileId: trexStickerFileId(),
         weekSecret: env.SESSION_SECRET,
       }),

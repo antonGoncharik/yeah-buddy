@@ -5,6 +5,7 @@ import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
+import { WorkoutsHubBarbellCard } from "@/components/workout/workouts-hub-barbell-card";
 import { WorkoutsHubEmpty } from "@/components/workout/workouts-hub-empty";
 import { WorkoutsHubNavSections } from "@/components/workout/workouts-hub-nav-sections";
 import { WorkoutsHubQueueCta } from "@/components/workout/workouts-hub-queue-cta";
@@ -56,6 +57,8 @@ export function WorkoutsHubScreen() {
         {!loading && error ? (
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
+
+        {!loading && !error ? <WorkoutsHubBarbellCard /> : null}
 
         {!loading && !error ? (
           <WorkoutsHubEmpty

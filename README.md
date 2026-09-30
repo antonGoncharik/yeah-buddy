@@ -21,6 +21,7 @@ Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as
 - Optional weeks can also be picked later: ramp → volume → peak → deload, or a percent/kg wave. Starting weeks can omit максимум на раз — the session asks. Weights move when the week changes, not after a single session.
 - A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово». Untouched sets close as planned and stay labeled that way in history and on charts; edited sets are the real log. Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
 - Progress (working weights and relative strength when body weight is logged), session history, exercise list.
+- **Собери штангу** (`/workouts/barbell`): one plate-math puzzle per calendar day (60–140 kg), streak in `localStorage`. Rest between sets still uses the same loader for the real working weight. After a solve: **В чат** / **Сторис** with a T-rex card and **Поставить дневник**; `@bot` inline `barbell …` or queries like «собери штангу». Mini App deep link: `startapp=barbell`.
 
 **Share**
 
