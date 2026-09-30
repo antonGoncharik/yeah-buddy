@@ -7,6 +7,7 @@ import type {
 } from "@/lib/types";
 import {
   completeSessionLocally,
+  preferLiveCompleted,
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
 
@@ -153,5 +154,21 @@ assertEqual(
 );
 assertEqual(preferLiveFeel("easy", null, "easy"), "easy", "saved feel stays");
 assertEqual(preferLiveFeel(null, null, null), null, "no tap stays empty");
+
+const completedLocal = completeSessionLocally(detail, {});
+const stalePlanned = preferLiveCompleted(completedLocal, detail);
+assertEqual(
+  stalePlanned.session.status,
+  "completed",
+  "stale planned GET keeps finished screen",
+);
+assertEqual(
+  preferLiveCompleted(
+    { ...completedLocal, session: { ...completedLocal.session, feel: "easy" } },
+    { ...completedLocal, session: { ...completedLocal.session, feel: null } },
+  ).session.feel,
+  "easy",
+  "feel tap during slow GET",
+);
 
 console.log("session complete local ok");

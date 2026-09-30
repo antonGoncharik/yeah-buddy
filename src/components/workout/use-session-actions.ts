@@ -7,7 +7,7 @@ import {
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
-import { fetchJson, peekJson, writeJson } from "@/lib/api-cache";
+import { peekJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
@@ -15,9 +15,11 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
 import {
   completeSessionLocally,
+  preferLiveCompleted,
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
+import { parseWorkoutSession } from "@/lib/workout/map-rows";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionActions({
@@ -62,11 +64,12 @@ export function useSessionActions({
   }
 
   function applyPayload(data: unknown): SessionDetail | null {
-    const next = readSessionDetail(data);
-    if (!next) {
+    const parsed = readSessionDetail(data);
+    if (!parsed) {
       return null;
     }
-    writeJson(sessionUrl, data);
+    const next = preferLiveCompleted(detailRef.current, parsed);
+    writeJson(sessionUrl, next);
     applyDetail(next);
     return next;
   }
@@ -114,10 +117,11 @@ export function useSessionActions({
         sentFeel,
         parsed.session.feel,
       );
-      const next =
+      const withFeel =
         feel === parsed.session.feel
           ? parsed
           : { ...parsed, session: { ...parsed.session, feel } };
+      const next = preferLiveCompleted(live, withFeel);
       writeJson(sessionUrl, next);
       applyDetail(next);
       await loadFollowUp(next.session.session_date);
@@ -130,48 +134,50 @@ export function useSessionActions({
   }
 
   async function saveFeel(feel: SessionFeel | null) {
-    if (!detail) {
+    const current = detailRef.current;
+    if (!current || current.session.status !== "completed" || correcting) {
       return;
     }
 
-    const previous = detail.session.feel;
-    const nextDetail = {
-      ...detail,
-      session: { ...detail.session, feel },
+    const previous = current.session.feel;
+    const optimistic = {
+      ...current,
+      session: { ...current.session, feel },
     };
-    setDetail(nextDetail);
-    writeCompletedCaches(sessionUrl, nextDetail);
+    setDetail(optimistic);
+    writeCompletedCaches(sessionUrl, optimistic);
 
     try {
       const data = await queueMutate({
         method: "PATCH",
-        url: `/api/sessions/${detail.session.id}`,
+        url: `/api/sessions/${current.session.id}`,
         body: { feel },
-        cacheUrls: [sessionUrl, sessionDateUrl(detail.session.session_date)],
+        cacheUrls: [sessionUrl, sessionDateUrl(current.session.session_date)],
       });
-      if (data == null || detail.session.status !== "completed" || correcting) {
+      if (data == null) {
         return;
       }
 
-      const refreshed = await fetchJson(sessionUrl);
-      const parsed = readSessionDetail(refreshed);
-      if (parsed) {
-        const feelNow = preferLiveFeel(feel, previous, parsed.session.feel);
-        const next =
-          feelNow === parsed.session.feel
-            ? parsed
-            : { ...parsed, session: { ...parsed.session, feel: feelNow } };
-        if (next !== parsed) {
-          writeJson(sessionUrl, next);
-        }
-        applyDetail(next);
-        await loadFollowUp(detail.session.session_date);
+      const patched = isRecord(data)
+        ? parseWorkoutSession(data.session)
+        : null;
+      if (!patched || patched.id !== current.session.id) {
+        return;
       }
+
+      const live = detailRef.current ?? current;
+      const merged = preferLiveCompleted(live, {
+        ...live,
+        session: patched,
+      });
+      writeCompletedCaches(sessionUrl, merged);
+      applyDetail(merged);
+      await loadFollowUp(current.session.session_date);
     } catch (caught) {
       haptic("error");
       const reverted = {
-        ...nextDetail,
-        session: { ...nextDetail.session, feel: previous },
+        ...optimistic,
+        session: { ...optimistic.session, feel: previous },
       };
       writeCompletedCaches(sessionUrl, reverted);
       setDetail(reverted);

@@ -13,6 +13,47 @@ export function preferLiveFeel(
   return returned;
 }
 
+/** Keep a finished screen when a slow GET still says planned. */
+export function preferLiveCompleted(
+  live: SessionDetail | null,
+  parsed: SessionDetail,
+): SessionDetail {
+  if (!live || live.session.id !== parsed.session.id) {
+    return parsed;
+  }
+
+  if (parsed.session.status === "completed") {
+    const feel = preferLiveFeel(
+      live.session.feel,
+      null,
+      parsed.session.feel,
+    );
+    if (feel === parsed.session.feel) {
+      return parsed;
+    }
+    return { ...parsed, session: { ...parsed.session, feel } };
+  }
+
+  if (live.session.status === "completed") {
+    const feel = preferLiveFeel(
+      live.session.feel,
+      null,
+      parsed.session.feel,
+    );
+    return {
+      ...live,
+      session: { ...live.session, feel },
+      raise_offers:
+        parsed.raise_offers.length > 0 ? parsed.raise_offers : live.raise_offers,
+      beats: parsed.beats ?? live.beats,
+      phase: parsed.phase ?? live.phase,
+      template: parsed.template ?? live.template,
+    };
+  }
+
+  return parsed;
+}
+
 export function completeSessionLocally(
   detail: SessionDetail,
   input: CompleteSessionInput = {},

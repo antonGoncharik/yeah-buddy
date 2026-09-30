@@ -184,7 +184,7 @@ export async function fetchJson(url: string): Promise<unknown> {
   const data = await mutateJson(url);
   if (
     (inflight.get(url) ?? 0) > 0 ||
-    (writeStamp.get(url) ?? 0) > started ||
+    (writeStamp.get(url) ?? 0) >= started ||
     hasPendingCache(url)
   ) {
     return peekJson(url) ?? data;

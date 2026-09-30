@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDayMood } from "@/components/layout/day-mood";
 import {
   draftsFromDetail,
@@ -26,6 +26,7 @@ import {
   sessionCloseKindShort,
   workAbovePlan,
 } from "@/lib/workout/session-format";
+import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionScreen() {
@@ -51,6 +52,8 @@ export function useSessionScreen() {
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
+  const detailRef = useRef<SessionDetail | null>(null);
+  detailRef.current = detail;
 
   const sessionUrl = `/api/sessions/${params.id}`;
 
@@ -65,7 +68,8 @@ export function useSessionScreen() {
     setPhaseId(followUp.phaseId);
   }, []);
 
-  const applyDetail = useCallback((next: SessionDetail) => {
+  const applyDetail = useCallback((incoming: SessionDetail) => {
+    const next = preferLiveCompleted(detailRef.current, incoming);
     setDetail(next);
     const stored =
       next.session.status === "planned"
