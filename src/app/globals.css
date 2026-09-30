@@ -449,6 +449,15 @@ html.dark[data-day="deload"] {
   body {
     @apply bg-background text-foreground;
   }
+  .field-control:-webkit-autofill,
+  .field-control:-webkit-autofill:hover,
+  .field-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground);
+    caret-color: var(--foreground);
+  }
+  input:where([type="checkbox"], [type="radio"]) {
+    accent-color: var(--primary);
+  }
   svg :is(path, circle, rect, line, polyline, polygon) {
     transition:
       fill var(--theme-duration) var(--ease-out-soft),
@@ -522,6 +531,10 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   border-style: solid;
   border-color: color-mix(in oklch, var(--input) 55%, var(--border));
   background-color: var(--input-bg);
+  color: var(--foreground);
+  caret-color: var(--foreground);
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 @keyframes rise {
