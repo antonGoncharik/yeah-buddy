@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
-  ProductDoodle,
-  FriendsDoodle,
-  MacroDoodle,
   BookDoodle,
   CoachDoodle,
+  FriendsDoodle,
+  MacroDoodle,
   MealDayDoodle,
+  ProductDoodle,
   QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
@@ -226,8 +226,8 @@ export function SettingsScreen() {
           <p className="text-sm text-muted-foreground">
             Компактный ужимает день и тренировки: меньше отступы, ниже кнопки,
             короче строки, без подсказок и второстепенных строк. В питании
-            граммы с калориями в одной строке с названием; расширенный
-            добавляет БЖУ к продукту. Сумма приёма в обоих.
+            граммы с калориями в одной строке с названием; расширенный добавляет
+            БЖУ к продукту. Сумма приёма в обоих.
           </p>
         </section>
 

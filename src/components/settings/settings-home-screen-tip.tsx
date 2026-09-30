@@ -3,21 +3,23 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { haptic } from "@/lib/telegram/haptic";
 import {
   HOME_SCREEN_TIP_BODY,
   HOME_SCREEN_TIP_TITLE,
-  readHomeScreenStatus,
   type HomeScreenStatus,
+  readHomeScreenStatus,
 } from "@/lib/telegram/home-screen";
 import {
   dismissHomeScreenTip,
   readHomeScreenTipDismissed,
 } from "@/lib/telegram/home-screen-seen";
-import { haptic } from "@/lib/telegram/haptic";
 
 export function SettingsHomeScreenTip() {
   const [status, setStatus] = useState<HomeScreenStatus | "loading">("loading");
-  const [dismissed, setDismissed] = useState(() => readHomeScreenTipDismissed());
+  const [dismissed, setDismissed] = useState(() =>
+    readHomeScreenTipDismissed(),
+  );
 
   useEffect(() => {
     void readHomeScreenStatus().then(setStatus);

@@ -1,10 +1,5 @@
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import {
-  programQueueDayLabel,
-  programVisitFrequencyLead,
-  programVisitFrequencyShort,
-} from "@/lib/workout/program-preset-visit";
-import {
   LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,
@@ -14,6 +9,11 @@ import {
   type ProgramPreset,
   type ProgramPresetId,
 } from "@/lib/workout/program-preset-data";
+import {
+  programQueueDayLabel,
+  programVisitFrequencyLead,
+  programVisitFrequencyShort,
+} from "@/lib/workout/program-preset-visit";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
 export function programPresetsByLevel(): Array<{

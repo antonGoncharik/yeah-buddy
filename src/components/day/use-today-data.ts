@@ -33,11 +33,7 @@ import {
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
-import type {
-  CopyDayHint,
-  MealType,
-  NamedMealHint,
-} from "@/lib/types";
+import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { prefetchGymCache } from "@/lib/workout/session-local";
 

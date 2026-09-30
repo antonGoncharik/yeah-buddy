@@ -1,13 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  dedupeStarterFoods,
-  foodNameKey,
-} from "@/lib/food/dedupe-foods";
+import { dedupeStarterFoods, foodNameKey } from "@/lib/food/dedupe-foods";
 import { FAVORITE_FOODS, STARTER_FOODS } from "@/lib/food/starter";
-import {
-  seededNames,
-  throwUnlessUniqueViolation,
-} from "@/lib/seed-missing";
+import { seededNames, throwUnlessUniqueViolation } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureStarterExercises } from "@/lib/workout/seed";
 

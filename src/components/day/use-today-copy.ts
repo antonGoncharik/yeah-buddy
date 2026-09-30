@@ -20,10 +20,7 @@ import {
 } from "@/lib/day/cache";
 import { previousIsoDate } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
-import {
-  copyMealsFrom,
-  isTempId,
-} from "@/lib/day/optimistic";
+import { copyMealsFrom, isTempId } from "@/lib/day/optimistic";
 import { recipeFromTemplate } from "@/lib/day/remaining";
 import { readRecipes } from "@/lib/day/today-payload";
 import { readMealTemplatePayload } from "@/lib/meal/parse";

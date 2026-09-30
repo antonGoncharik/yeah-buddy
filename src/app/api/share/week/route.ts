@@ -8,9 +8,9 @@ import { LOAD_FAILED } from "@/lib/messages";
 import { joyPhotoOrigin, weekInlineResults } from "@/lib/share/prepared";
 import {
   encodeWeekCard,
+  WEEK_CARD_EMPTY,
   weekCardCaption,
   weekCardPhotoUrl,
-  WEEK_CARD_EMPTY,
 } from "@/lib/share/week-card";
 import { loadWeekCard } from "@/lib/share/week-card-load";
 import { createBot, getAppShareUrl } from "@/lib/telegram/bot";

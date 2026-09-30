@@ -15,6 +15,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
 import {
   clearSessionDraft,
   overlaySessionDrafts,
@@ -26,7 +27,6 @@ import {
   sessionCloseKindShort,
   workAbovePlan,
 } from "@/lib/workout/session-format";
-import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionScreen() {

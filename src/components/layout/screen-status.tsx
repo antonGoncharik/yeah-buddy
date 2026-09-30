@@ -182,23 +182,39 @@ export function ScreenLoading({
           )}
           aria-hidden
         >
-          {BEATS.map((item, index) => (
-            <span
-              key={item.key}
-              className={cn(
-                "animate-loader-beat block",
-                splash && "cursor-pointer",
-                item.key === "mug" && "doodle-mug",
-                "pull" in item && item.pull,
-              )}
-              style={{ animationDelay: `${index * 0.22}s` }}
-              onClick={splash ? () => tapBeat(item.key) : undefined}
-            >
+          {BEATS.map((item, index) => {
+            const beatClass = cn(
+              "animate-loader-beat block",
+              splash && "cursor-pointer",
+              item.key === "mug" && "doodle-mug",
+              "pull" in item && item.pull,
+            );
+            const beatStyle = { animationDelay: `${index * 0.22}s` };
+            const doodle = (
               <Doodle className={item.box} viewBox={item.viewBox}>
                 {item.mark}
               </Doodle>
-            </span>
-          ))}
+            );
+            if (splash) {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  tabIndex={-1}
+                  className={beatClass}
+                  style={beatStyle}
+                  onClick={() => tapBeat(item.key)}
+                >
+                  {doodle}
+                </button>
+              );
+            }
+            return (
+              <span key={item.key} className={beatClass} style={beatStyle}>
+                {doodle}
+              </span>
+            );
+          })}
         </div>
         <p aria-hidden className="animate-fade text-base">
           {beatLine ?? line}

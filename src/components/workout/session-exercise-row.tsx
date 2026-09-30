@@ -98,8 +98,7 @@ export function SessionExerciseRow({
   ]
     .filter(Boolean)
     .join(" · ");
-  const metaOpen =
-    openSetIds.length > 0 || warmupOpen || Boolean(leadSet);
+  const metaOpen = openSetIds.length > 0 || warmupOpen || Boolean(leadSet);
 
   function renderEditor(set: WorkoutSet) {
     if (!leadSet || set.id !== leadSet.id) {

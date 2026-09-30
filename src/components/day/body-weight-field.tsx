@@ -133,7 +133,9 @@ export function BodyWeightField({
             align === "start" ? "text-left" : "text-right",
           )}
         />
-        <span className="text-lg font-medium text-muted-foreground">{unit}</span>
+        <span className="text-lg font-medium text-muted-foreground">
+          {unit}
+        </span>
       </div>
       {invalid ? (
         <p className="text-xs text-destructive">{invalidHint}</p>

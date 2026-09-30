@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import type { SetDraft } from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
 import { handleNumericEnter } from "@/lib/form/field-nav";
-import { sanitizeDecimalDraft, sanitizeIntegerDraft } from "@/lib/form/numeric-draft";
+import {
+  sanitizeDecimalDraft,
+  sanitizeIntegerDraft,
+} from "@/lib/form/numeric-draft";
 import type { WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { setRirLabel, setUsesSeconds } from "@/lib/workout/session-format";

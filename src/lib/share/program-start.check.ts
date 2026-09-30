@@ -1,3 +1,4 @@
+import { PUBLIC_PROGRAM_IDS } from "@/lib/share/program-public";
 import {
   FEATURED_PROGRAM_IDS,
   featuredProgramPreset,
@@ -12,7 +13,6 @@ import {
   readFeaturedProgramPayload,
 } from "@/lib/share/program-start";
 import { createPackToken, isPackToken } from "@/lib/share/token";
-import { PUBLIC_PROGRAM_IDS } from "@/lib/share/program-public";
 import { programPresetById } from "@/lib/workout/program-presets";
 
 function assert(condition: boolean, message: string): void {
@@ -121,7 +121,11 @@ assertEqual(
   "3x5 alias",
 );
 assertEqual(matchFeaturedPrograms("5x5").join(), "five_by_five", "5x5");
-assertEqual(matchFeaturedPrograms("пять на пять").join(), "five_by_five", "5×5");
+assertEqual(
+  matchFeaturedPrograms("пять на пять").join(),
+  "five_by_five",
+  "5×5",
+);
 assertEqual(matchFeaturedPrograms("фуллбади").join(), "full_body", "фуллбади");
 assertEqual(matchFeaturedPrograms("всё тело").join(), "full_body", "всё тело");
 assertEqual(matchFeaturedPrograms("ppl").join(), "ppl", "ppl");

@@ -87,7 +87,9 @@ export function FoodMacrosFields({
             enterKeyHint="next"
             value={form.fat_per_100}
             onChange={(event) =>
-              onChange({ fat_per_100: sanitizeDecimalDraft(event.target.value) })
+              onChange({
+                fat_per_100: sanitizeDecimalDraft(event.target.value),
+              })
             }
             onKeyDown={handleNumericEnter}
             className="h-12 text-base"

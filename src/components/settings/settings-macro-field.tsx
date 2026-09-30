@@ -40,9 +40,7 @@ export function SettingsMacroField({
         enterKeyHint={enterKeyHint}
         value={value}
         aria-invalid={invalid || undefined}
-        onChange={(event) =>
-          onChange(sanitizeDecimalDraft(event.target.value))
-        }
+        onChange={(event) => onChange(sanitizeDecimalDraft(event.target.value))}
         onKeyDown={handleNumericEnter}
         className="h-12 text-base"
       />

@@ -43,10 +43,6 @@ assertEqual(readInvitePayload({ text: "hi" }), null, "missing url");
 assertEqual(INVITE_HREF, "/settings/invite", "invite lives in settings");
 assertEqual(BOT_INVITE_LABEL, "Бот другу", "invite label");
 assertEqual(BOT_INVITE_HINT, "QR чтобы поделиться приложением", "invite hint");
-assertEqual(
-  BOT_INVITE_SUBTITLE,
-  "Ссылка на бот",
-  "invite subtitle",
-);
+assertEqual(BOT_INVITE_SUBTITLE, "Ссылка на бот", "invite subtitle");
 
 console.log("share invite meta ok");

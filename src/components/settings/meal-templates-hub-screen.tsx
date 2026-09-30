@@ -174,9 +174,7 @@ export function MealTemplatesHubScreen() {
                       ? `Пока пусто. ${card.hint}`
                       : `${formatKcal(totals.kcal)} ккал · ${card.hint}`
                   }
-                  icon={
-                    <DayTypeMark training={card.dayType === "training"} />
-                  }
+                  icon={<DayTypeMark training={card.dayType === "training"} />}
                   className="card-surface animate-rise px-5 py-4 hover:bg-muted/30"
                   style={{ animationDelay: `${index * 50}ms` }}
                 />

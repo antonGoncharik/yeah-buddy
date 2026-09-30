@@ -54,6 +54,9 @@ assert(
   GOAL_OPTION_SELECTED_CLASS.includes("bg-primary"),
   "selected goal uses primary fill",
 );
-assert(GOAL_OPTION_UNSELECTED_CLASS.length > 0, "unselected goal style exported");
+assert(
+  GOAL_OPTION_UNSELECTED_CLASS.length > 0,
+  "unselected goal style exported",
+);
 
 console.log("goal option buttons ok");

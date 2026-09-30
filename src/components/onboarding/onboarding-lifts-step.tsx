@@ -1,10 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
-import { haptic } from "@/lib/telegram/haptic";
 
 export type LiftKey = "squat" | "bench" | "deadlift";
 

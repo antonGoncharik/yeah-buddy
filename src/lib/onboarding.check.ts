@@ -19,7 +19,10 @@ const completeSource = readFileSync(
 );
 const maxesAt = completeSource.indexOf("await applyStartingMaxes(");
 const presetAt = completeSource.indexOf("await applyProgramPreset(");
-assert(maxesAt >= 0 && presetAt >= 0, "complete.ts still writes maxes and preset");
+assert(
+  maxesAt >= 0 && presetAt >= 0,
+  "complete.ts still writes maxes and preset",
+);
 assert(
   maxesAt < presetAt,
   "starting maxes must land before the program preset so cycle phases inherit them",

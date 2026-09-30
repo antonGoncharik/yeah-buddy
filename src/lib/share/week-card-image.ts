@@ -34,6 +34,8 @@ function loadFontFiles(): Promise<string[]> {
 async function readFontFiles(): Promise<string[]> {
   const dir = join(process.cwd(), "src/assets/fonts");
   const paths = FONT_FILES.map((name) => join(dir, name));
-  await Promise.all(paths.map((path) => readFile(path)));
+  await Promise.all(
+    paths.map((path) => readFile(/* turbopackIgnore: true */ path)),
+  );
   return paths;
 }

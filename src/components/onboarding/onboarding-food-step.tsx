@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-
+import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
-import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import {
   formatKcal,
   ONBOARDING_SEX_OPTIONS,
@@ -204,11 +203,11 @@ export function OnboardingMacrosStep({
         {protein} г белка
       </p>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир{" "}
-        {preview.rest.fat} г, углеводы {preview.rest.carbs} г. В день
-        тренировки — {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
-        {preview.training.carbs} г. Потом можно поменять в Настройках → «Цели
-        на день».
+        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
+        г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
+        {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
+        {preview.training.carbs} г. Потом можно поменять в Настройках → «Цели на
+        день».
       </p>
       {showCustom || proteinOverride != null ? (
         <div className="flex flex-col gap-2">

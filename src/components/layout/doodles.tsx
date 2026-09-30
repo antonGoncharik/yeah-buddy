@@ -162,9 +162,7 @@ export function MealDayMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g>
       <g {...STROKE} stroke={ink}>
-        <path
-          d="M-11.2 -5.8 H11.2 Q12.6 -5.8 12.6 -4.4 V6.8 Q12.6 8.2 11.2 8.2 H-11.2 Q-12.6 8.2 -12.6 6.8 V-4.4 Q-12.6 -5.8 -11.2 -5.8 Z"
-        />
+        <path d="M-11.2 -5.8 H11.2 Q12.6 -5.8 12.6 -4.4 V6.8 Q12.6 8.2 11.2 8.2 H-11.2 Q-12.6 8.2 -12.6 6.8 V-4.4 Q-12.6 -5.8 -11.2 -5.8 Z" />
       </g>
       <g fill={ink} stroke="none">
         <circle cx="-5.6" cy="1.2" r="2.35" />
@@ -179,9 +177,7 @@ export function ProductMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
       <path d="M-4.1 -11.4 H4.1 L5.6 -8.2 H-5.6 Z" />
-      <path
-        d="M-6.2 -8.2 H6.2 Q7.8 -8.2 7.8 -6.6 V8.4 Q7.8 10 6.2 10 H-6.2 Q-7.8 10 -7.8 8.4 V-6.6 Q-7.8 -8.2 -6.2 -8.2 Z"
-      />
+      <path d="M-6.2 -8.2 H6.2 Q7.8 -8.2 7.8 -6.6 V8.4 Q7.8 10 6.2 10 H-6.2 Q-7.8 10 -7.8 8.4 V-6.6 Q-7.8 -8.2 -6.2 -8.2 Z" />
       <path d="M-4.8 -2.6 H4.8" />
       <path d="M-4.8 0.6 H4.8" />
       <path d="M-4.8 4 H1.4" />
@@ -192,16 +188,10 @@ export function ProductMark({ ink = "currentColor" }: { ink?: string }) {
 export function SandwichMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
-      <path
-        d="M-9.8 -6.4 H9.8 Q11.2 -6.4 11.2 -5 V-3.8 H-11.2 V-5 Q-11.2 -6.4 -9.8 -6.4 Z"
-      />
+      <path d="M-9.8 -6.4 H9.8 Q11.2 -6.4 11.2 -5 V-3.8 H-11.2 V-5 Q-11.2 -6.4 -9.8 -6.4 Z" />
       <path d="M-11.2 -0.8 H11.2" />
-      <path
-        d="M-9.8 1.6 H9.8 Q11.2 1.6 11.2 3 V4.2 H-11.2 V3 Q-11.2 1.6 -9.8 1.6 Z"
-      />
-      <path
-        d="M-9.8 6 H9.8 Q11.2 6 11.2 7.4 V8.6 H-11.2 V7.4 Q-11.2 6 -9.8 6 Z"
-      />
+      <path d="M-9.8 1.6 H9.8 Q11.2 1.6 11.2 3 V4.2 H-11.2 V3 Q-11.2 1.6 -9.8 1.6 Z" />
+      <path d="M-9.8 6 H9.8 Q11.2 6 11.2 7.4 V8.6 H-11.2 V7.4 Q-11.2 6 -9.8 6 Z" />
     </g>
   );
 }
@@ -275,13 +265,7 @@ export function LinkMark({ ink = "currentColor" }: { ink?: string }) {
         ry={ry}
         transform="rotate(-45 -4.1 0)"
       />
-      <ellipse
-        cx="4.1"
-        cy="0"
-        rx={rx}
-        ry={ry}
-        transform="rotate(45 4.1 0)"
-      />
+      <ellipse cx="4.1" cy="0" rx={rx} ry={ry} transform="rotate(45 4.1 0)" />
     </g>
   );
 }
@@ -290,9 +274,7 @@ export function BookMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g {...STROKE} stroke={ink}>
       <path d="M0 -10.6 V10.6" />
-      <path
-        d="M0 -10.6 C-8.6 -10 -11.4 -5.4 -11.4 -0.2 C-11.4 5 -8.6 10 0 10.6"
-      />
+      <path d="M0 -10.6 C-8.6 -10 -11.4 -5.4 -11.4 -0.2 C-11.4 5 -8.6 10 0 10.6" />
       <path d="M0 -10.6 C8.6 -10 11.4 -5.4 11.4 -0.2 C11.4 5 8.6 10 0 10.6" />
       <path d="M-8.4 -5 H-3.6" />
       <path d="M-8.4 -1.2 H-2.9" />
@@ -401,9 +383,7 @@ export function CoachMark({ ink = "currentColor" }: { ink?: string }) {
   return (
     <g>
       <g {...STROKE} stroke={ink}>
-        <path
-          d="M-11.2 -9.8 H5.8 Q7.8 -9.8 7.8 -7.8 V8.2 Q7.8 10.2 5.8 10.2 H-11.2 Q-13.2 10.2 -13.2 8.2 V-7.8 Q-13.2 -9.8 -11.2 -9.8 Z"
-        />
+        <path d="M-11.2 -9.8 H5.8 Q7.8 -9.8 7.8 -7.8 V8.2 Q7.8 10.2 5.8 10.2 H-11.2 Q-13.2 10.2 -13.2 8.2 V-7.8 Q-13.2 -9.8 -11.2 -9.8 Z" />
         <path d="M-9.4 -3.2 H4.2" />
         <path d="M-9.4 0.6 H0.8" />
         <path d="M-9.4 4.4 H3.4" />

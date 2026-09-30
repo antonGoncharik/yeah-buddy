@@ -12,11 +12,12 @@ import {
   PACK_REMOVE_LINK,
   PACK_REMOVE_SAVED,
 } from "@/lib/messages";
+import { shareOrCopyLink } from "@/lib/share/client";
+import { readSharePackPayload } from "@/lib/share/map";
 import {
   refreshMealsPackSettingsCache,
   removePackFromListCache,
 } from "@/lib/share/pack-cache";
-import { readSharePackPayload } from "@/lib/share/map";
 import { isLiveOwnedPack } from "@/lib/share/pack-ui";
 import { packShareText } from "@/lib/share/payload";
 import {
@@ -26,7 +27,6 @@ import {
   parsePackBackFrom,
 } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
-import { shareOrCopyLink } from "@/lib/share/client";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function usePackDetailScreen(token: string) {

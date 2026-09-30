@@ -1,8 +1,6 @@
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
-import {
-  programStartPayload,
-} from "@/lib/share/program-start";
 import type { PublicProgramId } from "@/lib/share/program-public";
+import { programStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
 
 export function isTelegramMeUrl(value: string): boolean {

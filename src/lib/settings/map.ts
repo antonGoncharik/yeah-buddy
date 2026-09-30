@@ -47,9 +47,7 @@ export function parseStoredGoal(value: unknown): UserGoal | null {
   return isOnboardingGoal(value) ? value : null;
 }
 
-export function parseStoredTrainingAge(
-  value: unknown,
-): UserTrainingAge | null {
+export function parseStoredTrainingAge(value: unknown): UserTrainingAge | null {
   return isTrainingAge(value) ? value : null;
 }
 

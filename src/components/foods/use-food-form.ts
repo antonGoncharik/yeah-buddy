@@ -3,16 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
+  removeFoodFromCache,
+  syncSavedFoodInCache,
+} from "@/components/foods/food-favorite";
+import {
   type FoodFormState,
   parseNonneg,
   readFood,
   toFormState,
   toPayload,
 } from "@/components/foods/food-form-state";
-import {
-  removeFoodFromCache,
-  syncSavedFoodInCache,
-} from "@/components/foods/food-favorite";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";

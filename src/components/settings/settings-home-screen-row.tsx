@@ -8,10 +8,10 @@ import { haptic } from "@/lib/telegram/haptic";
 import {
   bindHomeScreenAdded,
   HOME_SCREEN_LABEL,
+  type HomeScreenStatus,
   homeScreenHint,
   promptAddToHomeScreen,
   readHomeScreenStatus,
-  type HomeScreenStatus,
 } from "@/lib/telegram/home-screen";
 
 export function SettingsHomeScreenRow() {

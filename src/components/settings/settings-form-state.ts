@@ -23,11 +23,7 @@ export interface SettingsFormState {
 
 export type MacroFieldKey = Exclude<
   keyof SettingsFormState,
-  | "reminders_enabled"
-  | "timezone"
-  | "sex"
-  | "goal"
-  | "training_age"
+  "reminders_enabled" | "timezone" | "sex" | "goal" | "training_age"
 >;
 
 export function toFormState(settings: UserSettings): SettingsFormState {

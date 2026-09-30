@@ -12,8 +12,8 @@ import {
   OG_PAPER,
   OG_SIZE,
 } from "@/lib/og/landing-image";
-import { publicProgramCards } from "@/lib/share/program-public";
 import type { PublicProgramId } from "@/lib/share/program-public";
+import { publicProgramCards } from "@/lib/share/program-public";
 import { featuredProgramPreset } from "@/lib/share/program-start";
 import { programPresetSummary } from "@/lib/workout/program-presets";
 

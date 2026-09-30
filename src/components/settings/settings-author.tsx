@@ -6,9 +6,9 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { mutateJson, postJson } from "@/lib/api-cache";
 import {
-  DONATE_PRESETS,
   DONATE_MAX,
   DONATE_MIN,
+  DONATE_PRESETS,
   donateConfirmMessage,
   donateNeedsConfirm,
   donateStarsLabel,
@@ -50,9 +50,7 @@ export function SettingsAuthor() {
   const [starsTouched, setStarsTouched] = useState(false);
   const customStars = parseDonateStars(custom);
   const starsInvalid =
-    starsTouched &&
-    custom.trim() !== "" &&
-    customStars == null;
+    starsTouched && custom.trim() !== "" && customStars == null;
 
   useEffect(() => {
     let cancelled = false;
@@ -187,9 +185,7 @@ export function SettingsAuthor() {
           </Button>
         </span>
         {starsInvalid ? (
-          <p className="text-sm text-destructive">
-            {DONATE_STARS_INVALID}
-          </p>
+          <p className="text-sm text-destructive">{DONATE_STARS_INVALID}</p>
         ) : (
           <p className="text-xs text-muted-foreground">
             От {DONATE_MIN} до {DONATE_MAX.toLocaleString("ru-RU")}.

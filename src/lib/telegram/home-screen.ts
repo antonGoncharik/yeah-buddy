@@ -1,10 +1,6 @@
 export const HOME_SCREEN_API = "8.0";
 
-export type HomeScreenStatus =
-  | "unsupported"
-  | "unknown"
-  | "added"
-  | "missed";
+export type HomeScreenStatus = "unsupported" | "unknown" | "added" | "missed";
 
 export const HOME_SCREEN_LABEL = "На рабочий стол";
 export const HOME_SCREEN_TIP_TITLE = "Ярлык на главный экран";

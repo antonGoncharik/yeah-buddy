@@ -38,10 +38,7 @@ export function publicProgramPath(id: PublicProgramId): string {
   return `/p/${PUBLIC_PROGRAM_SLUGS[id]}`;
 }
 
-export function publicProgramUrl(
-  origin: string,
-  id: PublicProgramId,
-): string {
+export function publicProgramUrl(origin: string, id: PublicProgramId): string {
   return new URL(publicProgramPath(id), origin).href;
 }
 

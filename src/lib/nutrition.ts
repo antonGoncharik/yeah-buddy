@@ -19,18 +19,6 @@ export {
   sumMeals,
 } from "@/lib/nutrition/macros";
 export {
-  isOnboardingGoal,
-  isOnboardingSex,
-  ONBOARDING_GOAL_OPTIONS,
-  ONBOARDING_SEX_OPTIONS,
-  type OnboardingGoal,
-  type OnboardingSex,
-  suggestFatGrams,
-  suggestMacroGoals,
-  suggestProteinGrams,
-  suggestRestKcal,
-} from "@/lib/nutrition/suggest-protein";
-export {
   filledMealTypes,
   getMealLabel,
   getMealOrder,
@@ -43,3 +31,15 @@ export {
   shareMealLine,
   visibleMealTypes,
 } from "@/lib/nutrition/meals";
+export {
+  isOnboardingGoal,
+  isOnboardingSex,
+  ONBOARDING_GOAL_OPTIONS,
+  ONBOARDING_SEX_OPTIONS,
+  type OnboardingGoal,
+  type OnboardingSex,
+  suggestFatGrams,
+  suggestMacroGoals,
+  suggestProteinGrams,
+  suggestRestKcal,
+} from "@/lib/nutrition/suggest-protein";

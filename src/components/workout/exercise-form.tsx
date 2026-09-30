@@ -14,6 +14,14 @@ import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { ExerciseWithMax } from "@/lib/types";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
+function maxWeightOutOfRange(raw: string): boolean {
+  if (raw.trim() === "") {
+    return false;
+  }
+  const parsed = parseDecimal(raw);
+  return parsed == null || parsed <= 0 || parsed > 1000;
+}
+
 export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
   const {
     form,
@@ -61,14 +69,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             inputMode="decimal"
             enterKeyHint="done"
             value={form.max_weight}
-            aria-invalid={
-              form.max_weight.trim() !== "" &&
-              (parseDecimal(form.max_weight) == null ||
-                !(parseDecimal(form.max_weight)! > 0) ||
-                parseDecimal(form.max_weight)! > 1000)
-                ? true
-                : undefined
-            }
+            aria-invalid={maxWeightOutOfRange(form.max_weight) || undefined}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -83,10 +84,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               ? "От этого максимума считаются проценты. Без цикла меняй здесь."
               : "От этого максимума считаются проценты в подходах."}
           </p>
-          {form.max_weight.trim() !== "" &&
-          (parseDecimal(form.max_weight) == null ||
-            !(parseDecimal(form.max_weight)! > 0) ||
-            parseDecimal(form.max_weight)! > 1000) ? (
+          {maxWeightOutOfRange(form.max_weight) ? (
             <p className="text-sm text-destructive">Вес от 0,1 до 1000 кг.</p>
           ) : null}
         </Field>

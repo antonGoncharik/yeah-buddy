@@ -2,8 +2,8 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { DayTypeMark } from "@/components/layout/day-type-mark";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatBodyWeight } from "@/lib/day/body-weight";

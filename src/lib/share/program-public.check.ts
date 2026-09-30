@@ -25,8 +25,16 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 assertEqual(publicProgramPath("full_body"), "/p/full-body", "full body path");
 assertEqual(publicProgramPath("five_by_five"), "/p/5x5", "5x5 path");
 assertEqual(publicProgramPath("starting_strength"), "/p/3x5", "3x5 path");
-assertEqual(publicProgramPath("upper_lower"), "/p/verh-niz", "upper lower path");
-assertEqual(publicProgramPath("three_day"), "/p/spina-nogi-grud", "three day path");
+assertEqual(
+  publicProgramPath("upper_lower"),
+  "/p/verh-niz",
+  "upper lower path",
+);
+assertEqual(
+  publicProgramPath("three_day"),
+  "/p/spina-nogi-grud",
+  "three day path",
+);
 assertEqual(publicProgramPath("ppl"), "/p/ppl", "ppl path");
 assertEqual(
   publicProgramUrl("https://yeahbuddy.app", "full_body"),

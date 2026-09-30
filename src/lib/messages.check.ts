@@ -95,11 +95,7 @@ assertEqual(
   "Уже есть еда на дни с залом. Заменить этим днём?",
   "training day template replace",
 );
-assertEqual(
-  STARTER_CATALOG_NOTE,
-  "",
-  "starter catalog explains itself",
-);
+assertEqual(STARTER_CATALOG_NOTE, "", "starter catalog explains itself");
 assertEqual(
   OPEN_VIA_BOT_LEAD,
   "Дневник еды и зала в Telegram. Без регистрации.",

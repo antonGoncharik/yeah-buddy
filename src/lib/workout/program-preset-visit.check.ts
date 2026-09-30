@@ -30,9 +30,6 @@ assert(
   programVisitFrequencyLead(2).includes("не календарь"),
   "two-day lead explains no calendar",
 );
-assert(
-  programVisitFrequencyLead(3).includes("3 раза"),
-  "three-day lead",
-);
+assert(programVisitFrequencyLead(3).includes("3 раза"), "three-day lead");
 
 console.log("program preset visit ok");

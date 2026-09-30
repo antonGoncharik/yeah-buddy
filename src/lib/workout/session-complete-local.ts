@@ -23,11 +23,7 @@ export function preferLiveCompleted(
   }
 
   if (parsed.session.status === "completed") {
-    const feel = preferLiveFeel(
-      live.session.feel,
-      null,
-      parsed.session.feel,
-    );
+    const feel = preferLiveFeel(live.session.feel, null, parsed.session.feel);
     if (feel === parsed.session.feel) {
       return parsed;
     }
@@ -35,16 +31,14 @@ export function preferLiveCompleted(
   }
 
   if (live.session.status === "completed") {
-    const feel = preferLiveFeel(
-      live.session.feel,
-      null,
-      parsed.session.feel,
-    );
+    const feel = preferLiveFeel(live.session.feel, null, parsed.session.feel);
     return {
       ...live,
       session: { ...live.session, feel },
       raise_offers:
-        parsed.raise_offers.length > 0 ? parsed.raise_offers : live.raise_offers,
+        parsed.raise_offers.length > 0
+          ? parsed.raise_offers
+          : live.raise_offers,
       beats: parsed.beats ?? live.beats,
       phase: parsed.phase ?? live.phase,
       template: parsed.template ?? live.template,

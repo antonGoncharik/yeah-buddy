@@ -195,10 +195,7 @@ export function TodayDayView({
   });
   const showWeekShare = !viewOnly && date === today;
   const weekShare = showWeekShare ? (
-    <WeekProgressShare
-      tone={compact ? "card" : "solid"}
-      motion={!compact}
-    />
+    <WeekProgressShare tone={compact ? "card" : "solid"} motion={!compact} />
   ) : null;
 
   return (
@@ -238,9 +235,7 @@ export function TodayDayView({
           weightGap={weightGap}
           waistGap={waistGap}
           share={writable}
-          gym={
-            <TodayGymStatus {...gym} />
-          }
+          gym={<TodayGymStatus {...gym} />}
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           onSaveWaist={viewOnly ? undefined : saveWaist}
           bodyWeightReadOnly={viewOnly}

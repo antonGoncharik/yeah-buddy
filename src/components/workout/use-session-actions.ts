@@ -13,13 +13,13 @@ import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
+import { parseWorkoutSession } from "@/lib/workout/map-rows";
 import {
   completeSessionLocally,
   preferLiveCompleted,
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
-import { parseWorkoutSession } from "@/lib/workout/map-rows";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionActions({
@@ -135,7 +135,7 @@ export function useSessionActions({
 
   async function saveFeel(feel: SessionFeel | null) {
     const current = detailRef.current;
-    if (!current || current.session.status !== "completed" || correcting) {
+    if (current?.session.status !== "completed" || correcting) {
       return;
     }
 
@@ -158,9 +158,7 @@ export function useSessionActions({
         return;
       }
 
-      const patched = isRecord(data)
-        ? parseWorkoutSession(data.session)
-        : null;
+      const patched = isRecord(data) ? parseWorkoutSession(data.session) : null;
       if (!patched || patched.id !== current.session.id) {
         return;
       }

@@ -13,10 +13,7 @@ function assert(condition: boolean, message: string): void {
 
 assert(HOME_SCREEN_API === "8.0", "home screen needs Bot API 8.0");
 
-assert(
-  !isHomeScreenApiAvailable({}),
-  "empty webapp has no home screen api",
-);
+assert(!isHomeScreenApiAvailable({}), "empty webapp has no home screen api");
 assert(
   isHomeScreenApiAvailable({
     addToHomeScreen: () => {},
@@ -34,10 +31,7 @@ assert(
   "old client blocks prompt",
 );
 
-assert(
-  homeScreenHint("added").includes("уже"),
-  "added hint is reassuring",
-);
+assert(homeScreenHint("added").includes("уже"), "added hint is reassuring");
 assert(
   homeScreenHint("missed").includes("главн"),
   "missed hint mentions home screen",

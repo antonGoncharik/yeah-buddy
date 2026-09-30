@@ -30,10 +30,7 @@ const FAT_G_PER_KG: Record<OnboardingGoal, number> = {
  * Rough daily energy without height/age: bodyweight × kcal/kg.
  * Between sedentary and lightly active — enough for a diary start.
  */
-const KCAL_PER_KG: Record<
-  OnboardingSex,
-  Record<OnboardingGoal, number>
-> = {
+const KCAL_PER_KG: Record<OnboardingSex, Record<OnboardingGoal, number>> = {
   male: { lose: 28, keep: 33, gain: 38 },
   female: { lose: 25, keep: 30, gain: 35 },
 };
@@ -89,9 +86,7 @@ export function suggestProteinGrams(input: {
   }
 
   const raw =
-    input.weightKg *
-    PROTEIN_G_PER_KG[input.goal] *
-    LEAN_SHARE[input.sex];
+    input.weightKg * PROTEIN_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
   return clampProtein(roundToFive(raw));
 }
 
@@ -104,8 +99,7 @@ export function suggestFatGrams(input: {
     return null;
   }
 
-  const raw =
-    input.weightKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  const raw = input.weightKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
   return clampFat(roundToFive(raw));
 }
 
@@ -139,9 +133,7 @@ export function suggestMacroGoals(input: {
   }
 
   const protein =
-    input.protein != null &&
-    input.protein > 0 &&
-    input.protein <= 400
+    input.protein != null && input.protein > 0 && input.protein <= 400
       ? Math.round(input.protein)
       : suggested;
 

@@ -185,9 +185,7 @@ function ProgramPresetCard({
             <span className="font-medium">{day.name}</span>
             <span
               className={
-                pressed
-                  ? "text-primary-foreground/80"
-                  : "text-muted-foreground"
+                pressed ? "text-primary-foreground/80" : "text-muted-foreground"
               }
             >
               {" "}
@@ -199,9 +197,7 @@ function ProgramPresetCard({
           <p
             className={cn(
               "text-sm leading-snug",
-              pressed
-                ? "text-primary-foreground/80"
-                : "text-muted-foreground",
+              pressed ? "text-primary-foreground/80" : "text-muted-foreground",
             )}
           >
             Недели: {preset.cycle.map((phase) => phase.name).join(" → ")}

@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { PublicProgramScreen } from "@/components/share/public-program-screen";
 import { APP_NAME } from "@/lib/brand";
 import {
-  publicProgramIdFromSlug,
   publicProgramCards,
+  publicProgramIdFromSlug,
   publicProgramPath,
 } from "@/lib/share/program-public";
 import { getProgramShareUrl } from "@/lib/telegram/bot";

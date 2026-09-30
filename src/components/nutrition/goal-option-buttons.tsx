@@ -50,12 +50,7 @@ export function GoalOptionButtons({
               onPick(option.id);
             }}
           >
-            <p
-              className={cn(
-                "font-medium",
-                compact ? "text-base" : "text-lg",
-              )}
-            >
+            <p className={cn("font-medium", compact ? "text-base" : "text-lg")}>
               {option.label}
             </p>
             <p

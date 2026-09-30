@@ -106,9 +106,7 @@ const gain = suggestMacroGoals({
   goal: "gain",
 });
 assert(
-  lose != null &&
-    gain != null &&
-    lose.rest.kcal < gain.rest.kcal,
+  lose != null && gain != null && lose.rest.kcal < gain.rest.kcal,
   "cut below bulk",
 );
 
