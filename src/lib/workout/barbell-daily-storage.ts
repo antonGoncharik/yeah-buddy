@@ -17,9 +17,7 @@ interface StoredBarbellDaily {
   streak: number;
 }
 
-export function readBarbellDailyProgress(
-  dayKey: string,
-): BarbellDailyProgress | null {
+export function readBarbellDailyProgress(dayKey: string): BarbellDailyProgress {
   const stored = readStored();
   if (!stored) {
     return {

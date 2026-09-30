@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PLATE_DRAW, type SidePlate } from "@/lib/workout/rest-load-plates";
+import { PLATE_DRAW } from "@/lib/workout/rest-load-plates";
+import type { SidePlate } from "@/lib/workout/rest-load";
 
 export function LoadBar({
   plates,
