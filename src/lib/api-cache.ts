@@ -73,6 +73,19 @@ export function subscribeJson(listener: CacheListener): () => void {
   };
 }
 
+export function forgetJson(url: string): void {
+  writeStamp.delete(url);
+  inflight.delete(url);
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  try {
+    localStorage.removeItem(`${PREFIX}${url}`);
+  } catch {
+    // private mode, or disabled storage
+  }
+}
+
 export function writeJson(url: string, data: unknown): void {
   writeStamp.set(url, ++clock);
   if (typeof localStorage !== "undefined") {

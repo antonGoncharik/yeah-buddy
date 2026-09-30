@@ -12,7 +12,10 @@ import {
   PACK_REMOVE_LINK,
   PACK_REMOVE_SAVED,
 } from "@/lib/messages";
-import { removePackFromListCache } from "@/lib/share/pack-cache";
+import {
+  refreshMealsPackSettingsCache,
+  removePackFromListCache,
+} from "@/lib/share/pack-cache";
 import { readSharePackPayload } from "@/lib/share/map";
 import { isLiveOwnedPack } from "@/lib/share/pack-ui";
 import { packShareText } from "@/lib/share/payload";
@@ -124,6 +127,11 @@ export function usePackDetailScreen(token: string) {
         return;
       }
       if (pack.kind === "meals") {
+        try {
+          await refreshMealsPackSettingsCache();
+        } catch {
+          // apply already saved on server; settings will load on next fetch
+        }
         try {
           await ensureTodayDay("rest");
         } catch {

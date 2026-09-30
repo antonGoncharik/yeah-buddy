@@ -93,7 +93,7 @@ export const mealsPackPayloadSchema = z.object({
     training_fat: macroGoal,
     training_carbs: macroGoal,
   }),
-  foods: z.array(packFoodSchema).min(1).max(80),
+  foods: z.array(packFoodSchema).max(80),
   templates: z.array(packMealDaySchema).length(2),
 });
 
@@ -127,7 +127,7 @@ export const mealPackPayloadSchema = z.object({
   v: z.literal(1),
   name: z.string().trim().min(1).max(40),
   meal_type: mealTypeSchema,
-  foods: z.array(packFoodSchema).min(1).max(80),
+  foods: z.array(packFoodSchema).max(80),
   items: z.array(packMealLineSchema).min(1).max(20),
 });
 
