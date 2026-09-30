@@ -6,18 +6,8 @@ import Link from "next/link";
 import type { GymLoop } from "@/lib/day/loop";
 import { cn } from "@/lib/utils";
 
-export function TodayGymStatus({
-  label,
-  href,
-  templateId,
-  busy = false,
-  onStart,
-}: GymLoop & {
-  busy?: boolean;
-  onStart?: (templateId: string) => void;
-}) {
-  const canStart = Boolean(templateId && onStart);
-  const tappable = canStart || href != null;
+export function TodayGymStatus({ label, href }: GymLoop) {
+  const tappable = href != null;
   const body = (
     <>
       <p className="text-sm font-medium text-muted-foreground">Зал</p>
@@ -37,19 +27,6 @@ export function TodayGymStatus({
       </p>
     </>
   );
-
-  if (templateId && onStart) {
-    return (
-      <button
-        type="button"
-        disabled={busy}
-        className="max-w-[48%] text-right transition-opacity disabled:opacity-60"
-        onClick={() => onStart(templateId)}
-      >
-        {body}
-      </button>
-    );
-  }
 
   if (href) {
     return (

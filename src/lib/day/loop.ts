@@ -8,7 +8,6 @@ export interface GymLoop {
   kind: "rest" | "queue" | "open" | "done";
   label: string;
   href: string | null;
-  templateId: string | null;
 }
 
 export function proteinLoopLine(
@@ -36,7 +35,6 @@ export function gymLoopFromTodayState(
       kind: "done",
       label: "Готово",
       href: `/workouts/sessions/${session.id}`,
-      templateId: null,
     };
   }
 
@@ -45,7 +43,6 @@ export function gymLoopFromTodayState(
       kind: "open",
       label: sessionTemplate?.name ?? WORKOUT_KIND_LABELS[session.workout_type],
       href: `/workouts/sessions/${session.id}`,
-      templateId: null,
     };
   }
 
@@ -54,7 +51,6 @@ export function gymLoopFromTodayState(
       kind: "queue",
       label: nextTemplate.name,
       href: "/workouts",
-      templateId: nextTemplate.id,
     };
   }
 
@@ -62,7 +58,6 @@ export function gymLoopFromTodayState(
     kind: "rest",
     label: options.isTrainingDay && options.isToday ? "нет программы" : "отдых",
     href: options.isTrainingDay && options.isToday ? "/workouts" : null,
-    templateId: null,
   };
 }
 

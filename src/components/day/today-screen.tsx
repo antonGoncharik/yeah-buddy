@@ -82,7 +82,6 @@ export function TodayScreen({
     saveBodyWeight,
     saveWaist,
     deleteItem,
-    startQueuedWorkout,
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
@@ -246,7 +245,6 @@ export function TodayScreen({
             shareNamedMeal={shareNamedMeal}
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
-            startQueuedWorkout={startQueuedWorkout}
           />
         ) : null}
       </div>

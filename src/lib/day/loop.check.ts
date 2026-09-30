@@ -20,7 +20,6 @@ assertEqual(
     kind: "rest",
     label: "отдых",
     href: null,
-    templateId: null,
   },
   "rest today",
 );
@@ -34,7 +33,6 @@ assertEqual(
     kind: "rest",
     label: "отдых",
     href: null,
-    templateId: null,
   },
   "rest day keeps queue off the header",
 );
@@ -48,7 +46,6 @@ assertEqual(
     kind: "queue",
     label: "Жим",
     href: "/workouts",
-    templateId: null,
   },
   "queue name on training today",
 );
@@ -62,7 +59,6 @@ assertEqual(
     kind: "rest",
     label: "отдых",
     href: null,
-    templateId: null,
   },
   "no queue on a past day",
 );
@@ -80,7 +76,6 @@ assertEqual(
     kind: "open",
     label: "Тяга",
     href: "/workouts/sessions/s1",
-    templateId: null,
   },
   "open session wins",
 );
@@ -97,7 +92,6 @@ assertEqual(
     kind: "done",
     label: "Готово",
     href: "/workouts/sessions/s1",
-    templateId: null,
   },
   "completed is done",
 );
@@ -114,7 +108,6 @@ assertEqual(
     kind: "open",
     label: "Тяга",
     href: "/workouts/sessions/s1",
-    templateId: null,
   },
   "open session still shows on rest day",
 );
@@ -133,9 +126,8 @@ assertEqual(
     kind: "queue",
     label: "Жим",
     href: "/workouts",
-    templateId: "11111111-1111-1111-1111-111111111111",
   },
-  "queue with id can start",
+  "queue links to workouts hub",
 );
 
 assertEqual(
@@ -144,7 +136,6 @@ assertEqual(
     kind: "rest",
     label: "нет программы",
     href: "/workouts",
-    templateId: null,
   },
   "training today without a program",
 );

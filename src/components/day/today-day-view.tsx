@@ -79,7 +79,6 @@ export function TodayDayView({
   shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
-  startQueuedWorkout,
 }: {
   date: string;
   today: string;
@@ -135,7 +134,6 @@ export function TodayDayView({
   shareNamedMeal: (namedMealId: string) => Promise<void>;
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
-  startQueuedWorkout: (templateId: string) => Promise<void>;
 }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
@@ -241,14 +239,7 @@ export function TodayDayView({
           waistGap={waistGap}
           share={writable}
           gym={
-            <TodayGymStatus
-              kind={gym.kind}
-              label={gym.label}
-              href={gym.href}
-              templateId={gym.templateId}
-              busy={busy}
-              onStart={startQueuedWorkout}
-            />
+            <TodayGymStatus {...gym} />
           }
           onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
           onSaveWaist={viewOnly ? undefined : saveWaist}

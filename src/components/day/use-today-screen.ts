@@ -12,7 +12,6 @@ import {
 import { useTodayCopy } from "@/components/day/use-today-copy";
 import { useTodayData } from "@/components/day/use-today-data";
 import { useTodayDayActions } from "@/components/day/use-today-day-actions";
-import { useTodayWorkoutStart } from "@/components/day/use-today-workout-start";
 import { useDayMood } from "@/components/layout/day-mood";
 import { subscribeActionError } from "@/lib/action-error";
 import {
@@ -169,14 +168,6 @@ export function useTodayScreen({
     setBusy,
     setNamedMeals: data.setNamedMeals,
   });
-  const { startQueuedWorkout } = useTodayWorkoutStart({
-    viewOnly,
-    date,
-    shownDay,
-    restRecipe: data.recipes.rest,
-    setBusy,
-    setActionError,
-  });
   const { createDay, switchType, saveBodyWeight, saveWaist, deleteItem } =
     useTodayDayActions({
       viewOnly,
@@ -269,6 +260,5 @@ export function useTodayScreen({
     saveBodyWeight,
     saveWaist,
     deleteItem,
-    startQueuedWorkout,
   };
 }
