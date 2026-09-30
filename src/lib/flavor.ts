@@ -20,14 +20,19 @@ export const LOADING_LINES: Record<LoadingFlavor, readonly string[]> = {
     "Light weight, baby.",
     "Считаем блины.",
     "Штанга ещё тёплая.",
+    "Разминка для данных…",
+    "Гриф не крутится сам.",
+    "Сушка начинается после загрузки.",
   ],
   food: [
     "Загрузка углеводами…",
     "Считаю граммы…",
     "Греем блины…",
     "Ищу белок на тарелке…",
+    "Тарелка не врет — весы иногда.",
+    "Сканирую калории, не оправдания.",
   ],
-  idle: ["Загрузка…", "Секунду.", "Минуту.", "Ещё чуть-чуть."],
+  idle: ["Загрузка…", "Секунду.", "Минуту.", "Ещё чуть-чуть.", "Держим гриф."],
 };
 
 export function loadingFlavor(options: {
@@ -98,6 +103,9 @@ export function sessionMilestoneLine(count: number): string | null {
   if (count === 100) {
     return "Сотня. Можно не считать, но мы посчитали.";
   }
+  if (count === 250) {
+    return "Двести пятьдесят. Уже свой зал в голове.";
+  }
   return null;
 }
 
@@ -145,6 +153,9 @@ export function comebackLine(
   }
   if (days >= 14) {
     return "Давно не были. Нормально.";
+  }
+  if (days >= 7) {
+    return COMEBACK_WEEK_LINE;
   }
   return null;
 }
@@ -235,6 +246,20 @@ export const BODYBUILDER_LINE =
 export const HARD_WORK_LINE = "Hard work and training.";
 export const NAME_OF_GAME_LINE = "That's the name of the game.";
 export const YEAH_BUDDY_LINE = "Yeah buddy.";
+export const COMEBACK_WEEK_LINE = "Неделя без зала. Запиши и иди дальше.";
+export const LEG_DAY_LINE = "День ног. Лестница завтра не прощает.";
+export const DELOAD_EGG_LINE = "Deload — не лень. Гриф легче, голова трезвая.";
+export const PLATE_225_LINE = "Два два пять. Классика на скамье.";
+export const PLATE_140_LINE = "Сорок на грифе — разгон или финиш.";
+export const GYMLIFE_LINE = "Качалка ждёт. Холодильник тоже.";
+export const CHEAT_MEAL_EGG_LINE = "Читмил — в дневник, не в голову.";
+export const PROTEIN_POWDER_LINE = "Порошок не отменяет тарелку.";
+export const ONE_MORE_REP_LINE = "Ещё один. В журнале тоже считается.";
+export const MONDAY_LEGS_LINE =
+  "Понедельник — ноги. Или что записано в программе.";
+export const SPOTTER_LINE = "Страховка — друг, не кнопка «пропустить».";
+export const CARDIO_EGG_LINE =
+  "Кардио не сжигает плохие решения в холодильнике.";
 
 /** Dry lines for a cut. One per day, same date stays put. */
 export const LOSE_MODE_LINES = [
@@ -244,6 +269,9 @@ export const LOSE_MODE_LINES = [
   "Дефицит — это план, не характер.",
   "Жир уходит тихо. Штанга это проверяет.",
   "Сладкое можно. Просто не вместо белка.",
+  "Сушка — не голодание. Белок на месте.",
+  "Весы утром, штанга вечером. Оба показателя.",
+  "Минус калории, плюс терпение.",
 ] as const;
 
 /** Dry lines for a bulk. One per day, same date stays put. */
@@ -254,6 +282,9 @@ export const GAIN_MODE_LINES = [
   "После зала углеводы. И до зала тоже можно.",
   "Голод после штанги — это нормально.",
   "Блины на грифе и на тарелке. Оба в зачёт.",
+  "Масса растёт медленно. Так и надо.",
+  "Рис на тарелке — не слабость, а план.",
+  "Спать и жрать по плану — тоже дисциплина.",
 ] as const;
 
 export function goalModeLine(
@@ -340,6 +371,70 @@ const FOOD_SEARCH_EGGS: Record<string, string> = {
   "hard work and training": HARD_WORK_LINE,
   "thats the name of the game": NAME_OF_GAME_LINE,
   "thats the name of the game baby": NAME_OF_GAME_LINE,
+  arnold: "Sleep faster. — не про еду, но запомнится.",
+  шварценеггер: "Sleep faster. — не про еду, но запомнится.",
+  schwarzenegger: "Sleep faster. — не про еду, но запомнится.",
+  cbum: "Classic physique. Сначала белок.",
+  "chris bumstead": "Classic physique. Сначала белок.",
+  jay: "Кто там без бицепса? Запиши белок.",
+  cutler: "Кто там без бицепса? Запиши белок.",
+  "leg day": LEG_DAY_LINE,
+  legday: LEG_DAY_LINE,
+  "день ног": LEG_DAY_LINE,
+  ноги: LEG_DAY_LINE,
+  "понедельник ноги": MONDAY_LEGS_LINE,
+  deload: DELOAD_EGG_LINE,
+  сброс: DELOAD_EGG_LINE,
+  разгрузка: DELOAD_EGG_LINE,
+  bulk: "Bulk — тарелка, не оправдание.",
+  bulking: "Bulk — тарелка, не оправдание.",
+  массонабор: "Массонабор — граммы, не ощущения.",
+  cut: "Cut — дефицит по цифрам, не по настроению.",
+  cutting: "Cut — дефицит по цифрам, не по настроению.",
+  сушка: "Сушка — белок остаётся. Углеводы по плану.",
+  читмил: CHEAT_MEAL_EGG_LINE,
+  cheatmeal: CHEAT_MEAL_EGG_LINE,
+  "cheat meal": CHEAT_MEAL_EGG_LINE,
+  протеин: PROTEIN_POWDER_LINE,
+  protein: PROTEIN_POWDER_LINE,
+  whey: PROTEIN_POWDER_LINE,
+  гейнер: "Гейнер — не замена обеду.",
+  gainer: "Гейнер — не замена обеду.",
+  bcaa: "BCAA — если уже доел белок, ок.",
+  креатин: "Креатин — пять грамм. Вода — тоже.",
+  creatine: "Креатин — пять грамм. Вода — тоже.",
+  блин: "Блин на грифе — не на сковороде.",
+  блины: "Блины на тарелке — в зачёт. На грифе — отдельно.",
+  гриф: "Гриф двадцать. Блины — по математике.",
+  barbell: "Гриф двадцать. Блины — по математике.",
+  скамья: "Скамья — для жима, не для отдыха между подходами.",
+  bench: "Скамья — для жима, не для отдыха между подходами.",
+  становая: "Становая — спина честная, не округлая.",
+  deadlift: "Становая — спина честная, не округлая.",
+  присед: "Присед — глубина в журнал, не в сторис.",
+  squat: "Присед — глубина в журнал, не в сторис.",
+  кардио: CARDIO_EGG_LINE,
+  cardio: CARDIO_EGG_LINE,
+  качалка: GYMLIFE_LINE,
+  gym: GYMLIFE_LINE,
+  зал: GYMLIFE_LINE,
+  база: "База — присед, жим, тяга. И белок.",
+  "big three": "База — присед, жим, тяга. И белок.",
+  spotter: SPOTTER_LINE,
+  страховка: SPOTTER_LINE,
+  "one more rep": ONE_MORE_REP_LINE,
+  "еще один": ONE_MORE_REP_LINE,
+  "ещё один": ONE_MORE_REP_LINE,
+  amrap: "AMRAP — пока честно, не пока криво.",
+  rpe: "RPE — цифра, не «кажется легко».",
+  pr: "PR — запиши. Память врет.",
+  "personal record": "PR — запиши. Память врет.",
+  рекорд: "PR — запиши. Память врет.",
+  "225": PLATE_225_LINE,
+  "140": PLATE_140_LINE,
+  "100": HUNDRED_WEIGHT_LINE,
+  "405": "Четыре ноль пять. Если в фунтах — ты знаешь.",
+  "315": "Три пятнашки. Скамья помнит.",
 };
 
 const MEAL_EMPTY_LINES: Record<MealType, string> = {
@@ -391,7 +486,38 @@ export function hundredWeightLine(weight: number | null): string | null {
 }
 
 export function foodSearchEasterEgg(query: string): string | null {
-  return FOOD_SEARCH_EGGS[normalizeSearch(query)] ?? null;
+  const normalized = normalizeSearch(query);
+  if (normalized === "") {
+    return null;
+  }
+  const exact = FOOD_SEARCH_EGGS[normalized];
+  if (exact) {
+    return exact;
+  }
+  return numericSearchEgg(normalized);
+}
+
+function numericSearchEgg(normalized: string): string | null {
+  const value = Number(normalized.replace(",", "."));
+  if (!Number.isFinite(value) || normalized.includes(" ")) {
+    return null;
+  }
+  if (Math.abs(value - 100) <= 0.05) {
+    return HUNDRED_WEIGHT_LINE;
+  }
+  if (Math.abs(value - 225) <= 0.05) {
+    return PLATE_225_LINE;
+  }
+  if (Math.abs(value - 140) <= 0.05) {
+    return PLATE_140_LINE;
+  }
+  if (Math.abs(value - 315) <= 0.05) {
+    return FOOD_SEARCH_EGGS["315"] ?? null;
+  }
+  if (Math.abs(value - 405) <= 0.05) {
+    return FOOD_SEARCH_EGGS["405"] ?? null;
+  }
+  return null;
 }
 
 export function foodSearchEmptyLine(

@@ -1,7 +1,9 @@
 import {
   BODYBUILDER_LINE,
+  COMEBACK_WEEK_LINE,
   comebackLine,
   consecutiveProteinHits,
+  DELOAD_EGG_LINE,
   EARLY_LINE,
   EVENING_LINE,
   FAVORITE_OFFER_HINT,
@@ -11,10 +13,12 @@ import {
   foodSearchEasterEgg,
   foodSearchEmptyLine,
   GAIN_MODE_LINES,
+  GYMLIFE_LINE,
   goalModeLine,
   hundredWeightLine,
   INVITE_QR_CAPTION,
   LATE_NIGHT_LINE,
+  LEG_DAY_LINE,
   LIGHT_WEIGHT_BABY_LINE,
   LIGHT_WEIGHT_LINE,
   LOSE_MODE_LINES,
@@ -27,6 +31,7 @@ import {
   nightLoadingLine,
   overflowKcalLabel,
   PEANUT_LINE,
+  PLATE_225_LINE,
   PROTEIN_STREAK_LINE,
   packQrCaption,
   priorProteinHits,
@@ -185,9 +190,19 @@ assertEqual(
   "two weeks away",
 );
 assertEqual(
-  comebackLine("2026-09-14", "2026-09-01"),
+  comebackLine("2026-09-08", "2026-09-01"),
+  COMEBACK_WEEK_LINE,
+  "one week away",
+);
+assertEqual(
+  comebackLine("2026-09-07", "2026-09-01"),
   null,
-  "thirteen is early",
+  "six days is early",
+);
+assertEqual(
+  comebackLine("2026-09-14", "2026-09-01"),
+  COMEBACK_WEEK_LINE,
+  "thirteen still before two weeks",
 );
 assertEqual(comebackLine("2026-09-15", null), null, "first has no comeback");
 
@@ -357,6 +372,15 @@ assertEqual(
   "bodybuilder rant",
 );
 assertEqual(foodSearchEasterEgg("овсянка"), null, "real food");
+assertEqual(foodSearchEasterEgg("leg day"), LEG_DAY_LINE, "leg day");
+assertEqual(foodSearchEasterEgg("225"), PLATE_225_LINE, "bench plate");
+assertEqual(foodSearchEasterEgg("deload"), DELOAD_EGG_LINE, "deload egg");
+assertEqual(
+  foodSearchEasterEgg("сушка"),
+  "Сушка — белок остаётся. Углеводы по плану.",
+  "cut slang",
+);
+assertEqual(foodSearchEasterEgg("качалка"), GYMLIFE_LINE, "gym life");
 assertEqual(
   foodSearchEmptyLine("", "all"),
   "Пока пусто. Добавь продукты — из них соберёшь день.",
