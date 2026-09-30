@@ -23,8 +23,11 @@ import { cn } from "@/lib/utils";
 
 export function WeekProgressShare({
   tone = "solid",
+  motion = true,
 }: {
   tone?: "solid" | "card";
+  /** Rise animation shifts layout paint; disable at the bottom of a long scroll. */
+  motion?: boolean;
 }) {
   const [busy, setBusy] = useState<"chat" | "story" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +103,8 @@ export function WeekProgressShare({
     <div className="flex flex-col gap-3">
       <div
         className={cn(
-          "animate-rise flex flex-col gap-3 rounded-xl px-5 py-4",
+          "flex flex-col gap-3 rounded-xl px-5 py-4",
+          motion && "animate-rise",
           tone === "solid"
             ? "bg-primary text-primary-foreground"
             : "card-surface",

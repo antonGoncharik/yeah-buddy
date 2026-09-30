@@ -197,7 +197,10 @@ export function TodayDayView({
   });
   const showWeekShare = !viewOnly && date === today;
   const weekShare = showWeekShare ? (
-    <WeekProgressShare tone={compact ? "card" : "solid"} />
+    <WeekProgressShare
+      tone={compact ? "card" : "solid"}
+      motion={!compact}
+    />
   ) : null;
 
   return (
@@ -266,7 +269,7 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {hiddenNote ? (
+      {!compact && hiddenNote ? (
         <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
       ) : null}
 
@@ -298,6 +301,10 @@ export function TodayDayView({
           deleteNamedMeal={deleteNamedMeal}
           deleteItem={deleteItem}
         />
+      ) : null}
+
+      {compact && hiddenNote ? (
+        <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
       ) : null}
 
       {showSaveTemplate ? (
