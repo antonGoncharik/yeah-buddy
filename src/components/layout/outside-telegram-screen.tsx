@@ -1,4 +1,5 @@
 import {
+  BarbellDoodle,
   DumbbellDoodle,
   MealDayDoodle,
   QrDoodle,
@@ -9,6 +10,8 @@ import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
 import {
+  BARBELL_SHELF_LEAD,
+  BARBELL_SHELF_TITLE,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
@@ -19,6 +22,7 @@ import {
   PROGRAM_SHELF_LEAD,
   PROGRAM_SHELF_TITLE,
 } from "@/lib/messages";
+import { publicBarbellCard } from "@/lib/share/barbell-public";
 import { publicProgramCards } from "@/lib/share/program-public";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 import { cn } from "@/lib/utils";
@@ -32,6 +36,7 @@ const POINT_ICONS = {
 export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
   const showQr = openUrl != null && isTelegramMeUrl(openUrl);
   const programs = publicProgramCards();
+  const barbell = publicBarbellCard();
 
   return (
     <div className="animate-rise flex w-full flex-col items-center gap-6">
@@ -66,6 +71,23 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
           {OPEN_VIA_BOT_CTA}
         </a>
       ) : null}
+
+      <section className="flex w-full flex-col gap-2">
+        <h2 className="px-1 text-sm font-medium text-muted-foreground">
+          {BARBELL_SHELF_TITLE}
+        </h2>
+        <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+          {BARBELL_SHELF_LEAD}
+        </p>
+        <div className="card-surface w-full px-5 py-1 text-left">
+          <NavRow
+            href={barbell.path}
+            title={barbell.name}
+            hint={barbell.summary}
+            icon={<BarbellDoodle />}
+          />
+        </div>
+      </section>
 
       <section className="flex w-full flex-col gap-2">
         <h2 className="px-1 text-sm font-medium text-muted-foreground">

@@ -41,6 +41,25 @@ export const OPEN_VIA_BOT_STEPS = [
 export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
 export const PROGRAM_SHELF_TITLE = "Программы";
 export const PROGRAM_SHELF_LEAD = "Можно начать с готовой.";
+export const BARBELL_SHELF_TITLE = "Задача дня";
+export const BARBELL_SHELF_LEAD =
+  "Мини-игра про блины — можно кинуть друзьям в чат.";
+export const BARBELL_PAGE_BACK = "На главную";
+export const BARBELL_PUBLIC_LEAD =
+  "Каждый день новый вес на олимпийский гриф. Жми блины с двух сторон, пока не сойдётся. Без зала и без записи подходов — просто арифметика штанги.";
+export const BARBELL_PUBLIC_POINTS = [
+  {
+    title: "Пар",
+    body: "Меньше блинов — лучше. Серия дней копится в приложении.",
+  },
+  {
+    title: "В чат",
+    body: "После победы — карточка в Telegram и кнопка в дневник.",
+  },
+] as const;
+export const BARBELL_PLAY_CTA = "Собрать в Telegram";
+export const BARBELL_QR_CAPTION =
+  "Наведи камеру — откроется игра в мини-приложении.";
 export const PROGRAM_PAGE_BACK = "На главную";
 export const PROGRAM_QR_CAPTION = "Наведи камеру — бот поставит эту программу.";
 export const LOAD_FAILED = "Не загрузилось.";

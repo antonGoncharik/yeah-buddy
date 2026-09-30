@@ -29,6 +29,7 @@ import {
 } from "@/lib/share/program-start";
 import {
   resolveAppShareUrl,
+  resolveBarbellPlayUrl,
   resolveCoachShareUrl,
   resolvePackShareUrl,
   resolveProgramShareUrl,
@@ -82,6 +83,15 @@ export async function getProgramShareUrl(
   id: PublicProgramId,
 ): Promise<string | null> {
   return resolveProgramShareUrl(id, await getAppShareUrl());
+}
+
+export async function getBarbellPlayShareUrl(
+  env: ServerEnv = getServerEnv(),
+): Promise<string | null> {
+  return resolveBarbellPlayUrl({
+    miniAppUrl: getMiniAppUrl(env),
+    appUrl: await getAppShareUrl(env),
+  });
 }
 
 export async function getInboxOpenUrl(
