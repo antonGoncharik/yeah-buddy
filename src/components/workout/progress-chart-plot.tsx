@@ -49,7 +49,7 @@ export function ProgressChartPlot({
   const last = values[values.length - 1];
   const withUnit = (value: number) =>
     `${formatValue(value)}${unit ? ` ${unit}` : ""}`;
-  const insight = progressInsight(values, withUnit);
+  const insight = progressInsight(metric, values, withUnit);
 
   return (
     <div className="flex flex-col gap-3">
@@ -116,14 +116,21 @@ export function ProgressChartPlot({
 }
 
 function progressInsight(
+  metric: ProgressMetric,
   values: number[],
   format: (value: number) => string,
 ): string | null {
   const mean = chartMean(values);
   const span = chartSpan(values);
+  const weightLabel =
+    metric === "seconds"
+      ? "удержание"
+      : metric === "relative"
+        ? "к весу тела"
+        : "рабочий вес";
   return chartInsight([
     span && span.first !== span.last
-      ? `${format(span.first)} → ${format(span.last)}`
+      ? `${weightLabel} ${format(span.first)} → ${format(span.last)}`
       : null,
     mean != null ? `среднее ${format(mean)}` : null,
   ]);

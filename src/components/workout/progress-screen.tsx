@@ -289,12 +289,14 @@ function SummaryCard({
       ) : null}
 
       {tonnage > 0 ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted-foreground">
-            Тоннаж {formatTonnage(tonnage)}
-            {weeks.length < 2 && tonnageLine ? ` · ${tonnageLine}` : ""}
-          </p>
-          <WeekTonnageChart weeks={weeks} />
+        <div className="border-t border-border/70 pt-4">
+          {weeks.length < 2 && tonnageLine ? (
+            <p className="mb-3 text-sm text-muted-foreground">
+              Тоннаж за период {formatTonnage(tonnage)} кг · {tonnageLine}
+            </p>
+          ) : (
+            <WeekTonnageChart weeks={weeks} periodTotal={tonnage} />
+          )}
         </div>
       ) : null}
 
