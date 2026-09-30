@@ -57,7 +57,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
 | `GEMINI_API_KEY` | no | text review «Как прошло». Up to three comma-separated keys, each from its own Google project (one project shares one Gemini quota). A limited key is skipped for the next call. Without a key the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo, same pool of up to three keys from separate projects. Without a key the camera link is hidden, food still logs by hand |
-| `GEMINI_DICTATE_API_KEY` | no | spoken food «Наговорить», same pool of up to three keys from separate projects. Without a key the button is hidden, food still logs by hand |
+| `GEMINI_DICTATE_API_KEY` | no | spoken food «Голосом», same pool of up to three keys from separate projects. Without a key the button is hidden, food still logs by hand |
 
 Migrations: `supabase/migrations/0001_init.sql` … `0039_ai_dictate.sql` — apply in order in the SQL Editor or with the Supabase CLI. Notable later files: `0034` inbox for Написать; `0035` sex / goal / training age on settings; `0038` coach read-only grants; `0039` separate AI quota kind for dictate.
 

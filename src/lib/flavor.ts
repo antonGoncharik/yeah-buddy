@@ -293,9 +293,9 @@ export const PLATE_IDLE_LINE =
   "Сфотографируй тарелку. Свои продукты встанут с граммами. Остальное станет разовой порцией и в список не попадёт.";
 export const PLATE_CAPTURE_LABEL = "Снять тарелку";
 export const DICTATE_IDLE_LINE =
-  "Наговори, что съел и сколько. Свои продукты встанут с граммами. Остальное станет разовой порцией и в список не попадёт.";
+  "Скажи, что съел и сколько. Свои продукты встанут с граммами. Остальное станет разовой порцией и в список не попадёт.";
 export const DICTATE_SPEAK_LINE = "Говори. Назови продукты и граммы.";
-export const DICTATE_CAPTURE_LABEL = "Наговорить";
+export const DICTATE_CAPTURE_LABEL = "Сказать";
 export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
 export const WAIST_GAP_DAYS = 21;

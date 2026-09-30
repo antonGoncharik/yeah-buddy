@@ -136,7 +136,7 @@ export function MealDictateLink({ href }: { href: string }) {
       )}
     >
       <Mic className="size-4" aria-hidden />
-      Наговорить
+      Голосом
     </Link>
   );
 }

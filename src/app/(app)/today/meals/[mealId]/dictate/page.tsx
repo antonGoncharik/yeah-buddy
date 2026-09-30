@@ -37,7 +37,7 @@ export default async function DictateMealPage({
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Наговорить"
+        title="Голосом"
         backHref={withDateQuery(`/today/meals/${mealId}/add`, date, today)}
       />
       <DictateScreen
