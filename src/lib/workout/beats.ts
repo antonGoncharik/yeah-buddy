@@ -2,7 +2,7 @@ import { relativeStrength } from "@/lib/day/body-weight";
 import type { SessionBeats } from "@/lib/types";
 import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
 import { exerciseShortLabel } from "@/lib/workout/labels";
-import { firstWorkSet } from "@/lib/workout/session-format";
+import { peakWorkWeight } from "@/lib/workout/session-format";
 
 export const CIRCLE_OPENED_LINE = "Неделя пройдена. Следующая уже идёт.";
 const OWN_WEIGHT = "Свой вес.";
@@ -155,7 +155,7 @@ export function sessionDetailBeat(detail: {
   exercises: ReadonlyArray<{
     exercise_id: string;
     exercise: { name: string; short_name: string | null };
-    sets: Parameters<typeof firstWorkSet>[0];
+    sets: Parameters<typeof peakWorkWeight>[0];
   }>;
   beats: SessionBeats | null;
 }): SessionBeat | null {
@@ -181,13 +181,8 @@ export function sessionDetailBeat(detail: {
   );
 }
 
-function workWeight(sets: Parameters<typeof firstWorkSet>[0]): number | null {
-  const work = firstWorkSet(sets);
-  const weight = work?.actual_weight ?? work?.planned_weight;
-  if (weight == null || weight <= 0) {
-    return null;
-  }
-  return weight;
+function workWeight(sets: Parameters<typeof peakWorkWeight>[0]): number | null {
+  return peakWorkWeight(sets);
 }
 
 function beatName(shortName: string | null, name: string): string {

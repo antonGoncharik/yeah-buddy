@@ -9,6 +9,7 @@ import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { ProgressBodyWeightChart } from "@/components/workout/progress-body-weight-chart";
 import { ProgressExerciseCard } from "@/components/workout/progress-exercise-card";
 import {
   type ProgressFilter,
@@ -37,6 +38,7 @@ import {
   formatTonnage,
   formatWeight,
 } from "@/lib/workout/numbers";
+import { summarizeProgress } from "@/lib/workout/progress-build";
 import {
   bodyWeightSpan,
   controlLifts,
@@ -126,6 +128,16 @@ export function ProgressScreen() {
               />
             </div>
 
+            {mixedCategories ? (
+              <div className="animate-rise">
+                <Segmented
+                  value={filter}
+                  options={FILTERS}
+                  onChange={setFilter}
+                />
+              </div>
+            ) : null}
+
             {tracked.length === 0 ? (
               <EmptyNote
                 icon={<DumbbellDoodle className="h-5 w-10" />}
@@ -137,21 +149,13 @@ export function ProgressScreen() {
                 viewed={viewed}
                 lifetime={progress}
                 tracked={tracked}
+                filter={filter}
+                mixedCategories={mixedCategories}
                 horizon={horizon}
                 from={horizonStart}
                 to={today}
               />
             )}
-
-            {mixedCategories ? (
-              <div className="animate-rise">
-                <Segmented
-                  value={filter}
-                  options={FILTERS}
-                  onChange={setFilter}
-                />
-              </div>
-            ) : null}
 
             {visible.length === 0 && tracked.length > 0 ? (
               <p className="py-8 text-center text-muted-foreground">
@@ -195,6 +199,8 @@ function SummaryCard({
   viewed,
   lifetime,
   tracked,
+  filter,
+  mixedCategories,
   horizon,
   from,
   to,
@@ -202,19 +208,29 @@ function SummaryCard({
   viewed: StrengthProgress;
   lifetime: StrengthProgress;
   tracked: ExerciseProgress[];
+  filter: ProgressFilter;
+  mixedCategories: boolean;
   horizon: ProgressHorizon;
   from: string | null;
   to: string;
 }) {
+  const summaryTracked = exercisesForSummary(tracked, filter, mixedCategories);
+  const summary = summarizeProgress(summaryTracked);
   const fromWork = tracked.some((item) => item.from_work);
-  const moved = viewed.avg_percent != null && viewed.avg_percent !== 0;
+  const moved = summary.avg_percent != null && summary.avg_percent !== 0;
   const weight = bodyWeightSpan(lifetime.weights, from, to);
   const showWeight =
     weight.start != null &&
     weight.end != null &&
     weight.delta != null &&
     Math.abs(weight.delta) >= WEIGHT_DELTA_KG;
-  const lifts = controlLifts(tracked);
+  const summaryScope =
+    mixedCategories && filter !== "all"
+      ? filter === "base"
+        ? EXERCISE_CATEGORY_LABELS.base
+        : "Изоляция"
+      : null;
+  const lifts = controlLifts(summaryTracked);
   const records = peakRecords(lifetime.exercises, from, to).slice(0, 8);
   const weeks = weeklyTonnage(lifetime.exercises, from, to);
   const tonnage = totalTonnage(weeks);
@@ -242,11 +258,12 @@ function SummaryCard({
       <div>
         <p className="text-sm font-medium text-muted-foreground">
           {horizon === "all" ? "С первой записи" : `За ${horizon} дней`}
+          {summaryScope ? ` · ${summaryScope}` : ""}
         </p>
         <p className="mt-1 text-3xl font-semibold tracking-tight">
-          {moved && viewed.avg_percent != null ? (
+          {moved && summary.avg_percent != null ? (
             <>
-              {formatSignedPercent(viewed.avg_percent)}
+              {formatSignedPercent(summary.avg_percent)}
               <span className="ml-2 text-lg font-medium text-muted-foreground">
                 в среднем
               </span>
@@ -256,16 +273,18 @@ function SummaryCard({
           )}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          {viewed.grown_count > 0
-            ? `Выросли ${viewed.grown_count} из ${tracked.length}`
+          {summary.grown_count > 0
+            ? `Выросли ${summary.grown_count} из ${summaryTracked.length}`
             : fromWork
-              ? `${trackedCountLabel(tracked.length)} из зала. Рост покажется после следующей записи.`
-              : `${trackedCountLabel(tracked.length)}. Рост покажется после зала.`}
-          {viewed.avg_relative_percent == null || !moved
+              ? `${trackedCountLabel(summaryTracked.length)} из зала. Рост покажется после следующей записи.`
+              : `${trackedCountLabel(summaryTracked.length)}. Рост покажется после зала.`}
+          {summary.avg_relative_percent == null || !moved
             ? null
-            : ` · к весу тела ${formatSignedPercent(viewed.avg_relative_percent)}`}
+            : ` · к весу тела ${formatSignedPercent(summary.avg_relative_percent)}`}
         </p>
-        {moved ? <CategoryLine exercises={tracked} /> : null}
+        {moved && !summaryScope ? (
+          <CategoryLine exercises={summaryTracked} />
+        ) : null}
         {frequency || gap ? (
           <p className="mt-2 text-sm text-muted-foreground">
             {[frequency, halves ? formatSessionRateHalves(halves) : null, gap]
@@ -287,6 +306,8 @@ function SummaryCard({
           </span>
         </p>
       ) : null}
+
+      <ProgressBodyWeightChart weights={lifetime.weights} from={from} to={to} />
 
       {tonnage > 0 ? (
         <div className="border-t border-border/70 pt-4">
@@ -330,6 +351,20 @@ function SummaryCard({
       ) : null}
     </section>
   );
+}
+
+function exercisesForSummary(
+  tracked: ExerciseProgress[],
+  filter: ProgressFilter,
+  mixedCategories: boolean,
+): ExerciseProgress[] {
+  if (!mixedCategories || filter === "all") {
+    return tracked;
+  }
+  if (filter === "isolation") {
+    return tracked.filter((item) => item.category === "isolation");
+  }
+  return tracked.filter((item) => item.category !== "isolation");
 }
 
 function liftLine(item: ExerciseProgress): string {

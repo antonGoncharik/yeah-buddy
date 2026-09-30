@@ -1,7 +1,7 @@
 import { toNullableNumber } from "@/lib/read";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionBeats, WorkoutSession } from "@/lib/types";
-import { firstWorkSet } from "@/lib/workout/session-format";
+import { peakWorkWeight } from "@/lib/workout/session-format";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 
 const PAGE = 1000;
@@ -36,9 +36,8 @@ export async function loadSessionBeats(
         if (!wanted.has(item.exercise_id)) {
           continue;
         }
-        const work = firstWorkSet(item.sets);
-        const weight = work?.actual_weight ?? work?.planned_weight;
-        if (weight == null || weight <= 0) {
+        const weight = peakWorkWeight(item.sets);
+        if (weight == null) {
           continue;
         }
         const current = peaks.get(item.exercise_id);

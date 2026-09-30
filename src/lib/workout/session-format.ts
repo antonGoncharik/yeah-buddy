@@ -58,6 +58,73 @@ export function firstWorkSet(sets: WorkoutSet[]): WorkoutSet | null {
   return sets.find((set) => set.set_type === "work") ?? null;
 }
 
+function workSetWeight(set: WorkoutSet): number | null {
+  const weight = set.actual_weight ?? set.planned_weight;
+  if (weight == null || weight <= 0) {
+    return null;
+  }
+  return weight;
+}
+
+/** Heaviest work set in the session (pyramid-friendly; tie → later set). */
+export function peakWorkSet(sets: WorkoutSet[]): WorkoutSet | null {
+  let best: WorkoutSet | null = null;
+  let bestWeight = Number.NEGATIVE_INFINITY;
+
+  for (const set of sets) {
+    if (set.set_type !== "work") {
+      continue;
+    }
+    const weight = workSetWeight(set);
+    if (weight == null) {
+      continue;
+    }
+    if (
+      weight > bestWeight ||
+      (weight === bestWeight &&
+        best != null &&
+        set.set_number > best.set_number)
+    ) {
+      best = set;
+      bestWeight = weight;
+    }
+  }
+
+  return best;
+}
+
+export function peakWorkWeight(sets: WorkoutSet[]): number | null {
+  const work = peakWorkSet(sets);
+  return work == null ? null : workSetWeight(work);
+}
+
+/** Longest hold among work sets (static; tie → later set). */
+export function peakWorkSeconds(sets: WorkoutSet[]): number | null {
+  let best: WorkoutSet | null = null;
+  let bestSeconds = Number.NEGATIVE_INFINITY;
+
+  for (const set of sets) {
+    if (set.set_type !== "work" || !setUsesSeconds(set)) {
+      continue;
+    }
+    const seconds = set.actual_seconds ?? set.planned_seconds;
+    if (seconds == null || seconds <= 0) {
+      continue;
+    }
+    if (
+      seconds > bestSeconds ||
+      (seconds === bestSeconds &&
+        best != null &&
+        set.set_number > best.set_number)
+    ) {
+      best = set;
+      bestSeconds = seconds;
+    }
+  }
+
+  return best == null ? null : bestSeconds;
+}
+
 export function setDiffersFromPlan(set: WorkoutSet): boolean {
   if (
     set.actual_weight != null &&
@@ -185,7 +252,7 @@ export function formatWorkSummary(
   const parts: string[] = [];
   let workCount = 0;
   for (const item of exercises) {
-    const work = firstWorkSet(item.sets);
+    const work = peakWorkSet(item.sets);
     if (!work) {
       continue;
     }

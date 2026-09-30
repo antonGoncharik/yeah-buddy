@@ -1,5 +1,6 @@
 "use client";
 
+import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
 import { formatKcalPlain, formatPct } from "@/lib/ai/format";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
 import type { ReviewBrief, ReviewEnergy } from "@/lib/ai/types";
@@ -90,11 +91,23 @@ export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
         hint={liftsHint(brief)}
       />
       {brief.gym.tonnage != null ? (
-        <FactRow
-          label="Тоннаж"
-          value={formatTonnage(brief.gym.tonnage)}
-          hint={formatWeeklyTonnageLine(brief.gym.tonnage_weeks)}
-        />
+        <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
+          <FactRow
+            label="Тоннаж"
+            value={`${formatTonnage(brief.gym.tonnage)} кг`}
+            hint={
+              brief.gym.tonnage_weeks.length < 2
+                ? formatWeeklyTonnageLine(brief.gym.tonnage_weeks)
+                : null
+            }
+          />
+          {brief.gym.tonnage_weeks.length >= 2 ? (
+            <WeekTonnageChart
+              weeks={brief.gym.tonnage_weeks}
+              periodTotal={brief.gym.tonnage}
+            />
+          ) : null}
+        </div>
       ) : null}
       {brief.gym.records.length > 0 ? (
         <FactRow

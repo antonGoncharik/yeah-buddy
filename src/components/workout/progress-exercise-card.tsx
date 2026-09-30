@@ -20,6 +20,7 @@ import { measureProgress } from "@/lib/workout/progress-build";
 import {
   hasRelativeSeries,
   hasSecondsSeries,
+  hasTonnageSeries,
   lastProgressKind,
   type ProgressMetric,
   pointsForKind,
@@ -45,12 +46,14 @@ export function ProgressExerciseCard({
   const stats = measureProgress(series);
   const secondsOk = hasSecondsSeries(series);
   const relativeOk = hasRelativeSeries(series);
+  const tonnageOk = hasTonnageSeries(series);
   const [metric, setMetric] = useState<ProgressMetric>(() =>
     hasSecondsSeries(series) ? "seconds" : "weight",
   );
   const lastSeconds = series.at(-1)?.seconds ?? null;
   const metricOptions = [
     { id: "weight" as const, label: "Вес" },
+    ...(tonnageOk ? [{ id: "tonnage" as const, label: "Тоннаж" }] : []),
     ...(secondsOk ? [{ id: "seconds" as const, label: "Время" }] : []),
     ...(relativeOk ? [{ id: "relative" as const, label: "К телу" }] : []),
   ];
@@ -59,7 +62,9 @@ export function ProgressExerciseCard({
       ? "weight"
       : metric === "relative" && !relativeOk
         ? "weight"
-        : metric;
+        : metric === "tonnage" && !tonnageOk
+          ? "weight"
+          : metric;
 
   return (
     <article className="card-surface px-5 py-4">

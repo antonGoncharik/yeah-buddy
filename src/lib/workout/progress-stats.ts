@@ -6,7 +6,7 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 
-export type ProgressMetric = "weight" | "seconds" | "relative";
+export type ProgressMetric = "weight" | "seconds" | "relative" | "tonnage";
 
 export const CATEGORY_SHORT_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
@@ -44,26 +44,20 @@ export function hasSecondsSeries(points: ProgressPoint[]): boolean {
   return secondsSeries(points).length >= 2;
 }
 
+export function tonnageSeries(points: ProgressPoint[]): ProgressPoint[] {
+  return points.filter((point) => point.tonnage != null && point.tonnage > 0);
+}
+
+export function hasTonnageSeries(points: ProgressPoint[]): boolean {
+  return tonnageSeries(points).length >= 2;
+}
+
 export function relativeSeries(points: ProgressPoint[]): ProgressPoint[] {
   return points.filter((point) => point.relative != null && point.relative > 0);
 }
 
 export function hasRelativeSeries(points: ProgressPoint[]): boolean {
   return relativeSeries(points).length >= 2;
-}
-
-export function tonnageOverlayValues(points: ProgressPoint[]): number[] | null {
-  if (points.length < 2) {
-    return null;
-  }
-  const values: number[] = [];
-  for (const point of points) {
-    if (point.tonnage == null || point.tonnage <= 0) {
-      return null;
-    }
-    values.push(point.tonnage);
-  }
-  return values;
 }
 
 export function metricPoints(
@@ -75,6 +69,9 @@ export function metricPoints(
   }
   if (metric === "relative") {
     return relativeSeries(points);
+  }
+  if (metric === "tonnage") {
+    return tonnageSeries(points);
   }
   return points;
 }
@@ -88,6 +85,9 @@ export function metricValues(
   }
   if (metric === "relative") {
     return relativeSeries(points).map((point) => point.relative ?? 0);
+  }
+  if (metric === "tonnage") {
+    return tonnageSeries(points).map((point) => point.tonnage ?? 0);
   }
 
   return points.map((point) => point.weight);

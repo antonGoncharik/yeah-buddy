@@ -4,6 +4,8 @@ import {
   formatRecentSessionTrail,
   formatReviewWork,
   formatWorkSummary,
+  peakWorkSet,
+  peakWorkWeight,
   sessionCloseKind,
   sessionCloseKindShort,
   setCopiedFromPlan,
@@ -164,6 +166,23 @@ assertEqual(
   ]),
   "Присед 80×5×3 · Жим 80×3 из 5, 80×5 запас 2 (плечо)",
   "review work keeps every set",
+);
+
+assertEqual(
+  peakWorkWeight([
+    workSet({ set_number: 1, actual_weight: 80 }),
+    workSet({ set_number: 2, actual_weight: 100 }),
+  ]),
+  100,
+  "peak weight is heaviest work set",
+);
+assertEqual(
+  peakWorkSet([
+    workSet({ set_number: 1, actual_weight: 100 }),
+    workSet({ set_number: 2, actual_weight: 100 }),
+  ])?.set_number,
+  2,
+  "same weight tie goes to later set",
 );
 
 console.log("session format close kind ok");

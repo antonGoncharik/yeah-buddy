@@ -6,7 +6,11 @@ import {
 } from "@/lib/workout/exercise-work-phase";
 import { phaseLabel } from "@/lib/workout/labels";
 import { toSessionFeel } from "@/lib/workout/map-enums";
-import { firstWorkSet, setWasWritten } from "@/lib/workout/session-format";
+import {
+  peakWorkSeconds,
+  peakWorkSet,
+  setWasWritten,
+} from "@/lib/workout/session-format";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 import {
   circleTonnageByRound,
@@ -109,13 +113,13 @@ async function pointsFromSessions(
       : dateLabel;
 
     for (const item of exercises) {
-      const work = firstWorkSet(item.sets) ?? item.sets[0];
+      const work = peakWorkSet(item.sets);
       const weight = work?.actual_weight ?? work?.planned_weight;
       if (work == null || weight == null || weight <= 0) {
         continue;
       }
 
-      const seconds = work.actual_seconds ?? work.planned_seconds;
+      const seconds = peakWorkSeconds(item.sets);
       draft.push({
         sessionIndex: index,
         exerciseId: item.exercise_id,

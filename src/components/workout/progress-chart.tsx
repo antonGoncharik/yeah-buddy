@@ -1,7 +1,7 @@
 import { ChartEmpty } from "@/components/chart/trend-plot";
 import { ProgressChartPlot } from "@/components/workout/progress-chart-plot";
 import { phaseMarks } from "@/components/workout/progress-phase-marks";
-import { chartLayout, chartSeries, chartShape } from "@/lib/chart-shape";
+import { chartShape } from "@/lib/chart-shape";
 import { formatRelative } from "@/lib/day/body-weight";
 import type { ProgressPoint } from "@/lib/types";
 import {
@@ -13,8 +13,8 @@ import {
   metricPoints,
   metricValues,
   type ProgressMetric,
-  tonnageOverlayValues,
 } from "@/lib/workout/progress-stats";
+import { PROGRESS_SESSION_WEIGHT_HINT } from "@/lib/workout/user-copy";
 
 export function ProgressChart({
   points,
@@ -36,26 +36,31 @@ export function ProgressChart({
     return null;
   }
 
-  const unit = metric === "seconds" ? "с" : metric === "relative" ? "" : "кг";
+  const unit =
+    metric === "seconds"
+      ? "с"
+      : metric === "relative"
+        ? ""
+        : metric === "tonnage"
+          ? "кг"
+          : "кг";
   const formatValue =
     metric === "seconds"
       ? formatSeconds
       : metric === "relative"
         ? formatRelative
-        : formatWeight;
+        : metric === "tonnage"
+          ? formatTonnage
+          : formatWeight;
   const marks = phaseMarks(series, shape.dots, width, 16);
-  const tonnageValues =
-    metric === "weight" ? tonnageOverlayValues(series) : null;
-  const tonnageLayout = tonnageValues
-    ? chartLayout(tonnageValues, series.length, width, height, 16)
-    : null;
-  const tonnageShape =
-    tonnageLayout && tonnageValues
-      ? chartSeries(tonnageValues, tonnageLayout)
-      : null;
 
   return (
     <div className="flex flex-col gap-3">
+      {metric === "weight" ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {PROGRESS_SESSION_WEIGHT_HINT}
+        </p>
+      ) : null}
       <ProgressChartPlot
         metric={metric}
         height={height}
@@ -65,8 +70,8 @@ export function ProgressChart({
         unit={unit}
         formatValue={formatValue}
         values={metricValues(series, metric)}
-        tonnageShape={tonnageShape}
-        tonnageLayout={tonnageLayout}
+        tonnageShape={null}
+        tonnageLayout={null}
       />
       <ol className="flex flex-col gap-1.5">
         {series.slice(-6).map((point) => (
@@ -84,7 +89,9 @@ export function ProgressChart({
                   ? (point.seconds ?? 0)
                   : metric === "relative"
                     ? (point.relative ?? 0)
-                    : point.weight,
+                    : metric === "tonnage"
+                      ? (point.tonnage ?? 0)
+                      : point.weight,
               )}
               {unit ? ` ${unit}` : ""}
               {metric === "weight" && point.tonnage != null

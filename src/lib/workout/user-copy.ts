@@ -5,3 +5,7 @@ export const EXERCISE_ONE_REP_HINT =
 
 export const HUB_WEIGHT_NAV_HINT =
   "Сколько поднимаешь один раз и рабочий вес на штанге.";
+
+/** Точка на графике «Рабочие веса» — за одну тренировку. */
+export const PROGRESS_SESSION_WEIGHT_HINT =
+  "На графике — самый тяжёлый рабочий подход за тренировку (не разминка).";

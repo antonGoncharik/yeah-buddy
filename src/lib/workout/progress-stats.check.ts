@@ -1,8 +1,8 @@
 import { measureProgress } from "@/lib/workout/progress-build";
 import {
+  hasTonnageSeries,
   lastProgressKind,
   primaryProgressPoints,
-  tonnageOverlayValues,
   withRelativePoints,
 } from "@/lib/workout/progress-stats";
 import {
@@ -125,11 +125,7 @@ assertEqual(
   "same lift twice in a round sums",
 );
 
-assertEqual(
-  tonnageOverlayValues(points),
-  [2625, 2625],
-  "overlay needs tonnage on every point",
-);
+assertEqual(hasTonnageSeries(points), true, "tonnage series when 2+ points");
 
 function workPoint(
   date: string,
