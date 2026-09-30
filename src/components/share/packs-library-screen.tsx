@@ -1,40 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
-import {
-  DumbbellDoodle,
-  MealDayDoodle,
-  FriendsDoodle,
-} from "@/components/layout/doodles";
+import { FriendsDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
+import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
-import { cachedGet, mutateJson } from "@/lib/api-cache";
+import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { readNamedMeals } from "@/lib/day/today-payload";
 import {
   LOAD_FAILED,
   PACK_REMOVE_LINK,
   PACK_REMOVE_SAVED,
 } from "@/lib/messages";
-import { readSharePacksPayload } from "@/lib/share/map";
+import { getMealLabel } from "@/lib/nutrition";
+import { readSharePackPayload, readSharePacksPayload } from "@/lib/share/map";
 import { removePackFromListCache } from "@/lib/share/pack-cache";
 import { packPath } from "@/lib/share/pending";
 import type { SharePackSummary } from "@/lib/share/types";
 import { haptic } from "@/lib/telegram/haptic";
+import type { NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { PACKS_LABEL } from "@/lib/workout/labels";
 
 export function PacksLibraryScreen() {
+  const router = useRouter();
   const confirm = useConfirm();
   const [packs, setPacks] = useState<SharePackSummary[]>([]);
+  const [namedMeals, setNamedMeals] = useState<NamedMealHint[]>([]);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [revokingToken, setRevokingToken] = useState<string | null>(null);
+  const [sharingMealId, setSharingMealId] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     begin();
@@ -48,6 +53,14 @@ export function PacksLibraryScreen() {
         },
         () => done(true),
       );
+      try {
+        await cachedGet("/api/named-meals", (data) => {
+          setNamedMeals(readNamedMeals(data));
+          return true;
+        });
+      } catch {
+        setNamedMeals([]);
+      }
       done(true);
     } catch {
       setError(LOAD_FAILED);
@@ -84,6 +97,31 @@ export function PacksLibraryScreen() {
     }
   }
 
+  async function onShareNamed(meal: NamedMealHint) {
+    if (sharingMealId) {
+      return;
+    }
+
+    setSharingMealId(meal.id);
+    setShareError(null);
+    try {
+      const data = await postJson("/api/packs", {
+        kind: "meal",
+        namedMealId: meal.id,
+      });
+      const pack = readSharePackPayload(data);
+      if (!pack) {
+        setShareError(LOAD_FAILED);
+        return;
+      }
+      router.push(packPath(pack.token, "packs"));
+    } catch (caught) {
+      setShareError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setSharingMealId(null);
+    }
+  }
+
   const listBusy = revokingToken != null;
 
   return (
@@ -92,12 +130,39 @@ export function PacksLibraryScreen() {
 
       <div className="flex flex-col gap-4 px-4 pb-36">
         <p className="text-base text-muted-foreground">
-          Едой на день, одним приёмом и программой тренировок делишься
-          отдельными ссылками и QR. В ссылку попадают только шаблоны и строки
-          приёма — записи из дневника и рабочие веса остаются у тебя. Ссылку
-          можно убрать — она перестанет открываться. Ссылки от друзей
-          сохраняются сюда, поставить их можно когда удобно.
+          Едой на день и программой тренировок делишься отдельными ссылками и
+          QR. Сохранённый приём — здесь же. Приём из дневника — «Поделиться» в
+          «Ещё» на «Сегодня»: откроется ссылка, оттуда её можно отправить. В
+          ссылку попадают только шаблоны и строки приёма — записи из дневника и
+          рабочие веса остаются у тебя. Ссылку можно убрать — она перестанет
+          открываться. Ссылки от друзей сохраняются сюда, поставить их можно
+          когда удобно.
         </p>
+
+        {!loading && namedMeals.length > 0 ? (
+          <section className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xl font-semibold">Сохранённые приёмы</h2>
+              <p className="text-base text-muted-foreground">
+                Ссылка откроется карточкой — оттуда её можно отправить.
+              </p>
+            </div>
+            <div className="card-surface divide-y divide-border/70 px-3 py-1">
+              {namedMeals.map((meal) => (
+                <NavRow
+                  key={meal.id}
+                  title={meal.name}
+                  hint={getMealLabel(meal.meal_type)}
+                  busy={sharingMealId != null}
+                  onClick={() => void onShareNamed(meal)}
+                />
+              ))}
+            </div>
+            {shareError ? (
+              <p className="text-sm text-destructive">{shareError}</p>
+            ) : null}
+          </section>
+        ) : null}
 
         {loading ? <ScreenLoading /> : null}
 
@@ -105,11 +170,11 @@ export function PacksLibraryScreen() {
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        {!loading && !error && packs.length === 0 ? (
+        {!loading && !error && packs.length === 0 && namedMeals.length === 0 ? (
           <EmptyNote
             icon={<FriendsDoodle className="h-8 w-8" />}
             title="Пока пусто."
-            hint="Поделись обедом, едой на день или программой — ссылка появится здесь."
+            hint="Поделись едой на день, сохранённым приёмом или программой — ссылка появится здесь."
           />
         ) : null}
 

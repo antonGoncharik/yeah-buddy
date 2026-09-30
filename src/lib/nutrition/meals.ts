@@ -37,7 +37,7 @@ export function mealExistsReplace(mealType: MealType): string {
 }
 
 export function shareMealLine(_mealType?: MealType): string {
-  return "Отправить в чат";
+  return "Поделиться";
 }
 
 export function filledMealTypes(

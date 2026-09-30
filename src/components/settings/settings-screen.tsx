@@ -180,7 +180,7 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
-              hint="Поделись обедом, едой на день или программой тренировок"
+              hint="Еда на день, сохранённый приём или программа тренировок"
               icon={<FriendsDoodle />}
             />
             <NavRow

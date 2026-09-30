@@ -46,12 +46,8 @@ assertEqual(
   "pre workout",
 );
 
-assertEqual(shareMealLine("lunch"), "Отправить в чат", "lunch share");
-assertEqual(
-  shareMealLine("pre_workout"),
-  "Отправить в чат",
-  "pre workout share",
-);
+assertEqual(shareMealLine("lunch"), "Поделиться", "lunch share");
+assertEqual(shareMealLine("pre_workout"), "Поделиться", "pre workout share");
 
 assertEqual(
   readYesterdayMealTypes({
