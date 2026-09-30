@@ -466,7 +466,7 @@ function WeightBlock({
           ? "border-t border-border pt-4"
           : wide
             ? undefined
-            : "shrink-0 text-right",
+            : "min-w-0 max-w-[48%] text-right",
       )}
     >
       <div

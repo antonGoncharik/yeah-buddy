@@ -126,7 +126,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <ConfirmProvider>
               <DayMoodProvider>
                 <DayBackdrop />
-                <div className="relative z-10">{children}</div>
+                <div className="relative z-10 min-w-0">{children}</div>
               </DayMoodProvider>
             </ConfirmProvider>
           </DiaryDensityProvider>

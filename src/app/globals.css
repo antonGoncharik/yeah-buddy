@@ -416,6 +416,7 @@ html.dark[data-day="deload"] {
     @apply font-sans;
     font-size: 17px;
     color-scheme: light;
+    overflow-x: clip;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -448,6 +449,7 @@ html.dark[data-day="deload"] {
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
   }
   .field-control:-webkit-autofill,
   .field-control:-webkit-autofill:hover,

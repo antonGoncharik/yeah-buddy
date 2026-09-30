@@ -53,9 +53,19 @@ assertEqual(
   "home indicator is not a keyboard",
 );
 assertEqual(
-  isKeyboardOpen(500, { baselineHeight: 800 }),
+  isKeyboardOpen(500, { baselineHeight: 800, focusedField: true }),
   true,
   "browser keyboard vs remembered visual height",
+);
+assertEqual(
+  isKeyboardOpen(500, { baselineHeight: 800 }),
+  false,
+  "scroll shrink without a focused field is not a keyboard",
+);
+assertEqual(
+  isKeyboardOpen(700, { stableHeight: 800 }),
+  false,
+  "Mini App scroll shrink is not a keyboard",
 );
 assertEqual(
   isKeyboardOpen(800, { baselineHeight: 800 }),

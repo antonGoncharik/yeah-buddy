@@ -19,7 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <TelegramGate>
       <OnboardingGate>
-        <div className="app-safe-pad app-viewport-min mx-auto w-full max-w-lg pb-[var(--app-nav-clearance)]">
+        <div className="app-safe-pad app-viewport-min mx-auto w-full min-w-0 max-w-lg pb-[var(--app-nav-clearance)]">
           <ResetWindowScroll />
           <CoachCatcher>
             <PackCatcher>{children}</PackCatcher>

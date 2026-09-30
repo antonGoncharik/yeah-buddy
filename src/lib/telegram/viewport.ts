@@ -32,6 +32,8 @@ const EVENTS = [
 const RETRY_MS = [50, 250, 800];
 const HOME_INDICATOR_MIN = 16;
 const HOME_INDICATOR_MAX = 56;
+// Visual height can shrink ~60–100px while scrolling without a keyboard.
+const KEYBOARD_SHRINK_MIN = 120;
 // MainButton / Android nav. Keyboard leftovers are hundreds of px and
 // would inflate the tab bar if added into --app-safe-bottom.
 const CONTENT_BOTTOM_MAX = 80;
@@ -88,14 +90,29 @@ export function contentSafeBottom(value: number): number {
 
 export function isKeyboardOpen(
   visualHeight: number,
-  options: { stableHeight?: number; baselineHeight?: number } = {},
+  options: {
+    stableHeight?: number;
+    baselineHeight?: number;
+    focusedField?: boolean;
+  } = {},
 ): boolean {
-  const { stableHeight, baselineHeight } = options;
+  const { stableHeight, baselineHeight, focusedField = false } = options;
   const baseline = pickBaseline(stableHeight, baselineHeight);
   if (baseline == null || !Number.isFinite(visualHeight)) {
     return false;
   }
-  return baseline - visualHeight > HOME_INDICATOR_MAX;
+  const shrink = baseline - visualHeight;
+  if (shrink <= KEYBOARD_SHRINK_MIN) {
+    return false;
+  }
+  if (
+    typeof stableHeight !== "number" &&
+    typeof baselineHeight === "number" &&
+    !focusedField
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function pickBaseline(
@@ -117,6 +134,22 @@ function pickBaseline(
     return baselineHeight;
   }
   return null;
+}
+
+function isEditableFocused(): boolean {
+  if (typeof document === "undefined") {
+    return false;
+  }
+  const node = document.activeElement;
+  if (!node || node === document.body) {
+    return false;
+  }
+  return (
+    node instanceof HTMLInputElement ||
+    node instanceof HTMLTextAreaElement ||
+    node instanceof HTMLSelectElement ||
+    (node instanceof HTMLElement && node.isContentEditable)
+  );
 }
 
 function asPx(value: number): string {
@@ -186,6 +219,7 @@ export function syncTelegramViewport(
     isKeyboardOpen(visualHeight, {
       stableHeight: typeof stable === "number" ? stable : undefined,
       baselineHeight,
+      focusedField: isEditableFocused(),
     });
 
   if (open) {
