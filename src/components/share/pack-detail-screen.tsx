@@ -88,6 +88,17 @@ export function PackDetailScreen({ token }: { token: string }) {
               <PackMealPreview pack={pack} />
             ) : null}
 
+            {!ownLive && pack.mine && pack.received ? (
+              <Button
+                variant="ghost"
+                className="h-12 text-base"
+                disabled={busy}
+                onClick={() => void onRevoke()}
+              >
+                Убрать из списка
+              </Button>
+            ) : null}
+
             {ownLive ? null : error ? (
               <p className="text-sm text-destructive">{error}</p>
             ) : null}

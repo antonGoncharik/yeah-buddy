@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { ApiError, mutateJson, peekJson, writeJson } from "@/lib/api-cache";
+import { ApiError, mutateJson } from "@/lib/api-cache";
 import { ensureTodayDay } from "@/lib/day/ensure-today";
 import {
   LOAD_FAILED,
@@ -12,9 +12,9 @@ import {
   PACK_REMOVE_LINK,
   PACK_REMOVE_SAVED,
 } from "@/lib/messages";
-import { isRecord } from "@/lib/read";
-import { shareOrCopyLink } from "@/lib/share/client";
+import { removePackFromListCache } from "@/lib/share/pack-cache";
 import { readSharePackPayload } from "@/lib/share/map";
+import { isLiveOwnedPack } from "@/lib/share/pack-ui";
 import { packShareText } from "@/lib/share/payload";
 import {
   dismissPendingPackToken,
@@ -23,6 +23,7 @@ import {
   parsePackBackFrom,
 } from "@/lib/share/pending";
 import type { SharePackDetail } from "@/lib/share/types";
+import { shareOrCopyLink } from "@/lib/share/client";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function usePackDetailScreen(token: string) {
@@ -174,7 +175,7 @@ export function usePackDetailScreen(token: string) {
       await mutateJson(`/api/packs/${pack.token}/revoke`, {
         method: "POST",
       });
-      dropCachedPack(pack.token);
+      removePackFromListCache(pack.token);
       dismissPendingPackToken(token);
       haptic("commit");
       router.replace(packBackHref(from));
@@ -185,7 +186,7 @@ export function usePackDetailScreen(token: string) {
     }
   }
 
-  const ownLive = Boolean(pack?.mine && !pack.revoked);
+  const ownLive = Boolean(pack && isLiveOwnedPack(pack));
   const canApply = Boolean(pack && (!pack.mine || pack.received));
 
   return {
@@ -202,17 +203,4 @@ export function usePackDetailScreen(token: string) {
     onShare,
     onRevoke,
   };
-}
-
-function dropCachedPack(token: string) {
-  const cached = peekJson("/api/packs");
-  if (!isRecord(cached) || !Array.isArray(cached.packs)) {
-    return;
-  }
-
-  writeJson("/api/packs", {
-    packs: cached.packs.filter(
-      (row) => !(isRecord(row) && row.token === token),
-    ),
-  });
 }

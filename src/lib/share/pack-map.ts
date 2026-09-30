@@ -41,8 +41,9 @@ export async function toSummary(
   userId: string,
 ): Promise<SharePackSummary> {
   const mine = pack.owner_user_id === userId;
+  const published = mine && pack.source_pack_id == null;
   const shareUrl =
-    mine && !pack.revoked_at ? await getPackShareUrl(pack.token) : null;
+    published && !pack.revoked_at ? await getPackShareUrl(pack.token) : null;
   return {
     id: pack.id,
     token: pack.token,

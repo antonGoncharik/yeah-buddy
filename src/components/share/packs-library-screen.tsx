@@ -1,30 +1,40 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import {
   DumbbellDoodle,
   MealDayDoodle,
   FriendsDoodle,
 } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
-import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
-import { cachedGet } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import { cachedGet, mutateJson } from "@/lib/api-cache";
+import {
+  LOAD_FAILED,
+  PACK_REMOVE_LINK,
+  PACK_REMOVE_SAVED,
+} from "@/lib/messages";
 import { readSharePacksPayload } from "@/lib/share/map";
+import { removePackFromListCache } from "@/lib/share/pack-cache";
 import { packPath } from "@/lib/share/pending";
 import type { SharePackSummary } from "@/lib/share/types";
+import { haptic } from "@/lib/telegram/haptic";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { PACKS_LABEL } from "@/lib/workout/labels";
 
 export function PacksLibraryScreen() {
+  const confirm = useConfirm();
   const [packs, setPacks] = useState<SharePackSummary[]>([]);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
+  const [revokingToken, setRevokingToken] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     begin();
@@ -49,6 +59,32 @@ export function PacksLibraryScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function onRevoke(pack: SharePackSummary) {
+    const ok = await confirm({
+      message: pack.received ? PACK_REMOVE_SAVED : PACK_REMOVE_LINK,
+      confirmLabel: "Убрать",
+      cancelLabel: "Оставить",
+      destructive: true,
+    });
+    if (!ok) {
+      return;
+    }
+
+    setRevokingToken(pack.token);
+    try {
+      await mutateJson(`/api/packs/${pack.token}/revoke`, { method: "POST" });
+      removePackFromListCache(pack.token);
+      setPacks((current) => current.filter((row) => row.token !== pack.token));
+      haptic("commit");
+    } catch {
+      setError(LOAD_FAILED);
+    } finally {
+      setRevokingToken(null);
+    }
+  }
+
+  const listBusy = revokingToken != null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,23 +114,30 @@ export function PacksLibraryScreen() {
         ) : null}
 
         {!loading && packs.length > 0 ? (
-          <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+          <section className="card-surface animate-rise divide-y divide-border/70 px-3 py-1">
             {packs.map((pack) => (
-              <NavRow
-                key={pack.id}
-                href={packPath(pack.token, "packs")}
-                title={pack.title}
-                hint={packHint(pack)}
-                icon={
-                  pack.kind === "workouts" ? (
-                    <DumbbellDoodle />
-                  ) : (
-                    <MealDayDoodle />
-                  )
-                }
-              />
+              <div key={pack.id} className="flex items-center gap-1">
+                <Link
+                  href={packPath(pack.token, "packs")}
+                  className="min-w-0 flex-1 rounded-xl px-2 py-2.5 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/40"
+                >
+                  <p className="truncate text-lg font-medium">{pack.title}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {packHint(pack)}
+                  </p>
+                </Link>
+                <RemoveRowButton
+                  label={pack.received ? "Убрать из списка" : "Убрать ссылку"}
+                  disabled={listBusy}
+                  onClick={() => void onRevoke(pack)}
+                />
+              </div>
             ))}
           </section>
+        ) : null}
+
+        {!loading && error && packs.length > 0 ? (
+          <p className="text-sm text-destructive">{error}</p>
         ) : null}
       </div>
 

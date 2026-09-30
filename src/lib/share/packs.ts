@@ -42,9 +42,11 @@ export async function applyPack(
     await applyMealPack(userId, pack.payload as MealPackPayload);
   }
 
+  let detailToken = pack.token;
   if (pack.owner_user_id !== userId) {
     try {
-      await savePackCopy(userId, pack.token);
+      const saved = await savePackCopy(userId, pack.token);
+      detailToken = saved.token;
     } catch (error) {
       if (!(error instanceof PackLimitError)) {
         throw error;
@@ -52,5 +54,5 @@ export async function applyPack(
     }
   }
 
-  return getPackDetail(userId, pack.token);
+  return getPackDetail(userId, detailToken);
 }

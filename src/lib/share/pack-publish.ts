@@ -6,6 +6,7 @@ import {
   loadOwnedPack,
   loadOwnerName,
   loadPublicPack,
+  resolvePackAuthorUserId,
 } from "@/lib/share/pack-load";
 import {
   mapPackRow,
@@ -69,7 +70,8 @@ export async function getPackDetail(
 
   const saved =
     pack.owner_user_id === userId || (await findClone(userId, pack.id)) != null;
-  const ownerName = await loadOwnerName(pack.owner_user_id);
+  const authorUserId = await resolvePackAuthorUserId(pack);
+  const ownerName = await loadOwnerName(authorUserId);
   const summary = await toSummary(pack, userId);
 
   return {

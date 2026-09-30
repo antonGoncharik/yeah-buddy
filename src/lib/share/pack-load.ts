@@ -108,3 +108,24 @@ export async function loadOwnerName(userId: string): Promise<string | null> {
   const name = result.data?.first_name;
   return typeof name === "string" && name.trim() !== "" ? name.trim() : null;
 }
+
+/** Saved copies are owned by the recipient; author is the original pack owner. */
+export async function resolvePackAuthorUserId(pack: PackRow): Promise<string> {
+  if (!pack.source_pack_id) {
+    return pack.owner_user_id;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("share_packs")
+    .select("owner_user_id")
+    .eq("id", pack.source_pack_id)
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  const authorId = result.data?.owner_user_id;
+  return typeof authorId === "string" ? authorId : pack.owner_user_id;
+}
