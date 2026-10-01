@@ -19,6 +19,7 @@ export function NutritionTrendSvg({
   guideY,
   endValue,
   insight,
+  plotClassName,
 }: {
   layout: NonNullable<ReturnType<typeof chartLayout>>;
   factSeries: NonNullable<ReturnType<typeof chartSeries>>;
@@ -32,6 +33,7 @@ export function NutritionTrendSvg({
   guideY?: number;
   endValue?: string;
   insight?: string | null;
+  plotClassName?: string;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -48,6 +50,7 @@ export function NutritionTrendSvg({
         endLabel={formatIsoDate(lastDate, "d MMM")}
         guideY={guideY}
         endValue={endValue}
+        className={plotClassName}
       />
       <ChartLegend
         items={[

@@ -23,7 +23,11 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
   }
 
   return (
-    <ReviewSection title="Тело" summary={bodySummary(brief)}>
+    <ReviewSection
+      title="Тело"
+      summary={bodySummary(brief)}
+      value={bodyValue(brief)}
+    >
       {weightPoints.length >= 2 ? (
         <ReviewSeriesChart
           points={weightPoints}
@@ -45,7 +49,7 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
         />
       ) : null}
       {energy ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
           <StatGrid
             items={[
               {
@@ -77,22 +81,38 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
   );
 }
 
-function bodySummary(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
+function bodyValue(brief: ReviewBrief): string | null {
   const weight = brief.nutrition.weight;
   if (
     weight.delta != null &&
     weight.end != null &&
     Math.abs(weight.delta) >= WEIGHT_DELTA_KG
   ) {
-    parts.push(`${formatSignedBodyWeight(weight.delta)} кг`);
-  } else if (weight.end != null) {
-    parts.push(`${formatBodyWeight(weight.end)} кг`);
+    return `${formatSignedBodyWeight(weight.delta)} кг`;
+  }
+  if (weight.end != null) {
+    return `${formatBodyWeight(weight.end)} кг`;
   }
   if (brief.nutrition.energy) {
-    parts.push(`расход ~${formatKcal(brief.nutrition.energy.kcal)}`);
+    return `~${formatKcal(brief.nutrition.energy.kcal)}`;
   }
-  return parts.length > 0 ? parts.join(" · ") : null;
+  return null;
+}
+
+function bodySummary(brief: ReviewBrief): string | null {
+  const weight = brief.nutrition.weight;
+  const hasWeight =
+    (weight.delta != null &&
+      weight.end != null &&
+      Math.abs(weight.delta) >= WEIGHT_DELTA_KG) ||
+    weight.end != null;
+  if (hasWeight && brief.nutrition.energy) {
+    return `расход ~${formatKcal(brief.nutrition.energy.kcal)}`;
+  }
+  if (brief.nutrition.energy) {
+    return "расход в день";
+  }
+  return null;
 }
 
 function measurePoints(

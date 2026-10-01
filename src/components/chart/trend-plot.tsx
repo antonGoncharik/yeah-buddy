@@ -22,6 +22,7 @@ export function TrendPlot({
   extraMaxLabel,
   guideY,
   endValue,
+  className,
   children,
 }: {
   layout: ChartLayout;
@@ -36,6 +37,7 @@ export function TrendPlot({
   extraMaxLabel?: string;
   guideY?: number;
   endValue?: string;
+  className?: string;
   children?: ReactNode;
 }) {
   const { width, height, pad } = layout;
@@ -56,7 +58,7 @@ export function TrendPlot({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="h-48 w-full overflow-visible"
+      className={cn("h-48 w-full overflow-visible", className)}
       role="img"
       aria-label={ariaLabel}
     >

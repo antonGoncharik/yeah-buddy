@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
+import { FoldChevron } from "@/components/ai/review-blocks";
 import type { ReviewText } from "@/lib/ai/types";
 import { formatIsoDate } from "@/lib/day/format";
 import { haptic } from "@/lib/telegram/haptic";
@@ -56,29 +56,26 @@ export function ReviewTextCard({
             {review.headline}
           </h2>
         </span>
-        <ChevronDown
-          aria-hidden
-          className={cn(
-            "mt-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200",
-            open && "rotate-180",
-          )}
-        />
+        <FoldChevron open={open} />
       </button>
       {open ? (
-        <div className="mt-4 flex flex-col gap-4">
-          <ul className="flex flex-col gap-5">
-            {review.observations.map((item) => (
-              <li key={item} className="text-base leading-relaxed">
-                {item}
+        <div className="mt-5 flex flex-col gap-5">
+          <ul className="flex flex-col gap-4">
+            {review.observations.map((item, index) => (
+              <li key={item} className="flex gap-3 text-base leading-relaxed">
+                <span className="mt-0.5 w-5 shrink-0 text-sm tabular-nums text-muted-foreground">
+                  {index + 1}
+                </span>
+                <span>{item}</span>
               </li>
             ))}
           </ul>
           {review.watch.length > 0 ? (
-            <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
+            <div className="flex flex-col gap-3 rounded-2xl bg-muted/50 px-4 py-3.5">
               <p className="text-sm font-medium text-muted-foreground">
                 Дальше
               </p>
-              <ul className="flex flex-col gap-4">
+              <ul className="flex flex-col gap-3">
                 {review.watch.map((item) => (
                   <li key={item} className="text-base leading-relaxed">
                     {item}

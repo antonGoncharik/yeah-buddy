@@ -79,9 +79,13 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <ReviewSection title="Зал" summary={gymSummary(brief, perWeek)}>
+    <ReviewSection
+      title="Зал"
+      summary={gymSummary(brief, perWeek)}
+      value={gymValue(brief, perWeek)}
+    >
       {stats.length > 0 ? <StatGrid items={stats} /> : null}
-      {feelTotal > 0 ? <FeelBar feels={feels} total={feelTotal} /> : null}
+      {feelTotal > 0 ? <FeelBar feels={feels} /> : null}
       {gym.templates.length > 0 ? (
         <CountBars
           title="Какие тренировки"
@@ -95,9 +99,12 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
       {gym.weak.length > 0 ? (
         <div className="flex flex-col gap-2">
           <BlockTitle>Слабее плана</BlockTitle>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-wrap gap-2">
             {gym.weak.map((name) => (
-              <li key={name} className="text-sm">
+              <li
+                key={name}
+                className="rounded-full bg-muted px-3 py-1 text-sm"
+              >
                 {name}
               </li>
             ))}
@@ -124,18 +131,20 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
             {gym.records.slice(0, 6).map((record) => (
               <li
                 key={`${record.name}-${record.date}`}
-                className="flex flex-col gap-0.5 py-2"
+                className="flex items-baseline justify-between gap-3 py-2"
               >
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="min-w-0 text-sm font-medium">{record.name}</p>
-                  <p className="shrink-0 text-xs text-muted-foreground">
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">
+                    {record.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
                     {formatIsoDate(record.date, "d MMM")}
-                  </p>
-                </div>
-                <p className="text-sm tabular-nums text-muted-foreground">
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm tabular-nums">
                   {formatWeight(record.previous)} →{" "}
                   {formatWeight(record.weight)} кг
-                </p>
+                </span>
               </li>
             ))}
           </ul>
@@ -151,11 +160,14 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
           <BlockTitle>Заметки</BlockTitle>
           <ul className="flex flex-col gap-3">
             {gym.notes.slice(0, 5).map((note) => (
-              <li key={`${note.date}-${note.name}-${note.note}`}>
+              <li
+                key={`${note.date}-${note.name}-${note.note}`}
+                className="rounded-2xl bg-muted/40 px-3 py-2.5"
+              >
                 <p className="text-xs text-muted-foreground">
                   {formatIsoDate(note.date, "d MMM")} · {note.name}
                 </p>
-                <p className="mt-0.5 text-sm leading-snug">{note.note}</p>
+                <p className="mt-1 text-sm leading-snug">{note.note}</p>
               </li>
             ))}
           </ul>
@@ -165,26 +177,38 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
   );
 }
 
-function gymSummary(brief: ReviewBrief, perWeek: number): string | null {
+function gymValue(brief: ReviewBrief, perWeek: number): string | null {
   if (perWeek > 0) {
-    return `${formatWeekRate(perWeek)} в неделю`;
+    return formatWeekRate(perWeek);
   }
   if (brief.gym.completed > 0) {
-    return `${brief.gym.completed} ${pluralWorkouts(brief.gym.completed)}`;
+    return String(brief.gym.completed);
   }
   if (brief.gym.skipped > 0) {
-    return `пропуски ${brief.gym.skipped}`;
+    return String(brief.gym.skipped);
+  }
+  return null;
+}
+
+function gymSummary(brief: ReviewBrief, perWeek: number): string | null {
+  const plan =
+    brief.gym.plan_total > 0
+      ? `план ${brief.gym.plan_hit} из ${brief.gym.plan_total}`
+      : null;
+  if (perWeek > 0) {
+    return plan ? `в неделю · ${plan}` : "в неделю";
+  }
+  if (brief.gym.completed > 0) {
+    const word = pluralWorkouts(brief.gym.completed);
+    return plan ? `${word} · ${plan}` : word;
+  }
+  if (brief.gym.skipped > 0) {
+    return "пропуски";
   }
   return brief.phase.type;
 }
 
-function FeelBar({
-  feels,
-  total,
-}: {
-  feels: ReviewBrief["gym"]["feels"];
-  total: number;
-}) {
+function FeelBar({ feels }: { feels: ReviewBrief["gym"]["feels"] }) {
   const parts = (
     [
       ["easy", "var(--primary)"],
@@ -202,12 +226,13 @@ function FeelBar({
   return (
     <div className="flex flex-col gap-2">
       <BlockTitle>Как прошло</BlockTitle>
-      <div className="flex h-3 overflow-hidden rounded-full bg-muted">
+      <div className="flex h-2.5 gap-1">
         {parts.map((part) => (
           <div
             key={part.key}
+            className="h-full rounded-full"
             style={{
-              width: `${(part.count / total) * 100}%`,
+              flex: part.count,
               background: part.color,
             }}
           />
@@ -253,7 +278,7 @@ function CountBars({
                 {row.value}
               </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary/80"
                 style={{

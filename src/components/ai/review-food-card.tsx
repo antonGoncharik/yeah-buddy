@@ -45,7 +45,11 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   return (
     <>
       {showDays ? (
-        <ReviewSection title="Еда" summary={foodSummary(brief)}>
+        <ReviewSection
+          title="Еда"
+          summary={foodSummary(brief)}
+          value={foodValue(brief)}
+        >
           {brief.nutrition.protein_total > 0 ||
           brief.nutrition.kcal_total > 0 ||
           weight.protein_per_kg != null ? (
@@ -128,6 +132,7 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
               : "Откуда белок"
           }
           summary={averageSummary(brief)}
+          value={averageValue(brief)}
         >
           {brief.nutrition.rest ? (
             <AverageBlock
@@ -249,7 +254,7 @@ function MacroChart({
 
   return (
     <div className="flex flex-col gap-2">
-      <BlockTitle>{label} по дням</BlockTitle>
+      <BlockTitle color={color}>{label} по дням</BlockTitle>
       <NutritionTrendSvg
         layout={layout}
         factSeries={factSeries}
@@ -270,6 +275,7 @@ function MacroChart({
           mean != null ? `среднее ${format(mean)}` : null,
           targetMean != null ? `цель ${format(targetMean)}` : null,
         ])}
+        plotClassName="h-36"
       />
     </div>
   );
@@ -285,23 +291,16 @@ function MissList({
   formatMiss: (miss: number) => string;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <BlockTitle>{title}</BlockTitle>
-      <ul className="flex flex-col">
+      <ul className="flex flex-wrap gap-1.5">
         {rows.map((row) => (
           <li
             key={row.date}
-            className="flex items-baseline justify-between gap-3 py-1 text-sm"
+            className="rounded-full bg-muted px-2.5 py-1 text-xs tabular-nums"
           >
-            <span>
-              {formatIsoDate(row.date, "d MMM")}
-              {row.training ? (
-                <span className="text-muted-foreground"> · зал</span>
-              ) : null}
-            </span>
-            <span className="tabular-nums text-muted-foreground">
-              {formatMiss(row.miss)}
-            </span>
+            {formatIsoDate(row.date, "d MMM")}
+            {row.training ? " · зал" : ""} {formatMiss(row.miss)}
           </li>
         ))}
       </ul>
@@ -317,7 +316,7 @@ function AverageBlock({
   stats: ReviewAverages;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
       <p className="text-sm font-medium">
         {label}
         <span className="ml-2 font-normal text-muted-foreground">
@@ -411,9 +410,9 @@ function HalfCompare({
   ];
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
       <BlockTitle>Две половины</BlockTitle>
-      <div className="grid grid-cols-[minmax(0,1.3fr)_1fr_1fr] gap-x-3 gap-y-2 text-sm">
+      <div className="grid grid-cols-[minmax(0,1.2fr)_1fr_1fr] gap-x-3 gap-y-2.5 text-sm">
         <span />
         <span className="text-muted-foreground">Первая</span>
         <span className="text-muted-foreground">Вторая</span>
@@ -453,31 +452,50 @@ function signedAmount(
   return text;
 }
 
-function foodSummary(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
+function foodValue(brief: ReviewBrief): string | null {
   if (brief.nutrition.protein_total > 0) {
-    parts.push(
-      `белок ${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`,
-    );
+    return `${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`;
   }
   if (brief.nutrition.kcal_total > 0) {
-    parts.push(
-      `ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`,
-    );
+    return `${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
   }
-  return parts.length > 0 ? parts.join(" · ") : null;
+  return null;
+}
+
+function foodSummary(brief: ReviewBrief): string | null {
+  const hasProtein = brief.nutrition.protein_total > 0;
+  const hasKcal = brief.nutrition.kcal_total > 0;
+  if (hasProtein && hasKcal) {
+    return `белок · ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
+  }
+  if (hasProtein) {
+    return "белок";
+  }
+  if (hasKcal) {
+    return "ккал";
+  }
+  return null;
+}
+
+function averageValue(brief: ReviewBrief): string | null {
+  if (brief.nutrition.training) {
+    return formatKcal(brief.nutrition.training.fact.kcal);
+  }
+  if (brief.nutrition.rest) {
+    return formatKcal(brief.nutrition.rest.fact.kcal);
+  }
+  return null;
 }
 
 function averageSummary(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
-  if (brief.nutrition.rest) {
-    parts.push(`отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`);
+  if (brief.nutrition.training && brief.nutrition.rest) {
+    return `зал · отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`;
   }
   if (brief.nutrition.training) {
-    parts.push(`зал ${formatKcal(brief.nutrition.training.fact.kcal)}`);
+    return "зал";
   }
-  if (parts.length > 0) {
-    return parts.join(" · ");
+  if (brief.nutrition.rest) {
+    return "отдых";
   }
   const top = brief.nutrition.foods[0];
   return top ? top.name : null;

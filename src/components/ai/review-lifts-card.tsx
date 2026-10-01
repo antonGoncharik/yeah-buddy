@@ -7,6 +7,7 @@ import {
 } from "@/components/ai/review-blocks";
 import { formatPct } from "@/lib/ai/format";
 import type { ReviewBrief, ReviewMaxRow } from "@/lib/ai/types";
+import { cn } from "@/lib/utils";
 import { formatWeight } from "@/lib/workout/numbers";
 
 const RELATIVE_GAP = 2;
@@ -51,6 +52,7 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
       title="Рабочие веса"
       hint={maxes.since === "first_work" ? "С первой записи" : undefined}
       summary={liftsSummary(brief)}
+      value={liftsValue(brief)}
     >
       {stats.length > 0 ? <StatGrid items={stats} /> : null}
       {maxes.grown_list.length > 0 ? (
@@ -97,15 +99,24 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
   );
 }
 
-function liftsSummary(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
+function liftsValue(brief: ReviewBrief): string | null {
   if (brief.maxes.avg_percent != null) {
-    parts.push(formatPct(brief.maxes.avg_percent));
+    return formatPct(brief.maxes.avg_percent);
   }
   if (brief.maxes.total > 0) {
-    parts.push(`${brief.maxes.grown} из ${brief.maxes.total}`);
+    return `${brief.maxes.grown} из ${brief.maxes.total}`;
   }
-  return parts.length > 0 ? parts.join(" · ") : null;
+  return null;
+}
+
+function liftsSummary(brief: ReviewBrief): string | null {
+  if (brief.maxes.avg_percent != null && brief.maxes.total > 0) {
+    return `выросли ${brief.maxes.grown} из ${brief.maxes.total}`;
+  }
+  if (brief.maxes.total > 0) {
+    return "выросли";
+  }
+  return null;
 }
 
 function LiftBars({ rows }: { rows: ReviewMaxRow[] }) {
@@ -123,29 +134,43 @@ function LiftBars({ rows }: { rows: ReviewMaxRow[] }) {
             ? 0
             : Math.max(6, Math.round((Math.abs(percent) / peak) * 100));
         return (
-          <li key={row.name} className="flex flex-col gap-1">
-            <div className="flex items-baseline justify-between gap-3 text-sm">
-              <span className="min-w-0 font-medium">{row.name}</span>
+          <li key={row.name} className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">{row.name}</span>
+                {kgLine(row) ? (
+                  <span className="text-sm tabular-nums text-muted-foreground">
+                    {kgLine(row)}
+                  </span>
+                ) : null}
+              </span>
               {percent != null ? (
-                <span className="shrink-0 tabular-nums">
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-sm font-medium tabular-nums",
+                    percent > 0
+                      ? "bg-primary/15"
+                      : percent < 0
+                        ? "bg-destructive/12"
+                        : "bg-muted text-muted-foreground",
+                  )}
+                >
                   {formatPct(percent)}
                 </span>
               ) : null}
             </div>
-            {kgLine(row) ? (
-              <p className="text-sm tabular-nums text-muted-foreground">
-                {kgLine(row)}
-              </p>
-            ) : null}
             {relativeLine(row) ? (
               <p className="text-sm text-muted-foreground">
                 {relativeLine(row)}
               </p>
             ) : null}
             {percent != null && percent !== 0 ? (
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-primary"
+                  className={cn(
+                    "h-full rounded-full",
+                    percent > 0 ? "bg-primary" : "bg-destructive/70",
+                  )}
                   style={{ width: `${Math.min(width, 100)}%` }}
                 />
               </div>
@@ -175,10 +200,21 @@ function CategoryBars({
           <li key={row.name} className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between gap-3 text-sm">
               <span>{row.name}</span>
-              <span className="tabular-nums">{formatPct(row.percent)}</span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-sm font-medium tabular-nums",
+                  row.percent > 0
+                    ? "bg-primary/15"
+                    : row.percent < 0
+                      ? "bg-destructive/12"
+                      : "bg-muted text-muted-foreground",
+                )}
+              >
+                {formatPct(row.percent)}
+              </span>
             </div>
             {row.percent !== 0 ? (
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className={
                     row.percent >= 0

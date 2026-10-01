@@ -18,11 +18,13 @@ export function ReviewSection({
   title,
   hint,
   summary,
+  value,
   children,
 }: {
   title: string;
   hint?: string;
   summary?: string | null;
+  value?: string | null;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -31,32 +33,49 @@ export function ReviewSection({
     <section className="card-surface animate-rise px-5 py-4">
       <button
         type="button"
-        className="flex w-full items-center gap-3 text-left"
+        className="flex w-full items-start gap-3 text-left"
         aria-expanded={open}
         onClick={() => {
           haptic("tick");
           setOpen((current) => !current);
         }}
       >
-        <span className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+        <span className="min-w-0 flex-1 pt-1">
+          <span className="flex items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+            {value ? (
+              <span className="shrink-0 text-base font-semibold tracking-tight tabular-nums">
+                {value}
+              </span>
+            ) : null}
+          </span>
           {hint ? (
             <p className="mt-0.5 text-sm text-muted-foreground">{hint}</p>
           ) : null}
           {!open && summary ? (
-            <p className="mt-0.5 text-sm text-muted-foreground">{summary}</p>
+            <p className="mt-1 text-sm leading-snug text-muted-foreground">
+              {summary}
+            </p>
           ) : null}
         </span>
-        <ChevronDown
-          aria-hidden
-          className={cn(
-            "size-5 shrink-0 text-muted-foreground transition-transform duration-200",
-            open && "rotate-180",
-          )}
-        />
+        <FoldChevron open={open} />
       </button>
       {open ? <Stack>{children}</Stack> : null}
     </section>
+  );
+}
+
+export function FoldChevron({ open }: { open: boolean }) {
+  return (
+    <span className="flex size-8 items-center justify-center rounded-full bg-muted">
+      <ChevronDown
+        aria-hidden
+        className={cn(
+          "size-4 text-muted-foreground transition-transform duration-200",
+          open && "rotate-180",
+        )}
+      />
+    </span>
   );
 }
 
@@ -74,17 +93,9 @@ function Stack({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="mt-4 flex flex-col">
+    <div className="mt-5 flex flex-col gap-6">
       {items.map((child, index) => (
-        <div
-          key={stackKey(child, index)}
-          className={cn(
-            index > 0 && "border-t border-border/70 pt-5",
-            index < items.length - 1 && "pb-5",
-          )}
-        >
-          {child}
-        </div>
+        <div key={stackKey(child, index)}>{child}</div>
       ))}
     </div>
   );
@@ -114,9 +125,24 @@ export function MeterLine({
   );
 }
 
-export function BlockTitle({ children }: { children: ReactNode }) {
+export function BlockTitle({
+  children,
+  color,
+}: {
+  children: ReactNode;
+  color?: string;
+}) {
   return (
-    <h3 className="text-sm font-medium text-muted-foreground">{children}</h3>
+    <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+      {color ? (
+        <span
+          aria-hidden
+          className="size-2 shrink-0 rounded-full"
+          style={{ background: color }}
+        />
+      ) : null}
+      {children}
+    </h3>
   );
 }
 
@@ -137,7 +163,7 @@ export function ShareBars({ foods }: { foods: FoodShare[] }) {
               {formatG(food.protein)} г
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-[var(--macro-protein)]"
               style={{
@@ -183,7 +209,7 @@ export function ReviewSeriesChart({
 
   return (
     <div className="flex flex-col gap-2">
-      <BlockTitle>{label}</BlockTitle>
+      <BlockTitle color={color}>{label}</BlockTitle>
       <ChartInsight>
         {chartInsight([
           span && span.first !== span.last

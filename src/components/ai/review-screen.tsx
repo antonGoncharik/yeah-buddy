@@ -82,34 +82,38 @@ export function ReviewScreen() {
                     <p className="text-base text-muted-foreground">
                       {AI_REVIEW_EMPTY}
                     </p>
-                  ) : snapshot?.configured &&
-                    (snapshot.remaining == null || snapshot.remaining > 0) ? (
-                    <Button
-                      type="button"
-                      className="h-14 text-lg"
-                      disabled={writing}
-                      onClick={() => void writeReview()}
-                    >
-                      {writing
-                        ? "Разбираю…"
-                        : review
-                          ? "Ещё раз разбор от ИИ"
-                          : "Разбор от ИИ"}
-                    </Button>
-                  ) : snapshot?.configured ? (
-                    <p className="text-base text-muted-foreground">
-                      {AI_REVIEW_QUOTA}
-                    </p>
                   ) : (
-                    <p className="text-base text-muted-foreground">
-                      {AI_REVIEW_NO_KEY}
-                    </p>
+                    <>
+                      {brief.coverage === "thin" ? (
+                        <p className="text-sm text-muted-foreground">
+                          Записей пока мало.
+                        </p>
+                      ) : null}
+                      {snapshot?.configured &&
+                      (snapshot.remaining == null || snapshot.remaining > 0) ? (
+                        <Button
+                          type="button"
+                          className="h-14 w-full text-lg"
+                          disabled={writing}
+                          onClick={() => void writeReview()}
+                        >
+                          {writing
+                            ? "Разбираю…"
+                            : review
+                              ? "Ещё раз разбор от ИИ"
+                              : "Разбор от ИИ"}
+                        </Button>
+                      ) : snapshot?.configured ? (
+                        <p className="text-base text-muted-foreground">
+                          {AI_REVIEW_QUOTA}
+                        </p>
+                      ) : (
+                        <p className="text-base text-muted-foreground">
+                          {AI_REVIEW_NO_KEY}
+                        </p>
+                      )}
+                    </>
                   )}
-                  {brief.coverage === "thin" && !empty ? (
-                    <p className="text-sm text-muted-foreground">
-                      Записей пока мало.
-                    </p>
-                  ) : null}
                 </>
               }
             />

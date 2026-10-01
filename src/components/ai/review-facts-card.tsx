@@ -14,6 +14,7 @@ import {
   formatBodyWeight,
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
+import { formatIsoDate } from "@/lib/day/format";
 import { pluralDays } from "@/lib/nutrition-stats";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
 
@@ -56,13 +57,20 @@ function ReviewOverview({ brief }: { brief: ReviewBrief }) {
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
       <p className="text-sm font-medium text-muted-foreground">
         За {brief.range} {pluralDays(brief.range)}
+        <span className="font-normal">
+          {" "}
+          · {formatIsoDate(brief.from, "d MMM")} –{" "}
+          {formatIsoDate(brief.to, "d MMM")}
+        </span>
       </p>
       <StatGrid
+        size="lg"
         items={[
           {
             label: logged > 0 ? "С едой" : "Еда",
             value: logged > 0 ? String(logged) : "нет",
             detail: foodDetail || null,
+            quiet: logged === 0,
           },
           {
             label: "Зал",
@@ -72,6 +80,7 @@ function ReviewOverview({ brief }: { brief: ReviewBrief }) {
               brief.gym.completed > 0
                 ? pluralWorkouts(brief.gym.completed)
                 : null,
+            quiet: brief.gym.completed === 0,
           },
           weight ?? { label: "Вес", value: "" },
           waist ?? { label: "Талия", value: "" },
