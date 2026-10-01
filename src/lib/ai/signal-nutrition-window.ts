@@ -9,7 +9,7 @@ export { inclusiveDayCount };
 
 const PROTEIN_MISS_G = 20;
 const KCAL_MISS = 150;
-const LOG_GAP_DAYS = 3;
+export const LOG_GAP_DAYS = 3;
 
 export function formatAverageLine(
   label: string,

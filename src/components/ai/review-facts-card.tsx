@@ -1,322 +1,120 @@
 "use client";
 
-import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
-import { formatKcalPlain, formatPct } from "@/lib/ai/format";
+import { StatGrid } from "@/components/ai/review-blocks";
+import { ReviewBodyCard } from "@/components/ai/review-body-card";
+import { ReviewFoodCard } from "@/components/ai/review-food-card";
+import { ReviewGymCard } from "@/components/ai/review-gym-card";
+import { ReviewLiftsCard } from "@/components/ai/review-lifts-card";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
-import type { ReviewBrief, ReviewEnergy } from "@/lib/ai/types";
+import { LOG_GAP_DAYS, longestLogGap } from "@/lib/ai/signal-nutrition-window";
+import type { ReviewBrief } from "@/lib/ai/types";
 import {
   formatBodyWeight,
-  formatProteinPerKg,
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
 import { pluralDays } from "@/lib/nutrition-stats";
-import { cn } from "@/lib/utils";
-import {
-  formatFrequencyVsProgram,
-  formatSessionCloseMix,
-  formatSessionFeels,
-  formatSessionRateHalves,
-  pluralWorkouts,
-} from "@/lib/workout/history-stats";
-import { formatTonnage } from "@/lib/workout/numbers";
-import {
-  formatPeakRecord,
-  formatWeeklyTonnageLine,
-} from "@/lib/workout/progress-control";
+import { pluralWorkouts } from "@/lib/workout/history-stats";
 
 export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
-  const gymLine =
-    brief.gym.completed > 0
-      ? `${brief.gym.completed} ${pluralWorkouts(brief.gym.completed)}`
-      : "зала не было";
+  return (
+    <>
+      <ReviewOverview brief={brief} />
+      <ReviewFoodCard brief={brief} />
+      <ReviewBodyCard brief={brief} />
+      <ReviewGymCard brief={brief} />
+      <ReviewLiftsCard brief={brief} />
+    </>
+  );
+}
+
+function ReviewOverview({ brief }: { brief: ReviewBrief }) {
+  const weight = weightStat(brief);
+  const waist = waistStat(brief);
+  const logged = brief.nutrition.logged;
+  const foodGap = longestLogGap(
+    brief.from,
+    brief.to,
+    brief.nutrition.days.map((day) => day.date),
+  );
+  const foodDetail = [
+    logged > 0 && logged < brief.range - 1 ? `из ${brief.range}` : null,
+    brief.range >= 7 && foodGap >= LOG_GAP_DAYS ? `пауза ${foodGap} дн.` : null,
+  ]
+    .filter((part): part is string => part != null)
+    .join(" · ");
 
   return (
-    <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">
-          За {brief.range} дней
-        </p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight">
-          {brief.nutrition.logged}
-          <span className="ml-2 text-lg font-medium text-muted-foreground">
-            {pluralDays(brief.nutrition.logged)}
-          </span>
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">{gymLine}</p>
-      </div>
-
-      <HitRow
-        label="Белок"
-        hit={brief.nutrition.protein_hit}
-        total={brief.nutrition.protein_total}
-        empty="нет записей"
-        barClass="bg-[var(--macro-protein)]"
-        hint={proteinHint(brief)}
+    <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
+      <p className="text-sm font-medium text-muted-foreground">
+        За {brief.range} {pluralDays(brief.range)}
+      </p>
+      <StatGrid
+        items={[
+          {
+            label: logged > 0 ? "С едой" : "Еда",
+            value: logged > 0 ? String(logged) : "нет",
+            detail: foodDetail || null,
+          },
+          {
+            label: "Зал",
+            value:
+              brief.gym.completed > 0 ? String(brief.gym.completed) : "нет",
+            detail:
+              brief.gym.completed > 0
+                ? pluralWorkouts(brief.gym.completed)
+                : null,
+          },
+          weight ?? { label: "Вес", value: "" },
+          waist ?? { label: "Талия", value: "" },
+        ]}
       />
-      <HitRow
-        label="Зал"
-        hit={brief.gym.plan_hit}
-        total={brief.gym.plan_total}
-        empty={
-          brief.gym.as_planned > 0 && brief.gym.plan_total === 0
-            ? "как план"
-            : brief.gym.completed > 0
-              ? "без плана"
-              : "не было"
-        }
-        hint={gymHint(brief)}
-      />
-      <FactRow
-        label="Вес"
-        value={weightValue(brief)}
-        hint={weightHint(brief)}
-      />
-      {brief.nutrition.energy ? (
-        <FactRow
-          label="Расход"
-          value={`~${formatKcalPlain(brief.nutrition.energy.kcal)} ккал`}
-          hint={energyHint(brief.nutrition.energy)}
-        />
-      ) : null}
-      {brief.nutrition.waist != null ? (
-        <FactRow
-          label="Талия"
-          value={waistValue(brief)}
-          hint={waistHint(brief)}
-        />
-      ) : null}
-      <FactRow
-        label="Рабочие веса"
-        value={liftsValue(brief)}
-        hint={liftsHint(brief)}
-      />
-      {brief.gym.tonnage != null ? (
-        <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
-          <FactRow
-            label="Тоннаж"
-            value={`${formatTonnage(brief.gym.tonnage)} кг`}
-            hint={
-              brief.gym.tonnage_weeks.length < 2
-                ? formatWeeklyTonnageLine(brief.gym.tonnage_weeks)
-                : null
-            }
-          />
-          {brief.gym.tonnage_weeks.length >= 2 ? (
-            <WeekTonnageChart
-              weeks={brief.gym.tonnage_weeks}
-              periodTotal={brief.gym.tonnage}
-            />
-          ) : null}
-        </div>
-      ) : null}
-      {brief.gym.records.length > 0 ? (
-        <FactRow
-          label="Рекорды"
-          value={String(brief.gym.records.length)}
-          hint={brief.gym.records.slice(0, 4).map(formatPeakRecord).join("; ")}
-        />
-      ) : null}
     </section>
   );
 }
 
-function proteinHint(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
-  if (brief.nutrition.kcal_total > 0) {
-    parts.push(
-      `ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`,
-    );
-  }
-  if (brief.nutrition.weight.protein_per_kg != null) {
-    parts.push(formatProteinPerKg(brief.nutrition.weight.protein_per_kg));
-  }
-  return parts.length > 0 ? parts.join(" · ") : null;
-}
-
-function gymHint(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
-  const perWeek = formatFrequencyVsProgram(
-    brief.gym.completed,
-    brief.range,
-    brief.gym.circle_size,
-  );
-  if (perWeek) {
-    parts.push(perWeek);
-  }
-  if (brief.gym.rate_halves) {
-    parts.push(formatSessionRateHalves(brief.gym.rate_halves));
-  }
-  if (brief.gym.gap_days != null) {
-    parts.push(`дыра ${brief.gym.gap_days} дн.`);
-  }
-  const feels = formatSessionFeels(brief.gym.feels);
-  if (feels) {
-    parts.push(feels);
-  }
-  const close = formatSessionCloseMix(
-    brief.gym.as_planned,
-    brief.gym.completed,
-  );
-  if (close) {
-    parts.push(close);
-  }
-  if (
-    brief.phase.type &&
-    brief.phase.completed != null &&
-    brief.phase.circle != null
-  ) {
-    parts.push(
-      `${brief.phase.type} · ${brief.phase.completed} из ${brief.phase.circle}`,
-    );
-  } else if (brief.phase.type) {
-    parts.push(brief.phase.type);
-  }
-  return parts.length > 0 ? parts.join(" · ") : null;
-}
-
-function weightValue(brief: ReviewBrief): string {
+function weightStat(
+  brief: ReviewBrief,
+): { label: string; value: string; detail?: string | null } | null {
   const weight = brief.nutrition.weight;
   if (weight.end == null) {
-    return "не записан";
+    return null;
   }
   if (
     weight.start != null &&
     weight.delta != null &&
     Math.abs(weight.delta) >= WEIGHT_DELTA_KG
   ) {
-    return `${formatSignedBodyWeight(weight.delta)} кг`;
+    return {
+      label: "Вес",
+      value: `${formatSignedBodyWeight(weight.delta)} кг`,
+      detail: `${formatBodyWeight(weight.start)} → ${formatBodyWeight(weight.end)}`,
+    };
   }
-  return `${formatBodyWeight(weight.end)} кг`;
+  return {
+    label: "Вес",
+    value: `${formatBodyWeight(weight.end)} кг`,
+  };
 }
 
-function weightHint(brief: ReviewBrief): string | null {
-  const weight = brief.nutrition.weight;
-  if (
-    weight.start == null ||
-    weight.end == null ||
-    weight.delta == null ||
-    Math.abs(weight.delta) < WEIGHT_DELTA_KG
-  ) {
-    return null;
-  }
-  return `${formatBodyWeight(weight.start)} → ${formatBodyWeight(weight.end)}`;
-}
-
-function energyHint(energy: ReviewEnergy): string {
-  const eaten = `съедено ${formatKcalPlain(energy.intake)}`;
-  if (energy.target == null) {
-    return eaten;
-  }
-  return `${eaten} · цель ${formatKcalPlain(energy.target)}`;
-}
-
-function waistValue(brief: ReviewBrief): string {
+function waistStat(
+  brief: ReviewBrief,
+): { label: string; value: string; detail?: string | null } | null {
   const waist = brief.nutrition.waist;
   if (waist == null || waist.end == null) {
-    return "не записана";
-  }
-  if (waist.delta != null && waist.delta !== 0) {
-    return `${formatSignedBodyWeight(waist.delta)} см`;
-  }
-  return `${formatBodyWeight(waist.end)} см`;
-}
-
-function waistHint(brief: ReviewBrief): string | null {
-  const waist = brief.nutrition.waist;
-  if (
-    waist == null ||
-    waist.start == null ||
-    waist.end == null ||
-    waist.delta == null ||
-    waist.delta === 0
-  ) {
     return null;
   }
-  return `${formatBodyWeight(waist.start)} → ${formatBodyWeight(waist.end)}`;
-}
-
-function liftsValue(brief: ReviewBrief): string {
-  if (brief.maxes.total === 0) {
-    return "пока мало данных";
+  if (waist.delta != null && waist.delta !== 0) {
+    return {
+      label: "Талия",
+      value: `${formatSignedBodyWeight(waist.delta)} см`,
+      detail:
+        waist.start != null
+          ? `${formatBodyWeight(waist.start)} → ${formatBodyWeight(waist.end)}`
+          : null,
+    };
   }
-  if (brief.maxes.grown > 0) {
-    return `выросли ${brief.maxes.grown} из ${brief.maxes.total}`;
-  }
-  return `без роста · ${brief.maxes.total}`;
-}
-
-function liftsHint(brief: ReviewBrief): string | null {
-  const parts: string[] = [];
-  if (brief.maxes.avg_percent != null) {
-    parts.push(formatPct(brief.maxes.avg_percent));
-  }
-  if (brief.maxes.avg_relative_percent != null) {
-    parts.push(`к весу ${formatPct(brief.maxes.avg_relative_percent)}`);
-  }
-  if (brief.maxes.categories.length > 1) {
-    parts.push(
-      brief.maxes.categories
-        .map((row) => `${row.name} ${formatPct(row.percent)}`)
-        .join(" · "),
-    );
-  }
-  return parts.length > 0 ? parts.join(" · ") : null;
-}
-
-function HitRow({
-  label,
-  hit,
-  total,
-  empty,
-  barClass = "bg-primary",
-  hint,
-}: {
-  label: string;
-  hit: number;
-  total: number;
-  empty: string;
-  barClass?: string;
-  hint?: string | null;
-}) {
-  if (total === 0) {
-    return <FactRow label={label} value={empty} hint={hint} />;
-  }
-
-  return (
-    <div className="flex flex-col gap-1.5 border-t border-border/70 pt-4">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <p className="font-medium">{label}</p>
-        <p className="tabular-nums text-muted-foreground">
-          {hit} из {total}
-        </p>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn("h-full rounded-full", barClass)}
-          style={{ width: `${Math.round((hit / total) * 100)}%` }}
-        />
-      </div>
-      {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
-    </div>
-  );
-}
-
-function FactRow({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string | null;
-}) {
-  return (
-    <div className="flex flex-col gap-1 border-t border-border/70 pt-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-base font-medium tabular-nums">{value}</p>
-      </div>
-      {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
-    </div>
-  );
+  return {
+    label: "Талия",
+    value: `${formatBodyWeight(waist.end)} см`,
+  };
 }

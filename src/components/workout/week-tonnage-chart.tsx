@@ -12,9 +12,11 @@ function tonnageKg(value: number): string {
 export function WeekTonnageChart({
   weeks,
   periodTotal,
+  heading = true,
 }: {
   weeks: WeekTonnage[];
   periodTotal?: number;
+  heading?: boolean;
 }) {
   const shown = weeks.slice(-8);
   const first = shown[0];
@@ -45,26 +47,32 @@ export function WeekTonnageChart({
       className="flex flex-col gap-2.5"
       aria-labelledby="week-tonnage-heading"
     >
-      <div>
-        <h3
-          id="week-tonnage-heading"
-          className="text-sm font-medium text-foreground"
-        >
+      {heading ? (
+        <div>
+          <h3
+            id="week-tonnage-heading"
+            className="text-sm font-medium text-foreground"
+          >
+            Тоннаж по неделям
+          </h3>
+          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+            Сумма «вес × повторы» по рабочим подходам за каждую неделю. Не
+            путать с рабочим весом на штанге.
+          </p>
+          {periodTotal != null && periodTotal > 0 ? (
+            <p className="mt-1.5 text-sm tabular-nums text-muted-foreground">
+              За период всего{" "}
+              <span className="font-medium text-foreground">
+                {tonnageKg(periodTotal)}
+              </span>
+            </p>
+          ) : null}
+        </div>
+      ) : (
+        <h3 id="week-tonnage-heading" className="sr-only">
           Тоннаж по неделям
         </h3>
-        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-          Сумма «вес × повторы» по рабочим подходам за каждую неделю. Не путать
-          с рабочим весом на штанге.
-        </p>
-        {periodTotal != null && periodTotal > 0 ? (
-          <p className="mt-1.5 text-sm tabular-nums text-muted-foreground">
-            За период всего{" "}
-            <span className="font-medium text-foreground">
-              {tonnageKg(periodTotal)}
-            </span>
-          </p>
-        ) : null}
-      </div>
+      )}
       <ChartInsight>
         {chartInsight([
           `Последняя неделя ${tonnageKg(last.tonnage)}`,

@@ -1,7 +1,6 @@
 "use client";
 
 import { ReviewFactsCard } from "@/components/ai/review-facts-card";
-import { ReviewSignalsCard } from "@/components/ai/review-signals-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
 import { useReviewScreen } from "@/components/ai/use-review-screen";
 import { AppHeader } from "@/components/layout/app-header";
@@ -11,7 +10,6 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { reviewDetailSignals } from "@/lib/ai/signal-lines";
 import { DIARY_RANGE_OPTIONS } from "@/lib/diary-range";
 import {
   AI_REVIEW_EMPTY,
@@ -37,8 +35,6 @@ export function ReviewScreen() {
     changeRange,
   } = useReviewScreen();
 
-  const details = brief ? reviewDetailSignals(brief.signals) : [];
-
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title={REVIEW_LABEL} backHref={backHref} />
@@ -61,9 +57,6 @@ export function ReviewScreen() {
         {!loading && brief ? (
           <>
             <ReviewFactsCard brief={brief} />
-            {details.length > 0 ? (
-              <ReviewSignalsCard signals={details} />
-            ) : null}
             {review ? <ReviewTextCard review={review} /> : null}
             {previous ? (
               <ReviewTextCard review={previous} label="Прошлый раз" muted />
