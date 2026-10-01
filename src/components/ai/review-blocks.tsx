@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { Children, isValidElement, type ReactNode, useState } from "react";
 
 import { ChartInsight, TrendPlot } from "@/components/chart/trend-plot";
+import { FoldChevron } from "@/components/ui/fold-chevron";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { StatGrid } from "@/components/ui/stat-grid";
 import { formatG } from "@/lib/ai/format";
@@ -12,7 +12,6 @@ import { chartInsight, chartMean, chartSpan } from "@/lib/chart-stats";
 import { formatIsoDate } from "@/lib/day/format";
 import type { FoodShare } from "@/lib/days";
 import { haptic } from "@/lib/telegram/haptic";
-import { cn } from "@/lib/utils";
 
 export function ReviewSection({
   title,
@@ -62,20 +61,6 @@ export function ReviewSection({
       </button>
       {open ? <Stack>{children}</Stack> : null}
     </section>
-  );
-}
-
-export function FoldChevron({ open }: { open: boolean }) {
-  return (
-    <span className="flex size-8 items-center justify-center rounded-full bg-muted">
-      <ChevronDown
-        aria-hidden
-        className={cn(
-          "size-4 text-muted-foreground transition-transform duration-200",
-          open && "rotate-180",
-        )}
-      />
-    </span>
   );
 }
 

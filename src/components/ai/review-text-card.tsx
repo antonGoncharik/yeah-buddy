@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { FoldChevron } from "@/components/ai/review-blocks";
+import { FoldChevron } from "@/components/ui/fold-chevron";
 import type { ReviewText } from "@/lib/ai/types";
 import { formatIsoDate } from "@/lib/day/format";
 import { haptic } from "@/lib/telegram/haptic";

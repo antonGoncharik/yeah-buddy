@@ -206,14 +206,23 @@ function SummaryCard({
   const weeks = weeklyTonnage(lifetime.exercises, from, to);
   const tonnage = totalTonnage(weeks);
 
+  const rangeLabel =
+    from != null
+      ? `${formatIsoDate(from, "d MMM")} – ${formatIsoDate(to, "d MMM")}`
+      : null;
+
   return (
-    <section className="card-surface animate-rise flex flex-col gap-5 px-5 py-5">
+    <section className="card-surface animate-rise flex flex-col gap-6 px-5 py-5">
       <div className="flex flex-col gap-4">
         <p className="text-sm font-medium text-muted-foreground">
           {horizon === "all" ? "С первой записи" : `За ${horizon} дней`}
+          {rangeLabel ? (
+            <span className="font-normal"> · {rangeLabel}</span>
+          ) : null}
           {summaryScope ? ` · ${summaryScope}` : ""}
         </p>
         <StatGrid
+          size="lg"
           items={[
             {
               label: "В среднем",
@@ -221,6 +230,7 @@ function SummaryCard({
                 summary.avg_percent == null
                   ? "—"
                   : formatSignedPercent(summary.avg_percent),
+              quiet: summary.avg_percent == null,
             },
             {
               label: "Выросли",
@@ -248,10 +258,12 @@ function SummaryCard({
       <ProgressBodyWeightChart weights={lifetime.weights} from={from} to={to} />
 
       {tonnage > 0 ? (
-        <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
+        <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
           <div className="flex items-baseline justify-between gap-3">
-            <h3 className="text-sm font-medium">Тоннаж</h3>
-            <p className="text-sm font-medium tabular-nums">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Тоннаж
+            </h3>
+            <p className="text-base font-semibold tabular-nums">
               {formatTonnage(tonnage)} кг
             </p>
           </div>
@@ -262,23 +274,23 @@ function SummaryCard({
       ) : null}
 
       {records.length > 0 ? (
-        <div className="flex flex-col gap-1 border-t border-border/70 pt-4">
+        <div className="flex flex-col gap-1">
           <h3 className="text-sm font-medium text-muted-foreground">Рекорды</h3>
           <ul className="flex flex-col">
             {records.map((row) => (
               <li
                 key={`${row.exercise_id}:${row.date}:${row.weight}`}
-                className="flex flex-col gap-0.5 py-2"
+                className="flex items-baseline justify-between gap-3 py-2"
               >
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="min-w-0 text-sm font-medium">{row.name}</p>
-                  <p className="shrink-0 text-xs text-muted-foreground">
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">{row.name}</span>
+                  <span className="text-xs text-muted-foreground">
                     {formatIsoDate(row.date, "d MMM")}
-                  </p>
-                </div>
-                <p className="text-sm tabular-nums text-muted-foreground">
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm tabular-nums">
                   {formatWeight(row.previous)} → {formatWeight(row.weight)} кг
-                </p>
+                </span>
               </li>
             ))}
           </ul>
@@ -314,17 +326,26 @@ function CategoryBars({ exercises }: { exercises: ExerciseProgress[] }) {
   );
 
   return (
-    <ul className="flex flex-col gap-3 border-t border-border/70 pt-4">
+    <ul className="flex flex-col gap-3">
       {rows.map((row) => (
-        <li key={row.id} className="flex flex-col gap-1">
+        <li key={row.id} className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-3 text-sm">
             <span>{EXERCISE_CATEGORY_LABELS[row.id]}</span>
-            <span className="tabular-nums">
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-0.5 font-medium tabular-nums",
+                row.avg_percent > 0
+                  ? "bg-primary/15"
+                  : row.avg_percent < 0
+                    ? "bg-destructive/12 text-destructive"
+                    : "bg-muted text-muted-foreground",
+              )}
+            >
               {formatSignedPercent(row.avg_percent)}
             </span>
           </div>
           {row.avg_percent !== 0 ? (
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
                 className={
                   row.avg_percent >= 0
