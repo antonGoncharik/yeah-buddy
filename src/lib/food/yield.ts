@@ -58,6 +58,18 @@ export function formatYieldGrams(value: number): string {
   return String(roundYieldGrams(value));
 }
 
+/** One tap of − or +. Stays at 0 so the portion can be cleared by stepping down. */
+export function stepYieldGrams(
+  raw: string,
+  direction: -1 | 1,
+  step = 10,
+): string {
+  const size = step > 0 ? step : 10;
+  const current = parseGramsInput(raw) ?? 0;
+  const next = Math.max(0, roundYieldGrams(current + direction * size));
+  return next > 0 ? formatYieldGrams(next) : "0";
+}
+
 export function parseGramsInput(value: string): number | null {
   const grams = Number(value.replace(",", "."));
   if (!Number.isFinite(grams) || grams <= 0) {

@@ -58,11 +58,6 @@ export function WorkoutsHubSessionCard({
                     {item.template_name ??
                       WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </h2>
-                  {compact ? null : (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Открыть и доделать или убрать
-                    </p>
-                  )}
                 </span>
                 <ChevronRight
                   className="size-5 shrink-0 text-muted-foreground"

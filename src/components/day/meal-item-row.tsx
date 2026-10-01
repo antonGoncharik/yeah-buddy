@@ -53,7 +53,7 @@ export function MealItemRow({
         <p className="text-sm text-muted-foreground tabular-nums">{macros}</p>
       ) : null}
     </>
-  ) : (
+  ) : item.lump ? (
     <span className="flex min-w-0 items-baseline justify-between gap-3">
       <span className="truncate text-base font-medium">{item.name}</span>
       {detail ? (
@@ -61,6 +61,16 @@ export function MealItemRow({
           {detail}
         </span>
       ) : null}
+    </span>
+  ) : (
+    <span className="flex min-w-0 items-baseline justify-between gap-3">
+      <span className="truncate text-base font-medium">{item.name}</span>
+      <span className="flex shrink-0 items-baseline gap-2 tabular-nums">
+        <span className="text-sm text-muted-foreground">
+          {formatGrams(item.grams)} г
+        </span>
+        <span className="text-base font-semibold">{formatKcal(item.kcal)}</span>
+      </span>
     </span>
   );
 

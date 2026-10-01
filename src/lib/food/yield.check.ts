@@ -2,6 +2,7 @@ import {
   convertYieldGrams,
   formatYieldGrams,
   parseFoodYield,
+  stepYieldGrams,
   switchGramsMode,
   toCookedGrams,
   toNativeGrams,
@@ -34,6 +35,9 @@ assertEqual(toNativeGrams(150, "native", chicken), 150, "native stays native");
 assertEqual(convertYieldGrams(70, 70, 210), 210, "70 dry -> 210 cooked");
 assertEqual(formatYieldGrams(136.36), "136.4", "one decimal");
 assertEqual(formatYieldGrams(150), "150", "integer grams");
+assertEqual(stepYieldGrams("150", 1), "160", "grams step up by 10");
+assertEqual(stepYieldGrams("8", -1), "0", "grams stop at zero");
+assertEqual(stepYieldGrams("", 1), "10", "empty grams start at a step");
 assertEqual(
   toNativeGrams(
     switchGramsMode(110, "cooked", "native", chicken),

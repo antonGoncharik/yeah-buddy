@@ -1,16 +1,19 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
+import type { ReactNode } from "react";
+
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
 import { useGramsScreen } from "@/components/day/use-grams-screen";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { FoodYield } from "@/lib/food/yield";
-import { formatYieldGrams } from "@/lib/food/yield";
+import { formatYieldGrams, stepYieldGrams } from "@/lib/food/yield";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { haptic } from "@/lib/telegram/haptic";
 import type { FoodState } from "@/lib/types";
 
 export {
@@ -84,30 +87,69 @@ export function GramsScreen({
     >
       <div>
         <p className="text-2xl font-semibold tracking-tight">{name}</p>
-        <p className="mt-1 text-base text-muted-foreground">
+        <p className="mt-1 text-sm text-muted-foreground">
           На 100 г: Б {formatMacro(protein)} · Ж {formatMacro(fat)} · У{" "}
           {formatMacro(carbs)} · {formatKcal(kcal)} ккал
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label className="text-base">Граммы</Label>
+      <div className="flex items-center gap-2">
         {readOnly ? (
-          <p className="text-2xl font-semibold tabular-nums">
+          <p className="min-w-0 flex-1 text-center text-3xl font-semibold tabular-nums">
             {grams.gramsInput}
+            <span className="ml-1 text-lg font-medium text-muted-foreground">
+              г
+            </span>
           </p>
         ) : (
-          <Input
-            inputMode="decimal"
-            enterKeyHint="done"
-            value={grams.gramsInput}
-            aria-invalid={grams.error ? true : undefined}
-            onChange={(event) => grams.setGramsInput(event.target.value)}
-            onKeyDown={handleNumericEnter}
-            className="h-14 text-lg"
-          />
+          <>
+            <GramStep
+              label="Меньше"
+              onClick={() => {
+                haptic("tick");
+                grams.setGramsInput(stepYieldGrams(grams.gramsInput, -1));
+              }}
+            >
+              <Minus className="size-5" />
+            </GramStep>
+            <Input
+              inputMode="decimal"
+              enterKeyHint="done"
+              value={grams.gramsInput}
+              aria-label="Граммы"
+              aria-invalid={grams.error ? true : undefined}
+              onChange={(event) => grams.setGramsInput(event.target.value)}
+              onKeyDown={handleNumericEnter}
+              className="h-14 min-w-0 flex-1 px-2 text-center text-2xl font-semibold tabular-nums"
+            />
+            <GramStep
+              label="Больше"
+              onClick={() => {
+                haptic("tick");
+                grams.setGramsInput(stepYieldGrams(grams.gramsInput, 1));
+              }}
+            >
+              <Plus className="size-5" />
+            </GramStep>
+          </>
         )}
       </div>
+
+      {grams.totals ? (
+        <div className="card-surface flex flex-col gap-1 px-5 py-4">
+          <p className="text-3xl font-semibold tracking-tight tabular-nums">
+            {formatKcal(grams.totals.kcal)}
+            <span className="ml-1.5 text-base font-medium text-muted-foreground">
+              ккал
+            </span>
+          </p>
+          <p className="text-sm text-muted-foreground tabular-nums">
+            Б {formatMacro(grams.totals.protein)} · Ж{" "}
+            {formatMacro(grams.totals.fat)} · У{" "}
+            {formatMacro(grams.totals.carbs)}
+          </p>
+        </div>
+      ) : null}
 
       {grams.pair ? (
         <GramsYieldToggle
@@ -127,22 +169,6 @@ export function GramsScreen({
         />
       )}
 
-      {grams.totals ? (
-        <div className="card-surface flex items-baseline justify-between gap-3 px-5 py-4">
-          <p className="text-sm text-muted-foreground tabular-nums">
-            Б {formatMacro(grams.totals.protein)} · Ж{" "}
-            {formatMacro(grams.totals.fat)} · У{" "}
-            {formatMacro(grams.totals.carbs)}
-          </p>
-          <p className="shrink-0 text-lg font-semibold tabular-nums">
-            {formatKcal(grams.totals.kcal)}
-            <span className="ml-1 text-sm font-medium text-muted-foreground">
-              ккал
-            </span>
-          </p>
-        </div>
-      ) : null}
-
       {grams.error ? (
         <p className="text-sm text-destructive">{grams.error}</p>
       ) : null}
@@ -155,5 +181,26 @@ export function GramsScreen({
         </StickyActions>
       )}
     </form>
+  );
+}
+
+function GramStep({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted/60"
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }
