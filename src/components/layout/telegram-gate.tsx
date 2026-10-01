@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BootSplashProvider,
   useBootSplash,
@@ -15,33 +15,12 @@ import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberIncomingStart } from "@/lib/share/pending";
 import { startPayloadFromLocation } from "@/lib/share/start-param";
+import {
+  bindTelegramFullscreen,
+  type TelegramFullscreenHost,
+} from "@/lib/telegram/fullscreen";
 
 type GateState = "loading" | "ready" | "outside" | "error";
-
-const TELEGRAM_FULLSCREEN_API = "8.0";
-
-function enterTelegramFullscreen(webApp: {
-  isVersionAtLeast?: (version: string) => boolean;
-  isFullscreen?: boolean;
-  requestFullscreen?: () => void;
-}) {
-  // Bot API 8.0+; expand() only fills height — the Mini App header still takes space.
-  if (typeof webApp.requestFullscreen !== "function") {
-    return;
-  }
-  if (!webApp.isVersionAtLeast?.(TELEGRAM_FULLSCREEN_API)) {
-    return;
-  }
-  if (webApp.isFullscreen) {
-    return;
-  }
-
-  try {
-    webApp.requestFullscreen();
-  } catch {
-    // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
-  }
-}
 
 export function TelegramGate({ children }: { children: React.ReactNode }) {
   return (
@@ -55,6 +34,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
   const boot = useBootSplash();
   const [state, setState] = useState<GateState>("loading");
   const [openUrl, setOpenUrl] = useState<string | null>(null);
+  const releaseFullscreen = useRef<(() => void) | undefined>(undefined);
 
   const authenticate = useCallback(async () => {
     setState("loading");
@@ -64,7 +44,10 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       const webApp = sdk.default;
       webApp.ready();
       webApp.expand();
-      enterTelegramFullscreen(webApp);
+      releaseFullscreen.current?.();
+      releaseFullscreen.current = bindTelegramFullscreen(
+        webApp as TelegramFullscreenHost,
+      );
       rememberIncomingStart(
         startPayloadFromLocation({
           telegramStartParam: webApp.initDataUnsafe?.start_param,
@@ -133,6 +116,10 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     void authenticate();
+    return () => {
+      releaseFullscreen.current?.();
+      releaseFullscreen.current = undefined;
+    };
   }, [authenticate]);
 
   useEffect(() => {
