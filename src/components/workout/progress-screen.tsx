@@ -6,6 +6,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
 import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
+import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
@@ -165,6 +166,14 @@ export function ProgressScreen() {
             )}
 
             <ReviewCta from="workouts" />
+            <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+              <NavRow
+                href="/workouts/history"
+                title="История тренировок"
+                hint="Какие были занятия"
+                icon={<DumbbellDoodle />}
+              />
+            </section>
           </>
         ) : null}
       </div>
@@ -255,7 +264,13 @@ function SummaryCard({
 
       {!summaryScope ? <CategoryBars exercises={summaryTracked} /> : null}
 
-      <ProgressBodyWeightChart weights={lifetime.weights} from={from} to={to} />
+      {horizon === "all" ? (
+        <ProgressBodyWeightChart
+          weights={lifetime.weights}
+          from={from}
+          to={to}
+        />
+      ) : null}
 
       {tonnage > 0 ? (
         <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">

@@ -4,7 +4,11 @@ import { ReviewFactsCard } from "@/components/ai/review-facts-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
 import { useReviewScreen } from "@/components/ai/use-review-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { BarbellDoodle, MealDayDoodle } from "@/components/layout/doodles";
+import {
+  BarbellDoodle,
+  DumbbellDoodle,
+  MealDayDoodle,
+} from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
@@ -126,6 +130,12 @@ export function ReviewScreen() {
                 title="История еды"
                 hint="БЖУ и вес по дням"
                 icon={<MealDayDoodle />}
+              />
+              <NavRow
+                href="/workouts/history"
+                title="История тренировок"
+                hint="Какие были занятия"
+                icon={<DumbbellDoodle />}
               />
               <NavRow
                 href="/workouts/progress"
