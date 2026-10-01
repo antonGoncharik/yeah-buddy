@@ -15,8 +15,10 @@ import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { calendarToday } from "@/lib/day/dates";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
 import { heaviestWorkLift } from "@/lib/share/joy";
+import type { SessionDetail } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
+import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 
 export function SessionScreen() {
   const {
@@ -61,6 +63,7 @@ export function SessionScreen() {
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
   const loadTarget = restLoadTargetKg(detail?.exercises ?? [], rest.exerciseId);
+  const restExerciseId = detail ? restExerciseFor(detail, openSetIds) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,8 +112,6 @@ export function SessionScreen() {
               onReorder={
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }
-              onStartRest={(id) => rest.start(id)}
-              lastRestSeconds={rest.lastSeconds}
             />
 
             {session.status === "planned" && detail.missing_maxes.length > 0 ? (
@@ -174,12 +175,6 @@ export function SessionScreen() {
               />
             ) : null}
 
-            {session.status === "completed" && correcting ? (
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Поправь подходы и сохрани. Тренировка уже сделана.
-              </p>
-            ) : null}
-
             {session.status === "planned" || session.status === "skipped" ? (
               <Button
                 type="button"
@@ -210,6 +205,16 @@ export function SessionScreen() {
               />
             </div>
           ) : null}
+          {canRest && rest.left == null && restExerciseId ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-12 w-full text-base"
+              onClick={() => rest.start(restExerciseId)}
+            >
+              Отдых {formatRestClock(rest.lastSeconds(restExerciseId))}
+            </Button>
+          ) : null}
           <Button
             type="button"
             className="h-14 w-full text-lg"
@@ -225,4 +230,22 @@ export function SessionScreen() {
       ) : null}
     </div>
   );
+}
+
+function restExerciseFor(
+  detail: SessionDetail,
+  openSetIds: string[],
+): string | null {
+  for (const item of detail.exercises) {
+    if (item.sets.some((set) => openSetIds.includes(set.id))) {
+      return item.exercise_id;
+    }
+  }
+  for (const item of detail.exercises) {
+    const work = item.sets.filter((set) => set.set_type === "work");
+    if (workSetsNeedRest(work)) {
+      return item.exercise_id;
+    }
+  }
+  return null;
 }

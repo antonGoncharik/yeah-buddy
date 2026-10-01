@@ -144,6 +144,8 @@ export interface TransitionPreview {
   to_name: string | null;
   new_macro: boolean;
   increased: boolean;
+  /** Percent added to a 1RM when this week raises it. */
+  increase_percent: number;
   /** Kilograms added to linear tracks on this transition. */
   kg_increase: number;
   hold_weights: boolean;

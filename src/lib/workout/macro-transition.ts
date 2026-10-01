@@ -60,6 +60,7 @@ export async function previewTransition(
       to_name: null,
       new_macro: true,
       increased,
+      increase_percent: settings.max_increase_percent,
       kg_increase: kgIncrease,
       hold_weights: holdWeights,
       maxes: toTransitionMaxes(source, (weight, step) =>
@@ -76,6 +77,7 @@ export async function previewTransition(
     to_name: phaseLabel(nextType, cycleDef(cycle, nextType)?.name),
     new_macro: false,
     increased,
+    increase_percent: settings.max_increase_percent,
     kg_increase: kgIncrease,
     hold_weights: holdWeights,
     maxes: toTransitionMaxes(state.maxes, (weight, step) =>

@@ -89,7 +89,7 @@ export function SessionExerciseRow({
   const slotLine = [track ? trackInfoLine(track, showActual) : null, item.note]
     .filter(Boolean)
     .join(" · ");
-  const metaOpen = openSetIds.length > 0 || warmupOpen || Boolean(leadSet);
+  const focused = openSets.length > 0 || warmupOpen;
 
   function renderEditor(set: WorkoutSet) {
     if (!leadSet || set.id !== leadSet.id) {
@@ -149,7 +149,7 @@ export function SessionExerciseRow({
             <RemoveRowButton disabled={disabled} onClick={onRemove} />
           ) : null}
         </div>
-        {slotLine && (!diaryCompact || metaOpen) ? (
+        {slotLine && (!diaryCompact || focused) ? (
           <p className="-mt-1 text-sm leading-snug text-muted-foreground">
             {slotLine}
           </p>
@@ -181,12 +181,12 @@ export function SessionExerciseRow({
         ) : null}
         {work.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1.5">
-            {previousLine && (!diaryCompact || metaOpen) ? (
+            {previousLine && focused ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {previousLine}
               </p>
             ) : null}
-            {loadHint && (!diaryCompact || metaOpen) ? (
+            {loadHint && focused ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {loadHint}
               </p>

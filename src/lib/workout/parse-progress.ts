@@ -71,6 +71,12 @@ export function parseTransitionPreview(
           : phaseLabel(toPhase),
     new_macro: preview.new_macro === true,
     increased: preview.increased === true,
+    increase_percent:
+      typeof preview.increase_percent === "number" &&
+      Number.isFinite(preview.increase_percent) &&
+      preview.increase_percent >= 0
+        ? preview.increase_percent
+        : 0,
     kg_increase:
       typeof preview.kg_increase === "number" &&
       Number.isFinite(preview.kg_increase) &&

@@ -16,11 +16,13 @@ import { phaseLabel } from "@/lib/workout/labels";
 
 export function MacroPhaseHeader({
   state,
+  titleOverride = null,
 }: {
   state: CurrentMacroState & {
     macro: NonNullable<CurrentMacroState["macro"]>;
     phase: NonNullable<CurrentMacroState["phase"]>;
   };
+  titleOverride?: string | null;
 }) {
   const holdHint = state.phase_circle
     ? phaseHoldHint(state.phase_circle)
@@ -45,11 +47,8 @@ export function MacroPhaseHeader({
         )}
       </p>
       <h2 className="text-2xl font-semibold">
-        {phaseLabel(state.phase.phase_type, state.phase.name)}
+        {titleOverride ?? phaseLabel(state.phase.phase_type, state.phase.name)}
       </h2>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        Этот этап задаёт веса. Закончить — кнопкой ниже.
-      </p>
       {steps.length > 0 ? <CycleTimeline steps={steps} /> : null}
       <FlavorNote line={phaseLine} />
       {holdHint ? <p className="text-base leading-snug">{holdHint}</p> : null}

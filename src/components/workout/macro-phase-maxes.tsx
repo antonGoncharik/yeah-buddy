@@ -1,67 +1,67 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import type { CurrentMacroState } from "@/lib/types";
-import { formatWeight } from "@/lib/workout/numbers";
 
 export function MacroPhaseMaxes({
   maxes,
   drafts,
-  savingId,
+  forward,
   onDraftChange,
-  onSave,
+  onForwardChange,
 }: {
   maxes: CurrentMacroState["maxes"];
   drafts: Record<string, string>;
-  savingId: string | null;
+  /** Next week's max, when it will differ. */
+  forward: Record<string, string | null>;
   onDraftChange: (exerciseId: string, value: string) => void;
-  onSave: (exerciseId: string) => void;
+  onForwardChange: (exerciseId: string, value: string) => void;
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-xl font-semibold">Максимум на этой неделе</h2>
-      <p className="text-sm text-muted-foreground">
-        Для упражнений, где вес считается процентом. Рабочий кг живёт в карточке
-        упражнения.
-      </p>
-      {maxes.map((row) => (
-        <div
-          key={row.exercise.id}
-          className="card-surface flex flex-col gap-3 px-5 py-4"
-        >
-          <p className="text-lg font-medium">
-            {row.exercise.short_name || row.exercise.name}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Сейчас{" "}
-            {row.exercise.current_max
-              ? `${formatWeight(row.exercise.current_max.max_weight)} кг`
-              : "—"}
-          </p>
-          <div className="flex gap-2">
+      <h2 className="text-xl font-semibold">Максимум</h2>
+      {maxes.map((row) => {
+        const name = row.exercise.short_name || row.exercise.name;
+        const next = forward[row.exercise.id];
+        return (
+          <div
+            key={row.exercise.id}
+            className="card-surface flex flex-col gap-2 px-5 py-4"
+          >
+            <p className="text-lg font-medium">{name}</p>
             <Input
               inputMode="decimal"
-              enterKeyHint="done"
+              enterKeyHint={next == null ? "done" : "next"}
               value={drafts[row.exercise.id] ?? ""}
+              aria-label={`Максимум, ${name}`}
               onChange={(event) =>
                 onDraftChange(row.exercise.id, event.target.value)
               }
               onKeyDown={handleNumericEnter}
-              className="h-12 text-base"
+              className="h-12 text-lg"
             />
-            <Button
-              type="button"
-              className="h-12 px-4 text-base"
-              disabled={savingId === row.exercise.id}
-              onClick={() => onSave(row.exercise.id)}
-            >
-              {savingId === row.exercise.id ? "…" : "Сохранить"}
-            </Button>
+            {next == null ? null : (
+              <div className="flex items-center gap-2">
+                <span className="w-16 shrink-0 text-sm text-muted-foreground">
+                  дальше
+                </span>
+                <Input
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  value={next}
+                  aria-label={`Дальше, ${name}`}
+                  onChange={(event) =>
+                    onForwardChange(row.exercise.id, event.target.value)
+                  }
+                  onKeyDown={handleNumericEnter}
+                  className="h-12 text-lg"
+                />
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </section>
   );
 }

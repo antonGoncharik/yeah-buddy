@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { MacroPhaseHeader } from "@/components/workout/macro-phase-header";
 import { MacroPhaseMaxes } from "@/components/workout/macro-phase-maxes";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
-import { MacroTransitionPanel } from "@/components/workout/macro-transition-panel";
 import { useMacroScreen } from "@/components/workout/use-macro-screen";
 import { cn } from "@/lib/utils";
-import { completePhaseHint, cycleSequenceLabel } from "@/lib/workout/hints";
+import { cycleSequenceLabel } from "@/lib/workout/hints";
 import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
 
 export function MacroScreen() {
@@ -22,21 +23,18 @@ export function MacroScreen() {
     loading,
     error,
     drafts,
-    setDrafts,
-    savingId,
-    preview,
-    setPreview,
+    forward,
     transitionDate,
     setTransitionDate,
-    transitionMaxes,
-    setTransitionMaxes,
-    transitioning,
+    pendingTitle,
+    advancing,
     justClosed,
     load,
-    saveMax,
-    openTransition,
-    confirmTransition,
+    changeDraft,
+    changeForward,
+    completeWeek,
   } = useMacroScreen();
+  const [dateOpen, setDateOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
@@ -117,58 +115,49 @@ export function MacroScreen() {
                 macro: state.macro,
                 phase: state.phase,
               }}
+              titleOverride={pendingTitle}
             />
 
             <MacroPhaseMaxes
               maxes={state.maxes}
               drafts={drafts}
-              savingId={savingId}
-              onDraftChange={(exerciseId, value) =>
-                setDrafts((current) => ({
-                  ...current,
-                  [exerciseId]: value,
-                }))
-              }
-              onSave={(exerciseId) => void saveMax(exerciseId)}
+              forward={pendingTitle ? {} : forward}
+              onDraftChange={changeDraft}
+              onForwardChange={changeForward}
             />
+
+            {dateOpen ? (
+              <Input
+                type="date"
+                aria-label="Дата"
+                value={transitionDate}
+                onChange={(event) => setTransitionDate(event.target.value)}
+                className="h-12 text-base"
+              />
+            ) : (
+              <button
+                type="button"
+                className="self-start text-base text-muted-foreground"
+                onClick={() => setDateOpen(true)}
+              >
+                Другая дата
+              </button>
+            )}
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            {preview ? (
-              <MacroTransitionPanel
-                preview={preview}
-                transitionDate={transitionDate}
-                transitionMaxes={transitionMaxes}
-                transitioning={transitioning}
-                onDateChange={setTransitionDate}
-                onMaxChange={(exerciseId, value) =>
-                  setTransitionMaxes((current) => ({
-                    ...current,
-                    [exerciseId]: value,
-                  }))
-                }
-                onConfirm={() => void confirmTransition()}
-                onCancel={() => setPreview(null)}
-              />
-            ) : (
-              <>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {completePhaseHint(state.phase_circle)}
-                </p>
-                <StickyActions>
-                  <Button
-                    type="button"
-                    className="h-14 text-lg"
-                    disabled={transitioning}
-                    onClick={() => void openTransition()}
-                  >
-                    {state.phase_circle?.last_in_cycle
-                      ? "Закрыть цикл"
-                      : `Завершить: ${phaseLabel(state.phase.phase_type, state.phase.name)}`}
-                  </Button>
-                </StickyActions>
-              </>
-            )}
+            <StickyActions>
+              <Button
+                type="button"
+                className="h-14 text-lg"
+                disabled={advancing}
+                onClick={() => void completeWeek()}
+              >
+                {state.phase_circle?.last_in_cycle
+                  ? "Закрыть цикл"
+                  : `Завершить: ${phaseLabel(state.phase.phase_type, state.phase.name)}`}
+              </Button>
+            </StickyActions>
           </>
         ) : null}
       </div>
