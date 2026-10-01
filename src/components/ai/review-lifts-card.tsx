@@ -50,6 +50,7 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
     <ReviewSection
       title="Рабочие веса"
       hint={maxes.since === "first_work" ? "С первой записи" : undefined}
+      summary={liftsSummary(brief)}
     >
       {stats.length > 0 ? <StatGrid items={stats} /> : null}
       {maxes.grown_list.length > 0 ? (
@@ -94,6 +95,17 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
       ) : null}
     </ReviewSection>
   );
+}
+
+function liftsSummary(brief: ReviewBrief): string | null {
+  const parts: string[] = [];
+  if (brief.maxes.avg_percent != null) {
+    parts.push(formatPct(brief.maxes.avg_percent));
+  }
+  if (brief.maxes.total > 0) {
+    parts.push(`${brief.maxes.grown} из ${brief.maxes.total}`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function LiftBars({ rows }: { rows: ReviewMaxRow[] }) {

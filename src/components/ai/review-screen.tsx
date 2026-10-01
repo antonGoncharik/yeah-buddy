@@ -33,6 +33,7 @@ export function ReviewScreen() {
     load,
     writeReview,
     changeRange,
+    openedAt,
   } = useReviewScreen();
 
   return (
@@ -56,43 +57,58 @@ export function ReviewScreen() {
 
         {!loading && brief ? (
           <>
-            <ReviewFactsCard brief={brief} />
-            {review ? <ReviewTextCard review={review} /> : null}
-            {previous ? (
-              <ReviewTextCard review={previous} label="Прошлый раз" muted />
-            ) : null}
-
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-            {empty ? (
-              <p className="text-base text-muted-foreground">
-                {AI_REVIEW_EMPTY}
-              </p>
-            ) : snapshot?.configured &&
-              (snapshot.remaining == null || snapshot.remaining > 0) ? (
-              <Button
-                type="button"
-                className="h-14 text-lg"
-                disabled={writing}
-                onClick={() => void writeReview()}
-              >
-                {writing ? "Разбираю…" : review ? "Ещё раз" : "Разобрать"}
-              </Button>
-            ) : snapshot?.configured ? (
-              <p className="text-base text-muted-foreground">
-                {AI_REVIEW_QUOTA}
-              </p>
-            ) : (
-              <p className="text-base text-muted-foreground">
-                {AI_REVIEW_NO_KEY}
-              </p>
-            )}
-
-            {brief.coverage === "thin" && !empty ? (
-              <p className="text-sm text-muted-foreground">
-                Записей пока мало.
-              </p>
-            ) : null}
+            <ReviewFactsCard
+              brief={brief}
+              afterOverview={
+                <>
+                  {review ? (
+                    <ReviewTextCard
+                      key={review.written_at}
+                      review={review}
+                      defaultOpen={openedAt === review.written_at}
+                    />
+                  ) : null}
+                  {previous ? (
+                    <ReviewTextCard
+                      review={previous}
+                      label="Прошлый раз"
+                      muted
+                    />
+                  ) : null}
+                  {error ? (
+                    <p className="text-sm text-destructive">{error}</p>
+                  ) : null}
+                  {empty ? (
+                    <p className="text-base text-muted-foreground">
+                      {AI_REVIEW_EMPTY}
+                    </p>
+                  ) : snapshot?.configured &&
+                    (snapshot.remaining == null || snapshot.remaining > 0) ? (
+                    <Button
+                      type="button"
+                      className="h-14 text-lg"
+                      disabled={writing}
+                      onClick={() => void writeReview()}
+                    >
+                      {writing ? "Разбираю…" : review ? "Ещё раз" : "Разбор ИИ"}
+                    </Button>
+                  ) : snapshot?.configured ? (
+                    <p className="text-base text-muted-foreground">
+                      {AI_REVIEW_QUOTA}
+                    </p>
+                  ) : (
+                    <p className="text-base text-muted-foreground">
+                      {AI_REVIEW_NO_KEY}
+                    </p>
+                  )}
+                  {brief.coverage === "thin" && !empty ? (
+                    <p className="text-sm text-muted-foreground">
+                      Записей пока мало.
+                    </p>
+                  ) : null}
+                </>
+              }
+            />
 
             <WeekProgressShare tone="card" />
 

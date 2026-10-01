@@ -5,6 +5,7 @@ import {
   ReviewSeriesChart,
   StatGrid,
 } from "@/components/ai/review-blocks";
+import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
 import type { ReviewBrief } from "@/lib/ai/types";
 import {
   formatBodyWeight,
@@ -22,7 +23,7 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
   }
 
   return (
-    <ReviewSection title="Тело">
+    <ReviewSection title="Тело" summary={bodySummary(brief)}>
       {weightPoints.length >= 2 ? (
         <ReviewSeriesChart
           points={weightPoints}
@@ -74,6 +75,24 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
       ) : null}
     </ReviewSection>
   );
+}
+
+function bodySummary(brief: ReviewBrief): string | null {
+  const parts: string[] = [];
+  const weight = brief.nutrition.weight;
+  if (
+    weight.delta != null &&
+    weight.end != null &&
+    Math.abs(weight.delta) >= WEIGHT_DELTA_KG
+  ) {
+    parts.push(`${formatSignedBodyWeight(weight.delta)} кг`);
+  } else if (weight.end != null) {
+    parts.push(`${formatBodyWeight(weight.end)} кг`);
+  }
+  if (brief.nutrition.energy) {
+    parts.push(`расход ~${formatKcal(brief.nutrition.energy.kcal)}`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function measurePoints(

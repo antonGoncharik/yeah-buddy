@@ -19,6 +19,7 @@ export function useReviewScreen() {
   const [loading, setLoading] = useState(true);
   const [writing, setWriting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
 
   const load = useCallback(async (days: ReviewRangeId) => {
     setLoading(true);
@@ -44,7 +45,7 @@ export function useReviewScreen() {
     void load(range);
   }, [load, range]);
 
-  async function writeReview() {
+  async function writeReview(): Promise<string | null> {
     setWriting(true);
     setError(null);
     try {
@@ -52,9 +53,11 @@ export function useReviewScreen() {
       const next = readSnapshot(data);
       if (!next) {
         setError(AI_REVIEW_FAILED);
-        return;
+        return null;
       }
       setSnapshot(next);
+      setOpenedAt(next.review?.written_at ?? null);
+      return next.review?.written_at ?? null;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : AI_REVIEW_FAILED);
       if (caught instanceof ApiError) {
@@ -67,6 +70,7 @@ export function useReviewScreen() {
           );
         }
       }
+      return null;
     } finally {
       setWriting(false);
     }
@@ -75,6 +79,7 @@ export function useReviewScreen() {
   function changeRange(id: ReviewRangeId) {
     setRange(id);
     setSnapshot(null);
+    setOpenedAt(null);
   }
 
   const brief = snapshot?.brief ?? null;
@@ -97,6 +102,7 @@ export function useReviewScreen() {
     load,
     writeReview,
     changeRange,
+    openedAt,
   };
 }
 

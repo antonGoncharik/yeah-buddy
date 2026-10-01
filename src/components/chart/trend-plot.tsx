@@ -7,7 +7,7 @@ type ChartLayout = NonNullable<ReturnType<typeof chartLayout>>;
 type ChartSeries = NonNullable<ReturnType<typeof chartSeries>>;
 
 export const CHART_OVERLAY_COLOR =
-  "color-mix(in oklab, var(--muted-foreground) 72%, transparent)";
+  "color-mix(in oklab, var(--foreground) 78%, var(--card))";
 
 export function TrendPlot({
   layout,
@@ -78,9 +78,9 @@ export function TrendPlot({
           x2={width - pad}
           y1={y}
           y2={y}
-          className="stroke-border/40"
-          strokeWidth="1"
-          strokeDasharray="3 5"
+          stroke="color-mix(in oklab, var(--foreground) 28%, transparent)"
+          strokeWidth="1.25"
+          strokeDasharray="4 4"
         />
       ))}
       {showGuide ? (
@@ -100,19 +100,6 @@ export function TrendPlot({
         fill={`url(#trend-fill-${fillId})`}
         className="origin-bottom motion-safe:animate-fade"
       />
-      {overlay ? (
-        <path
-          d={overlay.line}
-          fill="none"
-          stroke={CHART_OVERLAY_COLOR}
-          className="motion-safe:animate-draw-line"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-          strokeDasharray="5 5"
-          pathLength={1}
-        />
-      ) : null}
       <path
         d={series.line}
         fill="none"
@@ -123,6 +110,17 @@ export function TrendPlot({
         strokeLinecap="round"
         pathLength={1}
       />
+      {overlay ? (
+        <path
+          d={overlay.line}
+          fill="none"
+          stroke={CHART_OVERLAY_COLOR}
+          strokeWidth="2.6"
+          strokeLinejoin="miter"
+          strokeLinecap="butt"
+          strokeDasharray="9 6"
+        />
+      ) : null}
       {showPeak && peak ? (
         <circle
           cx={peak.x}
@@ -272,15 +270,15 @@ function LegendSwatch({
     return (
       <svg aria-hidden viewBox="0 0 22 10" className="h-2.5 w-[22px] shrink-0">
         <line
-          x1="1.5"
+          x1="1"
           y1="5"
-          x2="20.5"
+          x2="21"
           y2="5"
           fill="none"
           stroke={stroke}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeDasharray="4 3"
+          strokeWidth="2.4"
+          strokeLinecap="butt"
+          strokeDasharray="5 3"
         />
       </svg>
     );

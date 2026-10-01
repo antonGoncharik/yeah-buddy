@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { StatGrid } from "@/components/ai/review-blocks";
 import { ReviewBodyCard } from "@/components/ai/review-body-card";
 import { ReviewFoodCard } from "@/components/ai/review-food-card";
@@ -15,10 +17,17 @@ import {
 import { pluralDays } from "@/lib/nutrition-stats";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
 
-export function ReviewFactsCard({ brief }: { brief: ReviewBrief }) {
+export function ReviewFactsCard({
+  brief,
+  afterOverview,
+}: {
+  brief: ReviewBrief;
+  afterOverview?: ReactNode;
+}) {
   return (
     <>
       <ReviewOverview brief={brief} />
+      {afterOverview}
       <ReviewFoodCard brief={brief} />
       <ReviewBodyCard brief={brief} />
       <ReviewGymCard brief={brief} />

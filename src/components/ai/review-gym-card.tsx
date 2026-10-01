@@ -8,7 +8,11 @@ import {
 import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
 import type { ReviewBrief } from "@/lib/ai/types";
 import { formatIsoDate } from "@/lib/day/format";
-import { formatWeekRate, workoutsPerWeek } from "@/lib/workout/history-stats";
+import {
+  formatWeekRate,
+  pluralWorkouts,
+  workoutsPerWeek,
+} from "@/lib/workout/history-stats";
 import { SESSION_FEEL_LABELS } from "@/lib/workout/labels";
 import { formatTonnage, formatWeight } from "@/lib/workout/numbers";
 
@@ -75,7 +79,7 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
   ].flatMap((item) => (item ? [item] : []));
 
   return (
-    <ReviewSection title="Зал">
+    <ReviewSection title="Зал" summary={gymSummary(brief, perWeek)}>
       {stats.length > 0 ? <StatGrid items={stats} /> : null}
       {feelTotal > 0 ? <FeelBar feels={feels} total={feelTotal} /> : null}
       {gym.templates.length > 0 ? (
@@ -159,6 +163,19 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
       ) : null}
     </ReviewSection>
   );
+}
+
+function gymSummary(brief: ReviewBrief, perWeek: number): string | null {
+  if (perWeek > 0) {
+    return `${formatWeekRate(perWeek)} в неделю`;
+  }
+  if (brief.gym.completed > 0) {
+    return `${brief.gym.completed} ${pluralWorkouts(brief.gym.completed)}`;
+  }
+  if (brief.gym.skipped > 0) {
+    return `пропуски ${brief.gym.skipped}`;
+  }
+  return brief.phase.type;
 }
 
 function FeelBar({

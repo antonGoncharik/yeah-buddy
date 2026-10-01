@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Segmented } from "@/components/ui/segmented";
 import { ProgressChart } from "@/components/workout/progress-chart";
 import { ProgressSparkline } from "@/components/workout/progress-sparkline";
-import { formatRelative } from "@/lib/day/body-weight";
 import type { ExerciseProgress, WorkoutKind } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
@@ -13,7 +12,6 @@ import {
   formatSeconds,
   formatSignedPercent,
   formatSignedWeight,
-  formatTonnage,
   formatWeight,
 } from "@/lib/workout/numbers";
 import { measureProgress } from "@/lib/workout/progress-build";
@@ -83,45 +81,10 @@ export function ProgressExerciseCard({
               </span>
             ) : null}
           </p>
-          <p className="text-sm text-muted-foreground">
-            {stats.current_weight == null
-              ? "Нет записи"
-              : `${formatWeight(stats.current_weight)} кг`}
-            {stats.current_tonnage != null
-              ? ` · тоннаж ${formatTonnage(stats.current_tonnage)}`
-              : null}
-            {stats.current_relative != null
-              ? ` · ${formatRelative(stats.current_relative)}`
-              : null}
-            {lastSeconds != null ? ` · ${formatSeconds(lastSeconds)} с` : null}
-            {stats.delta != null &&
-            stats.percent != null &&
-            stats.delta !== 0 ? (
-              <span
-                className={cn(
-                  "ml-2 font-medium",
-                  stats.delta > 0 && "text-primary",
-                  stats.delta < 0 && "text-destructive",
-                )}
-              >
-                {formatSignedWeight(stats.delta)} кг ·{" "}
-                {formatSignedPercent(stats.percent)}
-                {stats.relative_percent == null
-                  ? null
-                  : ` · ${formatSignedPercent(stats.relative_percent)} к весу`}
-              </span>
-            ) : null}
-            {stats.tonnage_percent != null && stats.tonnage_percent !== 0 ? (
-              <span
-                className={cn(
-                  "ml-2 font-medium",
-                  (stats.delta ?? 0) === 0 && "text-primary",
-                )}
-              >
-                тоннаж {formatSignedPercent(stats.tonnage_percent)}
-              </span>
-            ) : null}
+          <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">
+            {closedValue(stats.current_weight, lastSeconds)}
           </p>
+          <ClosedChange stats={stats} />
         </div>
         <ProgressSparkline points={series} />
       </button>
@@ -153,4 +116,62 @@ export function ProgressExerciseCard({
       ) : null}
     </article>
   );
+}
+
+const RELATIVE_GAP = 2;
+
+function closedValue(weight: number | null, seconds: number | null): string {
+  if (weight != null) {
+    return `${formatWeight(weight)} кг`;
+  }
+  if (seconds != null) {
+    return `${formatSeconds(seconds)} с`;
+  }
+  return "Нет записи";
+}
+
+function ClosedChange({
+  stats,
+}: {
+  stats: ReturnType<typeof measureProgress>;
+}) {
+  const barMoved =
+    stats.delta != null && stats.percent != null && stats.delta !== 0;
+  const relative =
+    barMoved &&
+    stats.relative_percent != null &&
+    stats.percent != null &&
+    Math.abs(stats.relative_percent - stats.percent) >= RELATIVE_GAP
+      ? stats.relative_percent
+      : null;
+
+  if (barMoved && stats.delta != null && stats.percent != null) {
+    return (
+      <p
+        className={cn(
+          "text-sm font-medium tabular-nums",
+          stats.delta > 0 && "text-primary",
+          stats.delta < 0 && "text-destructive",
+        )}
+      >
+        {formatSignedWeight(stats.delta)} кг
+        <span className="ml-2">{formatSignedPercent(stats.percent)}</span>
+        {relative != null ? (
+          <span className="ml-2 font-normal text-muted-foreground">
+            к телу {formatSignedPercent(relative)}
+          </span>
+        ) : null}
+      </p>
+    );
+  }
+
+  if (stats.tonnage_percent != null && stats.tonnage_percent !== 0) {
+    return (
+      <p className="text-sm font-medium tabular-nums text-primary">
+        тоннаж {formatSignedPercent(stats.tonnage_percent)}
+      </p>
+    );
+  }
+
+  return null;
 }

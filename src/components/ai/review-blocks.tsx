@@ -1,32 +1,61 @@
 "use client";
 
-import { Children, isValidElement, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+import { Children, isValidElement, type ReactNode, useState } from "react";
 
 import { ChartInsight, TrendPlot } from "@/components/chart/trend-plot";
 import { MeterBar } from "@/components/ui/meter-bar";
+import { StatGrid } from "@/components/ui/stat-grid";
 import { formatG } from "@/lib/ai/format";
 import { chartShape, chartY } from "@/lib/chart-shape";
 import { chartInsight, chartMean, chartSpan } from "@/lib/chart-stats";
 import { formatIsoDate } from "@/lib/day/format";
 import type { FoodShare } from "@/lib/days";
+import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
 export function ReviewSection({
   title,
   hint,
+  summary,
   children,
 }: {
   title: string;
   hint?: string;
+  summary?: string | null;
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <section className="card-surface animate-rise px-5 py-5">
-      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-      {hint ? (
-        <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
-      ) : null}
-      <Stack>{children}</Stack>
+    <section className="card-surface animate-rise px-5 py-4">
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 text-left"
+        aria-expanded={open}
+        onClick={() => {
+          haptic("tick");
+          setOpen((current) => !current);
+        }}
+      >
+        <span className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          {hint ? (
+            <p className="mt-0.5 text-sm text-muted-foreground">{hint}</p>
+          ) : null}
+          {!open && summary ? (
+            <p className="mt-0.5 text-sm text-muted-foreground">{summary}</p>
+          ) : null}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className={cn(
+            "size-5 shrink-0 text-muted-foreground transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      {open ? <Stack>{children}</Stack> : null}
     </section>
   );
 }
@@ -61,34 +90,7 @@ function Stack({ children }: { children: ReactNode }) {
   );
 }
 
-export function StatGrid({
-  items,
-}: {
-  items: Array<{ label: string; value: string; detail?: string | null }>;
-}) {
-  const shown = items.filter((item) => item.value !== "");
-  if (shown.length === 0) {
-    return null;
-  }
-
-  return (
-    <dl className="grid grid-cols-2 gap-2">
-      {shown.map((item) => (
-        <div key={item.label} className="rounded-2xl bg-muted/50 px-3 py-3">
-          <dt className="text-xs text-muted-foreground">{item.label}</dt>
-          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums">
-            {item.value}
-          </dd>
-          {item.detail ? (
-            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-              {item.detail}
-            </p>
-          ) : null}
-        </div>
-      ))}
-    </dl>
-  );
-}
+export { StatGrid };
 
 export function MeterLine({
   label,

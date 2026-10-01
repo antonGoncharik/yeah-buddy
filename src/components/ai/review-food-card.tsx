@@ -45,7 +45,7 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   return (
     <>
       {showDays ? (
-        <ReviewSection title="Еда">
+        <ReviewSection title="Еда" summary={foodSummary(brief)}>
           {brief.nutrition.protein_total > 0 ||
           brief.nutrition.kcal_total > 0 ||
           weight.protein_per_kg != null ? (
@@ -114,6 +114,8 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
               ) : null}
             </div>
           ) : null}
+          {days.length >= 2 ? <MacroChart days={days} metric="fat" /> : null}
+          {days.length >= 2 ? <MacroChart days={days} metric="carbs" /> : null}
         </ReviewSection>
       ) : null}
       {showAverage ? (
@@ -125,6 +127,7 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
               ? "Среднее"
               : "Откуда белок"
           }
+          summary={averageSummary(brief)}
         >
           {brief.nutrition.rest ? (
             <AverageBlock
@@ -181,21 +184,47 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   );
 }
 
+const MACRO_CHART = {
+  kcal: {
+    label: "Ккал",
+    color: "var(--primary)",
+    target: "kcal_target",
+    format: (value: number) => `${formatKcal(value)} ккал`,
+  },
+  protein: {
+    label: "Белок",
+    color: "var(--macro-protein)",
+    target: "protein_target",
+    format: (value: number) => `${formatG(value)} г`,
+  },
+  fat: {
+    label: "Жир",
+    color: "var(--macro-fat)",
+    target: "fat_target",
+    format: (value: number) => `${formatG(value)} г`,
+  },
+  carbs: {
+    label: "Углеводы",
+    color: "var(--macro-carbs)",
+    target: "carbs_target",
+    format: (value: number) => `${formatG(value)} г`,
+  },
+} as const;
+
 function MacroChart({
   days,
   metric,
 }: {
   days: ReviewDayRow[];
-  metric: "kcal" | "protein";
+  metric: keyof typeof MACRO_CHART;
 }) {
   if (days.length < 2) {
     return null;
   }
 
+  const spec = MACRO_CHART[metric];
   const facts = days.map((day) => day[metric]);
-  const targets = days.map((day) =>
-    metric === "kcal" ? day.kcal_target : day.protein_target,
-  );
+  const targets = days.map((day) => day[spec.target]);
   const hasTarget = targets.some((value) => value > 0);
   const layout = chartLayout(
     hasTarget ? [...facts, ...targets] : facts,
@@ -214,12 +243,9 @@ function MacroChart({
 
   const mean = chartMean(facts);
   const targetMean = hasTarget ? chartMean(targets) : null;
-  const format =
-    metric === "kcal"
-      ? (value: number) => `${formatKcal(value)} ккал`
-      : (value: number) => `${formatG(value)} г`;
-  const label = metric === "kcal" ? "Ккал" : "Белок";
-  const color = metric === "kcal" ? "var(--primary)" : "var(--macro-protein)";
+  const format = spec.format;
+  const label = spec.label;
+  const color = spec.color;
 
   return (
     <div className="flex flex-col gap-2">
@@ -425,6 +451,36 @@ function signedAmount(
     return `−${text}`;
   }
   return text;
+}
+
+function foodSummary(brief: ReviewBrief): string | null {
+  const parts: string[] = [];
+  if (brief.nutrition.protein_total > 0) {
+    parts.push(
+      `белок ${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`,
+    );
+  }
+  if (brief.nutrition.kcal_total > 0) {
+    parts.push(
+      `ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`,
+    );
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function averageSummary(brief: ReviewBrief): string | null {
+  const parts: string[] = [];
+  if (brief.nutrition.rest) {
+    parts.push(`отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`);
+  }
+  if (brief.nutrition.training) {
+    parts.push(`зал ${formatKcal(brief.nutrition.training.fact.kcal)}`);
+  }
+  if (parts.length > 0) {
+    return parts.join(" · ");
+  }
+  const top = brief.nutrition.foods[0];
+  return top ? top.name : null;
 }
 
 function historyDays(days: ReviewDayRow[]): DayHistoryRow[] {
