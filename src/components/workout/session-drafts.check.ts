@@ -2,6 +2,9 @@ import {
   completeSetOverrides,
   draftChanged,
   draftFromSet,
+  formatVisibleSetLine,
+  stepDraftValue,
+  visibleSetRirLabel,
 } from "@/components/workout/session-drafts";
 import type {
   Exercise,
@@ -126,6 +129,58 @@ assertEqual(
     },
   ],
   "edited set is sent",
+);
+
+const ranged = { ...set, planned_reps_to: 8, planned_rir: 2 };
+const rangedDraft = draftFromSet(ranged);
+assertEqual(
+  formatVisibleSetLine(ranged, rangedDraft),
+  "80 × 5–8",
+  "untouched draft keeps the range",
+);
+assertEqual(
+  formatVisibleSetLine(ranged, { ...rangedDraft, weight: "82.5" }),
+  "82.5 × 5",
+  "weight edit replaces the line",
+);
+assertEqual(
+  formatVisibleSetLine(ranged, { ...rangedDraft, reps: "" }, { compact: true }),
+  "80×—",
+  "cleared reps show on the line",
+);
+assertEqual(
+  visibleSetRirLabel(ranged, rangedDraft, false),
+  "запас 2",
+  "planned reserve stays until edited",
+);
+assertEqual(
+  visibleSetRirLabel(ranged, { ...rangedDraft, weight: "90" }, false),
+  "запас 2",
+  "weight edit does not drop the reserve",
+);
+assertEqual(
+  visibleSetRirLabel(ranged, { ...rangedDraft, rir: "0" }, false),
+  "до отказа",
+  "typed reserve replaces the planned one",
+);
+assertEqual(
+  formatVisibleSetLine(ranged, { ...rangedDraft, rir: "0" }),
+  "80 × 5–8",
+  "reserve edit keeps the rep range",
+);
+assertEqual(stepDraftValue("80", 1, 2.5, "weight"), "82.5", "weight steps up");
+assertEqual(
+  stepDraftValue("2.5", -1, 2.5, "weight"),
+  "0",
+  "weight stops at zero",
+);
+assertEqual(stepDraftValue("5", -1, 1, "reps"), "4", "reps step down");
+assertEqual(stepDraftValue("1", -1, 1, "reps"), "1", "reps stay at one");
+assertEqual(stepDraftValue("30", 1, 5, "seconds"), "35", "hold steps by five");
+assertEqual(
+  stepDraftValue("", 1, 2.5, "weight"),
+  "2.5",
+  "empty weight starts at a step",
 );
 
 console.log("session drafts close kind ok");

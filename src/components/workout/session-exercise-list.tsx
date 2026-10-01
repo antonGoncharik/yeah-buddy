@@ -11,7 +11,6 @@ import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { sessionCloseKind } from "@/lib/workout/session-format";
 
 export function SessionExerciseList({
   detail,
@@ -48,9 +47,6 @@ export function SessionExerciseList({
 }) {
   const session = detail.session;
   const canReorder = Boolean(onReorder) && canEditSets;
-  const showCopied =
-    session.status === "completed" &&
-    sessionCloseKind(detail.exercises) === "edited";
 
   if (detail.exercises.length === 0) {
     const canFillBelow =
@@ -95,7 +91,6 @@ export function SessionExerciseList({
             warmupOpen={warmupOpen[item.id] === true}
             disabled={busy || !canEditSets}
             showActual={session.status === "completed"}
-            showCopied={showCopied}
             drafts={drafts}
             onOpenSets={(ids) =>
               setOpenSetIds((current) => {

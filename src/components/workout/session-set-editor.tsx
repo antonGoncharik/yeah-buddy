@@ -1,91 +1,153 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
+import type { ReactNode } from "react";
+
 import { Input } from "@/components/ui/input";
-import type { SetDraft } from "@/components/workout/session-drafts";
+import {
+  parseRir,
+  type SetDraft,
+  stepDraftValue,
+} from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import {
   sanitizeDecimalDraft,
   sanitizeIntegerDraft,
 } from "@/lib/form/numeric-draft";
+import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
-import { setRirLabel, setUsesSeconds } from "@/lib/workout/session-format";
+import { setUsesSeconds } from "@/lib/workout/session-format";
+
+const HOLD_STEP_SECONDS = 5;
+const RESERVE_CHOICES = [0, 1, 2, 3] as const;
 
 export function SessionSetEditor({
   set,
   draft,
   disabled,
   groupCount,
-  setNumber,
+  weightStep,
   onDraft,
 }: {
   set: WorkoutSet;
   draft: SetDraft;
   disabled: boolean;
   groupCount: number;
-  setNumber: number;
+  weightStep: number;
   onDraft: (patch: Partial<SetDraft>) => void;
 }) {
-  const kind = set.set_type === "warmup" ? "Разминка" : "Рабочий";
-  const title =
-    groupCount > 1
-      ? `${kind} · ${groupCount} ${setCountWord(groupCount)}`
-      : `${kind} ${setNumber}`;
-  const plannedRir = setRirLabel(set, false);
   const withRir = set.set_type === "work";
-  const columns = withRir ? "grid-cols-3" : "grid-cols-2";
+  const timed = setUsesSeconds(set);
+  const groupTitle =
+    groupCount > 1 ? `${groupCount} ${setCountWord(groupCount)}` : null;
+  const typedReserve = parseRir(draft.rir);
+  const shownReserve = typedReserve ?? set.planned_rir;
+
+  function step(kind: "weight" | "reps" | "seconds", direction: -1 | 1) {
+    haptic("tick");
+    if (kind === "weight") {
+      onDraft({
+        weight: stepDraftValue(draft.weight, direction, weightStep, "weight"),
+      });
+      return;
+    }
+    if (kind === "seconds") {
+      onDraft({
+        seconds: stepDraftValue(
+          draft.seconds,
+          direction,
+          HOLD_STEP_SECONDS,
+          "seconds",
+        ),
+      });
+      return;
+    }
+    onDraft({
+      reps: stepDraftValue(draft.reps, direction, 1, "reps"),
+    });
+  }
 
   return (
     <div className="w-full pt-1 pb-1" data-field-group>
-      <div className={`grid ${columns} gap-2 rounded-xl bg-muted/60 px-3 py-3`}>
-        <p className="col-span-full text-sm text-muted-foreground">
-          {title}
-          {plannedRir ? ` · план: ${plannedRir}` : ""}
-        </p>
-        <FieldInput
-          label="кг"
-          value={draft.weight}
-          disabled={disabled}
-          inputMode="decimal"
-          enterKeyHint="next"
-          onChange={(value) => onDraft({ weight: value })}
-        />
-        {setUsesSeconds(set) ? (
-          <>
-            <FieldInput
+      <div className="flex flex-col gap-3 rounded-xl bg-muted/60 px-3 py-3">
+        {groupTitle ? (
+          <p className="text-sm text-muted-foreground">{groupTitle}</p>
+        ) : null}
+        <div className="grid grid-cols-2 gap-3">
+          <Stepper
+            label="кг"
+            value={draft.weight}
+            disabled={disabled}
+            inputMode="decimal"
+            enterKeyHint="next"
+            onChange={(value) => onDraft({ weight: value })}
+            onStep={(direction) => step("weight", direction)}
+          />
+          {timed ? (
+            <Stepper
               label="сек"
               value={draft.seconds}
               disabled={disabled}
               inputMode="decimal"
-              enterKeyHint="done"
+              enterKeyHint={withRir ? "next" : "done"}
               onChange={(value) => onDraft({ seconds: value })}
+              onStep={(direction) => step("seconds", direction)}
             />
-            <SessionHoldTimer
-              seconds={parseDecimal(draft.seconds)}
+          ) : (
+            <Stepper
+              label="раз"
+              value={draft.reps}
               disabled={disabled}
+              inputMode="numeric"
+              enterKeyHint={withRir ? "next" : "done"}
+              onChange={(value) => onDraft({ reps: value })}
+              onStep={(direction) => step("reps", direction)}
             />
-          </>
-        ) : (
-          <FieldInput
-            label="раз"
-            value={draft.reps}
+          )}
+        </div>
+        {timed ? (
+          <SessionHoldTimer
+            seconds={parseDecimal(draft.seconds)}
             disabled={disabled}
-            inputMode="numeric"
-            enterKeyHint={withRir ? "next" : "done"}
-            onChange={(value) => onDraft({ reps: value })}
           />
-        )}
+        ) : null}
         {withRir ? (
-          <FieldInput
-            label="запас"
-            value={draft.rir}
-            disabled={disabled}
-            inputMode="numeric"
-            enterKeyHint="done"
-            placeholder="RIR"
-            onChange={(value) => onDraft({ rir: value })}
-          />
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">запас</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {RESERVE_CHOICES.map((choice) => {
+                const selected = shownReserve === choice;
+                return (
+                  <button
+                    key={choice}
+                    type="button"
+                    disabled={disabled}
+                    aria-pressed={selected}
+                    className={cn(
+                      "h-11 rounded-lg text-base font-medium disabled:opacity-50",
+                      selected
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-foreground",
+                    )}
+                    onClick={() => {
+                      if (typedReserve == null && set.planned_rir === choice) {
+                        return;
+                      }
+                      haptic("tick");
+                      onDraft({
+                        rir: typedReserve === choice ? "" : String(choice),
+                      });
+                    }}
+                  >
+                    {choice === 0 ? "отказ" : choice}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ) : null}
       </div>
     </div>
@@ -104,43 +166,82 @@ export function setCountWord(count: number): string {
   return "подходов";
 }
 
-function FieldInput({
+function Stepper({
   label,
   value,
   disabled,
   inputMode,
   enterKeyHint,
-  placeholder,
   onChange,
+  onStep,
 }: {
   label: string;
   value: string;
   disabled: boolean;
   inputMode: "decimal" | "numeric";
   enterKeyHint: "next" | "done";
-  placeholder?: string;
   onChange: (value: string) => void;
+  onStep: (direction: -1 | 1) => void;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <Input
-        inputMode={inputMode}
-        enterKeyHint={enterKeyHint}
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={(event) =>
-          onChange(
-            inputMode === "numeric"
-              ? sanitizeIntegerDraft(event.target.value)
-              : sanitizeDecimalDraft(event.target.value),
-          )
-        }
-        onKeyDown={handleNumericEnter}
-        className="h-11 text-base"
-        aria-label={label}
-      />
+      <div className="flex items-center gap-1">
+        <StepButton
+          label={`Меньше, ${label}`}
+          disabled={disabled}
+          onClick={() => onStep(-1)}
+        >
+          <Minus className="size-4" />
+        </StepButton>
+        <Input
+          inputMode={inputMode}
+          enterKeyHint={enterKeyHint}
+          value={value}
+          disabled={disabled}
+          onChange={(event) =>
+            onChange(
+              inputMode === "numeric"
+                ? sanitizeIntegerDraft(event.target.value)
+                : sanitizeDecimalDraft(event.target.value),
+            )
+          }
+          onKeyDown={handleNumericEnter}
+          className="h-11 min-w-0 flex-1 px-1 text-center text-lg font-semibold tabular-nums"
+          aria-label={label}
+        />
+        <StepButton
+          label={`Больше, ${label}`}
+          disabled={disabled}
+          onClick={() => onStep(1)}
+        >
+          <Plus className="size-4" />
+        </StepButton>
+      </div>
     </div>
+  );
+}
+
+function StepButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background disabled:opacity-50"
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }

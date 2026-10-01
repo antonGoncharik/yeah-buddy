@@ -22,11 +22,7 @@ import {
   readSessionDraft,
   writeSessionDraft,
 } from "@/lib/workout/session-draft-store";
-import {
-  sessionCloseKind,
-  sessionCloseKindShort,
-  workAbovePlan,
-} from "@/lib/workout/session-format";
+import { workAbovePlan } from "@/lib/workout/session-format";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionScreen() {
@@ -162,11 +158,6 @@ export function useSessionScreen() {
     );
   }, [detail]);
 
-  const closeKind = useMemo(
-    () => (detail ? sessionCloseKind(detail.exercises) : "as_planned"),
-    [detail],
-  );
-
   const {
     complete,
     saveFeel,
@@ -197,9 +188,6 @@ export function useSessionScreen() {
     (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка");
   const subtitle = session
     ? [
-        session.status === "completed"
-          ? sessionCloseKindShort(closeKind)
-          : null,
         formatSessionDate(session.session_date),
         detail?.phase
           ? phaseLabel(detail.phase.phase_type, detail.phase.name)

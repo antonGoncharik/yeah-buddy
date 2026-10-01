@@ -4,6 +4,7 @@ import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
   draftFromSet,
+  formatVisibleSetLine,
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
@@ -20,13 +21,9 @@ import {
   WORK_REST_SECONDS,
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
-import { formatSetLine } from "@/lib/workout/session-format";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
-import {
-  SLOT_INTENSITY_HINTS,
-  SLOT_INTENSITY_LABELS,
-} from "@/lib/workout/slot-plan";
+import { SLOT_INTENSITY_LABELS } from "@/lib/workout/slot-plan";
 
 export function SessionExerciseRow({
   item,
@@ -35,7 +32,6 @@ export function SessionExerciseRow({
   warmupOpen,
   disabled,
   showActual,
-  showCopied = false,
   drafts,
   onOpenSets,
   onToggleWarmup,
@@ -54,7 +50,6 @@ export function SessionExerciseRow({
   warmupOpen: boolean;
   disabled: boolean;
   showActual: boolean;
-  showCopied?: boolean;
   drafts: Record<string, SetDraft>;
   onOpenSets: (ids: string[]) => void;
   onToggleWarmup: () => void;
@@ -91,11 +86,7 @@ export function SessionExerciseRow({
             !timedWork,
         })
       : null;
-  const slotLine = [
-    item.intensity ? SLOT_INTENSITY_HINTS[item.intensity] : null,
-    track ? trackInfoLine(track, showActual) : null,
-    item.note,
-  ]
+  const slotLine = [track ? trackInfoLine(track, showActual) : null, item.note]
     .filter(Boolean)
     .join(" · ");
   const metaOpen = openSetIds.length > 0 || warmupOpen || Boolean(leadSet);
@@ -104,14 +95,13 @@ export function SessionExerciseRow({
     if (!leadSet || set.id !== leadSet.id) {
       return null;
     }
-    const group = set.set_type === "warmup" ? warmup : work;
     return (
       <SessionSetEditor
         set={set}
         draft={drafts[set.id] ?? draftFromSet(set)}
         disabled={disabled}
         groupCount={openSets.length}
-        setNumber={group.findIndex((entry) => entry.id === set.id) + 1}
+        weightStep={item.exercise.weight_step}
         onDraft={(patch) => {
           for (const open of openSets) {
             onDraft(open.id, patch);
@@ -173,13 +163,13 @@ export function SessionExerciseRow({
             >
               {warmupOpen
                 ? "Скрыть разминку"
-                : `Разминка ${warmupSummary(warmup, showActual)}`}
+                : `Разминка ${warmupSummary(warmup, drafts, showActual)}`}
             </button>
             {warmupOpen ? (
               <SessionSetButtons
                 sets={warmup}
+                drafts={drafts}
                 showActual={showActual}
-                showCopied={showCopied}
                 disabled={disabled}
                 tone="warmup"
                 openIds={openSetIds}
@@ -203,8 +193,8 @@ export function SessionExerciseRow({
             ) : null}
             <SessionSetButtons
               sets={work}
+              drafts={drafts}
               showActual={showActual}
-              showCopied={showCopied}
               disabled={disabled}
               tone="work"
               openIds={openSetIds}
@@ -228,9 +218,15 @@ export function SessionExerciseRow({
   );
 }
 
-function warmupSummary(sets: WorkoutSet[], showActual: boolean): string {
+function warmupSummary(
+  sets: WorkoutSet[],
+  drafts: Record<string, SetDraft>,
+  showActual: boolean,
+): string {
   return sets
-    .map((set) => formatSetLine(set, { showActual, compact: true }))
+    .map((set) =>
+      formatVisibleSetLine(set, drafts[set.id], { showActual, compact: true }),
+    )
     .join(" · ");
 }
 

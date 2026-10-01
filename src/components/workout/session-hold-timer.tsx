@@ -33,7 +33,7 @@ export function SessionHoldTimer({
   return (
     <button
       type="button"
-      className="col-span-2 h-11 rounded-lg bg-background text-base font-medium disabled:opacity-50"
+      className="h-11 w-full rounded-lg bg-background text-base font-medium disabled:opacity-50"
       disabled={disabled}
       onClick={() => {
         haptic("tap");
