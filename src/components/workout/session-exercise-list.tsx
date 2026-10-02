@@ -78,55 +78,64 @@ export function SessionExerciseList({
         items={detail.exercises}
         disabled={busy || !canReorder}
         onReorder={(next) => onReorder?.(next.map((item) => item.id))}
-        renderItem={(item) => (
-          <SessionExerciseRow
-            item={item}
-            compact
-            track={
-              detail.tracks.find(
-                (track) => track.exercise_id === item.exercise_id,
-              ) ?? null
-            }
-            openSetIds={openSetIds}
-            warmupOpen={warmupOpen[item.id] === true}
-            disabled={busy || !canEditSets}
-            showActual={session.status === "completed"}
-            drafts={drafts}
-            onOpenSets={(ids) =>
-              setOpenSetIds((current) => {
-                const same =
-                  current.length === ids.length &&
-                  ids.every((id) => current.includes(id));
-                if (!same) {
-                  haptic("tap");
-                }
-                return same ? [] : ids;
-              })
-            }
-            onToggleWarmup={() =>
-              setWarmupOpen((current) => ({
-                ...current,
-                [item.id]: current[item.id] !== true,
-              }))
-            }
-            onDraft={(setId, patch) =>
-              setDrafts((current) => ({
-                ...current,
-                [setId]: { ...current[setId], ...patch },
-              }))
-            }
-            onRemove={
-              session.status === "planned" ? () => onRemove(item.id) : undefined
-            }
-            restActive={restActive}
-            onStartRest={
-              canRest && onStartRest
-                ? () => onStartRest(item.exercise_id)
-                : undefined
-            }
-            restSeconds={lastRestSeconds?.(item.exercise_id)}
-          />
-        )}
+        renderItem={(item) => {
+          const peak = detail.beats?.peaks.find(
+            (row) => row.exercise_id === item.exercise_id,
+          );
+          return (
+            <SessionExerciseRow
+              item={item}
+              compact
+              priorPeak={peak?.prior_peak ?? null}
+              priorOn={peak?.prior_on ?? null}
+              track={
+                detail.tracks.find(
+                  (track) => track.exercise_id === item.exercise_id,
+                ) ?? null
+              }
+              openSetIds={openSetIds}
+              warmupOpen={warmupOpen[item.id] === true}
+              disabled={busy || !canEditSets}
+              showActual={session.status === "completed"}
+              drafts={drafts}
+              onOpenSets={(ids) =>
+                setOpenSetIds((current) => {
+                  const same =
+                    current.length === ids.length &&
+                    ids.every((id) => current.includes(id));
+                  if (!same) {
+                    haptic("tap");
+                  }
+                  return same ? [] : ids;
+                })
+              }
+              onToggleWarmup={() =>
+                setWarmupOpen((current) => ({
+                  ...current,
+                  [item.id]: current[item.id] !== true,
+                }))
+              }
+              onDraft={(setId, patch) =>
+                setDrafts((current) => ({
+                  ...current,
+                  [setId]: { ...current[setId], ...patch },
+                }))
+              }
+              onRemove={
+                session.status === "planned"
+                  ? () => onRemove(item.id)
+                  : undefined
+              }
+              restActive={restActive}
+              onStartRest={
+                canRest && onStartRest
+                  ? () => onStartRest(item.exercise_id)
+                  : undefined
+              }
+              restSeconds={lastRestSeconds?.(item.exercise_id)}
+            />
+          );
+        }}
       />
     </section>
   );

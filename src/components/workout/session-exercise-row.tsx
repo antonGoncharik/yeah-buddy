@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
@@ -9,6 +11,7 @@ import {
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
 import { SessionSetEditor } from "@/components/workout/session-set-editor";
+import { haptic } from "@/lib/telegram/haptic";
 import type {
   SessionExerciseDetail,
   SessionTrackInfo,
@@ -23,6 +26,7 @@ import {
 } from "@/lib/workout/rest-timer";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
+import { liveSetRecord, liveWorkWeight } from "@/lib/workout/set-record";
 import { SLOT_INTENSITY_LABELS } from "@/lib/workout/slot-plan";
 
 export function SessionExerciseRow({
@@ -41,6 +45,8 @@ export function SessionExerciseRow({
   onStartRest,
   restSeconds,
   track = null,
+  priorPeak = null,
+  priorOn = null,
 }: {
   item: SessionExerciseDetail;
   compact?: boolean;
@@ -58,6 +64,8 @@ export function SessionExerciseRow({
   restActive?: boolean;
   onStartRest?: () => void;
   restSeconds?: number;
+  priorPeak?: number | null;
+  priorOn?: string | null;
 }) {
   const { density } = useDiaryDensity();
   const diaryCompact = density === "compact";
@@ -90,6 +98,22 @@ export function SessionExerciseRow({
     .filter(Boolean)
     .join(" · ");
   const focused = openSets.length > 0 || warmupOpen;
+  const recordLine = liveSetRecord({
+    weight: liveWorkWeight(work, drafts),
+    priorPeak,
+    priorOn,
+  });
+  const recordReady = useRef(false);
+
+  useEffect(() => {
+    if (!recordReady.current) {
+      recordReady.current = true;
+      return;
+    }
+    if (recordLine) {
+      haptic("success");
+    }
+  }, [recordLine]);
 
   function renderEditor(set: WorkoutSet) {
     if (!leadSet || set.id !== leadSet.id) {
@@ -152,6 +176,11 @@ export function SessionExerciseRow({
         {slotLine && (!diaryCompact || focused) ? (
           <p className="-mt-1 text-sm leading-snug text-muted-foreground">
             {slotLine}
+          </p>
+        ) : null}
+        {recordLine ? (
+          <p className="-mt-1 text-base font-medium text-foreground">
+            {recordLine}
           </p>
         ) : null}
         {warmup.length > 0 ? (

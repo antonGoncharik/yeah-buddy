@@ -13,25 +13,31 @@ export async function loadSessionBeats(
   exerciseIds: string[],
 ): Promise<SessionBeats> {
   const bodyWeight = await bodyOnOrBefore(userId, session.session_date);
-  const peaks = new Map<string, number | null>(
+  const peaks = new Map<string, { weight: number; date: string } | null>(
     exerciseIds.map((id) => [id, null]),
   );
   if (exerciseIds.length === 0) {
     return { body_weight: bodyWeight, peaks: [] };
   }
 
-  const priorIds = await listPriorSessionIds(
+  const prior = await listPriorSessions(
     userId,
     session.id,
     session.session_date,
   );
+  const dateById = new Map(prior.map((row) => [row.id, row.date]));
   const wanted = new Set(exerciseIds);
-  for (let index = 0; index < priorIds.length; index += ID_CHUNK) {
+  for (let index = 0; index < prior.length; index += ID_CHUNK) {
+    const chunk = prior.slice(index, index + ID_CHUNK);
     const grouped = await loadWorkBySession(
       userId,
-      priorIds.slice(index, index + ID_CHUNK),
+      chunk.map((row) => row.id),
     );
-    for (const exercises of grouped.values()) {
+    for (const [sessionId, exercises] of grouped) {
+      const date = dateById.get(sessionId);
+      if (!date) {
+        continue;
+      }
       for (const item of exercises) {
         if (!wanted.has(item.exercise_id)) {
           continue;
@@ -41,8 +47,12 @@ export async function loadSessionBeats(
           continue;
         }
         const current = peaks.get(item.exercise_id);
-        if (current == null || weight > current) {
-          peaks.set(item.exercise_id, weight);
+        if (
+          current == null ||
+          weight > current.weight ||
+          (weight === current.weight && date >= current.date)
+        ) {
+          peaks.set(item.exercise_id, { weight, date });
         }
       }
     }
@@ -50,25 +60,29 @@ export async function loadSessionBeats(
 
   return {
     body_weight: bodyWeight,
-    peaks: exerciseIds.map((id) => ({
-      exercise_id: id,
-      prior_peak: peaks.get(id) ?? null,
-    })),
+    peaks: exerciseIds.map((id) => {
+      const peak = peaks.get(id);
+      return {
+        exercise_id: id,
+        prior_peak: peak?.weight ?? null,
+        prior_on: peak?.date ?? null,
+      };
+    }),
   };
 }
 
-async function listPriorSessionIds(
+async function listPriorSessions(
   userId: string,
   sessionId: string,
   sessionDate: string,
-): Promise<string[]> {
+): Promise<Array<{ id: string; date: string }>> {
   const supabase = createSupabaseServerClient();
-  const ids: string[] = [];
+  const prior: Array<{ id: string; date: string }> = [];
 
   for (let from = 0; from < PAGE * 5; from += PAGE) {
     const result = await supabase
       .from("workout_sessions")
-      .select("id")
+      .select("id, session_date")
       .eq("user_id", userId)
       .eq("status", "completed")
       .not("template_id", "is", null)
@@ -84,8 +98,9 @@ async function listPriorSessionIds(
 
     const rows = result.data ?? [];
     for (const row of rows) {
-      if (typeof row.id === "string") {
-        ids.push(row.id);
+      const date = String(row.session_date ?? "").slice(0, 10);
+      if (typeof row.id === "string" && date.length === 10) {
+        prior.push({ id: row.id, date });
       }
     }
     if (rows.length < PAGE) {
@@ -93,7 +108,7 @@ async function listPriorSessionIds(
     }
   }
 
-  return ids;
+  return prior;
 }
 
 async function bodyOnOrBefore(

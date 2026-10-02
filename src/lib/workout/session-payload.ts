@@ -1,3 +1,4 @@
+import { isIsoDate } from "@/lib/day/dates";
 import { isRecord, mapRecordList } from "@/lib/read";
 import type {
   SessionBeats,
@@ -117,10 +118,16 @@ function parseBeats(value: unknown): SessionBeats | null {
       return [];
     }
     const prior = toNullableNumber(row.prior_peak);
+    const priorOn =
+      typeof row.prior_on === "string" && isIsoDate(row.prior_on)
+        ? row.prior_on
+        : null;
+    const priorPeak = prior != null && prior > 0 ? prior : null;
     return [
       {
         exercise_id: row.exercise_id,
-        prior_peak: prior != null && prior > 0 ? prior : null,
+        prior_peak: priorPeak,
+        prior_on: priorPeak == null ? null : priorOn,
       },
     ];
   });

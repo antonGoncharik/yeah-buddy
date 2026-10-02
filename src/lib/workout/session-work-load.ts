@@ -78,9 +78,9 @@ export async function loadSessionDetail(
     ),
     listTrackInfo(userId, sessionExercises),
     ensureWorkoutSettings(userId),
-    session.status === "completed"
-      ? loadSessionBeats(userId, session, exerciseIds)
-      : Promise.resolve(null),
+    session.status === "skipped"
+      ? Promise.resolve(null)
+      : loadSessionBeats(userId, session, exerciseIds),
   ]);
 
   const weekly = cycleDrivesTracks(settings.formulas.cycle);

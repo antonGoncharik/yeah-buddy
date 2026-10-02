@@ -119,10 +119,15 @@ export interface SessionExerciseDetail extends SessionExercise {
   load_hint: boolean;
 }
 
-/** Prior working weights for a finished session. Missing object means not loaded. */
+/** Prior working weights. Missing object means not loaded. */
 export interface SessionBeats {
   body_weight: number | null;
-  peaks: Array<{ exercise_id: string; prior_peak: number | null }>;
+  peaks: Array<{
+    exercise_id: string;
+    prior_peak: number | null;
+    /** Day of the previous best. Null when there is no prior set. */
+    prior_on: string | null;
+  }>;
 }
 
 export interface SessionDetail {
