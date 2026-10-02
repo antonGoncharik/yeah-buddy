@@ -32,6 +32,8 @@ import type {
   SessionMaxRaiseOffer,
 } from "@/lib/types";
 import type { SessionBeat } from "@/lib/workout/beats";
+import type { EaseWeekKind } from "@/lib/workout/ease-week";
+import { easeWeekMessage } from "@/lib/workout/ease-week";
 
 export function SessionCompletedPanel({
   abovePlan,
@@ -53,6 +55,8 @@ export function SessionCompletedPanel({
   onCorrect,
   onFeel,
   onRaise,
+  easeWeek = null,
+  onEase,
 }: {
   abovePlan: boolean;
   nextName: string | null;
@@ -73,6 +77,8 @@ export function SessionCompletedPanel({
   onCorrect: () => void;
   onFeel: (value: SessionFeel | null) => void;
   onRaise: () => Promise<boolean>;
+  easeWeek?: EaseWeekKind | null;
+  onEase?: () => Promise<boolean>;
 }) {
   const canRaise = raiseOffers.length > 0;
   const milestone = sessionMilestoneLine(completedSessions);
@@ -220,6 +226,22 @@ export function SessionCompletedPanel({
       ) : null}
       {holdHint ? (
         <p className="text-base leading-relaxed">{holdHint}</p>
+      ) : null}
+      {easeWeek && feel === "miss" && onEase ? (
+        <>
+          <p className="text-base leading-relaxed">
+            {easeWeekMessage(easeWeek)}
+          </p>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-12 text-base"
+            disabled={busy}
+            onClick={() => void onEase()}
+          >
+            Неделя легче
+          </Button>
+        </>
       ) : null}
       {canRaise ? (
         <Button

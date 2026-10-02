@@ -3,6 +3,7 @@ import type { ExerciseTrack } from "@/lib/types";
 import type { TrackWriteInput } from "@/lib/workout/slot-plan-schema";
 import {
   asWorkingKg,
+  easeWorkingKg,
   mapExerciseTrack,
   shiftWorkingKg,
   trackCurrentWeight,
@@ -114,6 +115,41 @@ export async function deleteExerciseTrack(
   if (deleted.error) {
     throw deleted.error;
   }
+}
+
+/** Drops the working kilogram by one step. Returns false when it cannot. */
+export async function easeExerciseTrack(
+  userId: string,
+  exerciseId: string,
+  kg: number,
+): Promise<boolean> {
+  if (!(kg > 0)) {
+    return false;
+  }
+  const tracks = await listTracksByExercise(userId, [exerciseId]);
+  const track = tracks.get(exerciseId);
+  if (!track) {
+    return false;
+  }
+  const steps = easeWorkingKg(track, kg);
+  const unchanged =
+    steps.length === track.steps.length &&
+    steps.every((step, index) => step === track.steps[index]);
+  if (steps.length === 0 || unchanged) {
+    return false;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const updated = await supabase
+    .from("exercise_tracks")
+    .update({ steps, position: 0 })
+    .eq("user_id", userId)
+    .eq("id", track.id);
+
+  if (updated.error) {
+    throw updated.error;
+  }
+  return true;
 }
 
 /** Adds kilograms to the working weight. Leftover ladder steps collapse. */

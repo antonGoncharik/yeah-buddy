@@ -140,6 +140,22 @@ export function shiftTrackByKg(steps: number[], kg: number): number[] {
   return steps.map((step) => round2(step + kg)).filter((step) => step > 0);
 }
 
+/** One working kilogram, lowered. Leftover ladder steps are dropped. */
+export function easeWorkingKg(
+  track: Pick<ExerciseTrack, "steps" | "position">,
+  kg: number,
+): number[] {
+  const current = trackCurrentWeight(track);
+  if (current == null || !(kg > 0)) {
+    return track.steps;
+  }
+  const next = floorToStep(current - kg, kg);
+  if (!(next > 0) || next >= current) {
+    return track.steps;
+  }
+  return asWorkingKg(next);
+}
+
 /** One working kilogram, raised. Leftover ladder steps are dropped. */
 export function shiftWorkingKg(
   track: Pick<ExerciseTrack, "steps" | "position">,

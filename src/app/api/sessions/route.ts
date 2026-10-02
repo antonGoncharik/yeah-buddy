@@ -10,6 +10,7 @@ import {
 import { requireSession } from "@/lib/auth/require-session";
 import { isIsoDate } from "@/lib/day/dates";
 import { CHECK_DATE } from "@/lib/messages";
+import { resolveEaseWeek } from "@/lib/workout/ease-week-store";
 import {
   createSession,
   createSessionSchema,
@@ -31,8 +32,15 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const today = await getTodayWorkoutState(auth.session.userId, date);
-    return jsonOk(today);
+    const [today, ease] = await Promise.all([
+      getTodayWorkoutState(auth.session.userId, date),
+      resolveEaseWeek(auth.session.userId),
+    ]);
+    return jsonOk({
+      ...today,
+      ease_week: ease.kind,
+      ease_session_id: ease.sessionId,
+    });
   } catch (error) {
     return failRoute(error);
   }

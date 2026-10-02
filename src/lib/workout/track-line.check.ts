@@ -1,5 +1,6 @@
 import {
   asWorkingKg,
+  easeWorkingKg,
   shiftTrackByKg,
   shiftWorkingKg,
 } from "@/lib/workout/track-line";
@@ -28,6 +29,16 @@ assertEqual(
   shiftWorkingKg({ steps: [80], position: 0 }, 0).join(","),
   "80",
   "zero kilograms leaves the weight alone",
+);
+assertEqual(
+  easeWorkingKg({ steps: [80], position: 0 }, 2.5).join(","),
+  "77.5",
+  "a lighter week drops the working kilogram one step",
+);
+assertEqual(
+  easeWorkingKg({ steps: [2.5], position: 0 }, 2.5).join(","),
+  "2.5",
+  "the bar does not drop to zero",
 );
 assertEqual(
   shiftTrackByKg([80, 82.5, 85], 2.5).join(","),

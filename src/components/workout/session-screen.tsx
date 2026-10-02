@@ -49,6 +49,8 @@ export function SessionScreen() {
     lastCompletedBefore,
     phaseCircle,
     phaseId,
+    easeWeek,
+    easeWeekNow,
     openSetIds,
     setOpenSetIds,
     warmupOpen,
@@ -172,6 +174,8 @@ export function SessionScreen() {
                 onCorrect={() => setCorrecting(true)}
                 onFeel={(feel) => void saveFeel(feel)}
                 onRaise={() => raiseMaxes()}
+                easeWeek={easeWeek}
+                onEase={() => easeWeekNow()}
               />
             ) : null}
 

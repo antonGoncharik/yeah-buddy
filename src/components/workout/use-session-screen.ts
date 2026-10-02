@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import {
   draftsFromDetail,
@@ -10,10 +11,12 @@ import {
 } from "@/components/workout/session-drafts";
 import { loadSessionFollowUp } from "@/components/workout/session-follow-up";
 import { useSessionActions } from "@/components/workout/use-session-actions";
-import { cachedGet, subscribeJson } from "@/lib/api-cache";
+import { cachedGet, postJson, subscribeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
+import { haptic } from "@/lib/telegram/haptic";
 import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { type EaseWeekKind, easeWeekConfirm } from "@/lib/workout/ease-week";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
 import {
@@ -45,6 +48,9 @@ export function useSessionScreen() {
     null,
   );
   const [phaseId, setPhaseId] = useState<string | null>(null);
+  const [easeWeek, setEaseWeek] = useState<EaseWeekKind | null>(null);
+  const [easeSessionId, setEaseSessionId] = useState<string | null>(null);
+  const confirm = useConfirm();
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
@@ -62,6 +68,8 @@ export function useSessionScreen() {
     setLastCompletedBefore(followUp.lastCompletedBefore);
     setPhaseCircle(followUp.phaseCircle);
     setPhaseId(followUp.phaseId);
+    setEaseWeek(followUp.easeWeek);
+    setEaseSessionId(followUp.easeSessionId);
   }, []);
 
   const applyDetail = useCallback((incoming: SessionDetail) => {
@@ -79,6 +87,8 @@ export function useSessionScreen() {
   const load = useCallback(async () => {
     begin();
     setError(null);
+    setEaseWeek(null);
+    setEaseSessionId(null);
 
     try {
       await cachedGet(
@@ -98,6 +108,8 @@ export function useSessionScreen() {
             setCompletedSessions(0);
             setLastCompletedBefore(null);
             setPhaseCircle(null);
+            setEaseWeek(null);
+            setEaseSessionId(null);
           }
           return true;
         },
@@ -203,6 +215,37 @@ export function useSessionScreen() {
     session?.status === "planned" ||
     (session?.status === "completed" && correcting);
 
+  async function easeWeekNow(): Promise<boolean> {
+    if (!detail || easeWeek == null || detail.session.id !== easeSessionId) {
+      return false;
+    }
+    const kind = easeWeek;
+    const ok = await confirm({
+      message: easeWeekConfirm(kind),
+      confirmLabel: kind === "deload" ? "Открыть" : "Снизить",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return false;
+    }
+
+    setBusy(true);
+    setError(null);
+    try {
+      await postJson(`/api/sessions/${detail.session.id}/ease-week`, {});
+      haptic("success");
+      setEaseWeek(null);
+      await loadFollowUp(detail.session.session_date);
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return {
     loading,
     error,
@@ -231,6 +274,9 @@ export function useSessionScreen() {
     lastCompletedBefore,
     phaseCircle,
     phaseId,
+    easeWeek:
+      session && easeWeek && session.id === easeSessionId ? easeWeek : null,
+    easeWeekNow,
     openSetIds,
     setOpenSetIds,
     warmupOpen,

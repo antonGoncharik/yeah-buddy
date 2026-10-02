@@ -2,6 +2,7 @@ import { mutateJson } from "@/lib/api-cache";
 import { isIsoDate } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 import type { PhaseCircleProgress } from "@/lib/types";
+import { type EaseWeekKind, readEaseWeek } from "@/lib/workout/ease-week";
 import {
   phaseEndHint,
   phaseHoldHint,
@@ -18,6 +19,8 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
   lastCompletedBefore: string | null;
   phaseCircle: PhaseCircleProgress | null;
   phaseId: string | null;
+  easeWeek: EaseWeekKind | null;
+  easeSessionId: string | null;
 }> {
   const empty = {
     nextName: null,
@@ -27,6 +30,8 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
     lastCompletedBefore: null,
     phaseCircle: null,
     phaseId: null,
+    easeWeek: null,
+    easeSessionId: null,
   };
 
   try {
@@ -52,6 +57,11 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
         typeof data.phase_id === "string" &&
         data.phase_id !== ""
           ? data.phase_id
+          : null,
+      easeWeek: isRecord(data) ? readEaseWeek(data.ease_week) : null,
+      easeSessionId:
+        isRecord(data) && typeof data.ease_session_id === "string"
+          ? data.ease_session_id
           : null,
     };
   } catch {
