@@ -3,6 +3,7 @@
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
+import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayHeader } from "@/components/day/today-day-header";
@@ -158,6 +159,9 @@ export function TodayDayView({
     viewOnly,
     retentionTail,
   });
+  const closeMeal = [...visibleMeals]
+    .reverse()
+    .find((meal) => !isTempId(meal.id));
   const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
   const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
@@ -242,6 +246,15 @@ export function TodayDayView({
           bodyWeightBusy={busy || isTempId(shownDay.id)}
         />
       </div>
+
+      {!viewOnly && dayHasItems ? (
+        <ProteinCloseOffers
+          date={date}
+          mealId={closeMeal?.id ?? null}
+          remainingProtein={shownDay.target_protein - fact.protein}
+          busy={busy}
+        />
+      ) : null}
 
       {showEmptyStart ? (
         <div className="animate-rise" style={{ animationDelay: "60ms" }}>
