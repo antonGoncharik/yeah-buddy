@@ -4,6 +4,7 @@ import { Camera, Mic, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { AlignedPair } from "@/components/ui/aligned-pair";
 import { buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { lumpHref } from "@/lib/day/lump";
@@ -65,12 +66,19 @@ export function MealItemRow({
   ) : (
     <span className="flex min-w-0 items-baseline justify-between gap-3">
       <span className="truncate text-base font-medium">{item.name}</span>
-      <span className="flex shrink-0 items-baseline gap-2 tabular-nums">
-        <span className="text-sm text-muted-foreground">
-          {formatGrams(item.grams)} г
-        </span>
-        <span className="text-base font-semibold">{formatKcal(item.kcal)}</span>
-      </span>
+      <AlignedPair
+        className="grid-cols-[4.75rem_3.5rem]"
+        leading={
+          <span className="text-sm font-medium text-muted-foreground">
+            {formatGrams(item.grams)} г
+          </span>
+        }
+        trailing={
+          <span className="text-base font-semibold">
+            {formatKcal(item.kcal)}
+          </span>
+        }
+      />
     </span>
   );
 

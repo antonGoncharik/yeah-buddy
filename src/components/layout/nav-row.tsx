@@ -39,7 +39,7 @@ export function NavRow(props: NavRowProps) {
           ) : null}
         </span>
         {props.hint ? (
-          <span className="mt-0.5 block text-sm text-muted-foreground">
+          <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-muted-foreground">
             {props.hint}
           </span>
         ) : null}

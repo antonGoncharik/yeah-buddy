@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
+import { AlignedPair } from "@/components/ui/aligned-pair";
 import { Input } from "@/components/ui/input";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { SlotPlanEditor } from "@/components/workout/slot-plan-editor";
@@ -158,11 +159,21 @@ export function TemplateExercisePicker({
                       <span className="min-w-0 flex-1 truncate text-base">
                         {exerciseShortLabel(exercise.short_name, exercise.name)}
                       </span>
-                      {max > 0 ? (
-                        <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                          {formatWeight(max)} кг
-                        </span>
-                      ) : null}
+                      <AlignedPair
+                        className="grid-cols-[3.25rem_1.75rem]"
+                        leading={
+                          max > 0 ? (
+                            <span className="text-sm text-muted-foreground">
+                              {formatWeight(max)}
+                            </span>
+                          ) : null
+                        }
+                        trailing={
+                          <span className="text-sm text-muted-foreground">
+                            {max > 0 ? "кг" : ""}
+                          </span>
+                        }
+                      />
                       <Plus
                         className="size-5 shrink-0 text-primary"
                         aria-hidden

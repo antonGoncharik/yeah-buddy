@@ -167,7 +167,7 @@ export function SettingsScreen() {
             <NavRow
               href="/foods"
               title="Продукты"
-              hint="Каталог продуктов. Из них собирается еда на день"
+              hint="Из них собирается еда на день"
               icon={<ProductDoodle />}
             />
           </div>
@@ -180,13 +180,13 @@ export function SettingsScreen() {
             <NavRow
               href="/settings/coach"
               title="Тренер"
-              hint="Online дневник: тренер может смотреть в реальном времени"
+              hint="Смотрит дневник в реальном времени"
               icon={<CoachDoodle />}
             />
             <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
-              hint="Еда на день, сохранённый приём или программа тренировок"
+              hint="День, приём или программа"
               icon={<FriendsDoodle />}
             />
             <NavRow
@@ -235,11 +235,9 @@ export function SettingsScreen() {
             ]}
             onChange={setDensity}
           />
-          <p className="text-sm text-muted-foreground">
-            Компактный ужимает день и тренировки: меньше отступы, ниже кнопки,
-            короче строки, без подсказок и второстепенных строк. В питании
-            граммы с калориями в одной строке с названием; расширенный добавляет
-            БЖУ к продукту. Сумма приёма в обоих.
+          <p className="text-sm leading-snug text-muted-foreground">
+            Компактный ужимает день и тренировки. Расширенный показывает БЖУ у
+            каждого продукта.
           </p>
         </section>
 

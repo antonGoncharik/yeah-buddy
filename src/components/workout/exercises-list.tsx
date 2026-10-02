@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
+import { AlignedPair } from "@/components/ui/aligned-pair";
 import type { ExerciseGroups } from "@/components/workout/use-exercises-screen";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -106,16 +107,21 @@ function ExerciseRows({
               >
                 {exerciseShortLabel(exercise.short_name, exercise.name)}
               </span>
-              <span className="shrink-0 text-base tabular-nums">
-                {max > 0 ? (
-                  <>
-                    <span className="font-semibold">{formatWeight(max)}</span>
-                    <span className="text-sm text-muted-foreground"> кг</span>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </span>
+              <AlignedPair
+                beside
+                leading={
+                  max > 0 ? (
+                    <span className="text-base font-semibold">
+                      {formatWeight(max)}
+                    </span>
+                  ) : null
+                }
+                trailing={
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {max > 0 ? "кг" : "—"}
+                  </span>
+                }
+              />
               <ChevronRight
                 className="size-5 shrink-0 text-muted-foreground"
                 aria-hidden

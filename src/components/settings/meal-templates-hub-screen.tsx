@@ -8,6 +8,7 @@ import { useConfirm } from "@/components/layout/confirm-provider";
 import { DayTypeMark } from "@/components/layout/day-type-mark";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { SectionHeading } from "@/components/layout/section-heading";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { cachedGet, postJson, writeJson } from "@/lib/api-cache";
@@ -183,13 +184,11 @@ export function MealTemplatesHubScreen() {
           : null}
 
         {!loading && templates.length > 0 ? (
-          <section className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-xl font-semibold">Готовые рационы</h2>
-              <p className="text-base text-muted-foreground">
-                Подставим оба дня и подгоним граммы под цели.
-              </p>
-            </div>
+          <section className="flex flex-col gap-2">
+            <SectionHeading
+              title="Готовые рационы"
+              hint="Подставим оба дня и подгоним граммы под цели."
+            />
             <RationCards
               selected={applying}
               goals={goals}

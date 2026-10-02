@@ -3,6 +3,7 @@
 import { Star } from "lucide-react";
 import Link from "next/link";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { AlignedPair } from "@/components/ui/aligned-pair";
 import { Button } from "@/components/ui/button";
 import type { CatalogFood } from "@/lib/food/catalog-map";
 import { quickAddPortionLabel } from "@/lib/food/quick-add";
@@ -183,9 +184,14 @@ function FoodListBody({ food }: { food: FoodRowData }) {
         ) : null}
       </span>
       <span className="shrink-0 text-right text-sm text-muted-foreground">
-        <span className="block tabular-nums">
-          {formatKcal(food.kcal_per_100)} ккал
-        </span>
+        <AlignedPair
+          beside
+          className="grid-cols-[3.25rem_auto]"
+          leading={
+            <span className="font-medium">{formatKcal(food.kcal_per_100)}</span>
+          }
+          trailing={<span>ккал</span>}
+        />
         {state ? <span className="block text-xs">{state}</span> : null}
       </span>
     </>

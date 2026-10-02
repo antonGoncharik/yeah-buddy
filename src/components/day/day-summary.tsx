@@ -381,8 +381,15 @@ function LoopFacts({
         cells.length === 2 && "grid-cols-2",
       )}
     >
-      {cells.map((cell) => (
-        <p key={cell.label} className="min-w-0">
+      {cells.map((cell, index) => (
+        <p
+          key={cell.label}
+          className={cn(
+            "min-w-0",
+            cells.length === 3 && index === 1 && "text-center",
+            index === cells.length - 1 && cells.length > 1 && "text-right",
+          )}
+        >
           <span
             className={cn(
               "block text-lg font-semibold tracking-tight tabular-nums",
@@ -556,12 +563,15 @@ function MacroBar({
         <p className="font-medium">{label}</p>
         <p
           className={cn(
-            "tabular-nums text-muted-foreground",
+            "grid grid-cols-[4.75rem_0.75rem_4.75rem] items-baseline tabular-nums text-muted-foreground",
             overflow && "text-destructive",
           )}
         >
-          <span className="text-foreground">{formatMacro(fact)}</span>
-          <span> / {formatMacro(plan)}</span>
+          <span className={cn("text-right", !overflow && "text-foreground")}>
+            {formatMacro(fact)}
+          </span>
+          <span className="text-center">/</span>
+          <span>{formatMacro(plan)}</span>
         </p>
       </div>
       <MeterBar

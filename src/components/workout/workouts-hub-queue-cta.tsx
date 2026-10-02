@@ -2,6 +2,7 @@
 
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
+import { AlignedPair } from "@/components/ui/aligned-pair";
 import { Button } from "@/components/ui/button";
 import type {
   ExerciseWithMax,
@@ -118,20 +119,25 @@ export function WorkoutsHubQueueCta({
                 <span className="min-w-0 truncate text-base">
                   {exerciseShortLabel(exercise.short_name, exercise.name)}
                 </span>
-                <span className="shrink-0 text-base tabular-nums">
-                  {preview ? (
-                    <>
-                      <span className="font-semibold">
+                <AlignedPair
+                  beside
+                  leading={
+                    preview ? (
+                      <span className="text-base font-semibold">
                         {formatWeight(preview.value)}
                       </span>
-                      <span className="text-sm text-muted-foreground">
-                        {preview.kind === "max" ? " на раз" : " кг"}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </span>
+                    ) : null
+                  }
+                  trailing={
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {preview
+                        ? preview.kind === "max"
+                          ? "на раз"
+                          : "кг"
+                        : "—"}
+                    </span>
+                  }
+                />
               </li>
             );
           })}
