@@ -44,11 +44,11 @@ export function RemainingRecipeAction({
     <Button
       type="button"
       variant="secondary"
-      className="h-auto min-h-12 w-full whitespace-normal px-4 py-3 text-left text-base font-medium leading-relaxed"
+      className="block h-auto min-h-12 w-full min-w-0 px-4 py-3 text-left text-base font-medium leading-snug whitespace-normal"
       disabled={busy}
       onClick={onFill}
     >
-      {remainingLine}
+      <span className="block min-w-0">{remainingLine}</span>
     </Button>
   );
 }
