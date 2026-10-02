@@ -15,33 +15,12 @@ import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberIncomingStart } from "@/lib/share/pending";
 import { startPayloadFromLocation } from "@/lib/share/start-param";
+import {
+  bindTelegramFullscreen,
+  type TelegramFullscreenHost,
+} from "@/lib/telegram/fullscreen";
 
 type GateState = "loading" | "ready" | "outside" | "error";
-
-const TELEGRAM_FULLSCREEN_API = "8.0";
-
-function enterTelegramFullscreen(webApp: {
-  isVersionAtLeast?: (version: string) => boolean;
-  isFullscreen?: boolean;
-  requestFullscreen?: () => void;
-}) {
-  // Bot API 8.0+; expand() only fills height — the Mini App header still takes space.
-  if (typeof webApp.requestFullscreen !== "function") {
-    return;
-  }
-  if (!webApp.isVersionAtLeast?.(TELEGRAM_FULLSCREEN_API)) {
-    return;
-  }
-  if (webApp.isFullscreen) {
-    return;
-  }
-
-  try {
-    webApp.requestFullscreen();
-  } catch {
-    // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
-  }
-}
 
 export function TelegramGate({ children }: { children: React.ReactNode }) {
   return (
@@ -56,6 +35,23 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GateState>("loading");
   const [openUrl, setOpenUrl] = useState<string | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    let unbind: (() => void) | undefined;
+
+    void import("@twa-dev/sdk").then((sdk) => {
+      if (cancelled) {
+        return;
+      }
+      unbind = bindTelegramFullscreen(sdk.default as TelegramFullscreenHost);
+    });
+
+    return () => {
+      cancelled = true;
+      unbind?.();
+    };
+  }, []);
+
   const authenticate = useCallback(async () => {
     setState("loading");
 
@@ -63,8 +59,6 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       const sdk = await import("@twa-dev/sdk");
       const webApp = sdk.default;
       webApp.ready();
-      webApp.expand();
-      enterTelegramFullscreen(webApp);
       rememberIncomingStart(
         startPayloadFromLocation({
           telegramStartParam: webApp.initDataUnsafe?.start_param,

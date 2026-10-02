@@ -54,6 +54,11 @@ assertEqual(
   "boot script opens the diary from the public landing",
 );
 assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("web_app_request_fullscreen"),
+  true,
+  "boot script asks Telegram to hide the header",
+);
+assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf(`classList.add("${TELEGRAM_BOOT_HIDE_CLASS}")`) <
     TELEGRAM_BOOT_SCRIPT.indexOf("location.replace"),
   true,
@@ -80,10 +85,12 @@ function runBoot(pathname: string, hash: string) {
     classes: Set<string>;
     replaced: string | null;
     stored: string | null;
+    fullscreen: number;
   } = {
     classes: new Set(),
     replaced: null,
     stored: null,
+    fullscreen: 0,
   };
   runInNewContext(TELEGRAM_BOOT_SCRIPT, {
     location: {
@@ -92,6 +99,18 @@ function runBoot(pathname: string, hash: string) {
       search: "",
       replace(url: string) {
         result.replaced = url;
+      },
+    },
+    setTimeout() {
+      return 0;
+    },
+    window: {
+      TelegramWebviewProxy: {
+        postEvent(event: string) {
+          if (event === "web_app_request_fullscreen") {
+            result.fullscreen += 1;
+          }
+        },
       },
     },
     sessionStorage: {
@@ -134,6 +153,11 @@ assertEqual(
   "diary stays visible",
 );
 assertEqual(inside.replaced, null, "diary is not redirected");
+assertEqual(
+  inside.fullscreen,
+  1,
+  "home-screen diary launch requests fullscreen before hydration",
+);
 
 const publicPage = runBoot("/", "#home");
 assertEqual(
@@ -142,5 +166,10 @@ assertEqual(
   "public landing stays visible",
 );
 assertEqual(publicPage.replaced, null, "public landing is not redirected");
+assertEqual(
+  publicPage.fullscreen,
+  0,
+  "public landing does not request fullscreen",
+);
 
 console.log("telegram boot script ok");
