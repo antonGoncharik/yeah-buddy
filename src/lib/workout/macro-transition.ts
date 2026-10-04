@@ -28,6 +28,7 @@ import {
 } from "@/lib/workout/macro-transition-maxes";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { exerciseIdsNeedingTrack } from "@/lib/workout/slot-plan";
+import { syncQueuedProgramWeek } from "@/lib/workout/program-preset-weeks";
 import { listActiveTemplates } from "@/lib/workout/template-store";
 
 export async function previewTransition(
@@ -143,6 +144,8 @@ export async function confirmTransition(
   });
 
   await applyEndedPhaseKg(userId, preview);
+
+  await syncQueuedProgramWeek(userId, preview.to_phase);
 
   return getCurrentMacroState(userId);
 }

@@ -1,13 +1,8 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
 import { getUserSettings } from "@/lib/settings";
-import type { TemplateSlot, WorkoutTemplateDetail } from "@/lib/types";
+import type { ProgramAccessOptions } from "@/lib/workout/program-preset-access";
+import type { WorkoutTemplateDetail } from "@/lib/types";
 import { withCycle } from "@/lib/workout/cycle";
-import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
-import {
-  archiveExercise,
-  ensureNamedExercise,
-  listExercises,
-} from "@/lib/workout/exercises";
 import {
   closeCurrentMacro,
   createFirstMacro,
@@ -17,18 +12,15 @@ import {
   programIsOffered,
   programPresetById,
 } from "@/lib/workout/program-presets";
+import { setQueuePresetId } from "@/lib/workout/program-preset-weeks";
+import { syncProgramDaysToTemplates } from "@/lib/workout/program-preset-sync";
 import { saveRotation } from "@/lib/workout/rotation";
 import { rebuildTodaysPlannedSession } from "@/lib/workout/session-rebuild";
 import {
   ensureWorkoutSettings,
   saveWorkoutSettings,
 } from "@/lib/workout/settings";
-import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
-import {
-  createTemplate,
-  listTemplates,
-  updateTemplate,
-} from "@/lib/workout/template-store";
+import { listTemplates } from "@/lib/workout/template-store";
 
 export class ProgramNotOfferedError extends Error {
   constructor() {
@@ -40,6 +32,7 @@ export class ProgramNotOfferedError extends Error {
 export async function applyProgramPreset(
   userId: string,
   presetId: ProgramPresetId,
+  access: ProgramAccessOptions = {},
 ): Promise<WorkoutTemplateDetail[]> {
   const preset = programPresetById(presetId);
   if (!preset) {
@@ -47,98 +40,12 @@ export async function applyProgramPreset(
   }
 
   const account = await getUserSettings(userId);
-  if (!programIsOffered(presetId, account?.granted_programs ?? [])) {
+  if (!programIsOffered(presetId, account?.granted_programs ?? [], access)) {
     throw new ProgramNotOfferedError();
   }
 
-  const catalog = await listExercises(userId, "all");
-  // Prefer an active / earlier row when seed raced and left name copies.
-  const byName = new Map<string, string>();
-  for (const exercise of catalog) {
-    const key = exerciseNameKey(exercise.name);
-    const currentId = byName.get(key);
-    if (!currentId) {
-      byName.set(key, exercise.id);
-      continue;
-    }
-    const current = catalog.find((item) => item.id === currentId);
-    if (!current) {
-      byName.set(key, exercise.id);
-      continue;
-    }
-    if (!current.is_active && exercise.is_active) {
-      byName.set(key, exercise.id);
-      continue;
-    }
-    if (
-      current.is_active === exercise.is_active &&
-      exercise.created_at < current.created_at
-    ) {
-      byName.set(key, exercise.id);
-    }
-  }
-  const archived = new Set(
-    catalog.filter((exercise) => !exercise.is_active).map((item) => item.id),
-  );
-  const existing = await listTemplates(userId);
-  const byTemplateName = new Map(
-    existing.map((template) => [template.name, template] as const),
-  );
-  const activeIds: string[] = [];
+  const activeIds = await syncProgramDaysToTemplates(userId, preset.templates);
 
-  for (const day of preset.templates) {
-    const slots: TemplateSlot[] = [];
-    for (const slot of day.exercises) {
-      const nameKey = exerciseNameKey(slot.name);
-      let exerciseId = byName.get(nameKey);
-      if (!exerciseId) {
-        // A lift the user never had (e.g. added to the starter list later).
-        const starter = STARTER_EXERCISES.find(
-          (item) => exerciseNameKey(item.name) === nameKey,
-        );
-        if (!starter) {
-          continue;
-        }
-        const created = await ensureNamedExercise(userId, {
-          name: starter.name,
-          short_name: starter.short_name,
-          category: starter.category,
-          workout_type: starter.workout_type,
-          unit: starter.workout_type === "static" ? "seconds" : "reps",
-          weight_step: starter.weight_step,
-          formula_preset: starter.formula_preset,
-        });
-        exerciseId = created.id;
-        byName.set(nameKey, exerciseId);
-      } else if (archived.has(exerciseId)) {
-        await archiveExercise(userId, exerciseId, false);
-        archived.delete(exerciseId);
-      }
-      slots.push({ exercise_id: exerciseId, plan: slot.plan });
-    }
-
-    const current = byTemplateName.get(day.name);
-    if (current) {
-      await updateTemplate(userId, current.id, {
-        name: day.name,
-        kind: day.kind,
-        is_active: true,
-        slots,
-      });
-      activeIds.push(current.id);
-      continue;
-    }
-
-    const created = await createTemplate(userId, {
-      name: day.name,
-      kind: day.kind,
-      is_active: true,
-      slots,
-    });
-    activeIds.push(created.id);
-  }
-
-  // The program owns the weeks: its cycle, or none.
   const settings = await ensureWorkoutSettings(userId);
   await saveWorkoutSettings(userId, {
     formulas: withCycle(settings.formulas, preset.cycle ?? [], {
@@ -146,6 +53,7 @@ export async function applyProgramPreset(
       loop: preset.cycle_loop,
     }),
   });
+  await setQueuePresetId(userId, preset.weeks ? presetId : null);
 
   const all = await listTemplates(userId);
   const templates = await saveRotation(userId, {

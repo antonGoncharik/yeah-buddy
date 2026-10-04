@@ -12,11 +12,16 @@ export { fillFormulas } from "@/lib/workout/parse-formulas";
 export function mapWorkoutSettings(
   row: Record<string, unknown>,
 ): WorkoutSettings {
+  const queuePresetId = row.queue_preset_id;
   return {
     user_id: String(row.user_id),
     max_increase_percent: toNumber(row.max_increase_percent),
     formulas: parseFormulas(row.formulas),
     skip_template_ids: parseSkipTemplateIds(row),
+    queue_preset_id:
+      queuePresetId === null || queuePresetId === undefined
+        ? null
+        : String(queuePresetId),
     updated_at: String(row.updated_at),
   };
 }

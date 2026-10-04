@@ -94,6 +94,23 @@ export const FOUR_WEEK_DELOAD_CYCLE: CyclePhaseDef[] = [
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 
+/** Thirteen working weeks with no deload — mesocycle programs swap days per week. */
+export const THIRTEEN_WEEK_CYCLE: CyclePhaseDef[] = [
+  phase("w1", "Неделя 1"),
+  phase("w2", "Неделя 2"),
+  phase("w3", "Неделя 3"),
+  phase("w4", "Неделя 4"),
+  phase("w5", "Неделя 5"),
+  phase("w6", "Неделя 6"),
+  phase("w7", "Неделя 7"),
+  phase("w8", "Неделя 8"),
+  phase("w9", "Неделя 9"),
+  phase("w10", "Неделя 10"),
+  phase("w11", "Неделя 11"),
+  phase("w12", "Неделя 12"),
+  phase("w13", "Неделя 13"),
+];
+
 /** Wave of set/rep schemes on the shared plan. For days without their own slots. */
 export const TENS_TO_TRIPLES_CYCLE: CyclePhaseDef[] = [
   phase("tens", "5×10", { work: times(60, 10, 5) }),

@@ -11,6 +11,7 @@ import {
   FOUR_WEEK_DELOAD_CYCLE,
   TWO_WEEK_KG_CYCLE,
 } from "@/lib/workout/cycle-templates";
+import { BENCH_UNCOMPROMISING_PRESET } from "@/lib/workout/program-guide-bench-uncompromising";
 import { feelLoad, percentLoad, trackLoad } from "@/lib/workout/slot-plan";
 
 export interface ProgramSlot {
@@ -54,6 +55,7 @@ export const PROGRAM_PRESET_IDS = [
   "table_squat",
   "table_bench",
   "table_three_lifts",
+  "bench_uncompromising",
 ] as const;
 
 export const RECOMMENDED_PROGRAM_PRESET_ID: ProgramPresetId = "full_body";
@@ -113,6 +115,8 @@ export interface ProgramPreset {
   cycle?: CyclePhaseDef[];
   cycle_auto_end?: boolean;
   cycle_loop?: boolean;
+  /** Mesocycle: rewrite the same day names each macro phase. */
+  weeks?: Record<string, ProgramDay[]>;
 }
 
 export const PROGRAM_PRESETS: ProgramPreset[] = [
@@ -905,6 +909,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
       ]),
     ],
   },
+  BENCH_UNCOMPROMISING_PRESET,
 ];
 
 function day(name: string, exercises: Array<string | ProgramSlot>): ProgramDay {

@@ -102,6 +102,27 @@ export const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
   }),
   lift("Пресс", "пресс", "c", { category: "isolation", weight_step: 1 }),
+  lift("Жим штанги сидя", "жим сидя штанга", "b"),
+  lift("Сгибания кисти", "кисти", "c", {
+    category: "isolation",
+    formula_preset: "barbell",
+  }),
+  lift("Негативные подтягивания", "негативы", "c", { formula_preset: "none" }),
+  lift("Жим средним хватом", "средний хват", "b"),
+  lift("Сгибание на бицепс обратным хватом", "бицепс обратный", "c", {
+    category: "isolation",
+    formula_preset: "barbell",
+  }),
+  lift("Мертвая тяга", "мёртвая", "a"),
+  lift("Гиперэкстензия с весом", "гипер с весом", "a", {
+    category: "isolation",
+  }),
+  lift("Медитация в зале", "медитация", "c", {
+    category: "isolation",
+    workout_type: "static",
+    formula_preset: "none",
+    weight_step: 1,
+  }),
   lift("Приседания без веса", "без веса", "a", {
     formula_preset: "none",
     weight_step: 1,

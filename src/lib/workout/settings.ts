@@ -23,6 +23,7 @@ export { mapWorkoutSettings } from "@/lib/workout/map-settings";
 export const workoutSettingsPatchSchema = z.object({
   max_increase_percent: z.number().finite().min(0).optional(),
   formulas: formulasSchema.optional(),
+  queue_preset_id: z.string().trim().min(1).nullable().optional(),
 });
 
 export type WorkoutSettingsPatch = z.infer<typeof workoutSettingsPatchSchema>;
@@ -87,6 +88,10 @@ export async function saveWorkoutSettings(
       formulas: patch.formulas
         ? fillFormulas(patch.formulas)
         : current.formulas,
+      queue_preset_id:
+        patch.queue_preset_id !== undefined
+          ? patch.queue_preset_id
+          : current.queue_preset_id,
     })
     .eq("user_id", userId)
     .select("*")

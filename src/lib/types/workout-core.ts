@@ -73,6 +73,8 @@ export interface WorkoutSettings {
   max_increase_percent: number;
   formulas: WorkoutFormulas;
   skip_template_ids: string[];
+  /** When set, mesocycle week changes rewrite these program templates. */
+  queue_preset_id: string | null;
   updated_at: string;
 }
 

@@ -9,7 +9,7 @@ import { WARMUP_PRESET_IDS } from "@/lib/workout/labels";
 import { parseDecimal } from "@/lib/workout/numbers";
 
 export const MAX_SETS = 8;
-export const MAX_PHASES = 8;
+export const MAX_PHASES = 16;
 
 /** `50 · 70 · 80 %` or «нет». */
 export function warmupSummary(sets: FormulaSetSpec[]): string {

@@ -11,6 +11,7 @@ import {
   PROGRAM_PRESET_IDS,
   PROGRAM_PRESETS,
 } from "@/lib/workout/program-preset-data";
+import { validatePresetWeeks } from "@/lib/workout/program-preset-weeks";
 import { pickerProgramPresetIds } from "@/lib/workout/program-preset-utils";
 import { plannedSetsForSlot, slotPhaseKeys } from "@/lib/workout/slot-plan";
 import { parseSlotPlan } from "@/lib/workout/slot-plan-schema";
@@ -78,6 +79,10 @@ assert(
   !pickerProgramPresetIds(null).includes("press_two_week"),
   "press stays out of the general list",
 );
+assert(
+  !pickerProgramPresetIds(null).includes("bench_uncompromising"),
+  "bench guide stays dev-only",
+);
 assertEqual(
   pickerProgramPresetIds(null, ["press_two_week"]).at(-1),
   "press_two_week",
@@ -97,6 +102,15 @@ assert(
 
 for (const preset of PROGRAM_PRESETS) {
   const cycleKeys = new Set((preset.cycle ?? []).map((phase) => phase.key));
+  const weeksError = validatePresetWeeks(preset);
+  assert(weeksError == null, weeksError ?? "weeks ok");
+  const maxPhases = preset.weeks ? 16 : 8;
+  if (preset.cycle) {
+    assert(
+      preset.cycle.length <= maxPhases,
+      `${preset.id}: cycle has ${preset.cycle.length} phases (max ${maxPhases})`,
+    );
+  }
   assert(
     new Set(preset.templates.map((day) => day.name)).size ===
       preset.templates.length,

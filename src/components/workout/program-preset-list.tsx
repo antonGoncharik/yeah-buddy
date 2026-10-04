@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { cachedGet } from "@/lib/api-cache";
+import { readDevProgramTester } from "@/lib/workout/program-preset-access";
 import { readSettingsPayload } from "@/lib/settings/map";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
@@ -19,8 +20,12 @@ import {
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
 
-function useGrantedPrograms(): ProgramPresetId[] {
+function useProgramCatalogAccess(): {
+  granted: ProgramPresetId[];
+  devTester: boolean;
+} {
   const [granted, setGranted] = useState<ProgramPresetId[]>([]);
+  const [devTester, setDevTester] = useState(false);
 
   useEffect(() => {
     void cachedGet("/api/settings", (data) => {
@@ -29,13 +34,15 @@ function useGrantedPrograms(): ProgramPresetId[] {
         return false;
       }
       setGranted(parseGrantedPrograms(settings.granted_programs));
+      setDevTester(readDevProgramTester(data));
       return true;
     }).catch(() => {
       setGranted([]);
+      setDevTester(false);
     });
   }, []);
 
-  return granted;
+  return { granted, devTester };
 }
 
 /** Listed catalog with level headings; «Всё тело» marked as recommended. */
@@ -53,8 +60,9 @@ export function ProgramPresetCatalog({
   headings?: boolean;
   onPick: (id: ProgramPresetId) => void;
 }) {
-  const granted = useGrantedPrograms();
-  const catalogIds = ids ?? pickerProgramPresetIds(value, granted);
+  const { granted, devTester } = useProgramCatalogAccess();
+  const catalogIds =
+    ids ?? pickerProgramPresetIds(value, granted, { devTester });
 
   return (
     <ProgramPresetList

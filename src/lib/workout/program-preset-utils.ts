@@ -14,6 +14,11 @@ import {
   programVisitFrequencyLead,
   programVisitFrequencyShort,
 } from "@/lib/workout/program-preset-visit";
+import {
+  type ProgramAccessOptions,
+  DEV_ONLY_PROGRAM_PRESET_IDS,
+  isDevOnlyProgramPresetId,
+} from "@/lib/workout/program-preset-access";
 import { STARTER_EXERCISES } from "@/lib/workout/starter-exercises";
 
 export function programPresetsByLevel(): Array<{
@@ -42,11 +47,19 @@ export function isListedProgramPresetId(id: ProgramPresetId): boolean {
 export function pickerProgramPresetIds(
   selected?: ProgramPresetId | null,
   granted: readonly ProgramPresetId[] = [],
+  access: ProgramAccessOptions = {},
 ): ProgramPresetId[] {
   const ids: ProgramPresetId[] = [...LISTED_PROGRAM_PRESET_IDS];
   for (const id of granted) {
     if (isProgramPresetId(id) && !ids.includes(id)) {
       ids.push(id);
+    }
+  }
+  if (access.devTester === true) {
+    for (const id of DEV_ONLY_PROGRAM_PRESET_IDS) {
+      if (!ids.includes(id)) {
+        ids.push(id);
+      }
     }
   }
   if (selected && isProgramPresetId(selected) && !ids.includes(selected)) {
@@ -75,10 +88,15 @@ export function parseGrantedPrograms(value: unknown): ProgramPresetId[] {
 export function programIsOffered(
   id: ProgramPresetId,
   granted: readonly string[],
+  access: ProgramAccessOptions = {},
 ): boolean {
-  return (
-    isListedProgramPresetId(id) || parseGrantedPrograms(granted).includes(id)
-  );
+  if (isListedProgramPresetId(id)) {
+    return true;
+  }
+  if (parseGrantedPrograms(granted).includes(id)) {
+    return true;
+  }
+  return isDevOnlyProgramPresetId(id) && access.devTester === true;
 }
 
 export function programPresetById(

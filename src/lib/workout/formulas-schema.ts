@@ -45,7 +45,7 @@ export const formulasSchema = z.object({
   dynamic: kindFormulasSchema,
   static: kindFormulasSchema,
   warmups: z.union([kindWarmupsSchema, warmupPresetsSchema]).optional(),
-  cycle: z.array(cyclePhaseSchema).max(8),
+  cycle: z.array(cyclePhaseSchema).max(16),
   /** Этап закрывается сам после круга дней программы. */
   cycle_auto_end: z.boolean().optional(),
   /** After the last week, the first week starts again. */

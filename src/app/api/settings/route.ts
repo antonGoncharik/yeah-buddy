@@ -6,6 +6,7 @@ import {
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
+import { isDevTester } from "@/lib/auth/dev-tester";
 import { requireSession } from "@/lib/auth/require-session";
 import {
   getUserSettings,
@@ -25,7 +26,10 @@ export async function GET(): Promise<NextResponse> {
       return jsonError("Настройки не нашлись.", 404);
     }
 
-    return jsonOk({ settings });
+    return jsonOk({
+      settings,
+      dev_program_tester: isDevTester(auth.session),
+    });
   } catch (error) {
     return failRoute(error);
   }

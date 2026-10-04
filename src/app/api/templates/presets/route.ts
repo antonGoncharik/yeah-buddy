@@ -8,6 +8,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
+import { isDevTester } from "@/lib/auth/dev-tester";
 import { requireSession } from "@/lib/auth/require-session";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
@@ -43,6 +44,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const templates = await applyProgramPreset(
       auth.session.userId,
       parsed.data.preset,
+      { devTester: isDevTester(auth.session) },
     );
     if (parsed.data.fromStart) {
       await recordFunnelEvent(auth.session.userId, "program_start");
