@@ -14,6 +14,12 @@ export type PublicProgramId = (typeof PUBLIC_PROGRAM_IDS)[number];
 
 export const PUBLIC_PROGRAM_SLUGS = {
   full_body: "full-body",
+  home_floor: "doma",
+  home_three: "doma-3",
+  home_bar: "doma-turnik",
+  home_split: "doma-verh-niz",
+  home_db: "doma-ganteli",
+  home_glutes: "doma-yagodicy",
   five_by_five: "5x5",
   starting_strength: "3x5",
   strength: "2-silovyh",

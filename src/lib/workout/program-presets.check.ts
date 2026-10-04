@@ -6,6 +6,7 @@ import {
 } from "@/lib/workout/cycle-templates";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 import {
+  HOME_PROGRAM_PRESET_IDS,
   LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_PRESET_IDS,
   PROGRAM_PRESETS,
@@ -41,6 +42,12 @@ assertEqual(
   ).join(" | "),
   [
     "Всё тело",
+    "Дома",
+    "Дома · три дня",
+    "Дома с турником",
+    "Дома · верх / низ",
+    "Дома с гантелями",
+    "Дома · ягодицы",
     "Пять по пять",
     "Три по пять",
     "Два силовых дня",
@@ -285,5 +292,39 @@ assert(
   CYCLE_TEMPLATES.filter((template) => template.scheme).length === 3,
   "scheme templates are the three that rewrite sets",
 );
+
+for (const id of HOME_PROGRAM_PRESET_IDS) {
+  assert(
+    (LISTED_PROGRAM_PRESET_IDS as readonly string[]).includes(id),
+    `${id} is on the public list`,
+  );
+  const preset = PROGRAM_PRESETS.find((item) => item.id === id);
+  assert(preset != null, `${id} exists`);
+  assert(preset.cycle == null, `${id} does not invent gym weeks`);
+  for (const day of preset.templates) {
+    for (const slot of day.exercises) {
+      const groups = slot.plan?.groups ?? [];
+      assert(groups.length > 0, `${id} / ${slot.name} has a scheme`);
+      assert(
+        groups.every((group) => group.load.type === "feel"),
+        `${id} / ${slot.name} is bodyweight, not a percent of a max`,
+      );
+      const rows = plannedSetsForSlot(slot.plan, {
+        kind: "dynamic",
+        exercise: { weight_step: 1, formula_preset: "none" },
+        formulas: DEFAULT_WORKOUT_FORMULAS,
+        phaseKey: null,
+        maxWeight: null,
+        trackWeight: null,
+        feelWeight: null,
+      });
+      assert(rows != null && rows.length > 0, `${id} / ${slot.name} plans`);
+      assert(
+        rows.every((row) => row.planned_weight == null),
+        `${id} / ${slot.name} does not invent kilograms`,
+      );
+    }
+  }
+}
 
 console.log("program presets ok");

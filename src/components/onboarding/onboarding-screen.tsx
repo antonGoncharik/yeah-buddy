@@ -7,7 +7,10 @@ import { GuideTour } from "@/components/guide/guide-tour";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
-import { OnboardingCircleStep } from "@/components/onboarding/onboarding-circle-step";
+import {
+  OnboardingCircleStep,
+  type OnboardingProgramShelf,
+} from "@/components/onboarding/onboarding-circle-step";
 import {
   OnboardingGoalStep,
   OnboardingMacrosStep,
@@ -63,11 +66,13 @@ export function OnboardingScreen() {
     onProteinOverride,
     onRationPick,
   } = useOnboardingScreen();
-  const [pickingProgram, setPickingProgram] = useState(false);
+  const [programShelf, setProgramShelf] =
+    useState<OnboardingProgramShelf | null>(null);
+  const pickingProgram = programShelf != null;
 
   useEffect(() => {
     if (step !== "circle") {
-      setPickingProgram(false);
+      setProgramShelf(null);
     }
   }, [step]);
 
@@ -100,7 +105,7 @@ export function OnboardingScreen() {
 
   function handleBack() {
     if (step === "circle" && pickingProgram) {
-      setPickingProgram(false);
+      setProgramShelf(null);
       return;
     }
     goBack();
@@ -129,7 +134,7 @@ export function OnboardingScreen() {
             key={step}
             className="mt-1 truncate text-2xl font-semibold tracking-tight animate-fade"
           >
-            {titleForStep(step, pickingProgram)}
+            {titleForStep(step, programShelf)}
           </h1>
         </div>
       </header>
@@ -197,10 +202,12 @@ export function OnboardingScreen() {
             value={circle}
             fromMealPack={pendingKind === "meals"}
             picking={pickingProgram}
+            shelf={programShelf}
             saving={saving}
             onChange={setCircle}
             onBeginner={() => void goNext(RECOMMENDED_PROGRAM_PRESET_ID)}
-            onPickYourself={() => setPickingProgram(true)}
+            onHome={() => setProgramShelf("home")}
+            onPickYourself={() => setProgramShelf("all")}
           />
         ) : null}
 
@@ -248,7 +255,10 @@ function StepDots({
   );
 }
 
-function titleForStep(step: OnboardingStep, pickingProgram: boolean): string {
+function titleForStep(
+  step: OnboardingStep,
+  shelf: OnboardingProgramShelf | null,
+): string {
   if (step === "sex") {
     return "Кто ты";
   }
@@ -271,7 +281,10 @@ function titleForStep(step: OnboardingStep, pickingProgram: boolean): string {
     return "Сила";
   }
   if (step === "circle") {
-    return pickingProgram ? "Выбери программу" : "Программа тренировок";
+    if (shelf === "home") {
+      return "Дома";
+    }
+    return shelf === "all" ? "Выбери программу" : "Программа тренировок";
   }
   return GUIDE_LABEL;
 }

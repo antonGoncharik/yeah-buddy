@@ -112,8 +112,8 @@ assertEqual(
 );
 assertEqual(
   matchFeaturedPrograms("верх низ").join(),
-  "upper_lower",
-  "upper lower alias",
+  ["home_split", "upper_lower"].join(),
+  "upper lower finds the gym split and the home one",
 );
 assertEqual(
   matchFeaturedPrograms("3x5").join(),
@@ -129,6 +129,33 @@ assertEqual(
 assertEqual(matchFeaturedPrograms("фуллбади").join(), "full_body", "фуллбади");
 assertEqual(matchFeaturedPrograms("всё тело").join(), "full_body", "всё тело");
 assertEqual(matchFeaturedPrograms("ppl").join(), "ppl", "ppl");
+assertEqual(
+  matchFeaturedPrograms("турник").join(),
+  "home_bar",
+  "home bar alias",
+);
+assert(
+  matchFeaturedPrograms("дома").join() ===
+    [
+      "home_floor",
+      "home_three",
+      "home_bar",
+      "home_split",
+      "home_db",
+      "home_glutes",
+    ].join(),
+  "дома finds the home programs",
+);
+assertEqual(
+  matchFeaturedPrograms("гантели").join(),
+  "home_db",
+  "dumbbells alias",
+);
+assertEqual(
+  matchFeaturedPrograms("для девушек").join(),
+  "home_glutes",
+  "glutes alias",
+);
 assertEqual(matchFeaturedPrograms("жим тяга").join(), "ppl", "жим тяга");
 assertEqual(
   matchFeaturedPrograms("joy protein").join(),

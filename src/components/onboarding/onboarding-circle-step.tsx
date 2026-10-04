@@ -4,23 +4,32 @@ import { ProgramPresetCatalog } from "@/components/workout/program-preset-list";
 import type { OnboardingCircle } from "@/lib/onboarding";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
-import { isProgramPresetId } from "@/lib/workout/program-presets";
+import {
+  HOME_PROGRAM_PRESET_IDS,
+  isProgramPresetId,
+} from "@/lib/workout/program-presets";
+
+export type OnboardingProgramShelf = "all" | "home";
 
 export function OnboardingCircleStep({
   value,
   fromMealPack,
   picking,
+  shelf,
   saving,
   onChange,
   onBeginner,
+  onHome,
   onPickYourself,
 }: {
   value: OnboardingCircle;
   fromMealPack: boolean;
   picking: boolean;
+  shelf: OnboardingProgramShelf | null;
   saving: boolean;
   onChange: (value: OnboardingCircle) => void;
   onBeginner: () => void;
+  onHome: () => void;
   onPickYourself: () => void;
 }) {
   if (!picking) {
@@ -41,8 +50,17 @@ export function OnboardingCircleStep({
           }}
         />
         <ChoiceCard
+          title="Дома"
+          hint="Без зала: пол, гантели, турник или ягодицы."
+          disabled={saving}
+          onClick={() => {
+            haptic("tap");
+            onHome();
+          }}
+        />
+        <ChoiceCard
           title="Знаю что хочу"
-          hint="Покажу все программы — выберешь сам."
+          hint="Все готовые — в зале и дома."
           disabled={saving}
           onClick={() => {
             haptic("tap");
@@ -62,6 +80,8 @@ export function OnboardingCircleStep({
       ) : null}
       <ProgramPresetCatalog
         disabled={saving}
+        ids={shelf === "home" ? HOME_PROGRAM_PRESET_IDS : undefined}
+        headings={shelf !== "home"}
         value={isProgramPresetId(value) ? value : null}
         onPick={onChange}
       />
@@ -91,7 +111,7 @@ export function OnboardingCircleStep({
               : "text-muted-foreground",
           )}
         >
-          Не хожу в зал или соберу список тренировок сам.
+          Соберу список тренировок сам.
         </p>
       </button>
     </>

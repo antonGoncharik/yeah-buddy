@@ -102,6 +102,70 @@ export const STARTER_EXERCISES: StarterExercise[] = [
     category: "isolation",
   }),
   lift("Пресс", "пресс", "c", { category: "isolation", weight_step: 1 }),
+  lift("Приседания без веса", "без веса", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Ягодичный мост", "мост", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Обратные отжимания", "от стула", "b", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Отжимания узкие", "узкие", "b", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Отжимания уголком", "уголок", "b", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Австралийские подтягивания", "под столом", "c", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Лодочка", "лодочка", "c", {
+    category: "isolation",
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Планка", "планка", "c", {
+    category: "isolation",
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Боковая планка", "боковая", "c", {
+    category: "isolation",
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Болгарские выпады", "болгарские", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Ягодичный мост на одной", "мост на одной", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Отведение бедра лёжа", "отведение", "a", {
+    category: "isolation",
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Приседания с гантелью", "с гантелью", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Румынская тяга с гантелями", "румынская гантели", "a", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
+  lift("Жим гантелей на полу", "жим с пола", "b", {
+    formula_preset: "none",
+    weight_step: 1,
+  }),
 ];
 
 function lift(

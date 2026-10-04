@@ -42,21 +42,27 @@ function useGrantedPrograms(): ProgramPresetId[] {
 export function ProgramPresetCatalog({
   value,
   disabled,
+  ids,
+  headings = true,
   onPick,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
+  /** When set, only these programs — onboarding’s home shelf. */
+  ids?: readonly ProgramPresetId[];
+  headings?: boolean;
   onPick: (id: ProgramPresetId) => void;
 }) {
   const granted = useGrantedPrograms();
-  const catalogIds = pickerProgramPresetIds(value, granted);
+  const catalogIds = ids ?? pickerProgramPresetIds(value, granted);
 
   return (
     <ProgramPresetList
       value={value}
       disabled={disabled}
-      recommendedId={RECOMMENDED_PROGRAM_PRESET_ID}
+      recommendedId={ids ? undefined : RECOMMENDED_PROGRAM_PRESET_ID}
       ids={catalogIds}
+      headings={headings}
       onPick={onPick}
     />
   );
@@ -69,6 +75,7 @@ export function ProgramPresetList({
   recommendedId,
   levels,
   ids,
+  headings = true,
 }: {
   value?: ProgramPresetId | null;
   disabled?: boolean;
@@ -76,6 +83,7 @@ export function ProgramPresetList({
   recommendedId?: ProgramPresetId;
   levels?: readonly ProgramLevel[];
   ids?: readonly ProgramPresetId[];
+  headings?: boolean;
 }) {
   const groups = programPresetsByLevel()
     .map((group) => ({
@@ -96,9 +104,11 @@ export function ProgramPresetList({
     <>
       {groups.map((group) => (
         <div key={group.level} className="flex flex-col gap-2">
-          <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
-            {group.label}
-          </h3>
+          {headings ? (
+            <h3 className="px-1 pt-1 text-sm font-medium text-muted-foreground">
+              {group.label}
+            </h3>
+          ) : null}
           {group.presets.map((preset) => (
             <ProgramPresetCard
               key={preset.id}

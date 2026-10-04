@@ -23,6 +23,20 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assertEqual(publicProgramPath("full_body"), "/p/full-body", "full body path");
+assertEqual(publicProgramPath("home_floor"), "/p/doma", "home floor path");
+assertEqual(publicProgramPath("home_three"), "/p/doma-3", "home three path");
+assertEqual(publicProgramPath("home_bar"), "/p/doma-turnik", "home bar path");
+assertEqual(
+  publicProgramPath("home_split"),
+  "/p/doma-verh-niz",
+  "home split path",
+);
+assertEqual(publicProgramPath("home_db"), "/p/doma-ganteli", "home db path");
+assertEqual(
+  publicProgramPath("home_glutes"),
+  "/p/doma-yagodicy",
+  "home glutes path",
+);
 assertEqual(publicProgramPath("five_by_five"), "/p/5x5", "5x5 path");
 assertEqual(publicProgramPath("starting_strength"), "/p/3x5", "3x5 path");
 assertEqual(
