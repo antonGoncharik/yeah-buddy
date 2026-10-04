@@ -176,8 +176,18 @@ function postNativeHaptic(data: HapticEventData): boolean {
     eventData: JSON.stringify(data),
   };
 
+  try {
+    const postEvent = host.Telegram?.WebView?.postEvent;
+    if (postEvent) {
+      postEvent(HAPTIC_EVENT, false, data);
+      return true;
+    }
+  } catch {
+    // WebView.postEvent is missing until telegram-web-app.js evaluates.
+  }
+
   // Telegram iOS reads `eventName` from webkit.messageHandlers.performAction.
-  // The JS proxy is only a wrapper — and a missing/fake proxy used to swallow taps.
+  // Prefer WebView.postEvent when the SDK is loaded; performAction is a fallback.
   if (postIosMessage(host.webkit?.messageHandlers?.performAction, message)) {
     return true;
   }
@@ -195,16 +205,6 @@ function postNativeHaptic(data: HapticEventData): boolean {
     }
   } catch {
     // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
-  }
-
-  try {
-    const postEvent = host.Telegram?.WebView?.postEvent;
-    if (postEvent) {
-      postEvent(HAPTIC_EVENT, false, data);
-      return true;
-    }
-  } catch {
-    // WebView.postEvent is missing until telegram-web-app.js evaluates.
   }
 
   try {

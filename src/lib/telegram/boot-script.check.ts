@@ -7,6 +7,7 @@ import {
   TELEGRAM_INIT_STORAGE_KEY,
   telegramInitParamsFromHash,
 } from "@/lib/telegram/boot-script";
+import { TELEGRAM_FULLSCREEN_STORAGE_KEY } from "@/lib/telegram/fullscreen-storage";
 import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -57,6 +58,13 @@ assertEqual(
   TELEGRAM_BOOT_SCRIPT.includes("web_app_request_fullscreen"),
   true,
   "boot script asks Telegram to hide the header",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes(
+    `removeItem("${TELEGRAM_FULLSCREEN_STORAGE_KEY}")`,
+  ),
+  true,
+  "boot script drops stale fullscreen cache before the SDK loads",
 );
 assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf(`classList.add("${TELEGRAM_BOOT_HIDE_CLASS}")`) <
@@ -117,6 +125,7 @@ function runBoot(pathname: string, hash: string) {
       setItem(_key: string, value: string) {
         result.stored = value;
       },
+      removeItem() {},
     },
     document: {
       documentElement: {
