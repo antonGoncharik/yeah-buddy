@@ -50,8 +50,7 @@ const RESPONSE_SCHEMA = {
   required: ["headline", "observations", "watch"],
 } as const;
 
-const PLATE_MODEL = "gemini-3.5-flash-lite";
-const REVIEW_MODEL = "gemini-3.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 export type GeminiPurpose = "plate" | "review" | "dictate";
 
@@ -289,7 +288,7 @@ export async function generateGeminiJson({
     throw new ReviewError("LIMIT", limitMessage ?? failedMessage);
   }
 
-  const model = encodeURIComponent(modelOverride?.trim() || PLATE_MODEL);
+  const model = encodeURIComponent(modelOverride?.trim() || GEMINI_MODEL);
   const body = JSON.stringify({
     systemInstruction: {
       parts: [{ text: system }],
@@ -384,7 +383,7 @@ export async function writeReview(
     maxOutputTokens: 24_576,
     failedMessage: AI_REVIEW_FAILED,
     limitMessage: AI_REVIEW_LIMIT,
-    model: REVIEW_MODEL,
+    model: GEMINI_MODEL,
     thinkingLevel: "medium",
   });
 
