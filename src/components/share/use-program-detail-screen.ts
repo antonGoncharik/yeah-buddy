@@ -18,6 +18,7 @@ import {
   readFeaturedProgramPayload,
 } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
+import { syncGymCachesAfterWorkoutChange } from "@/lib/workout/gym-cache-sync";
 
 export function useProgramDetailScreen(id: string) {
   const router = useRouter();
@@ -92,6 +93,7 @@ export function useProgramDetailScreen(id: string) {
         preset: program.id,
         fromStart: true,
       });
+      await syncGymCachesAfterWorkoutChange();
       dismissPendingProgramId(program.id);
       haptic("success");
       router.replace("/workouts");

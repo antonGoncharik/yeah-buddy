@@ -221,7 +221,7 @@ export function ScreenLoading({
             );
           })}
         </div>
-        <p aria-hidden className="animate-fade text-base">
+        <p aria-hidden className="animate-fade text-base" suppressHydrationWarning>
           {beatLine ?? line}
         </p>
       </div>
