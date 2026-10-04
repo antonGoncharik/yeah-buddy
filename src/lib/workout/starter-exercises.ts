@@ -119,7 +119,6 @@ export const STARTER_EXERCISES: StarterExercise[] = [
   }),
   lift("Медитация в зале", "медитация", "c", {
     category: "isolation",
-    workout_type: "static",
     formula_preset: "none",
     weight_step: 1,
   }),

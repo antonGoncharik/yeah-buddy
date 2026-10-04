@@ -227,6 +227,7 @@ const workouts = buildWorkoutsPayload(
     max_increase_percent: 5,
     formulas: DEFAULT_WORKOUT_FORMULAS,
     skip_template_ids: [],
+    queue_preset_id: null,
     updated_at: "2026-01-01",
   },
   [
@@ -292,6 +293,7 @@ function buildWorkoutsPayloadFail(): string {
         max_increase_percent: 5,
         formulas: DEFAULT_WORKOUT_FORMULAS,
         skip_template_ids: [],
+        queue_preset_id: null,
         updated_at: "2026-01-01",
       },
       [],
