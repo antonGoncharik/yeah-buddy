@@ -69,21 +69,26 @@ export function ScreenLoading({
 }) {
   const boot = useBootSplash();
   const flavor = loadingFlavor({ splash, title });
-  const [line, setLine] = useState(LOADING_LINES[flavor][0] ?? "Загрузка…");
+  const [mounted, setMounted] = useState(false);
+  const [line, setLine] = useState("Загрузка…");
   const [splitTitle, setSplitTitle] = useState(false);
   const [beatStep, setBeatStep] = useState(0);
   const [beatLine, setBeatLine] = useState<string | null>(null);
   const holdRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
-    if (splash || boot == null) {
+    setMounted(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!mounted || splash || boot == null) {
       return;
     }
     return boot.hold();
-  }, [boot, splash]);
+  }, [boot, mounted, splash]);
 
   useEffect(() => {
-    if (beatLine) {
+    if (!mounted || beatLine) {
       return;
     }
     setLine(
@@ -91,7 +96,7 @@ export function ScreenLoading({
         ? (nightLoadingLine(Date.now()) ?? loadingLine(flavor, Date.now()))
         : loadingLine(flavor, Date.now()),
     );
-  }, [beatLine, flavor]);
+  }, [beatLine, flavor, mounted]);
 
   useEffect(() => {
     return () => {
@@ -135,7 +140,7 @@ export function ScreenLoading({
     haptic("tick");
   }
 
-  if (!splash && boot?.active) {
+  if (mounted && !splash && boot?.active) {
     return null;
   }
 

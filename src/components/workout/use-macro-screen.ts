@@ -3,12 +3,14 @@
 import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 
-import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { cachedGet, mutateJson, postJson, writeJson } from "@/lib/api-cache";
+import { calendarToday } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
+import { syncGymCachesAfterWorkoutChange } from "@/lib/workout/gym-cache-sync";
 import { forwardDraft, maxFollowsWeek } from "@/lib/workout/macro-forward";
 import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -52,6 +54,16 @@ export function useMacroScreen() {
         () => done(true),
       );
       done(true);
+
+      void mutateJson("/api/macros")
+        .then((data) => {
+          writeJson("/api/macros", data);
+          const next = readState(data);
+          if (next) {
+            applyState(next);
+          }
+        })
+        .catch(() => undefined);
     } catch {
       setError(LOAD_FAILED);
       setState(null);
@@ -157,6 +169,7 @@ export function useMacroScreen() {
         maxes: sent.maxes,
       });
       setJustClosed(closingMacro);
+      await syncGymCachesAfterWorkoutChange(calendarToday());
       const data = await mutateJson("/api/macros");
       const next = readState(data);
       if (!next) {

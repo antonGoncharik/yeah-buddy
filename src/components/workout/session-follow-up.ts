@@ -1,8 +1,9 @@
-import { mutateJson } from "@/lib/api-cache";
+import { peekJson } from "@/lib/api-cache";
 import { isIsoDate } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 import type { PhaseCircleProgress } from "@/lib/types";
 import { type EaseWeekKind, readEaseWeek } from "@/lib/workout/ease-week";
+import { syncGymCachesAfterWorkoutChange } from "@/lib/workout/gym-cache-sync";
 import {
   phaseEndHint,
   phaseHoldHint,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/workout/hints";
 import { readTemplate } from "@/lib/workout/hub-payload";
 import { toNumber } from "@/lib/workout/numbers";
+import { sessionDateUrl } from "@/lib/workout/session-local";
 
 export async function loadSessionFollowUp(sessionDate: string): Promise<{
   nextName: string | null;
@@ -35,9 +37,11 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
   };
 
   try {
-    const data = await mutateJson(
-      `/api/sessions?date=${encodeURIComponent(sessionDate)}`,
-    );
+    await syncGymCachesAfterWorkoutChange(sessionDate);
+    const data = peekJson(sessionDateUrl(sessionDate));
+    if (!isRecord(data)) {
+      return empty;
+    }
     const nextTemplate = readTemplate(data, "next_template");
     const circle = readPhaseCircle(data);
     return {

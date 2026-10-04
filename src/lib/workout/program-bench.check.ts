@@ -85,4 +85,48 @@ for (const [weekKey, days] of Object.entries(preset.weeks ?? {})) {
 
 assert(BENCH_UNCOMPROMISING_PRESET.name.includes("жим"), "Russian title");
 
+function weekSignature(
+  bench: NonNullable<typeof preset>,
+  weekKey: string,
+): string {
+  const days = bench.weeks?.[weekKey];
+  if (!days) {
+    return "";
+  }
+  return JSON.stringify(
+    days.map((day) =>
+      day.exercises.map((slot) => [slot.name, slot.plan ?? null]),
+    ),
+  );
+}
+
+assert(
+  weekSignature(preset, "w1") !== weekSignature(preset, "w2"),
+  "w2 differs from w1",
+);
+assert(
+  weekSignature(preset, "w2") !== weekSignature(preset, "w3"),
+  "w3 differs from w2",
+);
+assert(
+  weekSignature(preset, "w13") !== weekSignature(preset, "w1"),
+  "w13 differs from w1",
+);
+
+const w13Wed = preset.weeks?.w13?.[1];
+const w13Fri = preset.weeks?.w13?.[2];
+assert(w13Wed != null && w13Fri != null, "w13 has wed and fri");
+assert(
+  w13Wed.exercises.length > 0 && w13Fri.exercises.length > 0,
+  "w13 mid-week days have exercises",
+);
+
+for (const phase of THIRTEEN_WEEK_CYCLE) {
+  const sig = weekSignature(preset, phase.key);
+  assert(sig.length > 0, `${phase.key} has week data`);
+  if (phase.key !== "w1") {
+    assert(sig !== weekSignature(preset, "w1"), `${phase.key} is not a copy of w1`);
+  }
+}
+
 console.log("program bench ok");

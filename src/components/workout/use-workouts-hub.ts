@@ -5,7 +5,7 @@ import { ru } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useHubSessionActions } from "@/components/workout/use-hub-session-actions";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, mutateJson, subscribeJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type {
   CurrentMacroState,
@@ -131,11 +131,49 @@ export function useWorkoutsHub() {
     }
 
     done(true);
+
+    void Promise.all([
+      mutateJson("/api/macros").then((data) => {
+        writeJson("/api/macros", data);
+        setMacro(readMacro(data));
+      }),
+      mutateJson("/api/templates").then((data) => {
+        writeJson("/api/templates", data);
+        setTemplates(readTemplates(data));
+      }),
+    ]).catch(() => undefined);
   }, [begin, date, done]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
+    return subscribeJson((url, data) => {
+      if (url === "/api/macros") {
+        setMacro(readMacro(data));
+        return;
+      }
+      if (url === "/api/templates") {
+        setTemplates(readTemplates(data));
+        return;
+      }
+      if (url !== sessionUrl) {
+        return;
+      }
+      const hub = readHubSessionState(data);
+      setSession(hub.session);
+      setSessionTemplate(hub.sessionTemplate);
+      setNextTemplate(hub.nextTemplate);
+      setFollowingTemplate(hub.followingTemplate);
+      setUnfinished(hub.unfinished);
+      setRecent(hub.recent);
+      setPhaseCircle(hub.phaseCircle);
+      setCanUnskip(hub.canUnskip);
+      setCanBackfillYesterday(hub.canBackfillYesterday);
+    });
+  }, [date]);
 
   useEffect(() => {
     if (loading) {

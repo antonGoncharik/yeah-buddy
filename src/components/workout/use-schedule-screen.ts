@@ -8,6 +8,7 @@ import { LOAD_FAILED } from "@/lib/messages";
 import { programApplyConfirmMessage } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutTemplateDetail } from "@/lib/types";
+import { syncGymCachesAfterWorkoutChange } from "@/lib/workout/gym-cache-sync";
 import { readTemplates } from "@/lib/workout/hub-payload";
 import {
   type ProgramPresetId,
@@ -106,6 +107,7 @@ export function useScheduleScreen() {
         preset: presetId,
       });
       setTemplates(readTemplates(data));
+      await syncGymCachesAfterWorkoutChange();
       haptic("success");
     } catch (caught) {
       haptic("error");

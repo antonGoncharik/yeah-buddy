@@ -79,7 +79,9 @@ export function SessionScreen() {
               ? "flex flex-col gap-5 px-4 pb-40"
               : showStickyComplete
                 ? "flex flex-col gap-5 px-4 pb-24"
-                : "flex flex-col gap-5 px-4 pb-4"
+                : session?.status === "completed" && !correcting
+                  ? "flex flex-col gap-5 px-4 pb-[var(--app-nav-clearance)]"
+                  : "flex flex-col gap-5 px-4 pb-4"
         }
       >
         {loading ? <ScreenLoading /> : null}

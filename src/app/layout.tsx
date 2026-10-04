@@ -117,8 +117,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-density={density}
       className={cn("font-sans", manrope.variable, theme === "dark" && "dark")}
       style={{ colorScheme: theme }}
+      suppressHydrationWarning
     >
-      <body className="app-viewport-min bg-background text-foreground antialiased">
+      <body
+        className="app-viewport-min bg-background text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <style>{TELEGRAM_BOOT_STYLE}</style>
         <script>{TELEGRAM_BOOT_SCRIPT}</script>
         <ThemeProvider initialTheme={theme}>

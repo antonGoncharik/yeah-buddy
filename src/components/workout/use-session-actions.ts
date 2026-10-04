@@ -7,7 +7,7 @@ import {
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
-import { peekJson, writeJson } from "@/lib/api-cache";
+import { forgetJson, peekJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
@@ -20,6 +20,7 @@ import {
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
+import { sessionDateUrl } from "@/lib/workout/session-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionActions({
@@ -199,18 +200,7 @@ export function useSessionActions({
   };
 }
 
-function sessionDateUrl(date: string): string {
-  return `/api/sessions?date=${encodeURIComponent(date)}`;
-}
-
 function writeCompletedCaches(sessionUrl: string, detail: SessionDetail): void {
   writeJson(sessionUrl, detail);
-  const hubUrl = sessionDateUrl(detail.session.session_date);
-  const current = peekJson(hubUrl);
-  writeJson(
-    hubUrl,
-    isRecord(current)
-      ? { ...current, session: detail.session }
-      : { session: detail.session },
-  );
+  forgetJson(sessionDateUrl(detail.session.session_date));
 }

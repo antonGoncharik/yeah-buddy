@@ -9,6 +9,7 @@ import {
   joyPhotoOrigin,
 } from "@/lib/share/prepared";
 import { programStartPayload } from "@/lib/share/program-start";
+import { LISTED_PROGRAM_PRESET_IDS } from "@/lib/workout/program-preset-data";
 import {
   encodeWeekCard,
   WEEK_CARD_BUTTON,
@@ -106,13 +107,14 @@ assertEqual(
   "Всё тело",
   "first card is full body",
 );
+const listedProgramCount = LISTED_PROGRAM_PRESET_IDS.length;
 assertEqual(
   storefront.filter((item) => item.type === "article").length,
-  7,
+  listedProgramCount,
   "empty query lists every listed program",
 );
 assertEqual(
-  storefront[7]?.type,
+  storefront[listedProgramCount]?.type,
   "sticker",
   "sticker still follows the programs",
 );
