@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BootSplashProvider,
   useBootSplash,
@@ -34,23 +34,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
   const boot = useBootSplash();
   const [state, setState] = useState<GateState>("loading");
   const [openUrl, setOpenUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let unbind: (() => void) | undefined;
-
-    void import("@twa-dev/sdk").then((sdk) => {
-      if (cancelled) {
-        return;
-      }
-      unbind = bindTelegramFullscreen(sdk.default as TelegramFullscreenHost);
-    });
-
-    return () => {
-      cancelled = true;
-      unbind?.();
-    };
-  }, []);
+  const releaseFullscreen = useRef<(() => void) | undefined>(undefined);
 
   const authenticate = useCallback(async () => {
     setState("loading");
@@ -59,6 +43,12 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       const sdk = await import("@twa-dev/sdk");
       const webApp = sdk.default;
       webApp.ready();
+      webApp.expand();
+      if (!releaseFullscreen.current) {
+        releaseFullscreen.current = bindTelegramFullscreen(
+          webApp as TelegramFullscreenHost,
+        );
+      }
       rememberIncomingStart(
         startPayloadFromLocation({
           telegramStartParam: webApp.initDataUnsafe?.start_param,
@@ -128,6 +118,13 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void authenticate();
   }, [authenticate]);
+
+  useEffect(() => {
+    return () => {
+      releaseFullscreen.current?.();
+      releaseFullscreen.current = undefined;
+    };
+  }, []);
 
   useEffect(() => {
     if (state === "ready") {

@@ -48,6 +48,7 @@ export function bindTelegramFullscreen(
       return;
     }
     try {
+      webApp.expand?.();
       webApp.requestFullscreen?.();
     } catch {
       finish();
