@@ -507,20 +507,20 @@ html.dark[data-day="deload"] {
   position: sticky;
   top: 0;
   z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-inline: -1rem;
   border-bottom: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
   background-color: color-mix(in oklch, var(--background) 94%, transparent);
   padding-inline: 1rem;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.875rem;
   backdrop-filter: blur(10px);
 }
 
 html[data-tg-fullscreen] {
-  --app-tg-close-clearance: 4.75rem;
-}
-
-html[data-tg-fullscreen] .today-chrome {
-  padding-left: calc(1rem + var(--app-tg-close-clearance));
+  --app-tg-close-clearance: 4.25rem;
+  --app-safe-top-extra: 0.625rem;
 }
 
 html[data-keyboard="open"] {

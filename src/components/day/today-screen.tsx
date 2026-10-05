@@ -104,8 +104,8 @@ export function TodayScreen({
     <div className="flex w-full flex-col gap-3">
       <div className="today-chrome">
         <AppHeader
-          className="px-0 py-2.5"
-          titleAlign="center"
+          className="px-0 py-2"
+          titleAlign="inset"
           title={titleDate}
           subtitle={
             viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined

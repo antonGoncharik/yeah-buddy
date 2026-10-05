@@ -21,19 +21,24 @@ export function AppHeader({
   trailing?: ReactNode;
   onTitleClick?: () => void;
   titleExpanded?: boolean;
-  titleAlign?: "start" | "center";
+  titleAlign?: "start" | "center" | "inset";
   className?: string;
 }) {
   const headingClass = "truncate text-2xl font-semibold tracking-tight";
   const centered = titleAlign === "center" && !backHref;
+  const inset = titleAlign === "inset" && !backHref;
 
   const titleBlock = onTitleClick ? (
     <h1 className={centered ? "flex justify-center" : undefined}>
       <button
         type="button"
         className={cn(
-          "flex max-w-full items-center gap-1 rounded-xl px-2 py-1 transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-[0.98]",
-          centered ? "justify-center text-center" : "-ml-2 text-left",
+          "flex max-w-full items-center gap-1 rounded-xl py-1 transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-[0.98]",
+          centered
+            ? "justify-center px-2 text-center"
+            : inset
+              ? "pl-0 pr-2 text-left"
+              : "-ml-2 px-2 text-left",
         )}
         aria-haspopup="dialog"
         aria-expanded={titleExpanded}
@@ -58,6 +63,28 @@ export function AppHeader({
       {subtitle}
     </p>
   ) : null;
+
+  if (inset) {
+    return (
+      <header
+        className={cn(
+          "grid w-full grid-cols-[var(--app-tg-close-clearance,0px)_minmax(0,1fr)_auto] items-center gap-2 px-4 py-4",
+          className,
+        )}
+      >
+        <div aria-hidden className="min-w-0" />
+        <div className="min-w-0">
+          {titleBlock}
+          {subtitleBlock}
+        </div>
+        {trailing ? (
+          <div className="flex shrink-0 items-center gap-1">{trailing}</div>
+        ) : (
+          <div aria-hidden className="min-w-0" />
+        )}
+      </header>
+    );
+  }
 
   if (centered) {
     return (

@@ -90,7 +90,7 @@ assertEqual(
 assertEqual(contentSafeTop(0, false), 0, "non-fullscreen keeps zero top inset");
 assertEqual(
   contentSafeTop(0, true),
-  56,
+  50,
   "fullscreen floors missing content top inset",
 );
 assertEqual(
@@ -153,7 +153,7 @@ syncTelegramViewport(
 assertEqual(root.dataset.tgFullscreen, "true", "fullscreen flag is exposed");
 assertEqual(
   vars.get("--tg-content-safe-area-inset-top"),
-  "56px",
+  "50px",
   "fullscreen applies top inset floor",
 );
 
