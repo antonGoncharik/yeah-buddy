@@ -1,8 +1,7 @@
-import { ChevronDown, ChevronLeft } from "lucide-react";
-import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { TelegramBackButton } from "@/components/layout/telegram-back-button";
+import { AppHeaderBack } from "@/components/layout/app-header-back";
 import { cn } from "@/lib/utils";
 
 export function AppHeader({
@@ -28,18 +27,7 @@ export function AppHeader({
     <header
       className={cn("flex w-full items-center gap-2 px-4 py-4", className)}
     >
-      {backHref ? (
-        <>
-          <TelegramBackButton href={backHref} />
-          <Link
-            href={backHref}
-            className="flex size-11 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95"
-            aria-label="Назад"
-          >
-            <ChevronLeft className="size-6" />
-          </Link>
-        </>
-      ) : null}
+      {backHref ? <AppHeaderBack href={backHref} /> : null}
       <div className="min-w-0 flex-1">
         {onTitleClick ? (
           <h1>
