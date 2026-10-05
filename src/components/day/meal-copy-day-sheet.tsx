@@ -68,7 +68,7 @@ export function MealCopyDaySheet({
             disabled={busy}
             onClick={() => onApplyNamed?.(meal.id)}
           >
-            <span className="truncate">{meal.name}</span>
+            <span className="block min-w-0 truncate">{meal.name}</span>
           </Button>
           {onShareNamed ? (
             <Button

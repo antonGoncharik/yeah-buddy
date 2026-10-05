@@ -46,7 +46,7 @@ export function MealItemRow({
     .join(" · ");
   const body = expanded ? (
     <>
-      <p className="truncate text-lg font-medium">{item.name}</p>
+      <p className="min-w-0 truncate text-lg font-medium">{item.name}</p>
       {amount ? (
         <p className="text-sm text-muted-foreground tabular-nums">{amount}</p>
       ) : null}
@@ -55,8 +55,10 @@ export function MealItemRow({
       ) : null}
     </>
   ) : item.lump ? (
-    <span className="flex min-w-0 items-baseline justify-between gap-3">
-      <span className="truncate text-base font-medium">{item.name}</span>
+    <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
+      <span className="min-w-0 flex-1 truncate text-base font-medium">
+        {item.name}
+      </span>
       {detail ? (
         <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
           {detail}
@@ -64,8 +66,10 @@ export function MealItemRow({
       ) : null}
     </span>
   ) : (
-    <span className="flex min-w-0 items-baseline justify-between gap-3">
-      <span className="truncate text-base font-medium">{item.name}</span>
+    <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
+      <span className="min-w-0 flex-1 truncate text-base font-medium">
+        {item.name}
+      </span>
       <AlignedPair
         className="grid-cols-[4.75rem_3.5rem]"
         leading={
@@ -83,7 +87,7 @@ export function MealItemRow({
   );
 
   return (
-    <div className="flex items-stretch gap-1">
+    <div className="flex w-full min-w-0 items-stretch gap-1">
       {href ? (
         <Link
           href={href}

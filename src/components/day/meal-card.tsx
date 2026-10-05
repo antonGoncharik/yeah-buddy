@@ -93,7 +93,7 @@ export function MealCard({
   return (
     <section
       className={cn(
-        "card-surface flex flex-col px-5",
+        "card-surface flex min-w-0 flex-col px-5",
         compact ? "gap-2 py-3" : "gap-3 py-5",
         className,
       )}
