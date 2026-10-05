@@ -3,44 +3,19 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
 import {
   MealDictateLink,
   MealLumpLink,
   MealPlateLink,
 } from "@/components/day/meal-item-row";
-import { CatalogFoodSection } from "@/components/foods/catalog-food-section";
-import { FavoriteOfferCard } from "@/components/foods/favorite-offer-card";
-import {
-  foodsApiUrl,
-  starFoodFromOffer,
-  toggleFoodFavorite,
-} from "@/components/foods/food-favorite";
-import { FoodList } from "@/components/foods/food-list";
-import { FoodSearch } from "@/components/foods/food-search";
-import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
-import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
-import { ProductDoodle } from "@/components/layout/doodles";
-import { EmptyNote } from "@/components/layout/empty-note";
-import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { FoodPicker } from "@/components/foods/food-picker";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
 import { reportActionError } from "@/lib/action-error";
-import { cachedGet } from "@/lib/api-cache";
-import { foodSearchEmptyLine } from "@/lib/flavor";
-import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
-import {
-  type FavoriteOffer,
-  readFavoriteOffers,
-} from "@/lib/food/favorite-offer";
-import {
-  FOOD_LIST_FILTER_TABS,
-  type FoodListFilterTab,
-} from "@/lib/food/list-filters";
+import { appendFoodHrefSegment } from "@/lib/food/paths";
 import { quickAddGrams } from "@/lib/food/quick-add";
-import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
@@ -68,25 +43,9 @@ export function AddMealItemScreen({
   startScan?: boolean;
 }) {
   const router = useRouter();
-  const [filter, setFilter] = useState<FoodListFilterTab>("favorites");
-  const [query, setQuery] = useState("");
-  const [foods, setFoods] = useState<Food[]>([]);
-  const [offers, setOffers] = useState<FavoriteOffer[]>([]);
-  const [starring, setStarring] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const requestIdRef = useRef(0);
-  const loadedFilterRef = useRef<FoodListFilterTab | null>(null);
-  const skippedEmptyFavorites = useRef(false);
-  const favoriteOffer = useFavoriteOffer(offers);
-  const [shopHits, setShopHits] = useState(false);
-  const [starterOnly, setStarterOnly] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!startScan) {
-      return;
-    }
+  const consumeScanParam = useCallback(() => {
     const url = new URL(window.location.href);
     if (!url.searchParams.has("scan")) {
       return;
@@ -94,65 +53,10 @@ export function AddMealItemScreen({
     url.searchParams.delete("scan");
     const next = `${url.pathname}${url.search}${url.hash}`;
     window.history.replaceState(null, "", next);
-  }, [startScan]);
-
-  const load = useCallback(async (nextFilter: FoodListFilterTab, showLoading = false) => {
-    const requestId = ++requestIdRef.current;
-    if (showLoading || loadedFilterRef.current !== nextFilter) {
-      setLoading(true);
-    }
-    setError(null);
-
-    let lastCount = 0;
-    try {
-      await cachedGet(
-        foodsApiUrl(nextFilter),
-        (data) => {
-          if (requestId !== requestIdRef.current) {
-            return true;
-          }
-          const nextFoods = readFoods(data);
-          lastCount = nextFoods.length;
-          setFoods(nextFoods);
-          setOffers(readFavoriteOffers(data));
-          setStarterOnly(readStarterOnly(data));
-          loadedFilterRef.current = nextFilter;
-          return true;
-        },
-        () => {
-          if (requestId === requestIdRef.current) {
-            setLoading(false);
-          }
-        },
-      );
-    } catch {
-      if (requestId !== requestIdRef.current) {
-        return;
-      }
-      setError(LOAD_FAILED);
-      setFoods([]);
-      setStarterOnly(false);
-      setLoading(false);
-      return;
-    }
-
-    if (requestId !== requestIdRef.current) {
-      return;
-    }
-    if (
-      nextFilter === "favorites" &&
-      lastCount === 0 &&
-      !skippedEmptyFavorites.current
-    ) {
-      skippedEmptyFavorites.current = true;
-      setFilter("recent");
-      return;
-    }
-    setLoading(false);
   }, []);
 
   async function pickFood(food: Food) {
-    const href = appendPathSegment(foodHrefBase, food.id);
+    const href = appendFoodHrefSegment(foodHrefBase, food.id);
     if (!quickAdd || addingId) {
       router.push(href);
       return;
@@ -181,126 +85,30 @@ export function AddMealItemScreen({
     }
   }
 
-  const search = query.trim();
-  const listFilter = search ? "all" : filter;
-
-  useEffect(() => {
-    void load(listFilter);
-  }, [listFilter, load]);
-
-  const visibleFoods = useMemo(() => {
-    if (!query.trim()) {
-      return foods;
-    }
-
-    return foods.filter((food) =>
-      foodMatchesQuery(food.name, food.brand, query, food.barcode),
-    );
-  }, [foods, query]);
-
   return (
-    <>
-      <div className="animate-rise flex flex-col gap-3 px-4">
-        <FoodSearch
-          value={query}
-          onChange={setQuery}
-          placeholder="Что съел"
-          startScan={startScan}
-        />
-
-        {search || !starterOnly ? null : <StarterCatalogNote />}
-
-        {search ? null : (
-          <Segmented
-            value={filter}
-            options={FOOD_LIST_FILTER_TABS}
-            onChange={setFilter}
-          />
-        )}
-        {search || !favoriteOffer.offer ? null : (
-          <FavoriteOfferCard
-            offer={favoriteOffer.offer}
-            busy={starring}
-            onAccept={() => {
-              const target = favoriteOffer.offer;
-              if (!target) {
-                return;
-              }
-              setStarring(true);
-              void starFoodFromOffer(target.foodId, setFoods, listFilter)
-                .then(() => {
-                  favoriteOffer.dismiss();
-                  if (listFilter === "favorites") {
-                    void load("favorites", true);
-                  }
-                })
-                .finally(() => setStarring(false));
-            }}
-            onDismiss={favoriteOffer.dismiss}
-          />
-        )}
-        {lumpHrefBase ? (
-          <MealLumpLink href={lumpHrefBase} query={query} />
-        ) : null}
-        {plateHref || dictateHref ? (
-          <div className="flex gap-2">
-            {plateHref ? <MealPlateLink href={plateHref} /> : null}
-            {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
-          </div>
-        ) : null}
-      </div>
-
-      <div
-        className={
-          search && lumpHrefBase
-            ? "flex flex-col gap-4 px-4 pb-4"
-            : "flex flex-col gap-4 px-4 pb-24"
-        }
-      >
-        {loading ? <ScreenLoading /> : null}
-
-        {!loading && error ? (
-          <ScreenError
-            message={error}
-            onRetry={() => void load(listFilter, true)}
-          />
-        ) : null}
-
-        {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
-          <EmptyNote
-            icon={<ProductDoodle className="size-6" />}
-            title={foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))}
-          />
-        ) : null}
-
-        {!loading && !error && visibleFoods.length > 0 ? (
-          <FoodList
-            foods={visibleFoods}
-            wrapNames
-            hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
-            onSelectFood={quickAdd ? pickFood : undefined}
-            onToggleFavorite={(food) =>
-              void toggleFoodFavorite(food, setFoods, listFilter).then(() =>
-                favoriteOffer.refresh(),
-              )
-            }
-          />
-        ) : null}
-
-        {!loading && !error ? (
-          <CatalogFoodSection
-            query={query}
-            barcodeTaken={ownsBarcode(foods, query)}
-            onHits={setShopHits}
-            onAdded={(food) => {
-              setStarterOnly(false);
-              void pickFood(food);
-            }}
-          />
-        ) : null}
-      </div>
-
-      {search && lumpHrefBase ? null : (
+    <FoodPicker
+      searchPlaceholder="Что съел"
+      startScan={startScan}
+      showFavoriteOffer
+      lumpEmptyHint={Boolean(lumpHrefBase)}
+      stickyHideWhenSearch={Boolean(lumpHrefBase)}
+      onScanConsumed={consumeScanParam}
+      hrefForFood={(food) => appendFoodHrefSegment(foodHrefBase, food.id)}
+      onSelectFood={quickAdd ? pickFood : undefined}
+      onCatalogAdded={(food) => void pickFood(food)}
+      listClassName="pb-24"
+      topSlot={
+        <>
+          {lumpHrefBase ? <MealLumpLink href={lumpHrefBase} query="" /> : null}
+          {plateHref || dictateHref ? (
+            <div className="flex gap-2">
+              {plateHref ? <MealPlateLink href={plateHref} /> : null}
+              {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
+            </div>
+          ) : null}
+        </>
+      }
+      stickyActions={
         <StickyActions>
           <Link
             href={newFoodHref}
@@ -310,20 +118,7 @@ export function AddMealItemScreen({
             Новый продукт
           </Link>
         </StickyActions>
-      )}
-    </>
+      }
+    />
   );
-}
-
-function appendPathSegment(href: string, segment: string): string {
-  const queryAt = href.indexOf("?");
-  if (queryAt < 0) {
-    return `${href}/${segment}`;
-  }
-
-  return `${href.slice(0, queryAt)}/${segment}${href.slice(queryAt)}`;
-}
-
-function readFoods(data: unknown): Food[] {
-  return parseFoodList(data);
 }
