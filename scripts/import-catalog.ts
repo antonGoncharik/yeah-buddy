@@ -3,9 +3,13 @@ import { createInterface } from "node:readline";
 
 import {
   type CatalogDumpInput,
+  catalogDedupeFingerprint,
   parseCatalogDumpRow,
 } from "@/lib/food/catalog-map";
-import { upsertCatalogDump } from "@/lib/food/catalog-store";
+import {
+  loadCatalogDedupeFingerprints,
+  upsertCatalogDump,
+} from "@/lib/food/catalog-store";
 
 const CHUNK = 500;
 
@@ -17,10 +21,12 @@ async function main() {
     );
   }
 
+  const known = await loadCatalogDedupeFingerprints();
   const stream = createReadStream(filePath, { encoding: "utf8" });
   const lines = createInterface({ input: stream, crlfDelay: Infinity });
   let read = 0;
   let skipped = 0;
+  let skippedDuplicate = 0;
   let written = 0;
   let chunk: CatalogDumpInput[] = [];
 
@@ -52,6 +58,12 @@ async function main() {
       skipped += 1;
       continue;
     }
+    const fingerprint = catalogDedupeFingerprint(row);
+    if (known.has(fingerprint)) {
+      skippedDuplicate += 1;
+      continue;
+    }
+    known.add(fingerprint);
     chunk.push(row);
     if (chunk.length >= CHUNK) {
       await flush();
@@ -59,7 +71,9 @@ async function main() {
   }
 
   await flush();
-  console.log(`read ${read}, skipped ${skipped}, upserted ${written}`);
+  console.log(
+    `read ${read}, skipped ${skipped}, skipped_duplicate ${skippedDuplicate}, upserted ${written}`,
+  );
 }
 
 main().catch((error: unknown) => {

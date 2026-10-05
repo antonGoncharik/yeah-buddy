@@ -7,6 +7,7 @@ import {
   foodMatchesQuery,
   ownsBarcode,
   parseBarcodeEan,
+  catalogDedupeFingerprint,
   parseCatalogDumpRow,
   parseCatalogFoodPayload,
 } from "@/lib/food/catalog-map";
@@ -65,6 +66,81 @@ assertEqual(jam.carbs_per_100, 58, "carbs kept");
 
 assertEqual("barcode" in herring, false, "dump without ean keeps barcode off");
 assertEqual(parseCatalogDumpRow({ name: "no ids" }), null, "skip nameless ids");
+
+const edostavkaYogurt = parseCatalogDumpRow({
+  source: "edostavka",
+  source_product_id: "2299263",
+  name: "Йогурт питьевой Оптималь персик-ваниль, 2%, 415 г",
+  brand: "Оптималь",
+  weight_g: 415,
+  per_100: { protein: 2.9, fat: 2, carbs: 10.2 },
+});
+const greenYogurt = parseCatalogDumpRow({
+  source: "green",
+  source_product_id: "1624953",
+  name: "Йогурт питьевой Оптималь персик-ваниль 2% 415 г",
+  brand: "Оптималь",
+  weight_g: 415,
+  per_100: { protein: 2.9, fat: 2, carbs: 10.2 },
+});
+if (!edostavkaYogurt || !greenYogurt) {
+  throw new Error("yogurt fixtures missing");
+}
+assertEqual(
+  catalogDedupeFingerprint(edostavkaYogurt),
+  catalogDedupeFingerprint(greenYogurt),
+  "cross-shop yogurt dedupe",
+);
+
+const edostavkaRastishka = parseCatalogDumpRow({
+  source: "edostavka",
+  source_product_id: "2106888",
+  name: "Йогурт питьевой Растишка клубника, малина, земляника, 1.6%, 90 г",
+  brand: "Растишка",
+  weight_g: 90,
+  per_100: { protein: 2.9, fat: 1.6, carbs: 10.6 },
+});
+const greenRastishka = parseCatalogDumpRow({
+  source: "green",
+  source_product_id: "1619548",
+  name: "Йогурт питьевой Растишка Клубника Малина-Земляника 1,6% 90 г",
+  brand: "Растишка",
+  weight_g: 90,
+  per_100: { protein: 2.9, fat: 1.6, carbs: 10.6 },
+});
+if (!edostavkaRastishka || !greenRastishka) {
+  throw new Error("rastishka fixtures missing");
+}
+assertEqual(
+  catalogDedupeFingerprint(edostavkaRastishka),
+  catalogDedupeFingerprint(greenRastishka),
+  "comma percent and word order dedupe",
+);
+
+const kefir1 = parseCatalogDumpRow({
+  source: "edostavka",
+  source_product_id: "a",
+  name: "Кефир 1%",
+  brand: "X",
+  weight_g: 900,
+  per_100: { protein: 3, fat: 1, carbs: 4 },
+});
+const kefir2 = parseCatalogDumpRow({
+  source: "green",
+  source_product_id: "b",
+  name: "Кефир 1%",
+  brand: "X",
+  weight_g: 900,
+  per_100: { protein: 3, fat: 2, carbs: 4 },
+});
+if (!kefir1 || !kefir2) {
+  throw new Error("kefir fixtures missing");
+}
+assertEqual(
+  catalogDedupeFingerprint(kefir1) === catalogDedupeFingerprint(kefir2),
+  false,
+  "different fat stays distinct",
+);
 
 const coded = parseCatalogDumpRow({
   source: "edostavka",

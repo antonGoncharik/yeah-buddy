@@ -4,6 +4,7 @@ import {
   CATALOG_SEARCH_LIMIT,
   type CatalogDumpInput,
   type CatalogFood,
+  catalogDedupeFingerprint,
   catalogDefaultPortion,
   catalogSearchLead,
   catalogSearchTokens,
@@ -17,9 +18,17 @@ import {
 } from "@/lib/food/catalog-off";
 import { mapFood } from "@/lib/food/map";
 import { calcKcalFromMacros } from "@/lib/nutrition";
+import {
+  isRecord,
+  toNullableNumber,
+  toNullableString,
+  toNumber,
+} from "@/lib/read";
 import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
+
+const CATALOG_FINGERPRINT_PAGE = 1000;
 
 export { CatalogFoodNotFoundError };
 
@@ -180,6 +189,50 @@ export async function copyCatalogFood(
   }
 
   return mapFood(inserted.data as Record<string, unknown>);
+}
+
+export async function loadCatalogDedupeFingerprints(): Promise<Set<string>> {
+  const supabase = createSupabaseServerClient();
+  const fingerprints = new Set<string>();
+  let offset = 0;
+
+  while (true) {
+    const page = await supabase
+      .from("catalog_foods")
+      .select(
+        "name, brand, pack_weight_g, protein_per_100, fat_per_100, carbs_per_100",
+      )
+      .order("id", { ascending: true })
+      .range(offset, offset + CATALOG_FINGERPRINT_PAGE - 1);
+
+    if (page.error) {
+      throw page.error;
+    }
+
+    const rows = page.data ?? [];
+    for (const row of rows) {
+      if (!isRecord(row)) {
+        continue;
+      }
+      fingerprints.add(
+        catalogDedupeFingerprint({
+          name: String(row.name),
+          brand: toNullableString(row.brand),
+          pack_weight_g: toNullableNumber(row.pack_weight_g),
+          protein_per_100: toNumber(row.protein_per_100),
+          fat_per_100: toNumber(row.fat_per_100),
+          carbs_per_100: toNumber(row.carbs_per_100),
+        }),
+      );
+    }
+
+    if (rows.length < CATALOG_FINGERPRINT_PAGE) {
+      break;
+    }
+    offset += CATALOG_FINGERPRINT_PAGE;
+  }
+
+  return fingerprints;
 }
 
 export async function upsertCatalogDump(

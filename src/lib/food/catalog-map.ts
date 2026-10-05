@@ -138,6 +138,26 @@ export function foldCatalogSearch(value: string): string {
   return value.replace(/ё/gi, "е");
 }
 
+/** Stable key for cross-source catalog import dedupe (name formatting may differ). */
+export function catalogDedupeFingerprint(input: {
+  name: string;
+  brand: string | null;
+  pack_weight_g: number | null;
+  protein_per_100: number;
+  fat_per_100: number;
+  carbs_per_100: number;
+}): string {
+  const text = catalogDedupeText(`${input.name} ${input.brand ?? ""}`);
+  const weight =
+    input.pack_weight_g != null && input.pack_weight_g > 0
+      ? String(Math.round(input.pack_weight_g * 100) / 100)
+      : "";
+  const protein = catalogDedupeMacro(input.protein_per_100);
+  const fat = catalogDedupeMacro(input.fat_per_100);
+  const carbs = catalogDedupeMacro(input.carbs_per_100);
+  return `${text}\0${weight}\0${protein}\0${fat}\0${carbs}`;
+}
+
 export function catalogSearchNeedle(raw: string): string | null {
   const trimmed = foldCatalogSearch(raw)
     .trim()
@@ -230,6 +250,41 @@ export function filterCatalogHits<
 
 function catalogHaystack(name: string, brand: string | null): string {
   return foldCatalogSearch(`${name} ${brand ?? ""}`.toLowerCase());
+}
+
+function catalogDedupeText(raw: string): string {
+  let text = foldCatalogSearch(raw.toLowerCase());
+  text = text.replace(/(\d),(\d)/g, "$1.$2");
+  text = text.replace(/%/g, " ");
+  text = text.replace(/-/g, " ");
+  text = text.replace(/[%_,()'"`\\*]/g, " ");
+  text = text.replace(/\./g, " ");
+  text = text.replace(/\s+/g, " ").trim();
+  if (!text) {
+    return "";
+  }
+
+  const tokens: string[] = [];
+  for (const part of text.split(" ")) {
+    if (
+      part.length === 0 ||
+      CATALOG_SEARCH_STOP.has(part) ||
+      tokens.includes(part)
+    ) {
+      continue;
+    }
+    tokens.push(part);
+  }
+
+  tokens.sort();
+  return tokens.join(" ");
+}
+
+function catalogDedupeMacro(value: number): string {
+  if (!Number.isFinite(value) || value < 0) {
+    return "0";
+  }
+  return String(Math.round(value * 10) / 10);
 }
 
 export function catalogDefaultPortion(packWeightG: number | null): {
