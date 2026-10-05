@@ -129,6 +129,7 @@ export function FoodsScreen() {
         {!loading && !error && visibleFoods.length > 0 ? (
           <FoodList
             foods={visibleFoods}
+            wrapNames
             onToggleFavorite={(food) =>
               void toggleFoodFavorite(food, setFoods, listFilter)
             }
