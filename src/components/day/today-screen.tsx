@@ -14,8 +14,7 @@ import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { ScreenLoading } from "@/components/layout/screen-status";
-import { Button } from "@/components/ui/button";
+import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
@@ -166,21 +165,11 @@ export function TodayScreen({
         {showLoading ? <ScreenLoading /> : null}
 
         {contentReady && loadError ? (
-          <div className="animate-rise flex flex-col items-center gap-3">
-            <p className="text-center text-lg font-medium">{LOAD_FAILED}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => void load()}
-            >
-              Повторить
-            </Button>
-          </div>
+          <ScreenError message={LOAD_FAILED} onRetry={() => void load()} />
         ) : null}
 
         {contentReady && !loadError && actionError ? (
-          <p className="animate-rise text-center text-lg font-medium">
-            {actionError}
-          </p>
+          <ScreenError message={actionError} />
         ) : null}
 
         {contentReady &&
