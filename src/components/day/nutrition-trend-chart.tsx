@@ -12,6 +12,7 @@ import { formatKcal, formatMacro } from "@/lib/nutrition";
 import {
   type HistoryMetric,
   KCAL_HIT_RATIO,
+  MACRO_HIT_RATIO,
   metricFact,
   metricTarget,
   type NutritionMetric,
@@ -143,7 +144,7 @@ function macroInsight(
   const targetMean = chartMean(targets);
   const hits =
     metric === "protein"
-      ? countChartHits(facts, targets, "atLeast")
+      ? countChartHits(facts, targets, "within", MACRO_HIT_RATIO)
       : metric === "kcal"
         ? countChartHits(facts, targets, "within", KCAL_HIT_RATIO)
         : null;
@@ -151,11 +152,7 @@ function macroInsight(
   return chartInsight([
     mean != null ? `Среднее ${formatMetricValue(metric, mean)}` : null,
     targetMean != null ? `цель ${formatMetricValue(metric, targetMean)}` : null,
-    hits
-      ? metric === "protein"
-        ? `дотянул ${hits.hit} из ${hits.total}`
-        : `около цели ${hits.hit} из ${hits.total}`
-      : null,
+    hits ? `в цели ${hits.hit} из ${hits.total}` : null,
   ]);
 }
 

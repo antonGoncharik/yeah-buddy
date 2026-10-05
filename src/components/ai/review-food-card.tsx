@@ -56,7 +56,7 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
             <div className="flex flex-col gap-4">
               {brief.nutrition.protein_total > 0 ? (
                 <MeterLine
-                  label="Белок дотянули"
+                  label="Белок в цели (±2%)"
                   value={`${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`}
                   ratio={
                     brief.nutrition.protein_hit / brief.nutrition.protein_total

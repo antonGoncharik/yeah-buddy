@@ -2,6 +2,7 @@ import { shiftIsoDate } from "@/lib/day/dates";
 import type { FoodListFilter } from "@/lib/food/schema";
 import { FOODS_EMPTY } from "@/lib/messages";
 import { formatGrams } from "@/lib/nutrition";
+import { macroInGoal } from "@/lib/nutrition/macro-hit";
 import type {
   MealType,
   PhaseCircleProgress,
@@ -465,17 +466,13 @@ export function macrosClosedLine(
   day: { target_protein: number; target_fat: number; target_carbs: number },
 ): string | null {
   if (
-    !macroHit(fact.protein, day.target_protein) ||
-    !macroHit(fact.fat, day.target_fat) ||
-    !macroHit(fact.carbs, day.target_carbs)
+    !macroInGoal(fact.protein, day.target_protein) ||
+    !macroInGoal(fact.fat, day.target_fat) ||
+    !macroInGoal(fact.carbs, day.target_carbs)
   ) {
     return null;
   }
   return MACROS_CLOSED_LINE;
-}
-
-function macroHit(fact: number, plan: number): boolean {
-  return plan > 0 && fact + 0.5 >= plan;
 }
 
 export function hundredWeightLine(weight: number | null): string | null {

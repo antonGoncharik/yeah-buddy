@@ -18,11 +18,9 @@ import {
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
 import type { FoodShare } from "@/lib/days";
-import { KCAL_HIT_RATIO } from "@/lib/nutrition-stats";
+import { KCAL_HIT_RATIO, MACRO_HIT_RATIO, macroInGoal } from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
-const MACRO_MISS_RATIO = 0.9;
-const MACRO_OVER_RATIO = 1.1;
 const HALF_KCAL_RATIO = 0.08;
 const HALF_PROTEIN_G = 12;
 const HALF_FAT_G = 8;
@@ -62,7 +60,7 @@ export function nutritionSignalLines(input: {
 
   if (input.proteinTotal >= 3) {
     lines.push(
-      `Белок дотянули: ${input.proteinHit} из ${input.proteinTotal} дней.`,
+      `Белок в цели (±${Math.round(MACRO_HIT_RATIO * 100)}%): ${input.proteinHit} из ${input.proteinTotal} дней.`,
     );
   }
   if (input.kcalTotal >= 3) {
@@ -225,10 +223,13 @@ function pushMacroMiss(
   if (!stats || stats.target[key] <= 0) {
     return;
   }
-  if (stats.fact[key] >= stats.target[key] * MACRO_MISS_RATIO) {
+  if (macroInGoal(stats.fact[key], stats.target[key])) {
     return;
   }
   const miss = stats.target[key] - stats.fact[key];
+  if (miss <= 0) {
+    return;
+  }
   lines.push(`${prefix} ${noun} не хватало на ${formatG(miss)} г.`);
 }
 
@@ -242,10 +243,13 @@ function pushMacroOver(
   if (!stats || stats.target[key] <= 0) {
     return;
   }
-  if (stats.fact[key] <= stats.target[key] * MACRO_OVER_RATIO) {
+  if (macroInGoal(stats.fact[key], stats.target[key])) {
     return;
   }
   const extra = stats.fact[key] - stats.target[key];
+  if (extra <= 0) {
+    return;
+  }
   lines.push(`${prefix} ${noun} выше цели на ${formatG(extra)} г.`);
 }
 

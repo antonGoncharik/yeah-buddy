@@ -68,7 +68,7 @@ export function NutritionHistoryStats({
       {showHits ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
           <HitRow
-            label="Белок дотянули"
+            label="Белок в цели (±2%)"
             hit={hits.proteinHit}
             total={hits.proteinTotal}
             barClass="bg-[var(--macro-protein)]"

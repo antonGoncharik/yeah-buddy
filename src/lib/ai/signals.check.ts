@@ -185,7 +185,7 @@ const lines = buildSignals({
 });
 
 assertEqual(
-  lines.some((line) => line === "Белок дотянули: 1 из 3 дней."),
+  lines.some((line) => line === "Белок в цели (±2%): 1 из 3 дней."),
   true,
   "protein hit",
 );
@@ -326,7 +326,7 @@ assertEqual(
 
 const details = reviewDetailSignals(lines);
 assertEqual(
-  details.some((line) => line.startsWith("Белок дотянули:")),
+  details.some((line) => line.startsWith("Белок в цели")),
   false,
   "detail drops protein hit",
 );

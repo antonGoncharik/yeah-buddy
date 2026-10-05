@@ -64,7 +64,7 @@ export function reviewDetailSignals(signals: string[]): string[] {
 
 function isScoreboardSignal(line: string): boolean {
   if (
-    line.startsWith("Белок дотянули:") ||
+    line.startsWith("Белок в цели") ||
     line.startsWith("Калории около цели") ||
     line.startsWith("Вес ") ||
     line.startsWith("Зал:") ||

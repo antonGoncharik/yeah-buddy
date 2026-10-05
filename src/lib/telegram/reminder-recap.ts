@@ -1,5 +1,6 @@
 import { reviewScoreboardSignals } from "@/lib/ai/signal-lines";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { macroGoalToleranceGrams, macroInGoal } from "@/lib/nutrition/macro-hit";
 import { type DayShareGym, dayShareGymLine } from "@/lib/share/day";
 
 const RECAP_LINES = 5;
@@ -93,7 +94,10 @@ function gramsLine(
     return base;
   }
   const delta = fact - target;
-  if (Math.abs(delta) <= GRAM_GAP) {
+  if (
+    macroInGoal(fact, target) ||
+    Math.abs(delta) <= Math.max(GRAM_GAP, macroGoalToleranceGrams(target))
+  ) {
     return base;
   }
   if (delta > 0) {

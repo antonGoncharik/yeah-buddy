@@ -7,6 +7,11 @@ export {
   splitAverages,
 } from "@/lib/nutrition/averages";
 export {
+  macroGoalToleranceGrams,
+  macroInGoal,
+  MACRO_HIT_RATIO,
+} from "@/lib/nutrition/macro-hit";
+export {
   type HistoryMetric,
   metricFact,
   metricTarget,

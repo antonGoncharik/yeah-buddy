@@ -2,7 +2,11 @@ import { roundMacros } from "@/lib/ai/compact-nutrition";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewAverages } from "@/lib/ai/types";
 import { inclusiveDayCount, longestDateGap } from "@/lib/day/dates";
-import { averageMacros, KCAL_HIT_RATIO } from "@/lib/nutrition-stats";
+import {
+  averageMacros,
+  KCAL_HIT_RATIO,
+  macroInGoal,
+} from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
 export { inclusiveDayCount };
@@ -89,6 +93,9 @@ export function worstProteinDays(
   return [...days]
     .flatMap((item) => {
       if (item.target_protein <= 0) {
+        return [];
+      }
+      if (macroInGoal(item.fact_protein, item.target_protein)) {
         return [];
       }
       const miss = item.target_protein - item.fact_protein;

@@ -246,9 +246,9 @@ assertEqual(
 assertEqual(
   composeReminderMessage(
     "День в порядке. На сегодня хватит.",
-    "За 14 дней:\nБелок дотянули: 5 из 7 дней.",
+    "За 14 дней:\nБелок в цели (±2%): 5 из 7 дней.",
   ),
-  "День в порядке. На сегодня хватит.\n\nЗа 14 дней:\nБелок дотянули: 5 из 7 дней.",
+  "День в порядке. На сегодня хватит.\n\nЗа 14 дней:\nБелок в цели (±2%): 5 из 7 дней.",
   "sunday recap sits under done day",
 );
 assertEqual(
@@ -379,8 +379,8 @@ assertEqual(
   "day card without a goal stays plain",
 );
 assertEqual(
-  weekRecapText(["Белок дотянули: 12 из 14 дней.", "Смотри ужин."]),
-  "За 14 дней:\nБелок дотянули: 12 из 14 дней.",
+  weekRecapText(["Белок в цели (±2%): 12 из 14 дней.", "Смотри ужин."]),
+  "За 14 дней:\nБелок в цели (±2%): 12 из 14 дней.",
   "only scoreboard lines",
 );
 assertEqual(weekRecapText(["Смотри ужин."]), null, "no scoreboard skips recap");

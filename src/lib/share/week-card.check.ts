@@ -109,16 +109,16 @@ const card = buildWeekCard({
   slots: [
     slot(
       "2026-09-21",
-      day("2026-09-21", { weight: 82.4, protein: 140, fat: 68, carbs: 230 }),
+      day("2026-09-21", { weight: 82.4, protein: 150, fat: 70, carbs: 240 }),
       true,
     ),
     slot(
       "2026-09-23",
-      day("2026-09-23", { weight: 82, protein: 148, fat: 71, carbs: 236 }),
+      day("2026-09-23", { weight: 82, protein: 149, fat: 69, carbs: 238 }),
     ),
     slot(
       "2026-09-25",
-      day("2026-09-25", { weight: 81.6, protein: 151, fat: 69, carbs: 244 }),
+      day("2026-09-25", { weight: 81.6, protein: 151, fat: 71, carbs: 242 }),
       true,
     ),
     slot("2026-09-20", day("2026-09-20", { weight: 90, protein: 200 }), true),

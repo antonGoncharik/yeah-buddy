@@ -1,3 +1,4 @@
+import { macroInGoal } from "@/lib/nutrition/macro-hit";
 import type { Macros } from "@/lib/nutrition/macros";
 import type { DayHistoryRow } from "@/lib/types";
 
@@ -89,7 +90,7 @@ export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
   for (const item of items) {
     if (item.target_protein > 0) {
       proteinTotal += 1;
-      if (item.fact_protein >= item.target_protein) {
+      if (macroInGoal(item.fact_protein, item.target_protein)) {
         proteinHit += 1;
       }
     }

@@ -6,6 +6,7 @@ import { parseBodyWeight } from "@/lib/day/body-weight";
 import { isIsoDate } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { dayHasFood, type WeekSlot, weekWindow } from "@/lib/day/week";
+import { macroInGoal } from "@/lib/nutrition/macro-hit";
 import type { ExerciseCategory } from "@/lib/types";
 
 export const WEEK_PROGRESS_TITLE = "Поделиться прогрессом";
@@ -21,7 +22,7 @@ export const WEEK_PROGRESS_DETAIL_LINES: string[] = [
   "Вес тела — только дни, где ты его записал; на графике до 7 точек; плюс или минус от первого к последнему за неделю.",
   "Зал — сколько дней с тренировкой, закрытой «Готово».",
   "Рабочие — до трёх упражнений из зала: тяжёлый рабочий вес за день, сравнение начала и конца недели. Сначала база и то, где вес вырос. Если в логе правил вес — только правки; если всё как в плане — план.",
-  "БЖУ — среднее по дням, где в дневнике есть еда; цель — твои таргеты на эти дни. «В цели»: белок не ниже 90% цели, жир и углеводы в пределах ±10%.",
+  "БЖУ — среднее по дням, где в дневнике есть еда; цель — твои таргеты на эти дни. «В цели»: белок, жир и углеводы в пределах ±2% от цели.",
   "Нет на картинке: талия, максимум на раз, тоннаж, упражнения без записи из зала, дни без еды и без целей.",
 ];
 export const WEEK_CARD_BUTTON = "Попробовать YeahBuddy";
@@ -280,13 +281,7 @@ export function weekCardSize(card: WeekCard): {
 }
 
 export function macroInZone(macro: WeekCardMacro): boolean {
-  if (macro.target <= 0) {
-    return false;
-  }
-  if (macro.key === "protein") {
-    return macro.fact >= macro.target * 0.9;
-  }
-  return Math.abs(macro.fact - macro.target) / macro.target <= 0.1;
+  return macroInGoal(macro.fact, macro.target);
 }
 
 function pickLifts(
