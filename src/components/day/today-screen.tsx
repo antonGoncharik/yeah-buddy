@@ -7,6 +7,7 @@ import { useState } from "react";
 import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
+import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayView } from "@/components/day/today-day-view";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
@@ -16,6 +17,7 @@ import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
+import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 
@@ -99,26 +101,44 @@ export function TodayScreen({
   const showLoading = loading || !contentReady || openingToday;
 
   return (
-    <div className="flex w-full flex-col gap-4">
-      <AppHeader
-        title={titleDate}
-        subtitle={
-          viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
-        }
-        backHref={fromHistory ? nutritionHistoryHref(fromSettings) : undefined}
-        titleExpanded={pickerOpen}
-        onTitleClick={() => {
-          haptic("tap");
-          setPickerOpen(true);
-        }}
-        trailing={
-          <TodayDateNav
-            canGoForward={canGoForward}
-            onPrev={() => goBy(-1)}
-            onNext={() => goBy(1)}
+    <div className="flex w-full flex-col gap-3">
+      <div className="today-chrome">
+        <AppHeader
+          className="px-0 py-2.5"
+          title={titleDate}
+          subtitle={
+            viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
+          }
+          backHref={
+            fromHistory ? nutritionHistoryHref(fromSettings) : undefined
+          }
+          titleExpanded={pickerOpen}
+          onTitleClick={() => {
+            haptic("tap");
+            setPickerOpen(true);
+          }}
+          trailing={
+            <TodayDateNav
+              canGoForward={canGoForward}
+              onPrev={() => goBy(-1)}
+              onNext={() => goBy(1)}
+            />
+          }
+        />
+        {contentReady && shownDay ? (
+          <TodayDayHeader
+            date={date}
+            today={today}
+            writable={writable}
+            catchUp={catchUp}
+            viewOnly={viewOnly}
+            fromHistory={fromHistory}
+            isTrainingDay={shownDay.is_training_day}
+            busy={busy || isTempId(shownDay.id)}
+            switchType={switchType}
           />
-        }
-      />
+        ) : null}
+      </div>
       {pickerOpen ? (
         <TodayDatePickerSheet
           date={date}
@@ -192,9 +212,7 @@ export function TodayScreen({
             date={date}
             today={today}
             writable={writable}
-            catchUp={catchUp}
             viewOnly={viewOnly}
-            fromHistory={fromHistory}
             shownDay={shownDay}
             visibleMeals={visibleMeals}
             hiddenMealKcal={hiddenMealKcal}
@@ -221,7 +239,6 @@ export function TodayScreen({
             reviewReady={reviewReady && isToday}
             gym={gym}
             busy={busy}
-            switchType={switchType}
             saveBodyWeight={saveBodyWeight}
             saveWaist={saveWaist}
             copyYesterday={copyYesterday}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
+import { cn } from "@/lib/utils";
 
 export function AppHeader({
   title,
@@ -11,6 +12,7 @@ export function AppHeader({
   trailing,
   onTitleClick,
   titleExpanded = false,
+  className,
 }: {
   title: string;
   subtitle?: string;
@@ -18,11 +20,14 @@ export function AppHeader({
   trailing?: ReactNode;
   onTitleClick?: () => void;
   titleExpanded?: boolean;
+  className?: string;
 }) {
   const headingClass = "truncate text-2xl font-semibold tracking-tight";
 
   return (
-    <header className="flex w-full items-center gap-2 px-4 py-4">
+    <header
+      className={cn("flex w-full items-center gap-2 px-4 py-4", className)}
+    >
       {backHref ? (
         <>
           <TelegramBackButton href={backHref} />

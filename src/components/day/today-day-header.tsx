@@ -72,7 +72,7 @@ export function TodayDayHeader({
   }
 
   return (
-    <div className="animate-rise flex flex-col gap-3">
+    <div className="animate-rise flex flex-col gap-2">
       {!compact && dayTypeTip.tip ? (
         <GuideTipCard tip={dayTypeTip.tip} onDismiss={dayTypeTip.dismiss} />
       ) : null}
@@ -93,7 +93,7 @@ export function TodayDayHeader({
             id: "training",
             label: DAY_TYPE_LABELS.training,
             icon: (
-              <Doodle className="size-7" viewBox={DUMBBELL_VIEWBOX}>
+              <Doodle className="size-4" viewBox={DUMBBELL_VIEWBOX}>
                 <DumbbellMark />
               </Doodle>
             ),

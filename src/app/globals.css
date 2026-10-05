@@ -220,7 +220,7 @@
   --wallpaper-ink: transparent;
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --theme-duration: 0.4s;
-  --app-safe-top-extra: 0.75rem;
+  --app-safe-top-extra: 1rem;
   --app-safe-top: calc(
     max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) +
     var(--tg-content-safe-area-inset-top, 0px) +
@@ -500,6 +500,18 @@ html.dark[data-day="deload"] {
 @utility app-chrome-bar {
   border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
   background-color: var(--background);
+}
+
+@utility today-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-inline: -1rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  background-color: color-mix(in oklch, var(--background) 94%, transparent);
+  padding-inline: 1rem;
+  padding-bottom: 0.75rem;
+  backdrop-filter: blur(10px);
 }
 
 html[data-keyboard="open"] {

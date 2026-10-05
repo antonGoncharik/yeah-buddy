@@ -6,7 +6,6 @@ import { DaySummary } from "@/components/day/day-summary";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
-import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
@@ -26,7 +25,6 @@ import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import { emptyStartCopy } from "@/lib/retention";
 import type {
   CopyDayHint,
-  DayType,
   MealItem,
   MealType,
   NamedMealHint,
@@ -37,9 +35,7 @@ export function TodayDayView({
   date,
   today,
   writable,
-  catchUp,
   viewOnly,
-  fromHistory,
   shownDay,
   visibleMeals,
   hiddenMealKcal,
@@ -66,7 +62,6 @@ export function TodayDayView({
   reviewReady,
   gym,
   busy,
-  switchType,
   saveBodyWeight,
   saveWaist,
   copyYesterday,
@@ -84,9 +79,7 @@ export function TodayDayView({
   date: string;
   today: string;
   writable: boolean;
-  catchUp: boolean;
   viewOnly: boolean;
-  fromHistory: boolean;
   shownDay: DayWithMeals;
   visibleMeals: DayWithMeals["meals"];
   hiddenMealKcal: number;
@@ -113,7 +106,6 @@ export function TodayDayView({
   reviewReady: boolean;
   gym: GymLoop;
   busy: boolean;
-  switchType: (dayType: DayType) => Promise<void>;
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
@@ -205,18 +197,6 @@ export function TodayDayView({
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
       {compact ? null : weekShare}
-
-      <TodayDayHeader
-        date={date}
-        today={today}
-        writable={writable}
-        catchUp={catchUp}
-        viewOnly={viewOnly}
-        fromHistory={fromHistory}
-        isTrainingDay={shownDay.is_training_day}
-        busy={busy || isTempId(shownDay.id)}
-        switchType={switchType}
-      />
 
       {yesterdayCatchUp ? (
         <div className="animate-rise" style={{ animationDelay: "20ms" }}>
