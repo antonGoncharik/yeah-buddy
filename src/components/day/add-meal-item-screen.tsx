@@ -273,6 +273,7 @@ export function AddMealItemScreen({
         {!loading && !error && visibleFoods.length > 0 ? (
           <FoodList
             foods={visibleFoods}
+            wrapNames
             hrefForFood={(food) => appendPathSegment(foodHrefBase, food.id)}
             onSelectFood={quickAdd ? pickFood : undefined}
             onToggleFavorite={(food) =>

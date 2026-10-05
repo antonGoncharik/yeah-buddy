@@ -190,6 +190,7 @@ export function PlateFoodPicker({
           {!loading && !error && visibleFoods.length > 0 ? (
             <FoodList
               foods={visibleFoods}
+              wrapNames
               onSelectFood={onPick}
               onToggleFavorite={(food) =>
                 void toggleFoodFavorite(food, setFoods, listFilter).then(() =>

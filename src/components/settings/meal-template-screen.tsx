@@ -79,6 +79,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
                 <MealCard
                   key={mealType}
                   mealType={mealType}
+                  wrapItemNames
                   items={items}
                   itemHref={(item) =>
                     `/settings/template-items/${dayType}/${item.id}`

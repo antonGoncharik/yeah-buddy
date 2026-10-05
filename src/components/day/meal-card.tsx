@@ -41,6 +41,7 @@ export function MealCard({
   onFillTemplate,
   copyBusy = false,
   readOnly = false,
+  wrapItemNames = false,
   proteinShare = null,
   className,
   style,
@@ -63,6 +64,7 @@ export function MealCard({
   onFillTemplate?: () => void;
   copyBusy?: boolean;
   readOnly?: boolean;
+  wrapItemNames?: boolean;
   proteinShare?: string | null;
   className?: string;
   style?: CSSProperties;
@@ -141,6 +143,7 @@ export function MealCard({
           renderItem={(item) => (
             <MealItemRow
               item={item}
+              wrapName={wrapItemNames}
               href={itemHref ? itemHref(item) : undefined}
               onDelete={onDeleteItem ? () => onDeleteItem(item) : undefined}
             />
@@ -152,6 +155,7 @@ export function MealCard({
             <MealItemRow
               key={item.id}
               item={item}
+              wrapName={wrapItemNames}
               href={readOnly || !itemHref ? undefined : itemHref(item)}
               onDelete={
                 readOnly || !onDeleteItem ? undefined : () => onDeleteItem(item)

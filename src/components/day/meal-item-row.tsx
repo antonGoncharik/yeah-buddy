@@ -26,10 +26,13 @@ export function MealItemRow({
   item,
   href,
   onDelete,
+  wrapName = false,
 }: {
   item: MealLine;
   href?: string;
   onDelete?: () => void;
+  /** Show the full product name (multi-line); default is one truncated line. */
+  wrapName?: boolean;
 }) {
   const { density } = useDiaryDensity();
   const expanded = density === "expanded";
@@ -44,9 +47,15 @@ export function MealItemRow({
   const detail = [amount, showMacros ? macros : null]
     .filter((line) => line != null)
     .join(" · ");
+  const nameClass = cn(
+    "min-w-0 font-medium",
+    expanded ? "text-lg" : "text-base",
+    wrapName ? "break-words" : "flex-1 truncate",
+  );
+
   const body = expanded ? (
     <>
-      <p className="min-w-0 truncate text-lg font-medium">{item.name}</p>
+      <p className={nameClass}>{item.name}</p>
       {amount ? (
         <p className="text-sm text-muted-foreground tabular-nums">{amount}</p>
       ) : null}
@@ -55,21 +64,45 @@ export function MealItemRow({
       ) : null}
     </>
   ) : item.lump ? (
-    <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
-      <span className="min-w-0 flex-1 truncate text-base font-medium">
-        {item.name}
+    wrapName ? (
+      <span className="flex w-full min-w-0 flex-col gap-0.5">
+        <span className={nameClass}>{item.name}</span>
+        {detail ? (
+          <span className="self-end text-sm text-muted-foreground tabular-nums">
+            {detail}
+          </span>
+        ) : null}
       </span>
-      {detail ? (
-        <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
-          {detail}
-        </span>
-      ) : null}
+    ) : (
+      <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
+        <span className={nameClass}>{item.name}</span>
+        {detail ? (
+          <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
+            {detail}
+          </span>
+        ) : null}
+      </span>
+    )
+  ) : wrapName ? (
+    <span className="flex w-full min-w-0 flex-col gap-0.5">
+      <span className={nameClass}>{item.name}</span>
+      <AlignedPair
+        className="grid-cols-[4.75rem_3.5rem] self-end"
+        leading={
+          <span className="text-sm font-medium text-muted-foreground">
+            {formatGrams(item.grams)} г
+          </span>
+        }
+        trailing={
+          <span className="text-base font-semibold">
+            {formatKcal(item.kcal)}
+          </span>
+        }
+      />
     </span>
   ) : (
     <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
-      <span className="min-w-0 flex-1 truncate text-base font-medium">
-        {item.name}
-      </span>
+      <span className={nameClass}>{item.name}</span>
       <AlignedPair
         className="grid-cols-[4.75rem_3.5rem]"
         leading={

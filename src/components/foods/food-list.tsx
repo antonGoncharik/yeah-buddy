@@ -43,12 +43,15 @@ export function FoodList({
   onSelectFood,
   showFavorite = true,
   onToggleFavorite,
+  wrapNames = false,
 }: {
   foods: Food[];
   hrefForFood?: (food: Food) => string;
   onSelectFood?: (food: Food) => void;
   showFavorite?: boolean;
   onToggleFavorite?: (food: Food) => void;
+  /** Full product names (multi-line) instead of a single truncated line. */
+  wrapNames?: boolean;
 }) {
   const favoriteVisible = showFavorite && onToggleFavorite;
   const { density } = useDiaryDensity();
@@ -68,14 +71,14 @@ export function FoodList({
               className={rowClass}
               onClick={() => onSelectFood(food)}
             >
-              <FoodListBody food={food} />
+              <FoodListBody food={food} wrapNames={wrapNames} />
             </button>
           ) : (
             <Link
               href={hrefForFood ? hrefForFood(food) : `/food/${food.id}`}
               className={rowClass}
             >
-              <FoodListBody food={food} />
+              <FoodListBody food={food} wrapNames={wrapNames} />
             </Link>
           )}
           {favoriteVisible ? (
@@ -109,10 +112,12 @@ export function CatalogFoodList({
   foods,
   pendingId,
   onSelectFood,
+  wrapNames = true,
 }: {
   foods: CatalogFood[];
   pendingId?: string | null;
   onSelectFood: (food: CatalogFood) => void;
+  wrapNames?: boolean;
 }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
@@ -130,7 +135,7 @@ export function CatalogFoodList({
             disabled={pendingId === food.id}
             onClick={() => onSelectFood(food)}
           >
-            <FoodListBody food={food} />
+            <FoodListBody food={food} wrapNames={wrapNames} />
           </button>
         </li>
       ))}
@@ -138,7 +143,13 @@ export function CatalogFoodList({
   );
 }
 
-function FoodListBody({ food }: { food: FoodRowData }) {
+function FoodListBody({
+  food,
+  wrapNames,
+}: {
+  food: FoodRowData;
+  wrapNames: boolean;
+}) {
   const { density } = useDiaryDensity();
   const expanded = density === "expanded";
   const yieldPair = parseFoodYield({
@@ -171,11 +182,21 @@ function FoodListBody({ food }: { food: FoodRowData }) {
   return (
     <>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-base font-medium">
+        <span
+          className={cn(
+            "block text-base font-medium",
+            wrapNames ? "break-words" : "truncate",
+          )}
+        >
           {food.name}
         </span>
         {subtitle || expanded ? (
-          <span className="block truncate text-sm text-muted-foreground">
+          <span
+            className={cn(
+              "block text-sm text-muted-foreground",
+              wrapNames ? "break-words" : "truncate",
+            )}
+          >
             {subtitle ? `${subtitle}${expanded ? " · " : ""}` : null}
             {expanded
               ? `Б ${formatMacro(food.protein_per_100)} · Ж ${formatMacro(food.fat_per_100)} · У ${formatMacro(food.carbs_per_100)}`
