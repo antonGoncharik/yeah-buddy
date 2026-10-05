@@ -13,6 +13,8 @@ import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
+import { ProductDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
@@ -182,9 +184,10 @@ export function PlateFoodPicker({
           ) : null}
 
           {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
-            <p className="py-10 text-center text-muted-foreground">
-              {foodSearchEmptyLine(query, filter)}
-            </p>
+            <EmptyNote
+              icon={<ProductDoodle className="size-6" />}
+              title={foodSearchEmptyLine(query, filter)}
+            />
           ) : null}
 
           {!loading && !error && visibleFoods.length > 0 ? (
