@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { FoodForm } from "@/components/foods/food-form";
-import { AppHeader } from "@/components/layout/app-header";
+import { FoodFormShell } from "@/components/foods/food-form-shell";
 import { calendarToday, isIsoDate, withDateQuery } from "@/lib/day/dates";
 import { isDayType, isMealType } from "@/lib/nutrition";
 
@@ -33,15 +33,9 @@ export function NewFoodScreen() {
       : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
-      <AppHeader title="Новый продукт" backHref={backHref} />
-      <div className="px-4 pb-4">
-        <FoodForm
-          afterCreateHref={afterCreateHref}
-          compact={backHref === "/foods"}
-        />
-      </div>
-    </div>
+    <FoodFormShell title="Новый продукт" backHref={backHref}>
+      <FoodForm afterCreateHref={afterCreateHref} />
+    </FoodFormShell>
   );
 }
 

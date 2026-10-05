@@ -14,17 +14,13 @@ import { Input } from "@/components/ui/input";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { Food } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export function FoodForm({
   food,
   afterCreateHref,
-  compact = false,
 }: {
   food?: Food;
   afterCreateHref?: (foodId: string) => string;
-  /** Tighter layout for the catalog product card on small screens. */
-  compact?: boolean;
 }) {
   const {
     form,
@@ -43,61 +39,40 @@ export function FoodForm({
 
   return (
     <form
-      className={cn(
-        "animate-rise flex flex-col pb-[var(--app-field-scroll-pad)]",
-        compact ? "gap-2" : "gap-4",
-      )}
+      className="animate-rise flex flex-col gap-2.5 pb-[var(--app-field-scroll-pad)]"
       onSubmit={onSubmit}
     >
-      <FoodFormField label="Название" compact={compact}>
+      <FoodFormField label="Название">
         <Input
           required
           value={form.name}
           onChange={(event) => patch({ name: event.target.value })}
           onKeyDown={handleNumericEnter}
           enterKeyHint="next"
-          className={compact ? "h-10 text-base" : "h-12 text-base"}
+          className="h-11 text-base"
         />
       </FoodFormField>
 
       <FoodStatePicker
         value={form.state}
-        compact={compact}
         onChange={(state) => patch({ state })}
       />
 
-      <label
-        className={cn(
-          "flex items-center gap-2 font-medium",
-          compact ? "min-h-9 text-sm" : "min-h-12 gap-3 text-base",
-        )}
-      >
+      <label className="flex min-h-10 items-center gap-2 text-sm font-medium">
         <input
           type="checkbox"
           checked={form.is_favorite}
           onChange={(event) => patch({ is_favorite: event.target.checked })}
-          className={compact ? "size-4" : "size-5"}
+          className="size-4"
         />
         Избранное
       </label>
 
-      {compact ? null : (
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Как на пачке: белок, жир, углеводы на 100 г. Пример: творог 5% — 17 /
-          5 / 2, порция 150 г.
-        </p>
-      )}
+      <FoodMacrosFields form={form} autoKcal={autoKcal} onChange={patch} />
 
-      <FoodMacrosFields
-        form={form}
-        autoKcal={autoKcal}
-        compact={compact}
-        onChange={patch}
-      />
-
-      <FoodFormField label="Порция, г" compact={compact}>
+      <FoodFormField label="Порция, г">
         <GramsStepperInput
-          size={compact ? "sm" : "md"}
+          size="md"
           value={form.default_portion_g}
           aria-label="Порция, г"
           onChange={(value) =>
@@ -109,7 +84,7 @@ export function FoodForm({
         />
       </FoodFormField>
 
-      <FoodYieldFields form={form} compact={compact} onChange={patch} />
+      <FoodYieldFields form={form} onChange={patch} />
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
@@ -117,10 +92,7 @@ export function FoodForm({
         <Button
           type="button"
           variant="ghost"
-          className={cn(
-            "text-destructive",
-            compact ? "mt-0 h-10 text-sm" : "mt-2 h-12 text-base",
-          )}
+          className="h-11 text-sm text-destructive"
           disabled={saving || deleting}
           onClick={() => void onDelete()}
         >
@@ -131,7 +103,7 @@ export function FoodForm({
       <StickyActions>
         <Button
           type="submit"
-          className={compact ? "h-12 text-base" : "h-14 text-lg"}
+          className="h-12 text-base"
           disabled={saving || deleting}
         >
           {saving ? "Сохранение…" : "Сохранить"}

@@ -9,20 +9,19 @@ import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { formatKcal } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
-import { cn } from "@/lib/utils";
+
+const INPUT_CLASS = "h-11 text-base";
 
 export function FoodFormField({
   label,
   children,
-  compact = false,
 }: {
   label: string;
   children: React.ReactNode;
-  compact?: boolean;
 }) {
   return (
-    <div className={cn("flex flex-col", compact ? "gap-0.5" : "gap-2")}>
-      <Label className={compact ? "text-sm" : "text-base"}>{label}</Label>
+    <div className="flex flex-col gap-1">
+      <Label className="text-sm">{label}</Label>
       {children}
     </div>
   );
@@ -31,27 +30,20 @@ export function FoodFormField({
 export function FoodStatePicker({
   value,
   onChange,
-  compact = false,
 }: {
   value: FoodState;
   onChange: (state: FoodState) => void;
-  compact?: boolean;
 }) {
   return (
-    <div className={cn("flex flex-col", compact ? "gap-1" : "gap-2")}>
-      <span className={cn("font-medium", compact ? "text-sm" : "text-base")}>
-        Состояние
-      </span>
-      <div className={cn("flex flex-wrap", compact ? "gap-1" : "gap-2")}>
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium">Состояние</span>
+      <div className="flex flex-wrap gap-1.5">
         {FOOD_STATES.map((state) => (
           <Button
             key={state}
             type="button"
             variant={value === state ? "secondary" : "outline"}
-            className={cn(
-              "px-2.5",
-              compact ? "h-8 text-xs" : "h-10 px-3 text-sm",
-            )}
+            className="h-9 px-2.5 text-xs"
             onClick={() => onChange(state)}
           >
             {FOOD_STATE_LABELS[state]}
@@ -66,26 +58,16 @@ export function FoodMacrosFields({
   form,
   autoKcal,
   onChange,
-  compact = false,
 }: {
   form: FoodFormState;
   autoKcal: number | null;
   onChange: (patch: Partial<FoodFormState>) => void;
-  compact?: boolean;
 }) {
-  const inputClass = compact ? "h-10 text-base" : "h-12 text-base";
-  const kcalHeight = compact ? "h-10" : "h-12";
-
   return (
-    <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-3")}>
+    <div className="flex flex-col gap-2">
       <p className="text-sm text-muted-foreground">На 100 г</p>
-      <div
-        className={cn(
-          "grid gap-2",
-          compact ? "grid-cols-4" : "grid-cols-2 gap-3",
-        )}
-      >
-        <FoodFormField label="Белки" compact={compact}>
+      <div className="grid grid-cols-4 gap-2">
+        <FoodFormField label="Белки">
           <Input
             required
             inputMode="decimal"
@@ -97,10 +79,10 @@ export function FoodMacrosFields({
               })
             }
             onKeyDown={handleNumericEnter}
-            className={inputClass}
+            className={INPUT_CLASS}
           />
         </FoodFormField>
-        <FoodFormField label="Жиры" compact={compact}>
+        <FoodFormField label="Жиры">
           <Input
             required
             inputMode="decimal"
@@ -112,10 +94,10 @@ export function FoodMacrosFields({
               })
             }
             onKeyDown={handleNumericEnter}
-            className={inputClass}
+            className={INPUT_CLASS}
           />
         </FoodFormField>
-        <FoodFormField label={compact ? "Угл." : "Углеводы"} compact={compact}>
+        <FoodFormField label="Угл.">
           <Input
             required
             inputMode="decimal"
@@ -127,19 +109,12 @@ export function FoodMacrosFields({
               })
             }
             onKeyDown={handleNumericEnter}
-            className={inputClass}
+            className={INPUT_CLASS}
           />
         </FoodFormField>
-        <div className={cn("flex flex-col", compact ? "gap-0.5" : "gap-2")}>
-          <span className={cn("font-medium", compact ? "text-sm" : "text-base")}>
-            Ккал
-          </span>
-          <p
-            className={cn(
-              "flex items-center text-base tabular-nums",
-              kcalHeight,
-            )}
-          >
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium">Ккал</span>
+          <p className="flex h-11 items-center text-base tabular-nums">
             {autoKcal == null ? "—" : formatKcal(autoKcal)}
           </p>
         </div>
@@ -151,34 +126,19 @@ export function FoodMacrosFields({
 export function FoodYieldFields({
   form,
   onChange,
-  compact = false,
 }: {
   form: FoodFormState;
   onChange: (patch: Partial<FoodFormState>) => void;
-  compact?: boolean;
 }) {
   if (form.state !== "raw" && form.state !== "dry") {
     return null;
   }
 
-  const inputClass = compact ? "h-10 text-base" : "h-12 text-base";
-
   return (
-    <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-3")}>
-      <p className={cn("font-medium", compact ? "text-sm" : "text-base")}>
-        Выход после приготовления
-      </p>
-      {compact ? null : (
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Шаблон в {form.state === "dry" ? "сухом," : "сыром,"} на тарелке можно
-          писать готовое. Пример: 150 → 110.
-        </p>
-      )}
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">Выход после приготовления</p>
       <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-        <FoodFormField
-          label={form.state === "dry" ? "Сухое, г" : "Сырое, г"}
-          compact={compact}
-        >
+        <FoodFormField label={form.state === "dry" ? "Сухое, г" : "Сырое, г"}>
           <Input
             inputMode="decimal"
             enterKeyHint="next"
@@ -189,18 +149,11 @@ export function FoodYieldFields({
               })
             }
             onKeyDown={handleNumericEnter}
-            className={inputClass}
+            className={INPUT_CLASS}
           />
         </FoodFormField>
-        <p
-          className={cn(
-            "text-muted-foreground",
-            compact ? "pb-2.5 text-base" : "pb-3 text-lg",
-          )}
-        >
-          →
-        </p>
-        <FoodFormField label="Готовое, г" compact={compact}>
+        <p className="pb-3 text-base text-muted-foreground">→</p>
+        <FoodFormField label="Готовое, г">
           <Input
             inputMode="decimal"
             enterKeyHint="done"
@@ -209,7 +162,7 @@ export function FoodYieldFields({
               onChange({ yield_to_g: sanitizeDecimalDraft(event.target.value) })
             }
             onKeyDown={handleNumericEnter}
-            className={inputClass}
+            className={INPUT_CLASS}
           />
         </FoodFormField>
       </div>

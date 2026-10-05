@@ -4,8 +4,8 @@ import { useParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { FoodForm } from "@/components/foods/food-form";
+import { FoodFormShell } from "@/components/foods/food-form-shell";
 import { NewFoodScreen } from "@/components/foods/new-food-screen";
-import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { readFoodPayload } from "@/lib/foods";
@@ -77,24 +77,21 @@ function EditFoodPage({ id }: { id: string }) {
   }, [id, reloadToken]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <AppHeader title="Продукт" backHref="/foods" />
-      <div className="px-4 pb-2">
-        {loading ? <ScreenLoading /> : null}
-        {!loading && error ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <p className="text-center font-medium">{error}</p>
-            <Button
-              className="h-12 min-w-40 text-base"
-              onClick={() => setReloadToken((value) => value + 1)}
-            >
-              Повторить
-            </Button>
-          </div>
-        ) : null}
-        {!loading && food ? <FoodForm food={food} compact /> : null}
-      </div>
-    </div>
+    <FoodFormShell title="Продукт" backHref="/foods">
+      {loading ? <ScreenLoading /> : null}
+      {!loading && error ? (
+        <div className="flex flex-col items-center gap-3 py-10">
+          <p className="text-center font-medium">{error}</p>
+          <Button
+            className="h-12 min-w-40 text-base"
+            onClick={() => setReloadToken((value) => value + 1)}
+          >
+            Повторить
+          </Button>
+        </div>
+      ) : null}
+      {!loading && food ? <FoodForm food={food} /> : null}
+    </FoodFormShell>
   );
 }
 
