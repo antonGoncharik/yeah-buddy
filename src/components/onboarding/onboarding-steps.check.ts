@@ -18,12 +18,12 @@ const empty = {
   replay: false,
 };
 
-const food = "sex,weight,goal,training_age,macros";
+const food = "body,goals";
 
 assertEqual(
   onboardingSteps(empty).join(),
   `guide,${food},ration,lifts,circle`,
-  "first run is guide, then one question per screen, ration, lifts, program",
+  "first run is guide, then body + goals, ration, lifts, program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
@@ -61,19 +61,11 @@ for (const step of ONBOARDING_FOOD_STEPS) {
   if (!listed.includes(step)) {
     throw new Error(`food step ${step} must stay in the first-run path`);
   }
-  if (step === "weight" || step === "macros") {
-    assertEqual(
-      onboardingStepNeedsNext(step),
-      true,
-      `${step} only advances with Дальше`,
-    );
-  } else {
-    assertEqual(
-      onboardingStepNeedsNext(step),
-      false,
-      `${step} advances on pick, not skip`,
-    );
-  }
+  assertEqual(
+    onboardingStepNeedsNext(step),
+    true,
+    `${step} only advances with Дальше`,
+  );
 }
 
 assertEqual(onboardingStepNeedsNext("ration"), true, "ration needs Дальше");
@@ -85,9 +77,9 @@ assertEqual(
 assertEqual(onboardingStepNeedsNext("lifts"), true, "lifts needs Дальше");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(
-  onboardingSteps({ ...empty, replay: true }).includes("sex"),
+  onboardingSteps({ ...empty, replay: true }).includes("body"),
   true,
-  "replay still walks sex → macros before lifts",
+  "replay still walks body → goals before lifts",
 );
 
 console.log("onboarding steps ok");

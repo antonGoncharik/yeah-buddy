@@ -58,7 +58,8 @@ export function OnboardingRationStep({
     >
       <p className="text-base text-muted-foreground">
         Готовый день из продуктов, которые уже есть. Граммы подгоним под твои
-        цифры. Потом можно сменить в настройках.
+        цифры. Обычный рацион уже выбран — можно сразу дальше. Потом сменишь в
+        Настройках → «Еда на день».
       </p>
       <RationCards
         selected={ration}

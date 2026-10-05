@@ -23,15 +23,17 @@ export function OnboardingSexStep({
   replay,
   fromWorkoutPack,
   onPick,
+  showLead = true,
 }: {
   sex: OnboardingSex | null;
   replay: boolean;
   fromWorkoutPack: boolean;
   onPick: (value: OnboardingSex) => void;
+  showLead?: boolean;
 }) {
   return (
     <>
-      {sexLead(replay, fromWorkoutPack) ? (
+      {showLead && sexLead(replay, fromWorkoutPack) ? (
         <p
           className="animate-rise text-base text-muted-foreground"
           style={{ animationDelay: "40ms" }}
@@ -252,4 +254,102 @@ function sexLead(replay: boolean, fromWorkoutPack: boolean): string | null {
     return "Заново посчитаем белок и калории. Еда на день и записи останутся на месте.";
   }
   return null;
+}
+
+export function OnboardingBodyStep({
+  sex,
+  weight,
+  weightInvalid,
+  weightMessage,
+  replay,
+  fromWorkoutPack,
+  onSexPick,
+  onWeightChange,
+}: {
+  sex: OnboardingSex | null;
+  weight: string;
+  weightInvalid: boolean;
+  weightMessage: string | null;
+  replay: boolean;
+  fromWorkoutPack: boolean;
+  onSexPick: (value: OnboardingSex) => void;
+  onWeightChange: (value: string) => void;
+}) {
+  const lead = sexLead(replay, fromWorkoutPack);
+  return (
+    <div className="flex flex-col gap-4">
+      {lead ? (
+        <p
+          className="animate-rise text-base text-muted-foreground"
+          style={{ animationDelay: "40ms" }}
+        >
+          {lead}
+        </p>
+      ) : (
+        <p
+          className="animate-rise text-base text-muted-foreground"
+          style={{ animationDelay: "40ms" }}
+        >
+          За пару минут настроим белок и тренировки. Потом просто записывай еду
+          и зал.
+        </p>
+      )}
+      <OnboardingSexStep
+        sex={sex}
+        replay={replay}
+        fromWorkoutPack={fromWorkoutPack}
+        showLead={false}
+        onPick={onSexPick}
+      />
+      <OnboardingWeightStep
+        weight={weight}
+        invalid={weightInvalid}
+        message={weightMessage}
+        onChange={onWeightChange}
+      />
+    </div>
+  );
+}
+
+export function OnboardingGoalsStep({
+  goal,
+  trainingAge,
+  sex,
+  weight,
+  proteinOverride,
+  proteinInvalid,
+  onGoalPick,
+  onTrainingAgePick,
+  onProteinOverride,
+}: {
+  goal: OnboardingGoal | null;
+  trainingAge: UserTrainingAge | null;
+  sex: OnboardingSex | null;
+  weight: string;
+  proteinOverride: string | null;
+  proteinInvalid: boolean;
+  onGoalPick: (value: OnboardingGoal) => void;
+  onTrainingAgePick: (value: UserTrainingAge) => void;
+  onProteinOverride: (value: string | null) => void;
+}) {
+  const showMacros = trainingAge != null;
+  return (
+    <div className="flex flex-col gap-4">
+      <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
+      <OnboardingTrainingAgeStep
+        trainingAge={trainingAge}
+        onPick={onTrainingAgePick}
+      />
+      {showMacros ? (
+        <OnboardingMacrosStep
+          sex={sex}
+          weight={weight}
+          goal={goal}
+          proteinOverride={proteinOverride}
+          proteinInvalid={proteinInvalid}
+          onProteinOverride={onProteinOverride}
+        />
+      ) : null}
+    </div>
+  );
 }

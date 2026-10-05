@@ -2,21 +2,15 @@ import type { SharePackKind } from "@/lib/share/payload";
 
 export type OnboardingStep =
   | "guide"
-  | "sex"
-  | "weight"
-  | "goal"
-  | "training_age"
-  | "macros"
+  | "body"
+  | "goals"
   | "ration"
   | "lifts"
   | "circle";
 
 export const ONBOARDING_FOOD_STEPS = [
-  "sex",
-  "weight",
-  "goal",
-  "training_age",
-  "macros",
+  "body",
+  "goals",
 ] as const satisfies readonly OnboardingStep[];
 
 export type OnboardingFoodStepId = (typeof ONBOARDING_FOOD_STEPS)[number];
@@ -27,14 +21,20 @@ export function isOnboardingFoodStep(
   return (ONBOARDING_FOOD_STEPS as readonly string[]).includes(step);
 }
 
-/** Weight, macros and ration need «Дальше»; sex / goal / training age advance
- * on tap. Food steps are required — no in-step «Пропустить». Meal-pack flow
- * omits them from the step list entirely (`pendingKind === "meals"`). Replay
+/** Steps that count toward setup progress (excludes the optional guide). */
+export function onboardingSetupSteps(
+  steps: OnboardingStep[],
+): OnboardingStep[] {
+  return steps.filter((id) => id !== "guide");
+}
+
+/** Body, goals, ration and lifts need «Дальше»; circle uses cards or Готово.
+ * Meal-pack flow omits food steps (`pendingKind === "meals"`). Replay
  * recalculates protein and leaves the existing menu alone. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
   return (
-    step === "weight" ||
-    step === "macros" ||
+    step === "body" ||
+    step === "goals" ||
     step === "ration" ||
     step === "lifts" ||
     step === "circle"

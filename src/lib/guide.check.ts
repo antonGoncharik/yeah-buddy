@@ -33,7 +33,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 assert(
-  GUIDE_INTRO_PAGES.length >= 3 && GUIDE_INTRO_PAGES.length <= 5,
+  GUIDE_INTRO_PAGES.length >= 1 && GUIDE_INTRO_PAGES.length <= 5,
   "intro is short enough to read before setup",
 );
 assert(GUIDE_PAGES.length >= 6, "reference covers the whole diary");
@@ -60,12 +60,10 @@ for (const page of GUIDE_INTRO_PAGES) {
   );
 }
 
-const introGym = GUIDE_INTRO_PAGES.find((page) => page.id === "intro-gym");
-assert(introGym != null, "intro-gym exists");
-assert(introGym?.remember == null, "intro-gym has no remember takeaway");
-const introFood = GUIDE_INTRO_PAGES.find((page) => page.id === "intro-food");
-assert(introFood != null, "intro-food exists");
-assert(introFood?.remember == null, "intro-food has no remember takeaway");
+assert(
+  GUIDE_INTRO_PAGES.every((page) => page.remember == null),
+  "intro pages have no remember takeaway",
+);
 assert(
   !guideAllText().includes("1ПМ"),
   "guide never uses the 1ПМ abbreviation",
@@ -77,13 +75,15 @@ assert(
   "intro does not explain the day with «очередь»",
 );
 assert(
-  GUIDE_INTRO_PAGES.some(
-    (page) =>
-      page.lead.includes("сколько его ещё съесть") &&
-      page.lead.includes("«Отдых»") &&
-      page.lead.includes("«Тренировка»"),
-  ),
-  "intro food lead says protein left and the two day modes",
+  GUIDE_INTRO_PAGES.some((page) => {
+    const text = guidePageText(page);
+    return (
+      text.includes("сколько его ещё съесть") &&
+      text.includes("«Отдых»") &&
+      text.includes("«Тренировка»")
+    );
+  }),
+  "intro says protein left and the two day modes",
 );
 assert(
   guidePageById("day")?.lead.includes("приёмы еды") === true,

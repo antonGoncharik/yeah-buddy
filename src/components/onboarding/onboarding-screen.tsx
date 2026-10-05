@@ -12,19 +12,22 @@ import {
   type OnboardingProgramShelf,
 } from "@/components/onboarding/onboarding-circle-step";
 import {
-  OnboardingGoalStep,
-  OnboardingMacrosStep,
-  OnboardingSexStep,
-  OnboardingTrainingAgeStep,
-  OnboardingWeightStep,
+  OnboardingBodyStep,
+  OnboardingGoalsStep,
 } from "@/components/onboarding/onboarding-food-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
 import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
   type OnboardingStep,
+  onboardingSetupSteps,
   onboardingStepNeedsNext,
 } from "@/components/onboarding/onboarding-steps";
-import { useOnboardingScreen } from "@/components/onboarding/use-onboarding-screen";
+import {
+  SEX_REQUIRED,
+  useOnboardingScreen,
+  WEIGHT_INVALID,
+  WEIGHT_REQUIRED,
+} from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL } from "@/lib/guide";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -56,6 +59,8 @@ export function OnboardingScreen() {
     setCircle,
     goBack,
     goNext,
+    skipLifts,
+    pickRecommendedRation,
     weightInvalid,
     proteinInvalid,
     onSexPick,
@@ -99,9 +104,15 @@ export function OnboardingScreen() {
     return <GuideTour error={error} onDone={goNext} onSkip={goNext} />;
   }
 
+  const setupSteps = onboardingSetupSteps(steps);
+  const setupIndex = Math.max(0, setupSteps.indexOf(step));
   const showNext =
     step === "circle" ? pickingProgram : onboardingStepNeedsNext(step);
   const canLeaveStep = stepIndex > 0 || pickingProgram;
+  const bodyFieldError =
+    error === SEX_REQUIRED ||
+    error === WEIGHT_REQUIRED ||
+    error === WEIGHT_INVALID;
 
   function handleBack() {
     if (step === "circle" && pickingProgram) {
@@ -126,10 +137,10 @@ export function OnboardingScreen() {
           </button>
         ) : null}
         <div className="min-w-0 flex-1">
-          <StepDots
-            steps={steps.filter((id) => id !== "guide")}
-            current={step}
-          />
+          <p className="text-sm text-muted-foreground">
+            Настройка {setupIndex + 1} из {setupSteps.length}
+          </p>
+          <StepDots steps={setupSteps} current={step} />
           <h1
             key={step}
             className="mt-1 truncate text-2xl font-semibold tracking-tight animate-fade"
@@ -140,44 +151,34 @@ export function OnboardingScreen() {
       </header>
 
       <div key={step} className="flex flex-col gap-4 px-4">
-        {step === "sex" ? (
-          <OnboardingSexStep
+        {step === "body" ? (
+          <OnboardingBodyStep
             sex={sex}
+            weight={weight}
+            weightInvalid={weightInvalid}
+            weightMessage={bodyFieldError ? error : null}
             replay={replay}
             fromWorkoutPack={
               pendingKind === "workouts" || pendingProgramId != null
             }
-            onPick={onSexPick}
+            onSexPick={onSexPick}
+            onWeightChange={onWeightChange}
           />
         ) : null}
-
-        {step === "weight" ? (
-          <OnboardingWeightStep
-            weight={weight}
-            invalid={weightInvalid}
-            message={weightInvalid ? error : null}
-            onChange={onWeightChange}
-          />
+        {error === SEX_REQUIRED && step === "body" ? (
+          <p className="text-center text-base text-destructive">{error}</p>
         ) : null}
 
-        {step === "goal" ? (
-          <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
-        ) : null}
-
-        {step === "training_age" ? (
-          <OnboardingTrainingAgeStep
+        {step === "goals" ? (
+          <OnboardingGoalsStep
+            goal={goal}
             trainingAge={trainingAge}
-            onPick={onTrainingAgePick}
-          />
-        ) : null}
-
-        {step === "macros" ? (
-          <OnboardingMacrosStep
             sex={sex}
             weight={weight}
-            goal={goal}
             proteinOverride={proteinOverride}
             proteinInvalid={proteinInvalid}
+            onGoalPick={onGoalPick}
+            onTrainingAgePick={onTrainingAgePick}
             onProteinOverride={onProteinOverride}
           />
         ) : null}
@@ -211,7 +212,17 @@ export function OnboardingScreen() {
           />
         ) : null}
 
-        {error && step !== "weight" ? (
+        {error && step === "body" && !bodyFieldError ? (
+          <p className="animate-rise text-center text-base text-destructive">
+            {error}
+          </p>
+        ) : null}
+        {error && step !== "body" && step !== "goals" ? (
+          <p className="animate-rise text-center text-base text-destructive">
+            {error}
+          </p>
+        ) : null}
+        {error && step === "goals" && !proteinInvalid ? (
           <p className="animate-rise text-center text-base text-destructive">
             {error}
           </p>
@@ -220,6 +231,30 @@ export function OnboardingScreen() {
 
       {showNext ? (
         <StickyActions withNav={false}>
+          {step === "ration" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-12 w-full text-base"
+              data-keyboard-secondary
+              disabled={saving}
+              onClick={() => pickRecommendedRation()}
+            >
+              Рекомендуемый подойдёт
+            </Button>
+          ) : null}
+          {step === "lifts" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-12 w-full text-base"
+              data-keyboard-secondary
+              disabled={saving}
+              onClick={() => skipLifts()}
+            >
+              Не знаю цифры — в зале спрошу
+            </Button>
+          ) : null}
           <Button
             className="h-14 w-full text-lg"
             disabled={saving}
@@ -241,7 +276,7 @@ function StepDots({
   current: OnboardingStep;
 }) {
   return (
-    <div className="flex items-center gap-1.5" aria-hidden>
+    <div className="mt-2 flex items-center gap-1.5" aria-hidden>
       {steps.map((id) => (
         <span
           key={id}
@@ -259,20 +294,11 @@ function titleForStep(
   step: OnboardingStep,
   shelf: OnboardingProgramShelf | null,
 ): string {
-  if (step === "sex") {
-    return "Кто ты";
+  if (step === "body") {
+    return "Ты и вес";
   }
-  if (step === "weight") {
-    return "Вес, кг";
-  }
-  if (step === "goal") {
-    return "Цель";
-  }
-  if (step === "training_age") {
-    return "Стаж";
-  }
-  if (step === "macros") {
-    return "Твои цифры";
+  if (step === "goals") {
+    return "Цель и цифры";
   }
   if (step === "ration") {
     return "Еда на день";

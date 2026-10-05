@@ -77,7 +77,7 @@ export function useOnboardingScreen() {
   const [state, setState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<OnboardingStep>("sex");
+  const [step, setStep] = useState<OnboardingStep>("body");
   const [sex, setSex] = useState<OnboardingSex | null>(null);
   const [weight, setWeight] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
@@ -119,7 +119,7 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
-      setStep(replay ? "sex" : "guide");
+      setStep(replay ? "body" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
@@ -156,7 +156,7 @@ export function useOnboardingScreen() {
 
   useEffect(() => {
     if (!steps.includes(step)) {
-      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "sex"));
+      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "body"));
     }
   }, [step, steps]);
 
@@ -171,20 +171,13 @@ export function useOnboardingScreen() {
     }
   }, [stepIndex, steps]);
 
-  const advanceFrom = useCallback(
-    (from: OnboardingStep) => {
-      const index = steps.indexOf(from);
-      const following = steps[index + 1];
-      if (following) {
-        setError(null);
-        setStep(following);
-      }
-    },
-    [steps],
-  );
-
   function goNext(circleOverride?: OnboardingCircle) {
-    if (step === "weight") {
+    if (step === "body") {
+      if (sex == null) {
+        haptic("warn");
+        setError(SEX_REQUIRED);
+        return;
+      }
       if (weight.trim() === "") {
         haptic("warn");
         setError(WEIGHT_REQUIRED);
@@ -198,7 +191,17 @@ export function useOnboardingScreen() {
       setError(null);
     }
 
-    if (step === "macros") {
+    if (step === "goals") {
+      if (goal == null) {
+        haptic("warn");
+        setError(GOAL_REQUIRED);
+        return;
+      }
+      if (trainingAge == null) {
+        haptic("warn");
+        setError(TRAINING_AGE_REQUIRED);
+        return;
+      }
       if (!proteinValid(proteinValue)) {
         haptic("warn");
         setError(PROTEIN_INVALID);
@@ -229,31 +232,31 @@ export function useOnboardingScreen() {
       if (sex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
-        setStep("sex");
+        setStep("body");
         return;
       }
       if (!weightDraftOk(weight)) {
         haptic("warn");
         setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
-        setStep("weight");
+        setStep("body");
         return;
       }
       if (goal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
-        setStep("goal");
+        setStep("goals");
         return;
       }
       if (trainingAge == null) {
         haptic("warn");
         setError(TRAINING_AGE_REQUIRED);
-        setStep("training_age");
+        setStep("goals");
         return;
       }
       if (!proteinValid(proteinValue)) {
         haptic("warn");
         setError(PROTEIN_INVALID);
-        setStep("macros");
+        setStep("goals");
         return;
       }
     }
@@ -289,6 +292,19 @@ export function useOnboardingScreen() {
     }
   }
 
+  function skipLifts() {
+    setLifts(emptyLiftAnswers());
+    setError(null);
+    goNext();
+  }
+
+  function pickRecommendedRation() {
+    setRation(RECOMMENDED_RATION_ID);
+    setError(null);
+    haptic("tick");
+    goNext();
+  }
+
   return {
     loading,
     error,
@@ -313,12 +329,14 @@ export function useOnboardingScreen() {
     setCircle,
     goBack,
     goNext,
+    skipLifts,
+    pickRecommendedRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     proteinInvalid: error === PROTEIN_INVALID,
     onSexPick: (value: OnboardingSex) => {
       setSex(value);
       setProteinOverride(null);
-      advanceFrom("sex");
+      setError(null);
     },
     onWeightChange: (value: string) => {
       setError(null);
@@ -328,11 +346,11 @@ export function useOnboardingScreen() {
     onGoalPick: (value: OnboardingGoal) => {
       setGoal(value);
       setProteinOverride(null);
-      advanceFrom("goal");
+      setError(null);
     },
     onTrainingAgePick: (value: UserTrainingAge) => {
       setTrainingAge(value);
-      advanceFrom("training_age");
+      setError(null);
     },
     onLiftChange: (key: LiftKey, value: string | null) => {
       setError(null);
