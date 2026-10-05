@@ -1,6 +1,7 @@
 import {
   chromeBottomShift,
   contentSafeBottom,
+  contentSafeTop,
   extraBottomGap,
   isKeyboardOpen,
   keyboardOverlayInset,
@@ -86,6 +87,17 @@ assertEqual(
   0,
   "keyboard leftover is not a content inset",
 );
+assertEqual(contentSafeTop(0, false), 0, "non-fullscreen keeps zero top inset");
+assertEqual(
+  contentSafeTop(0, true),
+  56,
+  "fullscreen floors missing content top inset",
+);
+assertEqual(
+  contentSafeTop(60, true),
+  60,
+  "fullscreen keeps larger reported inset",
+);
 
 const vars = new Map<string, string>();
 const root = {
@@ -125,6 +137,24 @@ assertEqual(
   vars.get("--tg-safe-area-inset-bottom"),
   "34px",
   "device home indicator stays",
+);
+
+syncTelegramViewport(
+  {
+    onEvent() {},
+    offEvent() {},
+    isFullscreen: true,
+    contentSafeAreaInset: { top: 0, bottom: 0, left: 0, right: 0 },
+  },
+  root,
+  { layoutHeight: 852, visualBottom: 852, visualHeight: 852 },
+);
+
+assertEqual(root.dataset.tgFullscreen, "true", "fullscreen flag is exposed");
+assertEqual(
+  vars.get("--tg-content-safe-area-inset-top"),
+  "56px",
+  "fullscreen applies top inset floor",
 );
 
 console.log("telegram viewport ok");

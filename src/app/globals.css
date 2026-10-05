@@ -221,6 +221,7 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --theme-duration: 0.4s;
   --app-safe-top-extra: 1rem;
+  --app-tg-close-clearance: 0px;
   --app-safe-top: calc(
     max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) +
     var(--tg-content-safe-area-inset-top, 0px) +
@@ -512,6 +513,14 @@ html.dark[data-day="deload"] {
   padding-inline: 1rem;
   padding-bottom: 0.75rem;
   backdrop-filter: blur(10px);
+}
+
+html[data-tg-fullscreen] {
+  --app-tg-close-clearance: 4.75rem;
+}
+
+html[data-tg-fullscreen] .today-chrome {
+  padding-left: calc(1rem + var(--app-tg-close-clearance));
 }
 
 html[data-keyboard="open"] {

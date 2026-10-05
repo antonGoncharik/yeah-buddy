@@ -8,6 +8,7 @@ export type ViewportInset = {
 export type TelegramViewportSource = {
   ready?: () => void;
   viewportStableHeight?: number;
+  isFullscreen?: boolean;
   safeAreaInset?: ViewportInset;
   contentSafeAreaInset?: ViewportInset;
   onEvent: (event: string, callback: () => void) => void;
@@ -37,6 +38,8 @@ const KEYBOARD_SHRINK_MIN = 120;
 // MainButton / Android nav. Keyboard leftovers are hundreds of px and
 // would inflate the tab bar if added into --app-safe-bottom.
 const CONTENT_BOTTOM_MAX = 80;
+/** Telegram fullscreen header row when contentSafeAreaInset.top is missing. */
+const FULLSCREEN_CONTENT_TOP_MIN = 56;
 
 export function extraBottomGap(
   layoutHeight: number,
@@ -76,6 +79,16 @@ export function keyboardOverlayInset(
     return 0;
   }
   return Math.round(gap);
+}
+
+export function contentSafeTop(value: number, fullscreen: boolean): number {
+  if (!Number.isFinite(value) || value < 0) {
+    value = 0;
+  }
+  if (!fullscreen) {
+    return Math.round(value);
+  }
+  return Math.max(Math.round(value), FULLSCREEN_CONTENT_TOP_MIN);
 }
 
 export function contentSafeBottom(value: number): number {
@@ -174,6 +187,12 @@ export function syncTelegramViewport(
   const { layoutHeight, visualBottom, visualHeight, baselineHeight } = sizes;
   const style = root.style;
   const stable = webApp.viewportStableHeight;
+  const fullscreen = webApp.isFullscreen === true;
+  if (fullscreen) {
+    root.dataset.tgFullscreen = "true";
+  } else {
+    delete root.dataset.tgFullscreen;
+  }
   const chrome =
     typeof stable === "number" && Number.isFinite(stable) && stable > 0
       ? chromeBottomShift(layoutHeight, stable)
@@ -203,11 +222,19 @@ export function syncTelegramViewport(
   if (webApp.contentSafeAreaInset) {
     for (const side of SIDES) {
       const inset = readInset(webApp.contentSafeAreaInset, side);
-      style.setProperty(
-        `--tg-content-safe-area-inset-${side}`,
-        asPx(side === "bottom" ? contentSafeBottom(inset) : inset),
-      );
+      const value =
+        side === "bottom"
+          ? contentSafeBottom(inset)
+          : side === "top"
+            ? contentSafeTop(inset, fullscreen)
+            : inset;
+      style.setProperty(`--tg-content-safe-area-inset-${side}`, asPx(value));
     }
+  } else if (fullscreen) {
+    style.setProperty(
+      "--tg-content-safe-area-inset-top",
+      asPx(FULLSCREEN_CONTENT_TOP_MIN),
+    );
   }
 
   const overlay =

@@ -105,6 +105,7 @@ export function TodayScreen({
       <div className="today-chrome">
         <AppHeader
           className="px-0 py-2.5"
+          titleAlign="center"
           title={titleDate}
           subtitle={
             viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
