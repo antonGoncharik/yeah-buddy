@@ -98,6 +98,11 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
+            {canEditSets && session.status === "planned" ? (
+              <p className="text-sm text-muted-foreground">
+                Правки подходов сохранятся, когда нажмёшь «Готово».
+              </p>
+            ) : null}
             <SessionExerciseList
               detail={detail}
               busy={busy}
