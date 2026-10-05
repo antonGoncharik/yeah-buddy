@@ -1,19 +1,14 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
-import type { ReactNode } from "react";
-
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
 import { useGramsScreen } from "@/components/day/use-grams-screen";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GramsStepperInput } from "@/components/ui/grams-stepper";
 import type { FoodYield } from "@/lib/food/yield";
-import { formatYieldGrams, stepYieldGrams } from "@/lib/food/yield";
-import { handleNumericEnter } from "@/lib/form/field-nav";
+import { formatYieldGrams } from "@/lib/food/yield";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
-import { haptic } from "@/lib/telegram/haptic";
 import type { FoodState } from "@/lib/types";
 
 export {
@@ -102,36 +97,11 @@ export function GramsScreen({
             </span>
           </p>
         ) : (
-          <>
-            <GramStep
-              label="Меньше"
-              onClick={() => {
-                haptic("tick");
-                grams.setGramsInput(stepYieldGrams(grams.gramsInput, -1));
-              }}
-            >
-              <Minus className="size-5" />
-            </GramStep>
-            <Input
-              inputMode="decimal"
-              enterKeyHint="done"
-              value={grams.gramsInput}
-              aria-label="Граммы"
-              aria-invalid={grams.error ? true : undefined}
-              onChange={(event) => grams.setGramsInput(event.target.value)}
-              onKeyDown={handleNumericEnter}
-              className="h-14 min-w-0 flex-1 px-2 text-center text-2xl font-semibold tabular-nums"
-            />
-            <GramStep
-              label="Больше"
-              onClick={() => {
-                haptic("tick");
-                grams.setGramsInput(stepYieldGrams(grams.gramsInput, 1));
-              }}
-            >
-              <Plus className="size-5" />
-            </GramStep>
-          </>
+          <GramsStepperInput
+            value={grams.gramsInput}
+            onChange={grams.setGramsInput}
+            aria-invalid={grams.error ? true : undefined}
+          />
         )}
       </div>
 
@@ -181,26 +151,5 @@ export function GramsScreen({
         </StickyActions>
       )}
     </form>
-  );
-}
-
-function GramStep({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-muted/60"
-      onClick={onClick}
-    >
-      {children}
-    </button>
   );
 }

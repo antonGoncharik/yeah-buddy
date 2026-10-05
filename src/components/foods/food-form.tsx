@@ -9,6 +9,7 @@ import {
 import { useFoodForm } from "@/components/foods/use-food-form";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
+import { GramsStepperInput } from "@/components/ui/grams-stepper";
 import { Input } from "@/components/ui/input";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
@@ -75,18 +76,16 @@ export function FoodForm({
       <FoodMacrosFields form={form} autoKcal={autoKcal} onChange={patch} />
 
       <FoodFormField label="Порция, г">
-        <Input
-          inputMode="decimal"
-          enterKeyHint="next"
+        <GramsStepperInput
+          size="md"
           value={form.default_portion_g}
-          onChange={(event) =>
+          aria-label="Порция, г"
+          onChange={(value) =>
             patch({
-              default_portion_g: sanitizeDecimalDraft(event.target.value),
+              default_portion_g: sanitizeDecimalDraft(value),
               default_portion_label: "",
             })
           }
-          onKeyDown={handleNumericEnter}
-          className="h-12 text-base"
         />
       </FoodFormField>
 
