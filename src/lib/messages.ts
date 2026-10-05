@@ -72,6 +72,17 @@ export const STARTER_CATALOG_NOTE = "";
 export const DAY_EXISTS_REPLACE = "Заменить день?";
 export const MEAL_EXISTS_REPLACE = "Заменить приём?";
 
+export function switchDayTypeMessage(input: {
+  toTraining: boolean;
+  canSwapMeals: boolean;
+}): string {
+  const target = input.toTraining ? "тренировочным" : "днём отдыха";
+  if (input.canSwapMeals) {
+    return `Сменить на ${target}? «Подставить из шаблона» заменит приёмы. «Только цели» оставит записанную еду.`;
+  }
+  return `Сменить на ${target}? Записанная еда останется, цели пересчитаются.`;
+}
+
 export function switchRestToTrainingMessage(input: {
   isToday: boolean;
   swapMeals: boolean;

@@ -24,7 +24,7 @@ import {
 } from "@/lib/day/optimistic";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
-import { LOAD_FAILED } from "@/lib/messages";
+import { LOAD_FAILED, switchDayTypeMessage } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealItem } from "@/lib/types";
@@ -90,12 +90,43 @@ export function useTodayDayActions({
       return;
     }
 
+    const hasFood = day.meals.some((meal) => meal.items.length > 0);
     const recipes = readRecipes(peekJson(daysUrl(date)));
     const currentRecipe = day.is_training_day ? recipes.training : recipes.rest;
     const swap = mealsMatchRecipe(day.meals, currentRecipe);
     const template = peekTemplate(dayType);
+    const canSwapMeals = Boolean(hasFood && swap && template);
+
+    let replaceMeals = canSwapMeals;
+    if (hasFood) {
+      if (canSwapMeals) {
+        const useTemplate = await confirm({
+          message: switchDayTypeMessage({
+            toTraining: dayType === "training",
+            canSwapMeals: true,
+          }),
+          confirmLabel: "Подставить из шаблона",
+          cancelLabel: "Только цели",
+        });
+        replaceMeals = useTemplate;
+      } else {
+        const ok = await confirm({
+          message: switchDayTypeMessage({
+            toTraining: dayType === "training",
+            canSwapMeals: false,
+          }),
+          confirmLabel: "Сменить",
+          cancelLabel: "Отмена",
+        });
+        if (!ok) {
+          return;
+        }
+        replaceMeals = false;
+      }
+    }
+
     let optimistic = withDayType(day, dayType, targetsFromCache(dayType));
-    if (swap && template) {
+    if (replaceMeals && template) {
       optimistic = replaceItemsFromTemplate(optimistic, template);
     }
 
