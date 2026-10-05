@@ -220,9 +220,11 @@
   --wallpaper-ink: transparent;
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --theme-duration: 0.4s;
+  --app-safe-top-extra: 0.75rem;
   --app-safe-top: calc(
     max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px)) +
-    var(--tg-content-safe-area-inset-top, 0px)
+    var(--tg-content-safe-area-inset-top, 0px) +
+    var(--app-safe-top-extra)
   );
   --app-safe-bottom: min(
     6rem,
