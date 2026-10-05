@@ -229,14 +229,16 @@ export function ScreenError({
   onRetry,
 }: {
   message: string;
-  onRetry: () => void;
+  onRetry?: () => void;
 }) {
   return (
     <div className="animate-rise flex flex-col items-center gap-3 py-10">
       <p className="text-center text-lg font-medium">{message}</p>
-      <Button className="h-12 min-w-40 text-base" onClick={onRetry}>
-        Повторить
-      </Button>
+      {onRetry ? (
+        <Button className="h-12 min-w-40 text-base" onClick={onRetry}>
+          Повторить
+        </Button>
+      ) : null}
     </div>
   );
 }
