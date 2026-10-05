@@ -22,22 +22,18 @@ import { Segmented } from "@/components/ui/segmented";
 import { cachedGet, writeJson } from "@/lib/api-cache";
 import { foodSearchEmptyLine } from "@/lib/flavor";
 import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
+import {
+  FOOD_LIST_FILTER_TABS,
+  type FoodListFilterTab,
+} from "@/lib/food/list-filters";
 import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { cn } from "@/lib/utils";
 
-type Filter = "all" | "favorites" | "recent";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "all", label: "Все" },
-  { id: "favorites", label: "Избранное" },
-  { id: "recent", label: "Недавние" },
-];
-
 export function FoodsScreen() {
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<FoodListFilterTab>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
   const { loading, begin, done, reset } = useFirstLoad();
@@ -48,7 +44,7 @@ export function FoodsScreen() {
   const [starterOnly, setStarterOnly] = useState(false);
 
   const load = useCallback(
-    async (nextFilter: Filter) => {
+    async (nextFilter: FoodListFilterTab) => {
       begin();
       setError(null);
 
@@ -108,7 +104,11 @@ export function FoodsScreen() {
         {search || !starterOnly ? null : <StarterCatalogNote />}
 
         {search ? null : (
-          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+          <Segmented
+            value={filter}
+            options={FOOD_LIST_FILTER_TABS}
+            onChange={setFilter}
+          />
         )}
       </div>
 

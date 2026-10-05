@@ -20,20 +20,16 @@ import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
 import { foodMatchesQuery, ownsBarcode } from "@/lib/food/catalog-map";
 import {
+  FOOD_LIST_FILTER_TABS,
+  type FoodListFilterTab,
+} from "@/lib/food/list-filters";
+import {
   type FavoriteOffer,
   readFavoriteOffers,
 } from "@/lib/food/favorite-offer";
 import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { Food } from "@/lib/types";
-
-type Filter = "favorites" | "recent" | "all";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "favorites", label: "Избранное" },
-  { id: "recent", label: "Недавние" },
-  { id: "all", label: "Все" },
-];
 
 export function PlateFoodPicker({
   title,
@@ -44,7 +40,7 @@ export function PlateFoodPicker({
   onPick: (food: Food) => void;
   onClose: () => void;
 }) {
-  const [filter, setFilter] = useState<Filter>("favorites");
+  const [filter, setFilter] = useState<FoodListFilterTab>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
   const [offers, setOffers] = useState<FavoriteOffer[]>([]);
@@ -59,7 +55,7 @@ export function PlateFoodPicker({
   const [shopHits, setShopHits] = useState(false);
   const [starterOnly, setStarterOnly] = useState(false);
 
-  const load = useCallback(async (nextFilter: Filter) => {
+  const load = useCallback(async (nextFilter: FoodListFilterTab) => {
     const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
@@ -144,7 +140,11 @@ export function PlateFoodPicker({
         />
         {search || !starterOnly ? null : <StarterCatalogNote />}
         {search ? null : (
-          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+          <Segmented
+            value={filter}
+            options={FOOD_LIST_FILTER_TABS}
+            onChange={setFilter}
+          />
         )}
         {search || !favoriteOffer.offer ? null : (
           <FavoriteOfferCard

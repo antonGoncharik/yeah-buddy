@@ -21,6 +21,8 @@ import { FoodList } from "@/components/foods/food-list";
 import { FoodSearch } from "@/components/foods/food-search";
 import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
+import { ProductDoodle } from "@/components/layout/doodles";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
@@ -33,20 +35,16 @@ import {
   type FavoriteOffer,
   readFavoriteOffers,
 } from "@/lib/food/favorite-offer";
+import {
+  FOOD_LIST_FILTER_TABS,
+  type FoodListFilterTab,
+} from "@/lib/food/list-filters";
 import { quickAddGrams } from "@/lib/food/quick-add";
 import { parseFoodList, readStarterOnly } from "@/lib/foods";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-type Filter = "favorites" | "recent" | "all";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "favorites", label: "Избранное" },
-  { id: "recent", label: "Недавние" },
-  { id: "all", label: "Все" },
-];
 
 export function AddMealItemScreen({
   foodHrefBase,
@@ -70,7 +68,7 @@ export function AddMealItemScreen({
   startScan?: boolean;
 }) {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("favorites");
+  const [filter, setFilter] = useState<FoodListFilterTab>("favorites");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
   const [offers, setOffers] = useState<FavoriteOffer[]>([]);
@@ -78,7 +76,7 @@ export function AddMealItemScreen({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
-  const loadedFilterRef = useRef<Filter | null>(null);
+  const loadedFilterRef = useRef<FoodListFilterTab | null>(null);
   const skippedEmptyFavorites = useRef(false);
   const favoriteOffer = useFavoriteOffer(offers);
   const [shopHits, setShopHits] = useState(false);
@@ -98,7 +96,7 @@ export function AddMealItemScreen({
     window.history.replaceState(null, "", next);
   }, [startScan]);
 
-  const load = useCallback(async (nextFilter: Filter, showLoading = false) => {
+  const load = useCallback(async (nextFilter: FoodListFilterTab, showLoading = false) => {
     const requestId = ++requestIdRef.current;
     if (showLoading || loadedFilterRef.current !== nextFilter) {
       setLoading(true);
@@ -213,7 +211,11 @@ export function AddMealItemScreen({
         {search || !starterOnly ? null : <StarterCatalogNote />}
 
         {search ? null : (
-          <Segmented value={filter} options={FILTERS} onChange={setFilter} />
+          <Segmented
+            value={filter}
+            options={FOOD_LIST_FILTER_TABS}
+            onChange={setFilter}
+          />
         )}
         {search || !favoriteOffer.offer ? null : (
           <FavoriteOfferCard
@@ -265,9 +267,10 @@ export function AddMealItemScreen({
         ) : null}
 
         {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
-          <p className="py-10 text-center text-muted-foreground">
-            {foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))}
-          </p>
+          <EmptyNote
+            icon={<ProductDoodle className="size-6" />}
+            title={foodSearchEmptyLine(search, filter, Boolean(lumpHrefBase))}
+          />
         ) : null}
 
         {!loading && !error && visibleFoods.length > 0 ? (
