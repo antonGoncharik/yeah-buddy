@@ -3,8 +3,11 @@
 import { Minus, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  draftFromPlan,
+  draftMatchesPlan,
   parseRir,
   type SetDraft,
   stepDraftValue,
@@ -19,7 +22,10 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
-import { setUsesSeconds } from "@/lib/workout/session-format";
+import {
+  formatSetLine,
+  setUsesSeconds,
+} from "@/lib/workout/session-format";
 
 const HOLD_STEP_SECONDS = 5;
 const RESERVE_CHOICES = [0, 1, 2, 3] as const;
@@ -31,6 +37,8 @@ export function SessionSetEditor({
   groupCount,
   weightStep,
   onDraft,
+  onAdvance,
+  hasNextSet = false,
 }: {
   set: WorkoutSet;
   draft: SetDraft;
@@ -38,6 +46,8 @@ export function SessionSetEditor({
   groupCount: number;
   weightStep: number;
   onDraft: (patch: Partial<SetDraft>) => void;
+  onAdvance?: () => void;
+  hasNextSet?: boolean;
 }) {
   const withRir = set.set_type === "work";
   const timed = setUsesSeconds(set);
@@ -45,6 +55,8 @@ export function SessionSetEditor({
     groupCount > 1 ? `${groupCount} ${setCountWord(groupCount)}` : null;
   const typedReserve = parseRir(draft.rir);
   const shownReserve = typedReserve ?? set.planned_rir;
+  const planLine = formatSetLine(set);
+  const offPlan = !draftMatchesPlan(set, draft);
 
   function step(kind: "weight" | "reps" | "seconds", direction: -1 | 1) {
     haptic("tick");
@@ -76,9 +88,12 @@ export function SessionSetEditor({
         {groupTitle ? (
           <p className="text-sm text-muted-foreground">{groupTitle}</p>
         ) : null}
-        <div className="grid grid-cols-2 gap-3">
+        <p className="text-sm text-muted-foreground">
+          План: <span className="tabular-nums">{planLine}</span>
+        </p>
+        <div className="flex flex-col gap-3">
           <Stepper
-            label="кг"
+            label="Вес, кг"
             value={draft.weight}
             disabled={disabled}
             inputMode="decimal"
@@ -88,7 +103,7 @@ export function SessionSetEditor({
           />
           {timed ? (
             <Stepper
-              label="сек"
+              label="Удержание, сек"
               value={draft.seconds}
               disabled={disabled}
               inputMode="decimal"
@@ -98,7 +113,7 @@ export function SessionSetEditor({
             />
           ) : (
             <Stepper
-              label="раз"
+              label="Повторы"
               value={draft.reps}
               disabled={disabled}
               inputMode="numeric"
@@ -116,7 +131,9 @@ export function SessionSetEditor({
         ) : null}
         {withRir ? (
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">запас</span>
+            <span className="text-xs text-muted-foreground">
+              Сколько повторов ещё мог(ла)
+            </span>
             <div className="grid grid-cols-4 gap-1.5">
               {RESERVE_CHOICES.map((choice) => {
                 const selected = shownReserve === choice;
@@ -147,6 +164,35 @@ export function SessionSetEditor({
                 );
               })}
             </div>
+          </div>
+        ) : null}
+        {!disabled && (offPlan || onAdvance) ? (
+          <div className="flex flex-col gap-2 pt-1">
+            {offPlan ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full text-base"
+                onClick={() => {
+                  haptic("tap");
+                  onDraft(draftFromPlan(set));
+                }}
+              >
+                По плану
+              </Button>
+            ) : null}
+            {onAdvance ? (
+              <Button
+                type="button"
+                className="h-11 w-full text-base"
+                onClick={() => {
+                  haptic("commit");
+                  onAdvance();
+                }}
+              >
+                {hasNextSet ? "Следующий подход" : "Готово"}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -185,14 +231,14 @@ function Stepper({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-1">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-1.5">
         <StepButton
           label={`Меньше, ${label}`}
           disabled={disabled}
           onClick={() => onStep(-1)}
         >
-          <Minus className="size-4" />
+          <Minus className="size-5" />
         </StepButton>
         <Input
           inputMode={inputMode}
@@ -207,7 +253,7 @@ function Stepper({
             )
           }
           onKeyDown={handleNumericEnter}
-          className="h-11 min-w-0 flex-1 px-1 text-center text-lg font-semibold tabular-nums"
+          className="h-12 min-w-0 flex-1 px-2 text-center text-xl font-semibold tabular-nums"
           aria-label={label}
         />
         <StepButton
@@ -215,7 +261,7 @@ function Stepper({
           disabled={disabled}
           onClick={() => onStep(1)}
         >
-          <Plus className="size-4" />
+          <Plus className="size-5" />
         </StepButton>
       </div>
     </div>
@@ -238,7 +284,7 @@ function StepButton({
       type="button"
       aria-label={label}
       disabled={disabled}
-      className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-background disabled:opacity-50"
+      className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-background disabled:opacity-50"
       onClick={onClick}
     >
       {children}

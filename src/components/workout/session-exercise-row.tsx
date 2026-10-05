@@ -115,10 +115,24 @@ export function SessionExerciseRow({
     }
   }, [recordLine]);
 
+  function advanceSet(set: WorkoutSet) {
+    const list = set.set_type === "warmup" ? warmup : work;
+    const index = list.findIndex((row) => row.id === set.id);
+    if (index < 0) {
+      onOpenSets([]);
+      return;
+    }
+    const next = list[index + 1];
+    onOpenSets(next ? [next.id] : []);
+  }
+
   function renderEditor(set: WorkoutSet) {
     if (!leadSet || set.id !== leadSet.id) {
       return null;
     }
+    const list = set.set_type === "warmup" ? warmup : work;
+    const index = list.findIndex((row) => row.id === set.id);
+    const hasNextSet = index >= 0 && index < list.length - 1;
     return (
       <SessionSetEditor
         set={set}
@@ -126,6 +140,8 @@ export function SessionExerciseRow({
         disabled={disabled}
         groupCount={openSets.length}
         weightStep={item.exercise.weight_step}
+        hasNextSet={hasNextSet}
+        onAdvance={() => advanceSet(set)}
         onDraft={(patch) => {
           for (const open of openSets) {
             onDraft(open.id, patch);

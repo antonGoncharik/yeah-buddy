@@ -51,6 +51,26 @@ export function draftFromSet(set: WorkoutSet): SetDraft {
   };
 }
 
+/** Planned numbers only — for «По плану» while logging a live session. */
+export function draftFromPlan(set: WorkoutSet): SetDraft {
+  return {
+    weight: toDraft(set.planned_weight),
+    reps: toDraft(set.planned_reps),
+    seconds: toDraft(set.planned_seconds),
+    rir: toDraft(set.planned_rir),
+  };
+}
+
+export function draftMatchesPlan(set: WorkoutSet, draft: SetDraft): boolean {
+  const plan = draftFromPlan(set);
+  return (
+    draft.weight === plan.weight &&
+    draft.reps === plan.reps &&
+    draft.seconds === plan.seconds &&
+    draft.rir === plan.rir
+  );
+}
+
 /** RIR is a small whole number; anything else means «not logged». */
 export function parseRir(raw: string): number | null {
   const value = parseDecimal(raw);

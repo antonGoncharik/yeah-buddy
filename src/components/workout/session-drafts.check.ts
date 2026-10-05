@@ -1,7 +1,9 @@
 import {
   completeSetOverrides,
   draftChanged,
+  draftFromPlan,
   draftFromSet,
+  draftMatchesPlan,
   formatVisibleSetLine,
   stepDraftValue,
   visibleSetRirLabel,
@@ -104,6 +106,21 @@ const detail: SessionDetail = {
 };
 
 const untouched = draftFromSet(set);
+assertEqual(
+  draftMatchesPlan(set, untouched),
+  true,
+  "untouched draft matches plan",
+);
+assertEqual(
+  draftMatchesPlan(set, draftFromPlan(set)),
+  true,
+  "plan draft matches plan",
+);
+assertEqual(
+  draftMatchesPlan(set, { ...untouched, weight: "90" }),
+  false,
+  "edited weight is off plan",
+);
 assertEqual(draftChanged(set, untouched), false, "same draft is not dirty");
 assertEqual(
   draftChanged(set, { ...untouched, weight: "82.5" }),

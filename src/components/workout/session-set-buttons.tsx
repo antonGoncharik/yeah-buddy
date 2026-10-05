@@ -44,12 +44,26 @@ export function SessionSetButtons({
     <ol className="flex w-full flex-col gap-1">
       {sets.map((set, index) => {
         const open = openIds.includes(set.id);
-        const line = (
+        const line = open ? (
+          <>
+            <span className="w-5 shrink-0 text-sm font-medium tabular-nums text-primary">
+              {index + 1}
+            </span>
+            <span className="text-base font-medium text-primary">
+              {tone === "warmup" ? "Разминка" : "Подход"}
+            </span>
+            {rirLabels[index] ? (
+              <span className="text-sm text-muted-foreground">
+                · {rirLabels[index]}
+              </span>
+            ) : null}
+          </>
+        ) : (
           <>
             <span
               className={cn(
                 "w-5 shrink-0 text-sm tabular-nums",
-                open ? "text-primary" : "text-muted-foreground",
+                "text-muted-foreground",
               )}
             >
               {index + 1}
@@ -60,7 +74,6 @@ export function SessionSetButtons({
                 tone === "work"
                   ? "text-2xl font-semibold tracking-tight"
                   : "text-base text-muted-foreground",
-                open && "text-primary",
               )}
             >
               {labels[index]}
