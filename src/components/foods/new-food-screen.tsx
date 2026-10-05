@@ -36,7 +36,10 @@ export function NewFoodScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader title="Новый продукт" backHref={backHref} />
       <div className="px-4 pb-4">
-        <FoodForm afterCreateHref={afterCreateHref} />
+        <FoodForm
+          afterCreateHref={afterCreateHref}
+          compact={backHref === "/foods"}
+        />
       </div>
     </div>
   );

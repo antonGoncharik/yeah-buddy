@@ -77,9 +77,9 @@ function EditFoodPage({ id }: { id: string }) {
   }, [id, reloadToken]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <AppHeader title="Продукт" backHref="/foods" />
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-2">
         {loading ? <ScreenLoading /> : null}
         {!loading && error ? (
           <div className="flex flex-col items-center gap-3 py-10">
@@ -92,7 +92,7 @@ function EditFoodPage({ id }: { id: string }) {
             </Button>
           </div>
         ) : null}
-        {!loading && food ? <FoodForm food={food} /> : null}
+        {!loading && food ? <FoodForm food={food} compact /> : null}
       </div>
     </div>
   );
