@@ -8,6 +8,7 @@ import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
+import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayDayView } from "@/components/day/today-day-view";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
@@ -137,6 +138,7 @@ export function TodayScreen({
             switchType={switchType}
           />
         ) : null}
+        {contentReady && shownDay ? <TodayDiaryLinks className="px-4" /> : null}
       </div>
       {pickerOpen ? (
         <TodayDatePickerSheet

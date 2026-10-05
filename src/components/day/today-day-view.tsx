@@ -7,6 +7,7 @@ import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayDayStatus } from "@/components/day/today-day-status";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import {
@@ -226,6 +227,16 @@ export function TodayDayView({
           bodyWeightBusy={busy || isTempId(shownDay.id)}
         />
       </div>
+
+      {!viewOnly && dayHasItems && date === today ? (
+        <TodayDayStatus
+          protein={fact.protein}
+          targetProtein={shownDay.target_protein}
+          kcal={fact.kcal}
+          targetKcal={shownDay.target_kcal}
+          gymLine={gym.label}
+        />
+      ) : null}
 
       {!viewOnly && dayHasItems ? (
         <ProteinCloseOffers
