@@ -11,7 +11,7 @@ export const ONBOARDING_LIFT_FIELDS: Array<{
   label: string;
 }> = [
   { id: "squat", label: "Присед" },
-  { id: "bench", label: "Жим лёжа" },
+  { id: "bench", label: "Жим" },
   { id: "deadlift", label: "Становая" },
 ];
 
@@ -25,29 +25,21 @@ export function OnboardingLiftsStep({
   onChange: (key: LiftKey, value: string | null) => void;
 }) {
   return (
-    <>
-      <p
-        className="animate-rise text-base text-muted-foreground"
-        style={{ animationDelay: "40ms" }}
-      >
-        Если знаешь присед, жим или становую — напиши. Если нет — посчитаем
-        примерные максимумы на раз по стажу и весу, в зале уточнишь.
+    <div className="flex flex-col gap-2 pb-2">
+      <p className="text-sm leading-snug text-muted-foreground">
+        Знаешь рабочие максимумы — напиши. Нет — посчитаем по весу и стажу.
       </p>
-      <div className="flex flex-col gap-3">
-        {ONBOARDING_LIFT_FIELDS.map((field, index) => {
+      <div className="card-surface grid grid-cols-3 gap-2 px-3 py-3">
+        {ONBOARDING_LIFT_FIELDS.map((field) => {
           const unknown = answers[field.id] === null;
           const value = answers[field.id] ?? "";
           return (
-            <div
-              key={field.id}
-              className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
-              style={{ animationDelay: `${80 + index * 40}ms` }}
-            >
+            <div key={field.id} className="flex min-w-0 flex-col gap-1">
               <Label
                 htmlFor={`onboarding-lift-${field.id}`}
-                className="text-base font-medium"
+                className="truncate text-xs text-muted-foreground"
               >
-                {field.label}, кг
+                {field.label}
               </Label>
               <Input
                 id={`onboarding-lift-${field.id}`}
@@ -56,16 +48,16 @@ export function OnboardingLiftsStep({
                 autoComplete="off"
                 disabled={unknown}
                 value={unknown ? "" : value}
-                placeholder={unknown ? "не знаю" : "кг"}
+                placeholder="кг"
                 onChange={(event) =>
                   onChange(field.id, sanitizeDecimalDraft(event.target.value))
                 }
-                className="h-12 text-base"
+                className="h-10 px-2 text-center text-base tabular-nums"
               />
             </div>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }

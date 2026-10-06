@@ -34,9 +34,9 @@ export function OnboardingCircleStep({
 }) {
   if (!picking) {
     return (
-      <>
+      <div className="flex flex-col gap-2 pb-2">
         {fromMealPack ? (
-          <p className="animate-rise text-base text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Еда на день возьмётся из ссылки.
           </p>
         ) : null}
@@ -67,14 +67,14 @@ export function OnboardingCircleStep({
             onPickYourself();
           }}
         />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-2 pb-2">
       {fromMealPack ? (
-        <p className="animate-rise text-base text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Еда на день возьмётся из ссылки.
         </p>
       ) : null}
@@ -114,7 +114,7 @@ export function OnboardingCircleStep({
           Соберу список тренировок сам.
         </p>
       </button>
-    </>
+    </div>
   );
 }
 
@@ -133,11 +133,13 @@ function ChoiceCard({
     <button
       type="button"
       disabled={disabled}
-      className="card-surface w-full rounded-2xl px-5 py-4 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none disabled:opacity-50"
+      className="card-surface w-full rounded-2xl px-4 py-3 text-left transition-[transform,box-shadow,background-color] duration-300 ease-[var(--ease-out-soft)] hover:bg-muted/30 active:scale-[0.97] motion-reduce:transition-none disabled:opacity-50"
       onClick={onClick}
     >
-      <p className="text-lg font-medium">{title}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
+      <p className="text-base font-medium">{title}</p>
+      <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+        {hint}
+      </p>
     </button>
   );
 }

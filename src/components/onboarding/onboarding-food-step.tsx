@@ -14,42 +14,48 @@ import {
 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { parseDecimal } from "@/lib/workout/numbers";
 
+const TRAINING_AGE_SHORT: Record<UserTrainingAge, string> = {
+  beginner: "Начал",
+  year: "~ год",
+  years: "Годы",
+};
+
+export function profileStepSubtitle(
+  replay: boolean,
+  fromWorkoutPack: boolean,
+): string {
+  if (fromWorkoutPack) {
+    return "Программа из ссылки. Нужны пол и вес — посчитаем белок.";
+  }
+  if (replay) {
+    return "Пересчитаем цели. Еда и записи останутся.";
+  }
+  return "Пол, вес и цель — посчитаем белок и калории.";
+}
+
 export function OnboardingSexStep({
   sex,
-  replay,
-  fromWorkoutPack,
   onPick,
-  showLead = true,
+  compact = false,
 }: {
   sex: OnboardingSex | null;
-  replay: boolean;
-  fromWorkoutPack: boolean;
   onPick: (value: OnboardingSex) => void;
-  showLead?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <>
-      {showLead && sexLead(replay, fromWorkoutPack) ? (
-        <p
-          className="animate-rise text-base text-muted-foreground"
-          style={{ animationDelay: "40ms" }}
-        >
-          {sexLead(replay, fromWorkoutPack)}
-        </p>
-      ) : null}
-      <div
-        className="animate-rise grid grid-cols-2 gap-3"
-        style={{ animationDelay: "80ms" }}
-      >
+    <div className="flex flex-col gap-1.5">
+      <Label className="text-sm text-muted-foreground">Пол</Label>
+      <div className="grid grid-cols-2 gap-2">
         {ONBOARDING_SEX_OPTIONS.map((option) => (
           <Button
             key={option.id}
             type="button"
             variant={sex === option.id ? "default" : "outline"}
-            className="h-16 text-lg"
+            className={cn("text-base", compact ? "h-11" : "h-16 text-lg")}
             onClick={() => {
               if (sex !== option.id) {
                 haptic("tick");
@@ -63,7 +69,7 @@ export function OnboardingSexStep({
           </Button>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -79,11 +85,11 @@ export function OnboardingWeightStep({
   onChange: (value: string) => void;
 }) {
   return (
-    <div
-      className="animate-rise flex flex-col gap-2"
-      style={{ animationDelay: "40ms" }}
-    >
-      <Label htmlFor="onboarding-weight" className="text-base">
+    <div className="flex flex-col gap-1.5">
+      <Label
+        htmlFor="onboarding-weight"
+        className="text-sm text-muted-foreground"
+      >
         Вес, кг
       </Label>
       <Input
@@ -94,7 +100,7 @@ export function OnboardingWeightStep({
         value={weight}
         aria-invalid={invalid || undefined}
         onChange={(event) => onChange(sanitizeDecimalDraft(event.target.value))}
-        className="h-12 text-base"
+        className="h-11 text-base"
       />
       {invalid && message ? (
         <p className="text-sm text-destructive">{message}</p>
@@ -103,103 +109,41 @@ export function OnboardingWeightStep({
   );
 }
 
-export function OnboardingGoalStep({
-  goal,
-  onPick,
-}: {
-  goal: OnboardingGoal | null;
-  onPick: (value: OnboardingGoal) => void;
-}) {
-  return (
-    <div className="animate-rise" style={{ animationDelay: "40ms" }}>
-      <GoalOptionButtons value={goal} onPick={onPick} />
-    </div>
-  );
+function weightLooksValid(raw: string): boolean {
+  const kg = parseDecimal(raw);
+  return kg != null && kg >= 30 && kg <= 250;
 }
 
-export function OnboardingTrainingAgeStep({
-  trainingAge,
-  onPick,
-}: {
-  trainingAge: UserTrainingAge | null;
-  onPick: (value: UserTrainingAge) => void;
-}) {
-  return (
-    <div
-      className="animate-rise flex flex-col gap-2"
-      style={{ animationDelay: "40ms" }}
-    >
-      {TRAINING_AGE_OPTIONS.map((option) => (
-        <Button
-          key={option.id}
-          type="button"
-          variant={trainingAge === option.id ? "default" : "outline"}
-          className="h-14 justify-start text-base"
-          onClick={() => {
-            if (trainingAge !== option.id) {
-              haptic("tick");
-            } else {
-              haptic("tap");
-            }
-            onPick(option.id);
-          }}
-        >
-          {option.label}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-export function OnboardingMacrosStep({
+export function OnboardingMacrosSummary({
   sex,
   weight,
   goal,
 }: {
-  sex: OnboardingSex | null;
+  sex: OnboardingSex;
   weight: string;
-  goal: OnboardingGoal | null;
+  goal: OnboardingGoal;
 }) {
   const weightKg = parseDecimal(weight);
   const preview =
-    sex && goal && weightKg != null
+    weightKg != null
       ? suggestMacroGoals({ sex, weightKg, goal, protein: null })
       : null;
-  const protein = preview?.protein ?? null;
 
-  if (preview == null || protein == null) {
+  if (preview == null) {
     return null;
   }
 
   return (
-    <div
-      className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
-      style={{ animationDelay: "40ms" }}
-    >
-      <p className="text-sm font-medium text-muted-foreground">
-        Посчитали цели
+    <div className="rounded-2xl bg-muted/60 px-4 py-3">
+      <p className="text-lg font-semibold tracking-tight tabular-nums">
+        {preview.protein} г белка · {formatKcal(preview.rest.kcal)} ккал
       </p>
-      <p className="text-3xl font-semibold tracking-tight tabular-nums">
-        {protein} г белка
-      </p>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
-        г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
-        {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
-        {preview.training.carbs} г. Свой белок — в Настройках → «Цели на день».
+      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+        В день зала — {formatKcal(preview.training.kcal)} ккал. Поменять в
+        Настройках → «Цели на день».
       </p>
     </div>
   );
-}
-
-function sexLead(replay: boolean, fromWorkoutPack: boolean): string | null {
-  if (fromWorkoutPack) {
-    return "Программа возьмётся из ссылки. Сначала скажи, кто ты — без пола белок не посчитать.";
-  }
-  if (replay) {
-    return "Заново посчитаем белок и калории. Еда на день и записи останутся на месте.";
-  }
-  return null;
 }
 
 export function OnboardingProfileStep({
@@ -209,8 +153,6 @@ export function OnboardingProfileStep({
   trainingAge,
   weightInvalid,
   weightMessage,
-  replay,
-  fromWorkoutPack,
   onSexPick,
   onWeightChange,
   onGoalPick,
@@ -222,61 +164,65 @@ export function OnboardingProfileStep({
   trainingAge: UserTrainingAge | null;
   weightInvalid: boolean;
   weightMessage: string | null;
-  replay: boolean;
-  fromWorkoutPack: boolean;
   onSexPick: (value: OnboardingSex) => void;
   onWeightChange: (value: string) => void;
   onGoalPick: (value: OnboardingGoal) => void;
   onTrainingAgePick: (value: UserTrainingAge) => void;
 }) {
-  const lead = sexLead(replay, fromWorkoutPack);
-  const weightKg = parseDecimal(weight);
+  const showWeight = sex != null;
+  const showGoal = showWeight && weightLooksValid(weight);
+  const showTrainingAge = showGoal && goal != null;
   const showMacros =
-    sex != null &&
-    goal != null &&
-    trainingAge != null &&
-    weightKg != null &&
-    weightKg >= 30 &&
-    weightKg <= 250;
+    showTrainingAge && trainingAge != null && sex != null && goal != null;
 
   return (
-    <div className="flex flex-col gap-4">
-      {lead ? (
-        <p
-          className="animate-rise text-base text-muted-foreground"
-          style={{ animationDelay: "40ms" }}
-        >
-          {lead}
-        </p>
-      ) : (
-        <p
-          className="animate-rise text-base text-muted-foreground"
-          style={{ animationDelay: "40ms" }}
-        >
-          За пару минут настроим белок и тренировки. Потом просто записывай еду
-          и зал.
-        </p>
-      )}
-      <OnboardingSexStep
-        sex={sex}
-        replay={replay}
-        fromWorkoutPack={fromWorkoutPack}
-        showLead={false}
-        onPick={onSexPick}
-      />
-      <OnboardingWeightStep
-        weight={weight}
-        invalid={weightInvalid}
-        message={weightMessage}
-        onChange={onWeightChange}
-      />
-      <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
-      <OnboardingTrainingAgeStep
-        trainingAge={trainingAge}
-        onPick={onTrainingAgePick}
-      />
+    <div className="flex flex-col gap-3 pb-2">
+      <OnboardingSexStep sex={sex} onPick={onSexPick} compact />
+
+      {showWeight ? (
+        <OnboardingWeightStep
+          weight={weight}
+          invalid={weightInvalid}
+          message={weightMessage}
+          onChange={onWeightChange}
+        />
+      ) : null}
+
+      {showGoal ? (
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-sm text-muted-foreground">Цель</Label>
+          <GoalOptionButtons value={goal} size="compact" onPick={onGoalPick} />
+        </div>
+      ) : null}
+
+      {showTrainingAge ? (
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-sm text-muted-foreground">Стаж в зале</Label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {TRAINING_AGE_OPTIONS.map((option) => (
+              <Button
+                key={option.id}
+                type="button"
+                variant={trainingAge === option.id ? "default" : "outline"}
+                className="h-auto min-h-10 px-1 py-2 text-xs leading-tight whitespace-normal"
+                onClick={() => {
+                  if (trainingAge !== option.id) {
+                    haptic("tick");
+                  } else {
+                    haptic("tap");
+                  }
+                  onTrainingAgePick(option.id);
+                }}
+              >
+                {TRAINING_AGE_SHORT[option.id]}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {showMacros ? (
-        <OnboardingMacrosStep sex={sex} weight={weight} goal={goal} />
+        <OnboardingMacrosSummary sex={sex} weight={weight} goal={goal} />
       ) : null}
     </div>
   );

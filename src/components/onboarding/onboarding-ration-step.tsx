@@ -40,16 +40,13 @@ export function OnboardingRationStep({
   }
 
   return (
-    <div
-      className="animate-rise flex flex-col gap-3"
-      style={{ animationDelay: "40ms" }}
-    >
-      <p className="text-base text-muted-foreground">
-        Шаблон на новый день из продуктов, которые уже есть. Граммы под тянутся
-        под твои цели. Выбери вариант или жми «Дальше» — подставим обычный день.
-        Потом сменишь в Настройках → «Еда на день».
+    <div className="flex flex-col gap-2 pb-2">
+      <p className="text-sm leading-snug text-muted-foreground">
+        Шаблон на новый день. «Дальше» — обычный рацион; другой — в Настройках →
+        «Еда на день».
       </p>
       <RationCards
+        compact
         selected={ration}
         goals={{ rest: suggested.rest, training: suggested.training }}
         onPick={onPick}

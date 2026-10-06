@@ -28,18 +28,39 @@ import { cn } from "@/lib/utils";
 export function GuidePageBody({
   page,
   className,
+  omitLead = false,
+  compact = false,
 }: {
   page: GuidePage;
   className?: string;
+  omitLead?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <article className={cn("flex flex-col gap-4", className)}>
-      <GuideDoodleIcon kind={page.doodle} />
-      <p className="text-lg font-medium leading-snug">{page.lead}</p>
+    <article
+      className={cn(
+        compact ? "flex flex-col gap-2" : "flex flex-col gap-4",
+        className,
+      )}
+    >
+      {compact ? null : <GuideDoodleIcon kind={page.doodle} />}
+      {omitLead ? null : (
+        <p
+          className={cn(
+            "font-medium leading-snug",
+            compact ? "text-base" : "text-lg",
+          )}
+        >
+          {page.lead}
+        </p>
+      )}
       {page.paragraphs.map((paragraph) => (
         <p
           key={paragraph}
-          className="text-base leading-relaxed text-muted-foreground"
+          className={cn(
+            "leading-snug text-muted-foreground",
+            compact ? "text-sm" : "text-base leading-relaxed",
+          )}
         >
           {paragraph}
         </p>
