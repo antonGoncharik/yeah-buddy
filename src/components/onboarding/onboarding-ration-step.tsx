@@ -42,8 +42,7 @@ export function OnboardingRationStep({
   return (
     <div className="flex flex-col gap-2 pb-2">
       <p className="text-base text-muted-foreground">
-        Шаблон на новый день из продуктов, которые уже есть. Выбери вариант или
-        жми «Дальше» — подставим обычный день. Потом сменишь в Настройках → «Еда
+        Шаблон на каждый день из продуктов, которые уже есть. Шаблон всегда можно изменить в любое время — в Настройках → «Еда
         на день».
       </p>
       <RationCards

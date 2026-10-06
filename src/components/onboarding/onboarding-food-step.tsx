@@ -133,7 +133,7 @@ export function OnboardingMacrosSummary({
         Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
         г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
         {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
-        {preview.training.carbs} г. Свой белок — в Настройках → «Цели на день».
+        {preview.training.carbs} г. Свой бжу всегда можно изменить в любое время — в Настройках → «Цели на день».
       </p>
     </div>
   );

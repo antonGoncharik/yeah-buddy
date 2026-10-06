@@ -252,7 +252,7 @@ function subtitleForStep(
     );
   }
   if (step === "ration") {
-    return "Шаблон продуктов на новый день.";
+    return "Шаблон продуктов на каждый день.";
   }
   if (step === "lifts") {
     return "Для расчёта весов в программе.";

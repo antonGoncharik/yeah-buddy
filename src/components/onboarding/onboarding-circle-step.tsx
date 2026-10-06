@@ -60,7 +60,7 @@ export function OnboardingCircleStep({
         />
         <ChoiceCard
           title="Знаю что хочу"
-          hint="Все готовые — в зале и дома."
+          hint="Выбрать готовую программу или сделать свою."
           disabled={saving}
           onClick={() => {
             haptic("tap");
