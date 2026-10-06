@@ -65,7 +65,7 @@ export function GuideTour({
             <Button
               type="button"
               variant="ghost"
-              className="h-11 w-full text-sm"
+              className="h-12 w-full text-base"
               data-keyboard-secondary
               onClick={() => {
                 haptic("tap");
@@ -75,17 +75,17 @@ export function GuideTour({
               Пропустить
             </Button>
           )}
-          <Button className="h-12 w-full text-lg" onClick={goNext}>
+          <Button className="h-14 w-full text-lg" onClick={goNext}>
             {last ? "К настройке" : "Дальше"}
           </Button>
         </>
       }
     >
-      <section className="card-surface px-4 py-3">
-        <GuidePageBody page={page} omitLead compact />
+      <section className="card-surface flex flex-col gap-4 px-5 py-5">
+        <GuidePageBody page={page} omitLead />
       </section>
       {last ? (
-        <p className="mt-3 text-xs leading-snug text-muted-foreground">
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
           {`Подробнее — в Настройках → «${GUIDE_LABEL}».`}
         </p>
       ) : null}

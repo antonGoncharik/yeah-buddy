@@ -60,6 +60,7 @@ export function OnboardingScreen() {
     goBack,
     goNext,
     skipLifts,
+    confirmLifts,
     weightInvalid,
     onSexPick,
     onWeightChange,
@@ -127,7 +128,7 @@ export function OnboardingScreen() {
         <Button
           type="button"
           variant="ghost"
-          className="h-11 w-full text-sm"
+          className="h-12 w-full text-base"
           data-keyboard-secondary
           disabled={saving}
           onClick={() => skipLifts()}
@@ -136,9 +137,9 @@ export function OnboardingScreen() {
         </Button>
       ) : null}
       <Button
-        className="h-12 w-full text-lg"
+        className="h-14 w-full text-lg"
         disabled={saving}
-        onClick={() => void goNext()}
+        onClick={() => void (step === "lifts" ? confirmLifts() : goNext())}
       >
         {saving ? "Секунду…" : isLast ? "Готово" : "Дальше"}
       </Button>

@@ -6,9 +6,13 @@ import {
   loadPendingPackKind,
   submitOnboardingFinish,
 } from "@/components/onboarding/onboarding-finish";
-import type {
-  LiftAnswers,
-  LiftKey,
+import {
+  LIFTS_DRAFT_INVALID,
+  LIFTS_NEED_INPUT_OR_SKIP,
+  type LiftAnswers,
+  type LiftKey,
+  liftAnswersDraftInvalid,
+  liftAnswersHaveInput,
 } from "@/components/onboarding/onboarding-lifts-step";
 import {
   type OnboardingStep,
@@ -200,6 +204,20 @@ export function useOnboardingScreen() {
       setError(null);
     }
 
+    if (step === "lifts") {
+      if (!liftAnswersHaveInput(lifts)) {
+        haptic("warn");
+        setError(LIFTS_NEED_INPUT_OR_SKIP);
+        return;
+      }
+      if (liftAnswersDraftInvalid(lifts)) {
+        haptic("warn");
+        setError(LIFTS_DRAFT_INVALID);
+        return;
+      }
+      setError(null);
+    }
+
     const following = steps[stepIndex + 1];
     if (following) {
       if (circleOverride) {
@@ -285,6 +303,16 @@ export function useOnboardingScreen() {
   function skipLifts() {
     setLifts(emptyLiftAnswers());
     setError(null);
+    haptic("tick");
+    const following = steps[stepIndex + 1];
+    if (following) {
+      setStep(following);
+      return;
+    }
+    void finish();
+  }
+
+  function confirmLifts() {
     goNext();
   }
 
@@ -312,6 +340,7 @@ export function useOnboardingScreen() {
     goBack,
     goNext,
     skipLifts,
+    confirmLifts,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     onSexPick: (value: OnboardingSex) => {
       setSex(value);

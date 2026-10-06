@@ -32,28 +32,28 @@ export function OnboardingStepShell({
   return (
     <div className="flex h-[var(--app-viewport-height)] min-h-0 flex-col">
       {canGoBack ? <TelegramBackButton onBack={onBack} /> : null}
-      <header className="shrink-0 px-4 pt-2 pb-2">
+      <header className="shrink-0 px-4 py-3">
         <div className="flex items-start gap-2">
           {canGoBack ? (
             <button
               type="button"
-              className="flex size-10 shrink-0 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95 motion-reduce:transition-none"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl text-foreground transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-95 motion-reduce:transition-none"
               aria-label="Назад"
               onClick={onBack}
             >
-              <ChevronLeft className="size-5" />
+              <ChevronLeft className="size-6" />
             </button>
           ) : null}
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">{progressLabel}</p>
+              <p className="text-sm text-muted-foreground">{progressLabel}</p>
               {stepDots}
             </div>
-            <h1 className="mt-0.5 truncate text-xl font-semibold tracking-tight">
+            <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight">
               {title}
             </h1>
             {subtitle ? (
-              <p className="mt-1 line-clamp-2 text-sm leading-snug text-muted-foreground">
+              <p className="mt-1 line-clamp-2 text-base leading-relaxed text-muted-foreground">
                 {subtitle}
               </p>
             ) : null}
@@ -64,7 +64,7 @@ export function OnboardingStepShell({
       <div
         className={cn(
           "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4",
-          showSticky ? "pb-36" : "pb-4",
+          showSticky ? "pb-44" : "pb-4",
         )}
       >
         {children}

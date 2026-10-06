@@ -14,15 +14,8 @@ import {
 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { parseDecimal } from "@/lib/workout/numbers";
-
-const TRAINING_AGE_SHORT: Record<UserTrainingAge, string> = {
-  beginner: "Начал",
-  year: "~ год",
-  years: "Годы",
-};
 
 export function profileStepSubtitle(
   replay: boolean,
@@ -40,22 +33,20 @@ export function profileStepSubtitle(
 export function OnboardingSexStep({
   sex,
   onPick,
-  compact = false,
 }: {
   sex: OnboardingSex | null;
   onPick: (value: OnboardingSex) => void;
-  compact?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <Label className="text-sm text-muted-foreground">Пол</Label>
-      <div className="grid grid-cols-2 gap-2">
+    <div className="flex flex-col gap-2">
+      <Label className="text-base">Пол</Label>
+      <div className="grid grid-cols-2 gap-3">
         {ONBOARDING_SEX_OPTIONS.map((option) => (
           <Button
             key={option.id}
             type="button"
             variant={sex === option.id ? "default" : "outline"}
-            className={cn("text-base", compact ? "h-11" : "h-16 text-lg")}
+            className="h-16 text-lg"
             onClick={() => {
               if (sex !== option.id) {
                 haptic("tick");
@@ -85,11 +76,8 @@ export function OnboardingWeightStep({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <Label
-        htmlFor="onboarding-weight"
-        className="text-sm text-muted-foreground"
-      >
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="onboarding-weight" className="text-base">
         Вес, кг
       </Label>
       <Input
@@ -100,7 +88,7 @@ export function OnboardingWeightStep({
         value={weight}
         aria-invalid={invalid || undefined}
         onChange={(event) => onChange(sanitizeDecimalDraft(event.target.value))}
-        className="h-11 text-base"
+        className="h-12 text-base"
       />
       {invalid && message ? (
         <p className="text-sm text-destructive">{message}</p>
@@ -134,13 +122,18 @@ export function OnboardingMacrosSummary({
   }
 
   return (
-    <div className="rounded-2xl bg-muted/60 px-4 py-3">
-      <p className="text-lg font-semibold tracking-tight tabular-nums">
-        {preview.protein} г белка · {formatKcal(preview.rest.kcal)} ккал
+    <div className="card-surface flex flex-col gap-3 px-5 py-4">
+      <p className="text-sm font-medium text-muted-foreground">
+        Посчитали цели
       </p>
-      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-        В день зала — {formatKcal(preview.training.kcal)} ккал. Поменять в
-        Настройках → «Цели на день».
+      <p className="text-3xl font-semibold tracking-tight tabular-nums">
+        {preview.protein} г белка
+      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
+        г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
+        {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
+        {preview.training.carbs} г. Свой белок — в Настройках → «Цели на день».
       </p>
     </div>
   );
@@ -176,8 +169,8 @@ export function OnboardingProfileStep({
     showTrainingAge && trainingAge != null && sex != null && goal != null;
 
   return (
-    <div className="flex flex-col gap-3 pb-2">
-      <OnboardingSexStep sex={sex} onPick={onSexPick} compact />
+    <div className="flex flex-col gap-4 pb-2">
+      <OnboardingSexStep sex={sex} onPick={onSexPick} />
 
       {showWeight ? (
         <OnboardingWeightStep
@@ -189,22 +182,22 @@ export function OnboardingProfileStep({
       ) : null}
 
       {showGoal ? (
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-sm text-muted-foreground">Цель</Label>
-          <GoalOptionButtons value={goal} size="compact" onPick={onGoalPick} />
+        <div className="flex flex-col gap-2">
+          <Label className="text-base">Цель</Label>
+          <GoalOptionButtons value={goal} onPick={onGoalPick} />
         </div>
       ) : null}
 
       {showTrainingAge ? (
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-sm text-muted-foreground">Стаж в зале</Label>
-          <div className="grid grid-cols-3 gap-1.5">
+        <div className="flex flex-col gap-2">
+          <Label className="text-base">Стаж</Label>
+          <div className="flex flex-col gap-2">
             {TRAINING_AGE_OPTIONS.map((option) => (
               <Button
                 key={option.id}
                 type="button"
                 variant={trainingAge === option.id ? "default" : "outline"}
-                className="h-auto min-h-10 px-1 py-2 text-xs leading-tight whitespace-normal"
+                className="h-14 justify-start text-base"
                 onClick={() => {
                   if (trainingAge !== option.id) {
                     haptic("tick");
@@ -214,7 +207,7 @@ export function OnboardingProfileStep({
                   onTrainingAgePick(option.id);
                 }}
               >
-                {TRAINING_AGE_SHORT[option.id]}
+                {option.label}
               </Button>
             ))}
           </div>
