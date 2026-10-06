@@ -88,6 +88,7 @@ const settings: UserSettings = {
   goal: null,
   training_age: null,
   granted_programs: [],
+  meal_template_fill_prompt_dismissed: false,
   updated_at: "2026-01-01",
 };
 
