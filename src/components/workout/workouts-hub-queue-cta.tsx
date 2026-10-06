@@ -43,22 +43,28 @@ export function WorkoutsHubQueueCta({
   onBackfill: () => void;
 }) {
   const busy = creating || skipping;
+  const startLabel = creating ? "Открываю…" : "Начать";
+  const backfillLabel = creating ? "Записываю…" : "Записать вчера";
   const canSkip =
     followingTemplate != null &&
     nextTemplate != null &&
     followingTemplate.id !== nextTemplate.id;
   const secondary = [
     canUnskip
-      ? { key: "unskip", label: "Вернуть пропущенную", onClick: onUnskip }
+      ? {
+          key: "unskip",
+          label: skipping ? "Возвращаю…" : "Вернуть пропущенную",
+          onClick: onUnskip,
+        }
       : canSkip
         ? {
             key: "skip",
-            label: "Пропустить",
+            label: skipping ? "Пропускаю…" : "Пропустить",
             onClick: () => onSkip(followingTemplate),
           }
         : null,
     canBackfillYesterday && nextCanStart
-      ? { key: "backfill", label: "Записать вчера", onClick: onBackfill }
+      ? { key: "backfill", label: backfillLabel, onClick: onBackfill }
       : null,
   ].filter((item) => item != null);
 
@@ -74,7 +80,7 @@ export function WorkoutsHubQueueCta({
         disabled={busy}
         onClick={onBackfill}
       >
-        Записать вчера
+        {backfillLabel}
       </Button>
     );
   }
@@ -158,7 +164,7 @@ export function WorkoutsHubQueueCta({
           disabled={busy}
           onClick={onStart}
         >
-          Начать
+          {startLabel}
         </Button>
       ) : null}
 

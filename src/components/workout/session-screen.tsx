@@ -192,7 +192,7 @@ export function SessionScreen() {
                 disabled={busy}
                 onClick={() => void cancelToday()}
               >
-                {SKIP_SESSION_LABEL}
+                {busy ? "Убираю…" : SKIP_SESSION_LABEL}
               </Button>
             ) : null}
           </>
@@ -233,7 +233,11 @@ export function SessionScreen() {
               void complete();
             }}
           >
-            {detail.session.status === "planned" ? "Готово" : "Сохранить"}
+            {busy
+              ? "Сохраняю…"
+              : detail.session.status === "planned"
+                ? "Готово"
+                : "Сохранить"}
           </Button>
         </StickyActions>
       ) : null}

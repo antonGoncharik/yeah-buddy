@@ -21,7 +21,7 @@ export function CopyYesterdayButton({
       disabled={busy}
       onClick={onCopy}
     >
-      {label}
+      {busy ? "Копирую…" : label}
     </Button>
   );
 }

@@ -54,6 +54,9 @@ export interface TodayWorkoutState {
   unfinished: RecentWorkoutSession[];
   recent: RecentWorkoutSession[];
   can_unskip: boolean;
+  /** Last completed template in the current phase; drives queue order. */
+  queue_last_template_id: string | null;
+  skip_template_ids: string[];
   can_backfill_yesterday: boolean;
   phase_circle: PhaseCircleProgress | null;
   /** Current macro phase. Null when no cycle is running. */

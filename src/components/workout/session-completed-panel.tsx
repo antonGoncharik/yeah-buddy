@@ -239,7 +239,7 @@ export function SessionCompletedPanel({
             disabled={busy}
             onClick={() => void onEase()}
           >
-            Неделя легче
+            {busy ? "Открываю…" : "Неделя легче"}
           </Button>
         </>
       ) : null}
@@ -250,7 +250,7 @@ export function SessionCompletedPanel({
           disabled={busy}
           onClick={() => void raise()}
         >
-          Поднять максимум
+          {busy ? "Поднимаю…" : "Поднять максимум"}
         </Button>
       ) : null}
       {nextName ? (

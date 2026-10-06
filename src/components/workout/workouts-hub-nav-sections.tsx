@@ -192,6 +192,11 @@ export function WorkoutsHubNavSections({
                       onClick={() => onPickTemplate(template)}
                     >
                       {body}
+                      {creating ? (
+                        <span className="shrink-0 text-sm font-medium text-muted-foreground">
+                          Открываю…
+                        </span>
+                      ) : null}
                     </button>
                   )}
                 </li>

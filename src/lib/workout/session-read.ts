@@ -134,6 +134,8 @@ export async function getTodayWorkoutState(
     unfinished,
     recent,
     can_unskip: settings.skip_template_ids.length > 0,
+    queue_last_template_id: lastTemplateId,
+    skip_template_ids: settings.skip_template_ids,
     can_backfill_yesterday: yesterdayGym == null,
     phase_circle: macro.phase_circle,
     phase_id: macro.phase?.id ?? null,

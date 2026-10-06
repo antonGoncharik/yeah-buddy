@@ -76,9 +76,11 @@ export function SessionMissingMaxes({
         disabled={busy || filled.length === 0}
         onClick={() => void onSave(filled)}
       >
-        {filled.length > 0 && filled.length < exercises.length
-          ? "Добавить в план заполненные"
-          : "Добавить в план"}
+        {busy
+          ? "Сохраняю…"
+          : filled.length > 0 && filled.length < exercises.length
+            ? "Добавить в план заполненные"
+            : "Добавить в план"}
       </Button>
     </section>
   );

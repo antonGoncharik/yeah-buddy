@@ -19,6 +19,7 @@ import {
   parseWorkoutSession,
 } from "@/lib/workout/map-rows";
 import { toNumber } from "@/lib/workout/numbers";
+import { parseSkipTemplateIds } from "@/lib/workout/parse-formulas";
 import { parseTemplateSlot } from "@/lib/workout/slot-plan-schema";
 
 export function readExercises(data: unknown): ExerciseWithMax[] {
@@ -82,6 +83,23 @@ export function readCanUnskip(data: unknown): boolean {
   return isRecord(data) && data.can_unskip === true;
 }
 
+export function readSkipTemplateIds(data: unknown): string[] {
+  if (!isRecord(data)) {
+    return [];
+  }
+  return parseSkipTemplateIds({
+    skip_template_ids: data.skip_template_ids,
+  });
+}
+
+export function readQueueLastTemplateId(data: unknown): string | null {
+  if (!isRecord(data)) {
+    return null;
+  }
+  const id = data.queue_last_template_id;
+  return typeof id === "string" && id.length > 0 ? id : null;
+}
+
 export function readCanBackfillYesterday(data: unknown): boolean {
   return isRecord(data) && data.can_backfill_yesterday === true;
 }
@@ -134,6 +152,8 @@ export function readHubSessionState(data: unknown): {
   recent: RecentWorkoutSession[];
   phaseCircle: ReturnType<typeof readPhaseCircle>;
   canUnskip: boolean;
+  queueLastTemplateId: string | null;
+  skipTemplateIds: string[];
   canBackfillYesterday: boolean;
   completedSessions: number;
 } {
@@ -146,6 +166,8 @@ export function readHubSessionState(data: unknown): {
     recent: readRecent(data),
     phaseCircle: readPhaseCircle(data),
     canUnskip: readCanUnskip(data),
+    queueLastTemplateId: readQueueLastTemplateId(data),
+    skipTemplateIds: readSkipTemplateIds(data),
     canBackfillYesterday: readCanBackfillYesterday(data),
     completedSessions: readCompletedSessions(data),
   };

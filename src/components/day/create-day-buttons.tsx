@@ -31,7 +31,7 @@ export function CreateDayButtons({
       onClick={onCreateRest}
     >
       <DayTypeMark training={false} />
-      {DAY_TYPE_LABELS.rest}
+      {busy ? "Создаю…" : DAY_TYPE_LABELS.rest}
     </Button>
   );
   const training = (
@@ -42,7 +42,7 @@ export function CreateDayButtons({
       onClick={onCreateTraining}
     >
       <DumbbellDoodle />
-      {DAY_TYPE_LABELS.training}
+      {busy ? "Создаю…" : DAY_TYPE_LABELS.training}
     </Button>
   );
 
@@ -69,7 +69,7 @@ export function CreateDayButtons({
           disabled={busy}
           onClick={onCopyYesterday}
         >
-          Как вчера
+          {busy ? "Копирую…" : "Как вчера"}
         </Button>
       ) : null}
     </div>

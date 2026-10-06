@@ -20,7 +20,7 @@ export function SaveDayTemplateButton({
       disabled={busy}
       onClick={onSave}
     >
-      {saveDayTemplateLabel(isTrainingDay)}
+      {busy ? "Сохраняю…" : saveDayTemplateLabel(isTrainingDay)}
     </Button>
   );
 }

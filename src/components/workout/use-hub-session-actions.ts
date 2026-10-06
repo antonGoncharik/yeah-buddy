@@ -29,6 +29,9 @@ export function useHubSessionActions({
   session,
   nextTemplate,
   load,
+  refreshSessions,
+  applySkipOptimistic,
+  applyUnskipOptimistic,
   setCreating,
   setSkipping,
   setError,
@@ -38,6 +41,9 @@ export function useHubSessionActions({
   session: WorkoutSession | null;
   nextTemplate: WorkoutTemplateDetail | null;
   load: () => Promise<void>;
+  refreshSessions: () => Promise<void>;
+  applySkipOptimistic: (templateId: string) => void;
+  applyUnskipOptimistic: () => void;
   setCreating: Dispatch<SetStateAction<boolean>>;
   setSkipping: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
@@ -109,13 +115,16 @@ export function useHubSessionActions({
   async function unskipLast() {
     setSkipping(true);
     setError(null);
+    applyUnskipOptimistic();
 
     try {
       await mutateJson("/api/rotation/unskip", { method: "POST" });
-      await load();
+      haptic("commit");
+      void refreshSessions();
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      await load();
     } finally {
       setSkipping(false);
     }
@@ -135,16 +144,19 @@ export function useHubSessionActions({
       return;
     }
 
+    const skippedId = nextTemplate.id;
+    applySkipOptimistic(skippedId);
     setSkipping(true);
     setError(null);
 
     try {
-      await postJson("/api/rotation/skip", { template_id: nextTemplate.id });
+      await postJson("/api/rotation/skip", { template_id: skippedId });
       haptic("commit");
-      await load();
+      void refreshSessions();
     } catch (caught) {
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      await load();
     } finally {
       setSkipping(false);
     }

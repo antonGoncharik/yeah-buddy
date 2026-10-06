@@ -23,7 +23,37 @@ import {
   readMacro,
   readTemplates,
 } from "@/lib/workout/hub-payload";
+import { recomputeHubQueue, writeHubQueuePreview } from "@/lib/workout/hub-queue";
 import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
+
+function applyHubState(
+  hub: ReturnType<typeof readHubSessionState>,
+  setters: {
+    setSession: (value: WorkoutSession | null) => void;
+    setSessionTemplate: (value: WorkoutTemplateDetail | null) => void;
+    setNextTemplate: (value: WorkoutTemplateDetail | null) => void;
+    setFollowingTemplate: (value: WorkoutTemplateDetail | null) => void;
+    setUnfinished: (value: RecentWorkoutSession[]) => void;
+    setRecent: (value: RecentWorkoutSession[]) => void;
+    setPhaseCircle: (value: PhaseCircleProgress | null) => void;
+    setCanUnskip: (value: boolean) => void;
+    setCanBackfillYesterday: (value: boolean) => void;
+    setQueueLastTemplateId: (value: string | null) => void;
+    setSkipTemplateIds: (value: string[]) => void;
+  },
+): void {
+  setters.setSession(hub.session);
+  setters.setSessionTemplate(hub.sessionTemplate);
+  setters.setNextTemplate(hub.nextTemplate);
+  setters.setFollowingTemplate(hub.followingTemplate);
+  setters.setUnfinished(hub.unfinished);
+  setters.setRecent(hub.recent);
+  setters.setPhaseCircle(hub.phaseCircle);
+  setters.setCanUnskip(hub.canUnskip);
+  setters.setCanBackfillYesterday(hub.canBackfillYesterday);
+  setters.setQueueLastTemplateId(hub.queueLastTemplateId);
+  setters.setSkipTemplateIds(hub.skipTemplateIds);
+}
 
 export function useWorkoutsHub() {
   const date = format(new Date(), "yyyy-MM-dd");
@@ -45,6 +75,10 @@ export function useWorkoutsHub() {
   );
   const [canUnskip, setCanUnskip] = useState(false);
   const [canBackfillYesterday, setCanBackfillYesterday] = useState(false);
+  const [queueLastTemplateId, setQueueLastTemplateId] = useState<string | null>(
+    null,
+  );
+  const [skipTemplateIds, setSkipTemplateIds] = useState<string[]>([]);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -55,10 +89,85 @@ export function useWorkoutsHub() {
     [templates],
   );
 
+  const hubSetters = useMemo(
+    () => ({
+      setSession,
+      setSessionTemplate,
+      setNextTemplate,
+      setFollowingTemplate,
+      setUnfinished,
+      setRecent,
+      setPhaseCircle,
+      setCanUnskip,
+      setCanBackfillYesterday,
+      setQueueLastTemplateId,
+      setSkipTemplateIds,
+    }),
+    [],
+  );
+
+  const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
+
+  const applySessionPayload = useCallback(
+    (data: unknown): boolean => {
+      const hub = readHubSessionState(data);
+      applyHubState(hub, hubSetters);
+      return true;
+    },
+    [hubSetters],
+  );
+
+  const refreshSessions = useCallback(async () => {
+    try {
+      await cachedGet(sessionUrl, applySessionPayload);
+    } catch {
+      // keep optimistic state; full reload is available from the error card
+    }
+  }, [applySessionPayload, sessionUrl]);
+
+  const applySkipOptimistic = useCallback(
+    (templateId: string) => {
+      const newSkip = skipTemplateIds.includes(templateId)
+        ? skipTemplateIds
+        : [...skipTemplateIds, templateId];
+      const { nextTemplate: next, followingTemplate: following } =
+        recomputeHubQueue(activeTemplates, newSkip, queueLastTemplateId);
+      setSkipTemplateIds(newSkip);
+      setNextTemplate(next);
+      setFollowingTemplate(following);
+      setCanUnskip(newSkip.length > 0);
+      writeHubQueuePreview(date, {
+        next_template: next,
+        following_template: following,
+        can_unskip: newSkip.length > 0,
+        skip_template_ids: newSkip,
+      });
+    },
+    [activeTemplates, date, queueLastTemplateId, skipTemplateIds],
+  );
+
+  const applyUnskipOptimistic = useCallback(() => {
+    if (skipTemplateIds.length === 0) {
+      return;
+    }
+    const newSkip = skipTemplateIds.slice(0, -1);
+    const { nextTemplate: next, followingTemplate: following } =
+      recomputeHubQueue(activeTemplates, newSkip, queueLastTemplateId);
+    setSkipTemplateIds(newSkip);
+    setNextTemplate(next);
+    setFollowingTemplate(following);
+    setCanUnskip(newSkip.length > 0);
+    writeHubQueuePreview(date, {
+      next_template: next,
+      following_template: following,
+      can_unskip: newSkip.length > 0,
+      skip_template_ids: newSkip,
+    });
+  }, [activeTemplates, date, queueLastTemplateId, skipTemplateIds]);
+
   const load = useCallback(async () => {
     begin();
     setError(null);
-    const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
     const showCached = () => done(true);
 
     const results = await Promise.all([
@@ -95,23 +204,7 @@ export function useWorkoutsHub() {
         () => true,
         () => false,
       ),
-      cachedGet(
-        sessionUrl,
-        (data) => {
-          const hub = readHubSessionState(data);
-          setSession(hub.session);
-          setSessionTemplate(hub.sessionTemplate);
-          setNextTemplate(hub.nextTemplate);
-          setFollowingTemplate(hub.followingTemplate);
-          setUnfinished(hub.unfinished);
-          setRecent(hub.recent);
-          setPhaseCircle(hub.phaseCircle);
-          setCanUnskip(hub.canUnskip);
-          setCanBackfillYesterday(hub.canBackfillYesterday);
-          return true;
-        },
-        showCached,
-      ).then(
+      cachedGet(sessionUrl, applySessionPayload, showCached).then(
         () => true,
         () => false,
       ),
@@ -121,8 +214,6 @@ export function useWorkoutsHub() {
       ),
     ]);
 
-    // Templates and today's queue state decide what the hub shows; without
-    // them an "empty queue" card would be a lie, so treat that as a failure.
     const [, templatesOk, , sessionOk] = results;
     if (!templatesOk || !sessionOk) {
       setError(LOAD_FAILED);
@@ -131,7 +222,7 @@ export function useWorkoutsHub() {
     }
 
     done(true);
-  }, [begin, date, done]);
+  }, [applySessionPayload, begin, done, sessionUrl]);
 
   useEffect(() => {
     void load();
@@ -152,6 +243,9 @@ export function useWorkoutsHub() {
       session,
       nextTemplate,
       load,
+      refreshSessions,
+      applySkipOptimistic,
+      applyUnskipOptimistic,
       setCreating,
       setSkipping,
       setError,

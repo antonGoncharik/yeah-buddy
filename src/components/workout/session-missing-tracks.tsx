@@ -93,9 +93,11 @@ export function SessionMissingTracks({
         disabled={busy || filled.length === 0}
         onClick={() => void onSave(filled)}
       >
-        {filled.length > 0 && filled.length < exercises.length
-          ? "Сохранить заполненные"
-          : "Сохранить кг"}
+        {busy
+          ? "Сохраняю…"
+          : filled.length > 0 && filled.length < exercises.length
+            ? "Сохранить заполненные"
+            : "Сохранить кг"}
       </Button>
     </section>
   );

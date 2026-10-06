@@ -35,7 +35,7 @@ export function RemainingRecipeAction({
         disabled={busy}
         onClick={onFill}
       >
-        Подставить из шаблона
+        {busy ? "Подставляю…" : "Подставить из шаблона"}
       </Button>
     );
   }
@@ -48,7 +48,9 @@ export function RemainingRecipeAction({
       disabled={busy}
       onClick={onFill}
     >
-      <span className="block min-w-0">{remainingLine}</span>
+      <span className="block min-w-0">
+        {busy ? "Подставляю…" : remainingLine}
+      </span>
     </Button>
   );
 }
