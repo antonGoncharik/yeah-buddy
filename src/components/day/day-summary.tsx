@@ -51,6 +51,7 @@ export function DaySummary({
   waistGap = null,
   share = false,
   gym = null,
+  breakdown = false,
   onSaveBodyWeight,
   onSaveWaist,
 }: {
@@ -79,6 +80,7 @@ export function DaySummary({
   waistGap?: string | null;
   share?: boolean;
   gym?: ReactNode;
+  breakdown?: boolean;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
@@ -151,95 +153,110 @@ export function DaySummary({
         compact ? "gap-3 py-3" : "gap-5 py-5",
       )}
     >
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <button
-                type="button"
-                aria-label="Печенье"
-                className="text-primary/80"
-                onClick={cookie.wiggle}
-              >
-                <span
-                  key={cookie.token}
-                  className={cn("inline-flex", cookie.className)}
-                  onAnimationEnd={cookie.onAnimationEnd}
+      {breakdown ? null : (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <button
+                  type="button"
+                  aria-label="Печенье"
+                  className="text-primary/80"
+                  onClick={cookie.wiggle}
                 >
-                  <CookieDoodle className="size-4" />
-                </span>
-              </button>
-              {loop ? "Белок" : overflowKcalLabel(overflow)}
-            </div>
-            <p
-              className={cn(
-                "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
-                compact ? "text-xl" : "text-2xl",
-                flashClosed ? "animate-fade" : "tabular-nums",
-                proteinOverflow &&
-                  !flashClosed &&
-                  !closed &&
-                  "text-destructive",
-              )}
-            >
-              <ProteinFigure text={proteinNumber} />
-              {loop || flashClosed ? null : (
-                <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
-                  г белка
-                </span>
-              )}
-            </p>
-            {!compact && almost ? (
-              <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
-            ) : null}
-            {!compact && trainingGap ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {trainingGap}
+                  <span
+                    key={cookie.token}
+                    className={cn("inline-flex", cookie.className)}
+                    onAnimationEnd={cookie.onAnimationEnd}
+                  >
+                    <CookieDoodle className="size-4" />
+                  </span>
+                </button>
+                {loop ? "Белок" : overflowKcalLabel(overflow)}
+              </div>
+              <p
+                className={cn(
+                  "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                  compact ? "text-xl" : "text-2xl",
+                  flashClosed ? "animate-fade" : "tabular-nums",
+                  proteinOverflow &&
+                    !flashClosed &&
+                    !closed &&
+                    "text-destructive",
+                )}
+              >
+                <ProteinFigure text={proteinNumber} />
+                {loop || flashClosed ? null : (
+                  <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
+                    г белка
+                  </span>
+                )}
               </p>
-            ) : null}
-            {!compact && weekLine ? (
-              <p className="mt-1 text-base font-medium">{weekLine}</p>
-            ) : null}
-            {loop ? null : (
-              <div className="mt-1">
-                <KcalLine
-                  overflow={overflow}
-                  remainingKcal={remainingKcal}
-                  showWeight={showWeight}
-                  factLabel={factLabel}
-                  factKcal={fact.kcal}
-                  perKg={perKg}
-                />
+              {!compact && almost ? (
+                <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
+              ) : null}
+              {!compact && trainingGap ? (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {trainingGap}
+                </p>
+              ) : null}
+              {!compact && weekLine ? (
+                <p className="mt-1 text-base font-medium">{weekLine}</p>
+              ) : null}
+              {loop ? null : (
+                <div className="mt-1">
+                  <KcalLine
+                    overflow={overflow}
+                    remainingKcal={remainingKcal}
+                    showWeight={showWeight}
+                    factLabel={factLabel}
+                    factKcal={fact.kcal}
+                    perKg={perKg}
+                  />
+                </div>
+              )}
+            </div>
+            {loop ? (
+              gym
+            ) : showWeight ? (
+              <WeightBlock
+                bodyWeight={bodyWeight}
+                lastBodyWeight={lastBodyWeight}
+                waist={waist}
+                lastWaist={lastWaist}
+                readOnly={bodyWeightReadOnly}
+                busy={bodyWeightBusy}
+                note={compact ? null : weightNote}
+                onSave={onSaveBodyWeight}
+                onSaveWaist={onSaveWaist}
+              />
+            ) : (
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {factLabel}
+                </p>
+                <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
+                  {formatKcal(fact.kcal)}
+                </p>
               </div>
             )}
           </div>
-          {loop ? (
-            gym
-          ) : showWeight ? (
-            <WeightBlock
-              bodyWeight={bodyWeight}
-              lastBodyWeight={lastBodyWeight}
-              waist={waist}
-              lastWaist={lastWaist}
-              readOnly={bodyWeightReadOnly}
-              busy={bodyWeightBusy}
-              note={compact ? null : weightNote}
-              onSave={onSaveBodyWeight}
-              onSaveWaist={onSaveWaist}
-            />
-          ) : (
-            <div className="text-right">
-              <p className="text-sm font-medium text-muted-foreground">
-                {factLabel}
-              </p>
-              <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-                {formatKcal(fact.kcal)}
-              </p>
-            </div>
-          )}
-        </div>
 
-        {loop ? (
+          {loop ? (
+            <LoopFacts
+              overflow={overflow}
+              remainingKcal={remainingKcal}
+              showWeight={showWeight}
+              factLabel={factLabel}
+              factKcal={fact.kcal}
+              perKg={perKg}
+            />
+          ) : null}
+        </div>
+      )}
+
+      {breakdown ? (
+        loop ? (
           <LoopFacts
             overflow={overflow}
             remainingKcal={remainingKcal}
@@ -248,8 +265,21 @@ export function DaySummary({
             factKcal={fact.kcal}
             perKg={perKg}
           />
-        ) : null}
-      </div>
+        ) : (
+          <KcalLine
+            overflow={overflow}
+            remainingKcal={remainingKcal}
+            showWeight={showWeight}
+            factLabel={factLabel}
+            factKcal={fact.kcal}
+            perKg={perKg}
+          />
+        )
+      ) : null}
+
+      {breakdown && !compact && weekLine ? (
+        <p className="text-base font-medium">{weekLine}</p>
+      ) : null}
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}
 

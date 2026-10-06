@@ -15,8 +15,8 @@ export function SaveDayTemplateButton({
   return (
     <Button
       type="button"
-      variant="outline"
-      className="h-12 w-full text-base"
+      variant="ghost"
+      className="h-10 w-full text-sm text-muted-foreground"
       disabled={busy}
       onClick={onSave}
     >

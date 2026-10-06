@@ -19,6 +19,7 @@ import {
   YesterdayCatchUpHint,
 } from "@/components/day/yesterday-catch-up-hint";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
@@ -154,6 +155,7 @@ export function TodayDayView({
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
   const { density } = useDiaryDensity();
+  const { order } = useTodayOrder();
   const compact = density === "compact";
   const hiddenNote = hiddenMealSlotsNote(
     hiddenMealKcal,
@@ -277,6 +279,7 @@ export function TodayDayView({
       onSaveWaist={viewOnly ? undefined : saveWaist}
       bodyWeightReadOnly={viewOnly}
       bodyWeightBusy={busy || isTempId(shownDay.id)}
+      breakdown={showDayGlance}
     />
   );
 
@@ -304,12 +307,32 @@ export function TodayDayView({
     />
   ) : null;
 
-  const mealContext = dayHasItems ? (
+  const mealTail = dayHasItems ? (
     <>
       {hiddenNote ? (
         <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
       ) : null}
-      {!viewOnly ? (
+      {remainingAction ? (
+        <div className="animate-rise">{remainingAction}</div>
+      ) : null}
+    </>
+  ) : null;
+
+  const numbersFirst = order === "numbers" && dayHasItems;
+  const glanceBlock = (
+    <>
+      {showDayGlance ? (
+        <TodayDayStatus
+          protein={fact.protein}
+          targetProtein={shownDay.target_protein}
+          kcal={fact.kcal}
+          targetKcal={shownDay.target_kcal}
+          gym={gym}
+          isTrainingDay={shownDay.is_training_day}
+          logFoodHref={addHref}
+        />
+      ) : null}
+      {dayHasItems && !viewOnly ? (
         <ProteinCloseOffers
           date={date}
           mealId={closeMeal?.id ?? null}
@@ -317,25 +340,40 @@ export function TodayDayView({
           busy={busy}
         />
       ) : null}
-      {remainingFullGap && remainingAction ? (
-        <div className="animate-rise">{remainingAction}</div>
+    </>
+  );
+  const foodBlock = (
+    <>
+      {mealsBlock}
+      {mealTail}
+      {showSaveTemplate ? (
+        <div className="animate-rise">
+          <SaveDayTemplateButton
+            isTrainingDay={shownDay.is_training_day}
+            busy={busy}
+            onSave={() => void saveDayAsTemplate()}
+          />
+        </div>
       ) : null}
     </>
+  );
+  const scoreBlock = dayHasItems ? (
+    <div className="animate-rise">{daySummary}</div>
   ) : null;
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
-      {topNudge === "catch-up" ? (
+      {!dayHasItems && topNudge === "catch-up" ? (
         <div className="animate-rise">
           <YesterdayCatchUpHint onOpen={onOpenYesterday} />
         </div>
       ) : null}
-      {topNudge === "early-habit" && habitSnapshot ? (
+      {!dayHasItems && topNudge === "early-habit" && habitSnapshot ? (
         <div className="animate-rise">
           <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
         </div>
       ) : null}
-      {topNudge === "habit-bridge" && habitBridgeSnapshot ? (
+      {!dayHasItems && topNudge === "habit-bridge" && habitBridgeSnapshot ? (
         <div className="animate-rise">
           <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
         </div>
@@ -353,43 +391,11 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {!dayHasItems ? (
-        <div className="animate-rise">{daySummary}</div>
-      ) : null}
+      {!dayHasItems ? <div className="animate-rise">{daySummary}</div> : null}
 
-      {showDayGlance ? (
-        <TodayDayStatus
-          protein={fact.protein}
-          targetProtein={shownDay.target_protein}
-          kcal={fact.kcal}
-          targetKcal={shownDay.target_kcal}
-          gym={gym}
-          isTrainingDay={shownDay.is_training_day}
-          logFoodHref={addHref}
-        />
-      ) : null}
-
-      {mealsBlock}
-
-      {mealContext}
-
-      {dayHasItems ? (
-        <div className="animate-rise">{daySummary}</div>
-      ) : null}
-
-      {showSaveTemplate ? (
-        <div className="animate-rise">
-          <SaveDayTemplateButton
-            isTrainingDay={shownDay.is_training_day}
-            busy={busy}
-            onSave={() => void saveDayAsTemplate()}
-          />
-        </div>
-      ) : null}
-
-      {remainingFullGap ? null : remainingAction ? (
-        <div className="animate-rise">{remainingAction}</div>
-      ) : null}
+      {glanceBlock}
+      {numbersFirst ? scoreBlock : foodBlock}
+      {numbersFirst ? foodBlock : scoreBlock}
 
       {weekShare}
 

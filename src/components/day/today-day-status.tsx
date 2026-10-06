@@ -1,8 +1,8 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import type { GymLoop } from "@/lib/day/loop";
 import {
   buildTodayDayGlance,
@@ -29,8 +29,6 @@ export function TodayDayStatus({
   logFoodHref?: string | null;
   className?: string;
 }) {
-  const { density } = useDiaryDensity();
-  const compact = density === "compact";
   const glance = buildTodayDayGlance({
     protein,
     targetProtein,
@@ -39,10 +37,6 @@ export function TodayDayStatus({
     gym,
     isTrainingDay,
   });
-
-  if (glance.done && compact) {
-    return null;
-  }
 
   if (glance.done) {
     return (
@@ -57,6 +51,9 @@ export function TodayDayStatus({
       </p>
     );
   }
+
+  const gymSession = gym.kind === "open" || gym.kind === "queue";
+  const pillars = gymSession ? glance.pillars.slice(0, 2) : glance.pillars;
 
   const pillarHref = (pillar: TodayGlancePillar, index: number) => {
     if (index === 2) {
@@ -89,8 +86,10 @@ export function TodayDayStatus({
           </p>
         ) : null}
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {glance.pillars.map((pillar, index) => (
+      <div
+        className={cn("grid gap-2", gymSession ? "grid-cols-2" : "grid-cols-3")}
+      >
+        {pillars.map((pillar, index) => (
           <GlancePillar
             key={pillar.label}
             pillar={pillar}
@@ -98,8 +97,44 @@ export function TodayDayStatus({
           />
         ))}
       </div>
+      {gymSession ? <GymSessionRow label={gym.label} href={gym.href} /> : null}
     </div>
   );
+}
+
+function GymSessionRow({
+  label,
+  href,
+}: {
+  label: string;
+  href: string | null;
+}) {
+  const shell = (
+    <div className="flex items-center justify-between gap-2 rounded-xl bg-amber-500/10 px-2.5 py-2">
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-muted-foreground">Зал</p>
+        <p className="mt-0.5 text-sm font-semibold leading-snug tracking-tight">
+          {label}
+        </p>
+      </div>
+      {href ? (
+        <ChevronRight
+          className="size-4 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+      ) : null}
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className="min-w-0">
+        {shell}
+      </Link>
+    );
+  }
+
+  return shell;
 }
 
 function GlancePillar({

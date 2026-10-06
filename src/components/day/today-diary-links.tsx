@@ -14,12 +14,15 @@ export function TodayDiaryLinks({ className }: { className?: string }) {
       )}
       aria-label="Дневник"
     >
-      <Link href="/today/week" className="text-primary underline-offset-4 hover:underline">
+      <Link
+        href="/today/week"
+        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
         Неделя
       </Link>
       <Link
         href={nutritionHistoryHref()}
-        className="text-primary underline-offset-4 hover:underline"
+        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
         История еды
       </Link>

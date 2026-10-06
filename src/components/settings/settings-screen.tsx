@@ -20,6 +20,7 @@ import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
+import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
@@ -30,8 +31,8 @@ import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
-import { EARLY_HABIT_REMINDER_NOTE } from "@/lib/messages";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
+import { EARLY_HABIT_REMINDER_NOTE } from "@/lib/messages";
 import { formatKcal } from "@/lib/nutrition";
 import {
   BARBELL_GAME_HINT,
@@ -54,6 +55,7 @@ import { MEAL_TEMPLATES_LABEL, PACKS_LABEL } from "@/lib/workout/labels";
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
   const { density, setDensity } = useDiaryDensity();
+  const { order, setOrder } = useTodayOrder();
   const {
     form,
     bodyWeight,
@@ -245,6 +247,18 @@ export function SettingsScreen() {
           <p className="text-sm leading-snug text-muted-foreground">
             Компактный ужимает день и тренировки. Расширенный показывает БЖУ у
             каждого продукта.
+          </p>
+          <Segmented
+            value={order}
+            options={[
+              { id: "meals", label: "Сначала еда" },
+              { id: "numbers", label: "Сначала цифры" },
+            ]}
+            onChange={setOrder}
+          />
+          <p className="text-sm leading-snug text-muted-foreground">
+            Еда оставляет приёмы под итогом, разбор БЖУ внизу. Цифры поднимают
+            белок, калории и полоски над приёмами.
           </p>
         </section>
 

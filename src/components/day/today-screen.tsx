@@ -8,8 +8,8 @@ import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
-import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayDayView } from "@/components/day/today-day-view";
+import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
@@ -130,6 +130,7 @@ export function TodayScreen({
             />
           }
         />
+        {contentReady && shownDay ? <TodayDiaryLinks /> : null}
         {contentReady && shownDay ? (
           <TodayDayHeader
             date={date}
@@ -263,9 +264,6 @@ export function TodayScreen({
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
           />
-        ) : null}
-        {contentReady && shownDay ? (
-          <TodayDiaryLinks className="border-t border-border pt-4" />
         ) : null}
       </div>
     </div>

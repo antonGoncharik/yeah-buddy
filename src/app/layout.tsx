@@ -5,6 +5,7 @@ import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
 import { ThemeProvider } from "@/components/layout/theme-provider";
+import { TodayOrderProvider } from "@/components/layout/today-order-provider";
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -23,6 +24,7 @@ import {
   parseTheme,
   THEME_COOKIE,
 } from "@/lib/theme";
+import { parseTodayOrder, TODAY_ORDER_COOKIE } from "@/lib/today-order";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -110,6 +112,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const density = parseDiaryDensity(
     cookieStore.get(DIARY_DENSITY_COOKIE)?.value,
   );
+  const todayOrder = parseTodayOrder(
+    cookieStore.get(TODAY_ORDER_COOKIE)?.value,
+  );
 
   return (
     <html
@@ -123,12 +128,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <script>{TELEGRAM_BOOT_SCRIPT}</script>
         <ThemeProvider initialTheme={theme}>
           <DiaryDensityProvider initialDensity={density}>
-            <ConfirmProvider>
-              <DayMoodProvider>
-                <DayBackdrop />
-                <div className="relative z-10 min-w-0">{children}</div>
-              </DayMoodProvider>
-            </ConfirmProvider>
+            <TodayOrderProvider initialOrder={todayOrder}>
+              <ConfirmProvider>
+                <DayMoodProvider>
+                  <DayBackdrop />
+                  <div className="relative z-10 min-w-0">{children}</div>
+                </DayMoodProvider>
+              </ConfirmProvider>
+            </TodayOrderProvider>
           </DiaryDensityProvider>
         </ThemeProvider>
       </body>
