@@ -2,15 +2,13 @@ import type { SharePackKind } from "@/lib/share/payload";
 
 export type OnboardingStep =
   | "guide"
-  | "body"
-  | "goals"
+  | "profile"
   | "ration"
   | "lifts"
   | "circle";
 
 export const ONBOARDING_FOOD_STEPS = [
-  "body",
-  "goals",
+  "profile",
 ] as const satisfies readonly OnboardingStep[];
 
 export type OnboardingFoodStepId = (typeof ONBOARDING_FOOD_STEPS)[number];
@@ -28,13 +26,12 @@ export function onboardingSetupSteps(
   return steps.filter((id) => id !== "guide");
 }
 
-/** Body, goals, ration and lifts need «Дальше»; circle uses cards or Готово.
+/** Profile, ration and lifts need «Дальше»; circle uses cards or Готово.
  * Meal-pack flow omits food steps (`pendingKind === "meals"`). Replay
  * recalculates protein and leaves the existing menu alone. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
   return (
-    step === "body" ||
-    step === "goals" ||
+    step === "profile" ||
     step === "ration" ||
     step === "lifts" ||
     step === "circle"

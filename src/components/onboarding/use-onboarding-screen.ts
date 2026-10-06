@@ -77,12 +77,11 @@ export function useOnboardingScreen() {
   const [state, setState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<OnboardingStep>("body");
+  const [step, setStep] = useState<OnboardingStep>("profile");
   const [sex, setSex] = useState<OnboardingSex | null>(null);
   const [weight, setWeight] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
-  const [proteinOverride, setProteinOverride] = useState<string | null>(null);
   const [ration, setRation] = useState<RationId>(RECOMMENDED_RATION_ID);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
   const [circle, setCircle] = useState<OnboardingCircle>(
@@ -119,7 +118,7 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
-      setStep(replay ? "body" : "guide");
+      setStep(replay ? "profile" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
@@ -137,12 +136,7 @@ export function useOnboardingScreen() {
     sex && goal && weightValid(weightKg)
       ? suggestProteinGrams({ sex, weightKg, goal })
       : null;
-  const override =
-    proteinOverride != null ? parseDecimal(proteinOverride) : null;
-  const proteinValue =
-    override != null && proteinValid(override)
-      ? Math.round(override)
-      : suggested;
+  const proteinValue = suggested != null ? Math.round(suggested) : null;
 
   const steps = useMemo(
     () =>
@@ -156,7 +150,7 @@ export function useOnboardingScreen() {
 
   useEffect(() => {
     if (!steps.includes(step)) {
-      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "body"));
+      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "profile"));
     }
   }, [step, steps]);
 
@@ -172,7 +166,7 @@ export function useOnboardingScreen() {
   }, [stepIndex, steps]);
 
   function goNext(circleOverride?: OnboardingCircle) {
-    if (step === "body") {
+    if (step === "profile") {
       if (sex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
@@ -188,10 +182,6 @@ export function useOnboardingScreen() {
         setError(WEIGHT_INVALID);
         return;
       }
-      setError(null);
-    }
-
-    if (step === "goals") {
       if (goal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
@@ -232,31 +222,31 @@ export function useOnboardingScreen() {
       if (sex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
-        setStep("body");
+        setStep("profile");
         return;
       }
       if (!weightDraftOk(weight)) {
         haptic("warn");
         setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
-        setStep("body");
+        setStep("profile");
         return;
       }
       if (goal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
-        setStep("goals");
+        setStep("profile");
         return;
       }
       if (trainingAge == null) {
         haptic("warn");
         setError(TRAINING_AGE_REQUIRED);
-        setStep("goals");
+        setStep("profile");
         return;
       }
       if (!proteinValid(proteinValue)) {
         haptic("warn");
         setError(PROTEIN_INVALID);
-        setStep("goals");
+        setStep("profile");
         return;
       }
     }
@@ -298,13 +288,6 @@ export function useOnboardingScreen() {
     goNext();
   }
 
-  function pickRecommendedRation() {
-    setRation(RECOMMENDED_RATION_ID);
-    setError(null);
-    haptic("tick");
-    goNext();
-  }
-
   return {
     loading,
     error,
@@ -322,7 +305,6 @@ export function useOnboardingScreen() {
     weight,
     goal,
     trainingAge,
-    proteinOverride,
     ration,
     lifts,
     circle,
@@ -330,22 +312,17 @@ export function useOnboardingScreen() {
     goBack,
     goNext,
     skipLifts,
-    pickRecommendedRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
-    proteinInvalid: error === PROTEIN_INVALID,
     onSexPick: (value: OnboardingSex) => {
       setSex(value);
-      setProteinOverride(null);
       setError(null);
     },
     onWeightChange: (value: string) => {
       setError(null);
       setWeight(value);
-      setProteinOverride(null);
     },
     onGoalPick: (value: OnboardingGoal) => {
       setGoal(value);
-      setProteinOverride(null);
       setError(null);
     },
     onTrainingAgePick: (value: UserTrainingAge) => {
@@ -355,10 +332,6 @@ export function useOnboardingScreen() {
     onLiftChange: (key: LiftKey, value: string | null) => {
       setError(null);
       setLifts((current) => ({ ...current, [key]: value }));
-    },
-    onProteinOverride: (value: string | null) => {
-      setError(null);
-      setProteinOverride(value);
     },
     onRationPick: (value: RationId) => {
       setRation(value);

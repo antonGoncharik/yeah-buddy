@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,44 +155,20 @@ export function OnboardingMacrosStep({
   sex,
   weight,
   goal,
-  proteinOverride,
-  proteinInvalid,
-  onProteinOverride,
 }: {
   sex: OnboardingSex | null;
   weight: string;
   goal: OnboardingGoal | null;
-  proteinOverride: string | null;
-  proteinInvalid: boolean;
-  onProteinOverride: (value: string | null) => void;
 }) {
-  const [showCustom, setShowCustom] = useState(false);
   const weightKg = parseDecimal(weight);
-  const override =
-    proteinOverride != null ? parseDecimal(proteinOverride) : null;
   const preview =
     sex && goal && weightKg != null
-      ? suggestMacroGoals({
-          sex,
-          weightKg,
-          goal,
-          protein:
-            override != null && override > 0 && override <= 400
-              ? override
-              : null,
-        })
+      ? suggestMacroGoals({ sex, weightKg, goal, protein: null })
       : null;
   const protein = preview?.protein ?? null;
 
   if (preview == null || protein == null) {
-    return (
-      <p
-        className="animate-rise text-base text-muted-foreground"
-        style={{ animationDelay: "40ms" }}
-      >
-        Вернись назад и проверь вес, пол и цель — без них цифры не посчитать.
-      </p>
-    );
+    return null;
   }
 
   return (
@@ -201,6 +176,9 @@ export function OnboardingMacrosStep({
       className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
       style={{ animationDelay: "40ms" }}
     >
+      <p className="text-sm font-medium text-muted-foreground">
+        Посчитали цели
+      </p>
       <p className="text-3xl font-semibold tracking-tight tabular-nums">
         {protein} г белка
       </p>
@@ -208,40 +186,8 @@ export function OnboardingMacrosStep({
         Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
         г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
         {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
-        {preview.training.carbs} г. Потом можно поменять в Настройках → «Цели на
-        день».
+        {preview.training.carbs} г. Свой белок — в Настройках → «Цели на день».
       </p>
-      {showCustom || proteinOverride != null ? (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="onboarding-protein" className="text-sm">
-            Свой белок, г
-          </Label>
-          <Input
-            id="onboarding-protein"
-            inputMode="decimal"
-            enterKeyHint="done"
-            autoComplete="off"
-            value={proteinOverride ?? String(protein)}
-            aria-invalid={proteinInvalid || undefined}
-            onChange={(event) =>
-              onProteinOverride(sanitizeDecimalDraft(event.target.value))
-            }
-            className="h-12 text-base"
-          />
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="text-left text-sm font-medium text-primary"
-          onClick={() => {
-            haptic("tap");
-            setShowCustom(true);
-            onProteinOverride(String(protein));
-          }}
-        >
-          Поставить другой белок
-        </button>
-      )}
     </div>
   );
 }
@@ -256,26 +202,43 @@ function sexLead(replay: boolean, fromWorkoutPack: boolean): string | null {
   return null;
 }
 
-export function OnboardingBodyStep({
+export function OnboardingProfileStep({
   sex,
   weight,
+  goal,
+  trainingAge,
   weightInvalid,
   weightMessage,
   replay,
   fromWorkoutPack,
   onSexPick,
   onWeightChange,
+  onGoalPick,
+  onTrainingAgePick,
 }: {
   sex: OnboardingSex | null;
   weight: string;
+  goal: OnboardingGoal | null;
+  trainingAge: UserTrainingAge | null;
   weightInvalid: boolean;
   weightMessage: string | null;
   replay: boolean;
   fromWorkoutPack: boolean;
   onSexPick: (value: OnboardingSex) => void;
   onWeightChange: (value: string) => void;
+  onGoalPick: (value: OnboardingGoal) => void;
+  onTrainingAgePick: (value: UserTrainingAge) => void;
 }) {
   const lead = sexLead(replay, fromWorkoutPack);
+  const weightKg = parseDecimal(weight);
+  const showMacros =
+    sex != null &&
+    goal != null &&
+    trainingAge != null &&
+    weightKg != null &&
+    weightKg >= 30 &&
+    weightKg <= 250;
+
   return (
     <div className="flex flex-col gap-4">
       {lead ? (
@@ -307,48 +270,13 @@ export function OnboardingBodyStep({
         message={weightMessage}
         onChange={onWeightChange}
       />
-    </div>
-  );
-}
-
-export function OnboardingGoalsStep({
-  goal,
-  trainingAge,
-  sex,
-  weight,
-  proteinOverride,
-  proteinInvalid,
-  onGoalPick,
-  onTrainingAgePick,
-  onProteinOverride,
-}: {
-  goal: OnboardingGoal | null;
-  trainingAge: UserTrainingAge | null;
-  sex: OnboardingSex | null;
-  weight: string;
-  proteinOverride: string | null;
-  proteinInvalid: boolean;
-  onGoalPick: (value: OnboardingGoal) => void;
-  onTrainingAgePick: (value: UserTrainingAge) => void;
-  onProteinOverride: (value: string | null) => void;
-}) {
-  const showMacros = trainingAge != null;
-  return (
-    <div className="flex flex-col gap-4">
       <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
       <OnboardingTrainingAgeStep
         trainingAge={trainingAge}
         onPick={onTrainingAgePick}
       />
       {showMacros ? (
-        <OnboardingMacrosStep
-          sex={sex}
-          weight={weight}
-          goal={goal}
-          proteinOverride={proteinOverride}
-          proteinInvalid={proteinInvalid}
-          onProteinOverride={onProteinOverride}
-        />
+        <OnboardingMacrosStep sex={sex} weight={weight} goal={goal} />
       ) : null}
     </div>
   );

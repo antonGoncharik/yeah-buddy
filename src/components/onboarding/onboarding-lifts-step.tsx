@@ -30,8 +30,8 @@ export function OnboardingLiftsStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Если знаешь присед, жим или становую — напиши. Если нет — поставим
-        примерные максимумы на раз, потом поправишь. Штанга не обидится.
+        Если знаешь присед, жим или становую — напиши. Если нет — посчитаем
+        примерные максимумы на раз по стажу и весу, в зале уточнишь.
       </p>
       <div className="flex flex-col gap-3">
         {ONBOARDING_LIFT_FIELDS.map((field, index) => {

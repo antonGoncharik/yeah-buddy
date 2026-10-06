@@ -11,10 +11,7 @@ import {
   OnboardingCircleStep,
   type OnboardingProgramShelf,
 } from "@/components/onboarding/onboarding-circle-step";
-import {
-  OnboardingBodyStep,
-  OnboardingGoalsStep,
-} from "@/components/onboarding/onboarding-food-step";
+import { OnboardingProfileStep } from "@/components/onboarding/onboarding-food-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
 import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
@@ -23,7 +20,9 @@ import {
   onboardingStepNeedsNext,
 } from "@/components/onboarding/onboarding-steps";
 import {
+  GOAL_REQUIRED,
   SEX_REQUIRED,
+  TRAINING_AGE_REQUIRED,
   useOnboardingScreen,
   WEIGHT_INVALID,
   WEIGHT_REQUIRED,
@@ -52,7 +51,6 @@ export function OnboardingScreen() {
     weight,
     goal,
     trainingAge,
-    proteinOverride,
     ration,
     lifts,
     circle,
@@ -60,15 +58,12 @@ export function OnboardingScreen() {
     goBack,
     goNext,
     skipLifts,
-    pickRecommendedRation,
     weightInvalid,
-    proteinInvalid,
     onSexPick,
     onWeightChange,
     onGoalPick,
     onTrainingAgePick,
     onLiftChange,
-    onProteinOverride,
     onRationPick,
   } = useOnboardingScreen();
   const [programShelf, setProgramShelf] =
@@ -109,10 +104,12 @@ export function OnboardingScreen() {
   const showNext =
     step === "circle" ? pickingProgram : onboardingStepNeedsNext(step);
   const canLeaveStep = stepIndex > 0 || pickingProgram;
-  const bodyFieldError =
+  const weightFieldError =
+    error === WEIGHT_REQUIRED || error === WEIGHT_INVALID;
+  const profileFieldError =
     error === SEX_REQUIRED ||
-    error === WEIGHT_REQUIRED ||
-    error === WEIGHT_INVALID;
+    error === GOAL_REQUIRED ||
+    error === TRAINING_AGE_REQUIRED;
 
   function handleBack() {
     if (step === "circle" && pickingProgram) {
@@ -151,36 +148,26 @@ export function OnboardingScreen() {
       </header>
 
       <div key={step} className="flex flex-col gap-4 px-4">
-        {step === "body" ? (
-          <OnboardingBodyStep
+        {step === "profile" ? (
+          <OnboardingProfileStep
             sex={sex}
             weight={weight}
+            goal={goal}
+            trainingAge={trainingAge}
             weightInvalid={weightInvalid}
-            weightMessage={bodyFieldError ? error : null}
+            weightMessage={weightFieldError ? error : null}
             replay={replay}
             fromWorkoutPack={
               pendingKind === "workouts" || pendingProgramId != null
             }
             onSexPick={onSexPick}
             onWeightChange={onWeightChange}
-          />
-        ) : null}
-        {error === SEX_REQUIRED && step === "body" ? (
-          <p className="text-center text-base text-destructive">{error}</p>
-        ) : null}
-
-        {step === "goals" ? (
-          <OnboardingGoalsStep
-            goal={goal}
-            trainingAge={trainingAge}
-            sex={sex}
-            weight={weight}
-            proteinOverride={proteinOverride}
-            proteinInvalid={proteinInvalid}
             onGoalPick={onGoalPick}
             onTrainingAgePick={onTrainingAgePick}
-            onProteinOverride={onProteinOverride}
           />
+        ) : null}
+        {error && step === "profile" && profileFieldError ? (
+          <p className="text-center text-base text-destructive">{error}</p>
         ) : null}
 
         {step === "ration" ? (
@@ -189,7 +176,6 @@ export function OnboardingScreen() {
             sex={sex}
             weight={weight}
             goal={goal}
-            proteinOverride={proteinOverride}
             onPick={onRationPick}
           />
         ) : null}
@@ -212,17 +198,7 @@ export function OnboardingScreen() {
           />
         ) : null}
 
-        {error && step === "body" && !bodyFieldError ? (
-          <p className="animate-rise text-center text-base text-destructive">
-            {error}
-          </p>
-        ) : null}
-        {error && step !== "body" && step !== "goals" ? (
-          <p className="animate-rise text-center text-base text-destructive">
-            {error}
-          </p>
-        ) : null}
-        {error && step === "goals" && !proteinInvalid ? (
+        {error && step !== "profile" ? (
           <p className="animate-rise text-center text-base text-destructive">
             {error}
           </p>
@@ -231,18 +207,6 @@ export function OnboardingScreen() {
 
       {showNext ? (
         <StickyActions withNav={false}>
-          {step === "ration" ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-12 w-full text-base"
-              data-keyboard-secondary
-              disabled={saving}
-              onClick={() => pickRecommendedRation()}
-            >
-              Рекомендуемый подойдёт
-            </Button>
-          ) : null}
           {step === "lifts" ? (
             <Button
               type="button"
@@ -252,7 +216,7 @@ export function OnboardingScreen() {
               disabled={saving}
               onClick={() => skipLifts()}
             >
-              Не знаю цифры — в зале спрошу
+              Не знаю — посчитай сам
             </Button>
           ) : null}
           <Button
@@ -294,11 +258,8 @@ function titleForStep(
   step: OnboardingStep,
   shelf: OnboardingProgramShelf | null,
 ): string {
-  if (step === "body") {
-    return "Ты и вес";
-  }
-  if (step === "goals") {
-    return "Цель и цифры";
+  if (step === "profile") {
+    return "Про тебя";
   }
   if (step === "ration") {
     return "Еда на день";

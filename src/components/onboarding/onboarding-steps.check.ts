@@ -18,12 +18,12 @@ const empty = {
   replay: false,
 };
 
-const food = "body,goals";
+const food = "profile";
 
 assertEqual(
   onboardingSteps(empty).join(),
   `guide,${food},ration,lifts,circle`,
-  "first run is guide, then body + goals, ration, lifts, program",
+  "first run is guide, profile, ration, lifts, program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
@@ -77,9 +77,9 @@ assertEqual(
 assertEqual(onboardingStepNeedsNext("lifts"), true, "lifts needs Дальше");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(
-  onboardingSteps({ ...empty, replay: true }).includes("body"),
+  onboardingSteps({ ...empty, replay: true }).includes("profile"),
   true,
-  "replay still walks body → goals before lifts",
+  "replay still walks profile before lifts",
 );
 
 console.log("onboarding steps ok");
