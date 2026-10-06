@@ -147,16 +147,17 @@ export function OnboardingScreen() {
   );
 
   return (
-    <OnboardingStepShell
-      canGoBack={canLeaveStep}
-      onBack={handleBack}
-      progressLabel={`Настройка ${setupIndex + 1} из ${setupSteps.length}`}
-      stepDots={<OnboardingStepDots steps={setupSteps} current={step} />}
-      title={titleForStep(step, programShelf)}
-      subtitle={subtitleForStep(step, replay, pendingKind, pendingProgramId)}
-      showSticky={showNext}
-      sticky={sticky}
-    >
+    <>
+      <OnboardingStepShell
+        canGoBack={canLeaveStep}
+        onBack={handleBack}
+        progressLabel={`Настройка ${setupIndex + 1} из ${setupSteps.length}`}
+        stepDots={<OnboardingStepDots steps={setupSteps} current={step} />}
+        title={titleForStep(step, programShelf)}
+        subtitle={subtitleForStep(step, replay, pendingKind, pendingProgramId)}
+        showSticky={showNext}
+        sticky={sticky}
+      >
       {step === "profile" ? (
         <>
           <OnboardingProfileStep
@@ -208,7 +209,11 @@ export function OnboardingScreen() {
       {error && step !== "profile" ? (
         <p className="mt-2 text-center text-sm text-destructive">{error}</p>
       ) : null}
-    </OnboardingStepShell>
+      </OnboardingStepShell>
+      {saving ? (
+        <ScreenLoading cover title="Сохраняем настройки…" />
+      ) : null}
+    </>
   );
 }
 

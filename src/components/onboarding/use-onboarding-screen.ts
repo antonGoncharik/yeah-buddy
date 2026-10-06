@@ -227,6 +227,8 @@ export function useOnboardingScreen() {
       return;
     }
 
+    setSaving(true);
+    setError(null);
     void finish(circleOverride);
   }
 
@@ -239,38 +241,41 @@ export function useOnboardingScreen() {
     if (!omitProtein) {
       if (sex == null) {
         haptic("warn");
+        setSaving(false);
         setError(SEX_REQUIRED);
         setStep("profile");
         return;
       }
       if (!weightDraftOk(weight)) {
         haptic("warn");
+        setSaving(false);
         setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
         setStep("profile");
         return;
       }
       if (goal == null) {
         haptic("warn");
+        setSaving(false);
         setError(GOAL_REQUIRED);
         setStep("profile");
         return;
       }
       if (trainingAge == null) {
         haptic("warn");
+        setSaving(false);
         setError(TRAINING_AGE_REQUIRED);
         setStep("profile");
         return;
       }
       if (!proteinValid(proteinValue)) {
         haptic("warn");
+        setSaving(false);
         setError(PROTEIN_INVALID);
         setStep("profile");
         return;
       }
     }
 
-    setSaving(true);
-    setError(null);
     try {
       const href = await submitOnboardingFinish({
         omitProtein,
@@ -294,9 +299,8 @@ export function useOnboardingScreen() {
       haptic("success");
     } catch (caught) {
       haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
       setSaving(false);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
   }
 
@@ -309,6 +313,7 @@ export function useOnboardingScreen() {
       setStep(following);
       return;
     }
+    setSaving(true);
     void finish();
   }
 
