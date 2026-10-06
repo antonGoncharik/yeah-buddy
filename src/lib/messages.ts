@@ -35,7 +35,7 @@ export const OPEN_VIA_BOT_STEPS = [
   },
   {
     title: "Вечером",
-    body: "Одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
+    body: "Около вечера — одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
   },
 ] as const;
 export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
@@ -164,7 +164,7 @@ export function botMiddayReminderProtein(remaining: string): string {
   return `Ещё ${remaining} г белка до цели.`;
 }
 export const EARLY_HABIT_REMINDER_NOTE =
-  "В первые две недели, если день пустой, бот напомнит днём (около 13:00) и вечером в 21:00.";
+  "В первые две недели, если день пустой, бот напомнит днём (около 13:00) и вечером (около 21:00).";
 
 export function botReminderGym(name: string): string {
   return `Тренировка «${name}» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.`;
