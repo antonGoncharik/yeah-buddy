@@ -1,6 +1,8 @@
+import { buddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload } from "@/lib/coach/start";
 import {
   dismissPendingBarbell,
+  dismissPendingBuddyToken,
   dismissPendingCoachToken,
   dismissPendingPackToken,
   dismissPendingProgramId,
@@ -8,6 +10,7 @@ import {
   packPath,
   parsePackBackFrom,
   peekPendingBarbell,
+  peekPendingBuddyToken,
   peekPendingCoachToken,
   peekPendingPackToken,
   peekPendingProgramId,
@@ -115,5 +118,17 @@ dismissPendingCoachToken(coachToken);
 assert(peekPendingCoachToken() === null, "dismiss coach");
 rememberIncomingStart(coachStartPayload(coachToken));
 assert(peekPendingCoachToken() === null, "seen coach is not queued again");
+
+memory.clear();
+const buddyToken = createPackToken();
+rememberIncomingStart(buddyStartPayload(buddyToken));
+assert(peekPendingBuddyToken() === buddyToken, "start payload queues buddy");
+assert(peekPendingPackToken() === null, "buddy start is not a pack");
+assert(peekPendingProgramId() === null, "buddy start is not a program");
+assert(peekPendingCoachToken() === null, "buddy start is not coach");
+dismissPendingBuddyToken(buddyToken);
+assert(peekPendingBuddyToken() === null, "dismiss buddy");
+rememberIncomingStart(buddyStartPayload(buddyToken));
+assert(peekPendingBuddyToken() === null, "seen buddy is not queued again");
 
 console.log("share pending ok");

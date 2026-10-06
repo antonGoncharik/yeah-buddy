@@ -165,6 +165,10 @@ export function useTodayScreen({
     viewOnly,
     date,
     day: data.day,
+    accountAgeDays: data.accountAgeDays,
+    mealTemplateFillPromptDismissed: data.mealTemplateFillPromptDismissed,
+    onDismissMealTemplatePrompt: () =>
+      data.setMealTemplateFillPromptDismissed(true),
     setBusy,
     setNamedMeals: data.setNamedMeals,
   });
@@ -241,6 +245,8 @@ export function useTodayScreen({
     earlyHabit: data.earlyHabit,
     earlyHabitSnapshot: data.earlyHabitSnapshot,
     priorFoodLogDays: data.priorFoodLogDays,
+    habitBridge: data.habitBridge,
+    habitBridgeSnapshot: data.habitBridgeSnapshot,
     busy,
     loadError: data.loadError,
     loading: data.loading,

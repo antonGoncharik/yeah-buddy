@@ -48,6 +48,10 @@ import {
   DEFAULT_TRAINING_MACRO_GOALS,
   sumMeals,
 } from "@/lib/nutrition";
+import {
+  buildHabitBridgeSnapshot,
+  inHabitBridgeWindow,
+} from "@/lib/retention/habit-bridge";
 import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { getUserSettings } from "@/lib/settings";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
@@ -82,6 +86,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const weekStart = shiftIsoDate(today, -6);
     const viewingToday = date === today;
     const earlyHabit = viewingToday && inEarlyHabitWindow(ageDays);
+    const habitBridge = viewingToday && inHabitBridgeWindow(ageDays);
+    const needWeekGym = viewingToday && (earlyHabit || habitBridge);
     const [
       day,
       yesterday,
@@ -116,13 +122,21 @@ export async function GET(request: Request): Promise<NextResponse> {
             end: today,
           })
         : Promise.resolve(0),
-      earlyHabit
+      needWeekGym
         ? countCompletedSessions(auth.session.userId, {
             start: weekStart,
             end: today,
           })
         : Promise.resolve(0),
     ]);
+
+    const reviewReadyFlag =
+      viewingToday &&
+      reviewCtaReady({
+        loggedDays: recentDays.filter(historyDayHasFood).length,
+        completedWorkouts: gymCount,
+        ageDays,
+      });
 
     const priorFood = priorFoodLogDays(recentDays, date);
     const dayFact = day != null ? sumMeals(day.meals) : null;
@@ -177,13 +191,19 @@ export async function GET(request: Request): Promise<NextResponse> {
             })
           : null,
       retentionTail: viewingToday && inRetentionTail(ageDays),
-      reviewReady:
-        viewingToday &&
-        reviewCtaReady({
-          loggedDays: recentDays.filter(historyDayHasFood).length,
-          completedWorkouts: gymCount,
-          ageDays,
-        }),
+      habitBridge,
+      habitBridgeSnapshot:
+        habitBridge && ageDays != null
+          ? buildHabitBridgeSnapshot({
+              today,
+              recentDays,
+              gymSessionsWeek: gymWeekCount,
+              reviewReady: reviewReadyFlag,
+            })
+          : null,
+      mealTemplateFillPromptDismissed:
+        settings?.meal_template_fill_prompt_dismissed === true,
+      reviewReady: reviewReadyFlag,
       copyDays,
       namedMeals,
       recipes: {

@@ -185,6 +185,12 @@ export function SettingsScreen() {
               icon={<CoachDoodle />}
             />
             <NavRow
+              href="/settings/buddy"
+              title="Пара"
+              hint="Друг видит только сегодня: еда, белок, зал"
+              icon={<FriendsDoodle />}
+            />
+            <NavRow
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="День, приём или программа"

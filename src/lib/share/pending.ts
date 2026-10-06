@@ -1,3 +1,4 @@
+import { buddyStartPayload, parseBuddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import { BARBELL_GAME_HREF } from "@/lib/share/barbell-daily";
 import { parseBarbellStartPayload } from "@/lib/share/barbell-start";
@@ -14,6 +15,8 @@ const PROGRAM_PENDING_KEY = "yb.program";
 const PROGRAM_SEEN_KEY = "yb.program.seen";
 const COACH_PENDING_KEY = "yb.coach";
 const COACH_SEEN_KEY = "yb.coach.seen";
+const BUDDY_PENDING_KEY = "yb.buddy";
+const BUDDY_SEEN_KEY = "yb.buddy.seen";
 const BARBELL_PENDING_KEY = "yb.barbell";
 const BARBELL_SEEN_KEY = "yb.barbell.seen";
 
@@ -45,6 +48,12 @@ export function rememberIncomingStart(value: string | null | undefined): void {
   const coachToken = parseCoachStartPayload(value);
   if (coachToken) {
     rememberCoachToken(coachToken);
+    return;
+  }
+
+  const buddyToken = parseBuddyStartPayload(value);
+  if (buddyToken) {
+    rememberBuddyToken(buddyToken);
     return;
   }
 
@@ -106,6 +115,47 @@ export function peekPendingCoachToken(): string | null {
   return token;
 }
 
+export function rememberBuddyToken(token: string | null | undefined): void {
+  if (!token || parseBuddyStartPayload(buddyStartPayload(token)) == null) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(BUDDY_SEEN_KEY) === token) {
+    return;
+  }
+
+  store.setItem(BUDDY_PENDING_KEY, token);
+}
+
+export function peekPendingBuddyToken(): string | null {
+  const token = storage()?.getItem(BUDDY_PENDING_KEY) ?? null;
+  if (!token || parseBuddyStartPayload(buddyStartPayload(token)) == null) {
+    return null;
+  }
+  return token;
+}
+
+export function dismissPendingBuddyToken(token: string): void {
+  if (parseBuddyStartPayload(buddyStartPayload(token)) == null) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(BUDDY_PENDING_KEY) === token) {
+    store.removeItem(BUDDY_PENDING_KEY);
+  }
+  store.setItem(BUDDY_SEEN_KEY, token);
+}
+
 export function dismissPendingCoachToken(token: string): void {
   if (parseCoachStartPayload(coachStartPayload(token)) == null) {
     return;
@@ -157,6 +207,7 @@ export function rememberPackToken(token: string | null | undefined): void {
     !token ||
     parseProgramStartPayload(token) ||
     parseCoachStartPayload(token) ||
+    parseBuddyStartPayload(token) ||
     parseBarbellStartPayload(token) ||
     !isPackToken(token)
   ) {

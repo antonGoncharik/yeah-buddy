@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BuddyCatcher } from "@/components/buddy/buddy-catcher";
 import { CoachCatcher } from "@/components/coach/coach-catcher";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { OutboxSync } from "@/components/layout/outbox-sync";
@@ -22,7 +23,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="app-safe-pad app-viewport-min mx-auto w-full min-w-0 max-w-lg pb-[var(--app-nav-clearance)]">
           <ResetWindowScroll />
           <CoachCatcher>
-            <PackCatcher>{children}</PackCatcher>
+            <BuddyCatcher>
+              <PackCatcher>{children}</PackCatcher>
+            </BuddyCatcher>
           </CoachCatcher>
           <OutboxSync />
         </div>

@@ -13,6 +13,7 @@ import {
   toNullableNumber,
   toNumber,
 } from "@/lib/read";
+import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type {
   CopyDayHint,
@@ -155,6 +156,39 @@ export function readRetentionTail(data: unknown): boolean {
 
 export function readEarlyHabit(data: unknown): boolean {
   return isRecord(data) && data.earlyHabit === true;
+}
+
+export function readHabitBridge(data: unknown): boolean {
+  return isRecord(data) && data.habitBridge === true;
+}
+
+export function readMealTemplateFillPromptDismissed(data: unknown): boolean {
+  return (
+    isRecord(data) && data.mealTemplateFillPromptDismissed === true
+  );
+}
+
+export function readHabitBridgeSnapshot(
+  data: unknown,
+): HabitBridgeSnapshot | null {
+  if (!isRecord(data) || !isRecord(data.habitBridgeSnapshot)) {
+    return null;
+  }
+  const row = data.habitBridgeSnapshot;
+  if (
+    typeof row.foodDaysWeek !== "number" ||
+    typeof row.gymSessionsWeek !== "number" ||
+    typeof row.proteinHitDaysWeek !== "number" ||
+    typeof row.reviewReady !== "boolean"
+  ) {
+    return null;
+  }
+  return {
+    foodDaysWeek: row.foodDaysWeek,
+    gymSessionsWeek: row.gymSessionsWeek,
+    proteinHitDaysWeek: row.proteinHitDaysWeek,
+    reviewReady: row.reviewReady,
+  };
 }
 
 export function readEarlyHabitSnapshot(data: unknown): EarlyHabitSnapshot | null {

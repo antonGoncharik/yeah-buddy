@@ -26,6 +26,7 @@ export const settingsInputSchema = z.union([
   z.object({ sex }),
   z.object({ goal }),
   z.object({ training_age: trainingAge }),
+  z.object({ meal_template_fill_prompt_dismissed: z.boolean() }),
   z
     .object({
       sex: sex.optional(),

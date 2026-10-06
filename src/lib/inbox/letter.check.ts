@@ -1,3 +1,4 @@
+import { buddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload } from "@/lib/coach/start";
 import {
   classifyStart,
@@ -83,6 +84,16 @@ assertEqual(
   classifyStart(coachToken),
   { kind: "pack", token: coachToken },
   "raw token stays a pack",
+);
+const buddyToken = createPackToken();
+assert(
+  isPackToken(buddyStartPayload(buddyToken)),
+  "buddy payload looks like a pack",
+);
+assertEqual(
+  classifyStart(buddyStartPayload(buddyToken)),
+  { kind: "buddy", token: buddyToken },
+  "buddy wins over pack",
 );
 assertEqual(classifyStart(""), { kind: "plain" }, "empty start");
 

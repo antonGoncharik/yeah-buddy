@@ -33,7 +33,10 @@ import {
 } from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED } from "@/lib/messages";
-import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
+import {
+  isProgramPresetId,
+  RECOMMENDED_PROGRAM_PRESET_ID,
+} from "@/lib/workout/program-presets";
 
 export function OnboardingScreen() {
   const {
@@ -199,9 +202,15 @@ export function OnboardingScreen() {
           picking={pickingProgram}
           shelf={programShelf}
           saving={saving}
+          sex={sex}
           onChange={setCircle}
           onBeginner={() => void goNext(RECOMMENDED_PROGRAM_PRESET_ID)}
-          onHome={() => setProgramShelf("home")}
+          onHome={() => {
+            setProgramShelf("home");
+            if (sex === "female" && !isProgramPresetId(circle)) {
+              setCircle("home_glutes");
+            }
+          }}
           onPickYourself={() => setProgramShelf("all")}
         />
       ) : null}

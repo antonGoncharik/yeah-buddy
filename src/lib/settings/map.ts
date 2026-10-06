@@ -35,6 +35,8 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     goal: parseStoredGoal(row.goal),
     training_age: parseStoredTrainingAge(row.training_age),
     granted_programs: parseGrantedPrograms(row.granted_programs),
+    meal_template_fill_prompt_dismissed:
+      row.meal_template_fill_prompt_dismissed === true,
     updated_at: String(row.updated_at),
   };
 }

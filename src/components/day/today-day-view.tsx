@@ -6,6 +6,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
 import { EarlyHabitCard } from "@/components/day/early-habit-card";
+import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
@@ -36,6 +37,7 @@ import {
   buildEarlyHabitSnapshot,
   type EarlyHabitSnapshot,
 } from "@/lib/retention/habit";
+import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
   CopyDayHint,
   MealItem,
@@ -64,6 +66,8 @@ export function TodayDayView({
   earlyHabit,
   earlyHabitSnapshot,
   priorFoodLogDays,
+  habitBridge,
+  habitBridgeSnapshot,
   onOpenYesterday,
   copyDays,
   namedMeals,
@@ -111,6 +115,8 @@ export function TodayDayView({
   earlyHabit: boolean;
   earlyHabitSnapshot: EarlyHabitSnapshot | null;
   priorFoodLogDays: number;
+  habitBridge: boolean;
+  habitBridgeSnapshot: HabitBridgeSnapshot | null;
   onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -252,6 +258,12 @@ export function TodayDayView({
       {habitSnapshot ? (
         <div className="animate-rise" style={{ animationDelay: "30ms" }}>
           <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
+        </div>
+      ) : null}
+
+      {habitBridge && habitBridgeSnapshot && !habitSnapshot ? (
+        <div className="animate-rise" style={{ animationDelay: "35ms" }}>
+          <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
         </div>
       ) : null}
 

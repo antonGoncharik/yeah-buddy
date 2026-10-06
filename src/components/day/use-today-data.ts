@@ -27,6 +27,9 @@ import {
   readNamedMeals,
   readEarlyHabit,
   readEarlyHabitSnapshot,
+  readHabitBridge,
+  readHabitBridgeSnapshot,
+  readMealTemplateFillPromptDismissed,
   readPriorFoodLogDays,
   readPriorProteinHits,
   readRecipes,
@@ -36,6 +39,7 @@ import {
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
+import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
@@ -73,6 +77,11 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [earlyHabitSnapshot, setEarlyHabitSnapshot] =
     useState<EarlyHabitSnapshot | null>(null);
   const [priorFoodLogDays, setPriorFoodLogDays] = useState(0);
+  const [habitBridge, setHabitBridge] = useState(false);
+  const [habitBridgeSnapshot, setHabitBridgeSnapshot] =
+    useState<HabitBridgeSnapshot | null>(null);
+  const [mealTemplateFillPromptDismissed, setMealTemplateFillPromptDismissed] =
+    useState(false);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -110,6 +119,11 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setEarlyHabit(readEarlyHabit(data));
       setEarlyHabitSnapshot(readEarlyHabitSnapshot(data));
       setPriorFoodLogDays(readPriorFoodLogDays(data));
+      setHabitBridge(readHabitBridge(data));
+      setHabitBridgeSnapshot(readHabitBridgeSnapshot(data));
+      setMealTemplateFillPromptDismissed(
+        readMealTemplateFillPromptDismissed(data),
+      );
       setLoadedDate(requestedDate);
       return true;
     },
@@ -261,6 +275,14 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       cached != null ? readEarlyHabitSnapshot(cached) : earlyHabitSnapshot,
     priorFoodLogDays:
       cached != null ? readPriorFoodLogDays(cached) : priorFoodLogDays,
+    habitBridge: cached != null ? readHabitBridge(cached) : habitBridge,
+    habitBridgeSnapshot:
+      cached != null ? readHabitBridgeSnapshot(cached) : habitBridgeSnapshot,
+    mealTemplateFillPromptDismissed:
+      cached != null
+        ? readMealTemplateFillPromptDismissed(cached)
+        : mealTemplateFillPromptDismissed,
+    setMealTemplateFillPromptDismissed,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
     loading,

@@ -65,6 +65,8 @@ export function TodayScreen({
     earlyHabit,
     earlyHabitSnapshot,
     priorFoodLogDays,
+    habitBridge,
+    habitBridgeSnapshot,
     busy,
     loadError,
     loading,
@@ -222,6 +224,8 @@ export function TodayScreen({
             earlyHabit={earlyHabit && isToday}
             earlyHabitSnapshot={earlyHabitSnapshot}
             priorFoodLogDays={priorFoodLogDays}
+            habitBridge={habitBridge && isToday}
+            habitBridgeSnapshot={habitBridgeSnapshot}
             onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}

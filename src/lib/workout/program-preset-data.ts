@@ -74,6 +74,17 @@ export const HOME_PROGRAM_PRESET_IDS = [
   "home_glutes",
 ] as const satisfies readonly ProgramPresetId[];
 
+/** Home shelf order; glutes first when profile is female. */
+export function homeProgramPresetIds(
+  sex: "male" | "female" | null,
+): readonly ProgramPresetId[] {
+  if (sex !== "female") {
+    return HOME_PROGRAM_PRESET_IDS;
+  }
+  const rest = HOME_PROGRAM_PRESET_IDS.filter((id) => id !== "home_glutes");
+  return ["home_glutes", ...rest];
+}
+
 export const LISTED_PROGRAM_PRESET_IDS = [
   "full_body",
   "home_floor",

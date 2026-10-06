@@ -135,6 +135,20 @@ export const COACH_LINK_TAKEN = "Эту ссылку уже открыл дру�
 export const COACH_LINK_OWN = "Это твоя ссылка. Её открывает тренер.";
 export const COACH_LINK_LIMIT = "Три ссылки уже живые. Закрой одну.";
 export const COACH_LINK_UNAVAILABLE = "Не получилось собрать ссылку.";
+export const BUDDY_SHARE_TEXT =
+  "Смотри мой день — еда, белок и зал. Без веса и цифр.";
+export const BUDDY_BOT_TEXT =
+  "Друг открыл день — только закрыл или нет: еда, белок, зал.";
+export const BUDDY_BOT_OPEN = "Посмотреть";
+export const BUDDY_LINK_DEAD = "Ссылка уже не работает.";
+export const BUDDY_LINK_TAKEN = "Эту ссылку уже открыл другой.";
+export const BUDDY_LINK_OWN = "Это твоя ссылка. Её открывает друг.";
+export const BUDDY_LINK_LIMIT = "Три ссылки уже живые. Закрой одну.";
+export const BUDDY_LINK_UNAVAILABLE = "Не получилось собрать ссылку.";
+export const MEAL_TEMPLATE_FILL_PROMPT =
+  "Подставить еду из шаблона «Еда на день»? Цифры потом можно поправить.";
+export const MEAL_TEMPLATE_FILL_CONFIRM = "Подставить";
+export const MEAL_TEMPLATE_FILL_SKIP = "Сам заполню";
 export const BOT_REMINDER_FOOD =
   "Еда за сегодня ещё пустая. Открой дневник — пока помнишь, что ел.";
 export const BOT_REMINDER_FOOD_EARLY =
@@ -143,6 +157,12 @@ export const BOT_YEAH_BUDDY = "Yeah buddy.";
 export const BOT_REMINDER_DONE = "День в порядке. На сегодня хватит.";
 export const BOT_MIDDAY_REMINDER_FOOD =
   "День ещё пустой. Одна запись сейчас — и серия на Сегодня не оборвётся.";
+export function botMiddayReminderGym(name: string): string {
+  return `Тренировка «${name}» открыта — допиши, когда будешь готов.`;
+}
+export function botMiddayReminderProtein(remaining: string): string {
+  return `Ещё ${remaining} г белка до цели.`;
+}
 export const EARLY_HABIT_REMINDER_NOTE =
   "В первые две недели, если день пустой, бот напомнит днём (около 13:00) и вечером в 21:00.";
 

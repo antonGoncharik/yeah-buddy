@@ -10,7 +10,7 @@ import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
-import { BOT_MIDDAY_REMINDER_FOOD } from "@/lib/messages";
+import { middayReminderText } from "@/lib/telegram/reminder-midday";
 import {
   isoWeekdaySun0,
   localClock,
@@ -21,6 +21,7 @@ import {
 import {
   dateHasFoodRecord,
   dateIsTrainingDay,
+  datePriorFoodLogDays,
   dateShareSnapshot,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
@@ -209,11 +210,37 @@ export async function runMiddayReminders(
       continue;
     }
 
-    const foodLogged = await dateHasFoodRecord(
-      candidate.userId,
-      reminderDate,
-    );
-    if (foodLogged) {
+    const [foodLogged, isTrainingDay, session, snapshot, priorFoodLogDays] =
+      await Promise.all([
+        dateHasFoodRecord(candidate.userId, reminderDate),
+        dateIsTrainingDay(candidate.userId, reminderDate),
+        getSessionOnDate(candidate.userId, reminderDate),
+        dateShareSnapshot(candidate.userId, reminderDate),
+        datePriorFoodLogDays(candidate.userId, reminderDate),
+      ]);
+    const sessionStatus = session?.status ?? null;
+    let gymTemplateName: string | null = null;
+    if (sessionStatus === "planned" && session?.template_id) {
+      const names = await templateNamesById(candidate.userId, [
+        session.template_id,
+      ]);
+      gymTemplateName = names.get(session.template_id) ?? null;
+    }
+    if (!gymTemplateName && isTrainingDay === true && sessionStatus === "planned") {
+      gymTemplateName = await nextCircleName(candidate.userId);
+    }
+
+    const text = middayReminderText({
+      foodLogged,
+      priorFoodLogDays,
+      protein: snapshot?.protein ?? 0,
+      targetProtein: snapshot?.targetProtein ?? 0,
+      isTrainingDay,
+      sessionStatus,
+      gymTemplateName,
+      localHour: clock.hour,
+    });
+    if (!text) {
       result.skipped += 1;
       continue;
     }
@@ -228,11 +255,7 @@ export async function runMiddayReminders(
     }
 
     const env = getServerEnv();
-    const sent = await sendDiaryMessage(
-      candidate.telegramId,
-      BOT_MIDDAY_REMINDER_FOOD,
-      env,
-    );
+    const sent = await sendDiaryMessage(candidate.telegramId, text, env);
     if (sent === "sent") {
       result.sent += 1;
       continue;

@@ -1,3 +1,4 @@
+import { buddyStartPayload, parseBuddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
 import { BARBELL_START_PAYLOAD } from "@/lib/share/barbell-start";
 import type { PublicProgramId } from "@/lib/share/program-public";
@@ -62,6 +63,18 @@ export function resolveCoachShareUrl(
 ): string | null {
   const payload = coachStartPayload(token);
   if (!appUrl || !parseCoachStartPayload(payload)) {
+    return null;
+  }
+
+  return botOrAppStart(appUrl, payload);
+}
+
+export function resolveBuddyShareUrl(
+  token: string,
+  appUrl: string | null,
+): string | null {
+  const payload = buddyStartPayload(token);
+  if (!appUrl || !parseBuddyStartPayload(payload)) {
     return null;
   }
 

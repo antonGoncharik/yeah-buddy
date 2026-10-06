@@ -15,6 +15,7 @@ import {
 
 export const FEATURED_PROGRAM_IDS = [
   "full_body",
+  "home_glutes",
   "five_by_five",
   "ppl",
 ] as const;

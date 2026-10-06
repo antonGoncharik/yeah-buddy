@@ -1,3 +1,4 @@
+import { parseBuddyStartPayload } from "@/lib/buddy/start";
 import { parseCoachStartPayload } from "@/lib/coach/start";
 import {
   INBOX_TOPIC_CHANGE,
@@ -34,6 +35,7 @@ export type StartKind =
   | { kind: "inbox"; topic: InboxTopic | "menu" }
   | { kind: "program"; id: PublicProgramId }
   | { kind: "coach"; token: string }
+  | { kind: "buddy"; token: string }
   | { kind: "pack"; token: string }
   | { kind: "plain" };
 
@@ -132,6 +134,11 @@ export function classifyStart(payload: string): StartKind {
   const coachToken = parseCoachStartPayload(payload);
   if (coachToken) {
     return { kind: "coach", token: coachToken };
+  }
+
+  const buddyToken = parseBuddyStartPayload(payload);
+  if (buddyToken) {
+    return { kind: "buddy", token: buddyToken };
   }
 
   if (isPackToken(payload)) {

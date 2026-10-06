@@ -33,5 +33,6 @@ export interface UserSettings {
   training_age: UserTrainingAge | null;
   /** Hidden preset ids this person may pick. General programs are not stored here. */
   granted_programs: string[];
+  meal_template_fill_prompt_dismissed: boolean;
   updated_at: string;
 }

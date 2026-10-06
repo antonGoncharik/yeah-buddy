@@ -8,7 +8,7 @@ import {
 import { useTodayNamedMeals } from "@/components/day/use-today-named";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { reportActionError } from "@/lib/action-error";
-import { peekJson, postJson, writeJson } from "@/lib/api-cache";
+import { patchJson, peekJson, postJson, writeJson } from "@/lib/api-cache";
 import {
   applyRemainingFromCache,
   daysUrl,
@@ -28,6 +28,9 @@ import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import {
   DAY_EXISTS_REPLACE,
   LOAD_FAILED,
+  MEAL_TEMPLATE_FILL_CONFIRM,
+  MEAL_TEMPLATE_FILL_PROMPT,
+  MEAL_TEMPLATE_FILL_SKIP,
   saveDayTemplateReplace,
 } from "@/lib/messages";
 import { mealExistsReplace } from "@/lib/nutrition";
@@ -35,16 +38,24 @@ import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealType, NamedMealHint } from "@/lib/types";
 
+const MEAL_TEMPLATE_PROMPT_MAX_AGE_DAYS = 7;
+
 export function useTodayCopy({
   viewOnly,
   date,
   day,
+  accountAgeDays,
+  mealTemplateFillPromptDismissed,
+  onDismissMealTemplatePrompt,
   setBusy,
   setNamedMeals,
 }: {
   viewOnly: boolean;
   date: string;
   day: DayWithMeals | null;
+  accountAgeDays: number | null;
+  mealTemplateFillPromptDismissed: boolean;
+  onDismissMealTemplatePrompt: () => void;
   setBusy: Dispatch<SetStateAction<boolean>>;
   setNamedMeals: Dispatch<SetStateAction<NamedMealHint[]>>;
 }) {
@@ -130,8 +141,46 @@ export function useTodayCopy({
     }
   }
 
+  async function dismissMealTemplatePrompt(): Promise<void> {
+    onDismissMealTemplatePrompt();
+    try {
+      await patchJson("/api/settings", {
+        meal_template_fill_prompt_dismissed: true,
+      });
+    } catch {
+      // Local dismiss still avoids repeat prompts this session.
+    }
+  }
+
+  function dayHasNoFood(): boolean {
+    return !day?.meals.some((meal) => meal.items.length > 0);
+  }
+
+  async function maybeConfirmTemplateFill(): Promise<boolean> {
+    if (
+      mealTemplateFillPromptDismissed ||
+      accountAgeDays == null ||
+      accountAgeDays > MEAL_TEMPLATE_PROMPT_MAX_AGE_DAYS ||
+      !dayHasNoFood()
+    ) {
+      return true;
+    }
+
+    const ok = await confirm({
+      message: MEAL_TEMPLATE_FILL_PROMPT,
+      confirmLabel: MEAL_TEMPLATE_FILL_CONFIRM,
+      cancelLabel: MEAL_TEMPLATE_FILL_SKIP,
+    });
+    await dismissMealTemplatePrompt();
+    return ok;
+  }
+
   async function fillFromTemplate(url: string, mealType?: MealType) {
     if (viewOnly || !day || isTempId(day.id)) {
+      return;
+    }
+
+    if (!(await maybeConfirmTemplateFill())) {
       return;
     }
 

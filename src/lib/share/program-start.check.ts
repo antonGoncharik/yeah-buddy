@@ -29,7 +29,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
   }
 }
 
-assert(FEATURED_PROGRAM_IDS.length === 3, "storefront is three programs");
+assert(FEATURED_PROGRAM_IDS.length === 4, "storefront is four programs");
 for (const id of PUBLIC_PROGRAM_IDS) {
   assert(programPresetById(id) != null, `${id} exists as a preset`);
   assertEqual(

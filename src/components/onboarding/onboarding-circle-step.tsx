@@ -4,8 +4,9 @@ import { ProgramPresetCatalog } from "@/components/workout/program-preset-list";
 import type { OnboardingCircle } from "@/lib/onboarding";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
+import type { UserSex } from "@/lib/types";
 import {
-  HOME_PROGRAM_PRESET_IDS,
+  homeProgramPresetIds,
   isProgramPresetId,
 } from "@/lib/workout/program-presets";
 
@@ -21,18 +22,59 @@ export function OnboardingCircleStep({
   onBeginner,
   onHome,
   onPickYourself,
+  sex,
 }: {
   value: OnboardingCircle;
   fromMealPack: boolean;
   picking: boolean;
   shelf: OnboardingProgramShelf | null;
   saving: boolean;
+  sex: UserSex | null;
   onChange: (value: OnboardingCircle) => void;
   onBeginner: () => void;
   onHome: () => void;
   onPickYourself: () => void;
 }) {
   if (!picking) {
+    const homeFirst = sex === "female";
+    const beginner = (
+      <ChoiceCard
+        title="Не знаю что делать"
+        hint="Поставим «Всё тело»: 2 разные тренировки, обычно ходят 2–3 раза в неделю."
+        disabled={saving}
+        onClick={() => {
+          haptic("tick");
+          onBeginner();
+        }}
+      />
+    );
+    const home = (
+      <ChoiceCard
+        title="Дома"
+        hint={
+          homeFirst
+            ? "Ягодицы, пол или гантели — без зала."
+            : "Без зала: пол, гантели, турник или ягодицы."
+        }
+        disabled={saving}
+        onClick={() => {
+          haptic("tap");
+          onHome();
+        }}
+      />
+    );
+    const pick = (
+      <ChoiceCard
+        title="Знаю что хочу"
+        hint="Выбрать готовую программу или сделать свою."
+        disabled={saving}
+        onClick={() => {
+          haptic("tap");
+          onPickYourself();
+        }}
+      />
+    );
+
     return (
       <div className="flex flex-col gap-2 pb-2">
         {fromMealPack ? (
@@ -40,33 +82,19 @@ export function OnboardingCircleStep({
             Еда на день возьмётся из ссылки.
           </p>
         ) : null}
-        <ChoiceCard
-          title="Не знаю что делать"
-          hint="Поставим «Всё тело»: 2 разные тренировки, обычно ходят 2–3 раза в неделю."
-          disabled={saving}
-          onClick={() => {
-            haptic("tick");
-            onBeginner();
-          }}
-        />
-        <ChoiceCard
-          title="Дома"
-          hint="Без зала: пол, гантели, турник или ягодицы."
-          disabled={saving}
-          onClick={() => {
-            haptic("tap");
-            onHome();
-          }}
-        />
-        <ChoiceCard
-          title="Знаю что хочу"
-          hint="Выбрать готовую программу или сделать свою."
-          disabled={saving}
-          onClick={() => {
-            haptic("tap");
-            onPickYourself();
-          }}
-        />
+        {homeFirst ? (
+          <>
+            {home}
+            {beginner}
+            {pick}
+          </>
+        ) : (
+          <>
+            {beginner}
+            {home}
+            {pick}
+          </>
+        )}
       </div>
     );
   }
@@ -80,7 +108,7 @@ export function OnboardingCircleStep({
       ) : null}
       <ProgramPresetCatalog
         disabled={saving}
-        ids={shelf === "home" ? HOME_PROGRAM_PRESET_IDS : undefined}
+        ids={shelf === "home" ? homeProgramPresetIds(sex) : undefined}
         headings={shelf !== "home"}
         value={isProgramPresetId(value) ? value : null}
         onPick={onChange}

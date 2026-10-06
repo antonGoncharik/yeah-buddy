@@ -1,6 +1,7 @@
 import { join } from "node:path";
 
 import { Bot, GrammyError, InlineKeyboard, InputFile } from "grammy";
+import { buddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload } from "@/lib/coach/start";
 import { registerDonatePayments } from "@/lib/donate/payments";
 import { getServerEnv, type ServerEnv } from "@/lib/env";
@@ -16,6 +17,8 @@ import {
   BOT_PROGRAM_START,
   BOT_START,
   BOT_YEAH_BUDDY,
+  BUDDY_BOT_OPEN,
+  BUDDY_BOT_TEXT,
   COACH_BOT_OPEN,
   COACH_BOT_TEXT,
 } from "@/lib/messages";
@@ -30,6 +33,7 @@ import {
 import {
   resolveAppShareUrl,
   resolveBarbellPlayUrl,
+  resolveBuddyShareUrl,
   resolveCoachShareUrl,
   resolvePackShareUrl,
   resolveProgramShareUrl,
@@ -77,6 +81,10 @@ export async function getPackShareUrl(token: string): Promise<string | null> {
 
 export async function getCoachShareUrl(token: string): Promise<string | null> {
   return resolveCoachShareUrl(token, await getAppShareUrl());
+}
+
+export async function getBuddyShareUrl(token: string): Promise<string | null> {
+  return resolveBuddyShareUrl(token, await getAppShareUrl());
 }
 
 export async function getProgramShareUrl(
@@ -152,6 +160,17 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
       );
       await ctx.reply(COACH_BOT_TEXT, {
         reply_markup: new InlineKeyboard().webApp(COACH_BOT_OPEN, buttonUrl),
+      });
+      return;
+    }
+
+    if (start.kind === "buddy") {
+      const buttonUrl = withStartApp(
+        miniAppUrl,
+        buddyStartPayload(start.token),
+      );
+      await ctx.reply(BUDDY_BOT_TEXT, {
+        reply_markup: new InlineKeyboard().webApp(BUDDY_BOT_OPEN, buttonUrl),
       });
       return;
     }

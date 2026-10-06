@@ -1,4 +1,9 @@
+import { shiftIsoDate } from "@/lib/day/dates";
 import { listDaysInRange } from "@/lib/day/history";
+import {
+  FOOD_LOG_STREAK_WINDOW,
+  priorFoodLogDays,
+} from "@/lib/retention/habit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { templateAfter } from "@/lib/workout/templates";
 
@@ -43,6 +48,15 @@ export async function dateHasFoodRecord(
   }
 
   return result.data != null;
+}
+
+export async function datePriorFoodLogDays(
+  userId: string,
+  date: string,
+): Promise<number> {
+  const start = shiftIsoDate(date, -(FOOD_LOG_STREAK_WINDOW - 1));
+  const days = await listDaysInRange(userId, start, date);
+  return priorFoodLogDays(days, date);
 }
 
 export async function dateShareSnapshot(
