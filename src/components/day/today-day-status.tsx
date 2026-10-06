@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import type { GymLoop } from "@/lib/day/loop";
 import {
   buildTodayDayGlance,
@@ -16,6 +17,7 @@ export function TodayDayStatus({
   targetKcal,
   gym,
   isTrainingDay,
+  logFoodHref = null,
   className,
 }: {
   protein: number;
@@ -24,8 +26,11 @@ export function TodayDayStatus({
   targetKcal: number;
   gym: Pick<GymLoop, "kind" | "label" | "href">;
   isTrainingDay: boolean;
+  logFoodHref?: string | null;
   className?: string;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const glance = buildTodayDayGlance({
     protein,
     targetProtein,
@@ -35,6 +40,40 @@ export function TodayDayStatus({
     isTrainingDay,
   });
 
+  if (glance.done && compact) {
+    return null;
+  }
+
+  if (glance.done) {
+    return (
+      <p
+        className={cn(
+          "animate-rise px-1 text-sm leading-snug text-muted-foreground",
+          className,
+        )}
+      >
+        <span className="font-medium text-foreground">День в порядке.</span> На
+        сегодня хватит.
+      </p>
+    );
+  }
+
+  const pillarHref = (pillar: TodayGlancePillar, index: number) => {
+    if (index === 2) {
+      return gym.href;
+    }
+    if (!logFoodHref || pillar.state === "ok") {
+      return null;
+    }
+    if (index === 0 && pillar.label === "Белок") {
+      return logFoodHref;
+    }
+    if (index === 1 && pillar.label === "Ккал" && pillar.state === "warn") {
+      return logFoodHref;
+    }
+    return null;
+  };
+
   return (
     <div
       className={cn(
@@ -42,14 +81,12 @@ export function TodayDayStatus({
         className,
       )}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <p className="text-sm font-medium">{glance.title}</p>
         {glance.lead ? (
-          <p className="text-sm leading-snug text-muted-foreground">
+          <p className="text-base leading-snug text-muted-foreground">
             {glance.lead}
           </p>
-        ) : glance.title === "День в порядке" ? (
-          <p className="text-sm text-muted-foreground">На сегодня хватит.</p>
         ) : null}
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -57,7 +94,7 @@ export function TodayDayStatus({
           <GlancePillar
             key={pillar.label}
             pillar={pillar}
-            href={index === 2 ? gym.href : null}
+            href={pillarHref(pillar, index)}
           />
         ))}
       </div>

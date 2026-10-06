@@ -20,6 +20,7 @@ export interface TodayGlancePillar {
 export interface TodayDayGlance {
   title: string;
   lead: string | null;
+  done: boolean;
   pillars: [TodayGlancePillar, TodayGlancePillar, TodayGlancePillar];
 }
 
@@ -76,7 +77,7 @@ export function buildTodayDayGlance(input: {
         kcalOk: kcalPillar.state === "ok",
       });
 
-  return { title, lead, pillars };
+  return { title, lead, done, pillars };
 }
 
 function glanceTitle(phase: TodayGlancePhase, done: boolean): string {
@@ -137,7 +138,10 @@ function glanceLead(input: {
 
   if (!input.kcalOk && input.targetKcal > 0) {
     const delta = Math.round(input.targetKcal) - Math.round(input.kcal);
-    if (delta > KCAL_GAP && input.phase !== "morning") {
+    if (delta > KCAL_GAP) {
+      if (input.phase === "morning") {
+        return `Цель ${formatKcal(input.targetKcal)} — ккал наберёшь по приёмам.`;
+      }
       return `Калорий маловато — ещё около ${formatKcal(delta)}.`;
     }
     if (delta < -KCAL_GAP && input.phase === "evening") {

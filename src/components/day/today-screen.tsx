@@ -143,7 +143,6 @@ export function TodayScreen({
             switchType={switchType}
           />
         ) : null}
-        {contentReady && shownDay ? <TodayDiaryLinks className="px-4" /> : null}
       </div>
       {pickerOpen ? (
         <TodayDatePickerSheet
@@ -264,6 +263,9 @@ export function TodayScreen({
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
           />
+        ) : null}
+        {contentReady && shownDay ? (
+          <TodayDiaryLinks className="border-t border-border pt-4" />
         ) : null}
       </div>
     </div>

@@ -245,63 +245,71 @@ export function TodayDayView({
     <WeekProgressShare tone={compact ? "card" : "solid"} motion={!compact} />
   ) : null;
 
-  return (
-    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
-      {compact ? null : weekShare}
+  const topNudge = yesterdayCatchUp
+    ? ("catch-up" as const)
+    : habitSnapshot
+      ? ("early-habit" as const)
+      : habitBridge && habitBridgeSnapshot
+        ? ("habit-bridge" as const)
+        : null;
 
-      {yesterdayCatchUp ? (
-        <div className="animate-rise" style={{ animationDelay: "20ms" }}>
-          <YesterdayCatchUpHint onOpen={onOpenYesterday} />
-        </div>
+  const isViewingToday = date === today;
+  const showDayGlance =
+    !viewOnly && dayHasItems && isViewingToday && !showEmptyStart;
+
+  const daySummary = (
+    <DaySummary
+      day={shownDay}
+      fact={fact}
+      showWeight
+      bodyWeight={shownDay.body_weight}
+      lastBodyWeight={lastBodyWeight}
+      waist={shownDay.waist_cm}
+      lastWaist={lastWaist}
+      weightSteady={weightSteady}
+      priorProteinHits={priorProteinHits}
+      trainingGap={trainingGap}
+      weightGap={weightGap}
+      waistGap={waistGap}
+      share={writable}
+      gym={<TodayGymStatus {...gym} />}
+      onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
+      onSaveWaist={viewOnly ? undefined : saveWaist}
+      bodyWeightReadOnly={viewOnly}
+      bodyWeightBusy={busy || isTempId(shownDay.id)}
+    />
+  );
+
+  const mealsBlock = dayHasItems ? (
+    <TodayDayMeals
+      date={date}
+      today={today}
+      viewOnly={viewOnly}
+      visibleMeals={visibleMeals}
+      remainingMealTypes={remainingMealTypes}
+      remainingFullGap={remainingFullGap}
+      dayProtein={fact.protein}
+      proteinMealCount={proteinMealCount}
+      copyDays={copyDays}
+      namedMeals={namedMeals}
+      busy={busy}
+      fillMealFromTemplate={fillMealFromTemplate}
+      copyMealFromDate={copyMealFromDate}
+      applyNamedMeal={applyNamedMeal}
+      saveNamedMeal={saveNamedMeal}
+      shareMeal={shareMeal}
+      shareNamedMeal={shareNamedMeal}
+      deleteNamedMeal={deleteNamedMeal}
+      deleteItem={deleteItem}
+    />
+  ) : null;
+
+  const mealContext = dayHasItems ? (
+    <>
+      {hiddenNote ? (
+        <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
       ) : null}
-
-      {habitSnapshot ? (
-        <div className="animate-rise" style={{ animationDelay: "30ms" }}>
-          <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
-        </div>
-      ) : null}
-
-      {habitBridge && habitBridgeSnapshot && !habitSnapshot ? (
-        <div className="animate-rise" style={{ animationDelay: "35ms" }}>
-          <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
-        </div>
-      ) : null}
-
-      <div className="animate-rise" style={{ animationDelay: "40ms" }}>
-        <DaySummary
-          day={shownDay}
-          fact={fact}
-          showWeight
-          bodyWeight={shownDay.body_weight}
-          lastBodyWeight={lastBodyWeight}
-          waist={shownDay.waist_cm}
-          lastWaist={lastWaist}
-          weightSteady={weightSteady}
-          priorProteinHits={priorProteinHits}
-          trainingGap={trainingGap}
-          weightGap={weightGap}
-          waistGap={waistGap}
-          share={writable}
-          gym={<TodayGymStatus {...gym} />}
-          onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
-          onSaveWaist={viewOnly ? undefined : saveWaist}
-          bodyWeightReadOnly={viewOnly}
-          bodyWeightBusy={busy || isTempId(shownDay.id)}
-        />
-      </div>
-
-      {!viewOnly && dayHasItems && date === today ? (
-        <TodayDayStatus
-          protein={fact.protein}
-          targetProtein={shownDay.target_protein}
-          kcal={fact.kcal}
-          targetKcal={shownDay.target_kcal}
-          gym={gym}
-          isTrainingDay={shownDay.is_training_day}
-        />
-      ) : null}
-
-      {!viewOnly && dayHasItems ? (
+      {!viewOnly ? (
         <ProteinCloseOffers
           date={date}
           mealId={closeMeal?.id ?? null}
@@ -309,9 +317,32 @@ export function TodayDayView({
           busy={busy}
         />
       ) : null}
+      {remainingFullGap && remainingAction ? (
+        <div className="animate-rise">{remainingAction}</div>
+      ) : null}
+    </>
+  ) : null;
+
+  return (
+    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
+      {topNudge === "catch-up" ? (
+        <div className="animate-rise">
+          <YesterdayCatchUpHint onOpen={onOpenYesterday} />
+        </div>
+      ) : null}
+      {topNudge === "early-habit" && habitSnapshot ? (
+        <div className="animate-rise">
+          <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
+        </div>
+      ) : null}
+      {topNudge === "habit-bridge" && habitBridgeSnapshot ? (
+        <div className="animate-rise">
+          <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
+        </div>
+      ) : null}
 
       {showEmptyStart ? (
-        <div className="animate-rise" style={{ animationDelay: "60ms" }}>
+        <div className="animate-rise">
           <TodayEmptyStart
             yesterdayHasFood={yesterdayHasFood}
             copy={startCopy}
@@ -322,51 +353,32 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {!compact && hiddenNote ? (
-        <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
+      {!dayHasItems ? (
+        <div className="animate-rise">{daySummary}</div>
       ) : null}
 
-      {remainingFullGap && remainingAction ? (
-        <div className="animate-rise" style={{ animationDelay: "80ms" }}>
-          {remainingAction}
-        </div>
-      ) : null}
-
-      {dayHasItems ? (
-        <TodayDayMeals
-          date={date}
-          today={today}
-          viewOnly={viewOnly}
-          visibleMeals={visibleMeals}
-          remainingMealTypes={remainingMealTypes}
-          remainingFullGap={remainingFullGap}
-          dayProtein={fact.protein}
-          proteinMealCount={proteinMealCount}
-          copyDays={copyDays}
-          namedMeals={namedMeals}
-          busy={busy}
-          fillMealFromTemplate={fillMealFromTemplate}
-          copyMealFromDate={copyMealFromDate}
-          applyNamedMeal={applyNamedMeal}
-          saveNamedMeal={saveNamedMeal}
-          shareMeal={shareMeal}
-          shareNamedMeal={shareNamedMeal}
-          deleteNamedMeal={deleteNamedMeal}
-          deleteItem={deleteItem}
+      {showDayGlance ? (
+        <TodayDayStatus
+          protein={fact.protein}
+          targetProtein={shownDay.target_protein}
+          kcal={fact.kcal}
+          targetKcal={shownDay.target_kcal}
+          gym={gym}
+          isTrainingDay={shownDay.is_training_day}
+          logFoodHref={addHref}
         />
       ) : null}
 
-      {compact && hiddenNote ? (
-        <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
+      {mealsBlock}
+
+      {mealContext}
+
+      {dayHasItems ? (
+        <div className="animate-rise">{daySummary}</div>
       ) : null}
 
       {showSaveTemplate ? (
-        <div
-          className="animate-rise"
-          style={{
-            animationDelay: `${80 + visibleMeals.length * 50}ms`,
-          }}
-        >
+        <div className="animate-rise">
           <SaveDayTemplateButton
             isTrainingDay={shownDay.is_training_day}
             busy={busy}
@@ -376,17 +388,10 @@ export function TodayDayView({
       ) : null}
 
       {remainingFullGap ? null : remainingAction ? (
-        <div
-          className="animate-rise"
-          style={{
-            animationDelay: `${80 + visibleMeals.length * 50 + (showSaveTemplate ? 50 : 0)}ms`,
-          }}
-        >
-          {remainingAction}
-        </div>
+        <div className="animate-rise">{remainingAction}</div>
       ) : null}
 
-      {compact ? weekShare : null}
+      {weekShare}
 
       {viewOnly || !reviewOffer.show ? null : (
         <ReviewCta from="today" onOpen={reviewOffer.open} />
