@@ -1,13 +1,24 @@
 import type {
   BuddyAthleteView,
   BuddyGrantView,
+  BuddyGymState,
   BuddyHome,
   BuddyTodayBoard,
 } from "@/lib/buddy/types";
 import { isIsoDate } from "@/lib/day/dates";
 import { isRecord } from "@/lib/read";
 
-const GYM_STATES = ["done", "open", "queued", "rest", "none"] as const;
+const GYM_STATES: readonly BuddyGymState[] = [
+  "done",
+  "open",
+  "queued",
+  "rest",
+  "none",
+];
+
+function isBuddyGymState(value: string): value is BuddyGymState {
+  return GYM_STATES.some((state) => state === value);
+}
 
 export function readBuddyHome(data: unknown): BuddyHome | null {
   if (!isRecord(data)) {
@@ -136,7 +147,7 @@ function readBoard(row: Record<string, unknown>): BuddyTodayBoard | null {
     return null;
   }
   const state = row.gym.state;
-  if (typeof state !== "string" || !GYM_STATES.some((s) => s === state)) {
+  if (typeof state !== "string" || !isBuddyGymState(state)) {
     return null;
   }
   return {

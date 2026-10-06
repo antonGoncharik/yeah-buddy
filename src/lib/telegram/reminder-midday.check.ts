@@ -18,7 +18,7 @@ const base = {
   protein: 150,
   targetProtein: 150,
   isTrainingDay: false,
-  sessionStatus: null as const,
+  sessionStatus: null,
   gymTemplateName: null,
   localHour: 16,
 };
