@@ -141,6 +141,10 @@ export const BOT_REMINDER_FOOD_EARLY =
   "Еда за сегодня ещё пустая. Запиши пару приёмов — завтра будет что повторить.";
 export const BOT_YEAH_BUDDY = "Yeah buddy.";
 export const BOT_REMINDER_DONE = "День в порядке. На сегодня хватит.";
+export const BOT_MIDDAY_REMINDER_FOOD =
+  "День ещё пустой. Одна запись сейчас — и серия на Сегодня не оборвётся.";
+export const EARLY_HABIT_REMINDER_NOTE =
+  "В первые две недели, если день пустой, бот напомнит днём (около 13:00) и вечером в 21:00.";
 
 export function botReminderGym(name: string): string {
   return `Тренировка «${name}» ещё не закрыта. Штанга подождёт — допиши сейчас или оставь на завтра.`;

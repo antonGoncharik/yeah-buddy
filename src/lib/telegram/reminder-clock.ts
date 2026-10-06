@@ -2,6 +2,8 @@ import { saveUserTimezone } from "@/lib/settings";
 
 export const DEFAULT_TIMEZONE = "Europe/Moscow";
 export const REMINDER_HOUR = 21;
+/** Local hour (inclusive) when a midday nudge may fire for new users. */
+export const MIDDAY_REMINDER_HOUR = 13;
 
 export function resolveTimeZone(value: string | null | undefined): string {
   const trimmed = value?.trim() ?? "";
@@ -49,6 +51,17 @@ export function reminderDateIfDue(clock: {
     return null;
   }
 
+  return clock.date;
+}
+
+/** Local calendar date for a midday nudge, or null outside the midday window. */
+export function middayReminderDateIfDue(clock: {
+  date: string;
+  hour: number;
+}): string | null {
+  if (clock.hour < MIDDAY_REMINDER_HOUR || clock.hour >= REMINDER_HOUR) {
+    return null;
+  }
   return clock.date;
 }
 

@@ -89,6 +89,21 @@ const LIFT_SCALE: Array<{
   { name: "Тяга штанги к подбородку", anchor: "bench", factor: 0.4 },
   { name: "Скручивания на блоке", anchor: "bench", factor: 0.2 },
   { name: "Пресс", anchor: "bench", factor: 0.1 },
+  { name: "Приседания без веса", anchor: "squat", factor: 0.25 },
+  { name: "Ягодичный мост", anchor: "deadlift", factor: 0.35 },
+  { name: "Обратные отжимания", anchor: "bench", factor: 0.35 },
+  { name: "Отжимания узкие", anchor: "bench", factor: 0.45 },
+  { name: "Отжимания уголком", anchor: "bench", factor: 0.4 },
+  { name: "Австралийские подтягивания", anchor: "deadlift", factor: 0.25 },
+  { name: "Лодочка", anchor: "deadlift", factor: 0.15 },
+  { name: "Планка", anchor: "bench", factor: 0.05 },
+  { name: "Боковая планка", anchor: "bench", factor: 0.05 },
+  { name: "Болгарские выпады", anchor: "squat", factor: 0.35 },
+  { name: "Ягодичный мост на одной", anchor: "deadlift", factor: 0.28 },
+  { name: "Отведение бедра лёжа", anchor: "squat", factor: 0.15 },
+  { name: "Приседания с гантелью", anchor: "squat", factor: 0.4 },
+  { name: "Румынская тяга с гантелями", anchor: "deadlift", factor: 0.5 },
+  { name: "Жим гантелей на полу", anchor: "bench", factor: 0.65 },
 ];
 
 const SCALE_BY_NAME = new Map(

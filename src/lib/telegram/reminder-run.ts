@@ -1,14 +1,20 @@
 import { getReviewSnapshot } from "@/lib/ai/review";
 import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
-import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
+import {
+  inEarlyHabitWindow,
+  inRetentionTail,
+  onboardingAgeDays,
+} from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
+import { BOT_MIDDAY_REMINDER_FOOD } from "@/lib/messages";
 import {
   isoWeekdaySun0,
   localClock,
+  middayReminderDateIfDue,
   reminderDateIfDue,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
@@ -45,7 +51,22 @@ interface ReminderCandidate {
   telegramId: number;
   timezone: string;
   remindedOn: string | null;
+  middayRemindedOn: string | null;
   onboardedAt: string | null;
+}
+
+export interface RemindersCronResult {
+  evening: ReminderRunResult;
+  midday: ReminderRunResult;
+}
+
+export async function runRemindersCron(
+  now = new Date(),
+): Promise<RemindersCronResult> {
+  return {
+    evening: await runEveningReminders(now),
+    midday: await runMiddayReminders(now),
+  };
 }
 
 export async function runEveningReminders(
@@ -155,6 +176,85 @@ export async function runEveningReminders(
   return result;
 }
 
+export async function runMiddayReminders(
+  now = new Date(),
+): Promise<ReminderRunResult> {
+  const result: ReminderRunResult = {
+    sent: 0,
+    skipped: 0,
+    blocked: 0,
+    failed: 0,
+  };
+
+  for (const candidate of await listReminderCandidates()) {
+    const clock = localClock(now, candidate.timezone);
+    const reminderDate = middayReminderDateIfDue(clock);
+    if (!reminderDate) {
+      result.skipped += 1;
+      continue;
+    }
+
+    const ageDays = onboardingAgeDays(
+      candidate.onboardedAt,
+      reminderDate,
+      candidate.timezone,
+    );
+    if (!inEarlyHabitWindow(ageDays)) {
+      result.skipped += 1;
+      continue;
+    }
+
+    if (candidate.middayRemindedOn === reminderDate) {
+      result.skipped += 1;
+      continue;
+    }
+
+    const foodLogged = await dateHasFoodRecord(
+      candidate.userId,
+      reminderDate,
+    );
+    if (foodLogged) {
+      result.skipped += 1;
+      continue;
+    }
+
+    const claimed = await claimMiddayReminderDay(
+      candidate.userId,
+      reminderDate,
+    );
+    if (!claimed) {
+      result.skipped += 1;
+      continue;
+    }
+
+    const env = getServerEnv();
+    const sent = await sendDiaryMessage(
+      candidate.telegramId,
+      BOT_MIDDAY_REMINDER_FOOD,
+      env,
+    );
+    if (sent === "sent") {
+      result.sent += 1;
+      continue;
+    }
+
+    if (sent === "blocked") {
+      await disableReminders(candidate.userId);
+      result.blocked += 1;
+      continue;
+    }
+
+    await revertMiddayReminderDay(
+      candidate.userId,
+      reminderDate,
+      candidate.middayRemindedOn,
+    );
+    result.failed += 1;
+  }
+
+  return result;
+}
+
 async function completedGymName(
   userId: string,
   session: { status: string; template_id: string | null } | null,
@@ -195,7 +295,7 @@ async function listReminderCandidates(): Promise<ReminderCandidate[]> {
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminded_on, midday_reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -253,6 +353,7 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
       typeof row.timezone === "string" ? row.timezone : null,
     ),
     remindedOn: toDateOnly(row.reminded_on),
+    middayRemindedOn: toDateOnly(row.midday_reminded_on),
     onboardedAt:
       typeof row.onboarding_completed_at === "string"
         ? row.onboarding_completed_at
@@ -305,6 +406,48 @@ async function revertReminderDay(
     })
     .eq("user_id", userId)
     .eq("reminded_on", date);
+
+  if (reverted.error) {
+    throw reverted.error;
+  }
+}
+
+async function claimMiddayReminderDay(
+  userId: string,
+  date: string,
+): Promise<boolean> {
+  const supabase = createSupabaseServerClient();
+  const claimed = await supabase
+    .from("user_settings")
+    .update({
+      midday_reminded_on: date,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .or(`midday_reminded_on.is.null,midday_reminded_on.neq.${date}`)
+    .select("user_id");
+
+  if (claimed.error) {
+    throw claimed.error;
+  }
+
+  return (claimed.data?.length ?? 0) > 0;
+}
+
+async function revertMiddayReminderDay(
+  userId: string,
+  date: string,
+  previous: string | null,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const reverted = await supabase
+    .from("user_settings")
+    .update({
+      midday_reminded_on: previous,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("midday_reminded_on", date);
 
   if (reverted.error) {
     throw reverted.error;

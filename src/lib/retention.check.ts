@@ -67,7 +67,7 @@ assertEqual(inRetentionTail(null), false, "unknown age is not the tail");
 
 assertEqual(
   emptyStartCopy({
-    retentionTail: true,
+    earlyHabit: true,
     isToday: true,
     viewOnly: false,
     dayHasItems: false,
@@ -78,7 +78,7 @@ assertEqual(
 );
 assertEqual(
   emptyStartCopy({
-    retentionTail: true,
+    earlyHabit: true,
     isToday: true,
     viewOnly: false,
     dayHasItems: false,
@@ -89,7 +89,7 @@ assertEqual(
 );
 assertEqual(
   emptyStartCopy({
-    retentionTail: true,
+    earlyHabit: true,
     isToday: true,
     viewOnly: false,
     dayHasItems: true,
@@ -100,18 +100,18 @@ assertEqual(
 );
 assertEqual(
   emptyStartCopy({
-    retentionTail: false,
+    earlyHabit: false,
     isToday: true,
     viewOnly: false,
     dayHasItems: false,
     yesterdayHasFood: false,
   }),
   null,
-  "after the tail copy stays quiet",
+  "after early habit copy stays quiet",
 );
 assertEqual(
   emptyStartCopy({
-    retentionTail: true,
+    earlyHabit: true,
     isToday: false,
     viewOnly: false,
     dayHasItems: false,

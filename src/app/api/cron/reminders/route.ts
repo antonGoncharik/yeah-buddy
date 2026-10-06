@@ -4,7 +4,7 @@ import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { getServerEnv } from "@/lib/env";
 import {
   isCronAuthorized,
-  runEveningReminders,
+  runRemindersCron,
 } from "@/lib/telegram/reminders";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ async function runCron(request: Request): Promise<NextResponse> {
   }
 
   try {
-    return jsonOk(await runEveningReminders());
+    return jsonOk(await runRemindersCron());
   } catch (error) {
     return failRoute(error);
   }

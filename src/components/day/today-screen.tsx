@@ -62,6 +62,9 @@ export function TodayScreen({
     priorProteinHits,
     reviewReady,
     retentionTail,
+    earlyHabit,
+    earlyHabitSnapshot,
+    priorFoodLogDays,
     busy,
     loadError,
     loading,
@@ -161,7 +164,7 @@ export function TodayScreen({
         !compact &&
         guideTip.tip &&
         !dayTypeTip.tip &&
-        !(retentionTail && isToday && !dayHasItems) ? (
+        !(earlyHabit && isToday && !dayHasItems) ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
         {showLoading ? <ScreenLoading /> : null}
@@ -216,6 +219,9 @@ export function TodayScreen({
             yesterdayExists={yesterdayExists}
             yesterdayHasFood={yesterdayHasFood}
             retentionTail={retentionTail && isToday}
+            earlyHabit={earlyHabit && isToday}
+            earlyHabitSnapshot={earlyHabitSnapshot}
+            priorFoodLogDays={priorFoodLogDays}
             onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}

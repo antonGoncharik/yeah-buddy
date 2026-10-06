@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { calendarDateInTimeZone, shiftIsoDate } from "@/lib/day/dates";
-import { dayHasFood } from "@/lib/day/week";
+import { dayHasFood as historyDayHasFood } from "@/lib/day/week";
 import {
   createDayFromTemplate,
   DayConflictError,
@@ -29,17 +29,24 @@ import {
   yesterdayCopyHint,
 } from "@/lib/days";
 import {
-  PROTEIN_STREAK_WINDOW,
   priorProteinHits,
+  proteinClosed,
+  PROTEIN_STREAK_WINDOW,
   STEADY_WEIGHT_DAYS,
   steadyWeightLine,
 } from "@/lib/flavor";
+import {
+  buildEarlyHabitSnapshot,
+  inEarlyHabitWindow,
+  priorFoodLogDays,
+} from "@/lib/retention/habit";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
 import {
   DEFAULT_REST_MACRO_GOALS,
   DEFAULT_TRAINING_MACRO_GOALS,
+  sumMeals,
 } from "@/lib/nutrition";
 import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { getUserSettings } from "@/lib/settings";
@@ -72,7 +79,9 @@ export async function GET(request: Request): Promise<NextResponse> {
       timeZone,
     );
     const streakStart = shiftIsoDate(date, 1 - PROTEIN_STREAK_WINDOW);
+    const weekStart = shiftIsoDate(today, -6);
     const viewingToday = date === today;
+    const earlyHabit = viewingToday && inEarlyHabitWindow(ageDays);
     const [
       day,
       yesterday,
@@ -85,6 +94,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       recentWeights,
       recentDays,
       gymCount,
+      gymWeekCount,
     ] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
@@ -106,7 +116,22 @@ export async function GET(request: Request): Promise<NextResponse> {
             end: today,
           })
         : Promise.resolve(0),
+      earlyHabit
+        ? countCompletedSessions(auth.session.userId, {
+            start: weekStart,
+            end: today,
+          })
+        : Promise.resolve(0),
     ]);
+
+    const priorFood = priorFoodLogDays(recentDays, date);
+    const dayFact = day != null ? sumMeals(day.meals) : null;
+    const todayHasFood =
+      day != null && day.meals.some((meal) => meal.items.length > 0);
+    const todayProteinClosed =
+      day != null &&
+      dayFact != null &&
+      proteinClosed(day.target_protein - dayFact.protein, dayFact.protein);
 
     return jsonOk({
       day,
@@ -138,11 +163,24 @@ export async function GET(request: Request): Promise<NextResponse> {
           date,
         ) != null,
       priorProteinHits: priorProteinHits(recentDays, date),
+      priorFoodLogDays: priorFood,
+      earlyHabit,
+      earlyHabitSnapshot:
+        earlyHabit && ageDays != null
+          ? buildEarlyHabitSnapshot({
+              accountAgeDays: ageDays,
+              todayHasFood,
+              priorFoodLogDays: priorFood,
+              todayProteinClosed,
+              priorProteinHits: priorProteinHits(recentDays, date),
+              gymSessionsWeek: gymWeekCount,
+            })
+          : null,
       retentionTail: viewingToday && inRetentionTail(ageDays),
       reviewReady:
         viewingToday &&
         reviewCtaReady({
-          loggedDays: recentDays.filter(dayHasFood).length,
+          loggedDays: recentDays.filter(historyDayHasFood).length,
           completedWorkouts: gymCount,
           ageDays,
         }),

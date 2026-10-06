@@ -1,11 +1,14 @@
 import {
   readAccountAgeDays,
   readDayWritable,
+  readEarlyHabit,
+  readEarlyHabitSnapshot,
   readLastBodyWeight,
   readLastBodyWeightDate,
   readLastWaist,
   readLastWaistDate,
   readMacroGoals,
+  readPriorFoodLogDays,
   readPriorProteinHits,
   readRetentionTail,
   readReviewReady,
@@ -116,6 +119,22 @@ assertEqual(readReviewReady({ reviewReady: true }), true, "review ready");
 assertEqual(readReviewReady({}), false, "missing review ready");
 assertEqual(readRetentionTail({ retentionTail: true }), true, "retention tail");
 assertEqual(readRetentionTail({}), false, "missing retention tail");
+assertEqual(readEarlyHabit({ earlyHabit: true }), true, "early habit");
+assertEqual(readPriorFoodLogDays({ priorFoodLogDays: 5 }), 5, "food log prior");
+assertEqual(
+  readEarlyHabitSnapshot({
+    earlyHabitSnapshot: {
+      foodLogStreak: 2,
+      foodAtRisk: true,
+      proteinHits: 1,
+      proteinLine: "x",
+      gymSessionsWeek: 0,
+      dayOfHabit: 3,
+    },
+  })?.foodLogStreak,
+  2,
+  "habit snapshot",
+);
 assertEqual(
   readDayWritable({ writable: true }, "2026-09-10", "2026-09-12"),
   true,

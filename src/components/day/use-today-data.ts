@@ -25,6 +25,9 @@ import {
   readLastWaistDate,
   readMacroGoals,
   readNamedMeals,
+  readEarlyHabit,
+  readEarlyHabitSnapshot,
+  readPriorFoodLogDays,
   readPriorProteinHits,
   readRecipes,
   readRetentionTail,
@@ -33,6 +36,7 @@ import {
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
+import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { prefetchGymCache } from "@/lib/workout/session-local";
@@ -65,6 +69,10 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [priorProteinHits, setPriorProteinHits] = useState(0);
   const [reviewReady, setReviewReady] = useState(false);
   const [retentionTail, setRetentionTail] = useState(false);
+  const [earlyHabit, setEarlyHabit] = useState(false);
+  const [earlyHabitSnapshot, setEarlyHabitSnapshot] =
+    useState<EarlyHabitSnapshot | null>(null);
+  const [priorFoodLogDays, setPriorFoodLogDays] = useState(0);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -99,6 +107,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setPriorProteinHits(readPriorProteinHits(data));
       setReviewReady(readReviewReady(data));
       setRetentionTail(readRetentionTail(data));
+      setEarlyHabit(readEarlyHabit(data));
+      setEarlyHabitSnapshot(readEarlyHabitSnapshot(data));
+      setPriorFoodLogDays(readPriorFoodLogDays(data));
       setLoadedDate(requestedDate);
       return true;
     },
@@ -197,6 +208,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setPriorProteinHits(0);
     setReviewReady(false);
     setRetentionTail(false);
+    setEarlyHabit(false);
+    setEarlyHabitSnapshot(null);
+    setPriorFoodLogDays(0);
     setWorkoutState(null);
   }, [applyDayPayload, date, reset]);
 
@@ -242,6 +256,11 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       cached != null ? readPriorProteinHits(cached) : priorProteinHits,
     reviewReady: cached != null ? readReviewReady(cached) : reviewReady,
     retentionTail: cached != null ? readRetentionTail(cached) : retentionTail,
+    earlyHabit: cached != null ? readEarlyHabit(cached) : earlyHabit,
+    earlyHabitSnapshot:
+      cached != null ? readEarlyHabitSnapshot(cached) : earlyHabitSnapshot,
+    priorFoodLogDays:
+      cached != null ? readPriorFoodLogDays(cached) : priorFoodLogDays,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
     loading,

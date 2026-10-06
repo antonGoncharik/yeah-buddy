@@ -1,6 +1,11 @@
 import { calendarDateInTimeZone, inclusiveDayCount } from "@/lib/day/dates";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
 
+export {
+  EARLY_HABIT_DAYS,
+  inEarlyHabitWindow,
+} from "@/lib/retention/habit";
+
 /** Calendar days after onboarding, inclusive of day 0. */
 export const RETENTION_TAIL_DAYS = 3;
 
@@ -30,14 +35,14 @@ export function inRetentionTail(ageDays: number | null): boolean {
 }
 
 export function emptyStartCopy(input: {
-  retentionTail: boolean;
+  earlyHabit: boolean;
   isToday: boolean;
   viewOnly: boolean;
   dayHasItems: boolean;
   yesterdayHasFood: boolean;
 }): EmptyStartCopy | null {
   if (
-    !input.retentionTail ||
+    !input.earlyHabit ||
     !input.isToday ||
     input.viewOnly ||
     input.dayHasItems

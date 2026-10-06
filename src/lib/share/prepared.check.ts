@@ -8,6 +8,7 @@ import {
   joyInlineResults,
   joyPhotoOrigin,
 } from "@/lib/share/prepared";
+import { PUBLIC_PROGRAM_IDS } from "@/lib/share/program-public";
 import { programStartPayload } from "@/lib/share/program-start";
 import {
   encodeWeekCard,
@@ -108,11 +109,11 @@ assertEqual(
 );
 assertEqual(
   storefront.filter((item) => item.type === "article").length,
-  7,
+  PUBLIC_PROGRAM_IDS.length,
   "empty query lists every listed program",
 );
 assertEqual(
-  storefront[7]?.type,
+  storefront[PUBLIC_PROGRAM_IDS.length]?.type,
   "sticker",
   "sticker still follows the programs",
 );

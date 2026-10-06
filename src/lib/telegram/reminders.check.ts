@@ -13,6 +13,7 @@ import {
   isCronAuthorized,
   isoWeekdaySun0,
   localClock,
+  middayReminderDateIfDue,
   reminderDateIfDue,
   reminderText,
   resolveTimeZone,
@@ -58,6 +59,21 @@ assertEqual(
   reminderDateIfDue({ date: "2026-09-01", hour: 3 }),
   null,
   "morning waits for evening",
+);
+assertEqual(
+  middayReminderDateIfDue({ date: "2026-09-11", hour: 13 }),
+  "2026-09-11",
+  "midday window opens at 13",
+);
+assertEqual(
+  middayReminderDateIfDue({ date: "2026-09-11", hour: 12 }),
+  null,
+  "before midday hour",
+);
+assertEqual(
+  middayReminderDateIfDue({ date: "2026-09-11", hour: 21 }),
+  null,
+  "evening uses other job",
 );
 assertEqual(isoWeekdaySun0("2026-09-13"), 0, "sunday");
 assertEqual(isoWeekdaySun0("2026-09-17"), 4, "thursday");

@@ -13,6 +13,7 @@ import {
   toNullableNumber,
   toNumber,
 } from "@/lib/read";
+import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type {
   CopyDayHint,
   MealType,
@@ -124,6 +125,16 @@ export function readWeightSteady(data: unknown): boolean {
   return isRecord(data) && data.weightSteady === true;
 }
 
+export function readPriorFoodLogDays(data: unknown): number {
+  if (!isRecord(data) || typeof data.priorFoodLogDays !== "number") {
+    return 0;
+  }
+  if (!Number.isInteger(data.priorFoodLogDays) || data.priorFoodLogDays < 0) {
+    return 0;
+  }
+  return data.priorFoodLogDays;
+}
+
 export function readPriorProteinHits(data: unknown): number {
   if (!isRecord(data) || typeof data.priorProteinHits !== "number") {
     return 0;
@@ -140,6 +151,35 @@ export function readReviewReady(data: unknown): boolean {
 
 export function readRetentionTail(data: unknown): boolean {
   return isRecord(data) && data.retentionTail === true;
+}
+
+export function readEarlyHabit(data: unknown): boolean {
+  return isRecord(data) && data.earlyHabit === true;
+}
+
+export function readEarlyHabitSnapshot(data: unknown): EarlyHabitSnapshot | null {
+  if (!isRecord(data) || !isRecord(data.earlyHabitSnapshot)) {
+    return null;
+  }
+  const row = data.earlyHabitSnapshot;
+  if (
+    typeof row.foodLogStreak !== "number" ||
+    typeof row.foodAtRisk !== "boolean" ||
+    typeof row.proteinHits !== "number" ||
+    typeof row.gymSessionsWeek !== "number" ||
+    typeof row.dayOfHabit !== "number"
+  ) {
+    return null;
+  }
+  return {
+    foodLogStreak: row.foodLogStreak,
+    foodAtRisk: row.foodAtRisk,
+    proteinHits: row.proteinHits,
+    proteinLine:
+      typeof row.proteinLine === "string" ? row.proteinLine : null,
+    gymSessionsWeek: row.gymSessionsWeek,
+    dayOfHabit: row.dayOfHabit,
+  };
 }
 
 export function readCalendarToday(data: unknown): string | null {

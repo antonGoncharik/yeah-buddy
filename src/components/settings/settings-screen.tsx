@@ -30,6 +30,7 @@ import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
+import { EARLY_HABIT_REMINDER_NOTE } from "@/lib/messages";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
 import {
@@ -244,6 +245,9 @@ export function SettingsScreen() {
         {!loading && form ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
             <h2 className="text-xl font-semibold">Напоминания вечером</h2>
+            <p className="text-sm text-muted-foreground">
+              {EARLY_HABIT_REMINDER_NOTE}
+            </p>
             <p className="text-sm text-muted-foreground">
               {now
                 ? timezoneCaption(form.timezone, now)

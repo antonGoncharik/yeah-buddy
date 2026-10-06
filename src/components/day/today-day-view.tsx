@@ -1,8 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
+import { EarlyHabitCard } from "@/components/day/early-habit-card";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
@@ -21,9 +24,18 @@ import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
 import type { MacroGoals } from "@/lib/day/today-payload";
-import { trainingDayGapLine, waistGapLine, weightGapLine } from "@/lib/flavor";
+import {
+  proteinClosed,
+  trainingDayGapLine,
+  waistGapLine,
+  weightGapLine,
+} from "@/lib/flavor";
 import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import { emptyStartCopy } from "@/lib/retention";
+import {
+  buildEarlyHabitSnapshot,
+  type EarlyHabitSnapshot,
+} from "@/lib/retention/habit";
 import type {
   CopyDayHint,
   MealItem,
@@ -49,6 +61,9 @@ export function TodayDayView({
   yesterdayExists,
   yesterdayHasFood,
   retentionTail,
+  earlyHabit,
+  earlyHabitSnapshot,
+  priorFoodLogDays,
   onOpenYesterday,
   copyDays,
   namedMeals,
@@ -93,6 +108,9 @@ export function TodayDayView({
   yesterdayExists: boolean;
   yesterdayHasFood: boolean;
   retentionTail: boolean;
+  earlyHabit: boolean;
+  earlyHabitSnapshot: EarlyHabitSnapshot | null;
+  priorFoodLogDays: number;
   onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -184,12 +202,38 @@ export function TodayDayView({
     canLog: !viewOnly,
   });
   const startCopy = emptyStartCopy({
-    retentionTail,
+    earlyHabit,
     isToday: date === today,
     viewOnly,
     dayHasItems,
     yesterdayHasFood,
   });
+  const habitSnapshot = useMemo(() => {
+    if (!earlyHabit || accountAgeDays == null) {
+      return null;
+    }
+    const todayProteinClosed = proteinClosed(
+      shownDay.target_protein - fact.protein,
+      fact.protein,
+    );
+    return buildEarlyHabitSnapshot({
+      accountAgeDays,
+      todayHasFood: dayHasItems,
+      priorFoodLogDays,
+      todayProteinClosed,
+      priorProteinHits,
+      gymSessionsWeek: earlyHabitSnapshot?.gymSessionsWeek ?? 0,
+    });
+  }, [
+    accountAgeDays,
+    dayHasItems,
+    earlyHabit,
+    earlyHabitSnapshot?.gymSessionsWeek,
+    fact.protein,
+    priorFoodLogDays,
+    priorProteinHits,
+    shownDay.target_protein,
+  ]);
   const showWeekShare = !viewOnly && date === today;
   const weekShare = showWeekShare ? (
     <WeekProgressShare tone={compact ? "card" : "solid"} motion={!compact} />
@@ -202,6 +246,12 @@ export function TodayDayView({
       {yesterdayCatchUp ? (
         <div className="animate-rise" style={{ animationDelay: "20ms" }}>
           <YesterdayCatchUpHint onOpen={onOpenYesterday} />
+        </div>
+      ) : null}
+
+      {habitSnapshot ? (
+        <div className="animate-rise" style={{ animationDelay: "30ms" }}>
+          <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
         </div>
       ) : null}
 
@@ -234,7 +284,8 @@ export function TodayDayView({
           targetProtein={shownDay.target_protein}
           kcal={fact.kcal}
           targetKcal={shownDay.target_kcal}
-          gymLine={gym.label}
+          gym={gym}
+          isTrainingDay={shownDay.is_training_day}
         />
       ) : null}
 
