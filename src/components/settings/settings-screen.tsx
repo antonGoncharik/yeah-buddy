@@ -250,7 +250,7 @@ export function SettingsScreen() {
 
         {!loading && form ? (
           <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-            <h2 className="text-xl font-semibold">Напоминания вечером</h2>
+            <h2 className="text-xl font-semibold">Напоминания</h2>
             <p className="text-sm text-muted-foreground">
               {EARLY_HABIT_REMINDER_NOTE}
             </p>
