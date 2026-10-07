@@ -80,17 +80,6 @@ export function buildTodayDayGlance(input: {
   return { title, lead, done, pillars };
 }
 
-/** Gym-only copy for the macro card — protein and kcal stay on the bars. */
-export function todayGymActionHint(
-  input: Parameters<typeof buildTodayDayGlance>[0],
-): string | null {
-  const glance = buildTodayDayGlance(input);
-  if (glance.pillars[2].state !== "warn" || !glance.lead) {
-    return null;
-  }
-  return glance.lead;
-}
-
 function glanceTitle(phase: TodayGlancePhase, done: boolean): string {
   if (done) {
     return "День в порядке";

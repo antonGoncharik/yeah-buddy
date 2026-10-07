@@ -51,7 +51,6 @@ export function DaySummary({
   waistGap = null,
   share = false,
   gym = null,
-  actionHint = null,
   onSaveBodyWeight,
   onSaveWaist,
 }: {
@@ -80,8 +79,6 @@ export function DaySummary({
   waistGap?: string | null;
   share?: boolean;
   gym?: ReactNode;
-  /** Gym / program nudge; macros stay on the bars below. */
-  actionHint?: string | null;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
@@ -253,17 +250,6 @@ export function DaySummary({
           />
         ) : null}
       </div>
-
-      {actionHint ? (
-        <p
-          className={cn(
-            "rounded-xl bg-amber-500/10 px-3 py-2 leading-snug text-muted-foreground",
-            compact ? "text-xs" : "text-sm",
-          )}
-        >
-          {actionHint}
-        </p>
-      ) : null}
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}
 

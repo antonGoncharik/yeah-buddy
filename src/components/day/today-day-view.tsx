@@ -23,7 +23,6 @@ import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
-import { todayGymActionHint } from "@/lib/day/today-glance";
 import { isTempId } from "@/lib/day/optimistic";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import {
@@ -255,31 +254,6 @@ export function TodayDayView({
         ? ("habit-bridge" as const)
         : null;
 
-  const isViewingToday = date === today;
-  const gymActionHint = useMemo(() => {
-    if (viewOnly || !isViewingToday || !dayHasItems) {
-      return null;
-    }
-    return todayGymActionHint({
-      protein: fact.protein,
-      targetProtein: shownDay.target_protein,
-      kcal: fact.kcal,
-      targetKcal: shownDay.target_kcal,
-      gym,
-      isTrainingDay: shownDay.is_training_day,
-    });
-  }, [
-    dayHasItems,
-    fact.kcal,
-    fact.protein,
-    gym,
-    isViewingToday,
-    shownDay.is_training_day,
-    shownDay.target_kcal,
-    shownDay.target_protein,
-    viewOnly,
-  ]);
-
   const daySummary = (
     <DaySummary
       day={shownDay}
@@ -300,7 +274,6 @@ export function TodayDayView({
       onSaveWaist={viewOnly ? undefined : saveWaist}
       bodyWeightReadOnly={viewOnly}
       bodyWeightBusy={busy || isTempId(shownDay.id)}
-      actionHint={gymActionHint}
     />
   );
 
