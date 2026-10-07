@@ -62,8 +62,8 @@ export function forOpenTelegramLink(url: string): string | null {
 
 async function loadTelegramWebApp(): Promise<TelegramLinkWebApp | null> {
   try {
-    const sdk = await import("@twa-dev/sdk");
-    return sdk.default as TelegramLinkWebApp;
+    const { loadTelegramWebApp: load } = await import("@/lib/telegram/webapp");
+    return await load();
   } catch {
     return null;
   }

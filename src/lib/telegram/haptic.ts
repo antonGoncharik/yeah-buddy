@@ -271,10 +271,10 @@ function play(api: HapticApi, command: HapticCommand): void {
 
 function loadHaptics(): Promise<HapticApi | null> {
   if (!hapticLoad) {
-    hapticLoad = import("@twa-dev/sdk")
-      .then((sdk) => {
-        const api = (sdk.default as { HapticFeedback?: HapticApi })
-          .HapticFeedback;
+    hapticLoad = import("@/lib/telegram/webapp")
+      .then(({ loadTelegramWebApp }) => loadTelegramWebApp())
+      .then((webApp) => {
+        const api = webApp.HapticFeedback;
         hapticApi = api ?? liveHapticApi();
         return hapticApi ?? null;
       })

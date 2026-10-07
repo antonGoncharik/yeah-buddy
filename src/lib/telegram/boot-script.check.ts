@@ -60,11 +60,15 @@ assertEqual(
   "boot script asks Telegram to hide the header",
 );
 assertEqual(
-  TELEGRAM_BOOT_SCRIPT.includes(
-    `removeItem("${TELEGRAM_FULLSCREEN_STORAGE_KEY}")`,
-  ),
+  TELEGRAM_BOOT_SCRIPT.includes(`FS_KEY="${TELEGRAM_FULLSCREEN_STORAGE_KEY}"`) &&
+    TELEGRAM_BOOT_SCRIPT.includes("removeItem(FS_KEY)"),
   true,
   "boot script drops stale fullscreen cache before the SDK loads",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("hashchange"),
+  true,
+  "boot script keeps launch params when the hash arrives late",
 );
 assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf(`classList.add("${TELEGRAM_BOOT_HIDE_CLASS}")`) <
@@ -122,6 +126,9 @@ function runBoot(pathname: string, hash: string) {
       },
     },
     sessionStorage: {
+      getItem() {
+        return null;
+      },
       setItem(_key: string, value: string) {
         result.stored = value;
       },

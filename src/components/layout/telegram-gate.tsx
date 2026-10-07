@@ -19,6 +19,13 @@ import {
   bindTelegramFullscreen,
   type TelegramFullscreenHost,
 } from "@/lib/telegram/fullscreen";
+import {
+  captureTelegramLaunchFromLocation,
+  clearTelegramInitReloadFlag,
+  loadTelegramWebApp,
+  recoverTelegramInitOnce,
+  waitForTelegramInitData,
+} from "@/lib/telegram/webapp";
 
 type GateState = "loading" | "ready" | "outside" | "error";
 
@@ -40,10 +47,8 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
     setState("loading");
 
     try {
-      const sdk = await import("@twa-dev/sdk");
-      const webApp = sdk.default;
-      webApp.ready();
-      webApp.expand();
+      captureTelegramLaunchFromLocation();
+      const webApp = await loadTelegramWebApp();
       if (!releaseFullscreen.current) {
         releaseFullscreen.current = bindTelegramFullscreen(
           webApp as TelegramFullscreenHost,
@@ -57,7 +62,10 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         }),
       );
 
-      const initData = webApp.initData;
+      let initData = await waitForTelegramInitData();
+      if (!initData && recoverTelegramInitOnce()) {
+        return;
+      }
       if (initData) {
         let response: Response;
         try {
@@ -88,6 +96,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
           throw new Error("auth failed");
         }
 
+        clearTelegramInitReloadFlag();
         setState("ready");
         return;
       }

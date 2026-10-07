@@ -12,6 +12,11 @@ import {
   SHARE_FAILED,
 } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
+import {
+  loadTelegramWebApp,
+  openTelegramShareUrl,
+  telegramInlineShareAvailable,
+} from "@/lib/telegram/webapp";
 
 export function readPreparedMessageId(data: unknown): string | null {
   if (!isRecord(data) || typeof data.id !== "string") {
@@ -105,7 +110,7 @@ export async function shareBarbellToChat(
     }
   }
   if (payload) {
-    const sent = await openPreparedShare(payload.id, payload.query);
+    const sent = await openPreparedShare(payload);
     if (sent !== "failed") {
       if (sent === "shared") {
         haptic("success");
@@ -146,7 +151,7 @@ export async function shareWeekToChat(
     return "failed";
   }
 
-  const sent = await openPreparedShare(payload.id, payload.query);
+  const sent = await openPreparedShare(payload);
   if (sent === "shared") {
     haptic("success");
   }
@@ -174,7 +179,7 @@ export async function shareJoyToChat(
     }
   }
   if (payload) {
-    const sent = await openPreparedShare(payload.id, payload.query);
+    const sent = await openPreparedShare(payload);
     if (sent !== "failed") {
       if (sent === "shared") {
         haptic("success");
@@ -222,37 +227,58 @@ async function sharePayloadToStory(
 }
 
 async function openPreparedShare(
-  id: string | null,
-  query: string,
+  payload: PhotoSharePayload,
 ): Promise<"shared" | "cancelled" | "failed"> {
-  if (!id) {
-    return switchInlineShare(query);
+  if (payload.id) {
+    const sent = await sendPreparedMessage(payload.id, payload);
+    if (sent !== "failed") {
+      return sent;
+    }
   }
-  return sendPreparedMessage(id, query);
+
+  if (telegramInlineShareAvailable()) {
+    const inline = await switchInlineShare(payload.query);
+    if (inline !== "failed") {
+      return inline;
+    }
+  }
+
+  return sharePhotoViaTelegramLink(payload);
 }
 
 async function sendPreparedMessage(
   id: string,
-  query: string,
+  payload: PhotoSharePayload,
 ): Promise<"shared" | "cancelled" | "failed"> {
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default;
+    const webApp = await loadTelegramWebApp();
     if (
-      !webApp.isVersionAtLeast("8.0") ||
+      !webApp.isVersionAtLeast?.("8.0") ||
       typeof webApp.shareMessage !== "function"
     ) {
-      return switchInlineShare(query);
+      return "failed";
     }
 
     return await new Promise((resolve) => {
+      let settled = false;
+      const finish = (value: "shared" | "cancelled" | "failed") => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(value);
+      };
+
       try {
         webApp.shareMessage(id, (sent) => {
-          resolve(sent ? "shared" : "cancelled");
+          finish(sent ? "shared" : "cancelled");
         });
       } catch {
-        void switchInlineShare(query).then(resolve);
+        finish("failed");
+        return;
       }
+
+      window.setTimeout(() => finish("failed"), 12_000);
     });
   } catch {
     return "failed";
@@ -262,9 +288,12 @@ async function sendPreparedMessage(
 async function switchInlineShare(
   query: string,
 ): Promise<"shared" | "cancelled" | "failed"> {
+  if (!telegramInlineShareAvailable()) {
+    return "failed";
+  }
+
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default;
+    const webApp = await loadTelegramWebApp();
     if (typeof webApp.switchInlineQuery !== "function") {
       return "failed";
     }
@@ -273,6 +302,14 @@ async function switchInlineShare(
   } catch {
     return "failed";
   }
+}
+
+async function sharePhotoViaTelegramLink(
+  payload: PhotoSharePayload,
+): Promise<"shared" | "cancelled" | "failed"> {
+  const text = payload.caption?.trim() || payload.query;
+  const opened = await openTelegramShareUrl(payload.photoUrl, text);
+  return opened ? "shared" : "failed";
 }
 
 export function shareUnavailableMessage(): string {
