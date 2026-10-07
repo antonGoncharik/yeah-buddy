@@ -521,6 +521,9 @@ html.dark[data-day="deload"] {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+@utility today-chrome-diary-inset {
   padding-left: 1rem;
 }
 
@@ -528,8 +531,8 @@ html[data-tg-fullscreen] {
   --app-safe-top-extra: 1.375rem;
 }
 
-html[data-tg-fullscreen] .today-chrome-head {
-  padding-left: calc(1rem + 4.25rem);
+html[data-tg-fullscreen] .today-chrome-head > header {
+  padding-left: 4.25rem;
 }
 
 html[data-keyboard="open"] {
@@ -855,12 +858,8 @@ html[data-density="compact"] .today-chrome {
   padding-bottom: 0.625rem;
 }
 
-html[data-density="compact"] .today-chrome-head {
+html[data-density="compact"] .today-chrome-diary-inset {
   padding-left: 0.75rem;
-}
-
-html[data-density="compact"][data-tg-fullscreen] .today-chrome-head {
-  padding-left: calc(0.75rem + 4.25rem);
 }
 
 html[data-density="compact"] :where(.h-14) {

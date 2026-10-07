@@ -132,7 +132,9 @@ export function TodayScreen({
               />
             }
           />
-          {contentReady && shownDay ? <TodayDiaryLinks /> : null}
+          {contentReady && shownDay ? (
+            <TodayDiaryLinks className="today-chrome-diary-inset" />
+          ) : null}
         </div>
         {contentReady && shownDay ? (
           <TodayDayHeader
