@@ -212,4 +212,37 @@ assertEqual(
   "prompt refuses an invented burn",
 );
 
+const spikedEnd = dynamicExpenditure(
+  days({
+    from: "2026-09-01",
+    count: 15,
+    kcal: 2000,
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 79.8,
+      "2026-09-12": 79.6,
+      "2026-09-14": 82,
+    },
+  }),
+);
+assertEqual(spikedEnd?.delta, -0.4, "a salty last morning is not the trend");
+assertEqual(spikedEnd?.kcal, 2280, "the burn follows the steady weigh-ins");
+assertEqual(spikedEnd?.span, 11, "the window ends on the last steady weigh-in");
+
+const spikedMiddle = dynamicExpenditure(
+  days({
+    from: "2026-09-01",
+    count: 15,
+    kcal: 2000,
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-02": 83,
+      "2026-09-03": 80,
+      "2026-09-15": 79.3,
+    },
+  }),
+);
+assertEqual(spikedMiddle?.delta, -0.6, "a one-day rebound is not the trend");
+assertEqual(spikedMiddle?.kcal, 2330, "the burn ignores the rebound");
+
 console.log("ai energy ok");

@@ -56,10 +56,10 @@ export async function applyEnergyGoal(
   const day = await writeTodayTargets(userId, today, plan);
   const saved = await saveUserSettings(userId, {
     rest_protein: settings.rest_protein,
-    rest_fat: settings.rest_fat,
+    rest_fat: plan.rest.fat,
     rest_carbs: plan.restCarbs,
     training_protein: settings.training_protein,
-    training_fat: settings.training_fat,
+    training_fat: plan.training.fat,
     training_carbs: plan.trainingCarbs,
     energy_goal_dismissed_kcal: null,
   });

@@ -173,10 +173,23 @@ export function readEnergyGoal(data: unknown): EnergyGoalOffer | null {
   }
   const expenditure = toNumber(row.expenditure);
   const restKcal = toNumber(row.restKcal);
-  if (!(expenditure > 0) || !(restKcal > 0)) {
+  if (
+    !(expenditure > 0) ||
+    !(restKcal > 0) ||
+    typeof row.delta !== "number" ||
+    typeof row.span !== "number" ||
+    !Number.isInteger(row.span) ||
+    row.span < 1
+  ) {
     return null;
   }
-  return { expenditure, restKcal, goal: row.goal };
+  return {
+    expenditure,
+    restKcal,
+    goal: row.goal,
+    delta: row.delta,
+    span: row.span,
+  };
 }
 
 export function readMealTemplateFillPromptDismissed(data: unknown): boolean {

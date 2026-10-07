@@ -61,20 +61,27 @@ const lose = energyGoalOffer({
   ...macros,
 });
 assertEqual(lose?.expenditure, 2400, "flat scale burn is the plate");
-assertEqual(lose?.restKcal, 2010, "cut is about 400 under the burn");
-assertEqual(lose?.restCarbs, 195, "carbs fill the cut");
-assertEqual(lose?.trainingCarbs, 245, "training keeps the extra 50 g");
+assertEqual(
+  lose?.restKcal,
+  1970,
+  "cut is about half a percent a week under the burn",
+);
+assertEqual(lose?.restCarbs, 185, "carbs fill the cut");
+assertEqual(lose?.trainingCarbs, 235, "training keeps the extra 50 g");
+assertEqual(lose?.rest.fat, 70, "fat stays while carbs can move");
 assert(lose != null, "lose offer");
 if (lose) {
   assertEqual(
     energyGoalLine(lose),
-    "Расход около 2400. На сушку цель 2010.",
+    "Вес стоит. Расход около 2400. На сушку цель 1970.",
     "cut line",
   );
   const payload = energyGoalPayload(lose);
   assert(payload != null, "payload");
   if (payload) {
     assertEqual(payload.goal, "lose", "payload keeps the goal");
+    assertEqual(payload.delta, 0, "payload keeps the scale");
+    assertEqual(payload.span, 14, "payload keeps the window");
     assertEqual(
       "restCarbs" in payload,
       false,
@@ -93,7 +100,7 @@ assert(keep != null, "keep offer");
 if (keep) {
   assertEqual(
     energyGoalLine(keep),
-    "Расход около 2400. Держать около 2410.",
+    "Вес стоит. Расход около 2400. Держать около 2410.",
     "keep line",
   );
 }
@@ -103,12 +110,16 @@ const gain = energyGoalOffer({
   goal: "gain",
   ...macros,
 });
-assertEqual(gain?.restKcal, 2650, "gain is 250 above the burn");
+assertEqual(
+  gain?.restKcal,
+  2630,
+  "gain is about a quarter percent a week above the burn",
+);
 assert(gain != null, "gain offer");
 if (gain) {
   assertEqual(
     energyGoalLine(gain),
-    "Расход около 2400. На набор цель 2650.",
+    "Вес стоит. Расход около 2400. На набор цель 2630.",
     "gain line",
   );
 }
@@ -168,6 +179,102 @@ assert(
     dismissedKcal: 1800,
   }) != null,
   "a moved cut shows again",
+);
+
+const falling = energyGoalOffer({
+  days: days({
+    from: "2026-09-01",
+    count: 15,
+    kcal: 2400,
+    weights: { "2026-09-01": 80, "2026-09-15": 79.3 },
+  }),
+  goal: "lose",
+  ...macros,
+});
+assertEqual(falling?.delta, -0.7, "the offer uses the scale trend");
+assertEqual(
+  falling?.restKcal,
+  2350,
+  "a real loss does not cut another blind 400",
+);
+assert(falling != null, "falling offer");
+if (falling) {
+  assertEqual(
+    energyGoalLine(falling),
+    "Вес −0.7 кг за 14 дней. Расход около 2790. На сушку цель 2350.",
+    "falling line names the scale",
+  );
+}
+
+const tooFast = energyGoalOffer({
+  days: days({
+    from: "2026-09-01",
+    count: 15,
+    kcal: 1800,
+    weights: { "2026-09-01": 80, "2026-09-15": 78.6 },
+  }),
+  goal: "lose",
+  ...macros,
+  restCarbs: 80,
+});
+assertEqual(
+  tooFast?.restKcal,
+  2130,
+  "a fast cut raises the goal toward the right rate",
+);
+assert(
+  (tooFast?.restKcal ?? 0) > 150 * 4 + 70 * 9 + 80 * 4,
+  "the new goal is more food than the current plate target",
+);
+
+const patchy = days({
+  from: "2026-09-01",
+  count: 15,
+  kcal: 2400,
+  weights: { "2026-09-01": 80, "2026-09-15": 80 },
+}).map((row, index) => (index < 12 ? row : { ...row, fact_kcal: 0 }));
+assertEqual(
+  energyGoalOffer({
+    days: patchy,
+    goal: "lose",
+    ...macros,
+  }),
+  null,
+  "a patchy log does not move a small cut",
+);
+assert(
+  energyGoalOffer({
+    days: patchy,
+    goal: "lose",
+    ...macros,
+    restCarbs: 400,
+  }) != null,
+  "a patchy log still moves a goal that is far off, part of the way",
+);
+
+const stuck = energyGoalOffer({
+  days: days({
+    from: "2026-09-01",
+    count: 15,
+    kcal: 2000,
+    weights: { "2026-09-01": 70, "2026-09-15": 70 },
+  }),
+  goal: "lose",
+  ...macros,
+  restProtein: 200,
+  restFat: 90,
+  trainingProtein: 200,
+  trainingFat: 90,
+  restCarbs: 80,
+});
+assert(
+  stuck != null && stuck.rest.fat < 90,
+  "fat steps down when carbs are on the floor",
+);
+assertEqual(
+  stuck?.training.fat,
+  stuck?.rest.fat,
+  "training fat steps down with the rest day",
 );
 
 console.log("energy goal offer ok");
