@@ -249,7 +249,8 @@
     0px,
     calc(100dvh - var(--tg-viewport-stable-height, 100dvh))
   );
-  --app-nav-clearance: calc(4.5rem + var(--app-safe-bottom));
+  --app-bottom-nav-inset: max(var(--app-safe-bottom), 1rem);
+  --app-nav-clearance: calc(4.5rem + var(--app-bottom-nav-inset));
   --app-fixed-bottom: var(--app-chrome-bottom);
   --app-field-scroll-pad: calc(5.5rem + var(--app-nav-clearance));
 }
@@ -495,6 +496,10 @@ html.dark[data-day="deload"] {
 
 @utility app-fixed-bottom {
   bottom: var(--app-fixed-bottom);
+}
+
+@utility app-bottom-nav {
+  padding-bottom: var(--app-bottom-nav-inset);
 }
 
 @utility app-chrome-bar {
