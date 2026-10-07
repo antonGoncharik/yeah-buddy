@@ -51,7 +51,7 @@ export function DaySummary({
   waistGap = null,
   share = false,
   gym = null,
-  breakdown = false,
+  actionHint = null,
   onSaveBodyWeight,
   onSaveWaist,
 }: {
@@ -80,7 +80,8 @@ export function DaySummary({
   waistGap?: string | null;
   share?: boolean;
   gym?: ReactNode;
-  breakdown?: boolean;
+  /** Gym / program nudge; macros stay on the bars below. */
+  actionHint?: string | null;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
@@ -153,110 +154,95 @@ export function DaySummary({
         compact ? "gap-2 py-2" : "gap-5 py-5",
       )}
     >
-      {breakdown ? null : (
-        <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <button
-                  type="button"
-                  aria-label="Печенье"
-                  className="text-primary/80"
-                  onClick={cookie.wiggle}
-                >
-                  <span
-                    key={cookie.token}
-                    className={cn("inline-flex", cookie.className)}
-                    onAnimationEnd={cookie.onAnimationEnd}
-                  >
-                    <CookieDoodle className="size-4" />
-                  </span>
-                </button>
-                {loop ? "Белок" : overflowKcalLabel(overflow)}
-              </div>
-              <p
-                className={cn(
-                  "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
-                  compact ? "text-xl" : "text-2xl",
-                  flashClosed ? "animate-fade" : "tabular-nums",
-                  proteinOverflow &&
-                    !flashClosed &&
-                    !closed &&
-                    "text-destructive",
-                )}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <button
+                type="button"
+                aria-label="Печенье"
+                className="text-primary/80"
+                onClick={cookie.wiggle}
               >
-                <ProteinFigure text={proteinNumber} />
-                {loop || flashClosed ? null : (
-                  <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
-                    г белка
-                  </span>
-                )}
-              </p>
-              {!compact && almost ? (
-                <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
-              ) : null}
-              {!compact && trainingGap ? (
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {trainingGap}
-                </p>
-              ) : null}
-              {!compact && weekLine ? (
-                <p className="mt-1 text-base font-medium">{weekLine}</p>
-              ) : null}
-              {loop ? null : (
-                <div className="mt-1">
-                  <KcalLine
-                    overflow={overflow}
-                    remainingKcal={remainingKcal}
-                    showWeight={showWeight}
-                    factLabel={factLabel}
-                    factKcal={fact.kcal}
-                    perKg={perKg}
-                  />
-                </div>
-              )}
+                <span
+                  key={cookie.token}
+                  className={cn("inline-flex", cookie.className)}
+                  onAnimationEnd={cookie.onAnimationEnd}
+                >
+                  <CookieDoodle className="size-4" />
+                </span>
+              </button>
+              {loop ? "Белок" : overflowKcalLabel(overflow)}
             </div>
-            {loop ? (
-              gym
-            ) : showWeight ? (
-              <WeightBlock
-                bodyWeight={bodyWeight}
-                lastBodyWeight={lastBodyWeight}
-                waist={waist}
-                lastWaist={lastWaist}
-                readOnly={bodyWeightReadOnly}
-                busy={bodyWeightBusy}
-                note={compact ? null : weightNote}
-                onSave={onSaveBodyWeight}
-                onSaveWaist={onSaveWaist}
-              />
-            ) : (
-              <div className="text-right">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {factLabel}
-                </p>
-                <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-                  {formatKcal(fact.kcal)}
-                </p>
+            <p
+              className={cn(
+                "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                compact ? "text-xl" : "text-2xl",
+                flashClosed ? "animate-fade" : "tabular-nums",
+                proteinOverflow &&
+                  !flashClosed &&
+                  !closed &&
+                  "text-destructive",
+              )}
+            >
+              <ProteinFigure text={proteinNumber} />
+              {loop || flashClosed ? null : (
+                <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
+                  г белка
+                </span>
+              )}
+            </p>
+            {!compact && almost ? (
+              <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
+            ) : null}
+            {!compact && trainingGap ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {trainingGap}
+              </p>
+            ) : null}
+            {!compact && weekLine ? (
+              <p className="mt-1 text-base font-medium">{weekLine}</p>
+            ) : null}
+            {loop ? null : (
+              <div className="mt-1">
+                <KcalLine
+                  overflow={overflow}
+                  remainingKcal={remainingKcal}
+                  showWeight={showWeight}
+                  factLabel={factLabel}
+                  factKcal={fact.kcal}
+                  perKg={perKg}
+                />
               </div>
             )}
           </div>
-
           {loop ? (
-            <LoopFacts
-              overflow={overflow}
-              remainingKcal={remainingKcal}
-              showWeight={showWeight}
-              factLabel={factLabel}
-              factKcal={fact.kcal}
-              perKg={perKg}
+            gym
+          ) : showWeight ? (
+            <WeightBlock
+              bodyWeight={bodyWeight}
+              lastBodyWeight={lastBodyWeight}
+              waist={waist}
+              lastWaist={lastWaist}
+              readOnly={bodyWeightReadOnly}
+              busy={bodyWeightBusy}
+              note={compact ? null : weightNote}
+              onSave={onSaveBodyWeight}
+              onSaveWaist={onSaveWaist}
             />
-          ) : null}
+          ) : (
+            <div className="text-right">
+              <p className="text-sm font-medium text-muted-foreground">
+                {factLabel}
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
+                {formatKcal(fact.kcal)}
+              </p>
+            </div>
+          )}
         </div>
-      )}
 
-      {breakdown ? (
-        loop ? (
+        {loop ? (
           <LoopFacts
             overflow={overflow}
             remainingKcal={remainingKcal}
@@ -265,20 +251,18 @@ export function DaySummary({
             factKcal={fact.kcal}
             perKg={perKg}
           />
-        ) : (
-          <KcalLine
-            overflow={overflow}
-            remainingKcal={remainingKcal}
-            showWeight={showWeight}
-            factLabel={factLabel}
-            factKcal={fact.kcal}
-            perKg={perKg}
-          />
-        )
-      ) : null}
+        ) : null}
+      </div>
 
-      {breakdown && !compact && weekLine ? (
-        <p className="text-base font-medium">{weekLine}</p>
+      {actionHint ? (
+        <p
+          className={cn(
+            "rounded-xl bg-amber-500/10 px-3 py-2 leading-snug text-muted-foreground",
+            compact ? "text-xs" : "text-sm",
+          )}
+        >
+          {actionHint}
+        </p>
       ) : null}
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}
@@ -305,6 +289,16 @@ export function DaySummary({
           barClass="bg-[var(--macro-carbs)]"
           compact={compact}
         />
+        {loop ? null : (
+          <MacroBar
+            label="Калории"
+            fact={fact.kcal}
+            plan={day.target_kcal}
+            barClass="bg-primary/70"
+            compact={compact}
+            kind="kcal"
+          />
+        )}
       </div>
       {!compact && macros ? (
         <p className="text-sm text-muted-foreground">{macros}</p>
@@ -571,16 +565,20 @@ function MacroBar({
   plan,
   barClass,
   compact = false,
+  kind = "macro",
 }: {
   label: string;
   fact: number;
   plan: number;
   barClass: string;
   compact?: boolean;
+  kind?: "macro" | "kcal";
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
+  const formatAmount = (value: number) =>
+    kind === "kcal" ? formatKcal(value) : formatMacro(value);
 
   return (
     <div className={cn("flex flex-col", compact ? "gap-1" : "gap-1.5")}>
@@ -593,15 +591,15 @@ function MacroBar({
         <p className="font-medium">{label}</p>
         <p
           className={cn(
-            "grid grid-cols-[4.75rem_0.75rem_4.75rem] items-baseline tabular-nums text-muted-foreground",
+            "flex items-baseline gap-1.5 tabular-nums text-muted-foreground",
             overflow && "text-destructive",
           )}
         >
           <span className={cn("text-right", !overflow && "text-foreground")}>
-            {formatMacro(fact)}
+            {formatAmount(fact)}
           </span>
-          <span className="text-center">/</span>
-          <span>{formatMacro(plan)}</span>
+          <span>/</span>
+          <span>{formatAmount(plan)}</span>
         </p>
       </div>
       <MeterBar

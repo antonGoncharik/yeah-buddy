@@ -1,4 +1,8 @@
-import { buildTodayDayGlance, todayGlancePhase } from "@/lib/day/today-glance";
+import {
+  buildTodayDayGlance,
+  todayGlancePhase,
+  todayGymActionHint,
+} from "@/lib/day/today-glance";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -80,6 +84,33 @@ assertEqual(
   open.lead,
   "«Тяга» не закрыта — допиши подходы или оставь на завтра.",
   "open session lead",
+);
+
+assertEqual(
+  todayGymActionHint({
+    protein: 80,
+    targetProtein: 150,
+    kcal: 1800,
+    targetKcal: 2200,
+    gym: { kind: "rest", label: "отдых" },
+    isTrainingDay: false,
+    nowMs: evening,
+  }),
+  null,
+  "protein gap alone has no gym hint",
+);
+assertEqual(
+  todayGymActionHint({
+    protein: 150,
+    targetProtein: 150,
+    kcal: 2200,
+    targetKcal: 2200,
+    gym: { kind: "open", label: "Тяга" },
+    isTrainingDay: true,
+    nowMs: evening,
+  }),
+  open.lead,
+  "open session surfaces in summary",
 );
 
 console.log("today glance ok");

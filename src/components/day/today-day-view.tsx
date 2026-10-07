@@ -11,7 +11,6 @@ import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
-import { TodayDayStatus } from "@/components/day/today-day-status";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import {
@@ -24,6 +23,7 @@ import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
+import { todayGymActionHint } from "@/lib/day/today-glance";
 import { isTempId } from "@/lib/day/optimistic";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import {
@@ -256,8 +256,29 @@ export function TodayDayView({
         : null;
 
   const isViewingToday = date === today;
-  const showDayGlance =
-    !viewOnly && dayHasItems && isViewingToday && !showEmptyStart;
+  const gymActionHint = useMemo(() => {
+    if (viewOnly || !isViewingToday || !dayHasItems) {
+      return null;
+    }
+    return todayGymActionHint({
+      protein: fact.protein,
+      targetProtein: shownDay.target_protein,
+      kcal: fact.kcal,
+      targetKcal: shownDay.target_kcal,
+      gym,
+      isTrainingDay: shownDay.is_training_day,
+    });
+  }, [
+    dayHasItems,
+    fact.kcal,
+    fact.protein,
+    gym,
+    isViewingToday,
+    shownDay.is_training_day,
+    shownDay.target_kcal,
+    shownDay.target_protein,
+    viewOnly,
+  ]);
 
   const daySummary = (
     <DaySummary
@@ -279,7 +300,7 @@ export function TodayDayView({
       onSaveWaist={viewOnly ? undefined : saveWaist}
       bodyWeightReadOnly={viewOnly}
       bodyWeightBusy={busy || isTempId(shownDay.id)}
-      breakdown={showDayGlance}
+      actionHint={gymActionHint}
     />
   );
 
@@ -319,32 +340,18 @@ export function TodayDayView({
   ) : null;
 
   const numbersFirst = order === "numbers" && dayHasItems;
-  const glanceBlock = (
-    <>
-      {showDayGlance ? (
-        <TodayDayStatus
-          protein={fact.protein}
-          targetProtein={shownDay.target_protein}
-          kcal={fact.kcal}
-          targetKcal={shownDay.target_kcal}
-          gym={gym}
-          isTrainingDay={shownDay.is_training_day}
-          logFoodHref={addHref}
-        />
-      ) : null}
-      {dayHasItems && !viewOnly ? (
-        <ProteinCloseOffers
-          date={date}
-          mealId={closeMeal?.id ?? null}
-          remainingProtein={shownDay.target_protein - fact.protein}
-          remainingFat={shownDay.target_fat - fact.fat}
-          remainingCarbs={shownDay.target_carbs - fact.carbs}
-          remainingKcal={shownDay.target_kcal - fact.kcal}
-          busy={busy}
-        />
-      ) : null}
-    </>
-  );
+  const proteinCloseBlock =
+    dayHasItems && !viewOnly ? (
+      <ProteinCloseOffers
+        date={date}
+        mealId={closeMeal?.id ?? null}
+        remainingProtein={shownDay.target_protein - fact.protein}
+        remainingFat={shownDay.target_fat - fact.fat}
+        remainingCarbs={shownDay.target_carbs - fact.carbs}
+        remainingKcal={shownDay.target_kcal - fact.kcal}
+        busy={busy}
+      />
+    ) : null;
   const foodBlock = (
     <>
       {mealsBlock}
@@ -361,7 +368,16 @@ export function TodayDayView({
     </>
   );
   const scoreBlock = dayHasItems ? (
-    <div className="animate-rise">{daySummary}</div>
+    <div
+      className={cn(
+        "animate-rise flex flex-col",
+        compact ? "gap-1.5" : "gap-3",
+      )}
+    >
+      {numbersFirst ? null : proteinCloseBlock}
+      {daySummary}
+      {numbersFirst ? proteinCloseBlock : null}
+    </div>
   ) : null;
 
   return (
@@ -396,7 +412,6 @@ export function TodayDayView({
 
       {!dayHasItems ? <div className="animate-rise">{daySummary}</div> : null}
 
-      {glanceBlock}
       {numbersFirst ? scoreBlock : foodBlock}
       {numbersFirst ? foodBlock : scoreBlock}
 
