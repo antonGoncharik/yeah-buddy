@@ -25,6 +25,7 @@ export const PUBLIC_PROGRAM_SLUGS = {
   strength: "2-silovyh",
   upper_lower: "verh-niz",
   ppl: "ppl",
+  push_pull: "tyani-tolkaj",
   three_day: "spina-nogi-grud",
 } as const satisfies Record<PublicProgramId, string>;
 

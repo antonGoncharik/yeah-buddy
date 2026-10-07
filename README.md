@@ -119,7 +119,7 @@ supabase/migrations/
 - Meal templates and gym queue: snapshots (`share_packs`), QR + bot `start` link. Apply replaces templates (and food/gym settings), not logged days or working weights.
 - Coach: `start=c_<token>` (`coach_grants`).
 - Buddy (Пара): `start=b_<token>` (`buddy_grants`).
-- Programs: `start=p_<id>` for every listed preset (`full_body`, `home_floor`, `home_three`, `home_bar`, `home_split`, `home_db`, `home_glutes`, `five_by_five`, `starting_strength`, `strength`, `upper_lower`, `ppl`, `three_day`) — no pack row — plus public `/p/*` and in-app `/programs/*`.
+- Programs: `start=p_<id>` for every listed preset (`full_body`, `home_floor`, `home_three`, `home_bar`, `home_split`, `home_db`, `home_glutes`, `five_by_five`, `starting_strength`, `strength`, `upper_lower`, `ppl`, `push_pull`, `three_day`) — no pack row — plus public `/p/*` and in-app `/programs/*`.
 - App invite: `https://t.me/<bot>` (friend presses Start in chat).
 
 The diary routes stay out of the search index; `/` and `/p/*` do not.

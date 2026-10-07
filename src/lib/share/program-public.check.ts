@@ -51,6 +51,11 @@ assertEqual(
 );
 assertEqual(publicProgramPath("ppl"), "/p/ppl", "ppl path");
 assertEqual(
+  publicProgramPath("push_pull"),
+  "/p/tyani-tolkaj",
+  "push pull path",
+);
+assertEqual(
   publicProgramUrl("https://yeahbuddy.app", "full_body"),
   "https://yeahbuddy.app/p/full-body",
   "absolute program url",

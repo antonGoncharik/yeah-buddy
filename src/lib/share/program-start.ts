@@ -44,7 +44,15 @@ const PROGRAM_ALIASES: Record<PublicProgramId, readonly string[]> = {
   starting_strength: ["3x5", "3 на 5", "три по пять", "стартер"],
   strength: ["2 силовых", "силовые дни", "2 silovyh"],
   upper_lower: ["верх низ", "верх/низ", "upper lower", "verh niz"],
-  ppl: ["жим тяга ноги", "жим тяга", "push pull legs", "push pull"],
+  ppl: ["жим тяга ноги", "жим тяга", "push pull legs"],
+  push_pull: [
+    "тяни толкай",
+    "толкай тяни",
+    "тяни-толкай",
+    "push pull",
+    "push/pull",
+    "толкай и тяни",
+  ],
   three_day: ["спина ноги грудь", "3 дня", "spina nogi grud"],
 };
 
