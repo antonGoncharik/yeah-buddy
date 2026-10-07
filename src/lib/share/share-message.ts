@@ -252,9 +252,10 @@ async function sendPreparedMessage(
 ): Promise<"shared" | "cancelled" | "failed"> {
   try {
     const webApp = await loadTelegramWebApp();
+    const shareMessage = webApp.shareMessage;
     if (
       !webApp.isVersionAtLeast?.("8.0") ||
-      typeof webApp.shareMessage !== "function"
+      typeof shareMessage !== "function"
     ) {
       return "failed";
     }
@@ -270,7 +271,7 @@ async function sendPreparedMessage(
       };
 
       try {
-        webApp.shareMessage(id, (sent) => {
+        shareMessage(id, (sent) => {
           finish(sent ? "shared" : "cancelled");
         });
       } catch {

@@ -20,7 +20,12 @@ assertEqual(
 );
 
 const store = new Map<string, string>();
-const fakeWindow = {
+type FakeWindow = {
+  sessionStorage: Storage;
+  Telegram?: { WebView?: { initParams?: Record<string, string> } };
+};
+
+const fakeWindow: FakeWindow = {
   sessionStorage: {
     getItem(key: string) {
       return store.get(key) ?? null;
@@ -31,16 +36,23 @@ const fakeWindow = {
     removeItem(key: string) {
       store.delete(key);
     },
+    length: 0,
+    clear() {
+      store.clear();
+    },
+    key() {
+      return null;
+    },
   },
   Telegram: {
     WebView: {
       initParams: { tgWebAppBotInline: "1" },
     },
   },
-} as Window & typeof globalThis;
+};
 
 Object.defineProperty(globalThis, "window", {
-  value: fakeWindow,
+  value: fakeWindow as Window,
   configurable: true,
 });
 
