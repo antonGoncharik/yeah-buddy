@@ -9,6 +9,7 @@ import {
   remainingFromDay,
   visibleMealsFromDay,
 } from "@/components/day/today-derived";
+import { useEnergyGoal } from "@/components/day/use-energy-goal";
 import { useTodayCopy } from "@/components/day/use-today-copy";
 import { useTodayData } from "@/components/day/use-today-data";
 import { useTodayDayActions } from "@/components/day/use-today-day-actions";
@@ -175,6 +176,12 @@ export function useTodayScreen({
       date,
       day: data.day,
     });
+  const { applyEnergyGoal, dismissEnergyGoal } = useEnergyGoal({
+    date,
+    setBusy,
+    setEnergyGoal: data.setEnergyGoal,
+    setGoals: data.setGoals,
+  });
 
   const openedTodayRef = useRef<string | null>(null);
   useEffect(() => {
@@ -242,6 +249,9 @@ export function useTodayScreen({
     priorFoodLogDays: data.priorFoodLogDays,
     habitBridge: data.habitBridge,
     habitBridgeSnapshot: data.habitBridgeSnapshot,
+    energyGoal: data.energyGoal,
+    applyEnergyGoal,
+    dismissEnergyGoal,
     busy,
     loadError: data.loadError,
     loading: data.loading,

@@ -19,17 +19,18 @@ import {
   readCalendarToday,
   readCopyDays,
   readDay,
+  readEarlyHabit,
+  readEarlyHabitSnapshot,
+  readEnergyGoal,
+  readHabitBridge,
+  readHabitBridgeSnapshot,
   readLastBodyWeight,
   readLastBodyWeightDate,
   readLastWaist,
   readLastWaistDate,
   readMacroGoals,
-  readNamedMeals,
-  readEarlyHabit,
-  readEarlyHabitSnapshot,
-  readHabitBridge,
-  readHabitBridgeSnapshot,
   readMealTemplateFillPromptDismissed,
+  readNamedMeals,
   readPriorFoodLogDays,
   readPriorProteinHits,
   readRecipes,
@@ -39,8 +40,9 @@ import {
   readYesterdayExists,
   readYesterdayMealTypes,
 } from "@/lib/day/today-payload";
-import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
+import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
+import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { prefetchGymCache } from "@/lib/workout/session-local";
@@ -82,6 +84,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     useState<HabitBridgeSnapshot | null>(null);
   const [mealTemplateFillPromptDismissed, setMealTemplateFillPromptDismissed] =
     useState(false);
+  const [energyGoal, setEnergyGoal] = useState<EnergyGoalOffer | null>(null);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -124,6 +127,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       setMealTemplateFillPromptDismissed(
         readMealTemplateFillPromptDismissed(data),
       );
+      setEnergyGoal(readEnergyGoal(data));
       setLoadedDate(requestedDate);
       return true;
     },
@@ -225,6 +229,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setEarlyHabit(false);
     setEarlyHabitSnapshot(null);
     setPriorFoodLogDays(0);
+    setEnergyGoal(null);
     setWorkoutState(null);
   }, [applyDayPayload, date, reset]);
 
@@ -283,6 +288,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         ? readMealTemplateFillPromptDismissed(cached)
         : mealTemplateFillPromptDismissed,
     setMealTemplateFillPromptDismissed,
+    energyGoal: cached != null ? readEnergyGoal(cached) : energyGoal,
+    setEnergyGoal,
+    setGoals,
     workoutState: cachedSession ?? workoutState,
     loadError: cached != null ? false : loadError,
     loading,

@@ -7,14 +7,15 @@ import {
   isMealType,
   isOnboardingGoal,
 } from "@/lib/nutrition";
+import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import {
   isRecord,
   mapRecordList,
   toNullableNumber,
   toNumber,
 } from "@/lib/read";
-import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
+import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
   CopyDayHint,
   MealType,
@@ -162,10 +163,24 @@ export function readHabitBridge(data: unknown): boolean {
   return isRecord(data) && data.habitBridge === true;
 }
 
+export function readEnergyGoal(data: unknown): EnergyGoalOffer | null {
+  if (!isRecord(data) || !isRecord(data.energyGoal)) {
+    return null;
+  }
+  const row = data.energyGoal;
+  if (!isOnboardingGoal(row.goal)) {
+    return null;
+  }
+  const expenditure = toNumber(row.expenditure);
+  const restKcal = toNumber(row.restKcal);
+  if (!(expenditure > 0) || !(restKcal > 0)) {
+    return null;
+  }
+  return { expenditure, restKcal, goal: row.goal };
+}
+
 export function readMealTemplateFillPromptDismissed(data: unknown): boolean {
-  return (
-    isRecord(data) && data.mealTemplateFillPromptDismissed === true
-  );
+  return isRecord(data) && data.mealTemplateFillPromptDismissed === true;
 }
 
 export function readHabitBridgeSnapshot(
@@ -191,7 +206,9 @@ export function readHabitBridgeSnapshot(
   };
 }
 
-export function readEarlyHabitSnapshot(data: unknown): EarlyHabitSnapshot | null {
+export function readEarlyHabitSnapshot(
+  data: unknown,
+): EarlyHabitSnapshot | null {
   if (!isRecord(data) || !isRecord(data.earlyHabitSnapshot)) {
     return null;
   }
@@ -209,8 +226,7 @@ export function readEarlyHabitSnapshot(data: unknown): EarlyHabitSnapshot | null
     foodLogStreak: row.foodLogStreak,
     foodAtRisk: row.foodAtRisk,
     proteinHits: row.proteinHits,
-    proteinLine:
-      typeof row.proteinLine === "string" ? row.proteinLine : null,
+    proteinLine: typeof row.proteinLine === "string" ? row.proteinLine : null,
     gymSessionsWeek: row.gymSessionsWeek,
     dayOfHabit: row.dayOfHabit,
   };

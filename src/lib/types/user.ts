@@ -34,5 +34,7 @@ export interface UserSettings {
   /** Hidden preset ids this person may pick. General programs are not stored here. */
   granted_programs: string[];
   meal_template_fill_prompt_dismissed: boolean;
+  /** Rest-day kcal the person refused. A later offer returns when it moves. */
+  energy_goal_dismissed_kcal: number | null;
   updated_at: string;
 }

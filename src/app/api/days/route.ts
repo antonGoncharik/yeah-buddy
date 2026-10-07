@@ -29,17 +29,12 @@ import {
   yesterdayCopyHint,
 } from "@/lib/days";
 import {
+  PROTEIN_STREAK_WINDOW,
   priorProteinHits,
   proteinClosed,
-  PROTEIN_STREAK_WINDOW,
   STEADY_WEIGHT_DAYS,
   steadyWeightLine,
 } from "@/lib/flavor";
-import {
-  buildEarlyHabitSnapshot,
-  inEarlyHabitWindow,
-  priorFoodLogDays,
-} from "@/lib/retention/habit";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { listNamedMealHints } from "@/lib/named-meal/store";
@@ -49,12 +44,23 @@ import {
   sumMeals,
 } from "@/lib/nutrition";
 import {
+  ENERGY_GOAL_LOOKBACK_DAYS,
+  energyGoalOffer,
+  energyGoalPayload,
+} from "@/lib/nutrition/energy-goal";
+import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
+import {
+  buildEarlyHabitSnapshot,
+  inEarlyHabitWindow,
+  priorFoodLogDays,
+} from "@/lib/retention/habit";
+import {
   buildHabitBridgeSnapshot,
   inHabitBridgeWindow,
 } from "@/lib/retention/habit-bridge";
-import { inRetentionTail, onboardingAgeDays } from "@/lib/retention";
 import { getUserSettings } from "@/lib/settings";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
+import type { DayHistoryRow } from "@/lib/types";
 import { countCompletedSessions } from "@/lib/workout/sessions";
 
 const createSchema = z.object({
@@ -101,6 +107,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       recentDays,
       gymCount,
       gymWeekCount,
+      energyDays,
     ] = await Promise.all([
       getDayByDate(auth.session.userId, date),
       yesterdayCopyHint(auth.session.userId, date),
@@ -128,6 +135,13 @@ export async function GET(request: Request): Promise<NextResponse> {
             end: today,
           })
         : Promise.resolve(0),
+      viewingToday
+        ? listDaysInRange(
+            auth.session.userId,
+            shiftIsoDate(today, 1 - ENERGY_GOAL_LOOKBACK_DAYS),
+            today,
+          )
+        : Promise.resolve([] as DayHistoryRow[]),
     ]);
 
     const reviewReadyFlag =
@@ -203,6 +217,26 @@ export async function GET(request: Request): Promise<NextResponse> {
           : null,
       mealTemplateFillPromptDismissed:
         settings?.meal_template_fill_prompt_dismissed === true,
+      energyGoal: energyGoalPayload(
+        energyGoalOffer({
+          days: energyDays.map((row) => ({
+            date: row.date,
+            fact_kcal: row.fact_kcal,
+            target_kcal: row.target_kcal,
+            body_weight: row.body_weight,
+          })),
+          goal: settings?.goal ?? null,
+          restProtein:
+            settings?.rest_protein ?? DEFAULT_REST_MACRO_GOALS.protein,
+          restFat: settings?.rest_fat ?? DEFAULT_REST_MACRO_GOALS.fat,
+          restCarbs: settings?.rest_carbs ?? DEFAULT_REST_MACRO_GOALS.carbs,
+          trainingProtein:
+            settings?.training_protein ?? DEFAULT_TRAINING_MACRO_GOALS.protein,
+          trainingFat:
+            settings?.training_fat ?? DEFAULT_TRAINING_MACRO_GOALS.fat,
+          dismissedKcal: settings?.energy_goal_dismissed_kcal ?? null,
+        }),
+      ),
       reviewReady: reviewReadyFlag,
       copyDays,
       namedMeals,

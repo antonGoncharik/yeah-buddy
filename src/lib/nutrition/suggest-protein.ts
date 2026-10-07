@@ -36,7 +36,7 @@ const KCAL_PER_KG: Record<OnboardingSex, Record<OnboardingGoal, number>> = {
 };
 
 /** Extra carbs on a training day (≈ +200 kcal), same gap as the old defaults. */
-const TRAINING_EXTRA_CARBS_G = 50;
+export const TRAINING_EXTRA_CARBS_G = 50;
 
 const CARB_FLOOR_G = 80;
 
@@ -137,7 +137,7 @@ export function suggestMacroGoals(input: {
       ? Math.round(input.protein)
       : suggested;
 
-  const restCarbs = carbsToFill(restKcal, protein, fat);
+  const restCarbs = carbsForTargetKcal(restKcal, protein, fat);
   const trainingCarbs = restCarbs + TRAINING_EXTRA_CARBS_G;
 
   return {
@@ -157,7 +157,12 @@ export function suggestMacroGoals(input: {
   };
 }
 
-function carbsToFill(targetKcal: number, protein: number, fat: number): number {
+/** Carbs that land on `targetKcal` once protein and fat are fixed. Rounded to 5 g. */
+export function carbsForTargetKcal(
+  targetKcal: number,
+  protein: number,
+  fat: number,
+): number {
   const remaining = targetKcal - protein * 4 - fat * 9;
   if (remaining < CARB_FLOOR_G * 4) {
     return CARB_FLOOR_G;

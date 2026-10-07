@@ -19,7 +19,7 @@ const MIN_COVERAGE = 0.5;
 const MIN_KCAL = 900;
 const MAX_KCAL = 5500;
 
-type EnergyDay = {
+export type EnergyDay = {
   date: string;
   fact_kcal: number;
   target_kcal: number;

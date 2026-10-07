@@ -6,6 +6,7 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
 import { EarlyHabitCard } from "@/components/day/early-habit-card";
+import { EnergyGoalCard } from "@/components/day/energy-goal-card";
 import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
@@ -31,6 +32,7 @@ import {
   weightGapLine,
 } from "@/lib/flavor";
 import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
+import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
@@ -65,6 +67,9 @@ export function TodayDayView({
   priorFoodLogDays,
   habitBridge,
   habitBridgeSnapshot,
+  energyGoal,
+  onApplyEnergyGoal,
+  onDismissEnergyGoal,
   onOpenYesterday,
   copyDays,
   namedMeals,
@@ -111,6 +116,9 @@ export function TodayDayView({
   priorFoodLogDays: number;
   habitBridge: boolean;
   habitBridgeSnapshot: HabitBridgeSnapshot | null;
+  energyGoal: EnergyGoalOffer | null;
+  onApplyEnergyGoal: () => void;
+  onDismissEnergyGoal: () => void;
   onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -345,6 +353,17 @@ export function TodayDayView({
       {!dayHasItems && topNudge === "habit-bridge" && habitBridgeSnapshot ? (
         <div className="animate-rise">
           <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
+        </div>
+      ) : null}
+
+      {date === today && !viewOnly && energyGoal ? (
+        <div className="animate-rise">
+          <EnergyGoalCard
+            offer={energyGoal}
+            busy={busy}
+            onApply={onApplyEnergyGoal}
+            onDismiss={onDismissEnergyGoal}
+          />
         </div>
       ) : null}
 

@@ -37,6 +37,9 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     granted_programs: parseGrantedPrograms(row.granted_programs),
     meal_template_fill_prompt_dismissed:
       row.meal_template_fill_prompt_dismissed === true,
+    energy_goal_dismissed_kcal: parseDismissedKcal(
+      row.energy_goal_dismissed_kcal,
+    ),
     updated_at: String(row.updated_at),
   };
 }
@@ -67,6 +70,19 @@ export function readSettingsPayload(data: unknown): UserSettings | null {
 
 export function isOnboardingCompleted(settings: UserSettings): boolean {
   return settings.onboarding_completed_at != null;
+}
+
+export function parseDismissedKcal(value: unknown): number | null {
+  if (value == null || value === "") {
+    return null;
+  }
+
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 20_000) {
+    return null;
+  }
+
+  return parsed;
 }
 
 export function parseStoredTrainingYears(value: unknown): number | null {

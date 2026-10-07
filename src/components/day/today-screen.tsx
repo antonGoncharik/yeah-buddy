@@ -68,6 +68,9 @@ export function TodayScreen({
     priorFoodLogDays,
     habitBridge,
     habitBridgeSnapshot,
+    energyGoal,
+    applyEnergyGoal,
+    dismissEnergyGoal,
     busy,
     loadError,
     loading,
@@ -238,6 +241,9 @@ export function TodayScreen({
             priorFoodLogDays={priorFoodLogDays}
             habitBridge={habitBridge && isToday}
             habitBridgeSnapshot={habitBridgeSnapshot}
+            energyGoal={isToday ? energyGoal : null}
+            onApplyEnergyGoal={applyEnergyGoal}
+            onDismissEnergyGoal={dismissEnergyGoal}
             onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}
