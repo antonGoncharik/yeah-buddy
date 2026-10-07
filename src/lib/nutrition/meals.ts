@@ -1,3 +1,4 @@
+import { isIsoDate, previousIsoDate } from "@/lib/day/dates";
 import { formatKcal } from "@/lib/nutrition/macros";
 import type { DayType, MealType } from "@/lib/types";
 
@@ -28,8 +29,37 @@ const MEAL_LABELS: Record<MealType, string> = {
   dinner: "Ужин",
 };
 
+const REPEAT_YESTERDAY_MEAL: Record<MealType, string> = {
+  breakfast: "Как вчера утром",
+  lunch: "Как вчера в обед",
+  snack: "Как вчера полдник",
+  pre_workout: "Как вчера до зала",
+  post_workout: "Как вчера после зала",
+  dinner: "Как вчера вечером",
+};
+
 export function getMealLabel(mealType: MealType): string {
   return MEAL_LABELS[mealType];
+}
+
+export function repeatYesterdayMealLabel(mealType: MealType): string {
+  return REPEAT_YESTERDAY_MEAL[mealType];
+}
+
+/** Yesterday's date when that slot already has food. Empty meals use it for one tap. */
+export function yesterdayMealSource(
+  date: string,
+  mealType: MealType,
+  copyDays: ReadonlyArray<{ date: string; mealTypes: readonly MealType[] }>,
+): string | null {
+  if (!isIsoDate(date)) {
+    return null;
+  }
+  const yesterday = previousIsoDate(date);
+  const hit = copyDays.some(
+    (day) => day.date === yesterday && day.mealTypes.includes(mealType),
+  );
+  return hit ? yesterday : null;
 }
 
 export function mealExistsReplace(mealType: MealType): string {

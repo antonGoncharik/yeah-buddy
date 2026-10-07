@@ -17,7 +17,9 @@ import {
   formatKcal,
   formatMacro,
   getMealLabel,
+  repeatYesterdayMealLabel,
   sumMealItems,
+  yesterdayMealSource,
 } from "@/lib/nutrition";
 import type { CopyDayHint, MealType, NamedMealHint } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -91,6 +93,10 @@ export function MealCard({
       : null;
   const showAdd = !readOnly && Boolean(addHref);
   const showFill = !readOnly && Boolean(onFillTemplate);
+  const yesterdaySource =
+    items.length === 0 && date && onCopyDate
+      ? yesterdayMealSource(date, mealType, copyDays ?? [])
+      : null;
 
   return (
     <section
@@ -198,8 +204,21 @@ export function MealCard({
               : "flex-col",
           )}
         >
+          {yesterdaySource && onCopyDate && showAdd ? (
+            <Button
+              type="button"
+              className="h-12 w-full text-base"
+              disabled={copyBusy}
+              onClick={() => onCopyDate(yesterdaySource)}
+            >
+              {repeatYesterdayMealLabel(mealType)}
+            </Button>
+          ) : null}
           {showAdd && addHref ? (
-            <MealAddLink href={addHref} prominent={items.length === 0} />
+            <MealAddLink
+              href={addHref}
+              prominent={items.length === 0 && !yesterdaySource}
+            />
           ) : null}
           {showFill && onFillTemplate ? (
             <Button

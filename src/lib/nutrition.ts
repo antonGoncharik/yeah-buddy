@@ -28,8 +28,10 @@ export {
   isMealVisible,
   MEAL_DISPLAY_ORDER,
   mealExistsReplace,
+  repeatYesterdayMealLabel,
   shareMealLine,
   visibleMealTypes,
+  yesterdayMealSource,
 } from "@/lib/nutrition/meals";
 export {
   isOnboardingGoal,
