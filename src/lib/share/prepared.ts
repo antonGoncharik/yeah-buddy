@@ -31,6 +31,13 @@ import {
   programShareText,
 } from "@/lib/share/program-start";
 import {
+  decodeSundayCard,
+  encodeSundayCard,
+  SUNDAY_CARD_HEADING,
+  sundayCardCaption,
+  sundayCardSize,
+} from "@/lib/share/sunday-card";
+import {
   decodeWeekCard,
   encodeWeekCard,
   WEEK_CARD_BUTTON,
@@ -254,6 +261,37 @@ export function dayInlineResults(input: {
   ];
 }
 
+export function sundayInlineResults(input: {
+  query: string;
+  photoOrigin: string;
+  installUrl: string;
+  secret: string;
+}): InlineQueryResultPhoto[] {
+  const card = decodeSundayCard(input.query, input.secret);
+  if (!card) {
+    return [];
+  }
+
+  const query = encodeSundayCard(card, input.secret);
+  const photo = weekCardPhotoUrl(input.photoOrigin, query);
+  const size = sundayCardSize(card);
+  return [
+    {
+      type: "photo",
+      id: `sunday-${card.to}`,
+      photo_url: photo,
+      thumbnail_url: photo,
+      photo_width: size.width,
+      photo_height: size.height,
+      title: SUNDAY_CARD_HEADING,
+      caption: sundayCardCaption(card),
+      reply_markup: {
+        inline_keyboard: [[{ text: BOT_INSTALL_DIARY, url: input.installUrl }]],
+      },
+    },
+  ];
+}
+
 export function weekInlineResults(input: {
   query: string;
   photoOrigin: string;
@@ -293,6 +331,18 @@ export function botInlineResults(input: {
   stickerFileId: string | null;
   weekSecret?: string | null;
 }): InlineQueryResult[] {
+  if (input.query.trim().startsWith("su|")) {
+    if (!input.weekSecret) {
+      return [];
+    }
+    return sundayInlineResults({
+      query: input.query,
+      photoOrigin: input.photoOrigin,
+      installUrl: input.installUrl,
+      secret: input.weekSecret,
+    });
+  }
+
   if (input.query.trim().startsWith("wk|")) {
     if (!input.weekSecret) {
       return [];

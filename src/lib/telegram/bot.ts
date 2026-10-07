@@ -248,6 +248,27 @@ export async function sendDiaryMessage(
   }
 }
 
+export async function sendDiaryCard(
+  chatId: number,
+  input: { photoUrl: string; caption: string; inlineQuery: string },
+  env: ServerEnv = getServerEnv(),
+): Promise<DiarySendResult> {
+  const miniAppUrl = getMiniAppUrl(env);
+  const caption =
+    input.caption.length <= 1024
+      ? input.caption
+      : `${input.caption.slice(0, 1023)}…`;
+  try {
+    await createBot(env).api.sendPhoto(chatId, input.photoUrl, {
+      caption,
+      ...replyMarkup(miniAppUrl, input.inlineQuery),
+    });
+    return "sent";
+  } catch (error) {
+    return diarySendError(error);
+  }
+}
+
 export async function sendDiaryPhoto(
   chatId: number,
   input: {

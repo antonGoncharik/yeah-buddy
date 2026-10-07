@@ -11,7 +11,10 @@ const FONT_FILES = ["Manrope-Medium.ttf", "Manrope-Bold.ttf"] as const;
 let fontFiles: Promise<string[]> | null = null;
 
 export async function renderWeekCardJpeg(card: WeekCard): Promise<Buffer> {
-  const svg = weekCardSvg(card);
+  return renderShareSvgJpeg(weekCardSvg(card));
+}
+
+export async function renderShareSvgJpeg(svg: string): Promise<Buffer> {
   const resvg = new Resvg(svg, {
     fitTo: { mode: "original" },
     textRendering: 1,

@@ -8,9 +8,19 @@ import {
 } from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
+import { joyPhotoOrigin } from "@/lib/share/prepared";
+import {
+  encodeSundayCard,
+  sundayCardCaption,
+  sundayCardFromBrief,
+} from "@/lib/share/sunday-card";
+import { weekCardPhotoUrl } from "@/lib/share/week-card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { sendDiaryMessage } from "@/lib/telegram/bot";
-import { middayReminderText } from "@/lib/telegram/reminder-midday";
+import {
+  type DiarySendResult,
+  sendDiaryCard,
+  sendDiaryMessage,
+} from "@/lib/telegram/bot";
 import {
   isoWeekdaySun0,
   localClock,
@@ -25,6 +35,7 @@ import {
   dateShareSnapshot,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
+import { middayReminderText } from "@/lib/telegram/reminder-midday";
 import {
   composeEveningMessage,
   reminderDayCard,
@@ -117,7 +128,8 @@ export async function runEveningReminders(
         ),
       ),
     });
-    const recap = await sundayRecap(candidate.userId, reminderDate);
+    const sunday = await sundayPack(candidate.userId, reminderDate);
+    const recap = sunday.recap;
     const facts = dayShareFacts({
       protein: snapshot?.protein ?? 0,
       kcal: snapshot?.kcal ?? 0,
@@ -154,7 +166,12 @@ export async function runEveningReminders(
     }
 
     const env = getServerEnv();
-    const sent = await sendDiaryMessage(candidate.telegramId, text, env);
+    const sent = await sendEvening(
+      candidate.telegramId,
+      text,
+      sunday.query,
+      env,
+    );
     if (sent === "sent") {
       result.sent += 1;
       continue;
@@ -226,7 +243,11 @@ export async function runMiddayReminders(
       ]);
       gymTemplateName = names.get(session.template_id) ?? null;
     }
-    if (!gymTemplateName && isTrainingDay === true && sessionStatus === "planned") {
+    if (
+      !gymTemplateName &&
+      isTrainingDay === true &&
+      sessionStatus === "planned"
+    ) {
       gymTemplateName = await nextCircleName(candidate.userId);
     }
 
@@ -290,24 +311,55 @@ async function completedGymName(
   return names.get(session.template_id) ?? null;
 }
 
-async function sundayRecap(
+async function sundayPack(
   userId: string,
   reminderDate: string,
-): Promise<string | null> {
+): Promise<{ recap: string | null; query: string | null }> {
   if (isoWeekdaySun0(reminderDate) !== 0) {
-    return null;
+    return { recap: null, query: null };
   }
 
   try {
     const snapshot = await getReviewSnapshot(userId, 14, reminderDate);
     if (snapshot.brief.coverage === "empty") {
-      return null;
+      return { recap: null, query: null };
     }
-    return weekRecapText(snapshot.brief.signals);
+    const card = sundayCardFromBrief(snapshot.brief);
+    return {
+      recap: card
+        ? sundayCardCaption(card)
+        : weekRecapText(snapshot.brief.signals),
+      query: card
+        ? encodeSundayCard(card, getServerEnv().SESSION_SECRET)
+        : null,
+    };
   } catch (error) {
     console.error(error);
-    return null;
+    return { recap: null, query: null };
   }
+}
+
+async function sendEvening(
+  chatId: number,
+  text: string,
+  query: string | null,
+  env: ReturnType<typeof getServerEnv>,
+): Promise<DiarySendResult> {
+  const origin =
+    joyPhotoOrigin(env.NEXT_PUBLIC_APP_URL) ??
+    joyPhotoOrigin(env.TELEGRAM_MINI_APP_URL);
+  if (query && origin) {
+    return sendDiaryCard(
+      chatId,
+      {
+        photoUrl: weekCardPhotoUrl(origin, query),
+        caption: text,
+        inlineQuery: query,
+      },
+      env,
+    );
+  }
+  return sendDiaryMessage(chatId, text, env);
 }
 
 async function listReminderCandidates(): Promise<ReminderCandidate[]> {
