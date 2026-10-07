@@ -108,29 +108,31 @@ export function TodayScreen({
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="today-chrome">
-        <AppHeader
-          className="px-0 py-2.5"
-          title={titleDate}
-          subtitle={
-            viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
-          }
-          backHref={
-            fromHistory ? nutritionHistoryHref(fromSettings) : undefined
-          }
-          titleExpanded={pickerOpen}
-          onTitleClick={() => {
-            haptic("tap");
-            setPickerOpen(true);
-          }}
-          trailing={
-            <TodayDateNav
-              canGoForward={canGoForward}
-              onPrev={() => goBy(-1)}
-              onNext={() => goBy(1)}
-            />
-          }
-        />
-        {contentReady && shownDay ? <TodayDiaryLinks /> : null}
+        <div className="today-chrome-head">
+          <AppHeader
+            className="px-0 py-2.5"
+            title={titleDate}
+            subtitle={
+              viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
+            }
+            backHref={
+              fromHistory ? nutritionHistoryHref(fromSettings) : undefined
+            }
+            titleExpanded={pickerOpen}
+            onTitleClick={() => {
+              haptic("tap");
+              setPickerOpen(true);
+            }}
+            trailing={
+              <TodayDateNav
+                canGoForward={canGoForward}
+                onPrev={() => goBy(-1)}
+                onNext={() => goBy(1)}
+              />
+            }
+          />
+          {contentReady && shownDay ? <TodayDiaryLinks /> : null}
+        </div>
         {contentReady && shownDay ? (
           <TodayDayHeader
             date={date}
