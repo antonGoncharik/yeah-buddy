@@ -19,7 +19,6 @@ export function TodayDayMeals({
   viewOnly,
   visibleMeals,
   remainingMealTypes,
-  remainingFullGap,
   dayProtein,
   proteinMealCount,
   copyDays,
@@ -39,7 +38,6 @@ export function TodayDayMeals({
   viewOnly: boolean;
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
-  remainingFullGap: boolean;
   dayProtein: number;
   proteinMealCount: number;
   copyDays: CopyDayHint[];
@@ -124,9 +122,7 @@ export function TodayDayMeals({
               : (namedMealId, name) => void deleteNamedMeal(namedMealId, name)
           }
           onFillTemplate={
-            viewOnly ||
-            remainingFullGap ||
-            !remainingMealTypes.has(meal.meal_type)
+            viewOnly || !remainingMealTypes.has(meal.meal_type)
               ? undefined
               : () => void fillMealFromTemplate(meal.id)
           }

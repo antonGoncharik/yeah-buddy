@@ -8,7 +8,6 @@ import { DaySummary } from "@/components/day/day-summary";
 import { EarlyHabitCard } from "@/components/day/early-habit-card";
 import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
-import { RemainingRecipeAction } from "@/components/day/remaining-recipe-action";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
@@ -56,8 +55,6 @@ export function TodayDayView({
   hiddenMealKcal,
   hiddenMealTypes,
   fact,
-  remainingLine,
-  remainingFullGap,
   remainingMealTypes,
   dayHasItems,
   yesterdayExists,
@@ -86,7 +83,6 @@ export function TodayDayView({
   saveWaist,
   copyYesterday,
   saveDayAsTemplate,
-  fillDayFromTemplate,
   fillMealFromTemplate,
   copyMealFromDate,
   applyNamedMeal,
@@ -105,8 +101,6 @@ export function TodayDayView({
   hiddenMealKcal: number;
   hiddenMealTypes: MealType[];
   fact: { protein: number; fat: number; carbs: number; kcal: number };
-  remainingLine: string | null;
-  remainingFullGap: boolean;
   remainingMealTypes: ReadonlySet<MealType>;
   dayHasItems: boolean;
   yesterdayExists: boolean;
@@ -135,7 +129,6 @@ export function TodayDayView({
   saveWaist: (value: number | null) => Promise<void>;
   copyYesterday: () => Promise<void>;
   saveDayAsTemplate: () => Promise<void>;
-  fillDayFromTemplate: () => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
   copyMealFromDate: (
     mealId: string,
@@ -161,15 +154,6 @@ export function TodayDayView({
     hiddenMealTypes,
     shownDay.is_training_day,
   );
-  const remainingAction = remainingLine ? (
-    <RemainingRecipeAction
-      remainingLine={remainingLine}
-      fullGap={remainingFullGap}
-      viewOnly={viewOnly}
-      busy={busy}
-      onFill={() => void fillDayFromTemplate()}
-    />
-  ) : null;
   const reviewOffer = useReviewOffer(reviewReady);
   const yesterdayCatchUp = showYesterdayCatchUpHint({
     isToday: date === today,
@@ -284,7 +268,6 @@ export function TodayDayView({
       viewOnly={viewOnly}
       visibleMeals={visibleMeals}
       remainingMealTypes={remainingMealTypes}
-      remainingFullGap={remainingFullGap}
       dayProtein={fact.protein}
       proteinMealCount={proteinMealCount}
       copyDays={copyDays}
@@ -301,16 +284,10 @@ export function TodayDayView({
     />
   ) : null;
 
-  const mealTail = dayHasItems ? (
-    <>
-      {hiddenNote ? (
-        <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
-      ) : null}
-      {remainingAction ? (
-        <div className="animate-rise">{remainingAction}</div>
-      ) : null}
-    </>
-  ) : null;
+  const mealTail =
+    dayHasItems && hiddenNote ? (
+      <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
+    ) : null;
 
   const numbersFirst = order === "numbers" && dayHasItems;
   const proteinCloseBlock =

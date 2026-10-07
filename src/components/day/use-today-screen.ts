@@ -146,8 +146,6 @@ export function useTodayScreen({
       : data.recipes.rest
     : [];
   const remaining = remainingFromDay(shownDay, recipe);
-  const remainingLine = remaining.line;
-  const remainingFullGap = remaining.fullGap;
   const remainingMealTypes = remaining.mealTypes;
 
   const {
@@ -159,7 +157,6 @@ export function useTodayScreen({
     shareNamedMeal,
     deleteNamedMeal,
     saveDayAsTemplate,
-    fillDayFromTemplate,
     fillMealFromTemplate,
   } = useTodayCopy({
     viewOnly,
@@ -224,8 +221,6 @@ export function useTodayScreen({
     hiddenMealKcal,
     hiddenMealTypes,
     fact,
-    remainingLine,
-    remainingFullGap,
     remainingMealTypes,
     dayHasItems,
     yesterdayExists: data.yesterdayExists,
@@ -257,7 +252,6 @@ export function useTodayScreen({
     createDay,
     copyYesterday,
     saveDayAsTemplate,
-    fillDayFromTemplate,
     fillMealFromTemplate,
     copyMealFromDate,
     applyNamedMeal,

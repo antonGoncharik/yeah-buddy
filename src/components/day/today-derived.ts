@@ -1,11 +1,5 @@
 import type { DayWithMeals } from "@/lib/day/map";
-import {
-  formatRemainingLine,
-  isFullTemplateGap,
-  type RecipeLine,
-  remainingFills,
-  remainingLines,
-} from "@/lib/day/remaining";
+import { type RecipeLine, remainingFills } from "@/lib/day/remaining";
 import { isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { MealType } from "@/lib/types";
 
@@ -60,8 +54,6 @@ export function remainingFromDay(
 ) {
   if (!shownDay) {
     return {
-      line: null as string | null,
-      fullGap: false,
       mealTypes: new Set<MealType>(),
     };
   }
@@ -76,9 +68,5 @@ export function remainingFromDay(
     mealTypes.add(fill.mealType);
   }
 
-  return {
-    line: formatRemainingLine(remainingLines(fills)),
-    fullGap: isFullTemplateGap(recipe, fills, shownDay.is_training_day),
-    mealTypes,
-  };
+  return { mealTypes };
 }
