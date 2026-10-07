@@ -61,6 +61,30 @@ export function publicProgramIdFromSlug(slug: string): PublicProgramId | null {
 /** @deprecated Use {@link publicProgramIdFromSlug}. */
 export const featuredProgramIdFromSlug = publicProgramIdFromSlug;
 
+/** Doors the landing sells first. The rest of the shelf follows. */
+const LANDING_PROGRAM_FIRST = [
+  "five_by_five",
+  "home_floor",
+  "home_glutes",
+] as const satisfies readonly PublicProgramId[];
+
+export function landingProgramCards(): PublicProgramCard[] {
+  const cards = publicProgramCards();
+  const lead = LANDING_PROGRAM_FIRST.map((id) => {
+    const card = cards.find((item) => item.id === id);
+    if (!card) {
+      throw new Error(`Нет программы ${id}.`);
+    }
+    return card;
+  });
+  return [
+    ...lead,
+    ...cards.filter(
+      (card) => !LANDING_PROGRAM_FIRST.some((id) => id === card.id),
+    ),
+  ];
+}
+
 export function publicProgramCards(): PublicProgramCard[] {
   return PUBLIC_PROGRAM_IDS.map((id) => {
     const preset = programPresetById(id);

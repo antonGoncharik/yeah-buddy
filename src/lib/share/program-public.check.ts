@@ -1,4 +1,5 @@
 import {
+  landingProgramCards,
   PUBLIC_PROGRAM_IDS,
   PUBLIC_PROGRAM_SLUGS,
   publicProgramCards,
@@ -77,6 +78,18 @@ assertEqual(
 assert(
   FEATURED_PROGRAM_IDS.every((id) => PUBLIC_PROGRAM_IDS.includes(id)),
   "featured programs stay on the landing",
+);
+assertEqual(
+  landingProgramCards()
+    .slice(0, 3)
+    .map((card) => card.id),
+  ["five_by_five", "home_floor", "home_glutes"],
+  "landing leads with 5x5, home, and glutes",
+);
+assertEqual(
+  landingProgramCards().length,
+  cards.length,
+  "landing still lists every program",
 );
 assert(
   new Set(cards.map((card) => card.slug)).size === cards.length,

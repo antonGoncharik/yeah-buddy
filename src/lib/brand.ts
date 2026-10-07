@@ -1,7 +1,7 @@
 export const APP_NAME = "Yeah Buddy";
 export const APP_SHORT_NAME = "Дневник";
-export const APP_TITLE = "Yeah Buddy — дневник еды и зала";
+export const APP_TITLE = "Yeah Buddy — день отдыха и день зала";
 export const APP_DESCRIPTION =
-  "Дневник еды и тренировок в Telegram. Свои продукты, штрихкод с пачки, белок и калории, программа и рабочий вес. Без регистрации.";
+  "День отдыха и день зала с разными целями. Программа сама ставит рабочий вес. Дневник в Telegram, без регистрации.";
 export const APP_SHARE_TEXT =
-  "Что съел и что сделал в зале — один дневник в Telegram. Без регистрации.";
+  "День отдыха и день зала с разными целями. Программа сама ставит вес. В Telegram, без регистрации.";

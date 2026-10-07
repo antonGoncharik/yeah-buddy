@@ -15,6 +15,8 @@ import {
   OPEN_VIA_BOT_STEPS_TITLE,
   PENDING_WRITES,
   PROGRAM_PAGE_BACK,
+  PROGRAM_PAGE_CTA,
+  PROGRAM_PAGE_PROMISE,
   PROGRAM_QR_CAPTION,
   PROGRAM_SHELF_LEAD,
   PROGRAM_SHELF_TITLE,
@@ -98,7 +100,7 @@ assertEqual(
 assertEqual(STARTER_CATALOG_NOTE, "", "starter catalog explains itself");
 assertEqual(
   OPEN_VIA_BOT_LEAD,
-  "Дневник еды и зала в Telegram. Без регистрации.",
+  "День отдыха и день зала с разными целями. Программа сама ставит вес.",
   "outside Telegram lead",
 );
 assertEqual(OPEN_VIA_BOT_CTA, "Открыть в Telegram", "outside Telegram cta");
@@ -111,13 +113,13 @@ assertEqual(
   OPEN_VIA_BOT_POINTS.map((point) => `${point.title}: ${point.body}`).join(
     "\n",
   ),
-  "Еда: Свои продукты и каталог. Белок считается сам.\nЗал: Программа, подходы, рабочий вес.\nШтрихкод: Код с пачки — сразу в дневник.",
+  "День отдыха: Свои белок и калории.\nДень зала: Другие цели. Углеводов больше.\nПрограмма: Сама ставит рабочий вес.",
   "outside Telegram facts",
 );
 assertEqual(OPEN_VIA_BOT_STEPS_TITLE, "Как начать", "outside Telegram steps");
 assertEqual(
   OPEN_VIA_BOT_STEPS.map((step) => `${step.title}: ${step.body}`).join("\n"),
-  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Еда в граммах, зал по программе.\nВечером: Одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
+  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Отдых или зал — цели разные. Еда в граммах.\nВечером: Около вечера — одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
   "outside Telegram steps copy",
 );
 assertEqual(
@@ -128,9 +130,15 @@ assertEqual(
 assertEqual(PROGRAM_SHELF_TITLE, "Программы", "program shelf title");
 assertEqual(
   PROGRAM_SHELF_LEAD,
-  "Можно начать с готовой.",
+  "5×5, дом и ягодицы. Поставишь — рабочий вес двигается сам.",
   "program shelf lead",
 );
+assertEqual(
+  PROGRAM_PAGE_PROMISE,
+  "В дневнике день отдыха и день зала с разными целями. Эта программа сама ставит рабочий вес.",
+  "program page promise",
+);
+assertEqual(PROGRAM_PAGE_CTA, "Поставить в Telegram", "program page cta");
 assertEqual(PROGRAM_PAGE_BACK, "На главную", "program page back");
 assertEqual(
   PROGRAM_QR_CAPTION,

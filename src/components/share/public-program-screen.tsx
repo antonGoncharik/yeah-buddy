@@ -2,8 +2,9 @@ import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
 import {
-  OPEN_VIA_BOT_CTA,
   PROGRAM_PAGE_BACK,
+  PROGRAM_PAGE_CTA,
+  PROGRAM_PAGE_PROMISE,
   PROGRAM_QR_CAPTION,
 } from "@/lib/messages";
 import type { PublicProgramId } from "@/lib/share/program-public";
@@ -45,6 +46,7 @@ export function PublicProgramScreen({
         <p className="text-base leading-relaxed text-muted-foreground">
           {program.hint}
         </p>
+        <p className="text-base leading-relaxed">{PROGRAM_PAGE_PROMISE}</p>
       </header>
 
       <div className="flex w-full flex-col gap-3">
@@ -69,7 +71,7 @@ export function PublicProgramScreen({
           href={openUrl}
           className={cn(buttonVariants(), "h-14 w-full text-lg")}
         >
-          {OPEN_VIA_BOT_CTA}
+          {PROGRAM_PAGE_CTA}
         </a>
       ) : null}
 

@@ -14,8 +14,16 @@ assert(
 );
 assert(APP_DESCRIPTION.includes("Telegram"), "description names Telegram");
 assert(
-  APP_DESCRIPTION.includes("Без регистрации"),
-  "description says there is no signup",
+  APP_DESCRIPTION.includes("разными целями"),
+  "description leads with rest and training targets",
+);
+assert(
+  APP_DESCRIPTION.includes("сама ставит рабочий вес"),
+  "description says the program sets the weight",
+);
+assert(
+  APP_DESCRIPTION.toLowerCase().includes("без регистрации"),
+  "description still says there is no signup",
 );
 
 console.log("brand ok");

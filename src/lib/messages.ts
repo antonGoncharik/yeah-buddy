@@ -6,21 +6,21 @@ export const BOT_START = `Yeah buddy! 👟
 
 Light weight. Погнали 🔥`;
 export const OPEN_VIA_BOT_LEAD =
-  "Дневник еды и зала в Telegram. Без регистрации.";
+  "День отдыха и день зала с разными целями. Программа сама ставит вес.";
 export const OPEN_VIA_BOT_CTA = "Открыть в Telegram";
 export const OPEN_VIA_BOT_QR_CAPTION = "Наведи камеру — откроется бот.";
 export const OPEN_VIA_BOT_POINTS = [
   {
-    title: "Еда",
-    body: "Свои продукты и каталог. Белок считается сам.",
+    title: "День отдыха",
+    body: "Свои белок и калории.",
   },
   {
-    title: "Зал",
-    body: "Программа, подходы, рабочий вес.",
+    title: "День зала",
+    body: "Другие цели. Углеводов больше.",
   },
   {
-    title: "Штрихкод",
-    body: "Код с пачки — сразу в дневник.",
+    title: "Программа",
+    body: "Сама ставит рабочий вес.",
   },
 ] as const;
 export const OPEN_VIA_BOT_STEPS_TITLE = "Как начать";
@@ -31,7 +31,7 @@ export const OPEN_VIA_BOT_STEPS = [
   },
   {
     title: "Запиши день",
-    body: "Еда в граммах, зал по программе.",
+    body: "Отдых или зал — цели разные. Еда в граммах.",
   },
   {
     title: "Вечером",
@@ -40,7 +40,11 @@ export const OPEN_VIA_BOT_STEPS = [
 ] as const;
 export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
 export const PROGRAM_SHELF_TITLE = "Программы";
-export const PROGRAM_SHELF_LEAD = "Можно начать с готовой.";
+export const PROGRAM_SHELF_LEAD =
+  "5×5, дом и ягодицы. Поставишь — рабочий вес двигается сам.";
+export const PROGRAM_PAGE_PROMISE =
+  "В дневнике день отдыха и день зала с разными целями. Эта программа сама ставит рабочий вес.";
+export const PROGRAM_PAGE_CTA = "Поставить в Telegram";
 export const BARBELL_SHELF_TITLE = "Задача дня";
 export const BARBELL_SHELF_LEAD =
   "Мини-игра про блины — можно кинуть друзьям в чат.";

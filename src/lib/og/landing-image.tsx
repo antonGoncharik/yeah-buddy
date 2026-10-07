@@ -2,11 +2,11 @@ import { readFile } from "node:fs/promises";
 import { ImageResponse } from "next/og";
 
 import { APP_NAME } from "@/lib/brand";
-import { OPEN_VIA_BOT_LEAD } from "@/lib/messages";
+import { OPEN_VIA_BOT_LEAD, OPEN_VIA_BOT_POINTS } from "@/lib/messages";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
-export const OG_ALT = `${APP_NAME} — дневник еды и зала в Telegram`;
+export const OG_ALT = `${APP_NAME} — день отдыха и день зала`;
 
 const PAPER = "#F3EEE4";
 const INK = "#2C211C";
@@ -14,12 +14,6 @@ const MUTED = "#6E5B52";
 const CLAY = "#A34B2E";
 const CARD = "#FFF9F3";
 const LINE = "#E7D9CC";
-
-const CHIPS = [
-  { title: "Еда", body: "Белок считается сам" },
-  { title: "Зал", body: "Программа и вес" },
-  { title: "Штрихкод", body: "Код с пачки" },
-] as const;
 
 const FONT_FILES = [
   ["Manrope-Medium.ttf", 500],
@@ -121,7 +115,7 @@ export async function landingOgImage(): Promise<ImageResponse> {
           </div>
         </div>
         <div style={{ display: "flex", gap: 18 }}>
-          {CHIPS.map((chip) => (
+          {OPEN_VIA_BOT_POINTS.map((chip) => (
             <div
               key={chip.title}
               style={{
