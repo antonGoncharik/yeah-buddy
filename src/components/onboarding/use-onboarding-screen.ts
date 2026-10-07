@@ -29,6 +29,8 @@ import {
 } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
+import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
+import { isProgramPresetId } from "@/lib/workout/program-presets";
 import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { peekPendingProgramId } from "@/lib/share/pending";
@@ -295,6 +297,9 @@ export function useOnboardingScreen() {
         circle: chosen,
         ration,
       });
+      if (isProgramPresetId(chosen) || pendingProgramId != null) {
+        markProgramEditableHintPending();
+      }
       router.replace(href);
       haptic("success");
     } catch (caught) {

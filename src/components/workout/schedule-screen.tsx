@@ -12,7 +12,9 @@ import { PublishPackButton } from "@/components/share/publish-pack-button";
 import { buttonVariants } from "@/components/ui/button";
 import { ScheduleActiveList } from "@/components/workout/schedule-active-list";
 import { ScheduleInactiveList } from "@/components/workout/schedule-inactive-list";
+import { ProgramEditableHintCard } from "@/components/workout/program-editable-hint-card";
 import { ScheduleProgramsSection } from "@/components/workout/schedule-programs-section";
+import { useProgramEditableHint } from "@/components/workout/use-program-editable-hint";
 import { useScheduleScreen } from "@/components/workout/use-schedule-screen";
 import { cn } from "@/lib/utils";
 import { FORMULAS_LABEL, QUEUE_LABEL } from "@/lib/workout/labels";
@@ -31,6 +33,7 @@ export function ScheduleScreen() {
     applyPreset,
     setInCircle,
   } = useScheduleScreen();
+  const editableHint = useProgramEditableHint();
 
   return (
     <div className="flex flex-col gap-4">
@@ -45,6 +48,10 @@ export function ScheduleScreen() {
 
         {!loading && error ? (
           <ScreenError message={error} onRetry={() => void load()} />
+        ) : null}
+
+        {!loading && editableHint.open ? (
+          <ProgramEditableHintCard onDismiss={editableHint.dismiss} />
         ) : null}
 
         {!loading && active.length === 0 && inactive.length === 0 ? (

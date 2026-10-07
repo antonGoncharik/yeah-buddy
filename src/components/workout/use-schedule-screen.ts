@@ -9,6 +9,7 @@ import { programApplyConfirmMessage } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutTemplateDetail } from "@/lib/types";
 import { readTemplates } from "@/lib/workout/hub-payload";
+import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
 import {
   type ProgramPresetId,
   programPresetById,
@@ -106,6 +107,7 @@ export function useScheduleScreen() {
         preset: presetId,
       });
       setTemplates(readTemplates(data));
+      markProgramEditableHintPending();
       haptic("success");
     } catch (caught) {
       haptic("error");

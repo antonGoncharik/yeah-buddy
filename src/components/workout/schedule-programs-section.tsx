@@ -15,7 +15,7 @@ export function ScheduleProgramsSection({
     <section className="animate-rise flex flex-col gap-2">
       <SectionHeading
         title="Готовые программы"
-        hint="Заменит текущий список. На карточке — сколько разных тренировок и как часто обычно ходят; это не расписание на понедельник и среду. Твои дни отложатся."
+        hint="Заменит текущий список. После постановки дни и упражнения можно менять — очередь пойдёт по твоей версии. На карточке — сколько тренировок и как часто обычно ходят; это не пн/ср/пт. Твои дни отложатся."
       />
       <ProgramPresetCatalog disabled={saving} onPick={onPick} />
     </section>

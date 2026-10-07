@@ -106,6 +106,9 @@ export function OnboardingCircleStep({
           Еда на день возьмётся из ссылки.
         </p>
       ) : null}
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        После установки программу можно править — очередь пойдёт по твоей версии.
+      </p>
       <ProgramPresetCatalog
         disabled={saving}
         ids={shelf === "home" ? homeProgramPresetIds(sex) : undefined}

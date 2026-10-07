@@ -8,6 +8,8 @@ import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
 import { WorkoutsHubBarbellCard } from "@/components/workout/workouts-hub-barbell-card";
 import { WorkoutsHubEmpty } from "@/components/workout/workouts-hub-empty";
 import { WorkoutsHubNavSections } from "@/components/workout/workouts-hub-nav-sections";
+import { ProgramEditableHintCard } from "@/components/workout/program-editable-hint-card";
+import { useProgramEditableHint } from "@/components/workout/use-program-editable-hint";
 import { WorkoutsHubQueueCta } from "@/components/workout/workouts-hub-queue-cta";
 import { WorkoutsHubRecent } from "@/components/workout/workouts-hub-recent";
 import { WorkoutsHubSessionCard } from "@/components/workout/workouts-hub-session-card";
@@ -43,13 +45,17 @@ export function WorkoutsHubScreen() {
     pickTemplate,
   } = useWorkoutsHub();
   const guideTip = useGuideTip("workouts");
+  const editableHint = useProgramEditableHint();
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {!loading && !error && guideTip.tip ? (
+        {!loading && !error && editableHint.open ? (
+          <ProgramEditableHintCard onDismiss={editableHint.dismiss} />
+        ) : null}
+        {!loading && !error && !editableHint.open && guideTip.tip ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
         {loading ? <ScreenLoading /> : null}

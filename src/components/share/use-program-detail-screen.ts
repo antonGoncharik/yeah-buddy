@@ -18,6 +18,7 @@ import {
   readFeaturedProgramPayload,
 } from "@/lib/share/program-start";
 import { haptic } from "@/lib/telegram/haptic";
+import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
 
 export function useProgramDetailScreen(id: string) {
   const router = useRouter();
@@ -93,6 +94,7 @@ export function useProgramDetailScreen(id: string) {
         fromStart: true,
       });
       dismissPendingProgramId(program.id);
+      markProgramEditableHintPending();
       haptic("success");
       router.replace("/workouts");
     } catch (caught) {

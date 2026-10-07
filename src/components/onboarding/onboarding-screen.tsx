@@ -267,7 +267,7 @@ function subtitleForStep(
     return "Для расчёта весов в программе.";
   }
   if (step === "circle") {
-    return "Можно сменить позже в Тренировках.";
+    return "Можно сменить и править дни позже в Тренировках.";
   }
   return null;
 }

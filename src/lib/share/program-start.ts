@@ -119,11 +119,14 @@ export function programShareText(preset: ProgramPreset): string {
   return programPresetSummary(preset);
 }
 
+const PROGRAM_APPLY_EDIT_NOTE =
+  "Потом можно менять дни и упражнения в «Программе» — очередь пойдёт по твоей версии.";
+
 export function programApplyConfirmMessage(preset: ProgramPreset): string {
   if (preset.cycle) {
-    return `Поставить «${preset.name}»? Подставятся её тренировки и недели по весу — сами. Твои дни не удалятся, отложатся.`;
+    return `Поставить «${preset.name}»? Подставятся её тренировки и недели по весу — сами. Твои дни не удалятся, отложатся. ${PROGRAM_APPLY_EDIT_NOTE}`;
   }
-  return `Поставить «${preset.name}»? Список тренировок станет этой программой — твои дни отложатся, не пропадут.`;
+  return `Поставить «${preset.name}»? Список тренировок станет этой программой — твои дни отложатся, не пропадут. ${PROGRAM_APPLY_EDIT_NOTE}`;
 }
 
 export interface FeaturedProgramDetail {

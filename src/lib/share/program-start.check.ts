@@ -183,6 +183,10 @@ assert(
   programApplyConfirmMessage(fullBody).includes("отложатся"),
   "full body confirm keeps old days",
 );
+assert(
+  programApplyConfirmMessage(fullBody).includes("менять"),
+  "confirm mentions editing after apply",
+);
 
 const view = featuredProgramView(fullBody, {
   share_url: "https://t.me/yeahbuddybot?start=p_full_body",
