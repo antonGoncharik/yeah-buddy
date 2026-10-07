@@ -1,4 +1,5 @@
 import {
+  type MacroBudget,
   type ProteinCloseCandidate,
   proteinCloseOffers,
 } from "@/lib/nutrition/protein-close";
@@ -11,12 +12,28 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   }
 }
 
+function budget(
+  remainingProtein: number,
+  patch: Partial<Omit<MacroBudget, "remainingProtein">> = {},
+): MacroBudget {
+  return {
+    remainingProtein,
+    remainingFat: 200,
+    remainingCarbs: 300,
+    remainingKcal: 2500,
+    ...patch,
+  };
+}
+
 function food(
   patch: Partial<ProteinCloseCandidate> &
     Pick<ProteinCloseCandidate, "id" | "name">,
 ): ProteinCloseCandidate {
   return {
     proteinPer100: 18,
+    fatPer100: 4,
+    carbsPer100: 3,
+    kcalPer100: 110,
     portionGrams: null,
     favorite: false,
     recentRank: 0,
@@ -36,6 +53,9 @@ const whey = food({
   id: "whey",
   name: "Протеин",
   proteinPer100: 80,
+  fatPer100: 4,
+  carbsPer100: 6,
+  kcalPer100: 380,
   portionGrams: 30,
   favorite: false,
   recentRank: 0,
@@ -44,22 +64,25 @@ const chicken = food({
   id: "chicken",
   name: "Курица",
   proteinPer100: 25,
+  fatPer100: 2,
+  carbsPer100: 0,
+  kcalPer100: 120,
   portionGrams: null,
   favorite: false,
   recentRank: 2,
 });
 
-assertEqual(proteinCloseOffers(5, [cottage]), [], "almost closed stays quiet");
-assertEqual(proteinCloseOffers(0, [cottage]), [], "closed stays quiet");
+assertEqual(proteinCloseOffers(budget(5), [cottage]), [], "almost closed stays quiet");
+assertEqual(proteinCloseOffers(budget(0), [cottage]), [], "closed stays quiet");
 assertEqual(
-  proteinCloseOffers(40, [
+  proteinCloseOffers(budget(40), [
     food({ id: "oil", name: "Масло", proteinPer100: 0, recentRank: 0 }),
   ]),
   [],
   "fat without protein is skipped",
 );
 assertEqual(
-  proteinCloseOffers(40, [
+  proteinCloseOffers(budget(40), [
     food({
       id: "bread",
       name: "Хлеб",
@@ -72,19 +95,19 @@ assertEqual(
   "a huge portion is not a close",
 );
 
-const usual = proteinCloseOffers(40, [cottage]);
+const usual = proteinCloseOffers(budget(40), [cottage]);
 assertEqual(usual[0]?.grams, 200, "usual cottage portion");
 assertEqual(usual[0]?.protein, 36, "cottage protein");
 
-const scoop = proteinCloseOffers(40, [whey]);
+const scoop = proteinCloseOffers(budget(40), [whey]);
 assertEqual(scoop[0]?.grams, 30, "usual whey scoop");
 assertEqual(scoop[0]?.protein, 24, "whey protein");
 
-const weighed = proteinCloseOffers(40, [chicken]);
+const weighed = proteinCloseOffers(budget(40), [chicken]);
 assertEqual(weighed[0]?.grams, 160, "grams that close the gap");
 assertEqual(weighed[0]?.protein, 40, "chicken closes 40 g");
 
-const ranked = proteinCloseOffers(40, [chicken, cottage, whey]);
+const ranked = proteinCloseOffers(budget(40), [chicken, cottage, whey]);
 assertEqual(
   ranked.map((row) => row.foodId),
   ["cottage", "chicken", "whey"],
@@ -99,13 +122,13 @@ const extra = food({
   recentRank: 3,
 });
 assertEqual(
-  proteinCloseOffers(40, [cottage, whey, chicken, extra]).length,
+  proteinCloseOffers(budget(40), [cottage, whey, chicken, extra]).length,
   3,
   "three buttons",
 );
 
 assertEqual(
-  proteinCloseOffers(40, [
+  proteinCloseOffers(budget(40), [
     food({
       id: "catalog",
       name: "Рис",
@@ -120,7 +143,7 @@ assertEqual(
 );
 
 assertEqual(
-  proteinCloseOffers(40, [
+  proteinCloseOffers(budget(40), [
     food({
       id: "dup-a",
       name: "Творог",
@@ -133,5 +156,31 @@ assertEqual(
   ["cottage"],
   "same name keeps the better portion",
 );
+
+const nuts = food({
+  id: "nuts",
+  name: "Орехи",
+  proteinPer100: 15,
+  fatPer100: 65,
+  carbsPer100: 10,
+  kcalPer100: 700,
+  portionGrams: 200,
+  favorite: true,
+  recentRank: 0,
+});
+assertEqual(
+  proteinCloseOffers(
+    budget(40, { remainingFat: 15, remainingCarbs: 80, remainingKcal: 250 }),
+    [nuts],
+  ),
+  [],
+  "fatty snack is not offered past fat and kcal headroom",
+);
+
+const leanClose = proteinCloseOffers(
+  budget(40, { remainingFat: 15, remainingCarbs: 80, remainingKcal: 250 }),
+  [chicken],
+);
+assertEqual(leanClose[0]?.grams, 160, "lean protein still closes when fat is tight");
 
 console.log("protein close ok");

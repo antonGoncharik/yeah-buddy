@@ -337,6 +337,9 @@ export function TodayDayView({
           date={date}
           mealId={closeMeal?.id ?? null}
           remainingProtein={shownDay.target_protein - fact.protein}
+          remainingFat={shownDay.target_fat - fact.fat}
+          remainingCarbs={shownDay.target_carbs - fact.carbs}
+          remainingKcal={shownDay.target_kcal - fact.kcal}
           busy={busy}
         />
       ) : null}

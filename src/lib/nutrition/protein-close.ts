@@ -1,7 +1,17 @@
+export interface MacroBudget {
+  remainingProtein: number;
+  remainingFat: number;
+  remainingCarbs: number;
+  remainingKcal: number;
+}
+
 export interface ProteinCloseCandidate {
   id: string;
   name: string;
   proteinPer100: number;
+  fatPer100: number;
+  carbsPer100: number;
+  kcalPer100: number;
   portionGrams: number | null;
   favorite: boolean;
   /** 0 is the food logged most recently. Null if it is only a favorite. */
@@ -22,10 +32,10 @@ const MAX_GRAMS = 400;
 const MAX_OFFERS = 3;
 
 export function proteinCloseOffers(
-  remainingProtein: number,
+  budget: MacroBudget,
   foods: readonly ProteinCloseCandidate[],
 ): ProteinCloseOffer[] {
-  if (!(remainingProtein >= MIN_GAP)) {
+  if (!(budget.remainingProtein >= MIN_GAP)) {
     return [];
   }
 
@@ -39,7 +49,7 @@ export function proteinCloseOffers(
     if (!food.favorite && food.recentRank == null) {
       continue;
     }
-    const built = offerFor(food, remainingProtein);
+    const built = offerFor(food, budget);
     if (!built) {
       continue;
     }
@@ -75,15 +85,16 @@ export function proteinCloseOffers(
 
 function offerFor(
   food: ProteinCloseCandidate,
-  remaining: number,
+  budget: MacroBudget,
 ): (ProteinCloseOffer & { score: number }) | null {
   const name = food.name.trim();
   if (name === "" || !(food.proteinPer100 >= MIN_DENSITY)) {
     return null;
   }
 
+  const remaining = budget.remainingProtein;
   const perGram = food.proteinPer100 / 100;
-  const grams = chooseGrams(food.portionGrams, perGram, remaining);
+  const grams = chooseGrams(food, food.portionGrams, perGram, remaining, budget);
   if (grams == null) {
     return null;
   }
@@ -122,25 +133,67 @@ function offerFor(
 }
 
 function chooseGrams(
+  food: ProteinCloseCandidate,
   portion: number | null,
   perGram: number,
   remaining: number,
+  budget: MacroBudget,
 ): number | null {
+  const cap = maxGramsWithinBudget(food, budget);
+
   if (portion != null && portion >= 10 && portion <= MAX_GRAMS) {
-    const portionProtein = portion * perGram;
+    const cappedPortion = Math.min(portion, cap);
+    const portionProtein = cappedPortion * perGram;
     const useful =
       portionProtein >= remaining * 0.55 && portionProtein <= remaining * 1.4;
     const bite = portionProtein >= 12 && portionProtein <= remaining * 1.5;
     if (useful || bite) {
-      return roundPortion(portion);
+      return finalizeGrams(cappedPortion);
     }
   }
 
-  const grams = roundPortion(remaining / perGram);
-  if (grams < 20 || grams > MAX_GRAMS) {
+  const ideal = roundPortion(remaining / perGram);
+  if (ideal > MAX_GRAMS) {
+    return null;
+  }
+  const grams = finalizeGrams(Math.min(ideal, cap));
+  if (grams == null || grams < 20) {
     return null;
   }
   return grams;
+}
+
+function maxGramsWithinBudget(
+  food: Pick<
+    ProteinCloseCandidate,
+    "fatPer100" | "carbsPer100" | "kcalPer100"
+  >,
+  budget: MacroBudget,
+): number {
+  const caps = [
+    gramCapFromNutrient(budget.remainingFat, food.fatPer100),
+    gramCapFromNutrient(budget.remainingCarbs, food.carbsPer100),
+    gramCapFromNutrient(budget.remainingKcal, food.kcalPer100),
+  ];
+  return Math.min(MAX_GRAMS, ...caps);
+}
+
+function gramCapFromNutrient(remaining: number, per100: number): number {
+  if (!(per100 > 0)) {
+    return MAX_GRAMS;
+  }
+  if (remaining <= 0) {
+    return 0;
+  }
+  return (remaining / per100) * 100;
+}
+
+function finalizeGrams(grams: number): number | null {
+  const rounded = roundPortion(grams);
+  if (rounded <= 0 || rounded > MAX_GRAMS) {
+    return null;
+  }
+  return rounded;
 }
 
 function roundPortion(grams: number): number {

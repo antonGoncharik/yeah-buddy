@@ -21,11 +21,17 @@ export function ProteinCloseOffers({
   date,
   mealId,
   remainingProtein,
+  remainingFat,
+  remainingCarbs,
+  remainingKcal,
   busy,
 }: {
   date: string;
   mealId: string | null;
   remainingProtein: number;
+  remainingFat: number;
+  remainingCarbs: number;
+  remainingKcal: number;
   busy: boolean;
 }) {
   const [lists, setLists] = useState(readFoodLists);
@@ -58,7 +64,12 @@ export function ProteinCloseOffers({
   }
 
   const offers = proteinCloseOffers(
-    remainingProtein,
+    {
+      remainingProtein,
+      remainingFat,
+      remainingCarbs,
+      remainingKcal,
+    },
     candidates(lists.recent, lists.favorites),
   );
   if (offers.length === 0) {
@@ -146,6 +157,9 @@ function candidates(
     id: food.id,
     name: food.name,
     proteinPer100: food.protein_per_100,
+    fatPer100: food.fat_per_100,
+    carbsPer100: food.carbs_per_100,
+    kcalPer100: food.kcal_per_100,
     portionGrams: quickAddGrams(food),
     favorite: food.is_favorite,
     recentRank: rank.get(food.id) ?? null,
