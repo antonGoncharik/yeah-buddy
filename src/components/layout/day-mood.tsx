@@ -96,8 +96,8 @@ export function DayBackdrop() {
 function RestBackdrop() {
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.03_132_/_0.42),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.42_0.035_140_/_0.38),transparent_70%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.84_0.03_145_/_0.16),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.32_0.03_145_/_0.28),transparent_62%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.84_0.07_132_/_0.55),transparent_66%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.4_0.07_142_/_0.5),transparent_68%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.76_0.07_145_/_0.3),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_8%_108%,oklch(0.34_0.06_145_/_0.38),transparent_62%)]" />
       <svg
         aria-hidden
         className="absolute inset-0 h-full w-full animate-wallpaper-drift"
@@ -142,14 +142,14 @@ function TrainingBackdrop({ deload = false }: { deload?: boolean }) {
         className={
           deload
             ? "absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.94_0.02_52_/_0.24),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.38_0.025_40_/_0.26),transparent_70%)]"
-            : "absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.9_0.04_48_/_0.38),transparent_68%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.4_0.05_36_/_0.4),transparent_70%)]"
+            : "absolute inset-0 bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.84_0.08_52_/_0.55),transparent_66%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(120%_85%_at_50%_-18%,oklch(0.48_0.12_42_/_0.55),transparent_68%)]"
         }
       />
       <div
         className={
           deload
             ? "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.88_0.02_50_/_0.1),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.32_0.02_40_/_0.2),transparent_62%)]"
-            : "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.82_0.05_42_/_0.14),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.3_0.05_32_/_0.3),transparent_62%)]"
+            : "absolute inset-0 bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.76_0.09_42_/_0.28),transparent_62%)] transition-opacity duration-[var(--theme-duration)] ease-[var(--ease-out-soft)] motion-reduce:transition-none dark:bg-[radial-gradient(70%_45%_at_92%_108%,oklch(0.36_0.1_36_/_0.42),transparent_62%)]"
         }
       />
       <svg

@@ -8,12 +8,14 @@ import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
+import { TodayDayMark } from "@/components/day/today-day-mark";
 import { TodayDayView } from "@/components/day/today-day-view";
 import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
+import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
@@ -90,6 +92,7 @@ export function TodayScreen({
   } = useTodayScreen({ initialDate, readOnly, fromSettings });
 
   const fromHistory = readOnly;
+  const { mood } = useDayMood();
   const { density } = useDiaryDensity();
   const compact = density === "compact";
   const guideTip = useGuideTip("today");
@@ -111,12 +114,21 @@ export function TodayScreen({
             className="px-0 py-2.5"
             title={titleDate}
             subtitle={
-              viewOnly ? "Только просмотр" : catchUp ? CATCH_UP_TITLE : undefined
+              viewOnly
+                ? "Только просмотр"
+                : catchUp
+                  ? CATCH_UP_TITLE
+                  : undefined
             }
             backHref={
               fromHistory ? nutritionHistoryHref(fromSettings) : undefined
             }
             titleExpanded={pickerOpen}
+            mark={
+              mood === "rest" || mood === "training" ? (
+                <TodayDayMark training={mood === "training"} />
+              ) : null
+            }
             onTitleClick={() => {
               haptic("tap");
               setPickerOpen(true);

@@ -8,6 +8,7 @@ export function AppHeader({
   title,
   subtitle,
   backHref,
+  mark,
   trailing,
   onTitleClick,
   titleExpanded = false,
@@ -16,6 +17,7 @@ export function AppHeader({
   title: string;
   subtitle?: string;
   backHref?: string;
+  mark?: ReactNode;
   trailing?: ReactNode;
   onTitleClick?: () => void;
   titleExpanded?: boolean;
@@ -33,16 +35,22 @@ export function AppHeader({
           <h1>
             <button
               type="button"
-              className="-ml-2 flex max-w-full items-center gap-1 rounded-xl px-2 py-1 text-left transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-[0.98]"
+              className="-ml-2 flex max-w-full items-center gap-1.5 rounded-xl px-2 py-1 text-left transition-[background-color,transform] duration-200 ease-[var(--ease-out-soft)] hover:bg-muted active:scale-[0.98]"
               aria-haspopup="dialog"
               aria-expanded={titleExpanded}
               aria-label={`Выбрать день, ${title}`}
               onClick={onTitleClick}
             >
+              {mark}
               <span className={`min-w-0 ${headingClass}`}>{title}</span>
               <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
             </button>
           </h1>
+        ) : mark ? (
+          <div className="flex min-w-0 items-center gap-1.5">
+            {mark}
+            <h1 className={headingClass}>{title}</h1>
+          </div>
         ) : (
           <h1 className={headingClass}>{title}</h1>
         )}
