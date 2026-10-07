@@ -3,6 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import type { GymLoop } from "@/lib/day/loop";
 import {
   buildTodayDayGlance,
@@ -29,6 +30,8 @@ export function TodayDayStatus({
   logFoodHref?: string | null;
   className?: string;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const glance = buildTodayDayGlance({
     protein,
     targetProtein,
@@ -74,20 +77,30 @@ export function TodayDayStatus({
   return (
     <div
       className={cn(
-        "card-surface animate-rise flex flex-col gap-3 px-5 py-3",
+        "card-surface animate-rise flex flex-col px-5",
+        compact ? "gap-2 py-2" : "gap-3 py-3",
         className,
       )}
     >
-      <div className="flex flex-col gap-1.5">
+      <div className={cn("flex flex-col", compact ? "gap-1" : "gap-1.5")}>
         <p className="text-sm font-medium">{glance.title}</p>
         {glance.lead ? (
-          <p className="text-base leading-snug text-muted-foreground">
+          <p
+            className={cn(
+              "leading-snug text-muted-foreground",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {glance.lead}
           </p>
         ) : null}
       </div>
       <div
-        className={cn("grid gap-2", gymSession ? "grid-cols-2" : "grid-cols-3")}
+        className={cn(
+          "grid",
+          compact ? "gap-1.5" : "gap-2",
+          gymSession ? "grid-cols-2" : "grid-cols-3",
+        )}
       >
         {pillars.map((pillar, index) => (
           <GlancePillar

@@ -150,7 +150,7 @@ export function DaySummary({
     <section
       className={cn(
         "card-surface flex flex-col px-5",
-        compact ? "gap-3 py-3" : "gap-5 py-5",
+        compact ? "gap-2 py-2" : "gap-5 py-5",
       )}
     >
       {breakdown ? null : (

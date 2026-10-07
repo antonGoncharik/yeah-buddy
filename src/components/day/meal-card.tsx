@@ -96,13 +96,18 @@ export function MealCard({
     <section
       className={cn(
         "card-surface flex min-w-0 flex-col px-5",
-        compact ? "gap-2 py-3" : "gap-3 py-5",
+        compact ? "gap-1.5 py-2" : "gap-3 py-5",
         className,
       )}
       style={style}
     >
       <div className="flex items-center justify-between gap-3">
-        <h2 className="flex min-w-0 items-center gap-2 text-xl font-semibold">
+        <h2
+          className={cn(
+            "flex min-w-0 items-center gap-2 font-semibold",
+            compact ? "text-lg" : "text-xl",
+          )}
+        >
           <MealTypeMark mealType={mealType} />
           <span className="truncate">{getMealLabel(mealType)}</span>
         </h2>
@@ -187,7 +192,7 @@ export function MealCard({
         <div
           className={cn(
             "flex gap-2",
-            compact && "[&_a]:h-10 [&_button]:h-10",
+            compact && "[&_a]:h-9 [&_button]:h-9",
             compact && items.length > 0 && showAdd && showFill
               ? "flex-row *:min-w-0 *:flex-1"
               : "flex-col",

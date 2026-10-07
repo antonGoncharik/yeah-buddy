@@ -20,6 +20,7 @@ import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
+import { cn } from "@/lib/utils";
 
 export function TodayScreen({
   initialDate,
@@ -106,7 +107,7 @@ export function TodayScreen({
   const showLoading = loading || !contentReady || openingToday;
 
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-3")}>
       <div className="today-chrome">
         <div className="today-chrome-head">
           <AppHeader

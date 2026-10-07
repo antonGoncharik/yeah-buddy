@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { foodsApiUrl } from "@/components/foods/food-favorite";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
 import { fetchJson, peekJson } from "@/lib/api-cache";
 import { readCachedDay } from "@/lib/day/cache";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/nutrition/protein-close";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function ProteinCloseOffers({
   date,
@@ -34,6 +36,8 @@ export function ProteinCloseOffers({
   remainingKcal: number;
   busy: boolean;
 }) {
+  const { density } = useDiaryDensity();
+  const compact = density === "compact";
   const [lists, setLists] = useState(readFoodLists);
   const [addingId, setAddingId] = useState<string | null>(null);
 
@@ -101,8 +105,13 @@ export function ProteinCloseOffers({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="px-1 text-sm font-medium text-muted-foreground">
+    <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
+      <p
+        className={cn(
+          "px-1 font-medium text-muted-foreground",
+          compact ? "text-xs" : "text-sm",
+        )}
+      >
         Добить белок
       </p>
       {offers.map((offer) => (
@@ -110,7 +119,12 @@ export function ProteinCloseOffers({
           key={offer.foodId}
           type="button"
           variant="secondary"
-          className="block h-auto min-h-12 w-full min-w-0 px-4 py-3 text-left text-base font-medium leading-snug whitespace-normal"
+          className={cn(
+            "block h-auto w-full min-w-0 px-3 text-left font-medium leading-snug whitespace-normal",
+            compact
+              ? "min-h-10 py-2 text-sm"
+              : "min-h-12 py-3 text-base",
+          )}
           disabled={busy || addingId != null}
           onClick={() => void add(offer.foodId, offer.grams)}
         >

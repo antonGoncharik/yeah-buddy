@@ -365,7 +365,7 @@ export function TodayDayView({
   ) : null;
 
   return (
-    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-4")}>
+    <div className={cn("flex w-full flex-col", compact ? "gap-1.5" : "gap-4")}>
       {!dayHasItems && topNudge === "catch-up" ? (
         <div className="animate-rise">
           <YesterdayCatchUpHint onOpen={onOpenYesterday} />
