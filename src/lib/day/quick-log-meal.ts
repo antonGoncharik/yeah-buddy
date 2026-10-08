@@ -12,6 +12,7 @@ type MealSlot = {
 export function pickQuickLogMealId(
   meals: ReadonlyArray<MealSlot>,
   at = new Date(),
+  hourOverride?: number,
 ): string | null {
   const live = meals.filter((meal) => !isTempId(meal.id));
   if (live.length === 0) {
@@ -25,7 +26,11 @@ export function pickQuickLogMealId(
     }
   }
 
-  const preferred = mealTypeForHour(at.getHours());
+  const hour =
+    hourOverride != null && Number.isFinite(hourOverride)
+      ? hourOverride
+      : at.getHours();
+  const preferred = mealTypeForHour(hour);
   const match = live.find((meal) => meal.meal_type === preferred);
   if (match) {
     return match.id;

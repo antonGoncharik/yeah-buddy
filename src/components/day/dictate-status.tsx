@@ -1,5 +1,6 @@
 "use client";
 
+import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { dictateRemainingLine } from "@/lib/ai/quota-copy";
 import { formatSpeechClock } from "@/lib/ai/speech-wav";
 import { DICTATE_IDLE_LINE, DICTATE_SPEAK_LINE } from "@/lib/flavor";
@@ -45,7 +46,10 @@ export function DictateStatusCopy({
         </p>
       ) : null}
       {idle && !recording ? (
-        <p className="text-base text-muted-foreground">{DICTATE_IDLE_LINE}</p>
+        <>
+          <p className="text-base text-muted-foreground">{DICTATE_IDLE_LINE}</p>
+          <MealChatHint />
+        </>
       ) : null}
       {empty ? (
         <p className="text-base text-muted-foreground">{AI_DICTATE_EMPTY}</p>

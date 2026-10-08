@@ -1,5 +1,9 @@
 import { buddyStartPayload, parseBuddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload, parseCoachStartPayload } from "@/lib/coach/start";
+import {
+  mealDraftStartPayload,
+  parseMealDraftStartPayload,
+} from "@/lib/meal-chat/start";
 import { BARBELL_GAME_HREF } from "@/lib/share/barbell-daily";
 import { parseBarbellStartPayload } from "@/lib/share/barbell-start";
 import {
@@ -19,6 +23,8 @@ const BUDDY_PENDING_KEY = "yb.buddy";
 const BUDDY_SEEN_KEY = "yb.buddy.seen";
 const BARBELL_PENDING_KEY = "yb.barbell";
 const BARBELL_SEEN_KEY = "yb.barbell.seen";
+const MEAL_DRAFT_PENDING_KEY = "yb.mealDraft";
+const MEAL_DRAFT_SEEN_KEY = "yb.mealDraft.seen";
 
 export type PackBackFrom = "meals" | "schedule" | "packs" | "today";
 
@@ -36,6 +42,12 @@ export function rememberIncomingStart(value: string | null | undefined): void {
 
   if (parseBarbellStartPayload(value)) {
     rememberBarbellStart();
+    return;
+  }
+
+  const mealDraft = parseMealDraftStartPayload(value);
+  if (mealDraft) {
+    rememberMealDraftToken(mealDraft);
     return;
   }
 
@@ -202,6 +214,53 @@ export function barbellPath(): string {
   return BARBELL_GAME_HREF;
 }
 
+export function rememberMealDraftToken(token: string | null | undefined): void {
+  if (
+    !token ||
+    parseMealDraftStartPayload(mealDraftStartPayload(token)) == null
+  ) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(MEAL_DRAFT_SEEN_KEY) === token) {
+    return;
+  }
+
+  store.setItem(MEAL_DRAFT_PENDING_KEY, token);
+}
+
+export function peekPendingMealDraftToken(): string | null {
+  const token = storage()?.getItem(MEAL_DRAFT_PENDING_KEY) ?? null;
+  if (
+    !token ||
+    parseMealDraftStartPayload(mealDraftStartPayload(token)) == null
+  ) {
+    return null;
+  }
+  return token;
+}
+
+export function dismissPendingMealDraftToken(token: string): void {
+  if (parseMealDraftStartPayload(mealDraftStartPayload(token)) == null) {
+    return;
+  }
+
+  const store = storage();
+  if (!store) {
+    return;
+  }
+
+  if (store.getItem(MEAL_DRAFT_PENDING_KEY) === token) {
+    store.removeItem(MEAL_DRAFT_PENDING_KEY);
+  }
+  store.setItem(MEAL_DRAFT_SEEN_KEY, token);
+}
+
 export function rememberPackToken(token: string | null | undefined): void {
   if (
     !token ||
@@ -209,6 +268,7 @@ export function rememberPackToken(token: string | null | undefined): void {
     parseCoachStartPayload(token) ||
     parseBuddyStartPayload(token) ||
     parseBarbellStartPayload(token) ||
+    parseMealDraftStartPayload(token) ||
     !isPackToken(token)
   ) {
     return;

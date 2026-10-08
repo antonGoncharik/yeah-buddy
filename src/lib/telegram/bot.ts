@@ -11,6 +11,7 @@ import {
   readInboxChatId,
 } from "@/lib/inbox/letter";
 import { openInboxStart, registerInbox } from "@/lib/inbox/register";
+import { registerMealChat } from "@/lib/meal-chat/register";
 import {
   BOT_OPEN_DIARY,
   BOT_PACK_START,
@@ -202,6 +203,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   });
 
   registerDonatePayments(instance);
+  registerMealChat(instance);
   registerInbox(instance);
 
   instance.on("inline_query", async (ctx) => {

@@ -6,6 +6,7 @@ import { persistPlateRows } from "@/components/day/persist-plate-rows";
 import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
 import { requestTextMealDraft } from "@/components/day/text-meal-draft";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { Button } from "@/components/ui/button";
 import { reportActionError } from "@/lib/action-error";
 import { textMealRemainingLine } from "@/lib/ai/quota-copy";
@@ -128,6 +129,7 @@ export function TodayTextMealForm({
       {quotaLine ? (
         <p className="text-xs text-muted-foreground">{quotaLine}</p>
       ) : null}
+      <MealChatHint className="text-xs" />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button
         type="button"

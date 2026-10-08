@@ -8,15 +8,18 @@ import {
   rememberPreview,
   requestPlateDraft,
   revokePreview,
+  toPlateRow,
 } from "@/components/day/plate-draft";
-import { usePlateCamera } from "@/components/day/use-plate-camera";
 import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
+import { usePlateCamera } from "@/components/day/use-plate-camera";
 import { usePlateDraft } from "@/components/day/use-plate-draft";
 import { parseRemaining } from "@/lib/ai/parse-review";
+import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { compressPlateImage } from "@/lib/ai/read-plate-image";
-import { ApiError } from "@/lib/api-cache";
+import { ApiError, mutateJson } from "@/lib/api-cache";
 import { AI_PLATE_FAILED, AI_PLATE_PHOTO_FAILED } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
+import { dismissPendingMealDraftToken } from "@/lib/share/pending";
 import { haptic } from "@/lib/telegram/haptic";
 import { isAbortError } from "@/lib/telegram/html-capture";
 
@@ -28,12 +31,14 @@ export function usePlateScreen({
   doneHref,
   configured,
   remaining: remainingStart,
+  chatDraftToken,
 }: {
   mealId: string;
   date: string;
   doneHref: string;
   configured: boolean;
   remaining: number | null;
+  chatDraftToken?: string | null;
 }) {
   const previewRef = useRef<string | null>(null);
   const lastBlobRef = useRef<Blob | null>(null);
@@ -44,7 +49,21 @@ export function usePlateScreen({
     configured ? { status: "idle" } : { status: "unavailable" },
   );
 
-  const draft = usePlateDraft({ view, setView, mealId, date, doneHref });
+  const draft = usePlateDraft({
+    view,
+    setView,
+    mealId,
+    date,
+    doneHref,
+    onSaved: chatDraftToken
+      ? () => {
+          dismissPendingMealDraftToken(chatDraftToken);
+          void mutateJson(`/api/meal-chat-drafts/${chatDraftToken}`, {
+            method: "DELETE",
+          }).catch(() => undefined);
+        }
+      : undefined,
+  });
   const busy = view.status === "working" || view.status === "saving";
   const camera = usePlateCamera({
     busy,
@@ -59,6 +78,39 @@ export function usePlateScreen({
       revokePreview(previewRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!chatDraftToken || !configured) {
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const data = await mutateJson(
+          `/api/meal-chat-drafts/${chatDraftToken}`,
+        );
+        if (cancelled || !isRecord(data)) {
+          return;
+        }
+        const parsed = parsePlateDraft(data);
+        if (!parsed || parsed.items.length === 0) {
+          return;
+        }
+        const rows = parsed.items.map(toPlateRow);
+        dismissPendingMealDraftToken(chatDraftToken);
+        setView({ status: "draft", previewUrl: "", items: rows });
+      } catch {
+        if (!cancelled) {
+          haptic("error");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chatDraftToken, configured]);
 
   async function onFile(file: File | undefined) {
     if (!file) {

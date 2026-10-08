@@ -37,6 +37,13 @@ export function withStartApp(url: string, token: string): string {
   return parsed.toString();
 }
 
+/** Mini App screen path on the public HTTPS host (not t.me). */
+export function miniAppHref(miniAppUrl: string, path: string): string {
+  const base = miniAppUrl.replace(/\/$/, "");
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${suffix}`;
+}
+
 export function withStart(url: string, token: string): string {
   const parsed = new URL(url);
   parsed.searchParams.set("start", token);

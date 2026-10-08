@@ -1,5 +1,6 @@
 import { parseBuddyStartPayload } from "@/lib/buddy/start";
 import { parseCoachStartPayload } from "@/lib/coach/start";
+import { parseMealDraftStartPayload } from "@/lib/meal-chat/start";
 import {
   INBOX_TOPIC_CHANGE,
   INBOX_TOPIC_IMPROVE,
@@ -139,6 +140,10 @@ export function classifyStart(payload: string): StartKind {
   const buddyToken = parseBuddyStartPayload(payload);
   if (buddyToken) {
     return { kind: "buddy", token: buddyToken };
+  }
+
+  if (parseMealDraftStartPayload(payload)) {
+    return { kind: "plain" };
   }
 
   if (isPackToken(payload)) {

@@ -20,6 +20,7 @@ import {
   rememberInboxRoute,
   saveInboxThread,
 } from "@/lib/inbox/store";
+import { isMealChatHandled } from "@/lib/meal-chat/register";
 import {
   INBOX_AUTHOR,
   INBOX_CLOSED,
@@ -173,6 +174,10 @@ async function onInboxMessage(ctx: Context): Promise<void> {
     !ctx.from ||
     ctx.from.is_bot
   ) {
+    return;
+  }
+
+  if (isMealChatHandled(ctx)) {
     return;
   }
 

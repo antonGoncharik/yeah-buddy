@@ -1,9 +1,11 @@
 import { buddyStartPayload } from "@/lib/buddy/start";
 import { coachStartPayload } from "@/lib/coach/start";
+import { mealDraftStartPayload } from "@/lib/meal-chat/start";
 import {
   dismissPendingBarbell,
   dismissPendingBuddyToken,
   dismissPendingCoachToken,
+  dismissPendingMealDraftToken,
   dismissPendingPackToken,
   dismissPendingProgramId,
   packBackHref,
@@ -12,9 +14,11 @@ import {
   peekPendingBarbell,
   peekPendingBuddyToken,
   peekPendingCoachToken,
+  peekPendingMealDraftToken,
   peekPendingPackToken,
   peekPendingProgramId,
   rememberIncomingStart,
+  rememberMealDraftToken,
   rememberPackToken,
   rememberProgramStart,
   takePendingPackToken,
@@ -130,5 +134,21 @@ dismissPendingBuddyToken(buddyToken);
 assert(peekPendingBuddyToken() === null, "dismiss buddy");
 rememberIncomingStart(buddyStartPayload(buddyToken));
 assert(peekPendingBuddyToken() === null, "seen buddy is not queued again");
+
+memory.clear();
+const mealDraftToken = createPackToken();
+rememberIncomingStart(mealDraftStartPayload(mealDraftToken));
+assert(
+  peekPendingMealDraftToken() === mealDraftToken,
+  "meal draft start queues draft",
+);
+assert(peekPendingPackToken() === null, "meal draft is not a pack");
+dismissPendingMealDraftToken(mealDraftToken);
+assert(peekPendingMealDraftToken() === null, "dismiss meal draft");
+rememberMealDraftToken(mealDraftToken);
+assert(
+  peekPendingMealDraftToken() === null,
+  "seen meal draft is not queued again",
+);
 
 console.log("share pending ok");

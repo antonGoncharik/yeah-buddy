@@ -4,7 +4,13 @@ export const BOT_START = `Yeah buddy! 👟
 
 Записывай, что съел и что сделал в зале — белок, калории и план подходов посчитаются сами.
 
+В личку можно кинуть фото тарелки, текст или голосовое — разберём и запишем в день (фото — с подтверждением в дневнике).
+
 Light weight. Погнали 🔥`;
+export const MEAL_CHAT_HINT =
+  "То же в личке бота: фото, строка текста или голосовое — без открытия дневника.";
+export const MEAL_CHAT_INBOX_NOTE =
+  "Написать админу — в «Написать» ниже: сначала выбери тему, потом текст или вложение.";
 export const OPEN_VIA_BOT_LEAD =
   "День отдыха и день зала с разными целями. Программа сама ставит вес.";
 export const OPEN_VIA_BOT_CTA = "Открыть в Telegram";
@@ -262,6 +268,18 @@ export const INBOX_REPLY_NEED =
   "Не вижу, кому ответить. Ответь на само письмо.";
 export const INBOX_REPLY_LOST = "Не дошло.";
 export const INBOX_REPLY_CLOSED = "Человек закрыл бота.";
+export const MEAL_CHAT_TEXT_LOGGED = "Записал в дневник.";
+export const MEAL_CHAT_DRAFT_BUTTON = "Подтвердить в дневнике";
+export const MEAL_CHAT_EDIT_BUTTON = "Изменить";
+export const MEAL_CHAT_UNDO_BUTTON = "Отменить";
+export const MEAL_CHAT_UNDO_DONE = "Убрал из дневника.";
+export const MEAL_CHAT_UNDO_EXPIRED = "Уже нельзя отменить.";
+export const MEAL_CHAT_LOCKED =
+  "Сегодня в дневнике только просмотр. Открой приложение и выбери день.";
+export const MEAL_CHAT_PHOTO_EMPTY = "Не разобрал. Напиши текстом или в дневнике.";
+export const MEAL_CHAT_PHOTO_FAILED = "Фото не разобралось. Попробуй ещё раз.";
+export const MEAL_CHAT_TEXT_FAILED =
+  "Не записалось. Открой дневник и добавь вручную.";
 
 export function inboxAsk(topicLabel: string): string {
   return `${topicLabel}. Напиши сюда — ответ придёт в этот чат.`;

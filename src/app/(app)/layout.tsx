@@ -6,6 +6,7 @@ import { OutboxSync } from "@/components/layout/outbox-sync";
 import { ResetWindowScroll } from "@/components/layout/reset-window-scroll";
 import { TelegramGate } from "@/components/layout/telegram-gate";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
+import { MealDraftCatcher } from "@/components/meal-chat/meal-draft-catcher";
 import { PackCatcher } from "@/components/share/pack-catcher";
 
 export const metadata: Metadata = {
@@ -24,7 +25,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <ResetWindowScroll />
           <CoachCatcher>
             <BuddyCatcher>
-              <PackCatcher>{children}</PackCatcher>
+              <MealDraftCatcher>
+                <PackCatcher>{children}</PackCatcher>
+              </MealDraftCatcher>
             </BuddyCatcher>
           </CoachCatcher>
           <OutboxSync />

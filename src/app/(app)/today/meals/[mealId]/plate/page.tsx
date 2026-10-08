@@ -17,11 +17,15 @@ export default async function PlateMealPage({
   searchParams,
 }: {
   params: Promise<{ mealId: string }>;
-  searchParams: Promise<{ date?: string | string[] }>;
+  searchParams: Promise<{
+    date?: string | string[];
+    chatDraft?: string | string[];
+  }>;
 }) {
   const { mealId } = await params;
   const query = await searchParams;
   const date = readDate(query.date);
+  const chatDraftToken = readChatDraft(query.chatDraft);
   const today = await resolveRequestToday();
   const homeHref = todayHomeHref(date, today);
 
@@ -46,6 +50,7 @@ export default async function PlateMealPage({
         doneHref={homeHref}
         configured={quota.configured}
         remaining={quota.remaining}
+        chatDraftToken={chatDraftToken}
       />
     </div>
   );
@@ -57,4 +62,12 @@ function readDate(value: string | string[] | undefined): string | null {
   }
 
   return value;
+}
+
+function readChatDraft(value: string | string[] | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
 }

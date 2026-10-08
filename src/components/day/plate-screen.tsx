@@ -17,12 +17,14 @@ export function PlateScreen({
   doneHref,
   configured,
   remaining,
+  chatDraftToken,
 }: {
   mealId: string;
   date: string;
   doneHref: string;
   configured: boolean;
   remaining: number | null;
+  chatDraftToken?: string | null;
 }) {
   const plate = usePlateScreen({
     mealId,
@@ -30,6 +32,7 @@ export function PlateScreen({
     doneHref,
     configured,
     remaining,
+    chatDraftToken,
   });
   const cameraPrimary =
     plate.view.status === "idle" ||

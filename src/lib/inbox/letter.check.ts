@@ -21,6 +21,7 @@ import {
   readInboxChatId,
 } from "@/lib/inbox/letter";
 import { readInboxOpenUrl } from "@/lib/inbox/open-url";
+import { mealDraftStartPayload } from "@/lib/meal-chat/start";
 import { createPackToken, isPackToken } from "@/lib/share/token";
 
 function assert(condition: boolean, message: string): void {
@@ -69,6 +70,16 @@ assertEqual(
   classifyStart("abcdEF12_xyz"),
   { kind: "pack", token: "abcdEF12_xyz" },
   "pack still works",
+);
+const mealDraftToken = createPackToken();
+assert(
+  isPackToken(mealDraftStartPayload(mealDraftToken)),
+  "meal draft payload looks like a pack",
+);
+assertEqual(
+  classifyStart(mealDraftStartPayload(mealDraftToken)),
+  { kind: "plain" },
+  "meal draft is not opened as pack",
 );
 const coachToken = createPackToken();
 assert(

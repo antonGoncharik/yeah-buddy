@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { MealLogActions } from "@/components/day/meal-log-actions";
+import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { FoodPicker } from "@/components/foods/food-picker";
 import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
 import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
@@ -119,12 +120,15 @@ export function AddMealItemScreen({
         onCatalogAdded={(food) => void pickFood(food)}
         listClassName="pb-24"
         topSlot={
-          <MealLogActions
-            lumpHrefBase={lumpHrefBase}
-            plateHref={plateHref}
-            dictateHref={dictateHref}
-            textLog={textLog}
-          />
+          <div className="flex flex-col gap-2">
+            <MealLogActions
+              lumpHrefBase={lumpHrefBase}
+              plateHref={plateHref}
+              dictateHref={dictateHref}
+              textLog={textLog}
+            />
+            {plateHref || dictateHref || textLog ? <MealChatHint /> : null}
+          </div>
         }
         stickyActions={
           <StickyActions>

@@ -1,5 +1,6 @@
 "use client";
 
+import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { plateRemainingLine } from "@/lib/ai/quota-copy";
 import { PLATE_IDLE_LINE } from "@/lib/flavor";
 import { AI_PLATE_EMPTY, AI_PLATE_OFF, AI_PLATE_QUOTA } from "@/lib/messages";
@@ -29,7 +30,10 @@ export function PlateStatusCopy({
   return (
     <>
       {idle ? (
-        <p className="text-base text-muted-foreground">{PLATE_IDLE_LINE}</p>
+        <>
+          <p className="text-base text-muted-foreground">{PLATE_IDLE_LINE}</p>
+          <MealChatHint />
+        </>
       ) : null}
       {empty ? (
         <p className="text-base text-muted-foreground">{AI_PLATE_EMPTY}</p>

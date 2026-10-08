@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
+import { persistPlateRows } from "@/components/day/persist-plate-rows";
 import {
   emptyLumpRow,
   foodRowFromPick,
@@ -15,7 +16,6 @@ import {
   patchLumpRow,
   withGramsMode,
 } from "@/components/day/plate-draft";
-import { persistPlateRows } from "@/components/day/persist-plate-rows";
 import type { GramsMode } from "@/lib/food/yield";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
@@ -26,12 +26,14 @@ export function usePlateDraft({
   mealId,
   date,
   doneHref,
+  onSaved,
 }: {
   view: PlateStatus;
   setView: Dispatch<SetStateAction<PlateStatus>>;
   mealId: string;
   date: string;
   doneHref: string;
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const [picker, setPicker] = useState<PlatePicker>(null);
@@ -160,6 +162,7 @@ export function usePlateDraft({
     }
 
     haptic("commit");
+    onSaved?.();
     router.push(doneHref);
     return true;
   }

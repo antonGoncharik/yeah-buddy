@@ -26,13 +26,17 @@ import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { SettingsHomeScreenRow } from "@/components/settings/settings-home-screen-row";
 import { SettingsHomeScreenTip } from "@/components/settings/settings-home-screen-tip";
+import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { SettingsInbox } from "@/components/settings/settings-inbox";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
-import { EARLY_HABIT_REMINDER_NOTE } from "@/lib/messages";
+import {
+  EARLY_HABIT_REMINDER_NOTE,
+  MEAL_CHAT_INBOX_NOTE,
+} from "@/lib/messages";
 import { formatKcal } from "@/lib/nutrition";
 import {
   BARBELL_GAME_HINT,
@@ -52,7 +56,11 @@ import {
 import { cn } from "@/lib/utils";
 import { MEAL_TEMPLATES_LABEL, PACKS_LABEL } from "@/lib/workout/labels";
 
-export function SettingsScreen() {
+export function SettingsScreen({
+  mealChatHint = false,
+}: {
+  mealChatHint?: boolean;
+}) {
   const { theme, setTheme } = useTheme();
   const { density, setDensity } = useDiaryDensity();
   const { order, setOrder } = useTodayOrder();
@@ -320,6 +328,16 @@ export function SettingsScreen() {
         ) : null}
 
         {!loading && form ? <SettingsAccount /> : null}
+
+        {mealChatHint ? (
+          <section className="card-surface animate-rise flex flex-col gap-2 px-5 py-4">
+            <h2 className="text-xl font-semibold">Запись в чате</h2>
+            <MealChatHint />
+            <p className="text-sm leading-snug text-muted-foreground">
+              {MEAL_CHAT_INBOX_NOTE}
+            </p>
+          </section>
+        ) : null}
 
         <SettingsInbox />
 
