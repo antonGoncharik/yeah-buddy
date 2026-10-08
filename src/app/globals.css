@@ -552,7 +552,7 @@ html.dark[data-day="deload"] {
 
 html[data-tg-fullscreen] {
   /* contentSafeAreaInset already clears Close; avoid stacking extra air */
-  --app-safe-top-extra: 0.25rem;
+  --app-safe-top-extra: 0;
 }
 
 html[data-tg-fullscreen] .today-chrome-diary-inset {
@@ -566,7 +566,7 @@ html[data-density="compact"][data-tg-fullscreen] .today-chrome-diary-inset {
 @utility today-chrome-date-head {
   & > header h1 button {
     margin-left: 0;
-    padding-left: 0;
+    padding-left: 0.375rem;
   }
 }
 
