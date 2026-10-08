@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { foodSearchEasterEgg } from "@/lib/flavor";
 import {
   type CatalogFood,
   catalogSearchTokens,
@@ -23,9 +22,7 @@ export function useCatalogSearch(query: string): {
   const requestIdRef = useRef(0);
   const needle = query.trim();
   const ean = parseBarcodeEan(needle);
-  const searching =
-    (ean != null || catalogSearchTokens(query) != null) &&
-    foodSearchEasterEgg(query) == null;
+  const searching = ean != null || catalogSearchTokens(query) != null;
 
   useEffect(() => {
     if (!searching) {

@@ -13,7 +13,7 @@ import { FoodSearch } from "@/components/foods/food-search";
 import { StarterCatalogNote } from "@/components/foods/starter-catalog-note";
 import { useFoodPicker } from "@/components/foods/use-food-picker";
 import { ProductDoodle } from "@/components/layout/doodles";
-import { EmptyNote } from "@/components/layout/empty-note";
+import { EmptyNote, EmptyNoteCompact } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Segmented } from "@/components/ui/segmented";
 import { foodSearchEmptyLine } from "@/lib/flavor";
@@ -140,7 +140,8 @@ export function FoodPicker({
 
       <div
         className={cn(
-          "flex flex-col gap-4 px-4",
+          "flex flex-col px-4",
+          search ? "gap-2" : "gap-4",
           effectiveHideSticky ? "pb-4" : listClassName,
         )}
       >
@@ -148,13 +149,6 @@ export function FoodPicker({
 
         {!loading && error ? (
           <ScreenError message={error} onRetry={() => reload(true)} />
-        ) : null}
-
-        {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
-          <EmptyNote
-            icon={<ProductDoodle className="size-6" />}
-            title={foodSearchEmptyLine(search, filter, lumpEmptyHint)}
-          />
         ) : null}
 
         {!loading && !error && visibleFoods.length > 0 ? (
@@ -188,6 +182,19 @@ export function FoodPicker({
               });
             }}
           />
+        ) : null}
+
+        {!loading && !error && visibleFoods.length === 0 && !shopHits ? (
+          search ? (
+            <EmptyNoteCompact
+              title={foodSearchEmptyLine(search, filter, lumpEmptyHint)}
+            />
+          ) : (
+            <EmptyNote
+              icon={<ProductDoodle className="size-6" />}
+              title={foodSearchEmptyLine(search, filter, lumpEmptyHint)}
+            />
+          )
         ) : null}
       </div>
 

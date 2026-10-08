@@ -3,6 +3,14 @@ import type { ReactNode } from "react";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { WiggleTap } from "@/components/layout/wiggle-tap";
 
+export function EmptyNoteCompact({ title }: { title: ReactNode }) {
+  return (
+    <p className="animate-rise px-1 text-sm leading-snug text-muted-foreground">
+      {title}
+    </p>
+  );
+}
+
 export function EmptyNote({
   icon,
   title,

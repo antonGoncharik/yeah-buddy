@@ -6,7 +6,6 @@ import { CatalogFoodList } from "@/components/foods/food-list";
 import { UnknownBarcodeCard } from "@/components/foods/unknown-barcode-card";
 import { useCatalogSearch } from "@/components/foods/use-catalog-search";
 import { postJson } from "@/lib/api-cache";
-import { foodSearchEasterEgg } from "@/lib/flavor";
 import {
   type CatalogFood,
   catalogSearchTokens,
@@ -100,9 +99,5 @@ export function CatalogFoodSection({
 }
 
 export function catalogSearchActive(query: string): boolean {
-  if (foodSearchEasterEgg(query) != null) {
-    return false;
-  }
-
   return parseBarcodeEan(query) != null || catalogSearchTokens(query) != null;
 }
