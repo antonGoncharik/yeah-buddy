@@ -5,6 +5,7 @@ import {
   telegramLaunchHashFromParams,
 } from "@/lib/telegram/boot-script";
 import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
+import { applyTelegramCloseGuard } from "@/lib/telegram/close-guard";
 import { clearHapticApiCache } from "@/lib/telegram/haptic";
 import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
 
@@ -235,6 +236,7 @@ function primeTelegramWebAppHost(webApp: TelegramWebAppHost): TelegramWebAppHost
       // mock clients throw until Telegram attaches the bridge.
     }
     host.expand?.();
+    applyTelegramCloseGuard(webApp);
     clearHapticApiCache();
   };
   warm();
