@@ -3,7 +3,7 @@ export const TODAY_ORDER_COOKIE = "yeah-buddy-today-order";
 export type TodayOrder = "meals" | "numbers";
 
 export function parseTodayOrder(value: string | undefined | null): TodayOrder {
-  return value === "numbers" ? "numbers" : "meals";
+  return value === "meals" ? "meals" : "numbers";
 }
 
 export function persistTodayOrder(order: TodayOrder) {

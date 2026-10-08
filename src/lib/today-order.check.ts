@@ -8,9 +8,9 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
   }
 }
 
-assertEqual(parseTodayOrder(undefined), "meals", "missing stays meals");
+assertEqual(parseTodayOrder(undefined), "numbers", "missing stays numbers");
 assertEqual(parseTodayOrder("meals"), "meals", "meals");
 assertEqual(parseTodayOrder("numbers"), "numbers", "numbers");
-assertEqual(parseTodayOrder("custom"), "meals", "unknown stays meals");
+assertEqual(parseTodayOrder("custom"), "numbers", "unknown stays numbers");
 
 console.log("today order ok");
