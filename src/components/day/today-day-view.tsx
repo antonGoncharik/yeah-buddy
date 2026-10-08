@@ -35,7 +35,6 @@ import {
 } from "@/lib/flavor";
 import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
-import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
@@ -334,9 +333,6 @@ export function TodayDayView({
 
   const foodBlock = (
     <>
-      {!viewOnly && (aiCapture || aiText) ? (
-        <MealChatHint className="px-1" />
-      ) : null}
       {quickFoods}
       {mealsBlock}
       {mealTail}
