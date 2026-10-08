@@ -552,8 +552,8 @@ html.dark[data-day="deload"] {
 }
 
 html[data-tg-fullscreen] {
-  /* contentSafeAreaInset already clears Close; avoid stacking extra air */
-  --app-safe-top-extra: 0;
+  /* Below Close, but less than the old double stack */
+  --app-safe-top-extra: 0.625rem;
 }
 
 @utility today-chrome-date-head {

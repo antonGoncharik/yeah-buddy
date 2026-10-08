@@ -115,7 +115,7 @@ export function TodayScreen({
       <div className="today-chrome">
         <div className="today-chrome-date-head today-chrome-head">
           <AppHeader
-            className="px-0 pt-0 pb-2.5"
+            className="px-0 pt-1.5 pb-2.5"
             title={titleDate}
             subtitle={
               viewOnly
