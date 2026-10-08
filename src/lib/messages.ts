@@ -130,6 +130,7 @@ export function saveDayTemplateReplace(isTrainingDay: boolean): string {
     : "Уже есть еда на дни без зала. Заменить этим днём?";
 }
 export const PENDING_WRITES = "На телефоне. Когда появится сеть — уйдёт само.";
+export const EXIT_TO_CHATS_HINT = "Ещё раз «назад» — выйти в чаты";
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
 export const BOT_OPEN_DIARY = "Открыть дневник";

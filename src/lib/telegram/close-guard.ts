@@ -1,12 +1,9 @@
 const VERTICAL_SWIPES_API = "7.7";
-const CLOSING_CONFIRM_API = "6.2";
 
 export type TelegramCloseGuardHost = {
   isVersionAtLeast?: (version: string) => boolean;
   disableVerticalSwipes?: () => void;
   enableVerticalSwipes?: () => void;
-  enableClosingConfirmation?: () => void;
-  disableClosingConfirmation?: () => void;
 };
 
 function supportsApi(
@@ -34,15 +31,6 @@ export function applyTelegramCloseGuard(webApp: TelegramCloseGuardHost): void {
       // Stale WebView mocks.
     }
   }
-  if (
-    supportsApi(webApp, CLOSING_CONFIRM_API, "enableClosingConfirmation")
-  ) {
-    try {
-      webApp.enableClosingConfirmation?.();
-    } catch {
-      // Stale WebView mocks.
-    }
-  }
 }
 
 export function bindTelegramCloseGuard(
@@ -53,25 +41,12 @@ export function bindTelegramCloseGuard(
     VERTICAL_SWIPES_API,
     "disableVerticalSwipes",
   );
-  const hadClosing = supportsApi(
-    webApp,
-    CLOSING_CONFIRM_API,
-    "enableClosingConfirmation",
-  );
-
   applyTelegramCloseGuard(webApp);
 
   return () => {
     if (hadVertical) {
       try {
         webApp.enableVerticalSwipes?.();
-      } catch {
-        // ignore
-      }
-    }
-    if (hadClosing) {
-      try {
-        webApp.disableClosingConfirmation?.();
       } catch {
         // ignore
       }
