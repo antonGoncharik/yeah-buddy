@@ -51,7 +51,7 @@ const twoWeeks = days({
 });
 
 const macros = {
-  sex: null as const,
+  sex: null,
   restProtein: 150,
   restFat: 70,
   restCarbs: 250,
