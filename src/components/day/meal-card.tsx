@@ -5,11 +5,10 @@ import type { CSSProperties } from "react";
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
 import {
   MealAddLink,
-  MealDictateLink,
   MealItemRow,
   type MealLine,
-  MealPlateLink,
 } from "@/components/day/meal-item-row";
+import { MealQuickCapture } from "@/components/day/meal-quick-capture";
 import { MealTypeMark } from "@/components/day/meal-type-mark";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
@@ -31,8 +30,12 @@ export function MealCard({
   items,
   itemHref,
   addHref,
+  mealId,
   plateHref,
   dictateHref,
+  aiText = false,
+  logDate,
+  logBusy = false,
   onDeleteItem,
   onReorderItems,
   date,
@@ -56,8 +59,12 @@ export function MealCard({
   items: MealLine[];
   itemHref?: (item: MealLine) => string;
   addHref?: string;
+  mealId?: string;
   plateHref?: string;
   dictateHref?: string;
+  aiText?: boolean;
+  logDate?: string;
+  logBusy?: boolean;
   onDeleteItem?: (item: MealLine) => void;
   onReorderItems?: (next: MealLine[]) => void;
   date?: string;
@@ -98,8 +105,9 @@ export function MealCard({
         }
       : null;
   const showAdd = !readOnly && Boolean(addHref);
-  const showQuickCapture =
-    !readOnly && (Boolean(plateHref) || Boolean(dictateHref));
+  const showCapture =
+    !readOnly &&
+    Boolean(plateHref || dictateHref || (aiText && mealId && logDate));
   const showFill = !readOnly && Boolean(onFillTemplate);
   const yesterdaySource =
     items.length === 0 && date && onCopyDate
@@ -202,7 +210,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      {showFill || showAdd || showQuickCapture ? (
+      {showFill || showAdd || showCapture ? (
         <div
           className={cn(
             "flex gap-2",
@@ -223,22 +231,29 @@ export function MealCard({
             </Button>
           ) : null}
           {showAdd && addHref ? (
-            <div className="flex w-full gap-2">
-              {showQuickCapture ? (
-                <>
-                  {plateHref ? (
-                    <MealPlateLink href={plateHref} compact />
-                  ) : null}
-                  {dictateHref ? (
-                    <MealDictateLink href={dictateHref} compact />
-                  ) : null}
-                </>
-              ) : null}
-              <MealAddLink
-                href={addHref}
-                prominent={items.length === 0 && !yesterdaySource}
-                className={showQuickCapture ? "min-w-0 flex-1" : undefined}
-              />
+            <div className="flex w-full flex-col gap-2">
+              <div className="flex w-full gap-2">
+                {showCapture ? (
+                  <MealQuickCapture
+                    plateHref={plateHref}
+                    dictateHref={dictateHref}
+                    textLog={
+                      aiText && mealId && logDate
+                        ? {
+                            date: logDate,
+                            mealId,
+                            busy: logBusy,
+                          }
+                        : undefined
+                    }
+                  />
+                ) : null}
+                <MealAddLink
+                  href={addHref}
+                  prominent={items.length === 0 && !yesterdaySource}
+                  className={showCapture ? "min-w-0 flex-1" : undefined}
+                />
+              </div>
             </div>
           ) : null}
           {showFill && onFillTemplate ? (

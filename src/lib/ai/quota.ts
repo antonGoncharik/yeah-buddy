@@ -3,6 +3,7 @@ import {
   getGeminiDictateApiKey,
   getGeminiPlateApiKey,
   getGeminiReviewApiKey,
+  getGeminiTextApiKey,
 } from "@/lib/ai/gemini";
 import {
   type AiKind,
@@ -14,6 +15,7 @@ import {
   AI_DICTATE_QUOTA,
   AI_PLATE_QUOTA,
   AI_REVIEW_QUOTA,
+  AI_TEXT_MEAL_QUOTA,
 } from "@/lib/messages";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,6 +35,9 @@ export function hasAiKey(kind: AiKind): boolean {
   }
   if (kind === "dictate") {
     return getGeminiDictateApiKey() != null;
+  }
+  if (kind === "text") {
+    return getGeminiTextApiKey() != null;
   }
   return getGeminiReviewApiKey() != null;
 }
@@ -206,6 +211,9 @@ function quotaMessage(kind: AiKind): string {
   }
   if (kind === "dictate") {
     return AI_DICTATE_QUOTA;
+  }
+  if (kind === "text") {
+    return AI_TEXT_MEAL_QUOTA;
   }
   return AI_REVIEW_QUOTA;
 }

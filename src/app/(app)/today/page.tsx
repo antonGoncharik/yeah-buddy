@@ -1,5 +1,9 @@
 import { TodayScreen } from "@/components/day/today-screen";
-import { getGeminiDictateApiKey, getGeminiPlateApiKey } from "@/lib/ai/gemini";
+import {
+  getGeminiDictateApiKey,
+  getGeminiPlateApiKey,
+  getGeminiTextApiKey,
+} from "@/lib/ai/gemini";
 
 export default async function TodayPage({ searchParams }: PageProps<"/today">) {
   const params = await searchParams;
@@ -9,6 +13,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/today">) {
   const aiCapture = Boolean(
     getGeminiPlateApiKey() || getGeminiDictateApiKey(),
   );
+  const aiText = Boolean(getGeminiTextApiKey());
 
   return (
     <TodayScreen
@@ -16,6 +21,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/today">) {
       readOnly={readOnly}
       fromSettings={fromSettings}
       aiCapture={aiCapture}
+      aiText={aiText}
     />
   );
 }

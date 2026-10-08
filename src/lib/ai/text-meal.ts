@@ -10,24 +10,32 @@ import { takeReadyPlateItems } from "@/lib/ai/plate-match";
 import { parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateDraft, PlateFoodRef } from "@/lib/ai/plate-types";
 import { refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
+import { normalizeMealLogText } from "@/lib/ai/text-meal-input";
 import {
-  AI_DICTATE_FAILED,
-  AI_DICTATE_LIMIT,
-  AI_DICTATE_OFF,
+  AI_TEXT_MEAL_FAILED,
+  AI_TEXT_MEAL_LIMIT,
+  AI_TEXT_MEAL_OFF,
 } from "@/lib/messages";
 
-const COOLDOWN_MS = 4_000;
+const COOLDOWN_MS = 2_000;
 const lastWrite = new Map<string, number>();
 
-export async function analyzeDictate(
+export { normalizeMealLogText } from "@/lib/ai/text-meal-input";
+
+export async function analyzeTextMeal(
   userId: string,
   catalogFoods: PlateFoodRef[],
-  audio: { mimeType: string; data: string },
+  text: string,
   allFoods: PlateFoodRef[] = catalogFoods,
 ): Promise<PlateDraft & { remaining: number | null }> {
-  const keys = readGeminiKeys("dictate");
+  const keys = readGeminiKeys("text");
   if (keys.length === 0) {
-    throw new ReviewError("NO_KEY", AI_DICTATE_OFF);
+    throw new ReviewError("NO_KEY", AI_TEXT_MEAL_OFF);
+  }
+
+  const normalized = normalizeMealLogText(text);
+  if (!normalized) {
+    throw new ReviewError("GEMINI", AI_TEXT_MEAL_FAILED);
   }
 
   const now = Date.now();
@@ -36,40 +44,39 @@ export async function analyzeDictate(
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
 
-  const slot = await takeAiSlot(userId, "dictate");
+  const slot = await takeAiSlot(userId, "text");
   try {
     const catalog = compactPlateCatalog(catalogFoods);
     const payload = await generateGeminiJson({
       keys,
       system: MEAL_LOG_SYSTEM_PROMPT,
       parts: [
-        { inlineData: { mimeType: audio.mimeType, data: audio.data } },
-        { text: "Разложи сказанное на позиции." },
+        { text: normalized },
         { text: MEAL_LOG_CATALOG_LEGEND },
         { text: JSON.stringify({ catalog }) },
       ],
       schema: PLATE_RESPONSE_SCHEMA,
       timeoutMs: 35_000,
       maxOutputTokens: 4_096,
-      failedMessage: AI_DICTATE_FAILED,
-      limitMessage: AI_DICTATE_LIMIT,
+      failedMessage: AI_TEXT_MEAL_FAILED,
+      limitMessage: AI_TEXT_MEAL_LIMIT,
       thinkingLevel: "minimal",
     });
 
     const raw = parsePlateModelItems(payload);
     if (!raw) {
-      throw new ReviewError("GEMINI", AI_DICTATE_FAILED);
+      throw new ReviewError("GEMINI", AI_TEXT_MEAL_FAILED);
     }
 
     const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
     if (!items) {
-      throw new ReviewError("GEMINI", AI_DICTATE_FAILED);
+      throw new ReviewError("GEMINI", AI_TEXT_MEAL_FAILED);
     }
 
     lastWrite.set(userId, Date.now());
     return { items, remaining: slot.remaining };
   } catch (error) {
-    await refundAiSlot(userId, "dictate");
+    await refundAiSlot(userId, "text");
     throw error;
   }
 }

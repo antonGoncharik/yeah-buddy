@@ -49,8 +49,18 @@ assertEqual(
   readGeminiKeys("review", {
     GEMINI_API_KEY: " a, b , a , c , d ",
   }).join("|"),
-  "a|b|c",
-  "review pool keeps three distinct keys",
+  "a|b|c|d",
+  "review pool keeps all distinct keys",
+);
+assertEqual(
+  readGeminiKey("text", { GEMINI_TEXT_API_KEY: " line " }),
+  "line",
+  "text key trims",
+);
+assertEqual(
+  readGeminiKeys("text", { GEMINI_DICTATE_API_KEY: "say" }).join("|"),
+  "",
+  "text pool is separate",
 );
 assertEqual(
   readGeminiKeys("plate", { GEMINI_PLATE_API_KEY: " , pic , " }).join("|"),
@@ -138,6 +148,7 @@ assertEqual(
 assertEqual(dailyLimit("plate"), 2, "two photos");
 assertEqual(dailyLimit("review"), 1, "one review");
 assertEqual(dailyLimit("dictate"), 2, "two spoken logs");
+assertEqual(dailyLimit("text"), 8, "text meal logs");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");

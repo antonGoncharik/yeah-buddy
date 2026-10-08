@@ -54,17 +54,17 @@ export function TodayQuickFoods({
   return (
     <div
       className={cn(
-        "animate-rise card-surface flex flex-col px-4",
-        compact ? "gap-1.5 py-2" : "gap-2 py-3",
+        "animate-rise flex flex-col",
+        compact ? "gap-1.5" : "gap-2",
       )}
     >
       <p
         className={cn(
-          "font-medium text-muted-foreground",
+          "px-1 font-medium text-muted-foreground",
           compact ? "text-xs" : "text-sm",
         )}
       >
-        Быстрый выбор
+        Частые
       </p>
       <FrequentFoodChips
         foods={foods}

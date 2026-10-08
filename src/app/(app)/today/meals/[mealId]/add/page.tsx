@@ -2,7 +2,11 @@ import { redirect } from "next/navigation";
 
 import { AddMealItemScreen } from "@/components/day/add-meal-item-screen";
 import { AppHeader } from "@/components/layout/app-header";
-import { getGeminiDictateApiKey, getGeminiPlateApiKey } from "@/lib/ai/gemini";
+import {
+  getGeminiDictateApiKey,
+  getGeminiPlateApiKey,
+  getGeminiTextApiKey,
+} from "@/lib/ai/gemini";
 import {
   isIsoDate,
   isWritableDayDate,
@@ -53,6 +57,7 @@ export default async function AddMealItemPage({
             ? withDateQuery(`/today/meals/${mealId}/dictate`, date, today)
             : undefined
         }
+        aiText={Boolean(getGeminiTextApiKey())}
         quickAdd={{
           mealId,
           date: date ?? today,

@@ -52,9 +52,7 @@ const RESPONSE_SCHEMA = {
 
 const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
-export type GeminiPurpose = "plate" | "review" | "dictate";
-
-const GEMINI_KEY_LIMIT = 3;
+export type GeminiPurpose = "plate" | "review" | "dictate" | "text";
 const MINUTE_COOLDOWN_MS = 60_000;
 const DEFAULT_COOLDOWN_MS = 15 * 60_000;
 const MAX_COOLDOWN_MS = 86_400_000;
@@ -77,9 +75,6 @@ export function readGeminiKeys(
       continue;
     }
     keys.push(key);
-    if (keys.length >= GEMINI_KEY_LIMIT) {
-      break;
-    }
   }
   return keys;
 }
@@ -220,6 +215,10 @@ export function getGeminiDictateApiKey(): string | null {
   return readGeminiKey("dictate");
 }
 
+export function getGeminiTextApiKey(): string | null {
+  return readGeminiKey("text");
+}
+
 function geminiKeyRaw(
   purpose: GeminiPurpose,
   env: Record<string, string | undefined>,
@@ -229,6 +228,9 @@ function geminiKeyRaw(
   }
   if (purpose === "dictate") {
     return env.GEMINI_DICTATE_API_KEY;
+  }
+  if (purpose === "text") {
+    return env.GEMINI_TEXT_API_KEY;
   }
   return env.GEMINI_API_KEY;
 }

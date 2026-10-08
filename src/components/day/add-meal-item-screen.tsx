@@ -5,11 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
-import {
-  MealDictateLink,
-  MealLumpLink,
-  MealPlateLink,
-} from "@/components/day/meal-item-row";
+import { MealLumpLink } from "@/components/day/meal-item-row";
+import { MealQuickCapture } from "@/components/day/meal-quick-capture";
 import { FoodPicker } from "@/components/foods/food-picker";
 import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
 import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
@@ -29,6 +26,7 @@ export function AddMealItemScreen({
   lumpHrefBase,
   plateHref,
   dictateHref,
+  aiText = false,
   quickAdd,
   startScan = false,
 }: {
@@ -37,6 +35,7 @@ export function AddMealItemScreen({
   lumpHrefBase?: string;
   plateHref?: string;
   dictateHref?: string;
+  aiText?: boolean;
   quickAdd?: {
     mealId: string;
     date: string;
@@ -88,13 +87,20 @@ export function AddMealItemScreen({
     }
   }
 
+  const textLog =
+    aiText && quickAdd
+      ? {
+          date: quickAdd.date,
+          mealId: quickAdd.mealId,
+          busy: addingId != null,
+        }
+      : undefined;
+
   return (
     <>
       {frequentFoods.length > 0 ? (
         <div className="flex flex-col gap-2 px-4">
-          <p className="text-sm font-medium text-muted-foreground">
-            Частые — один тап
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">Частые</p>
           <FrequentFoodChips
             foods={frequentFoods}
             addingId={addingId}
@@ -114,17 +120,16 @@ export function AddMealItemScreen({
         onCatalogAdded={(food) => void pickFood(food)}
         listClassName="pb-24"
         topSlot={
-          <>
+          <div className="flex flex-col gap-2">
+            <MealQuickCapture
+              plateHref={plateHref}
+              dictateHref={dictateHref}
+              textLog={textLog}
+            />
             {lumpHrefBase ? (
               <MealLumpLink href={lumpHrefBase} query="" />
             ) : null}
-            {plateHref || dictateHref ? (
-              <div className="flex gap-2">
-                {plateHref ? <MealPlateLink href={plateHref} /> : null}
-                {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
-              </div>
-            ) : null}
-          </>
+          </div>
         }
         stickyActions={
           <StickyActions>

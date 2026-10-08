@@ -15,24 +15,10 @@ import {
   patchLumpRow,
   withGramsMode,
 } from "@/components/day/plate-draft";
-import {
-  commitItemsFromRows,
-  toCommitItem,
-} from "@/components/day/plate-draft-commit";
-import type { PlateDraftItem } from "@/lib/ai/plate-types";
-import { postJson } from "@/lib/api-cache";
-import { daysUrl, readCachedDay, withDayOptimistic } from "@/lib/day/cache";
-import {
-  mealItemFromFood,
-  mealItemFromLump,
-  withAddedItems,
-  withReplacedItems,
-} from "@/lib/day/optimistic";
+import { persistPlateRows } from "@/components/day/persist-plate-rows";
 import type { GramsMode } from "@/lib/food/yield";
-import { readMealItemsPayload } from "@/lib/meal/parse";
-import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
-import type { Food, MealItem } from "@/lib/types";
+import type { Food } from "@/lib/types";
 
 export function usePlateDraft({
   view,
@@ -166,50 +152,14 @@ export function usePlateDraft({
   }
 
   async function saveRows(items: PlateRow[]): Promise<boolean> {
-    const prepared = commitItemsFromRows(items);
-    if (!prepared.ok) {
+    const result = await persistPlateRows({ date, mealId, rows: items });
+    if (!result.ok) {
       haptic("warn");
-      setSaveError(prepared.message);
+      setSaveError(result.message);
       return false;
     }
 
     haptic("commit");
-    const current = readCachedDay(date);
-    if (current) {
-      const temps = prepared.items.map((item) =>
-        plateItemFromDraft(mealId, item),
-      );
-      void withDayOptimistic(
-        date,
-        withAddedItems(current, mealId, temps),
-        async () => {
-          const data = await queueMutate({
-            method: "POST",
-            url: `/api/meals/${mealId}/plate`,
-            body: { items: prepared.items.map(toCommitItem) },
-            cacheUrls: [daysUrl(date)],
-            clientIds: temps.map((item) => item.id),
-          });
-          const saved = readMealItemsPayload(data);
-          const latest = readCachedDay(date);
-          if (latest && saved.length === temps.length) {
-            const replacements = new Map<string, MealItem>();
-            temps.forEach((temp, index) => {
-              const next = saved[index];
-              if (next) {
-                replacements.set(temp.id, next);
-              }
-            });
-            return withReplacedItems(latest, replacements);
-          }
-          return latest ?? "keep";
-        },
-      );
-    } else {
-      void postJson(`/api/meals/${mealId}/plate`, {
-        items: prepared.items.map(toCommitItem),
-      });
-    }
     router.push(doneHref);
     return true;
   }
@@ -240,22 +190,4 @@ export function usePlateDraft({
     save,
     saveRows,
   };
-}
-
-function plateItemFromDraft(mealId: string, item: PlateDraftItem): MealItem {
-  if (item.kind === "lump") {
-    return mealItemFromLump(mealId, item);
-  }
-  return mealItemFromFood({
-    mealId,
-    food: {
-      id: item.foodId,
-      name: item.name,
-      protein_per_100: item.protein_per_100,
-      fat_per_100: item.fat_per_100,
-      carbs_per_100: item.carbs_per_100,
-      kcal_per_100: item.kcal_per_100,
-    },
-    grams: item.grams,
-  });
 }

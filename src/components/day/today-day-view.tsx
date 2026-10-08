@@ -100,6 +100,7 @@ export function TodayDayView({
   deleteNamedMeal,
   deleteItem,
   aiCapture = false,
+  aiText = false,
 }: {
   date: string;
   today: string;
@@ -159,6 +160,7 @@ export function TodayDayView({
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
   aiCapture?: boolean;
+  aiText?: boolean;
 }) {
   const { density } = useDiaryDensity();
   const { order } = useTodayOrder();
@@ -281,7 +283,6 @@ export function TodayDayView({
       date={date}
       today={today}
       viewOnly={viewOnly}
-      aiCapture={aiCapture}
       visibleMeals={visibleMeals}
       remainingMealTypes={remainingMealTypes}
       dayProtein={fact.protein}
@@ -297,6 +298,9 @@ export function TodayDayView({
       shareNamedMeal={shareNamedMeal}
       deleteNamedMeal={deleteNamedMeal}
       deleteItem={deleteItem}
+      aiCapture={aiCapture}
+      aiText={aiText}
+      logBusy={busy}
     />
   ) : null;
 
@@ -320,7 +324,11 @@ export function TodayDayView({
     ) : null;
   const quickFoods =
     !viewOnly && quickLogMealId ? (
-      <TodayQuickFoods date={date} mealId={quickLogMealId} busy={busy} />
+      <TodayQuickFoods
+        date={date}
+        mealId={quickLogMealId}
+        busy={busy}
+      />
     ) : null;
 
   const foodBlock = (

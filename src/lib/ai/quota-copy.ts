@@ -1,10 +1,15 @@
-import { AI_DICTATE_QUOTA, AI_PLATE_QUOTA } from "@/lib/messages";
+import {
+  AI_DICTATE_QUOTA,
+  AI_PLATE_QUOTA,
+  AI_TEXT_MEAL_QUOTA,
+} from "@/lib/messages";
 
-export type AiKind = "plate" | "review" | "dictate";
+export type AiKind = "plate" | "review" | "dictate" | "text";
 
 export const PLATE_DAILY_LIMIT = 2;
 export const REVIEW_DAILY_LIMIT = 1;
 export const DICTATE_DAILY_LIMIT = 2;
+export const TEXT_MEAL_DAILY_LIMIT = 8;
 
 export function dailyLimit(kind: AiKind): number {
   if (kind === "plate") {
@@ -12,6 +17,9 @@ export function dailyLimit(kind: AiKind): number {
   }
   if (kind === "dictate") {
     return DICTATE_DAILY_LIMIT;
+  }
+  if (kind === "text") {
+    return TEXT_MEAL_DAILY_LIMIT;
   }
   return REVIEW_DAILY_LIMIT;
 }
@@ -31,6 +39,20 @@ export function plateRemainingLine(remaining: number | null): string | null {
     return "Ещё одно фото сегодня.";
   }
   return `Ещё ${remaining} фото сегодня.`;
+}
+
+export function textMealRemainingLine(remaining: number | null): string | null {
+  if (remaining == null) {
+    return null;
+  }
+  if (remaining <= 0) {
+    return AI_TEXT_MEAL_QUOTA;
+  }
+  if (remaining === 1) {
+    return "Ещё одна строка сегодня.";
+  }
+  const noun = ruNoun(remaining, "строка", "строки", "строк");
+  return `Ещё ${remaining} ${noun} сегодня.`;
 }
 
 export function dictateRemainingLine(remaining: number | null): string | null {

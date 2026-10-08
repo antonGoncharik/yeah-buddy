@@ -17,7 +17,6 @@ export function TodayDayMeals({
   date,
   today,
   viewOnly,
-  aiCapture = false,
   visibleMeals,
   remainingMealTypes,
   dayProtein,
@@ -33,12 +32,16 @@ export function TodayDayMeals({
   shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
+  aiCapture = false,
+  aiText = false,
+  logBusy = false,
 }: {
   date: string;
   today: string;
   viewOnly: boolean;
-  /** Show photo/voice shortcuts on meal cards when AI routes exist. */
   aiCapture?: boolean;
+  aiText?: boolean;
+  logBusy?: boolean;
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
   dayProtein: number;
@@ -89,6 +92,7 @@ export function TodayDayMeals({
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/add`, date, today)
           }
+          mealId={viewOnly || isTempId(meal.id) ? undefined : meal.id}
           plateHref={
             viewOnly || isTempId(meal.id) || !aiCapture
               ? undefined
@@ -99,6 +103,9 @@ export function TodayDayMeals({
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/dictate`, date, today)
           }
+          aiText={aiText && !viewOnly && !isTempId(meal.id)}
+          logDate={date}
+          logBusy={logBusy}
           date={date}
           copyDays={copyDays}
           namedMeals={namedMeals}
