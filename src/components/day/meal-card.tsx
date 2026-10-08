@@ -212,8 +212,6 @@ export function MealCard({
         <div
           className={cn(
             "flex gap-2",
-            compact &&
-              "[&_a]:h-9 [&_a]:min-h-9 [&_button]:h-9 [&_button]:min-h-9 [&_button]:p-0",
             compactActionsRow ? "flex-row *:min-w-0 *:flex-1" : "flex-col",
           )}
         >

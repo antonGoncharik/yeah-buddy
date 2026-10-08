@@ -11,10 +11,10 @@ import { lumpHref } from "@/lib/day/lump";
 import { cn } from "@/lib/utils";
 
 const SEGMENT =
-  "inline-flex h-11 min-h-11 w-11 shrink-0 items-center justify-center p-0 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground [&_svg]:block [&_svg]:size-4 [&_svg]:shrink-0";
+  "inline-flex size-12 shrink-0 items-center justify-center p-0 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground [&_svg]:block [&_svg]:size-4 [&_svg]:shrink-0";
 
 const PRIMARY_SEGMENT =
-  "flex h-11 min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap transition-colors";
+  "flex h-12 min-h-12 min-w-0 flex-1 items-center justify-center gap-2 px-3 text-base font-medium whitespace-nowrap transition-colors";
 
 export function MealLogActions({
   addHref,
