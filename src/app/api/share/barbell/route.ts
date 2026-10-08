@@ -51,7 +51,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return jsonError(LOAD_FAILED, 404);
   }
 
-  const facts = { dayKey, targetKg, moves };
+  const facts = {
+    dayKey,
+    targetKg,
+    moves,
+    parMoves: challenge.parMoves,
+  };
   const query = barbellInlineQuery(facts);
   const [result] = barbellInlineResults({
     facts,

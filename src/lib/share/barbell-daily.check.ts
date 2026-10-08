@@ -19,7 +19,12 @@ assertEqual(parseBarbellStartPayload("open"), false, "open is not barbell");
 assertEqual(
   barbellShareCaption({ targetKg: 80, moves: 3 }),
   "Собрал 80 кг за 3 блина\nЗадача дня · Yeah Buddy",
-  "share caption",
+  "share caption without par",
+);
+assertEqual(
+  barbellShareCaption({ targetKg: 80, moves: 3, parMoves: 2 }),
+  "Собрал 80 кг за 3 блина 🟨\nПар 2\nЗадача дня · Yeah Buddy",
+  "share caption with par",
 );
 assertEqual(
   barbellInlineQuery({ dayKey: "2026-10-01", targetKg: 80, moves: 3 }),

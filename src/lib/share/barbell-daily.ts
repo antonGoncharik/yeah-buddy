@@ -1,3 +1,7 @@
+import {
+  barbellDailyGrade,
+  barbellDailyGradeEmoji,
+} from "@/lib/workout/barbell-daily";
 import { formatWeight } from "@/lib/workout/numbers";
 import { plateLabel } from "@/lib/workout/rest-load";
 
@@ -12,19 +16,30 @@ export interface BarbellShareFacts {
   targetKg: number;
   moves: number;
   dayKey?: string | null;
+  parMoves?: number | null;
 }
 
 export function barbellShareCaption(facts: BarbellShareFacts): string {
   const target = plateLabel(facts.targetKg);
   const moves = String(facts.moves);
+  const grade =
+    facts.parMoves != null
+      ? ` ${barbellDailyGradeEmoji(barbellDailyGrade(facts.moves, facts.parMoves))}`
+      : "";
+  const parLine =
+    facts.parMoves != null ? `\nПар ${facts.parMoves}` : "";
   return [
-    `Собрал ${target} кг за ${moves} ${plateWord(facts.moves)}`,
+    `Собрал ${target} кг за ${moves} ${plateWord(facts.moves)}${grade}${parLine}`,
     "Задача дня · Yeah Buddy",
   ].join("\n");
 }
 
 export function barbellShareTitle(facts: BarbellShareFacts): string {
-  return `${plateLabel(facts.targetKg)} кг · ${facts.moves} ${plateWord(facts.moves)}`;
+  const base = `${plateLabel(facts.targetKg)} кг · ${facts.moves} ${plateWord(facts.moves)}`;
+  if (facts.parMoves == null) {
+    return base;
+  }
+  return `${base} ${barbellDailyGradeEmoji(barbellDailyGrade(facts.moves, facts.parMoves))}`;
 }
 
 export function barbellInlineQuery(facts: BarbellShareFacts): string {

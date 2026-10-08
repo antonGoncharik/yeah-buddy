@@ -9,15 +9,16 @@ import {
   type BarbellDailyChallenge,
   barbellDailyGrade,
   barbellDailyGradeLine,
+  barbellDailyPlayLine,
+  formatSidePlateStack,
   movesHitTarget,
+  optimalSidePlates,
 } from "@/lib/workout/barbell-daily";
 import { recordBarbellDailyWin } from "@/lib/workout/barbell-daily-storage";
 import {
   addSidePlate,
   loadedKg,
   loadStatus,
-  plateLabel,
-  REST_LOAD_OVER_LINE,
   SIDE_PLATES,
   undoSidePlate,
 } from "@/lib/workout/rest-load";
@@ -64,12 +65,11 @@ export function BarbellDailyGame({
     setPlates(next);
   }
 
+  const optimal = optimalSidePlates(targetKg);
   const line =
-    status === "over"
-      ? REST_LOAD_OVER_LINE
-      : status === "hit"
-        ? barbellDailyGradeLine(barbellDailyGrade(moves, challenge.parMoves))
-        : `${plateLabel(currentKg)} / ${plateLabel(targetKg)} кг · ${moves} блинов`;
+    status === "hit"
+      ? barbellDailyGradeLine(barbellDailyGrade(moves, challenge.parMoves))
+      : barbellDailyPlayLine(currentKg, targetKg);
 
   return (
     <div
@@ -95,6 +95,12 @@ export function BarbellDailyGame({
         <p className="text-center text-xs text-muted-foreground">
           Пар — {challenge.parMoves}{" "}
           {challenge.parMoves === 1 ? "блин" : "блина"}
+          {status === "hit" && optimal ? (
+            <>
+              {" "}
+              · на сторону {formatSidePlateStack(optimal)}
+            </>
+          ) : null}
         </p>
       </div>
       <div className="grid grid-cols-4 gap-1.5">

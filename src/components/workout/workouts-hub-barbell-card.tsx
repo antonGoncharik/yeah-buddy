@@ -11,7 +11,7 @@ import {
   BARBELL_GAME_HREF,
   BARBELL_GAME_TITLE,
 } from "@/lib/share/barbell-daily";
-import { dailyChallenge } from "@/lib/workout/barbell-daily";
+import { dailyChallenge, streakDayWord } from "@/lib/workout/barbell-daily";
 import { readBarbellDailyProgress } from "@/lib/workout/barbell-daily-storage";
 import { plateLabel } from "@/lib/workout/rest-load";
 
@@ -19,9 +19,15 @@ export function WorkoutsHubBarbellCard() {
   const dayKey = calendarToday();
   const challenge = dailyChallenge(dayKey);
   const progress = readBarbellDailyProgress(dayKey);
-  if (!challenge || progress.completed) {
+  if (!challenge) {
     return null;
   }
+
+  const hint = progress.completed
+    ? progress.bestMoves != null
+      ? `Собрано за ${progress.bestMoves} · улучшить или поделиться`
+      : "Собрано · поделиться"
+    : `${plateLabel(challenge.targetKg)} кг · ${BARBELL_GAME_HINT}`;
 
   return (
     <Link
@@ -36,8 +42,15 @@ export function WorkoutsHubBarbellCard() {
           {BARBELL_GAME_TITLE}
         </span>
         <span className="block text-sm text-muted-foreground">
-          {plateLabel(challenge.targetKg)} кг · {BARBELL_GAME_HINT}
+          {progress.completed
+            ? `${plateLabel(challenge.targetKg)} кг · ${hint}`
+            : hint}
         </span>
+        {progress.streak > 0 ? (
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Серия {progress.streak} {streakDayWord(progress.streak)}
+          </span>
+        ) : null}
       </span>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>

@@ -3,6 +3,9 @@ import {
   canMakeTarget,
   fromKgUnits,
   loadedKg,
+  loadStatus,
+  plateLabel,
+  REST_LOAD_OVER_LINE,
   SIDE_PLATES,
   toKgUnits,
 } from "@/lib/workout/rest-load";
@@ -139,6 +142,87 @@ export function barbellDailyGradeLine(
     return "Ровно.";
   }
   return "Встало.";
+}
+
+export function barbellDailyGradeEmoji(
+  grade: ReturnType<typeof barbellDailyGrade>,
+): string {
+  if (grade === "perfect") {
+    return "🟩";
+  }
+  if (grade === "solid") {
+    return "🟨";
+  }
+  return "⬜";
+}
+
+export function optimalSidePlates(
+  targetKg: number,
+  barKg = BAR_KG,
+): number[] | null {
+  const units = perSideUnits(targetKg, barKg);
+  if (units < 0) {
+    return null;
+  }
+  return minSidePlates(units);
+}
+
+export function formatSidePlateStack(plates: ReadonlyArray<number>): string {
+  if (plates.length === 0) {
+    return "—";
+  }
+  return plates.map((plate) => plateLabel(plate)).join("+");
+}
+
+export function remainingPerSideKg(
+  currentKg: number,
+  targetKg: number,
+  barKg = BAR_KG,
+): number | null {
+  const targetUnits = toKgUnits(targetKg) - toKgUnits(barKg);
+  const currentUnits = toKgUnits(currentKg) - toKgUnits(barKg);
+  if (targetUnits < 0 || targetUnits % 2 !== 0) {
+    return null;
+  }
+  if (currentUnits < 0 || currentUnits % 2 !== 0) {
+    return null;
+  }
+  const left = (targetUnits - currentUnits) / 2;
+  if (left < 0) {
+    return null;
+  }
+  return fromKgUnits(left);
+}
+
+export function barbellDailyPlayLine(
+  currentKg: number,
+  targetKg: number,
+): string {
+  const status = loadStatus(currentKg, targetKg);
+  if (status === "over") {
+    return REST_LOAD_OVER_LINE;
+  }
+  const base = `${plateLabel(currentKg)} / ${plateLabel(targetKg)} кг`;
+  const rem = remainingPerSideKg(currentKg, targetKg);
+  if (rem != null && rem > 0) {
+    return `${base} · на сторону ещё ${plateLabel(rem)} кг`;
+  }
+  return base;
+}
+
+export const BARBELL_DAILY_RULES =
+  "Гриф 20 кг уже на полу. Каждая кнопка — пара блинов.";
+
+export function streakDayWord(count: number): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return "день";
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "дня";
+  }
+  return "дней";
 }
 
 function perSideUnits(targetKg: number, barKg: number): number {
