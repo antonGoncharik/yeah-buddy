@@ -11,6 +11,8 @@ import {
   MealPlateLink,
 } from "@/components/day/meal-item-row";
 import { FoodPicker } from "@/components/foods/food-picker";
+import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
+import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { buttonVariants } from "@/components/ui/button";
 import { reportActionError } from "@/lib/action-error";
@@ -44,6 +46,7 @@ export function AddMealItemScreen({
 }) {
   const router = useRouter();
   const [addingId, setAddingId] = useState<string | null>(null);
+  const frequentFoods = useFrequentFoods(10);
 
   const consumeScanParam = useCallback(() => {
     const url = new URL(window.location.href);
@@ -86,39 +89,55 @@ export function AddMealItemScreen({
   }
 
   return (
-    <FoodPicker
-      searchPlaceholder="Что съел"
-      startScan={startScan}
-      showFavoriteOffer
-      lumpEmptyHint={Boolean(lumpHrefBase)}
-      stickyHideWhenSearch={Boolean(lumpHrefBase)}
-      onScanConsumed={consumeScanParam}
-      hrefForFood={(food) => appendFoodHrefSegment(foodHrefBase, food.id)}
-      onSelectFood={quickAdd ? pickFood : undefined}
-      onCatalogAdded={(food) => void pickFood(food)}
-      listClassName="pb-24"
-      topSlot={
-        <>
-          {lumpHrefBase ? <MealLumpLink href={lumpHrefBase} query="" /> : null}
-          {plateHref || dictateHref ? (
-            <div className="flex gap-2">
-              {plateHref ? <MealPlateLink href={plateHref} /> : null}
-              {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
-            </div>
-          ) : null}
-        </>
-      }
-      stickyActions={
-        <StickyActions>
-          <Link
-            href={newFoodHref}
-            className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
-          >
-            <Plus className="size-5" aria-hidden />
-            Новый продукт
-          </Link>
-        </StickyActions>
-      }
-    />
+    <>
+      {frequentFoods.length > 0 ? (
+        <div className="flex flex-col gap-2 px-4">
+          <p className="text-sm font-medium text-muted-foreground">
+            Частые — один тап
+          </p>
+          <FrequentFoodChips
+            foods={frequentFoods}
+            addingId={addingId}
+            onPick={(food) => void pickFood(food)}
+          />
+        </div>
+      ) : null}
+      <FoodPicker
+        searchPlaceholder="Что съел"
+        startScan={startScan}
+        showFavoriteOffer
+        lumpEmptyHint={Boolean(lumpHrefBase)}
+        stickyHideWhenSearch={Boolean(lumpHrefBase)}
+        onScanConsumed={consumeScanParam}
+        hrefForFood={(food) => appendFoodHrefSegment(foodHrefBase, food.id)}
+        onSelectFood={quickAdd ? pickFood : undefined}
+        onCatalogAdded={(food) => void pickFood(food)}
+        listClassName="pb-24"
+        topSlot={
+          <>
+            {lumpHrefBase ? (
+              <MealLumpLink href={lumpHrefBase} query="" />
+            ) : null}
+            {plateHref || dictateHref ? (
+              <div className="flex gap-2">
+                {plateHref ? <MealPlateLink href={plateHref} /> : null}
+                {dictateHref ? <MealDictateLink href={dictateHref} /> : null}
+              </div>
+            ) : null}
+          </>
+        }
+        stickyActions={
+          <StickyActions>
+            <Link
+              href={newFoodHref}
+              className={cn(buttonVariants(), "h-14 w-full gap-2 text-lg")}
+            >
+              <Plus className="size-5" aria-hidden />
+              Новый продукт
+            </Link>
+          </StickyActions>
+        }
+      />
+    </>
   );
 }

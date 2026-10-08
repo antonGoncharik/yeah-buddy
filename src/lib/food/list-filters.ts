@@ -4,7 +4,7 @@ export const FOOD_LIST_FILTER_TABS: Array<{
   id: FoodListFilterTab;
   label: string;
 }> = [
-  { id: "favorites", label: "Избранное" },
   { id: "recent", label: "Недавние" },
+  { id: "favorites", label: "Избранное" },
   { id: "all", label: "Все" },
 ];

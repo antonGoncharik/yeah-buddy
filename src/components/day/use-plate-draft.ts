@@ -165,16 +165,12 @@ export function usePlateDraft({
     });
   }
 
-  async function save() {
-    if (view.status !== "draft") {
-      return;
-    }
-
-    const prepared = commitItemsFromRows(view.items);
+  async function saveRows(items: PlateRow[]): Promise<boolean> {
+    const prepared = commitItemsFromRows(items);
     if (!prepared.ok) {
       haptic("warn");
       setSaveError(prepared.message);
-      return;
+      return false;
     }
 
     haptic("commit");
@@ -215,6 +211,17 @@ export function usePlateDraft({
       });
     }
     router.push(doneHref);
+    return true;
+  }
+
+  async function save() {
+    if (view.status !== "draft" && view.status !== "saving") {
+      return;
+    }
+
+    const items =
+      view.status === "draft" || view.status === "saving" ? view.items : [];
+    await saveRows(items);
   }
 
   return {
@@ -231,6 +238,7 @@ export function usePlateDraft({
     addLump,
     toLump,
     save,
+    saveRows,
   };
 }
 

@@ -5,8 +5,10 @@ import type { CSSProperties } from "react";
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
 import {
   MealAddLink,
+  MealDictateLink,
   MealItemRow,
   type MealLine,
+  MealPlateLink,
 } from "@/components/day/meal-item-row";
 import { MealTypeMark } from "@/components/day/meal-type-mark";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
@@ -29,6 +31,8 @@ export function MealCard({
   items,
   itemHref,
   addHref,
+  plateHref,
+  dictateHref,
   onDeleteItem,
   onReorderItems,
   date,
@@ -52,6 +56,8 @@ export function MealCard({
   items: MealLine[];
   itemHref?: (item: MealLine) => string;
   addHref?: string;
+  plateHref?: string;
+  dictateHref?: string;
   onDeleteItem?: (item: MealLine) => void;
   onReorderItems?: (next: MealLine[]) => void;
   date?: string;
@@ -92,6 +98,8 @@ export function MealCard({
         }
       : null;
   const showAdd = !readOnly && Boolean(addHref);
+  const showQuickCapture =
+    !readOnly && (Boolean(plateHref) || Boolean(dictateHref));
   const showFill = !readOnly && Boolean(onFillTemplate);
   const yesterdaySource =
     items.length === 0 && date && onCopyDate
@@ -194,7 +202,7 @@ export function MealCard({
         </p>
       ) : null}
 
-      {showFill || showAdd ? (
+      {showFill || showAdd || showQuickCapture ? (
         <div
           className={cn(
             "flex gap-2",
@@ -215,10 +223,23 @@ export function MealCard({
             </Button>
           ) : null}
           {showAdd && addHref ? (
-            <MealAddLink
-              href={addHref}
-              prominent={items.length === 0 && !yesterdaySource}
-            />
+            <div className="flex w-full gap-2">
+              {showQuickCapture ? (
+                <>
+                  {plateHref ? (
+                    <MealPlateLink href={plateHref} compact />
+                  ) : null}
+                  {dictateHref ? (
+                    <MealDictateLink href={dictateHref} compact />
+                  ) : null}
+                </>
+              ) : null}
+              <MealAddLink
+                href={addHref}
+                prominent={items.length === 0 && !yesterdaySource}
+                className={showQuickCapture ? "min-w-0 flex-1" : undefined}
+              />
+            </div>
           ) : null}
           {showFill && onFillTemplate ? (
             <Button

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { requestDictateDraft } from "@/components/day/dictate-draft";
 import type { PlateRow, PlateStatus } from "@/components/day/plate-draft";
+import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
 import { usePlateDraft } from "@/components/day/use-plate-draft";
 import { useSpeechRecorder } from "@/components/day/use-speech-recorder";
 import { parseRemaining } from "@/lib/ai/parse-review";
@@ -103,10 +104,28 @@ export function useDictateScreen({
       }
 
       haptic("success");
+      const rows = result.items;
+      if (plateRowsReadyToSave(rows)) {
+        setView({
+          status: "saving",
+          previewUrl: "",
+          items: rows,
+        });
+        const saved = await draft.saveRows(rows);
+        if (!saved) {
+          setView({
+            status: "draft",
+            previewUrl: "",
+            items: rows,
+          });
+        }
+        return;
+      }
+
       setView({
         status: "draft",
         previewUrl: "",
-        items: result.items,
+        items: rows,
       });
     } catch (caught) {
       if (stale(request) || isAbortError(caught)) {

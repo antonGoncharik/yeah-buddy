@@ -13,6 +13,7 @@ import { SaveDayTemplateButton } from "@/components/day/save-day-template-button
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
+import { TodayQuickFoods } from "@/components/day/today-quick-foods";
 import {
   showYesterdayCatchUpHint,
   YesterdayCatchUpHint,
@@ -24,6 +25,7 @@ import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
+import { pickQuickLogMealId } from "@/lib/day/quick-log-meal";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import {
   proteinClosed,
@@ -97,6 +99,7 @@ export function TodayDayView({
   shareNamedMeal,
   deleteNamedMeal,
   deleteItem,
+  aiCapture = false,
 }: {
   date: string;
   today: string;
@@ -155,6 +158,7 @@ export function TodayDayView({
   shareNamedMeal: (namedMealId: string) => Promise<void>;
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
+  aiCapture?: boolean;
 }) {
   const { density } = useDiaryDensity();
   const { order } = useTodayOrder();
@@ -177,6 +181,7 @@ export function TodayDayView({
   const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
   const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
+  const quickLogMealId = pickQuickLogMealId(visibleMeals);
   const showEmptyStart = !viewOnly && !dayHasItems;
   const showSaveTemplate = !viewOnly && dayHasItems && !isTempId(shownDay.id);
   const proteinMealCount = shownDay.meals.filter(
@@ -276,6 +281,7 @@ export function TodayDayView({
       date={date}
       today={today}
       viewOnly={viewOnly}
+      aiCapture={aiCapture}
       visibleMeals={visibleMeals}
       remainingMealTypes={remainingMealTypes}
       dayProtein={fact.protein}
@@ -312,8 +318,14 @@ export function TodayDayView({
         busy={busy}
       />
     ) : null;
+  const quickFoods =
+    !viewOnly && quickLogMealId ? (
+      <TodayQuickFoods date={date} mealId={quickLogMealId} busy={busy} />
+    ) : null;
+
   const foodBlock = (
     <>
+      {quickFoods}
       {mealsBlock}
       {mealTail}
       {showSaveTemplate ? (

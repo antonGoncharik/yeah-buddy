@@ -106,7 +106,7 @@ export function PlateScreen({
               disabled={plate.busy || plate.items.length === 0}
               onClick={() => void plate.save()}
             >
-              {plate.view.status === "saving" ? "Сохранение…" : "Добавить"}
+              {plate.view.status === "saving" ? "Сохранение…" : "Сохранить всё"}
             </Button>
           ) : null}
 

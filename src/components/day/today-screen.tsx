@@ -28,10 +28,12 @@ export function TodayScreen({
   initialDate,
   readOnly = false,
   fromSettings = false,
+  aiCapture = false,
 }: {
   initialDate?: string;
   readOnly?: boolean;
   fromSettings?: boolean;
+  aiCapture?: boolean;
 }) {
   const {
     date,
@@ -282,6 +284,7 @@ export function TodayScreen({
             shareNamedMeal={shareNamedMeal}
             deleteNamedMeal={deleteNamedMeal}
             deleteItem={deleteItem}
+            aiCapture={aiCapture}
           />
         ) : null}
       </div>

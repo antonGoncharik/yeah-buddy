@@ -17,6 +17,7 @@ export function TodayDayMeals({
   date,
   today,
   viewOnly,
+  aiCapture = false,
   visibleMeals,
   remainingMealTypes,
   dayProtein,
@@ -36,6 +37,8 @@ export function TodayDayMeals({
   date: string;
   today: string;
   viewOnly: boolean;
+  /** Show photo/voice shortcuts on meal cards when AI routes exist. */
+  aiCapture?: boolean;
   visibleMeals: DayWithMeals["meals"];
   remainingMealTypes: ReadonlySet<MealType>;
   dayProtein: number;
@@ -85,6 +88,16 @@ export function TodayDayMeals({
             viewOnly || isTempId(meal.id)
               ? undefined
               : withDateQuery(`/today/meals/${meal.id}/add`, date, today)
+          }
+          plateHref={
+            viewOnly || isTempId(meal.id) || !aiCapture
+              ? undefined
+              : withDateQuery(`/today/meals/${meal.id}/plate`, date, today)
+          }
+          dictateHref={
+            viewOnly || isTempId(meal.id) || !aiCapture
+              ? undefined
+              : withDateQuery(`/today/meals/${meal.id}/dictate`, date, today)
           }
           date={date}
           copyDays={copyDays}

@@ -18,6 +18,10 @@ export function toCommitItem(item: PlateDraftItem) {
   };
 }
 
+export function plateRowsReadyToSave(items: PlateRow[]): boolean {
+  return items.length > 0 && commitItemsFromRows(items).ok;
+}
+
 export function commitItemsFromRows(
   items: PlateRow[],
 ): { ok: true; items: PlateDraftItem[] } | { ok: false; message: string } {

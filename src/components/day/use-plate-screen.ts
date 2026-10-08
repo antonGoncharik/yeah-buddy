@@ -10,6 +10,7 @@ import {
   revokePreview,
 } from "@/components/day/plate-draft";
 import { usePlateCamera } from "@/components/day/use-plate-camera";
+import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
 import { usePlateDraft } from "@/components/day/use-plate-draft";
 import { parseRemaining } from "@/lib/ai/parse-review";
 import { compressPlateImage } from "@/lib/ai/read-plate-image";
@@ -120,10 +121,28 @@ export function usePlateScreen({
       }
 
       haptic("success");
+      const rows = result.items;
+      if (plateRowsReadyToSave(rows)) {
+        setView({
+          status: "saving",
+          previewUrl: previewUrl ?? "",
+          items: rows,
+        });
+        const saved = await draft.saveRows(rows);
+        if (!saved) {
+          setView({
+            status: "draft",
+            previewUrl: previewUrl ?? "",
+            items: rows,
+          });
+        }
+        return;
+      }
+
       setView({
         status: "draft",
         previewUrl: previewUrl ?? "",
-        items: result.items,
+        items: rows,
       });
     } catch (caught) {
       if (stale(request) || isAbortError(caught)) {

@@ -148,9 +148,11 @@ export function MealItemRow({
 export function MealAddLink({
   href,
   prominent = false,
+  className,
 }: {
   href: string;
   prominent?: boolean;
+  className?: string;
 }) {
   return (
     <Link
@@ -158,6 +160,7 @@ export function MealAddLink({
       className={cn(
         buttonVariants({ variant: prominent ? "default" : "outline" }),
         "h-12 w-full gap-2 rounded-xl text-base",
+        className,
       )}
     >
       <Plus className="size-4" aria-hidden />
@@ -166,32 +169,50 @@ export function MealAddLink({
   );
 }
 
-export function MealPlateLink({ href }: { href: string }) {
+export function MealPlateLink({
+  href,
+  compact = false,
+}: {
+  href: string;
+  compact?: boolean;
+}) {
   return (
     <Link
       href={href}
+      aria-label="Фото тарелки"
       className={cn(
-        buttonVariants({ variant: "ghost" }),
-        "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
+        buttonVariants({ variant: compact ? "outline" : "ghost" }),
+        compact
+          ? "size-12 shrink-0 rounded-xl px-0"
+          : "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
       )}
     >
       <Camera className="size-4" aria-hidden />
-      Фото тарелки
+      {compact ? null : "Фото тарелки"}
     </Link>
   );
 }
 
-export function MealDictateLink({ href }: { href: string }) {
+export function MealDictateLink({
+  href,
+  compact = false,
+}: {
+  href: string;
+  compact?: boolean;
+}) {
   return (
     <Link
       href={href}
+      aria-label="Голосом"
       className={cn(
-        buttonVariants({ variant: "ghost" }),
-        "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
+        buttonVariants({ variant: compact ? "outline" : "ghost" }),
+        compact
+          ? "size-12 shrink-0 rounded-xl px-0"
+          : "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
       )}
     >
       <Mic className="size-4" aria-hidden />
-      Голосом
+      {compact ? null : "Голосом"}
     </Link>
   );
 }

@@ -23,7 +23,7 @@ export function useFoodPicker({
   /** Jump to «Недавние» when favorites tab is empty on first open. */
   skipEmptyFavorites?: boolean;
 } = {}) {
-  const [filter, setFilter] = useState<FoodListFilterTab>("favorites");
+  const [filter, setFilter] = useState<FoodListFilterTab>("recent");
   const [query, setQuery] = useState("");
   const [foods, setFoods] = useState<Food[]>([]);
   const [offers, setOffers] = useState<FavoriteOffer[]>([]);
