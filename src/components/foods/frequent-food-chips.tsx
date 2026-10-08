@@ -46,7 +46,7 @@ export function FrequentFoodChips({
             className={cn(
               "shrink-0 rounded-full border border-border bg-card px-3 font-medium text-foreground shadow-sm transition-colors",
               "hover:bg-muted/80 active:scale-[0.98] disabled:opacity-50",
-              compact ? "min-h-9 py-1.5 text-sm" : "min-h-11 py-2 text-base",
+              compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-2 text-base",
               pending && "opacity-70",
             )}
           >

@@ -39,7 +39,7 @@ export function FavoriteOfferCard({
         <Button
           type="button"
           variant="ghost"
-          className="h-11 text-base"
+          className="h-12 text-base"
           disabled={busy}
           onClick={() => {
             haptic("tick");

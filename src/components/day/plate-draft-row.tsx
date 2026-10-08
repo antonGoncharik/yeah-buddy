@@ -181,7 +181,7 @@ export function PlateDraftRow({
         <Button
           type="button"
           variant="ghost"
-          className="h-11 self-start px-0 text-base"
+          className="h-12 min-h-12 self-start px-0 text-base"
           onClick={onChangeFood}
         >
           {item.kind === "lump" ? "Это из базы" : "Другой продукт"}
@@ -190,7 +190,7 @@ export function PlateDraftRow({
           <Button
             type="button"
             variant="ghost"
-            className="h-11 self-start px-0 text-base"
+            className="h-12 min-h-12 self-start px-0 text-base"
             onClick={onToLump}
           >
             Не из базы

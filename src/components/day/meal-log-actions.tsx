@@ -4,17 +4,16 @@ import { Plus, Type } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import {
+  mealActionBarClass,
+  mealActionIconSegmentClass,
+  mealActionPrimarySegmentClass,
+} from "@/components/day/meal-action-bar";
 import { MealDictateLink, MealPlateLink } from "@/components/day/meal-item-row";
 import { TodayTextMealForm } from "@/components/day/today-text-meal-log";
 import { Button } from "@/components/ui/button";
 import { lumpHref } from "@/lib/day/lump";
 import { cn } from "@/lib/utils";
-
-const SEGMENT =
-  "inline-flex size-12 shrink-0 items-center justify-center p-0 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground [&_svg]:block [&_svg]:size-4 [&_svg]:shrink-0";
-
-const PRIMARY_SEGMENT =
-  "flex h-12 min-h-12 min-w-0 flex-1 items-center justify-center gap-2 px-3 text-base font-medium whitespace-nowrap transition-colors";
 
 export function MealLogActions({
   addHref,
@@ -53,7 +52,7 @@ export function MealLogActions({
     <div className={cn("flex w-full flex-col gap-2", className)}>
       <div
         className={cn(
-          "flex items-stretch divide-x divide-border/80 overflow-hidden rounded-xl border border-border/90 bg-muted/25",
+          mealActionBarClass,
           hasPrimary ? "w-full" : "w-fit",
           addProminent && addHref && "border-primary/35",
         )}
@@ -62,7 +61,7 @@ export function MealLogActions({
           <Link
             href={addHref}
             className={cn(
-              PRIMARY_SEGMENT,
+              mealActionPrimarySegmentClass,
               addProminent
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "text-foreground hover:bg-muted/50",
@@ -75,7 +74,10 @@ export function MealLogActions({
         {lumpHrefBase && !addHref ? (
           <Link
             href={lumpHref(lumpHrefBase, lumpQuery)}
-            className={cn(PRIMARY_SEGMENT, "text-foreground hover:bg-muted/50")}
+            className={cn(
+              mealActionPrimarySegmentClass,
+              "text-foreground hover:bg-muted/50",
+            )}
           >
             {lumpLabel ? (
               `Записать «${lumpLabel}»`
@@ -89,13 +91,17 @@ export function MealLogActions({
         ) : null}
 
         {plateHref ? (
-          <MealPlateLink href={plateHref} compact segmentClassName={SEGMENT} />
+          <MealPlateLink
+            href={plateHref}
+            compact
+            segmentClassName={mealActionIconSegmentClass}
+          />
         ) : null}
         {dictateHref ? (
           <MealDictateLink
             href={dictateHref}
             compact
-            segmentClassName={SEGMENT}
+            segmentClassName={mealActionIconSegmentClass}
           />
         ) : null}
         {showText ? (
@@ -106,7 +112,7 @@ export function MealLogActions({
             aria-label="Текстом"
             aria-pressed={textOpen}
             className={cn(
-              SEGMENT,
+              mealActionIconSegmentClass,
               "rounded-none",
               textOpen && "bg-background text-foreground shadow-inner",
             )}

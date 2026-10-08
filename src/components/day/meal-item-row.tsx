@@ -7,6 +7,11 @@ import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { AlignedPair } from "@/components/ui/aligned-pair";
 import { buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
+import {
+  mealActionFullButtonClass,
+  mealActionIconSegmentClass,
+  mealActionPrimarySegmentClass,
+} from "@/components/day/meal-action-bar";
 import { lumpHref } from "@/lib/day/lump";
 import { formatGrams, formatKcal, formatMacro } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
@@ -159,7 +164,7 @@ export function MealAddLink({
       href={href}
       className={cn(
         buttonVariants({ variant: prominent ? "default" : "outline" }),
-        "h-12 w-full gap-2 rounded-xl text-base",
+        mealActionFullButtonClass,
         className,
       )}
     >
@@ -187,10 +192,13 @@ export function MealPlateLink({
         !segmentClassName &&
           buttonVariants({ variant: compact ? "outline" : "ghost" }),
         !segmentClassName && compact
-          ? "size-12 shrink-0 rounded-xl px-0"
+          ? cn(mealActionIconSegmentClass, "rounded-xl")
           : null,
         !segmentClassName && !compact
-          ? "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground"
+          ? cn(
+              mealActionPrimarySegmentClass,
+              "shrink rounded-xl px-2 text-muted-foreground",
+            )
           : null,
       )}
     >
@@ -218,10 +226,13 @@ export function MealDictateLink({
         !segmentClassName &&
           buttonVariants({ variant: compact ? "outline" : "ghost" }),
         !segmentClassName && compact
-          ? "size-12 shrink-0 rounded-xl px-0"
+          ? cn(mealActionIconSegmentClass, "rounded-xl")
           : null,
         !segmentClassName && !compact
-          ? "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground"
+          ? cn(
+              mealActionPrimarySegmentClass,
+              "shrink rounded-xl px-2 text-muted-foreground",
+            )
           : null,
       )}
     >
@@ -244,7 +255,7 @@ export function MealLumpLink({
       href={lumpHref(href, trimmed)}
       className={cn(
         buttonVariants({ variant: "outline" }),
-        "h-12 w-full gap-2 rounded-xl text-base",
+        mealActionFullButtonClass,
       )}
     >
       {trimmed ? (

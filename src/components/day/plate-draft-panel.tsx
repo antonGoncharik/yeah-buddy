@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { mealActionFullButtonClass } from "@/components/day/meal-action-bar";
 import type { PlateLumpPatch } from "@/components/day/plate-draft";
 import {
   type PlateRow,
@@ -88,7 +89,7 @@ export function PlateDraftPanel({
           <Button
             type="button"
             variant="outline"
-            className="h-12 w-full gap-2 text-base"
+            className={mealActionFullButtonClass}
             disabled={busy}
             onClick={onAddLump}
           >
@@ -98,7 +99,7 @@ export function PlateDraftPanel({
           <Button
             type="button"
             variant="outline"
-            className="h-12 w-full gap-2 text-base"
+            className={mealActionFullButtonClass}
             disabled={busy}
             onClick={onAddFood}
           >

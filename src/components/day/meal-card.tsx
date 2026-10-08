@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 
+import { mealActionButtonClass } from "@/components/day/meal-action-bar";
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
 import { MealItemRow, type MealLine } from "@/components/day/meal-item-row";
 import { MealLogActions } from "@/components/day/meal-log-actions";
@@ -218,7 +219,7 @@ export function MealCard({
           {yesterdaySource && onCopyDate && showAdd ? (
             <Button
               type="button"
-              className="h-12 w-full text-base"
+              className={cn("w-full", mealActionButtonClass)}
               disabled={copyBusy}
               onClick={() => onCopyDate(yesterdaySource)}
             >
@@ -246,7 +247,7 @@ export function MealCard({
             <Button
               type="button"
               variant="outline"
-              className="h-12 w-full text-base"
+              className={cn("w-full", mealActionButtonClass)}
               disabled={copyBusy}
               onClick={onFillTemplate}
             >

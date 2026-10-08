@@ -54,7 +54,7 @@ export function MealCopyActions({
         type="button"
         variant="ghost"
         size="icon-lg"
-        className="size-11 text-muted-foreground"
+        className="size-12 text-muted-foreground"
         disabled={busy}
         aria-label="Ещё"
         onClick={() => setOpen(true)}

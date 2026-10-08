@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { mealActionButtonClass } from "@/components/day/meal-action-bar";
 import { persistPlateRows } from "@/components/day/persist-plate-rows";
 import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
 import { requestTextMealDraft } from "@/components/day/text-meal-draft";
@@ -133,7 +134,7 @@ export function TodayTextMealForm({
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button
         type="button"
-        className={cn("w-full", compact ? "h-10" : "h-11")}
+        className={cn("w-full", mealActionButtonClass)}
         disabled={disabled || text.trim() === ""}
         onClick={() => void submit()}
       >
