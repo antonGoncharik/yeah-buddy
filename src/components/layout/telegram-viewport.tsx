@@ -6,17 +6,18 @@ import {
   bindTelegramViewport,
   type TelegramViewportSource,
 } from "@/lib/telegram/viewport";
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
 
 export function TelegramViewport() {
   useEffect(() => {
     let cancelled = false;
     let unbind: (() => void) | undefined;
 
-    void import("@twa-dev/sdk").then((sdk) => {
+    void loadTelegramWebApp().then((webApp) => {
       if (cancelled) {
         return;
       }
-      unbind = bindTelegramViewport(sdk.default as TelegramViewportSource);
+      unbind = bindTelegramViewport(webApp as TelegramViewportSource);
     });
 
     return () => {

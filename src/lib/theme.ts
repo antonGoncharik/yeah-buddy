@@ -46,9 +46,10 @@ export function applyTheme(theme: Theme) {
 
 function getTelegramWebApp(): Promise<TelegramWebApp | null> {
   if (!telegramLoad) {
-    telegramLoad = import("@twa-dev/sdk")
-      .then((sdk) => {
-        telegramWebApp = sdk.default as TelegramWebApp;
+    telegramLoad = import("@/lib/telegram/webapp")
+      .then(({ loadTelegramWebApp }) => loadTelegramWebApp())
+      .then((webApp) => {
+        telegramWebApp = webApp as TelegramWebApp;
         return telegramWebApp;
       })
       .catch(() => {

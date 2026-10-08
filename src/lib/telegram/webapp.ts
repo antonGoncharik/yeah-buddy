@@ -1,4 +1,7 @@
-import { telegramInitParamsFromHash } from "@/lib/telegram/boot-script";
+import {
+  telegramInitParamsFromHash,
+  telegramLaunchHashFromParams,
+} from "@/lib/telegram/boot-script";
 
 export const TELEGRAM_INIT_PARAMS_STORAGE_KEY = "__telegram__initParams";
 const INIT_RELOAD_FLAG = "__telegram__init_reload_done";
@@ -11,7 +14,10 @@ export type TelegramWebAppHost = {
   initData?: string;
   initDataUnsafe?: { start_param?: string };
   isVersionAtLeast?: (version: string) => boolean;
-  openTelegramLink?: (url: string, options?: { force_request?: boolean }) => void;
+  openTelegramLink?: (
+    url: string,
+    options?: { force_request?: boolean },
+  ) => void;
   shareMessage?: (id: string, callback?: (sent: boolean) => void) => void;
   switchInlineQuery?: (query: string, chooseChatTypes?: string[]) => void;
   HapticFeedback?: {
@@ -82,6 +88,40 @@ export function captureTelegramLaunchFromLocation(): TelegramInitParams | null {
   return readStoredTelegramInitParams();
 }
 
+/** Put launch params back into the URL hash before @twa-dev/sdk reads location.hash once. */
+export function restoreTelegramLaunchHashFromStorage(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  if (telegramInitParamsFromHash(window.location.hash)) {
+    return false;
+  }
+  const stored = readStoredTelegramInitParams();
+  if (!stored) {
+    return false;
+  }
+  const hash = telegramLaunchHashFromParams(stored);
+  if (!hash) {
+    return false;
+  }
+  const url = `${window.location.pathname}${window.location.search}${hash}`;
+  try {
+    window.history.replaceState(window.history.state, "", url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Must run synchronously before the first dynamic import of @twa-dev/sdk. */
+export function ensureTelegramSdkPrimed(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  captureTelegramLaunchFromLocation();
+  restoreTelegramLaunchHashFromStorage();
+}
+
 export function telegramInlineShareAvailable(): boolean {
   const host = window as TelegramWindow;
   const flag = host.Telegram?.WebView?.initParams?.tgWebAppBotInline;
@@ -135,10 +175,10 @@ export function clearTelegramInitReloadFlag(): void {
 }
 
 export async function loadTelegramWebApp(): Promise<TelegramWebAppHost> {
+  ensureTelegramSdkPrimed();
   if (!webAppLoad) {
     webAppLoad = import("@twa-dev/sdk")
       .then((sdk) => {
-        captureTelegramLaunchFromLocation();
         const webApp = sdk.default as TelegramWebAppHost;
         try {
           webApp.ready();
@@ -160,15 +200,20 @@ export async function loadTelegramWebApp(): Promise<TelegramWebAppHost> {
 }
 
 export async function waitForTelegramInitData(
-  timeoutMs = 900,
+  timeoutMs = 1_800,
 ): Promise<string> {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
+    ensureTelegramSdkPrimed();
     const webApp = await loadTelegramWebApp();
     const initData = webApp.initData?.trim() ?? "";
     if (initData) {
       clearTelegramInitReloadFlag();
       return initData;
+    }
+    const stored = readStoredTelegramInitParams();
+    if (stored?.tgWebAppData && recoverTelegramInitOnce()) {
+      return "";
     }
     await sleep(80);
   }

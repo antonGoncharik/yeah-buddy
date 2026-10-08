@@ -1,5 +1,9 @@
 import {
+  telegramLaunchHashFromParams,
+} from "@/lib/telegram/boot-script";
+import {
   persistTelegramLaunchParams,
+  restoreTelegramLaunchHashFromStorage,
   TELEGRAM_INIT_PARAMS_STORAGE_KEY,
   telegramInlineShareAvailable,
   telegramShareUrl,
@@ -85,5 +89,46 @@ assertEqual(telegramInlineShareAvailable(), true, "inline flag");
 
 fakeWindow.Telegram = { WebView: { initParams: {} } };
 assertEqual(telegramInlineShareAvailable(), false, "inline off");
+
+assertEqual(
+  telegramLaunchHashFromParams({
+    tgWebAppVersion: "8.0",
+    tgWebAppData: "user%3D1",
+  }),
+  "#tgWebAppVersion=8.0&tgWebAppData=user%253D1",
+  "launch hash from params",
+);
+
+const location = {
+  pathname: "/today",
+  search: "",
+  hash: "",
+  replaceState(_state: unknown, _title: string, url: string) {
+    const hashIndex = url.indexOf("#");
+    location.hash = hashIndex >= 0 ? url.slice(hashIndex) : "";
+  },
+};
+Object.defineProperty(fakeWindow, "location", {
+  value: location,
+  configurable: true,
+});
+Object.defineProperty(fakeWindow, "history", {
+  value: { state: null, replaceState: location.replaceState },
+  configurable: true,
+});
+
+store.set(
+  TELEGRAM_INIT_PARAMS_STORAGE_KEY,
+  JSON.stringify({
+    tgWebAppVersion: "8.0",
+    tgWebAppData: "user%3D1",
+  }),
+);
+assertEqual(restoreTelegramLaunchHashFromStorage(), true, "restore launch hash");
+assertEqual(
+  location.hash.includes("tgWebAppData"),
+  true,
+  "restored hash contains init data",
+);
 
 console.log("telegram webapp ok");

@@ -177,27 +177,6 @@ function postNativeHaptic(data: HapticEventData): boolean {
   };
 
   try {
-    const postEvent = host.Telegram?.WebView?.postEvent;
-    if (postEvent) {
-      postEvent(HAPTIC_EVENT, false, data);
-      return true;
-    }
-  } catch {
-    // WebView.postEvent is missing until telegram-web-app.js evaluates.
-  }
-
-  // Telegram iOS reads `eventName` from webkit.messageHandlers.performAction.
-  // Prefer WebView.postEvent when the SDK is loaded; performAction is a fallback.
-  if (postIosMessage(host.webkit?.messageHandlers?.performAction, message)) {
-    return true;
-  }
-  if (
-    postIosMessage(host.webkit?.messageHandlers?.TelegramWebviewProxy, message)
-  ) {
-    return true;
-  }
-
-  try {
     const proxy = host.TelegramWebviewProxy;
     if (proxy?.postEvent) {
       proxy.postEvent(HAPTIC_EVENT, message.eventData);
@@ -217,7 +196,36 @@ function postNativeHaptic(data: HapticEventData): boolean {
     // Desktop/web Telegram uses other bridges.
   }
 
+  // Telegram iOS reads `eventName` from webkit.messageHandlers.performAction.
+  if (postIosMessage(host.webkit?.messageHandlers?.performAction, message)) {
+    return true;
+  }
+  if (
+    postIosMessage(host.webkit?.messageHandlers?.TelegramWebviewProxy, message)
+  ) {
+    return true;
+  }
+
+  try {
+    const postEvent = host.Telegram?.WebView?.postEvent;
+    if (postEvent && telegramWebViewBridgeReady(host)) {
+      postEvent(HAPTIC_EVENT, false, data);
+      return true;
+    }
+  } catch {
+    // WebView.postEvent is missing until telegram-web-app.js evaluates.
+  }
+
   return false;
+}
+
+function telegramWebViewBridgeReady(host: TelegramHapticHost): boolean {
+  return Boolean(
+    host.TelegramWebviewProxy?.postEvent ||
+      host.external?.notify ||
+      host.webkit?.messageHandlers?.performAction?.postMessage ||
+      host.webkit?.messageHandlers?.TelegramWebviewProxy?.postMessage,
+  );
 }
 
 function postIosMessage(
@@ -287,5 +295,10 @@ function loadHaptics(): Promise<HapticApi | null> {
 }
 
 if (typeof window !== "undefined") {
-  void loadHaptics();
+  void import("@/lib/telegram/webapp")
+    .then(({ ensureTelegramSdkPrimed }) => {
+      ensureTelegramSdkPrimed();
+      return loadHaptics();
+    })
+    .catch(() => loadHaptics());
 }

@@ -9,7 +9,26 @@ export const TELEGRAM_BOOT_HIDE_CLASS = "tg-boot";
 // queues work until hydration, so the public page paints and then redirects.
 export const TELEGRAM_BOOT_STYLE = `html.${TELEGRAM_BOOT_HIDE_CLASS}{background-color:var(--background,${LIGHT_THEME_COLOR})}html.dark.${TELEGRAM_BOOT_HIDE_CLASS}{background-color:var(--background,${DARK_THEME_COLOR})}html.${TELEGRAM_BOOT_HIDE_CLASS} body{visibility:hidden}`;
 
-export const TELEGRAM_BOOT_SCRIPT = `(function(){try{var KEY="${TELEGRAM_INIT_STORAGE_KEY}";var FS_KEY="${TELEGRAM_FULLSCREEN_STORAGE_KEY}";function parseLaunchHash(h){h=h||"";if(h.indexOf("tgWebApp")===-1)return null;var q=h.charAt(0)==="#"?h.slice(1):h;var i=q.indexOf("?");if(i>=0)q=q.slice(i+1);var p={};q.split("&").forEach(function(part){var e=part.indexOf("=");if(e<0)return;var k=decodeURIComponent((part.slice(0,e)||"").replace(/\\+/g," "));var v=decodeURIComponent((part.slice(e+1)||"").replace(/\\+/g," "));if(k)p[k]=v;});if(p.tgWebAppData||p.tgWebAppVersion)return p;return null;}function mergePersist(p){try{var merged=p;var prev=sessionStorage.getItem(KEY);if(prev){try{merged=Object.assign(JSON.parse(prev),p);}catch(err){}}sessionStorage.removeItem(FS_KEY);sessionStorage.setItem(KEY,JSON.stringify(merged));return merged;}catch(err){return null;}}function askFs(){try{var w=typeof window==="undefined"?null:window;if(!w)return;if(w.TelegramWebviewProxy&&w.TelegramWebviewProxy.postEvent){w.TelegramWebviewProxy.postEvent("web_app_request_fullscreen","{}");}else if(w.external&&typeof w.external.notify==="function"){w.external.notify(JSON.stringify({eventType:"web_app_request_fullscreen",eventData:{}}));}}catch(err){}}function onLaunch(){var p=parseLaunchHash(location.hash);if(!p)return;mergePersist(p);if(location.pathname==="/"){var root=document.documentElement;root.classList.add("${TELEGRAM_BOOT_HIDE_CLASS}");new MutationObserver(function(){root.classList.contains("${TELEGRAM_BOOT_HIDE_CLASS}")||root.classList.add("${TELEGRAM_BOOT_HIDE_CLASS}");}).observe(root,{attributes:true,attributeFilter:["class"]});location.replace("/today"+location.search+location.hash);return;}askFs();if(typeof setTimeout==="function"){setTimeout(askFs,150);setTimeout(askFs,600);setTimeout(askFs,1200);}}onLaunch();if(typeof window!=="undefined"&&window.addEventListener){window.addEventListener("hashchange",onLaunch);}}catch(e){}})();`;
+export const TELEGRAM_BOOT_SCRIPT = `(function(){try{var KEY="${TELEGRAM_INIT_STORAGE_KEY}";var FS_KEY="${TELEGRAM_FULLSCREEN_STORAGE_KEY}";function parseLaunchHash(h){h=h||"";if(h.indexOf("tgWebApp")===-1)return null;var q=h.charAt(0)==="#"?h.slice(1):h;var i=q.indexOf("?");if(i>=0)q=q.slice(i+1);var p={};q.split("&").forEach(function(part){var e=part.indexOf("=");if(e<0)return;var k=decodeURIComponent((part.slice(0,e)||"").replace(/\\+/g," "));var v=decodeURIComponent((part.slice(e+1)||"").replace(/\\+/g," "));if(k)p[k]=v;});if(p.tgWebAppData||p.tgWebAppVersion)return p;return null;}function mergePersist(p){try{var merged=p;var prev=sessionStorage.getItem(KEY);if(prev){try{merged=Object.assign(JSON.parse(prev),p);}catch(err){}}sessionStorage.removeItem(FS_KEY);sessionStorage.setItem(KEY,JSON.stringify(merged));return merged;}catch(err){return null;}}function askFs(){try{var w=typeof window==="undefined"?null:window;if(!w)return;if(w.TelegramWebviewProxy&&w.TelegramWebviewProxy.postEvent){w.TelegramWebviewProxy.postEvent("web_app_request_fullscreen","{}");}else if(w.external&&typeof w.external.notify==="function"){w.external.notify(JSON.stringify({eventType:"web_app_request_fullscreen",eventData:{}}));}}catch(err){}}function restoreHashFromStorage(){try{if(parseLaunchHash(location.hash))return;var prev=sessionStorage.getItem(KEY);if(!prev)return;var s=JSON.parse(prev);if(!s.tgWebAppData&&!s.tgWebAppVersion)return;var parts=[];for(var k in s){if(Object.prototype.hasOwnProperty.call(s,k)&&s[k]!=null&&s[k]!=="")parts.push(encodeURIComponent(k)+"="+encodeURIComponent(String(s[k])));}if(!parts.length)return;history.replaceState(history.state,"",location.pathname+location.search+"#"+parts.join("&"));}catch(err){}}function onLaunch(){restoreHashFromStorage();var p=parseLaunchHash(location.hash);if(!p)return;mergePersist(p);if(location.pathname==="/"){var root=document.documentElement;root.classList.add("${TELEGRAM_BOOT_HIDE_CLASS}");new MutationObserver(function(){root.classList.contains("${TELEGRAM_BOOT_HIDE_CLASS}")||root.classList.add("${TELEGRAM_BOOT_HIDE_CLASS}");}).observe(root,{attributes:true,attributeFilter:["class"]});location.replace("/today"+location.search+location.hash);return;}askFs();if(typeof setTimeout==="function"){setTimeout(askFs,150);setTimeout(askFs,600);setTimeout(askFs,1200);}}onLaunch();if(typeof window!=="undefined"&&window.addEventListener){window.addEventListener("hashchange",onLaunch);}}catch(e){}})();`;
+
+export function telegramLaunchHashFromParams(
+  params: Record<string, string>,
+): string | null {
+  if (!params.tgWebAppData && !params.tgWebAppVersion) {
+    return null;
+  }
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(params)) {
+    if (!key || value === "") {
+      continue;
+    }
+    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+  }
+  if (parts.length === 0) {
+    return null;
+  }
+  return `#${parts.join("&")}`;
+}
 
 export function telegramInitParamsFromHash(
   hash: string,

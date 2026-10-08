@@ -71,6 +71,17 @@ assertEqual(
   "boot script keeps launch params when the hash arrives late",
 );
 assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("restoreHashFromStorage"),
+  true,
+  "boot script restores launch hash from session storage",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.indexOf("restoreHashFromStorage") <
+    TELEGRAM_BOOT_SCRIPT.indexOf("parseLaunchHash(location.hash)"),
+  true,
+  "boot script restores hash before parsing launch params",
+);
+assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf(`classList.add("${TELEGRAM_BOOT_HIDE_CLASS}")`) <
     TELEGRAM_BOOT_SCRIPT.indexOf("location.replace"),
   true,
