@@ -236,6 +236,31 @@ export function ownsBarcode(
   return foods.some((food) => food.barcode === ean);
 }
 
+/** Higher = better match for catalog / food list search ordering. */
+export function catalogFoodSearchScore(
+  name: string,
+  brand: string | null,
+  tokens: string[],
+): number {
+  if (tokens.length === 0) {
+    return 0;
+  }
+
+  let total = 0;
+  for (const token of tokens) {
+    const inName = scoreCatalogTokenInText(token, name);
+    const inBrand = brand
+      ? scoreCatalogTokenInText(token, brand) * 0.35
+      : 0;
+    const tokenScore = Math.max(inName, inBrand);
+    if (tokenScore <= 0) {
+      return 0;
+    }
+    total += tokenScore;
+  }
+  return total;
+}
+
 export function filterCatalogHits<
   T extends { name: string; brand: string | null },
 >(rows: T[], tokens: string[]): T[] {
@@ -248,7 +273,107 @@ export function filterCatalogHits<
       const haystack = catalogHaystack(row.name, row.brand);
       return tokens.every((token) => haystack.includes(token));
     })
+    .sort((a, b) => compareCatalogFoodRows(a, b, tokens))
     .slice(0, CATALOG_SEARCH_LIMIT);
+}
+
+export function filterAndSortFoodsBySearch<
+  T extends { name: string; brand: string | null; barcode?: string | null },
+>(rows: T[], query: string): T[] {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return rows;
+  }
+
+  const ean = parseBarcodeEan(trimmed);
+  if (ean) {
+    return rows.filter((row) => row.barcode === ean);
+  }
+
+  const tokens = catalogSearchTokens(query);
+  if (tokens) {
+    const haystackMatch = (row: T) => {
+      const haystack = catalogHaystack(row.name, row.brand);
+      return tokens.every((token) => haystack.includes(token));
+    };
+    return rows
+      .filter(haystackMatch)
+      .sort((a, b) => compareCatalogFoodRows(a, b, tokens));
+  }
+
+  const needle = foldCatalogSearch(trimmed.toLowerCase());
+  if (needle.length < CATALOG_SEARCH_MIN) {
+    return rows;
+  }
+
+  const needleTokens = [needle];
+  return rows
+    .filter((row) => foodMatchesQuery(row.name, row.brand, query, row.barcode))
+    .sort((a, b) => compareCatalogFoodRows(a, b, needleTokens));
+}
+
+function compareCatalogFoodRows<
+  T extends { name: string; brand: string | null },
+>(a: T, b: T, tokens: string[]): number {
+  const scoreDiff =
+    catalogFoodSearchScore(b.name, b.brand, tokens) -
+    catalogFoodSearchScore(a.name, a.brand, tokens);
+  if (scoreDiff !== 0) {
+    return scoreDiff;
+  }
+  return a.name.localeCompare(b.name, "ru");
+}
+
+function scoreCatalogTokenInText(token: string, text: string): number {
+  const folded = foldCatalogSearch(text.trim().toLowerCase());
+  if (!folded || !folded.includes(token)) {
+    return 0;
+  }
+
+  const words = catalogMatchWords(text);
+  let best = 0;
+
+  if (folded.startsWith(token)) {
+    best = Math.max(best, 8800);
+  }
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index];
+    const positionPenalty = index * 150;
+    if (word === token) {
+      best = Math.max(best, 10_000 - positionPenalty);
+      continue;
+    }
+    if (word.startsWith(token)) {
+      const tail = word.length - token.length;
+      best = Math.max(best, 7200 - tail * 80 - positionPenalty);
+      continue;
+    }
+    if (word.includes(token)) {
+      best = Math.max(best, 1800 - positionPenalty);
+    }
+  }
+
+  if (best === 0) {
+    best = 1200;
+  }
+  return best;
+}
+
+function catalogMatchWords(text: string): string[] {
+  const folded = foldCatalogSearch(text.trim().toLowerCase());
+  if (!folded) {
+    return [];
+  }
+  const cleaned = folded
+    .replace(/(\d),(\d)/g, "$1.$2")
+    .replace(/[%_,.()'"`\\*-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) {
+    return [];
+  }
+  return cleaned.split(" ").filter((part) => part.length > 0);
 }
 
 function catalogHaystack(name: string, brand: string | null): string {

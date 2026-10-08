@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { foodsApiUrl } from "@/components/foods/food-favorite";
 import { useFavoriteOffer } from "@/components/foods/use-favorite-offer";
 import { cachedGet } from "@/lib/api-cache";
-import { foodMatchesQuery } from "@/lib/food/catalog-map";
+import { filterAndSortFoodsBySearch } from "@/lib/food/catalog-map";
 import {
   type FavoriteOffer,
   readFavoriteOffers,
@@ -108,9 +108,7 @@ export function useFoodPicker({
     if (!query.trim()) {
       return foods;
     }
-    return foods.filter((food) =>
-      foodMatchesQuery(food.name, food.brand, query, food.barcode),
-    );
+    return filterAndSortFoodsBySearch(foods, query);
   }, [foods, query]);
 
   function setQueryAndResetCatalogHits(value: string) {

@@ -5,6 +5,7 @@ import {
   catalogSearchLead,
   catalogSearchNeedle,
   catalogSearchTokens,
+  catalogFoodSearchScore,
   filterCatalogHits,
   foodMatchesQuery,
   ownsBarcode,
@@ -248,6 +249,42 @@ const mixed = filterCatalogHits(
 );
 assertEqual(mixed.length, 1, "and-filter leftover tokens");
 assertEqual(mixed[0]?.name, "Кефир 2.5%", "keeps the matching sku");
+
+const dairyRank = filterCatalogHits(
+  [
+    { name: "Сырокопченая колбаса", brand: null },
+    { name: "Сырок творожный ванильный", brand: "Белочкин лес" },
+    { name: "Сыр твердый", brand: null },
+  ],
+  ["сырок"],
+);
+assertEqual(dairyRank[0]?.name, "Сырок творожный ванильный", "word beats prefix");
+
+const eggRank = filterCatalogHits(
+  [
+    { name: "Бисквит ванильный на яйцах", brand: null },
+    { name: "Яйцо куриное С0", brand: null },
+    { name: "Яйца перепелиные", brand: null },
+  ],
+  ["яйц"],
+);
+assertEqual(
+  eggRank.at(-1)?.name,
+  "Бисквит ванильный на яйцах",
+  "bakery after egg products",
+);
+assertEqual(
+  eggRank.some((row) => row.name.startsWith("Яйц")),
+  true,
+  "egg sku in top hits",
+);
+
+assertEqual(
+  catalogFoodSearchScore("Сырок творожный", null, ["сырок"]) >
+    catalogFoodSearchScore("Сырокопченая колбаса", null, ["сырок"]),
+  true,
+  "score prefers short word match",
+);
 
 const small = catalogDefaultPortion(90);
 assertEqual(small.grams, 90, "small pack is the portion");
