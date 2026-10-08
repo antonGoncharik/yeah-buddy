@@ -10,10 +10,7 @@ export type BackSwipeGuardState = {
   exitArmed: boolean;
 };
 
-export type BackPopDecision =
-  | { kind: "pass" }
-  | { kind: "arm" }
-  | { kind: "reset" };
+export type BackPopDecision = "pass" | "arm" | "reset";
 
 export function decideBackPop(
   state: BackSwipeGuardState,
