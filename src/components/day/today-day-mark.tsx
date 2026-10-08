@@ -7,8 +7,8 @@ export function TodayDayMark({ training }: { training: boolean }) {
   return (
     <span
       className={cn(
-        "relative h-8 shrink-0 text-primary",
-        training ? "w-14" : "w-8",
+        "relative h-7 shrink-0 text-primary",
+        training ? "w-11" : "w-7",
       )}
       aria-hidden
     >
@@ -18,7 +18,7 @@ export function TodayDayMark({ training }: { training: boolean }) {
           training ? "opacity-0" : "opacity-100",
         )}
       >
-        <CookieDoodle className="size-8" />
+        <CookieDoodle className="size-6" />
       </span>
       <span
         className={cn(
@@ -26,7 +26,7 @@ export function TodayDayMark({ training }: { training: boolean }) {
           training ? "opacity-100" : "opacity-0",
         )}
       >
-        <DumbbellDoodle className="h-6 w-14" />
+        <DumbbellDoodle className="h-5 w-11" />
       </span>
     </span>
   );
