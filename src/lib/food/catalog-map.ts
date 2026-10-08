@@ -12,6 +12,7 @@ export const CATALOG_SEARCH_LIMIT = 40;
 export const CATALOG_SEARCH_FETCH = 120;
 export const CATALOG_SEARCH_TOKEN_MAX = 5;
 export const CATALOG_SOURCE_OFF = "off";
+export const CATALOG_SOURCE_CALORIZATOR = "calorizator";
 export const BARCODE_EAN = /^\d{8,14}$/;
 
 const CATALOG_SEARCH_STOP = new Set([
@@ -296,6 +297,22 @@ export function catalogDefaultPortion(packWeightG: number | null): {
       ? packWeightG
       : 100;
   return { grams, label: `${grams} г` };
+}
+
+/** Default portion when copying a catalog row into the user's food list. */
+export function catalogCopyPortion(
+  source: string | null,
+  packWeightG: number | null,
+): { grams: number; label: string } {
+  if (
+    source === CATALOG_SOURCE_CALORIZATOR &&
+    packWeightG != null &&
+    packWeightG > 0
+  ) {
+    const grams = Math.round(packWeightG * 100) / 100;
+    return { grams, label: `${grams} г` };
+  }
+  return catalogDefaultPortion(packWeightG);
 }
 
 function catalogMacro(value: unknown): number {

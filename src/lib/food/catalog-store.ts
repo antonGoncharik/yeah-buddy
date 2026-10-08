@@ -5,7 +5,7 @@ import {
   type CatalogDumpInput,
   type CatalogFood,
   catalogDedupeFingerprint,
-  catalogDefaultPortion,
+  catalogCopyPortion,
   catalogSearchLead,
   catalogSearchTokens,
   filterCatalogHits,
@@ -145,8 +145,12 @@ export async function copyCatalogFood(
     throw new CatalogFoodNotFoundError();
   }
 
-  const item = mapCatalogFood(catalog.data as Record<string, unknown>);
-  const portion = catalogDefaultPortion(item.pack_weight_g);
+  const catalogRow = catalog.data as Record<string, unknown>;
+  const item = mapCatalogFood(catalogRow);
+  const portion = catalogCopyPortion(
+    toNullableString(catalogRow.source),
+    item.pack_weight_g,
+  );
   const inserted = await supabase
     .from("foods")
     .insert({

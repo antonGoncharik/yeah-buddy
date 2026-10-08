@@ -1,5 +1,7 @@
 import {
+  catalogCopyPortion,
   catalogDefaultPortion,
+  CATALOG_SOURCE_CALORIZATOR,
   catalogSearchLead,
   catalogSearchNeedle,
   catalogSearchTokens,
@@ -253,5 +255,15 @@ assertEqual(small.label, "90 г", "small pack label");
 const bag = catalogDefaultPortion(1000);
 assertEqual(bag.grams, 100, "kilo bag stays 100 g");
 assertEqual(catalogDefaultPortion(null).grams, 100, "missing pack -> 100 g");
+
+const recipe300 = catalogCopyPortion(CATALOG_SOURCE_CALORIZATOR, 300);
+assertEqual(recipe300.grams, 300, "calorizator recipe uses full weight");
+assertEqual(recipe300.label, "300 г", "calorizator recipe label");
+const storeKilo = catalogCopyPortion("edostavka", 1000);
+assertEqual(storeKilo.grams, 100, "store kilo bag stays 100 g on copy");
+const storeSmall = catalogCopyPortion("edostavka", 90);
+assertEqual(storeSmall.grams, 90, "store small pack on copy");
+const recipeNoWeight = catalogCopyPortion(CATALOG_SOURCE_CALORIZATOR, null);
+assertEqual(recipeNoWeight.grams, 100, "calorizator without weight -> 100 g");
 
 console.log("catalog dump map ok");
