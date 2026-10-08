@@ -15,6 +15,14 @@ const MIN_SPAN_DAYS = 7;
 const MIN_LOGGED_DAYS = 5;
 /** Logged food has to cover at least half the days between the weigh-ins. */
 const MIN_COVERAGE = 0.5;
+/** Fewer points and the scale line is mostly guesswork. */
+const MIN_WEIGH_INS = 3;
+/** Recent days weigh more than the start of the window (half-life in days). */
+export const INTAKE_HALF_LIFE_DAYS = 9;
+
+/** Last N calendar days ending on the weight window must have enough food logs. */
+export const RECENT_FOOD_LOG_DAYS = 7;
+export const MIN_RECENT_FOOD_LOG_DAYS = 5;
 /** Outside this the log or the scale is noise, not a burn. */
 const MIN_KCAL = 900;
 const MAX_KCAL = 5500;
@@ -35,7 +43,11 @@ export type EnergyDay = {
 type WeighIn = { date: string; body_weight: number };
 
 /** Trend behind the burn. `endKg` is the late half of the scale, not one salty morning. */
-export type ExpenditureTrend = ReviewEnergy & { endKg: number };
+export type ExpenditureTrend = ReviewEnergy & {
+  endKg: number;
+  from: string;
+  to: string;
+};
 
 export function dynamicExpenditure(days: EnergyDay[]): ReviewEnergy | null {
   const trend = expenditureTrend(days);
@@ -59,7 +71,11 @@ export function expenditureTrend(days: EnergyDay[]): ExpenditureTrend | null {
         item.body_weight != null && item.body_weight > 0,
     )
     .sort((left, right) => left.date.localeCompare(right.date));
-  const trend = weightTrend(withoutSpikes(weighed));
+  const scalePoints = withoutSpikes(weighed);
+  if (scalePoints.length < MIN_WEIGH_INS) {
+    return null;
+  }
+  const trend = weightTrend(scalePoints);
   if (trend == null || trend.span < MIN_SPAN_DAYS) {
     return null;
   }
@@ -77,10 +93,11 @@ export function expenditureTrend(days: EnergyDay[]): ExpenditureTrend | null {
     return null;
   }
 
-  const intake =
-    logged.reduce((sum, item) => sum + item.fact_kcal, 0) / logged.length;
-  const targetMean =
-    logged.reduce((sum, item) => sum + item.target_kcal, 0) / logged.length;
+  const intake = weightedMeanKcal(logged, trend.to);
+  const targetMean = weightedMeanKcal(
+    logged.map((item) => ({ date: item.date, fact_kcal: item.target_kcal })),
+    trend.to,
+  );
   const kcal = intake - (trend.delta * KCAL_PER_BODY_KG) / trend.span;
   if (!Number.isFinite(kcal) || kcal < MIN_KCAL || kcal > MAX_KCAL) {
     return null;
@@ -94,7 +111,51 @@ export function expenditureTrend(days: EnergyDay[]): ExpenditureTrend | null {
     span: trend.span,
     logged: logged.length,
     endKg: trend.endKg,
+    from: trend.from,
+    to: trend.to,
   };
+}
+
+export function recentFoodLogOk(
+  days: EnergyDay[],
+  windowEnd: string,
+  recentDays = RECENT_FOOD_LOG_DAYS,
+  minLogged = MIN_RECENT_FOOD_LOG_DAYS,
+): boolean {
+  if (recentDays < 1 || minLogged < 1 || minLogged > recentDays) {
+    return false;
+  }
+  const start = shiftIsoDate(windowEnd, -(recentDays - 1));
+  let logged = 0;
+  for (let lag = 0; lag < recentDays; lag += 1) {
+    const date = shiftIsoDate(start, lag);
+    if (date > windowEnd) {
+      break;
+    }
+    const row = days.find((item) => item.date === date);
+    if (row != null && row.fact_kcal > 0) {
+      logged += 1;
+    }
+  }
+  return logged >= minLogged;
+}
+
+function weightedMeanKcal(
+  rows: Array<{ date: string; fact_kcal: number }>,
+  anchorDate: string,
+): number {
+  let weightSum = 0;
+  let valueSum = 0;
+  for (const row of rows) {
+    const lag = Math.max(0, daysBetween(row.date, anchorDate));
+    const weight = Math.exp(-lag / INTAKE_HALF_LIFE_DAYS);
+    weightSum += weight;
+    valueSum += row.fact_kcal * weight;
+  }
+  if (weightSum <= 0) {
+    return 0;
+  }
+  return valueSum / weightSum;
 }
 
 export function energySignalLine(energy: ReviewEnergy): string {

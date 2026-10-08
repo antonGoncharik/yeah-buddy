@@ -43,7 +43,11 @@ const loss = dynamicExpenditure(
     from: "2026-09-01",
     count: 15,
     kcal: 2000,
-    weights: { "2026-09-01": 80, "2026-09-15": 79.3 },
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 79.65,
+      "2026-09-15": 79.3,
+    },
   }),
 );
 assertEqual(loss?.span, 14, "span is days between weigh-ins");
@@ -70,7 +74,11 @@ const gain = dynamicExpenditure(
     from: "2026-09-01",
     count: 15,
     kcal: 2500,
-    weights: { "2026-09-01": 80, "2026-09-15": 80.5 },
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 80.25,
+      "2026-09-15": 80.5,
+    },
   }),
 );
 assertEqual(gain?.delta, 0.5, "gain delta");
@@ -86,7 +94,11 @@ const flat = dynamicExpenditure(
     count: 15,
     kcal: 2000,
     target: 0,
-    weights: { "2026-09-01": 80, "2026-09-15": 80 },
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 80,
+      "2026-09-15": 80,
+    },
   }),
 );
 assertEqual(flat?.kcal, 2000, "flat scale means burn equals the plate");
@@ -111,6 +123,18 @@ assertEqual(
   ),
   null,
   "one weigh-in is not a burn",
+);
+assertEqual(
+  dynamicExpenditure(
+    days({
+      from: "2026-09-01",
+      count: 15,
+      kcal: 2000,
+      weights: { "2026-09-01": 80, "2026-09-15": 79.5 },
+    }),
+  ),
+  null,
+  "two weigh-ins are not a burn",
 );
 assertEqual(
   dynamicExpenditure(

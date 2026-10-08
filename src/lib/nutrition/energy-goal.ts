@@ -2,6 +2,7 @@ import {
   type EnergyDay,
   expenditureTrend,
   KCAL_PER_BODY_KG,
+  recentFoodLogOk,
 } from "@/lib/ai/energy";
 import { formatKcalPlain } from "@/lib/ai/format";
 import { formatSignedBodyWeight } from "@/lib/day/body-weight";
@@ -45,6 +46,12 @@ const OFFER_MIN_COVERAGE = 0.75;
 
 /** At this coverage the offer is the full correction, not a fraction of it. */
 const OFFER_FULL_COVERAGE = 0.9;
+
+/** At least this many food days in the weight window before moving macros. */
+const OFFER_MIN_LOGGED_DAYS = 10;
+
+/** Cap how far the rest-day kcal goal can jump per week (then trust still applies). */
+const MAX_GOAL_SHIFT_KCAL_PER_WEEK = 175;
 
 /** Under this the scale did not really move. */
 const STEADY_KG = 0.15;
@@ -93,7 +100,11 @@ export function energyGoalOffer(input: {
 
   const windowDays = energy.span + 1;
   const coverage = windowDays > 0 ? energy.logged / windowDays : 0;
-  if (coverage < OFFER_MIN_COVERAGE) {
+  if (
+    coverage < OFFER_MIN_COVERAGE ||
+    energy.logged < OFFER_MIN_LOGGED_DAYS ||
+    !recentFoodLogOk(input.days, energy.to)
+  ) {
     return null;
   }
 
@@ -105,12 +116,16 @@ export function energyGoalOffer(input: {
   const ideal = clampGoalKcal(
     energy.kcal + goalShiftKcal(input.goal, energy.endKg),
   );
+  const maxShift = MAX_GOAL_SHIFT_KCAL_PER_WEEK * (energy.span / 7);
+  const boundedIdeal = clampToward(currentKcal, ideal, maxShift);
   const trust =
     coverage >= OFFER_FULL_COVERAGE
       ? 1
       : (coverage - OFFER_MIN_COVERAGE) /
         (OFFER_FULL_COVERAGE - OFFER_MIN_COVERAGE);
-  const target = clampGoalKcal(currentKcal + (ideal - currentKcal) * trust);
+  const target = clampGoalKcal(
+    currentKcal + (boundedIdeal - currentKcal) * trust,
+  );
   const rest = macroGoalsForTargetKcal({
     targetKcal: target,
     weightKg: energy.endKg,
@@ -244,4 +259,15 @@ function clampGoalKcal(value: number): number {
     return MAX_GOAL_KCAL;
   }
   return value;
+}
+
+function clampToward(current: number, ideal: number, maxDelta: number): number {
+  if (!(maxDelta > 0) || !Number.isFinite(maxDelta)) {
+    return ideal;
+  }
+  const diff = ideal - current;
+  if (Math.abs(diff) <= maxDelta) {
+    return ideal;
+  }
+  return current + Math.sign(diff) * maxDelta;
 }

@@ -43,7 +43,11 @@ const twoWeeks = days({
   from: "2026-09-01",
   count: 15,
   kcal: 2400,
-  weights: { "2026-09-01": 80, "2026-09-15": 80 },
+  weights: {
+    "2026-09-01": 80,
+    "2026-09-08": 80,
+    "2026-09-15": 80,
+  },
 });
 
 const macros = {
@@ -114,14 +118,14 @@ const gain = energyGoalOffer({
 });
 assertEqual(
   gain?.restKcal,
-  2630,
+  2590,
   "gain is about a quarter percent a week above the burn",
 );
 assert(gain != null, "gain offer");
 if (gain) {
   assertEqual(
     energyGoalLine(gain),
-    "Вес стоит. Расход около 2400. На набор цель 2630.",
+    "Вес стоит. Расход около 2400. На набор цель 2590.",
     "gain line",
   );
 }
@@ -188,7 +192,11 @@ const falling = energyGoalOffer({
     from: "2026-09-01",
     count: 15,
     kcal: 2400,
-    weights: { "2026-09-01": 80, "2026-09-15": 79.3 },
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 79.65,
+      "2026-09-15": 79.3,
+    },
   }),
   goal: "lose",
   ...macros,
@@ -213,7 +221,11 @@ const tooFast = energyGoalOffer({
     from: "2026-09-01",
     count: 15,
     kcal: 1800,
-    weights: { "2026-09-01": 80, "2026-09-15": 78.6 },
+    weights: {
+      "2026-09-01": 80,
+      "2026-09-08": 79.3,
+      "2026-09-15": 78.6,
+    },
   }),
   goal: "lose",
   ...macros,
@@ -221,11 +233,11 @@ const tooFast = energyGoalOffer({
 });
 assertEqual(
   tooFast?.restKcal,
-  2130,
-  "a fast cut raises the goal toward the right rate",
+  1910,
+  "a fast cut raises the goal toward the right rate, capped per week",
 );
 assert(
-  (tooFast?.restKcal ?? 0) > 150 * 4 + 70 * 9 + 80 * 4,
+  (tooFast?.restKcal ?? 0) > 160 * 4 + 70 * 9 + 80 * 4,
   "the new goal is more food than the current plate target",
 );
 
@@ -233,8 +245,12 @@ const patchy = days({
   from: "2026-09-01",
   count: 15,
   kcal: 2400,
-  weights: { "2026-09-01": 80, "2026-09-15": 80 },
-}).map((row, index) => (index < 12 ? row : { ...row, fact_kcal: 0 }));
+  weights: {
+    "2026-09-01": 80,
+    "2026-09-08": 80,
+    "2026-09-15": 80,
+  },
+}).map((row, index) => (index < 3 ? { ...row, fact_kcal: 0 } : row));
 assertEqual(
   energyGoalOffer({
     days: patchy,
@@ -259,7 +275,11 @@ const stuck = energyGoalOffer({
     from: "2026-09-01",
     count: 15,
     kcal: 2000,
-    weights: { "2026-09-01": 70, "2026-09-15": 70 },
+    weights: {
+      "2026-09-01": 70,
+      "2026-09-08": 70,
+      "2026-09-15": 70,
+    },
   }),
   goal: "lose",
   ...macros,
@@ -277,6 +297,27 @@ assertEqual(
   stuck?.training.fat,
   stuck?.rest.fat,
   "training fat steps down with the rest day",
+);
+
+assertEqual(
+  energyGoalOffer({
+    days: days({
+      from: "2026-09-01",
+      count: 15,
+      kcal: 2400,
+      weights: {
+        "2026-09-01": 80,
+        "2026-09-08": 80,
+        "2026-09-15": 80,
+      },
+    }).map((row, index) =>
+      index >= 8 && index <= 12 ? { ...row, fact_kcal: 0 } : row,
+    ),
+    goal: "lose",
+    ...macros,
+  }),
+  null,
+  "a stale log with holes this week does not move the goal",
 );
 
 console.log("energy goal offer ok");
