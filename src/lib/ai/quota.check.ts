@@ -11,6 +11,7 @@ import {
   dictateRemainingLine,
   plateRemainingLine,
   remainingAfterUse,
+  textMealRemainingLine,
 } from "@/lib/ai/quota-copy";
 import { AI_DICTATE_QUOTA, AI_PLATE_QUOTA } from "@/lib/messages";
 
@@ -145,10 +146,10 @@ assertEqual(
   "unknown limit waits fifteen minutes",
 );
 
-assertEqual(dailyLimit("plate"), 2, "two photos");
-assertEqual(dailyLimit("review"), 1, "one review");
-assertEqual(dailyLimit("dictate"), 2, "two spoken logs");
-assertEqual(dailyLimit("text"), 8, "text meal logs");
+assertEqual(dailyLimit("plate"), 3, "three photos");
+assertEqual(dailyLimit("review"), 3, "three reviews");
+assertEqual(dailyLimit("dictate"), 3, "three spoken logs");
+assertEqual(dailyLimit("text"), 3, "three text meal logs");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");
@@ -158,6 +159,7 @@ assertEqual(plateRemainingLine(null), null, "no line when untracked");
 assertEqual(plateRemainingLine(0), AI_PLATE_QUOTA, "exhausted copy");
 assertEqual(plateRemainingLine(1), "Ещё одно фото сегодня.", "one left");
 assertEqual(plateRemainingLine(2), "Ещё 2 фото сегодня.", "two left");
+assertEqual(plateRemainingLine(3), "Ещё 3 фото сегодня.", "three left");
 
 assertEqual(dictateRemainingLine(null), null, "dictate untracked");
 assertEqual(dictateRemainingLine(0), AI_DICTATE_QUOTA, "dictate exhausted");
@@ -172,6 +174,11 @@ assertEqual(
   "dictate few left",
 );
 assertEqual(
+  dictateRemainingLine(3),
+  "Ещё 3 записи сегодня.",
+  "dictate three left",
+);
+assertEqual(
   dictateRemainingLine(5),
   "Ещё 5 записей сегодня.",
   "dictate many left",
@@ -180,6 +187,13 @@ assertEqual(
   dictateRemainingLine(21),
   "Ещё 21 запись сегодня.",
   "dictate 21 left",
+);
+
+assertEqual(textMealRemainingLine(null), null, "text untracked");
+assertEqual(
+  textMealRemainingLine(3),
+  "Ещё 3 строки сегодня.",
+  "text three left",
 );
 
 assertEqual(isGeminiLimit(429, null), true, "http 429 is limit");

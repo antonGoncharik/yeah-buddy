@@ -6,10 +6,10 @@ import {
 
 export type AiKind = "plate" | "review" | "dictate" | "text";
 
-export const PLATE_DAILY_LIMIT = 2;
-export const REVIEW_DAILY_LIMIT = 1;
-export const DICTATE_DAILY_LIMIT = 2;
-export const TEXT_MEAL_DAILY_LIMIT = 8;
+export const PLATE_DAILY_LIMIT = 3;
+export const REVIEW_DAILY_LIMIT = 3;
+export const DICTATE_DAILY_LIMIT = 3;
+export const TEXT_MEAL_DAILY_LIMIT = 3;
 
 export function dailyLimit(kind: AiKind): number {
   if (kind === "plate") {
