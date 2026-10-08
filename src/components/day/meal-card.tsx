@@ -105,6 +105,8 @@ export function MealCard({
     !readOnly &&
     Boolean(plateHref || dictateHref || (aiText && mealId && logDate));
   const showFill = !readOnly && Boolean(onFillTemplate);
+  const compactActionsRow =
+    compact && items.length > 0 && showAdd && showFill && !showCapture;
   const yesterdaySource =
     items.length === 0 && date && onCopyDate
       ? yesterdayMealSource(date, mealType, copyDays ?? [])
@@ -211,9 +213,7 @@ export function MealCard({
           className={cn(
             "flex gap-2",
             compact && "[&_a]:h-9 [&_button]:h-9",
-            compact && items.length > 0 && showAdd && showFill
-              ? "flex-row *:min-w-0 *:flex-1"
-              : "flex-col",
+            compactActionsRow ? "flex-row *:min-w-0 *:flex-1" : "flex-col",
           )}
         >
           {yesterdaySource && onCopyDate && showAdd ? (

@@ -52,7 +52,7 @@ export function MealLogActions({
           <Link
             href={addHref}
             className={cn(
-              "flex min-w-0 flex-1 items-center justify-center gap-1.5 text-sm font-medium transition-colors",
+              "flex h-11 min-h-11 flex-1 items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap transition-colors",
               addProminent
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "text-foreground hover:bg-muted/50",
