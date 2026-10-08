@@ -1,3 +1,5 @@
+import { isAndroidTelegram } from "@/lib/telegram/launch-context";
+
 export type HapticKind =
   | "tick"
   | "tap"
@@ -78,6 +80,16 @@ const COMMANDS: Record<HapticKind, HapticCommand> = {
   error: { type: "notification", style: "error" },
 };
 
+const NAVIGATOR_FALLBACK_MS: Record<HapticKind, number | number[]> = {
+  tick: 6,
+  tap: 10,
+  commit: 16,
+  heavy: [18, 35, 18],
+  success: [12, 28, 12],
+  warn: [14, 40, 14],
+  error: [22, 55, 22],
+};
+
 let hapticApi: HapticApi | null | undefined;
 let hapticLoad: Promise<HapticApi | null> | undefined;
 
@@ -85,8 +97,35 @@ export function hapticCommand(kind: HapticKind): HapticCommand {
   return COMMANDS[kind];
 }
 
-export function hapticEventData(kind: HapticKind): HapticEventData {
-  const command = COMMANDS[kind];
+/**
+ * Android requestAppWebView ignores impact/selection haptics (Telegram client bug).
+ * Map them to notification + navigator.vibrate for chat-list / home-screen opens.
+ */
+export function resolveHapticCommand(kind: HapticKind): HapticCommand {
+  const base = COMMANDS[kind];
+  // requestAppWebView and requestWebView share the same initData on Android;
+  // impact/selection are unreliable on the client, notification is not.
+  if (!isAndroidTelegram()) {
+    return base;
+  }
+  if (base.type === "notification") {
+    return base;
+  }
+  if (base.type === "selection") {
+    return { type: "notification", style: "success" };
+  }
+  if (base.style === "heavy") {
+    return { type: "notification", style: "error" };
+  }
+  if (base.style === "medium") {
+    return { type: "notification", style: "warning" };
+  }
+  return { type: "notification", style: "success" };
+}
+
+export function hapticEventDataFromCommand(
+  command: HapticCommand,
+): HapticEventData {
   if (command.type === "selection") {
     return { type: "selection_change" };
   }
@@ -94,6 +133,10 @@ export function hapticEventData(kind: HapticKind): HapticEventData {
     return { type: "impact", impact_style: command.style };
   }
   return { type: "notification", notification_type: command.style };
+}
+
+export function hapticEventData(kind: HapticKind): HapticEventData {
+  return hapticEventDataFromCommand(resolveHapticCommand(kind));
 }
 
 export function hapticNativeMessage(kind: HapticKind): HapticNativeMessage {
@@ -155,28 +198,98 @@ export function haptic(kind: HapticKind): void {
     return;
   }
 
-  const command = COMMANDS[kind];
-  const sdkApi = liveHapticApi();
-  if (sdkApi && telegramHapticApiReady()) {
-    tryPlay(sdkApi, command);
-    return;
-  }
+  const play = () => {
+    const command = resolveHapticCommand(kind);
+    const eventData = hapticEventDataFromCommand(command);
 
-  if (postNativeHaptic(hapticEventData(kind))) {
-    return;
-  }
-
-  const api = hapticApi ?? sdkApi;
-  if (api) {
-    tryPlay(api, command);
-    return;
-  }
-
-  void loadHaptics().then((loaded) => {
-    if (loaded) {
-      tryPlay(loaded, command);
+    if (isAndroidTelegram()) {
+      postNativeHaptic(eventData);
+      const sdkApi = liveHapticApi();
+      if (sdkApi && telegramHapticApiReady()) {
+        tryPlay(sdkApi, command);
+      } else {
+        const api = hapticApi ?? sdkApi;
+        if (api) {
+          tryPlay(api, command);
+        } else {
+          void loadHaptics().then((loaded) => {
+            if (loaded) {
+              tryPlay(loaded, command);
+            }
+          });
+        }
+      }
+      if (shouldUseNavigatorHapticFallback(kind)) {
+        playNavigatorHapticFallback(kind);
+      }
+      return;
     }
-  });
+
+    const sdkApi = liveHapticApi();
+    if (sdkApi && telegramHapticApiReady()) {
+      tryPlay(sdkApi, command);
+      return;
+    }
+
+    if (postNativeHaptic(eventData)) {
+      return;
+    }
+
+    const api = hapticApi ?? sdkApi;
+    if (api) {
+      tryPlay(api, command);
+      return;
+    }
+
+    void loadHaptics().then((loaded) => {
+      if (loaded) {
+        tryPlay(loaded, command);
+      }
+    });
+  };
+
+  whenTelegramWebAppActive(play);
+}
+
+function shouldUseNavigatorHapticFallback(kind: HapticKind): boolean {
+  if (!isAndroidTelegram()) {
+    return false;
+  }
+  return COMMANDS[kind].type !== "notification";
+}
+
+type TelegramActiveHost = {
+  isActive?: boolean;
+  onEvent?: (event: string, callback: () => void) => void;
+  offEvent?: (event: string, callback: () => void) => void;
+};
+
+function whenTelegramWebAppActive(play: () => void): void {
+  const webApp = (window as TelegramHapticHost).Telegram?.WebApp as
+    | TelegramActiveHost
+    | undefined;
+  if (!webApp || webApp.isActive !== false) {
+    play();
+    return;
+  }
+  const onActivated = () => {
+    webApp.offEvent?.("activated", onActivated);
+    play();
+  };
+  webApp.onEvent?.("activated", onActivated);
+}
+
+function playNavigatorHapticFallback(kind: HapticKind): void {
+  const pattern = NAVIGATOR_FALLBACK_MS[kind];
+  try {
+    if (Array.isArray(pattern)) {
+      navigator.vibrate?.([...pattern]);
+      return;
+    }
+    navigator.vibrate?.(pattern);
+  } catch {
+    // Some WebViews expose vibrate but reject the call.
+  }
 }
 
 function telegramHapticApiReady(): boolean {

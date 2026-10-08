@@ -20,6 +20,10 @@ import {
   type TelegramFullscreenHost,
 } from "@/lib/telegram/fullscreen";
 import {
+  isAndroidTelegram,
+  isTelegramAppWebViewLaunch,
+} from "@/lib/telegram/launch-context";
+import {
   captureTelegramLaunchFromLocation,
   clearTelegramInitReloadFlag,
   loadTelegramWebApp,
@@ -61,9 +65,15 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         throw error;
       }
       if (!releaseFullscreen.current) {
-        releaseFullscreen.current = bindTelegramFullscreen(
-          webApp as TelegramFullscreenHost,
-        );
+        const host = webApp as TelegramFullscreenHost;
+        if (isAndroidTelegram()) {
+          host.expand?.();
+          if (!isTelegramAppWebViewLaunch()) {
+            releaseFullscreen.current = bindTelegramFullscreen(host);
+          }
+        } else {
+          releaseFullscreen.current = bindTelegramFullscreen(host);
+        }
       }
       rememberIncomingStart(
         startPayloadFromLocation({

@@ -1,9 +1,14 @@
 import {
+  isTelegramAppWebViewLaunch,
+  isTelegramKeyboardWebAppLaunch,
+} from "@/lib/telegram/launch-context";
+import {
   HAPTIC_EVENT,
   hapticCommand,
   hapticEventData,
   hapticNativeMessage,
   holdTimerStepHaptic,
+  resolveHapticCommand,
   TIMER_DONE_HAPTICS,
   TIMER_DONE_VIBRATE,
 } from "@/lib/telegram/haptic";
@@ -49,20 +54,54 @@ assertEqual(
   { type: "selection_change" },
   "native tick",
 );
+const fakeWindow = {
+  Telegram: {
+    WebView: { initParams: { tgWebAppPlatform: "android" } },
+    WebApp: { initDataUnsafe: { start_param: "open" } },
+  },
+};
+Object.defineProperty(globalThis, "window", {
+  value: fakeWindow as Window,
+  configurable: true,
+});
+Object.defineProperty(globalThis, "navigator", {
+  value: { userAgent: "Telegram-Android" },
+  configurable: true,
+});
+
+assertEqual(isTelegramAppWebViewLaunch(), true, "android app webview detect");
+assertEqual(
+  resolveHapticCommand("tap"),
+  { type: "notification", style: "success" },
+  "android app webview maps tap to notification",
+);
+
+fakeWindow.Telegram.WebApp.initDataUnsafe = {};
+assertEqual(
+  isTelegramKeyboardWebAppLaunch(),
+  true,
+  "android bot keyboard detect",
+);
+assertEqual(
+  resolveHapticCommand("tap"),
+  { type: "notification", style: "success" },
+  "android maps tap to notification even on bot keyboard",
+);
+
 assertEqual(
   hapticEventData("tap"),
-  { type: "impact", impact_style: "light" },
-  "native tap",
+  { type: "notification", notification_type: "success" },
+  "android native tap",
 );
 assertEqual(
   hapticEventData("commit"),
-  { type: "impact", impact_style: "medium" },
-  "native commit",
+  { type: "notification", notification_type: "warning" },
+  "android native commit",
 );
 assertEqual(
   hapticEventData("heavy"),
-  { type: "impact", impact_style: "heavy" },
-  "native heavy",
+  { type: "notification", notification_type: "error" },
+  "android native heavy",
 );
 assertEqual(
   hapticEventData("success"),
@@ -85,14 +124,17 @@ assertEqual(
   {
     eventName: HAPTIC_EVENT,
     eventType: HAPTIC_EVENT,
-    eventData: JSON.stringify({ type: "impact", impact_style: "light" }),
+    eventData: JSON.stringify({
+      type: "notification",
+      notification_type: "success",
+    }),
   },
   "ios native tap message",
 );
 assertEqual(
   JSON.parse(hapticNativeMessage("tick").eventData),
-  { type: "selection_change" },
-  "ios native tick payload stays a json string",
+  { type: "notification", notification_type: "success" },
+  "android maps tick to notification",
 );
 
 assertEqual(holdTimerStepHaptic(6), null, "early hold second is silent");

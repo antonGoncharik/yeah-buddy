@@ -122,9 +122,17 @@ assertEqual(
   "boot style keeps the theme background",
 );
 
-const launchHash = "#tgWebAppVersion=8.0&tgWebAppData=query_id%3D1";
+const launchHash =
+  "#tgWebAppVersion=8.0&tgWebAppPlatform=ios&tgWebAppData=query_id%3D1";
+const launchHashAndroid =
+  "#tgWebAppVersion=8.0&tgWebAppPlatform=android&tgWebAppData=query_id%3D1";
 
-function runBoot(pathname: string, hash: string) {
+function runBoot(
+  pathname: string,
+  hash: string,
+  options?: { userAgent?: string },
+) {
+  const storage = new Map<string, string>();
   const result: {
     classes: Set<string>;
     replaced: string | null;
@@ -137,6 +145,7 @@ function runBoot(pathname: string, hash: string) {
     fullscreen: 0,
   };
   runInNewContext(TELEGRAM_BOOT_SCRIPT, {
+    navigator: { userAgent: options?.userAgent ?? "" },
     location: {
       hash,
       pathname,
@@ -158,13 +167,16 @@ function runBoot(pathname: string, hash: string) {
       },
     },
     sessionStorage: {
-      getItem() {
-        return null;
+      getItem(key: string) {
+        return storage.get(key) ?? null;
       },
-      setItem(_key: string, value: string) {
+      setItem(key: string, value: string) {
+        storage.set(key, value);
         result.stored = value;
       },
-      removeItem() {},
+      removeItem(key: string) {
+        storage.delete(key);
+      },
     },
     document: {
       documentElement: {
@@ -204,7 +216,14 @@ assertEqual(inside.replaced, null, "diary is not redirected");
 assertEqual(
   inside.fullscreen,
   1,
-  "home-screen diary launch requests fullscreen before hydration",
+  "ios diary launch requests fullscreen before hydration",
+);
+
+const insideAndroid = runBoot("/today", launchHashAndroid);
+assertEqual(
+  insideAndroid.fullscreen,
+  0,
+  "android diary launch skips early fullscreen (breaks haptics)",
 );
 
 const publicPage = runBoot("/", "#home");
