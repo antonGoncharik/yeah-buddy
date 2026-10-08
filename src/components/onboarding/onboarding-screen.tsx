@@ -12,6 +12,7 @@ import {
   OnboardingProfileStep,
   profileStepSubtitle,
 } from "@/components/onboarding/onboarding-food-step";
+import { OnboardingModeStep } from "@/components/onboarding/onboarding-mode-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
 import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
@@ -57,6 +58,9 @@ export function OnboardingScreen() {
     goal,
     trainingAge,
     ration,
+    gymEnabled,
+    foodOnly,
+    onGymModePick,
     lifts,
     circle,
     setCircle,
@@ -100,6 +104,36 @@ export function OnboardingScreen() {
           onRetry={() => void load()}
         />
       </main>
+    );
+  }
+
+  if (step === "mode") {
+    return (
+      <OnboardingStepShell
+        canGoBack={false}
+        onBack={() => {}}
+        progressLabel="С чего начнём"
+        title="Что ведём"
+        subtitle="Можно сменить в настройках — данные никуда не пропадут."
+        showSticky
+        sticky={
+          <Button
+            className="h-14 w-full text-lg"
+            disabled={saving || gymEnabled == null}
+            onClick={() => goNext()}
+          >
+            {saving ? "Секунду…" : "Дальше"}
+          </Button>
+        }
+      >
+        <OnboardingModeStep
+          gymEnabled={gymEnabled}
+          onPick={onGymModePick}
+        />
+        {error ? (
+          <p className="mt-2 text-center text-sm text-destructive">{error}</p>
+        ) : null}
+      </OnboardingStepShell>
     );
   }
 
@@ -182,6 +216,7 @@ export function OnboardingScreen() {
             weight={weight}
             goal={goal}
             trainingAge={trainingAge}
+            foodOnly={foodOnly}
             weightInvalid={weightInvalid}
             weightMessage={weightFieldError ? error : null}
             onSexPick={onSexPick}
@@ -245,6 +280,9 @@ function titleForStep(
   step: OnboardingStep,
   shelf: OnboardingProgramShelf | null,
 ): string {
+  if (step === "mode") {
+    return "Что ведём";
+  }
   if (step === "profile") {
     return "Про тебя";
   }

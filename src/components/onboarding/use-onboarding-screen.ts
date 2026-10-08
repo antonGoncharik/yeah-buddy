@@ -83,7 +83,8 @@ export function useOnboardingScreen() {
   const [state, setState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<OnboardingStep>("profile");
+  const [step, setStep] = useState<OnboardingStep>("mode");
+  const [gymEnabled, setGymEnabled] = useState<boolean | null>(null);
   const [sex, setSex] = useState<OnboardingSex | null>(null);
   const [weight, setWeight] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
@@ -117,6 +118,11 @@ export function useOnboardingScreen() {
       setPendingKind(incoming);
       setPendingProgramId(incomingProgram);
       setState(onboarding);
+      const gymOn =
+        incomingProgram != null || incoming === "workouts"
+          ? true
+          : onboarding.settings.gym_enabled;
+      setGymEnabled(gymOn);
       setCircle(
         incomingProgram ?? defaultOnboardingCircle(onboarding.circle, replay),
       );
@@ -125,7 +131,7 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
-      setStep(replay ? "profile" : "guide");
+      setStep(replay ? "profile" : "mode");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
@@ -151,8 +157,9 @@ export function useOnboardingScreen() {
         pendingKind,
         pendingProgram: pendingProgramId != null,
         replay,
+        gymEnabled: gymEnabled ?? true,
       }),
-    [pendingKind, pendingProgramId, replay],
+    [gymEnabled, pendingKind, pendingProgramId, replay],
   );
 
   useEffect(() => {
@@ -173,6 +180,15 @@ export function useOnboardingScreen() {
   }, [stepIndex, steps]);
 
   function goNext(circleOverride?: OnboardingCircle) {
+    if (step === "mode") {
+      if (gymEnabled == null) {
+        haptic("warn");
+        setError("Выбери, что тебе нужно.");
+        return;
+      }
+      setError(null);
+    }
+
     if (step === "profile") {
       if (sex == null) {
         haptic("warn");
@@ -194,7 +210,7 @@ export function useOnboardingScreen() {
         setError(GOAL_REQUIRED);
         return;
       }
-      if (trainingAge == null) {
+      if (gymEnabled && trainingAge == null) {
         haptic("warn");
         setError(TRAINING_AGE_REQUIRED);
         return;
@@ -263,7 +279,7 @@ export function useOnboardingScreen() {
         setStep("profile");
         return;
       }
-      if (trainingAge == null) {
+      if (gymEnabled && trainingAge == null) {
         haptic("warn");
         setSaving(false);
         setError(TRAINING_AGE_REQUIRED);
@@ -297,6 +313,7 @@ export function useOnboardingScreen() {
         replay,
         circle: chosen,
         ration: skipRation ? null : ration,
+        gymEnabled: gymEnabled ?? true,
       });
       if (isProgramPresetId(chosen) || pendingProgramId != null) {
         markProgramEditableHintPending();
@@ -358,9 +375,15 @@ export function useOnboardingScreen() {
     goal,
     trainingAge,
     ration,
+    gymEnabled,
+    foodOnly: gymEnabled === false,
     lifts,
     circle,
     setCircle,
+    onGymModePick: (enabled: boolean) => {
+      setGymEnabled(enabled);
+      setError(null);
+    },
     goBack,
     goNext,
     skipRation: skipRationStep,

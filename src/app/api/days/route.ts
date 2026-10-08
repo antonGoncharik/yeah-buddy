@@ -58,6 +58,7 @@ import {
   buildHabitBridgeSnapshot,
   inHabitBridgeWindow,
 } from "@/lib/retention/habit-bridge";
+import { gymFeaturesEnabled } from "@/lib/settings/gym-mode";
 import { getUserSettings } from "@/lib/settings";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
 import type { DayHistoryRow } from "@/lib/types";
@@ -91,9 +92,11 @@ export async function GET(request: Request): Promise<NextResponse> {
     const streakStart = shiftIsoDate(date, 1 - PROTEIN_STREAK_WINDOW);
     const weekStart = shiftIsoDate(today, -6);
     const viewingToday = date === today;
+    const gymEnabled = gymFeaturesEnabled(settings);
     const earlyHabit = viewingToday && inEarlyHabitWindow(ageDays);
     const habitBridge = viewingToday && inHabitBridgeWindow(ageDays);
-    const needWeekGym = viewingToday && (earlyHabit || habitBridge);
+    const needWeekGym =
+      gymEnabled && viewingToday && (earlyHabit || habitBridge);
     const [
       day,
       yesterday,
@@ -145,6 +148,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     ]);
 
     const reviewReadyFlag =
+      gymEnabled &&
       viewingToday &&
       reviewCtaReady({
         loggedDays: recentDays.filter(historyDayHasFood).length,
@@ -163,6 +167,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     return jsonOk({
       day,
+      gymEnabled,
       today,
       writable: isDayWritable(date, today, writeStateFromDay(day)),
       yesterdayExists: yesterday.exists,

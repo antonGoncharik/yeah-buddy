@@ -33,6 +33,7 @@ export function SettingsGoalsForm({
   updateGoal,
   updateTrainingAge,
   onRecount,
+  showTrainingGoals = true,
 }: {
   form: SettingsFormState;
   restKcal: number | null;
@@ -47,6 +48,7 @@ export function SettingsGoalsForm({
   updateGoal: (value: OnboardingGoal) => void;
   updateTrainingAge: (value: UserTrainingAge) => void;
   onRecount: () => void;
+  showTrainingGoals?: boolean;
 }) {
   const canRecount =
     form.sex != null && form.goal != null && bodyWeight != null;
@@ -81,25 +83,31 @@ export function SettingsGoalsForm({
           onPick={updateGoal}
           size="compact"
         />
-        <p className="text-sm font-medium text-muted-foreground">Стаж</p>
-        <div className="flex flex-col gap-2">
-          {TRAINING_AGE_OPTIONS.map((option) => (
-            <Button
-              key={option.id}
-              type="button"
-              variant={form.training_age === option.id ? "default" : "outline"}
-              className="h-12 justify-start text-base"
-              onClick={() => {
-                if (form.training_age !== option.id) {
-                  haptic("tick");
-                }
-                updateTrainingAge(option.id);
-              }}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
+        {showTrainingGoals ? (
+          <>
+            <p className="text-sm font-medium text-muted-foreground">Стаж</p>
+            <div className="flex flex-col gap-2">
+              {TRAINING_AGE_OPTIONS.map((option) => (
+                <Button
+                  key={option.id}
+                  type="button"
+                  variant={
+                    form.training_age === option.id ? "default" : "outline"
+                  }
+                  className="h-12 justify-start text-base"
+                  onClick={() => {
+                    if (form.training_age !== option.id) {
+                      haptic("tick");
+                    }
+                    updateTrainingAge(option.id);
+                  }}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </>
+        ) : null}
         {bodyWeight != null ? (
           <p className="text-sm text-muted-foreground">
             Вес для счёта — {formatWeight(bodyWeight)} кг (с «Сегодня»).
@@ -125,8 +133,12 @@ export function SettingsGoalsForm({
       </section>
 
       <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-        <h2 className="text-xl font-semibold">День отдыха</h2>
-        <p className="text-sm text-muted-foreground">На день без зала.</p>
+        <h2 className="text-xl font-semibold">
+          {showTrainingGoals ? "День отдыха" : "Цели на день"}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {showTrainingGoals ? "На день без зала." : "Белок, жир и углеводы."}
+        </p>
         <SettingsMacroField
           label="Белки"
           value={form.rest_protein}
@@ -152,38 +164,40 @@ export function SettingsGoalsForm({
         ) : null}
       </section>
 
-      <section
-        className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
-        style={{ animationDelay: "50ms" }}
-      >
-        <h2 className="text-xl font-semibold">День тренировки</h2>
-        <p className="text-sm text-muted-foreground">
-          На день с залом. Обычно больше углеводов.
-        </p>
-        <SettingsMacroField
-          label="Белки"
-          value={form.training_protein}
-          kcalPerGram={4}
-          onChange={(value) => updateField("training_protein", value)}
-        />
-        <SettingsMacroField
-          label="Жиры"
-          value={form.training_fat}
-          kcalPerGram={9}
-          onChange={(value) => updateField("training_fat", value)}
-        />
-        <SettingsMacroField
-          label="Углеводы"
-          value={form.training_carbs}
-          kcalPerGram={4}
-          onChange={(value) => updateField("training_carbs", value)}
-        />
-        {trainingKcal != null ? (
+      {showTrainingGoals ? (
+        <section
+          className="card-surface animate-rise flex flex-col gap-3 px-5 py-4"
+          style={{ animationDelay: "50ms" }}
+        >
+          <h2 className="text-xl font-semibold">День тренировки</h2>
           <p className="text-sm text-muted-foreground">
-            {formatKcal(trainingKcal)} ккал
+            На день с залом. Обычно больше углеводов.
           </p>
-        ) : null}
-      </section>
+          <SettingsMacroField
+            label="Белки"
+            value={form.training_protein}
+            kcalPerGram={4}
+            onChange={(value) => updateField("training_protein", value)}
+          />
+          <SettingsMacroField
+            label="Жиры"
+            value={form.training_fat}
+            kcalPerGram={9}
+            onChange={(value) => updateField("training_fat", value)}
+          />
+          <SettingsMacroField
+            label="Углеводы"
+            value={form.training_carbs}
+            kcalPerGram={4}
+            onChange={(value) => updateField("training_carbs", value)}
+          />
+          {trainingKcal != null ? (
+            <p className="text-sm text-muted-foreground">
+              {formatKcal(trainingKcal)} ккал
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {saved ? (

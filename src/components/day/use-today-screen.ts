@@ -27,6 +27,7 @@ import {
   visibleTodayDate,
   writeStateFromDay,
 } from "@/lib/day/dates";
+import { effectiveTrainingDay } from "@/lib/settings/gym-mode";
 import { gymLoopFromTodayState } from "@/lib/day/loop";
 import { isRecord } from "@/lib/read";
 import { appendPreservedTelegramLaunchHash } from "@/lib/telegram/launch-hash";
@@ -69,6 +70,11 @@ export function useTodayScreen({
   const isToday = date === data.today;
   const fromHistory = readOnly;
   const { shownDay } = data;
+  const gymEnabled = data.gymEnabled;
+  const effectiveTraining = effectiveTrainingDay(
+    { gym_enabled: gymEnabled },
+    shownDay,
+  );
   const writable = isDayWritable(date, data.today, writeStateFromDay(shownDay));
   const catchUp =
     shownDay?.caught_up === true ||
@@ -77,11 +83,16 @@ export function useTodayScreen({
 
   const gym = useMemo(
     () =>
-      gymLoopFromTodayState(data.workoutState, {
-        isToday,
-        isTrainingDay: shownDay?.is_training_day === true,
-      }),
-    [isToday, shownDay?.is_training_day, data.workoutState],
+      gymEnabled
+        ? gymLoopFromTodayState(data.workoutState, {
+            isToday,
+            isTrainingDay: effectiveTraining,
+          })
+        : gymLoopFromTodayState(null, {
+            isToday,
+            isTrainingDay: false,
+          }),
+    [data.workoutState, effectiveTraining, gymEnabled, isToday],
   );
 
   useEffect(() => {
@@ -130,25 +141,28 @@ export function useTodayScreen({
       return;
     }
 
-    setMood(shownDay.is_training_day ? "training" : "rest");
-  }, [data.contentReady, shownDay, setMood]);
+    setMood(effectiveTraining ? "training" : "rest");
+  }, [data.contentReady, effectiveTraining, shownDay, setMood]);
 
-  const visibleMeals = useMemo(() => visibleMealsFromDay(shownDay), [shownDay]);
+  const visibleMeals = useMemo(
+    () => visibleMealsFromDay(shownDay, effectiveTraining),
+    [effectiveTraining, shownDay],
+  );
   const fact = useMemo(() => factFromDay(shownDay), [shownDay]);
   const hiddenMealKcal = useMemo(
-    () => hiddenMealKcalFromDay(shownDay),
-    [shownDay],
+    () => hiddenMealKcalFromDay(shownDay, effectiveTraining),
+    [effectiveTraining, shownDay],
   );
   const hiddenMealTypes = useMemo(
-    () => hiddenMealTypesFromDay(shownDay),
-    [shownDay],
+    () => hiddenMealTypesFromDay(shownDay, effectiveTraining),
+    [effectiveTraining, shownDay],
   );
   const recipe = shownDay
-    ? shownDay.is_training_day
+    ? effectiveTraining
       ? data.recipes.training
       : data.recipes.rest
     : [];
-  const remaining = remainingFromDay(shownDay, recipe);
+  const remaining = remainingFromDay(shownDay, recipe, effectiveTraining);
   const remainingMealTypes = remaining.mealTypes;
 
   const {
@@ -196,6 +210,10 @@ export function useTodayScreen({
       return;
     }
     openedTodayRef.current = date;
+    if (!gymEnabled) {
+      void createDay("rest");
+      return;
+    }
     const session = parseWorkoutSession(
       isRecord(data.workoutState) ? data.workoutState.session : null,
     );
@@ -207,6 +225,7 @@ export function useTodayScreen({
     data.today,
     data.workoutState,
     date,
+    gymEnabled,
     shownDay,
     viewOnly,
   ]);
@@ -243,6 +262,8 @@ export function useTodayScreen({
     goals: data.goals,
     weightSteady: data.weightSteady,
     priorProteinHits: data.priorProteinHits,
+    gymEnabled,
+    effectiveTraining,
     reviewReady: data.reviewReady,
     retentionTail: data.retentionTail,
     earlyHabit: data.earlyHabit,

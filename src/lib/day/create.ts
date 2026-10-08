@@ -13,6 +13,7 @@ import {
   type Macros,
   MEAL_DISPLAY_ORDER,
 } from "@/lib/nutrition";
+import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, MealTemplateDetail, MealType } from "@/lib/types";
@@ -28,14 +29,16 @@ export async function createDayFromTemplate(
     throw new DayConflictError();
   }
 
+  const settings = await getUserSettings(userId);
+  const resolvedType = resolveDayTypeForUser(settings, dayType);
   const supabase = createSupabaseServerClient();
-  const targets = await getTargets(userId, dayType);
+  const targets = await getTargets(userId, resolvedType);
   const created = await supabase
     .from("days")
     .insert({
       user_id: userId,
       date,
-      is_training_day: dayType === "training",
+      is_training_day: resolvedType === "training",
       target_protein: targets.protein,
       target_fat: targets.fat,
       target_carbs: targets.carbs,
@@ -57,7 +60,7 @@ export async function createDayFromTemplate(
     supabase,
     userId,
     mealIds,
-    await getActiveMealTemplate(userId, dayType),
+    await getActiveMealTemplate(userId, resolvedType),
   );
 
   const day = await getDayByDate(userId, date);

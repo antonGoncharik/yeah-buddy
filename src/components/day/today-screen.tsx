@@ -65,6 +65,8 @@ export function TodayScreen({
     goals,
     weightSteady,
     priorProteinHits,
+    gymEnabled,
+    effectiveTraining,
     reviewReady,
     retentionTail,
     earlyHabit,
@@ -166,9 +168,10 @@ export function TodayScreen({
             catchUp={catchUp}
             viewOnly={viewOnly}
             fromHistory={fromHistory}
-            isTrainingDay={shownDay.is_training_day}
+            isTrainingDay={effectiveTraining}
             busy={busy || isTempId(shownDay.id)}
             switchType={switchType}
+            showDayTypeSwitch={gymEnabled}
           />
         ) : null}
       </div>
@@ -214,7 +217,8 @@ export function TodayScreen({
           <div className="animate-rise flex flex-col gap-5">
             <CreateDayButtons
               busy={busy}
-              trainingFirst={isToday}
+              trainingFirst={isToday && gymEnabled}
+              showTraining={gymEnabled}
               showCopy={yesterdayHasFood}
               catchUp={catchUp}
               onCreateRest={() => void createDay("rest")}
@@ -266,7 +270,9 @@ export function TodayScreen({
             goals={goals}
             weightSteady={weightSteady}
             priorProteinHits={priorProteinHits}
-            reviewReady={reviewReady && isToday}
+            reviewReady={gymEnabled && reviewReady && isToday}
+            gymEnabled={gymEnabled}
+            effectiveTraining={effectiveTraining}
             gym={gym}
             busy={busy}
             saveBodyWeight={saveBodyWeight}

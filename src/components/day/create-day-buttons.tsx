@@ -14,6 +14,7 @@ export function CreateDayButtons({
   trainingFirst = false,
   showCopy = true,
   catchUp = false,
+  showTraining = true,
 }: {
   onCreateRest: () => void;
   onCreateTraining: () => void;
@@ -22,6 +23,7 @@ export function CreateDayButtons({
   trainingFirst?: boolean;
   showCopy?: boolean;
   catchUp?: boolean;
+  showTraining?: boolean;
 }) {
   const rest = (
     <Button
@@ -51,16 +53,20 @@ export function CreateDayButtons({
       {catchUp ? (
         <p className="text-base text-muted-foreground">{CATCH_UP_EMPTY_HINT}</p>
       ) : null}
-      {trainingFirst ? (
-        <>
-          {training}
-          {rest}
-        </>
+      {showTraining ? (
+        trainingFirst ? (
+          <>
+            {training}
+            {rest}
+          </>
+        ) : (
+          <>
+            {rest}
+            {training}
+          </>
+        )
       ) : (
-        <>
-          {rest}
-          {training}
-        </>
+        rest
       )}
       {showCopy ? (
         <Button

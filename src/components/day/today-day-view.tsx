@@ -85,6 +85,8 @@ export function TodayDayView({
   weightSteady,
   priorProteinHits,
   reviewReady,
+  gymEnabled,
+  effectiveTraining,
   gym,
   busy,
   saveBodyWeight,
@@ -137,6 +139,8 @@ export function TodayDayView({
   weightSteady: boolean;
   priorProteinHits: number;
   reviewReady: boolean;
+  gymEnabled: boolean;
+  effectiveTraining: boolean;
   gym: GymLoop;
   busy: boolean;
   saveBodyWeight: (value: number | null) => Promise<void>;
@@ -168,7 +172,7 @@ export function TodayDayView({
   const hiddenNote = hiddenMealSlotsNote(
     hiddenMealKcal,
     hiddenMealTypes,
-    shownDay.is_training_day,
+    effectiveTraining,
   );
   const reviewOffer = useReviewOffer(reviewReady);
   const yesterdayCatchUp = showYesterdayCatchUpHint({
@@ -189,12 +193,14 @@ export function TodayDayView({
   const proteinMealCount = shownDay.meals.filter(
     (meal) => sumMealItems(meal.items).protein > 0,
   ).length;
-  const trainingGap = trainingDayGapLine({
-    training: shownDay.is_training_day,
+  const trainingGap = gymEnabled
+    ? trainingDayGapLine({
+        training: effectiveTraining,
     fact,
     rest: { protein: goals.restProtein, carbs: goals.restCarbs },
-    day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
-  });
+        day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
+      })
+    : null;
   const weightGap = weightGapLine({
     weight: shownDay.body_weight,
     lastWeightDate: lastBodyWeightDate,
@@ -270,7 +276,7 @@ export function TodayDayView({
       weightGap={weightGap}
       waistGap={waistGap}
       share={writable}
-      gym={<TodayGymStatus {...gym} />}
+      gym={gymEnabled ? <TodayGymStatus {...gym} /> : null}
       onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
       onSaveWaist={viewOnly ? undefined : saveWaist}
       bodyWeightReadOnly={viewOnly}
@@ -369,12 +375,21 @@ export function TodayDayView({
       ) : null}
       {!dayHasItems && topNudge === "early-habit" && habitSnapshot ? (
         <div className="animate-rise">
-          <EarlyHabitCard snapshot={habitSnapshot} compact={compact} />
+          <EarlyHabitCard
+            snapshot={habitSnapshot}
+            compact={compact}
+            showGymLine={gymEnabled}
+          />
         </div>
       ) : null}
       {!dayHasItems && topNudge === "habit-bridge" && habitBridgeSnapshot ? (
         <div className="animate-rise">
-          <HabitBridgeCard snapshot={habitBridgeSnapshot} compact={compact} />
+          <HabitBridgeCard
+            snapshot={habitBridgeSnapshot}
+            compact={compact}
+            showGymLine={gymEnabled}
+            showReviewLink={gymEnabled}
+          />
         </div>
       ) : null}
 

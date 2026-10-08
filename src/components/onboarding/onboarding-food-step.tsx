@@ -106,10 +106,12 @@ export function OnboardingMacrosSummary({
   sex,
   weight,
   goal,
+  foodOnly = false,
 }: {
   sex: OnboardingSex;
   weight: string;
   goal: OnboardingGoal;
+  foodOnly?: boolean;
 }) {
   const weightKg = parseDecimal(weight);
   const preview =
@@ -130,10 +132,9 @@ export function OnboardingMacrosSummary({
         {preview.protein} г белка
       </p>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Без зала — {formatKcal(preview.rest.kcal)} ккал, жир {preview.rest.fat}{" "}
-        г, углеводы {preview.rest.carbs} г. В день тренировки —{" "}
-        {formatKcal(preview.training.kcal)} ккал, углеводов{" "}
-        {preview.training.carbs} г. Свой бжу всегда можно изменить в любое время — в Настройках → «Цели на день».
+        {foodOnly
+          ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
+          : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки — ${formatKcal(preview.training.kcal)} ккал, углеводов ${preview.training.carbs} г. Свой БЖУ всегда можно изменить в Настройках → «Цели на день».`}
       </p>
     </div>
   );
@@ -150,11 +151,13 @@ export function OnboardingProfileStep({
   onWeightChange,
   onGoalPick,
   onTrainingAgePick,
+  foodOnly = false,
 }: {
   sex: OnboardingSex | null;
   weight: string;
   goal: OnboardingGoal | null;
   trainingAge: UserTrainingAge | null;
+  foodOnly?: boolean;
   weightInvalid: boolean;
   weightMessage: string | null;
   onSexPick: (value: OnboardingSex) => void;
@@ -164,9 +167,10 @@ export function OnboardingProfileStep({
 }) {
   const showWeight = sex != null;
   const showGoal = showWeight && weightLooksValid(weight);
-  const showTrainingAge = showGoal && goal != null;
-  const showMacros =
-    showTrainingAge && trainingAge != null && sex != null && goal != null;
+  const showTrainingAge = !foodOnly && showGoal && goal != null;
+  const showMacros = foodOnly
+    ? showGoal && goal != null && sex != null
+    : showTrainingAge && trainingAge != null && sex != null && goal != null;
 
   return (
     <div className="flex flex-col gap-4 pb-2">
@@ -214,8 +218,13 @@ export function OnboardingProfileStep({
         </div>
       ) : null}
 
-      {showMacros ? (
-        <OnboardingMacrosSummary sex={sex} weight={weight} goal={goal} />
+      {showMacros && sex != null && goal != null ? (
+        <OnboardingMacrosSummary
+          sex={sex}
+          weight={weight}
+          goal={goal}
+          foodOnly={foodOnly}
+        />
       ) : null}
     </div>
   );

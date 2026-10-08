@@ -8,6 +8,7 @@ import {
   isOnboardingGoal,
 } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
+import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import {
   isRecord,
   mapRecordList,
@@ -147,7 +148,17 @@ export function readPriorProteinHits(data: unknown): number {
   return data.priorProteinHits;
 }
 
+export function readGymEnabled(data: unknown): boolean {
+  if (!isRecord(data)) {
+    return true;
+  }
+  return parseGymEnabled(data.gymEnabled);
+}
+
 export function readReviewReady(data: unknown): boolean {
+  if (!readGymEnabled(data)) {
+    return false;
+  }
   return isRecord(data) && data.reviewReady === true;
 }
 

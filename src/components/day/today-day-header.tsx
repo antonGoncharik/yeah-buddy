@@ -27,6 +27,7 @@ export function TodayDayHeader({
   isTrainingDay,
   busy,
   switchType,
+  showDayTypeSwitch = true,
 }: {
   date: string;
   today: string;
@@ -37,6 +38,7 @@ export function TodayDayHeader({
   isTrainingDay: boolean;
   busy: boolean;
   switchType: (dayType: DayType) => Promise<void>;
+  showDayTypeSwitch?: boolean;
 }) {
   const router = useRouter();
   const { density } = useDiaryDensity();
@@ -69,6 +71,10 @@ export function TodayDayHeader({
         ) : null}
       </div>
     );
+  }
+
+  if (!showDayTypeSwitch) {
+    return null;
   }
 
   return (

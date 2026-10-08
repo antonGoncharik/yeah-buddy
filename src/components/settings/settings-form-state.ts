@@ -19,6 +19,7 @@ export interface SettingsFormState {
   sex: OnboardingSex | null;
   goal: OnboardingGoal | null;
   training_age: UserTrainingAge | null;
+  gym_enabled: boolean;
 }
 
 export type MacroFieldKey = Exclude<
@@ -39,6 +40,7 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     sex: settings.sex,
     goal: settings.goal,
     training_age: settings.training_age,
+    gym_enabled: settings.gym_enabled,
   };
 }
 

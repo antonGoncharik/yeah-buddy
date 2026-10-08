@@ -36,5 +36,7 @@ export interface UserSettings {
   meal_template_fill_prompt_dismissed: boolean;
   /** Rest-day kcal the person refused. A later offer returns when it moves. */
   energy_goal_dismissed_kcal: number | null;
+  /** Workouts tab, day-type switch, gym reminders and AI gym review. */
+  gym_enabled: boolean;
   updated_at: string;
 }

@@ -1,6 +1,7 @@
 import type { SharePackKind } from "@/lib/share/payload";
 
 export type OnboardingStep =
+  | "mode"
   | "guide"
   | "profile"
   | "ration"
@@ -31,6 +32,7 @@ export function onboardingSetupSteps(
  * recalculates protein and leaves the existing menu alone. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
   return (
+    step === "mode" ||
     step === "profile" ||
     step === "ration" ||
     step === "lifts" ||
@@ -42,21 +44,42 @@ export function onboardingSteps({
   pendingKind,
   pendingProgram,
   replay,
+  gymEnabled,
 }: {
   pendingKind: SharePackKind | null;
   pendingProgram: boolean;
   replay: boolean;
+  gymEnabled: boolean;
 }): OnboardingStep[] {
+  const forceGym =
+    gymEnabled ||
+    pendingKind === "workouts" ||
+    pendingProgram ||
+    pendingKind === "meal";
+
   if (replay) {
-    return [...ONBOARDING_FOOD_STEPS, "lifts"];
+    if (forceGym) {
+      return [...ONBOARDING_FOOD_STEPS, "lifts"];
+    }
+    return [...ONBOARDING_FOOD_STEPS];
   }
 
-  const next: OnboardingStep[] = ["guide"];
-  if (pendingKind !== "meals") {
-    next.push(...ONBOARDING_FOOD_STEPS, "ration", "lifts");
+  const next: OnboardingStep[] = ["mode"];
+
+  if (forceGym) {
+    next.push("guide");
   }
-  if (pendingKind !== "workouts" && !pendingProgram) {
+
+  if (pendingKind !== "meals") {
+    next.push(...ONBOARDING_FOOD_STEPS, "ration");
+    if (forceGym) {
+      next.push("lifts");
+    }
+  }
+
+  if (forceGym && pendingKind !== "workouts" && !pendingProgram) {
     next.push("circle");
   }
+
   return next;
 }

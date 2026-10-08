@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 import { ReviewFactsCard } from "@/components/ai/review-facts-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
 import { useReviewScreen } from "@/components/ai/use-review-screen";
@@ -20,9 +23,20 @@ import {
   AI_REVIEW_NO_KEY,
   AI_REVIEW_QUOTA,
 } from "@/lib/messages";
+import { peekJson } from "@/lib/api-cache";
+import { readSettingsPayload } from "@/lib/settings/map";
 import { REVIEW_LABEL } from "@/lib/workout/labels";
 
 export function ReviewScreen() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const settings = readSettingsPayload(peekJson("/api/settings"));
+    if (settings && !settings.gym_enabled) {
+      router.replace("/today");
+    }
+  }, [router]);
+
   const {
     backHref,
     range,

@@ -22,6 +22,7 @@ import {
   readEarlyHabit,
   readEarlyHabitSnapshot,
   readEnergyGoal,
+  readGymEnabled,
   readHabitBridge,
   readHabitBridgeSnapshot,
   readLastBodyWeight,
@@ -85,6 +86,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [mealTemplateFillPromptDismissed, setMealTemplateFillPromptDismissed] =
     useState(false);
   const [energyGoal, setEnergyGoal] = useState<EnergyGoalOffer | null>(null);
+  const [gymEnabled, setGymEnabled] = useState(true);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
   const [loadError, setLoadError] = useState(false);
@@ -128,6 +130,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         readMealTemplateFillPromptDismissed(data),
       );
       setEnergyGoal(readEnergyGoal(data));
+      setGymEnabled(readGymEnabled(data));
       setLoadedDate(requestedDate);
       return true;
     },
@@ -151,36 +154,43 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         done(true);
       }
     };
-    if (peekJson(dayUrl) != null || peekJson(sessionUrl) != null) {
+    const cachedDay = peekJson(dayUrl);
+    const cachedGym =
+      cachedDay != null ? readGymEnabled(cachedDay) : gymEnabled;
+    if (cachedDay != null || (cachedGym && peekJson(sessionUrl) != null)) {
       showCached();
     } else {
       begin();
     }
 
-    const results = await Promise.all([
-      cachedGet(
-        dayUrl,
-        (data) => applyDayPayload(requestedDate, data),
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet(
-        sessionUrl,
-        (data) => {
-          if (!stillCurrent()) {
+    const dayOk = await cachedGet(
+      dayUrl,
+      (data) => applyDayPayload(requestedDate, data),
+      showCached,
+    ).then(
+      () => true,
+      () => false,
+    );
+
+    const gymOn = readGymEnabled(peekJson(dayUrl));
+    const sessionOk = gymOn
+      ? await cachedGet(
+          sessionUrl,
+          (data) => {
+            if (!stillCurrent()) {
+              return true;
+            }
+            setWorkoutState(data);
             return true;
-          }
-          setWorkoutState(data);
-          return true;
-        },
-        showCached,
-      ).then(
-        () => true,
-        () => false,
-      ),
-    ]);
+          },
+          showCached,
+        ).then(
+          () => true,
+          () => false,
+        )
+      : (setWorkoutState(null), true);
+
+    const results = [dayOk, sessionOk];
 
     if (!stillCurrent()) {
       return;
@@ -195,8 +205,11 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
 
     setLoadedDate(requestedDate);
     done(true);
-    prefetchGymCache();
-  }, [applyDayPayload, begin, date, done, onLoadStart]);
+    const latestGym = readGymEnabled(peekJson(dayUrl));
+    if (latestGym) {
+      prefetchGymCache();
+    }
+  }, [applyDayPayload, begin, date, done, gymEnabled, onLoadStart]);
 
   useLayoutEffect(() => {
     if (date.length > 0) {
@@ -230,6 +243,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setEarlyHabitSnapshot(null);
     setPriorFoodLogDays(0);
     setEnergyGoal(null);
+    setGymEnabled(true);
     setWorkoutState(null);
   }, [applyDayPayload, date, reset]);
 
@@ -289,9 +303,13 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         : mealTemplateFillPromptDismissed,
     setMealTemplateFillPromptDismissed,
     energyGoal: cached != null ? readEnergyGoal(cached) : energyGoal,
+    gymEnabled: cached != null ? readGymEnabled(cached) : gymEnabled,
     setEnergyGoal,
     setGoals,
-    workoutState: cachedSession ?? workoutState,
+    workoutState:
+      (cached != null ? readGymEnabled(cached) : gymEnabled)
+        ? (cachedSession ?? workoutState)
+        : null,
     loadError: cached != null ? false : loadError,
     loading,
     contentReady,

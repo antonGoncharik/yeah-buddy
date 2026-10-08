@@ -14,9 +14,11 @@ import { cn } from "@/lib/utils";
 export function EarlyHabitCard({
   snapshot,
   compact = false,
+  showGymLine = true,
 }: {
   snapshot: EarlyHabitSnapshot;
   compact?: boolean;
+  showGymLine?: boolean;
 }) {
   const foodMilestone = earlyHabitFoodMilestone(snapshot.foodLogStreak);
   const lead = earlyHabitLead(snapshot);
@@ -58,14 +60,16 @@ export function EarlyHabitCard({
             <span className="text-muted-foreground">{snapshot.proteinLine}</span>
           </li>
         ) : null}
-        <li>
-          <span className="font-medium text-foreground">Зал · </span>
-          <span className="text-muted-foreground">
-            {snapshot.gymSessionsWeek > 0
-              ? `${snapshot.gymSessionsWeek} тренировок за 7 дней`
-              : "Пока без записей — когда будешь готов, очередь в Тренировках."}
-          </span>
-        </li>
+        {showGymLine ? (
+          <li>
+            <span className="font-medium text-foreground">Зал · </span>
+            <span className="text-muted-foreground">
+              {snapshot.gymSessionsWeek > 0
+                ? `${snapshot.gymSessionsWeek} тренировок за 7 дней`
+                : "Пока без записей — когда будешь готов, очередь в Тренировках."}
+            </span>
+          </li>
+        ) : null}
       </ul>
 
       {foodMilestone ? (

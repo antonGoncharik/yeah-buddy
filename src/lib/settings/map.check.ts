@@ -50,6 +50,7 @@ const row = {
   goal: "keep",
   training_age: "year",
   granted_programs: [],
+  gym_enabled: true,
   updated_at: "2026-01-01",
 };
 

@@ -7,6 +7,8 @@ import {
   assertUserDayWritable,
   getUserCalendarToday,
 } from "@/lib/day/writable";
+import { getUserSettings } from "@/lib/settings";
+import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, MealType } from "@/lib/types";
@@ -40,7 +42,9 @@ export async function setDayType(
     throw new Error("Day not found");
   }
 
-  if (current.is_training_day === (dayType === "training")) {
+  const settings = await getUserSettings(userId);
+  const resolvedType = resolveDayTypeForUser(settings, dayType);
+  if (current.is_training_day === (resolvedType === "training")) {
     return current;
   }
 
@@ -51,11 +55,11 @@ export async function setDayType(
     recipeFromTemplate(oldTemplate),
   );
 
-  const targets = await getTargets(userId, dayType);
+  const targets = await getTargets(userId, resolvedType);
   const updated = await supabase
     .from("days")
     .update({
-      is_training_day: dayType === "training",
+      is_training_day: resolvedType === "training",
       target_protein: targets.protein,
       target_fat: targets.fat,
       target_carbs: targets.carbs,
@@ -74,7 +78,7 @@ export async function setDayType(
   }
 
   if (swapMeals) {
-    await replaceMealsFromTemplate(userId, current, dayType);
+    await replaceMealsFromTemplate(userId, current, resolvedType);
   }
 
   const day = await getDayByDate(userId, date);

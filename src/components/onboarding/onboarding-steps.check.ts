@@ -16,44 +16,55 @@ const empty = {
   pendingKind: null,
   pendingProgram: false,
   replay: false,
+  gymEnabled: true,
 };
 
 const food = "profile";
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `guide,${food},ration,lifts,circle`,
-  "first run is guide, profile, ration, lifts, program",
+  `mode,guide,${food},ration,lifts,circle`,
+  "first run with gym",
+);
+assertEqual(
+  onboardingSteps({ ...empty, gymEnabled: false }).join(),
+  `mode,${food},ration`,
+  "food-only skips guide, lifts and program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
   `${food},lifts`,
-  "protein replay skips the intro and program",
+  "protein replay with gym",
+);
+assertEqual(
+  onboardingSteps({ ...empty, replay: true, gymEnabled: false }).join(),
+  food,
+  "replay food-only is profile only",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `guide,${food},ration,lifts`,
+  `mode,guide,${food},ration,lifts`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `guide,${food},ration,lifts`,
+  `mode,guide,${food},ration,lifts`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
-  onboardingSteps({ ...empty, pendingKind: "meals" }).join(),
-  "guide,circle",
-  "meal pack skips protein and lifts after the intro",
+  onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: true }).join(),
+  "mode,guide,circle",
+  "meal pack with gym",
+);
+assertEqual(
+  onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: false }).join(),
+  "mode",
+  "meal pack food-only is just the mode step",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `guide,${food},ration,lifts,circle`,
+  `mode,guide,${food},ration,lifts,circle`,
   "one meal pack still asks protein, ration, lifts and program",
-);
-assertEqual(
-  onboardingSteps({ ...empty, replay: true, pendingKind: "meals" }).join(),
-  `${food},lifts`,
-  "replay always has at least the protein and lifts steps",
 );
 
 for (const step of ONBOARDING_FOOD_STEPS) {
@@ -68,6 +79,7 @@ for (const step of ONBOARDING_FOOD_STEPS) {
   );
 }
 
+assertEqual(onboardingStepNeedsNext("mode"), true, "mode needs Дальше");
 assertEqual(onboardingStepNeedsNext("ration"), true, "ration needs Дальше");
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).includes("ration"),

@@ -3,13 +3,15 @@
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { type ComponentType, type MouseEvent, useState } from "react";
+import { type ComponentType, type MouseEvent, useEffect, useState } from "react";
 import {
   Doodle,
   DUMBBELL_VIEWBOX,
   DumbbellMark,
   MealDayDoodle,
 } from "@/components/layout/doodles";
+import { peekJson } from "@/lib/api-cache";
+import { readSettingsPayload } from "@/lib/settings/map";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
@@ -21,21 +23,32 @@ function DumbbellNavIcon({ className }: { className?: string }) {
   );
 }
 
-const ITEMS: Array<{
+const BASE_ITEMS: Array<{
   href: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
+  gymOnly?: boolean;
 }> = [
   { href: "/today", label: "Сегодня", icon: MealDayDoodle },
-  { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon },
+  { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon, gymOnly: true },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
   const from = useSearchParams().get("from");
-  const activeHref = navActiveHref(pathname, from);
+  const [gymEnabled, setGymEnabled] = useState(true);
+  const activeHref = navActiveHref(pathname, from, gymEnabled);
   const [wiggleHref, setWiggleHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    const settings = readSettingsPayload(peekJson("/api/settings"));
+    if (settings) {
+      setGymEnabled(settings.gym_enabled);
+    }
+  }, [pathname]);
+
+  const items = BASE_ITEMS.filter((item) => !item.gymOnly || gymEnabled);
 
   function onTabClick(href: string, event: MouseEvent<HTMLAnchorElement>) {
     haptic("tap");
@@ -49,8 +62,13 @@ export function BottomNav() {
 
   return (
     <nav className="app-bottom-nav app-chrome-bar app-fixed-bottom fixed inset-x-0 z-10 overflow-hidden">
-      <ul className="mx-auto grid h-16 w-full max-w-lg grid-cols-3">
-        {ITEMS.map((item) => {
+      <ul
+        className={cn(
+          "mx-auto grid h-16 w-full max-w-lg",
+          items.length === 2 ? "grid-cols-2" : "grid-cols-3",
+        )}
+      >
+        {items.map((item) => {
           const active = item.href === activeHref;
           const Icon = item.icon;
           const workouts = item.href === "/workouts";
@@ -96,13 +114,17 @@ export function BottomNav() {
   );
 }
 
-function navActiveHref(pathname: string, from: string | null): string {
+function navActiveHref(
+  pathname: string,
+  from: string | null,
+  gymEnabled: boolean,
+): string {
   if (pathname.startsWith("/coach")) {
     return "/coach";
   }
   if (pathname.startsWith("/progress")) {
     if (from === "gym" || from === "workouts") {
-      return "/workouts";
+      return gymEnabled ? "/workouts" : "/today";
     }
     return "/today";
   }
@@ -113,10 +135,8 @@ function navActiveHref(pathname: string, from: string | null): string {
   ) {
     return "/settings";
   }
-  // The set scheme lives under /settings in the URL but is only reachable
-  // from the gym, so the gym tab stays lit.
   if (pathname.startsWith("/settings/formulas")) {
-    return "/workouts";
+    return gymEnabled ? "/workouts" : "/settings";
   }
   if (
     pathname.startsWith("/settings") ||
@@ -130,7 +150,7 @@ function navActiveHref(pathname: string, from: string | null): string {
     return "/today";
   }
   if (pathname === "/workouts" || pathname.startsWith("/workouts/")) {
-    return "/workouts";
+    return gymEnabled ? "/workouts" : "/today";
   }
   return "/today";
 }

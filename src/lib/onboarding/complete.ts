@@ -66,6 +66,7 @@ export const onboardingCompleteSchema = z.object({
       }),
     )
     .default([]),
+  gym_enabled: z.boolean().optional(),
 });
 
 export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>;
@@ -97,6 +98,14 @@ export async function completeOnboarding(
   }
 
   const firstRun = !isOnboardingCompleted(current);
+  const gymOn =
+    input.gym_enabled !== undefined
+      ? input.gym_enabled
+      : current.gym_enabled !== false;
+
+  if (input.gym_enabled !== undefined) {
+    await saveUserSettings(userId, { gym_enabled: input.gym_enabled });
+  }
 
   const profilePatch = {
     ...(input.sex !== undefined ? { sex: input.sex } : {}),
@@ -126,22 +135,24 @@ export async function completeOnboarding(
     await saveUserSettings(userId, profilePatch);
   }
 
-  // Maxes before the program: cycle presets start a phase that locks
-  // starting maxes, and createFirstMacro copies current_max into the phase.
-  await applyStartingMaxes(userId, input, firstRun, current);
+  if (gymOn) {
+    // Maxes before the program: cycle presets start a phase that locks
+    // starting maxes, and createFirstMacro copies current_max into the phase.
+    await applyStartingMaxes(userId, input, firstRun, current);
 
-  if (isProgramPresetId(input.circle)) {
-    await applyProgramPreset(userId, input.circle);
-  } else if (input.circle === "empty") {
-    const templates = await listTemplates(userId);
-    if (templates.length > 0) {
-      await saveRotation(userId, {
-        rotation: templates.map((template) => ({
-          id: template.id,
-          sort_order: template.sort_order,
-          is_active: false,
-        })),
-      });
+    if (isProgramPresetId(input.circle)) {
+      await applyProgramPreset(userId, input.circle);
+    } else if (input.circle === "empty") {
+      const templates = await listTemplates(userId);
+      if (templates.length > 0) {
+        await saveRotation(userId, {
+          rotation: templates.map((template) => ({
+            id: template.id,
+            sort_order: template.sort_order,
+            is_active: false,
+          })),
+        });
+      }
     }
   }
 

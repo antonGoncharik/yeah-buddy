@@ -12,9 +12,13 @@ import { cn } from "@/lib/utils";
 export function HabitBridgeCard({
   snapshot,
   compact = false,
+  showGymLine = true,
+  showReviewLink = true,
 }: {
   snapshot: HabitBridgeSnapshot;
   compact?: boolean;
+  showGymLine?: boolean;
+  showReviewLink?: boolean;
 }) {
   const lead = habitBridgeLead(snapshot);
 
@@ -44,10 +48,12 @@ export function HabitBridgeCard({
           <span className="font-medium text-foreground">Белок · </span>
           {snapshot.proteinHitDaysWeek} дней в цели
         </li>
-        <li>
-          <span className="font-medium text-foreground">Зал · </span>
-          {snapshot.gymSessionsWeek} тренировок за 7 дней
-        </li>
+        {showGymLine ? (
+          <li>
+            <span className="font-medium text-foreground">Зал · </span>
+            {snapshot.gymSessionsWeek} тренировок за 7 дней
+          </li>
+        ) : null}
       </ul>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -57,7 +63,7 @@ export function HabitBridgeCard({
         >
           Неделя
         </Link>
-        {snapshot.reviewReady ? (
+        {showReviewLink && snapshot.reviewReady ? (
           <Link
             href="/progress"
             className={cn(buttonVariants({ variant: "default" }), "h-12 flex-1 text-base")}

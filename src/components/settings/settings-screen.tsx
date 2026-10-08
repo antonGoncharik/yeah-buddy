@@ -83,6 +83,7 @@ export function SettingsScreen({
     updateTrainingAge,
     onRecount,
     setReminders,
+    setGymEnabled,
     setTimezone,
   } = useSettingsScreen();
   const [now, setNow] = useState<Date | null>(null);
@@ -136,8 +137,13 @@ export function SettingsScreen({
                     Цели на день
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">
-                    {restKcal != null && trainingKcal != null
-                      ? `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`
+                    {restKcal != null &&
+                    (form.gym_enabled ? trainingKcal != null : true)
+                      ? form.gym_enabled && trainingKcal != null
+                        ? `Отдых ${formatKcal(restKcal)} · зал ${formatKcal(trainingKcal)} ккал`
+                        : restKcal != null
+                          ? `${formatKcal(restKcal)} ккал`
+                          : "Белок, жир и углеводы"
                       : "Белок, жир и углеводы"}
                   </span>
                 </span>
@@ -166,6 +172,7 @@ export function SettingsScreen({
               updateGoal={updateGoal}
               updateTrainingAge={updateTrainingAge}
               onRecount={onRecount}
+              showTrainingGoals={form.gym_enabled}
             />
           ) : null}
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
@@ -183,6 +190,24 @@ export function SettingsScreen({
             />
           </div>
         </section>
+
+        {!loading && form ? (
+          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
+            <h2 className="text-xl font-semibold">Тренировки</h2>
+            <p className="text-sm text-muted-foreground">
+              Вкладка «Тренировки», переключатель дня и разборы. Программы и
+              история останутся, если включишь снова.
+            </p>
+            <Segmented
+              value={form.gym_enabled ? "on" : "off"}
+              options={[
+                { id: "off", label: "Только еда" },
+                { id: "on", label: "Еда и зал" },
+              ]}
+              onChange={(id) => void setGymEnabled(id === "on")}
+            />
+          </section>
+        ) : null}
 
         <section className="flex flex-col gap-2">
           <SectionHeading title="Ещё" />
@@ -206,12 +231,14 @@ export function SettingsScreen({
               hint="Поделись едой на день, приёмом или программой"
               icon={<FriendsDoodle />}
             />
-            <NavRow
-              href={BARBELL_GAME_HREF}
-              title={BARBELL_GAME_TITLE}
-              hint={BARBELL_GAME_HINT}
-              icon={<BarbellDoodle />}
-            />
+            {form?.gym_enabled ? (
+              <NavRow
+                href={BARBELL_GAME_HREF}
+                title={BARBELL_GAME_TITLE}
+                hint={BARBELL_GAME_HINT}
+                icon={<BarbellDoodle />}
+              />
+            ) : null}
             <NavRow
               href={INVITE_HREF}
               title={BOT_INVITE_LABEL}

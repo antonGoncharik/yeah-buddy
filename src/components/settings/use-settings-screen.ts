@@ -206,6 +206,32 @@ export function useSettingsScreen() {
     }
   }
 
+  async function setGymEnabled(enabled: boolean) {
+    if (!form || form.gym_enabled === enabled) {
+      return;
+    }
+
+    const previous = form.gym_enabled;
+    setForm({ ...form, gym_enabled: enabled });
+    setError(null);
+
+    try {
+      const data = await patchJson("/api/settings", { gym_enabled: enabled });
+      const settings = readSettings(data);
+      if (settings) {
+        setForm((current) =>
+          current ? { ...current, gym_enabled: settings.gym_enabled } : current,
+        );
+        writeJson("/api/settings", data);
+      }
+    } catch (caught) {
+      setForm((current) =>
+        current ? { ...current, gym_enabled: previous } : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
   async function setTimezone(timezone: string) {
     if (!form || form.timezone === timezone) {
       return;
@@ -251,6 +277,7 @@ export function useSettingsScreen() {
     updateTrainingAge,
     onRecount,
     setReminders,
+    setGymEnabled,
     setTimezone,
   };
 }

@@ -10,6 +10,7 @@ import type {
   UserSex,
   UserTrainingAge,
 } from "@/lib/types";
+import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import { isTrainingAge } from "@/lib/workout/estimate-maxes";
 import { parseGrantedPrograms } from "@/lib/workout/program-presets";
 
@@ -40,6 +41,7 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     energy_goal_dismissed_kcal: parseDismissedKcal(
       row.energy_goal_dismissed_kcal,
     ),
+    gym_enabled: parseGymEnabled(row.gym_enabled),
     updated_at: String(row.updated_at),
   };
 }

@@ -139,6 +139,10 @@ export function MealTemplatesHubScreen() {
 
   const goals = settings ? macroGoalsFromSettings(settings) : null;
 
+  const visibleCards = CARDS.filter(
+    (card) => settings?.gym_enabled !== false || card.dayType === "rest",
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title={MEAL_TEMPLATES_LABEL} backHref="/settings" />
@@ -156,7 +160,7 @@ export function MealTemplatesHubScreen() {
         ) : null}
 
         {!loading && templates.length > 0
-          ? CARDS.map((card, index) => {
+          ? visibleCards.map((card, index) => {
               const template = templates.find(
                 (row) => row.day_type === card.dayType,
               );

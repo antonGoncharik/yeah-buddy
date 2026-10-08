@@ -41,6 +41,7 @@ export async function submitOnboardingFinish({
   replay,
   circle,
   ration,
+  gymEnabled,
 }: {
   omitProtein: boolean;
   proteinValue: number | null;
@@ -56,8 +57,9 @@ export async function submitOnboardingFinish({
   pendingKind: SharePackKind | null;
   pendingProgramId: PublicProgramId | null;
   replay: boolean;
-  circle: OnboardingCircle;
+  circle: OnboardingCircle | "keep";
   ration: RationId | null;
+  gymEnabled: boolean;
 }): Promise<string> {
   const skipGoals = omitProtein || pendingKind === "meals";
   const data = await postJson("/api/onboarding", {
@@ -72,13 +74,16 @@ export async function submitOnboardingFinish({
           anchors,
           ...(replay || ration == null ? {} : { ration }),
         }),
-    circle: onboardingFinishCircle({
-      pendingProgramId,
-      pendingKind,
-      replay,
-      circle,
-    }),
+    circle: gymEnabled
+      ? onboardingFinishCircle({
+          pendingProgramId,
+          pendingKind,
+          replay,
+          circle: circle === "keep" ? "empty" : circle,
+        })
+      : "keep",
     ...(pendingProgramId ? { fromStart: true } : {}),
+    gym_enabled: gymEnabled,
   });
 
   const onboarding = parseOnboardingState(data);
