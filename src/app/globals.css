@@ -532,13 +532,10 @@ html.dark[data-day="deload"] {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-inline: -1rem;
   border-bottom: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
   background-color: color-mix(in oklch, var(--background) 94%, transparent);
-  padding-inline: 1rem;
   padding-bottom: 0.875rem;
   backdrop-filter: blur(10px);
-  --today-chrome-text-inset: 0.375rem;
 }
 
 @utility today-chrome-head {
@@ -547,20 +544,9 @@ html.dark[data-day="deload"] {
   gap: 0.25rem;
 }
 
-@utility today-chrome-diary-inset {
-  padding-left: var(--today-chrome-text-inset);
-}
-
 html[data-tg-fullscreen] {
   /* Below Close, but less than the old double stack */
   --app-safe-top-extra: 0.625rem;
-}
-
-@utility today-chrome-date-head {
-  & > header h1 button {
-    margin-left: 0;
-    padding-left: var(--today-chrome-text-inset);
-  }
 }
 
 html[data-keyboard="open"] {
@@ -882,7 +868,6 @@ html[data-density="compact"] .py-2\.5 {
 
 html[data-density="compact"] .today-chrome {
   gap: 0.5rem;
-  padding-inline: 0.75rem;
   padding-bottom: 0.625rem;
 }
 

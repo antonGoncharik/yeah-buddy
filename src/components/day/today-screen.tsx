@@ -111,9 +111,14 @@ export function TodayScreen({
   const showLoading = loading || !contentReady || openingToday;
 
   return (
-    <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-3")}>
+    <div
+      className={cn(
+        "flex w-full flex-col px-4",
+        compact ? "gap-2" : "gap-3",
+      )}
+    >
       <div className="today-chrome">
-        <div className="today-chrome-date-head today-chrome-head">
+        <div className="today-chrome-head">
           <AppHeader
             className="px-0 pt-1.5 pb-2.5"
             title={titleDate}
@@ -146,7 +151,7 @@ export function TodayScreen({
             }
           />
           {contentReady && shownDay ? (
-            <TodayDiaryLinks className="today-chrome-diary-inset" />
+            <TodayDiaryLinks />
           ) : null}
         </div>
         {contentReady && shownDay ? (
@@ -177,7 +182,7 @@ export function TodayScreen({
         />
       ) : null}
 
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-4 pb-4">
         {contentReady &&
         !loadError &&
         !viewOnly &&
