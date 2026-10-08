@@ -252,6 +252,8 @@ assertEqual(mixed[0]?.name, "Кефир 2.5%", "keeps the matching sku");
 const small = catalogDefaultPortion(90);
 assertEqual(small.grams, 90, "small pack is the portion");
 assertEqual(small.label, "90 г", "small pack label");
+const tub = catalogDefaultPortion(300);
+assertEqual(tub.grams, 300, "300 g tub is the portion");
 const bag = catalogDefaultPortion(1000);
 assertEqual(bag.grams, 100, "kilo bag stays 100 g");
 assertEqual(catalogDefaultPortion(null).grams, 100, "missing pack -> 100 g");
@@ -263,6 +265,8 @@ const storeKilo = catalogCopyPortion("edostavka", 1000);
 assertEqual(storeKilo.grams, 100, "store kilo bag stays 100 g on copy");
 const storeSmall = catalogCopyPortion("edostavka", 90);
 assertEqual(storeSmall.grams, 90, "store small pack on copy");
+const storeTub = catalogCopyPortion("edostavka", 300);
+assertEqual(storeTub.grams, 300, "store 300 g pack on copy");
 const recipeNoWeight = catalogCopyPortion(CATALOG_SOURCE_CALORIZATOR, null);
 assertEqual(recipeNoWeight.grams, 100, "calorizator without weight -> 100 g");
 

@@ -14,6 +14,8 @@ export const CATALOG_SEARCH_TOKEN_MAX = 5;
 export const CATALOG_SOURCE_OFF = "off";
 export const CATALOG_SOURCE_CALORIZATOR = "calorizator";
 export const BARCODE_EAN = /^\d{8,14}$/;
+/** Pack weights up to this use the full pack as default portion; larger (e.g. 1 kg) stay at 100 g. */
+export const CATALOG_PACK_PORTION_MAX_G = 500;
 
 const CATALOG_SEARCH_STOP = new Set([
   "из",
@@ -293,7 +295,9 @@ export function catalogDefaultPortion(packWeightG: number | null): {
   label: string;
 } {
   const grams =
-    packWeightG != null && packWeightG >= 5 && packWeightG <= 200
+    packWeightG != null &&
+    packWeightG >= 5 &&
+    packWeightG <= CATALOG_PACK_PORTION_MAX_G
       ? packWeightG
       : 100;
   return { grams, label: `${grams} г` };
