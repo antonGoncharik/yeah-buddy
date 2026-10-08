@@ -84,7 +84,8 @@ export function DaySummary({
 }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
-  const remainingKcal = day.target_kcal - fact.kcal;
+  const targetKcal = day.target_kcal;
+  const remainingKcal = targetKcal - fact.kcal;
   const overflow = remainingKcal < 0;
   const remainingProtein = day.target_protein - fact.protein;
   const proteinOverflow = remainingProtein < 0;
@@ -205,6 +206,7 @@ export function DaySummary({
                 <KcalLine
                   overflow={overflow}
                   remainingKcal={remainingKcal}
+                  targetKcal={targetKcal}
                   showWeight={showWeight}
                   factLabel={factLabel}
                   factKcal={fact.kcal}
@@ -234,6 +236,11 @@ export function DaySummary({
               </p>
               <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
                 {formatKcal(fact.kcal)}
+                {targetKcal > 0 ? (
+                  <span className="ml-1.5 text-sm font-medium text-muted-foreground">
+                    / {formatKcal(targetKcal)}
+                  </span>
+                ) : null}
               </p>
             </div>
           )}
@@ -243,6 +250,7 @@ export function DaySummary({
           <LoopFacts
             overflow={overflow}
             remainingKcal={remainingKcal}
+            targetKcal={targetKcal}
             showWeight={showWeight}
             factLabel={factLabel}
             factKcal={fact.kcal}
@@ -334,9 +342,24 @@ function ProteinFigure({ text }: { text: string }) {
   );
 }
 
+function kcalRemainderText(
+  remainingKcal: number,
+  targetKcal: number,
+  overflow: boolean,
+): string {
+  const amount = overflow
+    ? `+${formatKcal(Math.abs(remainingKcal))}`
+    : formatKcal(remainingKcal);
+  if (targetKcal > 0) {
+    return `${amount} / ${formatKcal(targetKcal)}`;
+  }
+  return amount;
+}
+
 function LoopFacts({
   overflow,
   remainingKcal,
+  targetKcal,
   showWeight,
   factLabel,
   factKcal,
@@ -344,6 +367,7 @@ function LoopFacts({
 }: {
   overflow: boolean;
   remainingKcal: number;
+  targetKcal: number;
   showWeight: boolean;
   factLabel: string;
   factKcal: number;
@@ -351,9 +375,7 @@ function LoopFacts({
 }) {
   const cells = [
     {
-      value: overflow
-        ? `+${formatKcal(Math.abs(remainingKcal))}`
-        : formatKcal(remainingKcal),
+      value: kcalRemainderText(remainingKcal, targetKcal, overflow),
       label: "ккал",
       over: overflow,
       muted: false,
@@ -421,6 +443,7 @@ function LoopFacts({
 function KcalLine({
   overflow,
   remainingKcal,
+  targetKcal,
   showWeight,
   factLabel,
   factKcal,
@@ -428,6 +451,7 @@ function KcalLine({
 }: {
   overflow: boolean;
   remainingKcal: number;
+  targetKcal: number;
   showWeight: boolean;
   factLabel: string;
   factKcal: number;
@@ -435,9 +459,7 @@ function KcalLine({
 }) {
   return (
     <p className="min-w-0 text-sm text-muted-foreground tabular-nums">
-      {overflow
-        ? `+${formatKcal(Math.abs(remainingKcal))} ккал`
-        : `${formatKcal(remainingKcal)} ккал`}
+      {kcalRemainderText(remainingKcal, targetKcal, overflow)} ккал
       {showWeight ? ` · ${factLabel} ${formatKcal(factKcal)}` : null}
       {perKg != null ? ` · ${formatProteinPerKg(perKg)}` : null}
     </p>
