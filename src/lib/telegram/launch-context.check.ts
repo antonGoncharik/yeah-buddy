@@ -99,4 +99,13 @@ assertEqual(
   "stale stored start_param does not mark bot keyboard as app webview",
 );
 
+fakeWindow.location.hash =
+  "#tgWebAppVersion=8.0&tgWebAppStartParam=open&tgWebAppData=user%3D1";
+fakeWindow.Telegram!.WebView!.initParams = { tgWebAppPlatform: "android" };
+assertEqual(
+  isTelegramKeyboardWebAppLaunch(),
+  true,
+  "stale hash start_param without initData is still bot keyboard",
+);
+
 console.log("telegram launch context ok");

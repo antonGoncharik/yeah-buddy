@@ -1,4 +1,4 @@
-import { isAndroidTelegram } from "@/lib/telegram/launch-context";
+import { getTelegramLaunchProfile } from "@/lib/telegram/launch-profile";
 
 export type HapticKind =
   | "tick"
@@ -105,7 +105,7 @@ export function resolveHapticCommand(kind: HapticKind): HapticCommand {
   const base = COMMANDS[kind];
   // requestAppWebView and requestWebView share the same initData on Android;
   // impact/selection are unreliable on the client, notification is not.
-  if (!isAndroidTelegram()) {
+  if (!getTelegramLaunchProfile().androidNotificationHaptics) {
     return base;
   }
   if (base.type === "notification") {
@@ -202,7 +202,7 @@ export function haptic(kind: HapticKind): void {
     const command = resolveHapticCommand(kind);
     const eventData = hapticEventDataFromCommand(command);
 
-    if (isAndroidTelegram()) {
+    if (getTelegramLaunchProfile().androidNotificationHaptics) {
       postNativeHaptic(eventData);
       const sdkApi = liveHapticApi();
       if (sdkApi && telegramHapticApiReady()) {
@@ -252,7 +252,7 @@ export function haptic(kind: HapticKind): void {
 }
 
 function shouldUseNavigatorHapticFallback(kind: HapticKind): boolean {
-  if (!isAndroidTelegram()) {
+  if (!getTelegramLaunchProfile().androidNotificationHaptics) {
     return false;
   }
   return COMMANDS[kind].type !== "notification";

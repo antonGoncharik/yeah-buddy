@@ -1,5 +1,3 @@
-import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
-
 type TelegramInitWindow = Window & {
   Telegram?: {
     WebApp?: {
@@ -10,14 +8,14 @@ type TelegramInitWindow = Window & {
   };
 };
 
-/** Launch surface for this open only — not merged session/local storage (stale start_param poisons bot opens). */
-function readLiveTelegramLaunchParams(): Record<string, string> {
-  const fromWebView =
-    (typeof window !== "undefined"
-      ? (window as TelegramInitWindow).Telegram?.WebView?.initParams
-      : undefined) ?? {};
-  const fromLocation = telegramLaunchParamsFromLocation() ?? {};
-  return { ...fromLocation, ...fromWebView };
+/** Native initParams for this WebView — not URL hash (restoreHash can carry stale start_param). */
+function readNativeTelegramLaunchParams(): Record<string, string> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+  return (
+    (window as TelegramInitWindow).Telegram?.WebView?.initParams ?? {}
+  );
 }
 
 function launchInitParam(
@@ -98,7 +96,7 @@ export function isTelegramKeyboardWebAppLaunch(): boolean {
   if (typeof start === "string" && start.trim() !== "") {
     return false;
   }
-  const launchParams = readLiveTelegramLaunchParams();
+  const launchParams = readNativeTelegramLaunchParams();
   if (launchInitParam(launchParams, "tgWebAppStartParam")) {
     return false;
   }

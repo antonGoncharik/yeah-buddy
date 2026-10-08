@@ -12,7 +12,7 @@ import {
   SHARE_FAILED,
 } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
-import { isTelegramAppWebViewLaunch } from "@/lib/telegram/launch-context";
+import { getTelegramLaunchProfile } from "@/lib/telegram/launch-profile";
 import {
   loadTelegramWebApp,
   openTelegramShareUrl,
@@ -230,16 +230,18 @@ async function sharePayloadToStory(
 async function openPreparedShare(
   payload: PhotoSharePayload,
 ): Promise<"shared" | "cancelled" | "failed"> {
-  if (isTelegramAppWebViewLaunch()) {
-    const link = await sharePhotoViaTelegramLink(payload);
-    if (link !== "failed") {
-      return link;
-    }
+  const launch = getTelegramLaunchProfile();
+
+  if (!launch.shareUsesBotChatFlow) {
     if (payload.id) {
-      const prepared = await sendPreparedMessage(payload.id, payload);
+      const prepared = await sendPreparedMessage(payload.id, payload, 4_000);
       if (prepared !== "failed") {
         return prepared;
       }
+    }
+    const link = await sharePhotoViaTelegramLink(payload);
+    if (link !== "failed") {
+      return link;
     }
     return "failed";
   }
@@ -264,6 +266,7 @@ async function openPreparedShare(
 async function sendPreparedMessage(
   id: string,
   payload: PhotoSharePayload,
+  timeoutMs = 12_000,
 ): Promise<"shared" | "cancelled" | "failed"> {
   try {
     const webApp = await loadTelegramWebApp();
@@ -294,7 +297,7 @@ async function sendPreparedMessage(
         return;
       }
 
-      window.setTimeout(() => finish("failed"), 12_000);
+      window.setTimeout(() => finish("failed"), timeoutMs);
     });
   } catch {
     return "failed";

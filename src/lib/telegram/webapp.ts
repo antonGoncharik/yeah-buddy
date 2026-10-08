@@ -4,6 +4,7 @@ import {
   telegramInitParamsFromHash,
   telegramLaunchHashFromParams,
 } from "@/lib/telegram/boot-script";
+import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 import { clearHapticApiCache } from "@/lib/telegram/haptic";
 import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
 
@@ -58,7 +59,7 @@ export function readStoredTelegramInitParams(): TelegramInitParams | null {
     if (!parsed || typeof parsed !== "object") {
       return null;
     }
-    return parsed as TelegramInitParams;
+    return scrubTelegramLaunchParams(parsed as TelegramInitParams);
   } catch {
     return null;
   }
@@ -71,7 +72,7 @@ export function persistTelegramLaunchParams(
     return null;
   }
   const stored = readStoredTelegramInitParams();
-  const merged = { ...stored, ...params };
+  const merged = scrubTelegramLaunchParams({ ...stored, ...params });
   if (!merged.tgWebAppData && !merged.tgWebAppVersion) {
     return null;
   }
@@ -127,7 +128,7 @@ export function restoreTelegramLaunchHashFromStorage(): boolean {
   if (!stored) {
     return false;
   }
-  const hash = telegramLaunchHashFromParams(stored);
+  const hash = telegramLaunchHashFromParams(scrubTelegramLaunchParams(stored));
   if (!hash) {
     return false;
   }

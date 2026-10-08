@@ -19,10 +19,7 @@ import {
   bindTelegramFullscreen,
   type TelegramFullscreenHost,
 } from "@/lib/telegram/fullscreen";
-import {
-  isAndroidTelegram,
-  isTelegramAppWebViewLaunch,
-} from "@/lib/telegram/launch-context";
+import { getTelegramLaunchProfile } from "@/lib/telegram/launch-profile";
 import {
   captureTelegramLaunchFromLocation,
   clearTelegramInitReloadFlag,
@@ -66,9 +63,10 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       }
       if (!releaseFullscreen.current) {
         const host = webApp as TelegramFullscreenHost;
-        if (isAndroidTelegram() && isTelegramAppWebViewLaunch()) {
+        const launch = getTelegramLaunchProfile();
+        if (launch.expandOnly) {
           host.expand?.();
-        } else {
+        } else if (launch.bindFullscreen) {
           releaseFullscreen.current = bindTelegramFullscreen(host);
         }
       }

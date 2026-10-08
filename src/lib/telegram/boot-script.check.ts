@@ -7,6 +7,7 @@ import {
   TELEGRAM_INIT_STORAGE_KEY,
   telegramInitParamsFromHash,
 } from "@/lib/telegram/boot-script";
+import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 import { TELEGRAM_FULLSCREEN_STORAGE_KEY } from "@/lib/telegram/fullscreen-storage";
 import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 
@@ -33,6 +34,25 @@ assertEqual(
   telegramInitParamsFromHash("#home"),
   null,
   "ignores unrelated hashes",
+);
+assertEqual(
+  scrubTelegramLaunchParams({
+    tgWebAppVersion: "8.0",
+    tgWebAppData: "user%3D1",
+    tgWebAppStartParam: "open",
+  }).tgWebAppStartParam,
+  undefined,
+  "scrub drops stale start_param",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("scrubLaunch"),
+  true,
+  "boot script scrubs merged launch params",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("skipAndroidEarlyFs"),
+  true,
+  "boot script skips early fullscreen only for app webview",
 );
 assertEqual(
   TELEGRAM_BOOT_SCRIPT.includes(TELEGRAM_INIT_STORAGE_KEY),
@@ -124,8 +144,10 @@ assertEqual(
 
 const launchHash =
   "#tgWebAppVersion=8.0&tgWebAppPlatform=ios&tgWebAppData=query_id%3D1";
-const launchHashAndroid =
+const launchHashAndroidBot =
   "#tgWebAppVersion=8.0&tgWebAppPlatform=android&tgWebAppData=query_id%3D1";
+const launchHashAndroidApp =
+  "#tgWebAppVersion=8.0&tgWebAppPlatform=android&tgWebAppData=start_param%3Dopen%26user%3D1";
 
 function runBoot(
   pathname: string,
@@ -219,11 +241,18 @@ assertEqual(
   "ios diary launch requests fullscreen before hydration",
 );
 
-const insideAndroid = runBoot("/today", launchHashAndroid);
+const insideAndroidBot = runBoot("/today", launchHashAndroidBot);
 assertEqual(
-  insideAndroid.fullscreen,
+  insideAndroidBot.fullscreen,
+  1,
+  "android bot keyboard still requests early fullscreen",
+);
+
+const insideAndroidApp = runBoot("/today", launchHashAndroidApp);
+assertEqual(
+  insideAndroidApp.fullscreen,
   0,
-  "android diary launch skips early fullscreen (breaks haptics)",
+  "android app webview skips early fullscreen",
 );
 
 const publicPage = runBoot("/", "#home");
