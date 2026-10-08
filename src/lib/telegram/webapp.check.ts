@@ -1,6 +1,4 @@
-import {
-  telegramLaunchHashFromParams,
-} from "@/lib/telegram/boot-script";
+import { telegramLaunchHashFromParams } from "@/lib/telegram/boot-script";
 import {
   persistTelegramLaunchParams,
   restoreTelegramLaunchHashFromStorage,
@@ -24,30 +22,36 @@ assertEqual(
 );
 
 const store = new Map<string, string>();
-type FakeWindow = {
-  sessionStorage: Storage;
-  Telegram?: { WebView?: { initParams?: Record<string, string> } };
-};
-
-const fakeWindow: FakeWindow = {
-  sessionStorage: {
+function storageBackend(data: Map<string, string>): Storage {
+  return {
     getItem(key: string) {
-      return store.get(key) ?? null;
+      return data.get(key) ?? null;
     },
     setItem(key: string, value: string) {
-      store.set(key, value);
+      data.set(key, value);
     },
     removeItem(key: string) {
-      store.delete(key);
+      data.delete(key);
     },
     length: 0,
     clear() {
-      store.clear();
+      data.clear();
     },
     key() {
       return null;
     },
-  },
+  };
+}
+
+type FakeWindow = {
+  sessionStorage: Storage;
+  localStorage: Storage;
+  Telegram?: { WebView?: { initParams?: Record<string, string> } };
+};
+
+const fakeWindow: FakeWindow = {
+  sessionStorage: storageBackend(store),
+  localStorage: storageBackend(store),
   Telegram: {
     WebView: {
       initParams: { tgWebAppBotInline: "1" },
@@ -124,7 +128,11 @@ store.set(
     tgWebAppData: "user%3D1",
   }),
 );
-assertEqual(restoreTelegramLaunchHashFromStorage(), true, "restore launch hash");
+assertEqual(
+  restoreTelegramLaunchHashFromStorage(),
+  true,
+  "restore launch hash",
+);
 assertEqual(
   location.hash.includes("tgWebAppData"),
   true,

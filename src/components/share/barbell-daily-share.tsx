@@ -18,6 +18,7 @@ import {
 } from "@/lib/share/share-message";
 import { haptic } from "@/lib/telegram/haptic";
 import { isShareToStoryAvailable } from "@/lib/telegram/share-story";
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
 
 export function BarbellDailyShare({ facts }: { facts: BarbellShareFacts }) {
   const [inTelegram, setInTelegram] = useState(false);
@@ -28,10 +29,10 @@ export function BarbellDailyShare({ facts }: { facts: BarbellShareFacts }) {
   const cacheKey = useRef("");
 
   useEffect(() => {
-    void import("@twa-dev/sdk")
-      .then((sdk) => {
-        setInTelegram(Boolean(sdk.default.initData));
-        setStoryOk(isShareToStoryAvailable(sdk.default));
+    void loadTelegramWebApp()
+      .then((webApp) => {
+        setInTelegram(Boolean(webApp.initData));
+        setStoryOk(isShareToStoryAvailable(webApp));
       })
       .catch(() => {
         setInTelegram(false);

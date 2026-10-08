@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
 
 /** One back control: Telegram chrome when available, in-app chevron otherwise. */
 export function AppHeaderBack({ href }: { href: string }) {
@@ -12,8 +13,9 @@ export function AppHeaderBack({ href }: { href: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    void import("@twa-dev/sdk").then((sdk) => {
-      if (!cancelled && sdk.default.BackButton) {
+    void loadTelegramWebApp().then((webApp) => {
+      const back = (webApp as { BackButton?: unknown }).BackButton;
+      if (!cancelled && back) {
         setTelegramBack(true);
       }
     });

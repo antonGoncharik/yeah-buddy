@@ -35,8 +35,8 @@ export function isHomeScreenApiAvailable(webApp: HomeScreenHost): boolean {
 
 export async function readHomeScreenStatus(): Promise<HomeScreenStatus> {
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as HomeScreenHost;
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const webApp = (await loadTelegramWebApp()) as HomeScreenHost;
     if (!isHomeScreenApiAvailable(webApp)) {
       return "unsupported";
     }
@@ -60,8 +60,8 @@ export async function promptAddToHomeScreen(): Promise<
   "prompted" | "unavailable"
 > {
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as HomeScreenHost;
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const webApp = (await loadTelegramWebApp()) as HomeScreenHost;
     if (!isHomeScreenApiAvailable(webApp)) {
       return "unavailable";
     }
@@ -77,8 +77,8 @@ export async function bindHomeScreenAdded(
   onAdded: () => void,
 ): Promise<(() => void) | null> {
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as HomeScreenHost;
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const webApp = (await loadTelegramWebApp()) as HomeScreenHost;
     if (!isHomeScreenApiAvailable(webApp)) {
       return null;
     }

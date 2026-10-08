@@ -34,8 +34,8 @@ export async function sharePhotoToStory(
   }
 
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as StoryHost;
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const webApp = (await loadTelegramWebApp()) as StoryHost;
     if (!isShareToStoryAvailable(webApp)) {
       return "unavailable";
     }

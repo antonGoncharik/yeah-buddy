@@ -19,6 +19,7 @@ import {
 } from "@/lib/share/week-card";
 import { haptic } from "@/lib/telegram/haptic";
 import { isShareToStoryAvailable } from "@/lib/telegram/share-story";
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
 import { cn } from "@/lib/utils";
 
 export function WeekProgressShare({
@@ -35,8 +36,8 @@ export function WeekProgressShare({
   const cache = useRef<WeekSharePayload | null>(null);
 
   useEffect(() => {
-    void import("@twa-dev/sdk").then((sdk) => {
-      setStoryOk(isShareToStoryAvailable(sdk.default));
+    void loadTelegramWebApp().then((webApp) => {
+      setStoryOk(isShareToStoryAvailable(webApp));
     });
   }, []);
 

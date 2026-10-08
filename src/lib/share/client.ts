@@ -32,11 +32,8 @@ export async function shareOrCopyLink(
   }
 
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const webApp = sdk.default as {
-      initData?: string;
-      openTelegramLink?: (link: string) => void;
-    };
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const webApp = await loadTelegramWebApp();
     if (webApp.initData && typeof webApp.openTelegramLink === "function") {
       const share = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
       webApp.openTelegramLink(share);

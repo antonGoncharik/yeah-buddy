@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
+
 export function TelegramBackButton({
   href,
   onBack,
@@ -16,12 +18,21 @@ export function TelegramBackButton({
     let cancelled = false;
     let cleanup: (() => void) | undefined;
 
-    void import("@twa-dev/sdk").then((sdk) => {
+    void loadTelegramWebApp().then((webApp) => {
       if (cancelled) {
         return;
       }
 
-      const back = sdk.default.BackButton;
+      const back = (
+        webApp as {
+          BackButton?: {
+            show: () => void;
+            hide: () => void;
+            onClick: (cb: () => void) => void;
+            offClick: (cb: () => void) => void;
+          };
+        }
+      ).BackButton;
       if (!back) {
         return;
       }

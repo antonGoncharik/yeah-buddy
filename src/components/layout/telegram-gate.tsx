@@ -48,7 +48,18 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
 
     try {
       captureTelegramLaunchFromLocation();
-      const webApp = await loadTelegramWebApp();
+      let webApp: Awaited<ReturnType<typeof loadTelegramWebApp>>;
+      try {
+        webApp = await loadTelegramWebApp();
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "telegram init reload"
+        ) {
+          return;
+        }
+        throw error;
+      }
       if (!releaseFullscreen.current) {
         releaseFullscreen.current = bindTelegramFullscreen(
           webApp as TelegramFullscreenHost,
@@ -62,7 +73,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         }),
       );
 
-      let initData = await waitForTelegramInitData();
+      const initData = await waitForTelegramInitData();
       if (!initData && recoverTelegramInitOnce()) {
         return;
       }

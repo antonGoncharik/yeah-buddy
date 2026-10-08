@@ -24,6 +24,7 @@ import {
 } from "@/lib/share/share-message";
 import { haptic } from "@/lib/telegram/haptic";
 import { isShareToStoryAvailable } from "@/lib/telegram/share-story";
+import { loadTelegramWebApp } from "@/lib/telegram/webapp";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function JoyShareButton({
@@ -45,10 +46,10 @@ export function JoyShareButton({
   const cacheKey = useRef("");
 
   useEffect(() => {
-    void import("@twa-dev/sdk")
-      .then((sdk) => {
-        setInTelegram(Boolean(sdk.default.initData));
-        setStoryOk(isShareToStoryAvailable(sdk.default));
+    void loadTelegramWebApp()
+      .then((webApp) => {
+        setInTelegram(Boolean(webApp.initData));
+        setStoryOk(isShareToStoryAvailable(webApp));
       })
       .catch(() => {
         setInTelegram(false);

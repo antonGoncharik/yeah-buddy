@@ -14,8 +14,9 @@ export async function openDonateInvoice(
   }
 
   try {
-    const sdk = await import("@twa-dev/sdk");
-    const openInvoice = (sdk.default as InvoiceHost).openInvoice;
+    const { loadTelegramWebApp } = await import("@/lib/telegram/webapp");
+    const openInvoice = ((await loadTelegramWebApp()) as InvoiceHost)
+      .openInvoice;
     if (typeof openInvoice !== "function") {
       return "unavailable";
     }

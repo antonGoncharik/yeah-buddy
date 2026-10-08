@@ -60,8 +60,9 @@ assertEqual(
   "boot script asks Telegram to hide the header",
 );
 assertEqual(
-  TELEGRAM_BOOT_SCRIPT.includes(`FS_KEY="${TELEGRAM_FULLSCREEN_STORAGE_KEY}"`) &&
-    TELEGRAM_BOOT_SCRIPT.includes("removeItem(FS_KEY)"),
+  TELEGRAM_BOOT_SCRIPT.includes(
+    `FS_KEY="${TELEGRAM_FULLSCREEN_STORAGE_KEY}"`,
+  ) && TELEGRAM_BOOT_SCRIPT.includes("removeItem(FS_KEY)"),
   true,
   "boot script drops stale fullscreen cache before the SDK loads",
 );
@@ -74,6 +75,16 @@ assertEqual(
   TELEGRAM_BOOT_SCRIPT.includes("restoreHashFromStorage"),
   true,
   "boot script restores launch hash from session storage",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("hydrateLocal"),
+  true,
+  "boot script hydrates session storage from local storage",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("parseLaunchSearch"),
+  true,
+  "boot script reads tgWebApp params from the query string",
 );
 assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf("restoreHashFromStorage") <

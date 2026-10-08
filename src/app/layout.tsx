@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { ConfirmProvider } from "@/components/layout/confirm-provider";
 import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
@@ -123,9 +124,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("font-sans", manrope.variable, theme === "dark" && "dark")}
       style={{ colorScheme: theme }}
     >
-      <body className="app-viewport-min bg-background text-foreground antialiased">
+      <head>
         <style>{TELEGRAM_BOOT_STYLE}</style>
         <script>{TELEGRAM_BOOT_SCRIPT}</script>
+        <Script
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="beforeInteractive"
+        />
+      </head>
+      <body className="app-viewport-min bg-background text-foreground antialiased">
         <ThemeProvider initialTheme={theme}>
           <DiaryDensityProvider initialDensity={density}>
             <TodayOrderProvider initialOrder={todayOrder}>

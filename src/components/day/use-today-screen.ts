@@ -29,14 +29,16 @@ import {
 } from "@/lib/day/dates";
 import { gymLoopFromTodayState } from "@/lib/day/loop";
 import { isRecord } from "@/lib/read";
+import { appendPreservedTelegramLaunchHash } from "@/lib/telegram/launch-hash";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
 
 function replaceTodayUrl(href: string): void {
-  const current = `${window.location.pathname}${window.location.search}`;
-  if (current === href) {
+  const next = appendPreservedTelegramLaunchHash(href);
+  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (current === next) {
     return;
   }
-  window.history.replaceState(null, "", href);
+  window.history.replaceState(null, "", next);
 }
 
 export function useTodayScreen({
