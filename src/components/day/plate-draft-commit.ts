@@ -1,4 +1,7 @@
-import { type PlateRow, rowNativeGrams } from "@/components/day/plate-draft";
+import {
+  type PlateRow,
+  rowNativeGrams,
+} from "@/components/day/plate-draft";
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { lumpMealItemSchema, macrosFromLump } from "@/lib/day/lump";
@@ -40,10 +43,15 @@ export function commitItemsFromRows(
       if (!parsed.success || protein == null || fat == null || carbs == null) {
         return { ok: false, message: CHECK_FIELDS };
       }
+      const grams = rowNativeGrams(item);
+      if (grams == null) {
+        return { ok: false, message: "Нужны граммы больше 0." };
+      }
       const macros = macrosFromLump(parsed.data);
       next.push({
         kind: "lump",
         name: parsed.data.name,
+        grams,
         protein: macros.protein,
         fat: macros.fat,
         carbs: macros.carbs,
