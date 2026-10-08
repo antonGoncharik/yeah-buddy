@@ -47,6 +47,7 @@ const twoWeeks = days({
 });
 
 const macros = {
+  sex: null as const,
   restProtein: 150,
   restFat: 70,
   restCarbs: 250,
@@ -66,8 +67,9 @@ assertEqual(
   1970,
   "cut is about half a percent a week under the burn",
 );
-assertEqual(lose?.restCarbs, 185, "carbs fill the cut");
-assertEqual(lose?.trainingCarbs, 235, "training keeps the extra 50 g");
+assertEqual(lose?.rest.protein, 160, "protein follows 2 g/kg at 80 kg");
+assertEqual(lose?.restCarbs, 175, "carbs fill the cut after protein");
+assertEqual(lose?.trainingCarbs, 225, "training keeps the extra 50 g");
 assertEqual(lose?.rest.fat, 70, "fat stays while carbs can move");
 assert(lose != null, "lose offer");
 if (lose) {

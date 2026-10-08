@@ -1,4 +1,5 @@
 import {
+  macroGoalsForTargetKcal,
   suggestFatGrams,
   suggestMacroGoals,
   suggestProteinGrams,
@@ -109,5 +110,26 @@ assert(
   lose != null && gain != null && lose.rest.kcal < gain.rest.kcal,
   "cut below bulk",
 );
+
+const anchored = macroGoalsForTargetKcal({
+  targetKcal: 1970,
+  weightKg: 80,
+  goal: "lose",
+  sex: "male",
+  currentProtein: 150,
+  currentFat: 70,
+});
+assertEqual(anchored.protein, 160, "energy update bumps protein to g/kg");
+assertEqual(anchored.carbs, 175, "carbs absorb the cut");
+
+const customFloor = macroGoalsForTargetKcal({
+  targetKcal: 1970,
+  weightKg: 80,
+  goal: "lose",
+  sex: "male",
+  currentProtein: 200,
+  currentFat: 70,
+});
+assertEqual(customFloor.protein, 200, "energy update never lowers protein");
 
 console.log("suggest protein ok");

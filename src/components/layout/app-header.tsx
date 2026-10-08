@@ -41,15 +41,15 @@ export function AppHeader({
               aria-label={`Выбрать день, ${title}`}
               onClick={onTitleClick}
             >
-              {mark}
               <span className={`min-w-0 ${headingClass}`}>{title}</span>
               <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
+              {mark}
             </button>
           </h1>
         ) : mark ? (
           <div className="flex min-w-0 items-center gap-1.5">
-            {mark}
             <h1 className={headingClass}>{title}</h1>
+            {mark}
           </div>
         ) : (
           <h1 className={headingClass}>{title}</h1>

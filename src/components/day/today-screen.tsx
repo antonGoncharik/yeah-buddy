@@ -71,6 +71,7 @@ export function TodayScreen({
     energyGoal,
     applyEnergyGoal,
     dismissEnergyGoal,
+    energyGoalBusy,
     busy,
     loadError,
     loading,
@@ -244,6 +245,7 @@ export function TodayScreen({
             energyGoal={isToday ? energyGoal : null}
             onApplyEnergyGoal={applyEnergyGoal}
             onDismissEnergyGoal={dismissEnergyGoal}
+            energyGoalBusy={energyGoalBusy}
             onOpenYesterday={() => goToDate(previousIsoDate(date))}
             copyDays={copyDays}
             namedMeals={namedMeals}

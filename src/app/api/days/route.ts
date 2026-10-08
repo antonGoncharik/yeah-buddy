@@ -226,6 +226,7 @@ export async function GET(request: Request): Promise<NextResponse> {
             body_weight: row.body_weight,
           })),
           goal: settings?.goal ?? null,
+          sex: settings?.sex ?? null,
           restProtein:
             settings?.rest_protein ?? DEFAULT_REST_MACRO_GOALS.protein,
           restFat: settings?.rest_fat ?? DEFAULT_REST_MACRO_GOALS.fat,

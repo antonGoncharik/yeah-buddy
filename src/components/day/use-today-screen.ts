@@ -176,9 +176,8 @@ export function useTodayScreen({
       date,
       day: data.day,
     });
-  const { applyEnergyGoal, dismissEnergyGoal } = useEnergyGoal({
+  const { applyEnergyGoal, dismissEnergyGoal, energyGoalBusy } = useEnergyGoal({
     date,
-    setBusy,
     setEnergyGoal: data.setEnergyGoal,
     setGoals: data.setGoals,
   });
@@ -252,6 +251,7 @@ export function useTodayScreen({
     energyGoal: data.energyGoal,
     applyEnergyGoal,
     dismissEnergyGoal,
+    energyGoalBusy,
     busy,
     loadError: data.loadError,
     loading: data.loading,

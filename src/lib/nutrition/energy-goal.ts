@@ -8,10 +8,11 @@ import { formatSignedBodyWeight } from "@/lib/day/body-weight";
 import { calcKcalFromMacros, type Macros } from "@/lib/nutrition/macros";
 import { pluralDays } from "@/lib/nutrition/metric-copy";
 import {
-  carbsForTargetKcal,
+  macroGoalsForTargetKcal,
+  suggestFatGramsForProfile,
   TRAINING_EXTRA_CARBS_G,
 } from "@/lib/nutrition/suggest-protein";
-import type { UserGoal } from "@/lib/types";
+import type { UserGoal, UserSex } from "@/lib/types";
 
 /** Weigh-ins this far apart before a goal offer. Two weeks, not one noisy week. */
 export const ENERGY_GOAL_MIN_SPAN_DAYS = 14;
@@ -48,9 +49,6 @@ const OFFER_FULL_COVERAGE = 0.9;
 /** Under this the scale did not really move. */
 const STEADY_KG = 0.15;
 
-/** Fat stays at least here, per kg, if carbs are already on the floor. */
-const FAT_G_PER_KG_FLOOR = 0.6;
-
 const MIN_GOAL_KCAL = 1200;
 const MAX_GOAL_KCAL = 4500;
 const MAX_CARBS_G = 500;
@@ -76,6 +74,7 @@ export type EnergyGoalOffer = Pick<
 export function energyGoalOffer(input: {
   days: EnergyDay[];
   goal: UserGoal | null;
+  sex: UserSex | null;
   restProtein: number;
   restFat: number;
   restCarbs: number;
@@ -112,12 +111,15 @@ export function energyGoalOffer(input: {
       : (coverage - OFFER_MIN_COVERAGE) /
         (OFFER_FULL_COVERAGE - OFFER_MIN_COVERAGE);
   const target = clampGoalKcal(currentKcal + (ideal - currentKcal) * trust);
-  const rest = fillRestMacros(
-    target,
-    input.restProtein,
-    input.restFat,
-    energy.endKg,
-  );
+  const rest = macroGoalsForTargetKcal({
+    targetKcal: target,
+    weightKg: energy.endKg,
+    goal: input.goal,
+    sex: input.sex,
+    currentProtein: input.restProtein,
+    currentFat: input.restFat,
+    kcalGap: ENERGY_GOAL_GAP_KCAL,
+  });
   if (Math.abs(rest.kcal - currentKcal) < ENERGY_GOAL_GAP_KCAL) {
     return null;
   }
@@ -128,17 +130,24 @@ export function energyGoalOffer(input: {
     return null;
   }
 
+  const trainingProtein = Math.max(input.trainingProtein, rest.protein);
   const fatCut = Math.max(0, input.restFat - rest.fat);
-  const trainingFat = lowerFat(input.trainingFat, fatCut, energy.endKg);
+  const trainingFat = lowerFat(
+    input.trainingFat,
+    fatCut,
+    input.sex,
+    energy.endKg,
+    input.goal,
+  );
   const trainingCarbs = Math.min(
     MAX_CARBS_G,
     rest.carbs + TRAINING_EXTRA_CARBS_G,
   );
   const training: Macros = {
-    protein: input.trainingProtein,
+    protein: trainingProtein,
     fat: trainingFat,
     carbs: trainingCarbs,
-    kcal: calcKcalFromMacros(input.trainingProtein, trainingFat, trainingCarbs),
+    kcal: calcKcalFromMacros(trainingProtein, trainingFat, trainingCarbs),
   };
 
   return {
@@ -148,7 +157,7 @@ export function energyGoalOffer(input: {
     restCarbs: rest.carbs,
     trainingCarbs,
     rest: {
-      protein: input.restProtein,
+      protein: rest.protein,
       fat: rest.fat,
       carbs: rest.carbs,
       kcal: rest.kcal,
@@ -204,35 +213,19 @@ function goalShiftKcal(goal: UserGoal, weightKg: number): number {
   return Math.round((signed * KCAL_PER_BODY_KG) / 7);
 }
 
-function fillRestMacros(
-  target: number,
-  protein: number,
-  fat: number,
+function lowerFat(
+  current: number,
+  cut: number,
+  sex: UserSex | null,
   weightKg: number,
-): { fat: number; carbs: number; kcal: number } {
-  let nextFat = fat;
-  let carbs = carbsForTargetKcal(target, protein, nextFat);
-  let kcal = calcKcalFromMacros(protein, nextFat, carbs);
-  const floor = fatFloorGrams(weightKg);
-  let guard = 0;
-  while (
-    kcal > target + ENERGY_GOAL_GAP_KCAL &&
-    nextFat - 5 >= floor &&
-    guard < 30
-  ) {
-    nextFat -= 5;
-    carbs = carbsForTargetKcal(target, protein, nextFat);
-    kcal = calcKcalFromMacros(protein, nextFat, carbs);
-    guard += 1;
-  }
-  return { fat: nextFat, carbs, kcal };
-}
-
-function lowerFat(current: number, cut: number, weightKg: number): number {
+  goal: UserGoal,
+): number {
   if (cut <= 0) {
     return current;
   }
-  const floor = fatFloorGrams(weightKg);
+  const floor =
+    suggestFatGramsForProfile({ sex, weightKg, goal }) ??
+    (weightKg >= 30 ? 35 : 35);
   const next = current - cut;
   if (next >= floor) {
     return next;
@@ -241,17 +234,6 @@ function lowerFat(current: number, cut: number, weightKg: number): number {
     return current;
   }
   return floor;
-}
-
-function fatFloorGrams(weightKg: number): number {
-  const stepped = Math.round((weightKg * FAT_G_PER_KG_FLOOR) / 5) * 5;
-  if (stepped < 35) {
-    return 35;
-  }
-  if (stepped > 150) {
-    return 150;
-  }
-  return stepped;
 }
 
 function clampGoalKcal(value: number): number {

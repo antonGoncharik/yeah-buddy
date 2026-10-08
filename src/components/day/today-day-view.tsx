@@ -70,6 +70,7 @@ export function TodayDayView({
   energyGoal,
   onApplyEnergyGoal,
   onDismissEnergyGoal,
+  energyGoalBusy,
   onOpenYesterday,
   copyDays,
   namedMeals,
@@ -118,7 +119,8 @@ export function TodayDayView({
   habitBridgeSnapshot: HabitBridgeSnapshot | null;
   energyGoal: EnergyGoalOffer | null;
   onApplyEnergyGoal: () => void;
-  onDismissEnergyGoal: () => void;
+  onDismissEnergyGoal: (dismissedKcal: number) => void;
+  energyGoalBusy: boolean;
   onOpenYesterday: () => void;
   copyDays: CopyDayHint[];
   namedMeals: NamedMealHint[];
@@ -360,9 +362,9 @@ export function TodayDayView({
         <div className="animate-rise">
           <EnergyGoalCard
             offer={energyGoal}
-            busy={busy}
+            busy={energyGoalBusy}
             onApply={onApplyEnergyGoal}
-            onDismiss={onDismissEnergyGoal}
+            onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
           />
         </div>
       ) : null}

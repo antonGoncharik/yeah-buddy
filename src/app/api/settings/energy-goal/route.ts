@@ -15,6 +15,7 @@ import {
 
 const bodySchema = z.object({
   action: z.enum(["apply", "dismiss"]),
+  dismissedKcal: z.number().int().min(0).max(20_000).optional(),
 });
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -32,7 +33,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     const result =
       parsed.data.action === "apply"
         ? await applyEnergyGoal(auth.session.userId)
-        : await dismissEnergyGoal(auth.session.userId);
+        : await dismissEnergyGoal(
+            auth.session.userId,
+            parsed.data.dismissedKcal,
+          );
     if (!result) {
       return jsonError("Настройки не нашлись.", 404);
     }

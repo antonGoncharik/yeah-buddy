@@ -52,6 +52,15 @@ export function writeCachedDay(date: string, day: DayWithMeals | null): void {
   emit(date, day);
 }
 
+export function writeCachedEnergyGoal(date: string, energyGoal: null): void {
+  const url = daysUrl(date);
+  const current = peekJson(url);
+  if (!isRecord(current)) {
+    return;
+  }
+  writeJson(url, { ...current, energyGoal });
+}
+
 export function writeDayResponse(
   date: string,
   data: unknown,

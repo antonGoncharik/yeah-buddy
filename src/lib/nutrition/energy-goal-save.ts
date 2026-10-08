@@ -55,10 +55,10 @@ export async function applyEnergyGoal(
 
   const day = await writeTodayTargets(userId, today, plan);
   const saved = await saveUserSettings(userId, {
-    rest_protein: settings.rest_protein,
+    rest_protein: plan.rest.protein,
     rest_fat: plan.rest.fat,
     rest_carbs: plan.restCarbs,
-    training_protein: settings.training_protein,
+    training_protein: plan.training.protein,
     training_fat: plan.training.fat,
     training_carbs: plan.trainingCarbs,
     energy_goal_dismissed_kcal: null,
@@ -78,6 +78,7 @@ export async function applyEnergyGoal(
 
 export async function dismissEnergyGoal(
   userId: string,
+  dismissedKcalFromClient?: number,
 ): Promise<EnergyGoalSaveResult | null> {
   const settings = await getUserSettings(userId);
   if (!settings) {
@@ -86,14 +87,33 @@ export async function dismissEnergyGoal(
 
   const today = calendarDateInTimeZone(settings.timezone);
   const plan = await loadEnergyGoalOffer(userId, today, settings);
-  if (!plan) {
+  const dismissedKcal = resolveDismissedKcal(
+    dismissedKcalFromClient,
+    plan?.restKcal,
+  );
+  if (dismissedKcal == null) {
     return { energyGoal: null };
   }
 
   await saveUserSettings(userId, {
-    energy_goal_dismissed_kcal: plan.restKcal,
+    energy_goal_dismissed_kcal: dismissedKcal,
   });
   return { energyGoal: null };
+}
+
+function resolveDismissedKcal(
+  fromClient: number | undefined,
+  fromPlan: number | undefined,
+): number | null {
+  const candidate = fromClient ?? fromPlan;
+  if (candidate == null || !Number.isFinite(candidate)) {
+    return null;
+  }
+  const rounded = Math.round(candidate);
+  if (rounded < 0 || rounded > 20_000) {
+    return null;
+  }
+  return rounded;
 }
 
 function offerFrom(
@@ -108,6 +128,7 @@ function offerFrom(
       body_weight: day.body_weight,
     })),
     goal: settings.goal,
+    sex: settings.sex,
     restProtein: settings.rest_protein,
     restFat: settings.rest_fat,
     restCarbs: settings.rest_carbs,

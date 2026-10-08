@@ -90,6 +90,26 @@ export function suggestProteinGrams(input: {
   return clampProtein(roundToFive(raw));
 }
 
+/** Same g/kg targets when sex is not set (no lean-share tweak). */
+export function suggestProteinGramsForProfile(input: {
+  sex: OnboardingSex | null;
+  weightKg: number;
+  goal: OnboardingGoal;
+}): number | null {
+  if (input.sex != null) {
+    return suggestProteinGrams({
+      sex: input.sex,
+      weightKg: input.weightKg,
+      goal: input.goal,
+    });
+  }
+  if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
+    return null;
+  }
+  const raw = input.weightKg * PROTEIN_G_PER_KG[input.goal];
+  return clampProtein(roundToFive(raw));
+}
+
 export function suggestFatGrams(input: {
   sex: OnboardingSex;
   weightKg: number;
@@ -100,6 +120,25 @@ export function suggestFatGrams(input: {
   }
 
   const raw = input.weightKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  return clampFat(roundToFive(raw));
+}
+
+export function suggestFatGramsForProfile(input: {
+  sex: OnboardingSex | null;
+  weightKg: number;
+  goal: OnboardingGoal;
+}): number | null {
+  if (input.sex != null) {
+    return suggestFatGrams({
+      sex: input.sex,
+      weightKg: input.weightKg,
+      goal: input.goal,
+    });
+  }
+  if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
+    return null;
+  }
+  const raw = input.weightKg * FAT_G_PER_KG[input.goal];
   return clampFat(roundToFive(raw));
 }
 
@@ -155,6 +194,58 @@ export function suggestMacroGoals(input: {
       kcal: calcKcalFromMacros(protein, fat, trainingCarbs),
     },
   };
+}
+
+/**
+ * Split a calorie target into macros after an expenditure update.
+ * Protein is re-anchored to g/kg for the current weight and goal but never
+ * lowered below what the person already runs. Carbs move first; fat only steps
+ * down toward the profile fat floor once carbs are on the floor.
+ */
+export function macroGoalsForTargetKcal(input: {
+  targetKcal: number;
+  weightKg: number;
+  goal: OnboardingGoal;
+  sex: OnboardingSex | null;
+  currentProtein: number;
+  currentFat: number;
+  /** Stop trimming fat once kcal is within this band of the target. */
+  kcalGap?: number;
+}): { protein: number; fat: number; carbs: number; kcal: number } {
+  const kcalGap = input.kcalGap ?? 0;
+  const suggestedProtein = suggestProteinGramsForProfile({
+    sex: input.sex,
+    weightKg: input.weightKg,
+    goal: input.goal,
+  });
+  const protein = Math.max(
+    input.currentProtein,
+    suggestedProtein ?? input.currentProtein,
+  );
+
+  const fatFloor =
+    suggestFatGramsForProfile({
+      sex: input.sex,
+      weightKg: input.weightKg,
+      goal: input.goal,
+    }) ?? 35;
+
+  let fat = input.currentFat;
+  let carbs = carbsForTargetKcal(input.targetKcal, protein, fat);
+  let kcal = calcKcalFromMacros(protein, fat, carbs);
+  let guard = 0;
+  while (
+    kcal > input.targetKcal + kcalGap &&
+    fat - 5 >= fatFloor &&
+    guard < 30
+  ) {
+    fat -= 5;
+    carbs = carbsForTargetKcal(input.targetKcal, protein, fat);
+    kcal = calcKcalFromMacros(protein, fat, carbs);
+    guard += 1;
+  }
+
+  return { protein, fat, carbs, kcal };
 }
 
 /** Carbs that land on `targetKcal` once protein and fat are fixed. Rounded to 5 g. */
