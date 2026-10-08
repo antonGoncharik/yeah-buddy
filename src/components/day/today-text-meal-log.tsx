@@ -22,11 +22,13 @@ export function TodayTextMealForm({
   date,
   mealId,
   busy,
+  embedded = false,
   onDone,
 }: {
   date: string;
   mealId: string;
   busy: boolean;
+  embedded?: boolean;
   onDone?: () => void;
 }) {
   const { density } = useDiaryDensity();
@@ -91,8 +93,15 @@ export function TodayTextMealForm({
   return (
     <div
       className={cn(
-        "card-surface flex flex-col px-4",
-        compact ? "gap-1.5 py-2" : "gap-2 py-3",
+        "flex flex-col",
+        embedded
+          ? compact
+            ? "gap-1.5"
+            : "gap-2"
+          : cn(
+              "card-surface px-4",
+              compact ? "gap-1.5 py-2" : "gap-2 py-3",
+            ),
       )}
     >
       <textarea

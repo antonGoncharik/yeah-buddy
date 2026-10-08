@@ -172,19 +172,26 @@ export function MealAddLink({
 export function MealPlateLink({
   href,
   compact = false,
+  segmentClassName,
 }: {
   href: string;
   compact?: boolean;
+  segmentClassName?: string;
 }) {
   return (
     <Link
       href={href}
       aria-label="Фото тарелки"
       className={cn(
-        buttonVariants({ variant: compact ? "outline" : "ghost" }),
-        compact
+        segmentClassName,
+        !segmentClassName &&
+          buttonVariants({ variant: compact ? "outline" : "ghost" }),
+        !segmentClassName && compact
           ? "size-12 shrink-0 rounded-xl px-0"
-          : "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
+          : null,
+        !segmentClassName && !compact
+          ? "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground"
+          : null,
       )}
     >
       <Camera className="size-4" aria-hidden />
@@ -196,19 +203,26 @@ export function MealPlateLink({
 export function MealDictateLink({
   href,
   compact = false,
+  segmentClassName,
 }: {
   href: string;
   compact?: boolean;
+  segmentClassName?: string;
 }) {
   return (
     <Link
       href={href}
       aria-label="Голосом"
       className={cn(
-        buttonVariants({ variant: compact ? "outline" : "ghost" }),
-        compact
+        segmentClassName,
+        !segmentClassName &&
+          buttonVariants({ variant: compact ? "outline" : "ghost" }),
+        !segmentClassName && compact
           ? "size-12 shrink-0 rounded-xl px-0"
-          : "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground",
+          : null,
+        !segmentClassName && !compact
+          ? "h-11 min-w-0 flex-1 shrink gap-2 rounded-xl px-2 text-base text-muted-foreground"
+          : null,
       )}
     >
       <Mic className="size-4" aria-hidden />

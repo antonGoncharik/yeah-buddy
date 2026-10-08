@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { MealLumpLink } from "@/components/day/meal-item-row";
-import { MealQuickCapture } from "@/components/day/meal-quick-capture";
+import { MealLogActions } from "@/components/day/meal-log-actions";
 import { FoodPicker } from "@/components/foods/food-picker";
 import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
 import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
@@ -120,8 +120,8 @@ export function AddMealItemScreen({
         onCatalogAdded={(food) => void pickFood(food)}
         listClassName="pb-24"
         topSlot={
-          <div className="flex flex-col gap-2">
-            <MealQuickCapture
+          <div className="flex flex-col gap-3">
+            <MealLogActions
               plateHref={plateHref}
               dictateHref={dictateHref}
               textLog={textLog}

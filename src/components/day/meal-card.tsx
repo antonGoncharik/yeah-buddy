@@ -3,12 +3,8 @@
 import type { CSSProperties } from "react";
 
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
-import {
-  MealAddLink,
-  MealItemRow,
-  type MealLine,
-} from "@/components/day/meal-item-row";
-import { MealQuickCapture } from "@/components/day/meal-quick-capture";
+import { MealItemRow, type MealLine } from "@/components/day/meal-item-row";
+import { MealLogActions } from "@/components/day/meal-log-actions";
 import { MealTypeMark } from "@/components/day/meal-type-mark";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
@@ -230,31 +226,22 @@ export function MealCard({
               {repeatYesterdayMealLabel(mealType)}
             </Button>
           ) : null}
-          {showAdd && addHref ? (
-            <div className="flex w-full flex-col gap-2">
-              <div className="flex w-full gap-2">
-                {showCapture ? (
-                  <MealQuickCapture
-                    plateHref={plateHref}
-                    dictateHref={dictateHref}
-                    textLog={
-                      aiText && mealId && logDate
-                        ? {
-                            date: logDate,
-                            mealId,
-                            busy: logBusy,
-                          }
-                        : undefined
+          {showAdd || showCapture ? (
+            <MealLogActions
+              addHref={showAdd ? addHref : undefined}
+              addProminent={showAdd && items.length === 0 && !yesterdaySource}
+              plateHref={showCapture ? plateHref : undefined}
+              dictateHref={showCapture ? dictateHref : undefined}
+              textLog={
+                showCapture && aiText && mealId && logDate
+                  ? {
+                      date: logDate,
+                      mealId,
+                      busy: logBusy,
                     }
-                  />
-                ) : null}
-                <MealAddLink
-                  href={addHref}
-                  prominent={items.length === 0 && !yesterdaySource}
-                  className={showCapture ? "min-w-0 flex-1" : undefined}
-                />
-              </div>
-            </div>
+                  : undefined
+              }
+            />
           ) : null}
           {showFill && onFillTemplate ? (
             <Button
