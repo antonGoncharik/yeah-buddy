@@ -194,7 +194,7 @@ export function MealPlateLink({
           : null,
       )}
     >
-      <Camera className="size-4" aria-hidden />
+      <Camera aria-hidden />
       {compact ? null : "Фото тарелки"}
     </Link>
   );
@@ -225,7 +225,7 @@ export function MealDictateLink({
           : null,
       )}
     >
-      <Mic className="size-4" aria-hidden />
+      <Mic aria-hidden />
       {compact ? null : "Голосом"}
     </Link>
   );
