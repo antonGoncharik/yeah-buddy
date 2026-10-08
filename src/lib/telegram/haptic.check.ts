@@ -54,14 +54,19 @@ assertEqual(
   { type: "selection_change" },
   "native tick",
 );
-const fakeWindow = {
+const fakeWindow: {
+  Telegram?: {
+    WebView?: { initParams?: Record<string, string> };
+    WebApp?: { initDataUnsafe?: Record<string, unknown> };
+  };
+} = {
   Telegram: {
     WebView: { initParams: { tgWebAppPlatform: "android" } },
     WebApp: { initDataUnsafe: { start_param: "open" } },
   },
 };
 Object.defineProperty(globalThis, "window", {
-  value: fakeWindow as Window,
+  value: fakeWindow as unknown as Window,
   configurable: true,
 });
 Object.defineProperty(globalThis, "navigator", {
@@ -76,7 +81,7 @@ assertEqual(
   "android app webview maps tap to notification",
 );
 
-fakeWindow.Telegram.WebApp.initDataUnsafe = {};
+fakeWindow.Telegram!.WebApp!.initDataUnsafe = {};
 assertEqual(
   isTelegramKeyboardWebAppLaunch(),
   true,
