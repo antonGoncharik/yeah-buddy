@@ -87,6 +87,16 @@ assertEqual(
   "boot script reads tgWebApp params from the query string",
 );
 assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("scheduleTelegramSdk"),
+  true,
+  "boot script defers telegram-web-app.js until launch params exist",
+);
+assertEqual(
+  TELEGRAM_BOOT_SCRIPT.includes("maybeReloadStaleWebApp"),
+  true,
+  "boot script reloads when hash arrives after an empty WebApp boot",
+);
+assertEqual(
   TELEGRAM_BOOT_SCRIPT.indexOf("restoreHashFromStorage") <
     TELEGRAM_BOOT_SCRIPT.indexOf("parseLaunchHash(location.hash)"),
   true,

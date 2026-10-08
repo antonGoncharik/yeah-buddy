@@ -1,5 +1,6 @@
 import {
   TELEGRAM_INIT_LOCAL_STORAGE_KEY,
+  TELEGRAM_INIT_RELOAD_FLAG,
   telegramInitParamsFromHash,
   telegramLaunchHashFromParams,
 } from "@/lib/telegram/boot-script";
@@ -8,7 +9,8 @@ import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
 export const TELEGRAM_INIT_PARAMS_STORAGE_KEY = "__telegram__initParams";
 export { TELEGRAM_INIT_LOCAL_STORAGE_KEY };
 
-const INIT_RELOAD_FLAG = "__telegram__init_reload_done";
+const INIT_RELOAD_FLAG = TELEGRAM_INIT_RELOAD_FLAG;
+const TELEGRAM_SDK_WAIT_MS = 2_500;
 
 export type TelegramInitParams = Record<string, string>;
 
@@ -230,48 +232,54 @@ function primeTelegramWebAppHost(
   return webApp;
 }
 
-async function importTelegramWebAppBundle(): Promise<void> {
-  if ((window as TelegramWindow).Telegram?.WebApp) {
-    return;
+function launchDataAvailable(): boolean {
+  const stored = readStoredTelegramInitParams();
+  const hash = telegramInitParamsFromHash(window.location.hash);
+  return Boolean(stored?.tgWebAppData || hash?.tgWebAppData);
+}
+
+async function waitForTelegramWebAppHost(): Promise<TelegramWebAppHost> {
+  const started = Date.now();
+  while (Date.now() - started < TELEGRAM_SDK_WAIT_MS) {
+    ensureTelegramSdkPrimed();
+    const webApp = (window as TelegramWindow).Telegram?.WebApp;
+    if (webApp?.initData?.trim()) {
+      return webApp;
+    }
+    if (webApp && launchDataAvailable() && recoverTelegramInitOnce()) {
+      throw new Error("telegram init reload");
+    }
+    await sleep(40);
   }
+
+  const webApp = (window as TelegramWindow).Telegram?.WebApp;
+  if (webApp) {
+    if (!webApp.initData?.trim() && launchDataAvailable() && recoverTelegramInitOnce()) {
+      throw new Error("telegram init reload");
+    }
+    return webApp;
+  }
+
   await import("@twa-dev/sdk");
+  return resolveTelegramWebAppHost();
 }
 
 export async function loadTelegramWebApp(): Promise<TelegramWebAppHost> {
   ensureTelegramSdkPrimed();
   if (!webAppLoad) {
-    webAppLoad = (async () => {
-      let webApp = (window as TelegramWindow).Telegram?.WebApp;
-      if (webApp?.initData?.trim()) {
-        return primeTelegramWebAppHost(webApp);
-      }
-
-      const stored = readStoredTelegramInitParams();
-      if (stored?.tgWebAppData && recoverTelegramInitOnce()) {
-        throw new Error("telegram init reload");
-      }
-
-      await importTelegramWebAppBundle();
-      webApp = resolveTelegramWebAppHost();
-
-      if (!webApp.initData?.trim() && stored?.tgWebAppData) {
-        if (recoverTelegramInitOnce()) {
-          throw new Error("telegram init reload");
+    webAppLoad = waitForTelegramWebAppHost()
+      .then((webApp) => primeTelegramWebAppHost(webApp))
+      .catch((error) => {
+        webAppLoad = undefined;
+        if (error instanceof Error && error.message === "telegram init reload") {
+          throw error;
         }
-      }
-
-      return primeTelegramWebAppHost(webApp);
-    })().catch((error) => {
-      webAppLoad = undefined;
-      if (error instanceof Error && error.message === "telegram init reload") {
-        throw error;
-      }
-      const fallback = (window as TelegramWindow).Telegram?.WebApp;
-      if (!fallback) {
-        throw new Error("telegram webapp unavailable");
-      }
-      return primeTelegramWebAppHost(fallback);
-    });
+        const fallback = (window as TelegramWindow).Telegram?.WebApp;
+        if (!fallback) {
+          throw new Error("telegram webapp unavailable");
+        }
+        return primeTelegramWebAppHost(fallback);
+      });
   }
   return webAppLoad;
 }
