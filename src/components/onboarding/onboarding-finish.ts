@@ -57,7 +57,7 @@ export async function submitOnboardingFinish({
   pendingProgramId: PublicProgramId | null;
   replay: boolean;
   circle: OnboardingCircle;
-  ration: RationId;
+  ration: RationId | null;
 }): Promise<string> {
   const skipGoals = omitProtein || pendingKind === "meals";
   const data = await postJson("/api/onboarding", {
@@ -70,7 +70,7 @@ export async function submitOnboardingFinish({
           training_age: trainingAge,
           body_weight: bodyWeight,
           anchors,
-          ...(replay ? {} : { ration }),
+          ...(replay || ration == null ? {} : { ration }),
         }),
     circle: onboardingFinishCircle({
       pendingProgramId,

@@ -15,8 +15,10 @@ export function OnboardingRationStep({
   weight,
   goal,
   onPick,
+  skipped,
 }: {
-  ration: RationId;
+  ration: RationId | null;
+  skipped: boolean;
   sex: OnboardingSex | null;
   weight: string;
   goal: OnboardingGoal | null;
@@ -46,7 +48,7 @@ export function OnboardingRationStep({
         на день».
       </p>
       <RationCards
-        selected={ration}
+        selected={skipped ? null : ration}
         goals={{ rest: suggested.rest, training: suggested.training }}
         onPick={onPick}
       />

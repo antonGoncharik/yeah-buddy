@@ -62,6 +62,8 @@ export function OnboardingScreen() {
     setCircle,
     goBack,
     goNext,
+    skipRation,
+    skipRationChosen,
     skipLifts,
     confirmLifts,
     weightInvalid,
@@ -127,6 +129,18 @@ export function OnboardingScreen() {
 
   const sticky = (
     <>
+      {step === "ration" ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-12 w-full text-base"
+          data-keyboard-secondary
+          disabled={saving}
+          onClick={() => skipRation()}
+        >
+          Настрою сам — позже
+        </Button>
+      ) : null}
       {step === "lifts" ? (
         <Button
           type="button"
@@ -184,6 +198,7 @@ export function OnboardingScreen() {
       {step === "ration" ? (
         <OnboardingRationStep
           ration={ration}
+          skipped={skipRationChosen}
           sex={sex}
           weight={weight}
           goal={goal}

@@ -89,6 +89,7 @@ export function useOnboardingScreen() {
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
   const [ration, setRation] = useState<RationId>(RECOMMENDED_RATION_ID);
+  const [skipRation, setSkipRation] = useState(false);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
   const [circle, setCircle] = useState<OnboardingCircle>(
     RECOMMENDED_PROGRAM_PRESET_ID,
@@ -295,7 +296,7 @@ export function useOnboardingScreen() {
         pendingProgramId,
         replay,
         circle: chosen,
-        ration,
+        ration: skipRation ? null : ration,
       });
       if (isProgramPresetId(chosen) || pendingProgramId != null) {
         markProgramEditableHintPending();
@@ -307,6 +308,19 @@ export function useOnboardingScreen() {
       setSaving(false);
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     }
+  }
+
+  function skipRationStep() {
+    setSkipRation(true);
+    setError(null);
+    haptic("tick");
+    const following = steps[stepIndex + 1];
+    if (following) {
+      setStep(following);
+      return;
+    }
+    setSaving(true);
+    void finish();
   }
 
   function skipLifts() {
@@ -349,8 +363,10 @@ export function useOnboardingScreen() {
     setCircle,
     goBack,
     goNext,
+    skipRation: skipRationStep,
     skipLifts,
     confirmLifts,
+    skipRationChosen: skipRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     onSexPick: (value: OnboardingSex) => {
       setSex(value);
@@ -373,6 +389,7 @@ export function useOnboardingScreen() {
       setLifts((current) => ({ ...current, [key]: value }));
     },
     onRationPick: (value: RationId) => {
+      setSkipRation(false);
       setRation(value);
     },
   };
