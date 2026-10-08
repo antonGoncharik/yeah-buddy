@@ -145,8 +145,20 @@ export function playTimerStepHaptic(next: number): void {
   }
 }
 
+export function clearHapticApiCache(): void {
+  hapticApi = undefined;
+  hapticLoad = undefined;
+}
+
 export function haptic(kind: HapticKind): void {
   if (typeof window === "undefined") {
+    return;
+  }
+
+  const command = COMMANDS[kind];
+  const sdkApi = liveHapticApi();
+  if (sdkApi && telegramHapticApiReady()) {
+    tryPlay(sdkApi, command);
     return;
   }
 
@@ -154,8 +166,7 @@ export function haptic(kind: HapticKind): void {
     return;
   }
 
-  const command = COMMANDS[kind];
-  const api = hapticApi ?? liveHapticApi();
+  const api = hapticApi ?? sdkApi;
   if (api) {
     tryPlay(api, command);
     return;
@@ -168,6 +179,16 @@ export function haptic(kind: HapticKind): void {
   });
 }
 
+function telegramHapticApiReady(): boolean {
+  const webApp = (window as TelegramHapticHost).Telegram?.WebApp as
+    | { isVersionAtLeast?: (version: string) => boolean }
+    | undefined;
+  if (!webApp?.isVersionAtLeast) {
+    return true;
+  }
+  return webApp.isVersionAtLeast("6.1");
+}
+
 function postNativeHaptic(data: HapticEventData): boolean {
   const host = window as TelegramHapticHost;
   const message = {
@@ -177,16 +198,6 @@ function postNativeHaptic(data: HapticEventData): boolean {
   };
 
   try {
-    const notify = host.external?.notify;
-    if (notify) {
-      notify(JSON.stringify({ eventType: HAPTIC_EVENT, eventData: data }));
-      return true;
-    }
-  } catch {
-    // Android WebView and some desktop builds use external.notify.
-  }
-
-  try {
     const proxy = host.TelegramWebviewProxy;
     if (proxy?.postEvent) {
       proxy.postEvent(HAPTIC_EVENT, message.eventData);
@@ -194,6 +205,16 @@ function postNativeHaptic(data: HapticEventData): boolean {
     }
   } catch {
     // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
+  }
+
+  try {
+    const notify = host.external?.notify;
+    if (notify) {
+      notify(JSON.stringify({ eventType: HAPTIC_EVENT, eventData: data }));
+      return true;
+    }
+  } catch {
+    // Legacy Android WebView builds use external.notify.
   }
 
   // Telegram iOS reads `eventName` from webkit.messageHandlers.performAction.
@@ -208,7 +229,7 @@ function postNativeHaptic(data: HapticEventData): boolean {
 
   try {
     const postEvent = host.Telegram?.WebView?.postEvent;
-    if (postEvent && telegramWebViewBridgeReady(host)) {
+    if (postEvent) {
       postEvent(HAPTIC_EVENT, false, data);
       return true;
     }
@@ -217,15 +238,6 @@ function postNativeHaptic(data: HapticEventData): boolean {
   }
 
   return false;
-}
-
-function telegramWebViewBridgeReady(host: TelegramHapticHost): boolean {
-  return Boolean(
-    host.TelegramWebviewProxy?.postEvent ||
-      host.external?.notify ||
-      host.webkit?.messageHandlers?.performAction?.postMessage ||
-      host.webkit?.messageHandlers?.TelegramWebviewProxy?.postMessage,
-  );
 }
 
 function postIosMessage(

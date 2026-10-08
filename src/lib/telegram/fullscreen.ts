@@ -2,8 +2,6 @@ import { clearTelegramFullscreenCache } from "@/lib/telegram/fullscreen-storage"
 
 const TELEGRAM_FULLSCREEN_API = "8.0";
 export const FULLSCREEN_RETRY_MS = [0, 150, 600, 1200, 2500, 4000];
-const ALREADY_FULLSCREEN_RESET_MS = [80, 350];
-const MAX_ALREADY_FULLSCREEN_RESETS = 2;
 
 type FullscreenListener = (payload?: { error?: string }) => void;
 
@@ -46,8 +44,6 @@ export function bindTelegramFullscreen(
   clearTelegramFullscreenCache();
 
   let settled = false;
-  let alreadyFullscreenResets = 0;
-  const recoveryTimers: number[] = [];
   const finish = () => {
     settled = true;
   };
@@ -71,31 +67,12 @@ export function bindTelegramFullscreen(
     }
   };
 
-  const recoverFromStaleFullscreen = () => {
-    if (settled || alreadyFullscreenResets >= MAX_ALREADY_FULLSCREEN_RESETS) {
-      finish();
-      return;
-    }
-    alreadyFullscreenResets += 1;
-    clearTelegramFullscreenCache();
-    try {
-      webApp.exitFullscreen?.();
-    } catch {
-      // Telegram 6.0 mock and old clients throw WebAppMethodUnsupported.
-    }
-    for (const ms of ALREADY_FULLSCREEN_RESET_MS) {
-      recoveryTimers.push(schedule(ms, request));
-    }
-  };
-
   const onFailed = (payload?: { error?: string }) => {
     const error = payload?.error;
-    if (error === "UNSUPPORTED") {
+    // exitFullscreen() after ALREADY_FULLSCREEN breaks Android haptics on
+    // home-screen and chat-list launches; accept the native sheet state.
+    if (error === "ALREADY_FULLSCREEN" || error === "UNSUPPORTED") {
       finish();
-      return;
-    }
-    if (error === "ALREADY_FULLSCREEN") {
-      recoverFromStaleFullscreen();
     }
   };
 
@@ -107,7 +84,7 @@ export function bindTelegramFullscreen(
 
   return () => {
     finish();
-    for (const id of [...timers, ...recoveryTimers]) {
+    for (const id of timers) {
       cancel(id);
     }
     webApp.offEvent?.("fullscreenChanged", onChanged);

@@ -4,6 +4,7 @@ import {
   telegramInitParamsFromHash,
   telegramLaunchHashFromParams,
 } from "@/lib/telegram/boot-script";
+import { clearHapticApiCache } from "@/lib/telegram/haptic";
 import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
 
 export const TELEGRAM_INIT_PARAMS_STORAGE_KEY = "__telegram__initParams";
@@ -220,15 +221,23 @@ function resolveTelegramWebAppHost(): TelegramWebAppHost {
   return webApp;
 }
 
-function primeTelegramWebAppHost(
-  webApp: TelegramWebAppHost,
-): TelegramWebAppHost {
-  try {
-    webApp.ready();
-  } catch {
-    // mock clients throw until Telegram attaches the bridge.
-  }
-  webApp.expand?.();
+type TelegramLifecycleHost = TelegramWebAppHost & {
+  onEvent?: (event: string, callback: () => void) => void;
+};
+
+function primeTelegramWebAppHost(webApp: TelegramWebAppHost): TelegramWebAppHost {
+  const host = webApp as TelegramLifecycleHost;
+  const warm = () => {
+    try {
+      host.ready();
+    } catch {
+      // mock clients throw until Telegram attaches the bridge.
+    }
+    host.expand?.();
+    clearHapticApiCache();
+  };
+  warm();
+  host.onEvent?.("activated", warm);
   return webApp;
 }
 
