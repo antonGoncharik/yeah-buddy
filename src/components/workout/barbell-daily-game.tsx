@@ -19,6 +19,7 @@ import {
   addSidePlate,
   loadedKg,
   loadStatus,
+  plateLabel,
   SIDE_PLATES,
   undoSidePlate,
 } from "@/lib/workout/rest-load";
