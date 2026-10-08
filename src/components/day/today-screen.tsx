@@ -113,9 +113,9 @@ export function TodayScreen({
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-2" : "gap-3")}>
       <div className="today-chrome">
-        <div className="today-chrome-head">
+        <div className="today-chrome-date-head today-chrome-head">
           <AppHeader
-            className="px-0 py-2.5"
+            className="px-0 pt-1 pb-2.5"
             title={titleDate}
             subtitle={
               viewOnly

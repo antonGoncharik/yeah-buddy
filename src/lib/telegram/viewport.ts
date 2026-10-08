@@ -39,7 +39,7 @@ const KEYBOARD_SHRINK_MIN = 120;
 // would inflate the tab bar if added into --app-safe-bottom.
 const CONTENT_BOTTOM_MAX = 80;
 /** Telegram fullscreen header row when contentSafeAreaInset.top is missing. */
-const FULLSCREEN_CONTENT_TOP_MIN = 50;
+const FULLSCREEN_CONTENT_TOP_MIN = 44;
 
 export function extraBottomGap(
   layoutHeight: number,

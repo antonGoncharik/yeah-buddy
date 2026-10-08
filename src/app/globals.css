@@ -551,11 +551,23 @@ html.dark[data-day="deload"] {
 }
 
 html[data-tg-fullscreen] {
-  --app-safe-top-extra: 1.375rem;
+  /* contentSafeAreaInset already clears Close; avoid stacking extra air */
+  --app-safe-top-extra: 0.25rem;
 }
 
-html[data-tg-fullscreen] .today-chrome-head > header {
-  padding-left: 4.25rem;
+html[data-tg-fullscreen] .today-chrome-diary-inset {
+  padding-left: calc(1rem + 4.25rem);
+}
+
+html[data-density="compact"][data-tg-fullscreen] .today-chrome-diary-inset {
+  padding-left: calc(0.75rem + 4.25rem);
+}
+
+@utility today-chrome-date-head {
+  & > header h1 button {
+    margin-left: 0;
+    padding-left: 0;
+  }
 }
 
 html[data-keyboard="open"] {
