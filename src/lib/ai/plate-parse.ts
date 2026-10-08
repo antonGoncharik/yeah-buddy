@@ -1,4 +1,5 @@
 import {
+  PLATE_GRAMS_MAX,
   PLATE_ITEM_LIMIT,
   type PlateDraft,
   type PlateDraftItem,
@@ -67,9 +68,14 @@ export function parsePlateDraftItem(
     ) {
       return null;
     }
+    const grams = toNumber(value.grams);
     return {
       kind: "lump",
       name: name.slice(0, 80),
+      grams:
+        Number.isFinite(grams) && grams > 0
+          ? Math.min(grams, PLATE_GRAMS_MAX)
+          : 100,
       protein,
       fat,
       carbs,

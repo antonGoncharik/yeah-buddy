@@ -116,13 +116,30 @@ export function PlateDraftRow({
       </div>
 
       {item.kind === "lump" && onPatchLump ? (
-        <PlateDraftLumpFields
-          item={item}
-          proteinInput={proteinInput}
-          fatInput={fatInput}
-          carbsInput={carbsInput}
-          onPatchLump={onPatchLump}
-        />
+        <>
+          <div className="flex flex-col gap-2">
+            <Label className="text-base">Граммы</Label>
+            <Input
+              inputMode="decimal"
+              enterKeyHint="done"
+              value={gramsInput}
+              onChange={(event) => onGramsChange(event.target.value)}
+              className="h-12 text-lg"
+            />
+          </div>
+          <GramChips
+            onPick={(value) => onGramsChange(formatYieldGrams(value))}
+            defaultPortionG={null}
+            defaultPortionLabel={null}
+          />
+          <PlateDraftLumpFields
+            item={item}
+            proteinInput={proteinInput}
+            fatInput={fatInput}
+            carbsInput={carbsInput}
+            onPatchLump={onPatchLump}
+          />
+        </>
       ) : null}
 
       {item.kind === "food" ? (

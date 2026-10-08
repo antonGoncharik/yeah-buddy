@@ -61,6 +61,8 @@ export type PlateDraftFood = {
 export type PlateDraftLump = {
   kind: "lump";
   name: string;
+  /** Порция, для которой заданы БЖУ ниже; при смене граммов макросы пересчитываются. */
+  grams: number;
   protein: number;
   fat: number;
   carbs: number;

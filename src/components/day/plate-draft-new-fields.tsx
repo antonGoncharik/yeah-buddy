@@ -27,8 +27,8 @@ export function PlateDraftLumpFields({
   return (
     <>
       <p className="text-sm text-muted-foreground">
-        Белки, жиры и углеводы этой порции. Разовая запись — в список продуктов
-        не попадёт.
+        Белки, жиры и углеводы на указанные граммы. Смена граммов пересчитает
+        БЖУ. Разовая запись — в список продуктов не попадёт.
       </p>
       <div className="grid grid-cols-3 gap-2" data-field-group>
         <MacroField

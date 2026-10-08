@@ -172,6 +172,7 @@ const fromPer100 = resolvePlateItems(
 assertEqual(fromPer100[0]?.kind, "lump", "per-100 unknown becomes lump");
 if (fromPer100[0]?.kind === "lump") {
   assertEqual(fromPer100[0].protein, 4, "portion from per-100");
+  assertEqual(fromPer100[0].grams, 50, "lump keeps portion grams");
 }
 
 const dropped = resolvePlateItems(

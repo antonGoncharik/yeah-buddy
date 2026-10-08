@@ -3,7 +3,8 @@ import { parseRemaining } from "@/lib/ai/parse-review";
 import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { ApiError } from "@/lib/api-cache";
-import { macrosFromLump } from "@/lib/day/lump";
+import { LUMP_PORTION_G, macrosFromLump } from "@/lib/day/lump";
+import { roundPlateGrams } from "@/lib/ai/plate-match";
 import {
   type FoodYield,
   formatYieldGrams,
@@ -54,9 +55,21 @@ export function rowYield(item: PlateDraftItem): FoodYield | null {
   return item.kind === "food" ? parseFoodYield(item) : null;
 }
 
+export function lumpReferenceGrams(item: PlateRow): number {
+  if (item.kind !== "lump") {
+    return LUMP_PORTION_G;
+  }
+  const parsed = parseGramsInput(item.gramsInput);
+  if (parsed != null && parsed > 0) {
+    return Math.min(parsed, PLATE_GRAMS_MAX);
+  }
+  return item.grams > 0 ? item.grams : LUMP_PORTION_G;
+}
+
 export function rowNativeGrams(item: PlateRow): number | null {
   if (item.kind === "lump") {
-    return null;
+    const grams = lumpReferenceGrams(item);
+    return grams > 0 ? grams : null;
   }
   const grams = parseGramsInput(item.gramsInput);
   if (grams == null) {
@@ -68,10 +81,13 @@ export function rowNativeGrams(item: PlateRow): number | null {
 
 export function toPlateRow(item: PlateDraftItem): PlateRow {
   if (item.kind === "lump") {
+    const grams =
+      item.grams > 0 ? roundPlateGrams(item.grams) : LUMP_PORTION_G;
     return {
       ...item,
+      grams,
       rowId: crypto.randomUUID(),
-      gramsInput: "",
+      gramsInput: formatYieldGrams(grams),
       gramsMode: "native",
       proteinInput: String(item.protein),
       fatInput: String(item.fat),
@@ -151,9 +167,11 @@ export function patchLumpRow(item: PlateRow, patch: PlateLumpPatch): PlateRow {
   const fat = parseNonneg(fatInput) ?? item.fat;
   const carbs = parseNonneg(carbsInput) ?? item.carbs;
   const macros = macrosFromLump({ protein, fat, carbs });
+  const grams = lumpReferenceGrams(item);
   return {
     ...item,
     name: patch.name ?? item.name,
+    grams,
     proteinInput,
     fatInput,
     carbsInput,
@@ -162,6 +180,48 @@ export function patchLumpRow(item: PlateRow, patch: PlateLumpPatch): PlateRow {
     carbs: macros.carbs,
     kcal: macros.kcal,
   };
+}
+
+export function setRowGrams(item: PlateRow, gramsInput: string): PlateRow {
+  if (item.kind === "food") {
+    return { ...item, gramsInput };
+  }
+
+  const prevGrams = lumpReferenceGrams(item);
+  const parsed = parseGramsInput(gramsInput);
+  if (parsed == null) {
+    return { ...item, gramsInput };
+  }
+
+  const nextGrams = Math.min(Math.max(parsed, 0), PLATE_GRAMS_MAX);
+  if (nextGrams <= 0 || prevGrams <= 0) {
+    return { ...item, gramsInput, grams: nextGrams };
+  }
+
+  const factor = nextGrams / prevGrams;
+  const scaled = macrosFromLump({
+    protein: item.protein * factor,
+    fat: item.fat * factor,
+    carbs: item.carbs * factor,
+  });
+
+  return {
+    ...item,
+    gramsInput,
+    grams: roundPlateGrams(nextGrams) || nextGrams,
+    proteinInput: formatMacroInput(scaled.protein),
+    fatInput: formatMacroInput(scaled.fat),
+    carbsInput: formatMacroInput(scaled.carbs),
+    protein: scaled.protein,
+    fat: scaled.fat,
+    carbs: scaled.carbs,
+    kcal: scaled.kcal,
+  };
+}
+
+function formatMacroInput(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return String(rounded);
 }
 
 export function foodRowFromPick(food: Food): PlateRow {
@@ -176,12 +236,13 @@ export function emptyLumpRow(): PlateRow {
   return {
     kind: "lump",
     name: "",
+    grams: LUMP_PORTION_G,
     protein: 0,
     fat: 0,
     carbs: 0,
     kcal: 0,
     rowId: crypto.randomUUID(),
-    gramsInput: "",
+    gramsInput: formatYieldGrams(LUMP_PORTION_G),
     gramsMode: "native",
     proteinInput: "",
     fatInput: "",
@@ -201,10 +262,12 @@ export function foodRowToLump(item: PlateRow): PlateRow {
     carbs: (item.carbs_per_100 * grams) / 100,
   });
 
+  const portionGrams = roundPlateGrams(grams) || LUMP_PORTION_G;
   return {
     ...toPlateRow({
       kind: "lump",
       name: item.name,
+      grams: portionGrams,
       protein: macros.protein,
       fat: macros.fat,
       carbs: macros.carbs,

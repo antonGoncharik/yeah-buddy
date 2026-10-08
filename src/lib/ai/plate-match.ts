@@ -10,6 +10,7 @@ import {
 } from "@/lib/ai/plate-types";
 import {
   LUMP_MACRO_MAX,
+  LUMP_PORTION_G,
   type LumpMealItemInput,
   macrosFromLump,
 } from "@/lib/day/lump";
@@ -188,9 +189,15 @@ function draftFromLump(row: PlateModelItem): PlateDraftLump | null {
     return null;
   }
 
+  const grams =
+    roundPlateGrams(row.grams) > 0
+      ? roundPlateGrams(row.grams)
+      : LUMP_PORTION_G;
+
   return {
     kind: "lump",
     name: name.slice(0, 80),
+    grams,
     protein: macros.protein,
     fat: macros.fat,
     carbs: macros.carbs,

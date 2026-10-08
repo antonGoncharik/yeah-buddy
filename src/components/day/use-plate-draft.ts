@@ -14,6 +14,7 @@ import {
   type PlateRow,
   type PlateStatus,
   patchLumpRow,
+  setRowGrams,
   withGramsMode,
 } from "@/components/day/plate-draft";
 import type { GramsMode } from "@/lib/food/yield";
@@ -54,7 +55,7 @@ export function usePlateDraft({
   }
 
   function setGrams(rowId: string, gramsInput: string) {
-    patchDraftItem(rowId, (item) => ({ ...item, gramsInput }));
+    patchDraftItem(rowId, (item) => setRowGrams(item, gramsInput));
   }
 
   function setGramsMode(rowId: string, mode: GramsMode) {

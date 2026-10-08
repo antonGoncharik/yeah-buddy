@@ -1,6 +1,7 @@
 import {
   emptyLumpRow,
   foodRowToLump,
+  setRowGrams,
   toPlateRow,
 } from "@/components/day/plate-draft";
 
@@ -41,6 +42,25 @@ if (converted.kind === "lump") {
   assertEqual(converted.name, "Картофель варёный", "converted name");
   assertEqual(converted.protein, 3, "portion protein");
   assertEqual(converted.carbs, 24, "portion carbs");
+  assertEqual(converted.grams, 150, "converted portion grams");
+}
+
+const scaledLump = setRowGrams(
+  toPlateRow({
+    kind: "lump",
+    name: "Омлет",
+    grams: 100,
+    protein: 20,
+    fat: 15,
+    carbs: 2,
+    kcal: 0,
+  }),
+  "200",
+);
+assertEqual(scaledLump.kind, "lump", "scaled kind");
+if (scaledLump.kind === "lump") {
+  assertEqual(scaledLump.protein, 40, "double grams doubles protein");
+  assertEqual(scaledLump.gramsInput, "200", "grams input");
 }
 
 console.log("plate draft ok");
