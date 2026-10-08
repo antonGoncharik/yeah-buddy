@@ -1,4 +1,4 @@
-import { TELEGRAM_INIT_STORAGE_KEY } from "@/lib/telegram/boot-script";
+import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
 
 type TelegramInitWindow = Window & {
   Telegram?: {
@@ -10,32 +10,14 @@ type TelegramInitWindow = Window & {
   };
 };
 
-function readTelegramLaunchInitParams(): Record<string, string> {
+/** Launch surface for this open only — not merged session/local storage (stale start_param poisons bot opens). */
+function readLiveTelegramLaunchParams(): Record<string, string> {
   const fromWebView =
     (typeof window !== "undefined"
       ? (window as TelegramInitWindow).Telegram?.WebView?.initParams
       : undefined) ?? {};
-  const stored = readStoredTelegramLaunchParams() ?? {};
-  return { ...stored, ...fromWebView };
-}
-
-function readStoredTelegramLaunchParams(): Record<string, string> | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  try {
-    const raw = window.sessionStorage.getItem(TELEGRAM_INIT_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") {
-      return null;
-    }
-    return parsed as Record<string, string>;
-  } catch {
-    return null;
-  }
+  const fromLocation = telegramLaunchParamsFromLocation() ?? {};
+  return { ...fromLocation, ...fromWebView };
 }
 
 function launchInitParam(
@@ -116,7 +98,7 @@ export function isTelegramKeyboardWebAppLaunch(): boolean {
   if (typeof start === "string" && start.trim() !== "") {
     return false;
   }
-  const launchParams = readTelegramLaunchInitParams();
+  const launchParams = readLiveTelegramLaunchParams();
   if (launchInitParam(launchParams, "tgWebAppStartParam")) {
     return false;
   }
@@ -124,10 +106,6 @@ export function isTelegramKeyboardWebAppLaunch(): boolean {
     launchInitParam(launchParams, "tgWebAppFullscreen") === "1" ||
     launchInitParam(launchParams, "tgWebAppFullscreen") === "true"
   ) {
-    return false;
-  }
-  const inline = launchInitParam(launchParams, "tgWebAppBotInline");
-  if (inline === "1" || inline === "true") {
     return false;
   }
   return true;

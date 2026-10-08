@@ -1,3 +1,4 @@
+import { TELEGRAM_INIT_STORAGE_KEY } from "@/lib/telegram/boot-script";
 import {
   isTelegramAppWebViewLaunch,
   isTelegramKeyboardWebAppLaunch,
@@ -13,11 +14,13 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 }
 
 const fakeWindow: {
+  location: { hash: string; search: string };
   Telegram?: {
     WebApp?: { initData?: string; initDataUnsafe?: Record<string, unknown> };
     WebView?: { initParams?: Record<string, string> };
   };
 } = {
+  location: { hash: "", search: "" },
   Telegram: {
     WebView: { initParams: { tgWebAppPlatform: "android" } },
     WebApp: {},
@@ -69,6 +72,31 @@ assertEqual(
   readTelegramInitUnsafe().chat_instance,
   "abc",
   "parse initData string",
+);
+
+const staleStore = new Map<string, string>();
+staleStore.set(
+  TELEGRAM_INIT_STORAGE_KEY,
+  JSON.stringify({ tgWebAppStartParam: "open", tgWebAppVersion: "8.0" }),
+);
+fakeWindow.Telegram!.WebApp!.initDataUnsafe = {};
+fakeWindow.Telegram!.WebApp!.initData = "";
+fakeWindow.Telegram!.WebView!.initParams = { tgWebAppPlatform: "android" };
+fakeWindow.location = { hash: "", search: "" };
+Object.defineProperty(globalThis, "sessionStorage", {
+  value: {
+    getItem(key: string) {
+      return staleStore.get(key) ?? null;
+    },
+    setItem() {},
+    removeItem() {},
+  },
+  configurable: true,
+});
+assertEqual(
+  isTelegramKeyboardWebAppLaunch(),
+  true,
+  "stale stored start_param does not mark bot keyboard as app webview",
 );
 
 console.log("telegram launch context ok");

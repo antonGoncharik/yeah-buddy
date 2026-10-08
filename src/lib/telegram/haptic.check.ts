@@ -55,11 +55,13 @@ assertEqual(
   "native tick",
 );
 const fakeWindow: {
+  location: { hash: string; search: string };
   Telegram?: {
     WebView?: { initParams?: Record<string, string> };
     WebApp?: { initDataUnsafe?: Record<string, unknown> };
   };
 } = {
+  location: { hash: "", search: "" },
   Telegram: {
     WebView: { initParams: { tgWebAppPlatform: "android" } },
     WebApp: { initDataUnsafe: { start_param: "open" } },

@@ -12,6 +12,7 @@ import {
   SHARE_FAILED,
 } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
+import { isTelegramAppWebViewLaunch } from "@/lib/telegram/launch-context";
 import {
   loadTelegramWebApp,
   openTelegramShareUrl,
@@ -229,6 +230,20 @@ async function sharePayloadToStory(
 async function openPreparedShare(
   payload: PhotoSharePayload,
 ): Promise<"shared" | "cancelled" | "failed"> {
+  if (isTelegramAppWebViewLaunch()) {
+    const link = await sharePhotoViaTelegramLink(payload);
+    if (link !== "failed") {
+      return link;
+    }
+    if (payload.id) {
+      const prepared = await sendPreparedMessage(payload.id, payload);
+      if (prepared !== "failed") {
+        return prepared;
+      }
+    }
+    return "failed";
+  }
+
   if (payload.id) {
     const sent = await sendPreparedMessage(payload.id, payload);
     if (sent !== "failed") {

@@ -66,11 +66,8 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
       }
       if (!releaseFullscreen.current) {
         const host = webApp as TelegramFullscreenHost;
-        if (isAndroidTelegram()) {
+        if (isAndroidTelegram() && isTelegramAppWebViewLaunch()) {
           host.expand?.();
-          if (!isTelegramAppWebViewLaunch()) {
-            releaseFullscreen.current = bindTelegramFullscreen(host);
-          }
         } else {
           releaseFullscreen.current = bindTelegramFullscreen(host);
         }
