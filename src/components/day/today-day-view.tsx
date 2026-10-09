@@ -6,7 +6,10 @@ import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
 import { EarlyHabitCard } from "@/components/day/early-habit-card";
-import { EnergyGoalCard } from "@/components/day/energy-goal-card";
+import {
+  EnergyGoalCard,
+  EnergyGoalHintCard,
+} from "@/components/day/energy-goal-card";
 import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
@@ -33,7 +36,7 @@ import {
   waistGapLine,
   weightGapLine,
 } from "@/lib/flavor";
-import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
+import { calcKcalFromMacros, hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import { emptyStartCopy } from "@/lib/retention";
 import {
@@ -70,6 +73,7 @@ export function TodayDayView({
   habitBridge,
   habitBridgeSnapshot,
   energyGoal,
+  energyGoalHint,
   onApplyEnergyGoal,
   onDismissEnergyGoal,
   energyGoalBusy,
@@ -124,6 +128,7 @@ export function TodayDayView({
   habitBridge: boolean;
   habitBridgeSnapshot: HabitBridgeSnapshot | null;
   energyGoal: EnergyGoalOffer | null;
+  energyGoalHint: string | null;
   onApplyEnergyGoal: () => void;
   onDismissEnergyGoal: (dismissedKcal: number) => void;
   energyGoalBusy: boolean;
@@ -388,7 +393,7 @@ export function TodayDayView({
             snapshot={habitBridgeSnapshot}
             compact={compact}
             showGymLine={gymEnabled}
-            showReviewLink={gymEnabled}
+            showReviewLink
           />
         </div>
       ) : null}
@@ -397,10 +402,21 @@ export function TodayDayView({
         <div className="animate-rise">
           <EnergyGoalCard
             offer={energyGoal}
+            currentRestKcal={calcKcalFromMacros(
+              shownDay.target_protein,
+              shownDay.target_fat,
+              shownDay.target_carbs,
+            )}
             busy={energyGoalBusy}
             onApply={onApplyEnergyGoal}
             onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
           />
+        </div>
+      ) : null}
+
+      {date === today && !viewOnly && !energyGoal && energyGoalHint ? (
+        <div className="animate-rise">
+          <EnergyGoalHintCard line={energyGoalHint} />
         </div>
       ) : null}
 

@@ -22,6 +22,7 @@ import {
   readEarlyHabit,
   readEarlyHabitSnapshot,
   readEnergyGoal,
+  readEnergyGoalHint,
   readGymEnabled,
   readHabitBridge,
   readHabitBridgeSnapshot,
@@ -86,6 +87,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
   const [mealTemplateFillPromptDismissed, setMealTemplateFillPromptDismissed] =
     useState(false);
   const [energyGoal, setEnergyGoal] = useState<EnergyGoalOffer | null>(null);
+  const [energyGoalHint, setEnergyGoalHint] = useState<string | null>(null);
   const [gymEnabled, setGymEnabled] = useState(true);
   const [workoutState, setWorkoutState] = useState<unknown>(null);
   const { loading, begin, done, reset } = useFirstLoad();
@@ -130,6 +132,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         readMealTemplateFillPromptDismissed(data),
       );
       setEnergyGoal(readEnergyGoal(data));
+      setEnergyGoalHint(readEnergyGoalHint(data));
       setGymEnabled(readGymEnabled(data));
       setLoadedDate(requestedDate);
       return true;
@@ -243,6 +246,7 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     setEarlyHabitSnapshot(null);
     setPriorFoodLogDays(0);
     setEnergyGoal(null);
+    setEnergyGoalHint(null);
     setGymEnabled(true);
     setWorkoutState(null);
   }, [applyDayPayload, date, reset]);
@@ -303,6 +307,8 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
         : mealTemplateFillPromptDismissed,
     setMealTemplateFillPromptDismissed,
     energyGoal: cached != null ? readEnergyGoal(cached) : energyGoal,
+    energyGoalHint:
+      cached != null ? readEnergyGoalHint(cached) : energyGoalHint,
     gymEnabled: cached != null ? readGymEnabled(cached) : gymEnabled,
     setEnergyGoal,
     setGoals,

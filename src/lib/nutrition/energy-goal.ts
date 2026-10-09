@@ -24,6 +24,9 @@ export const ENERGY_GOAL_LOOKBACK_DAYS = 28;
 /** Under this the current goal already matches the suggestion. */
 export const ENERGY_GOAL_GAP_KCAL = 100;
 
+/** Before this we do not nudge about expenditure on Today. */
+export const ENERGY_GOAL_HINT_MIN_ACCOUNT_DAYS = 7;
+
 /**
  * Share of body weight to move in a week. A cut is about half a percent,
  * a gain about a quarter — floored and capped so a light or heavy person
@@ -196,6 +199,89 @@ export function energyGoalPayload(
     delta: plan.delta,
     span: plan.span,
   };
+}
+
+type EnergyGoalInputs = {
+  days: EnergyDay[];
+  goal: UserGoal | null;
+  sex: UserSex | null;
+  restProtein: number;
+  restFat: number;
+  restCarbs: number;
+  trainingProtein: number;
+  trainingFat: number;
+  dismissedKcal: number | null;
+};
+
+/** One line on Today when the offer is not ready yet — what to log next. */
+export function energyGoalHint(
+  input: EnergyGoalInputs & { accountAgeDays: number | null },
+): string | null {
+  if (input.goal == null) {
+    return null;
+  }
+  if (
+    input.accountAgeDays != null &&
+    input.accountAgeDays < ENERGY_GOAL_HINT_MIN_ACCOUNT_DAYS
+  ) {
+    return null;
+  }
+
+  const offerInput: EnergyGoalInputs = {
+    days: input.days,
+    goal: input.goal,
+    sex: input.sex,
+    restProtein: input.restProtein,
+    restFat: input.restFat,
+    restCarbs: input.restCarbs,
+    trainingProtein: input.trainingProtein,
+    trainingFat: input.trainingFat,
+    dismissedKcal: input.dismissedKcal,
+  };
+
+  if (energyGoalOffer(offerInput) != null) {
+    return null;
+  }
+
+  const withoutDismiss = energyGoalOffer({
+    ...offerInput,
+    dismissedKcal: null,
+  });
+  if (
+    withoutDismiss != null &&
+    input.dismissedKcal != null &&
+    Math.abs(withoutDismiss.restKcal - input.dismissedKcal) <
+      ENERGY_GOAL_GAP_KCAL
+  ) {
+    return null;
+  }
+
+  const weighIns = input.days.filter(
+    (day) => day.body_weight != null && day.body_weight > 0,
+  ).length;
+  if (weighIns < 3) {
+    return "Взвешивайся раз в неделю — по еде и весу посчитаем расход и предложим калории.";
+  }
+
+  const energy = expenditureTrend(input.days);
+  if (energy == null || energy.span < ENERGY_GOAL_MIN_SPAN_DAYS) {
+    return "Нужны взвешивания хотя бы через две недели — тогда предложим цель по факту.";
+  }
+
+  const windowDays = energy.span + 1;
+  const coverage = windowDays > 0 ? energy.logged / windowDays : 0;
+  if (
+    coverage < OFFER_MIN_COVERAGE ||
+    energy.logged < OFFER_MIN_LOGGED_DAYS
+  ) {
+    return "Записывай еду чаще в эти дни — расход считается по тарелке и весу.";
+  }
+
+  if (!recentFoodLogOk(input.days, energy.to)) {
+    return "Запиши еду за последние дни — без этого расход не обновить.";
+  }
+
+  return null;
 }
 
 export function energyGoalLine(offer: EnergyGoalOffer): string {

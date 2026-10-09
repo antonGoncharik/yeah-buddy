@@ -1,5 +1,6 @@
 import { shiftIsoDate } from "@/lib/day/dates";
 import {
+  energyGoalHint,
   energyGoalLine,
   energyGoalOffer,
   energyGoalPayload,
@@ -318,6 +319,45 @@ assertEqual(
   }),
   null,
   "a stale log with holes this week does not move the goal",
+);
+
+assertEqual(
+  energyGoalHint({
+    days: days({
+      from: "2026-09-01",
+      count: 12,
+      kcal: 2200,
+      weights: { "2026-09-01": 80 },
+    }),
+    goal: "keep",
+    ...macros,
+    accountAgeDays: 14,
+  }),
+  "Взвешивайся раз в неделю — по еде и весу посчитаем расход и предложим калории.",
+  "hint asks for weigh-ins",
+);
+
+assertEqual(
+  energyGoalHint({
+    days: twoWeeks,
+    goal: "keep",
+    ...macros,
+    accountAgeDays: 3,
+  }),
+  null,
+  "first week stays quiet",
+);
+
+assertEqual(
+  energyGoalHint({
+    days: twoWeeks,
+    goal: "keep",
+    ...macros,
+    dismissedKcal: lose?.restKcal ?? 0,
+    accountAgeDays: 20,
+  }),
+  null,
+  "dismissed offer does not nag",
 );
 
 console.log("energy goal offer ok");

@@ -315,8 +315,8 @@ export function DaySummary({
             readOnly={bodyWeightReadOnly}
             busy={bodyWeightBusy}
             note={compact ? null : weightNote}
-            weightGap={compact ? null : weightGap}
-            waistGap={compact ? null : waistGap}
+            weightGap={weightGap}
+            waistGap={waistGap}
             wide
             divided={false}
             onSave={onSaveBodyWeight}

@@ -363,8 +363,10 @@ export const DICTATE_CAPTURE_LABEL = "Сказать";
 export const STEADY_WEIGHT_DAYS = 14;
 export const STEADY_WEIGHT_LINE = "Вес стоит. Нормально.";
 export const WAIST_GAP_DAYS = 21;
-export const WAIST_GAP_LINE = "Талию не мерили.";
-export const WEIGHT_GAP_LINE = "Вес не писали.";
+export const WAIST_GAP_LINE =
+  "Талию давно не мерили — в разборе отличим жир от весов.";
+export const WEIGHT_GAP_LINE =
+  "Вес не писали — без него не посчитать расход по дневнику.";
 export const PROTEIN_SHARE_FLOOR_G = 40;
 export const PROTEIN_SHARE_PILE = 0.6;
 export const TRAINING_GAP_FLOOR_G = 5;

@@ -272,6 +272,7 @@ export function useTodayScreen({
     habitBridge: data.habitBridge,
     habitBridgeSnapshot: data.habitBridgeSnapshot,
     energyGoal: data.energyGoal,
+    energyGoalHint: data.energyGoalHint,
     applyEnergyGoal,
     dismissEnergyGoal,
     energyGoalBusy,

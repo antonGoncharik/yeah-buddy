@@ -116,6 +116,11 @@ assertEqual(
   "fraction drops",
 );
 assertEqual(readReviewReady({ reviewReady: true }), true, "review ready");
+assertEqual(
+  readReviewReady({ reviewReady: true, gymEnabled: false }),
+  true,
+  "food-only diary can open review",
+);
 assertEqual(readReviewReady({}), false, "missing review ready");
 assertEqual(readRetentionTail({ retentionTail: true }), true, "retention tail");
 assertEqual(readRetentionTail({}), false, "missing retention tail");

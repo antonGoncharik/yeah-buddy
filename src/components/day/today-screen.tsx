@@ -75,6 +75,7 @@ export function TodayScreen({
     habitBridge,
     habitBridgeSnapshot,
     energyGoal,
+    energyGoalHint,
     applyEnergyGoal,
     dismissEnergyGoal,
     energyGoalBusy,
@@ -256,6 +257,7 @@ export function TodayScreen({
             habitBridge={habitBridge && isToday}
             habitBridgeSnapshot={habitBridgeSnapshot}
             energyGoal={isToday ? energyGoal : null}
+            energyGoalHint={isToday ? energyGoalHint : null}
             onApplyEnergyGoal={applyEnergyGoal}
             onDismissEnergyGoal={dismissEnergyGoal}
             energyGoalBusy={energyGoalBusy}
@@ -270,7 +272,7 @@ export function TodayScreen({
             goals={goals}
             weightSteady={weightSteady}
             priorProteinHits={priorProteinHits}
-            reviewReady={gymEnabled && reviewReady && isToday}
+            reviewReady={reviewReady && isToday}
             gymEnabled={gymEnabled}
             effectiveTraining={effectiveTraining}
             gym={gym}

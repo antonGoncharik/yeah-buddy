@@ -45,6 +45,7 @@ import {
 } from "@/lib/nutrition";
 import {
   ENERGY_GOAL_LOOKBACK_DAYS,
+  energyGoalHint,
   energyGoalOffer,
   energyGoalPayload,
 } from "@/lib/nutrition/energy-goal";
@@ -148,7 +149,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     ]);
 
     const reviewReadyFlag =
-      gymEnabled &&
       viewingToday &&
       reviewCtaReady({
         loggedDays: recentDays.filter(historyDayHasFood).length,
@@ -222,14 +222,15 @@ export async function GET(request: Request): Promise<NextResponse> {
           : null,
       mealTemplateFillPromptDismissed:
         settings?.meal_template_fill_prompt_dismissed === true,
-      energyGoal: energyGoalPayload(
-        energyGoalOffer({
-          days: energyDays.map((row) => ({
-            date: row.date,
-            fact_kcal: row.fact_kcal,
-            target_kcal: row.target_kcal,
-            body_weight: row.body_weight,
-          })),
+      ...(() => {
+        const energyDaysPayload = energyDays.map((row) => ({
+          date: row.date,
+          fact_kcal: row.fact_kcal,
+          target_kcal: row.target_kcal,
+          body_weight: row.body_weight,
+        }));
+        const energyInputs = {
+          days: energyDaysPayload,
           goal: settings?.goal ?? null,
           sex: settings?.sex ?? null,
           restProtein:
@@ -241,8 +242,21 @@ export async function GET(request: Request): Promise<NextResponse> {
           trainingFat:
             settings?.training_fat ?? DEFAULT_TRAINING_MACRO_GOALS.fat,
           dismissedKcal: settings?.energy_goal_dismissed_kcal ?? null,
-        }),
-      ),
+        };
+        const energyPlan = viewingToday
+          ? energyGoalOffer(energyInputs)
+          : null;
+        return {
+          energyGoal: energyGoalPayload(energyPlan),
+          energyGoalHint:
+            viewingToday && energyPlan == null
+              ? energyGoalHint({
+                  ...energyInputs,
+                  accountAgeDays: ageDays,
+                })
+              : null,
+        };
+      })(),
       reviewReady: reviewReadyFlag,
       copyDays,
       namedMeals,

@@ -156,10 +156,15 @@ export function readGymEnabled(data: unknown): boolean {
 }
 
 export function readReviewReady(data: unknown): boolean {
-  if (!readGymEnabled(data)) {
-    return false;
-  }
   return isRecord(data) && data.reviewReady === true;
+}
+
+export function readEnergyGoalHint(data: unknown): string | null {
+  if (!isRecord(data) || typeof data.energyGoalHint !== "string") {
+    return null;
+  }
+  const line = data.energyGoalHint.trim();
+  return line.length > 0 ? line : null;
 }
 
 export function readRetentionTail(data: unknown): boolean {
