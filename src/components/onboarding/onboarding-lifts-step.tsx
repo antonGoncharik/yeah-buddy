@@ -1,5 +1,7 @@
 "use client";
 
+import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
@@ -47,15 +49,23 @@ export function liftAnswersDraftInvalid(answers: LiftAnswers): boolean {
 export function OnboardingLiftsStep({
   answers,
   onChange,
+  saving = false,
+  isLast = false,
+  onConfirm,
+  onSkip,
 }: {
   answers: LiftAnswers;
   onChange: (key: LiftKey, value: string | null) => void;
+  saving?: boolean;
+  isLast?: boolean;
+  onConfirm?: () => void;
+  onSkip?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-3 pb-2">
       <p className="text-base text-muted-foreground">
-        Если знаешь присед, жим или становую — напиши и нажми «Дальше». Если нет
-        — «Не знаю — посчитай сам».
+        Если знаешь присед, жим или становую — впиши вес. Если нет — посчитаем
+        сами.
       </p>
       <div className="flex flex-col gap-3">
         {ONBOARDING_LIFT_FIELDS.map((field) => {
@@ -87,6 +97,27 @@ export function OnboardingLiftsStep({
           );
         })}
       </div>
+      {onConfirm ? (
+        <div className="flex flex-col gap-2 pt-1">
+          {onSkip ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-12 w-full text-base"
+              data-keyboard-secondary
+              disabled={saving}
+              onClick={onSkip}
+            >
+              Не знаю — посчитай сам
+            </Button>
+          ) : null}
+          <OnboardingPrimaryAction
+            saving={saving}
+            isLast={isLast}
+            onClick={onConfirm}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

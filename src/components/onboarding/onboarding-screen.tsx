@@ -124,11 +124,13 @@ export function OnboardingScreen() {
         <p className="mb-3 text-base text-muted-foreground">
           Выбери один вариант — от этого зависит, что настроим дальше.
         </p>
-        <OnboardingModeStep
-          gymEnabled={gymEnabled}
-          invalid={error === MODE_REQUIRED}
-          onPick={onGymModePick}
-        />
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+          <OnboardingModeStep
+            gymEnabled={gymEnabled}
+            invalid={error === MODE_REQUIRED}
+            onPick={onGymModePick}
+          />
+        </div>
         {error ? (
           <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
         ) : null}
@@ -182,30 +184,6 @@ export function OnboardingScreen() {
     goBack();
   }
 
-  const sticky = (
-    <>
-      {step === "lifts" ? (
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-12 w-full text-base"
-          data-keyboard-secondary
-          disabled={saving}
-          onClick={() => skipLifts()}
-        >
-          Не знаю — посчитай сам
-        </Button>
-      ) : null}
-      <Button
-        className="h-14 w-full text-lg"
-        disabled={saving}
-        onClick={() => void (step === "lifts" ? confirmLifts() : goNext())}
-      >
-        {saving ? "Секунду…" : isLast ? "Готово" : "Дальше"}
-      </Button>
-    </>
-  );
-
   return (
     <>
       <OnboardingStepShell
@@ -216,10 +194,20 @@ export function OnboardingScreen() {
         title={titleForStep(step, programShelf)}
         subtitle={subtitleForStep(step, replay, pendingKind, pendingProgramId)}
         showSticky={showNext}
-        sticky={sticky}
+        sticky={
+          showNext ? (
+            <Button
+              className="h-14 w-full text-lg"
+              disabled={saving}
+              onClick={() => void goNext()}
+            >
+              {saving ? "Секунду…" : isLast ? "Готово" : "Дальше"}
+            </Button>
+          ) : null
+        }
       >
       {step === "sex" ? (
-        <>
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
           <OnboardingSexStep
             sex={sex}
             showLabel={false}
@@ -230,7 +218,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {step === "weight" && sex != null ? (
@@ -241,24 +229,26 @@ export function OnboardingScreen() {
             invalid={weightInvalid}
             message={weightFieldError ? error : null}
             showLabel={false}
+            saving={saving}
+            onContinue={() => void goNext()}
             onChange={onWeightChange}
           />
         </>
       ) : null}
 
       {step === "goal" ? (
-        <>
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
           <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
           {showPersonError("goal") ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">
               {error}
             </p>
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {step === "training_age" ? (
-        <>
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
           <OnboardingTrainingAgeStep
             trainingAge={trainingAge}
             onPick={onTrainingAgePick}
@@ -268,7 +258,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {step === "macros" && sex != null && goal != null ? (
@@ -277,11 +267,14 @@ export function OnboardingScreen() {
           weight={weight}
           goal={goal}
           foodOnly={foodOnly}
+          saving={saving}
+          isLast={isLast}
+          onContinue={() => void goNext()}
         />
       ) : null}
 
       {step === "ration" ? (
-        <>
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
           <OnboardingRationStep
             ration={ration}
             selfSetup={rationSelfSetup}
@@ -295,11 +288,18 @@ export function OnboardingScreen() {
           {error === RATION_REQUIRED ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {step === "lifts" ? (
-        <OnboardingLiftsStep answers={lifts} onChange={onLiftChange} />
+        <OnboardingLiftsStep
+          answers={lifts}
+          saving={saving}
+          isLast={isLast}
+          onChange={onLiftChange}
+          onConfirm={() => void confirmLifts()}
+          onSkip={() => skipLifts()}
+        />
       ) : null}
 
       {step === "circle" ? (

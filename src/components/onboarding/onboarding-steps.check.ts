@@ -2,6 +2,7 @@ import {
   isOnboardingPersonStep,
   onboardingPersonSteps,
   onboardingStepAutoAdvance,
+  onboardingStepInlineContinue,
   onboardingStepNeedsNext,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
@@ -97,8 +98,18 @@ assertEqual(
   "training age advances on pick",
 );
 assertEqual(onboardingStepAutoAdvance("ration"), true, "ration advances on pick");
-assertEqual(onboardingStepNeedsNext("weight"), true, "weight keeps Дальше");
-assertEqual(onboardingStepNeedsNext("macros"), true, "macros keeps Дальше");
+assertEqual(
+  onboardingStepInlineContinue("weight"),
+  true,
+  "weight continues inline",
+);
+assertEqual(
+  onboardingStepInlineContinue("macros"),
+  true,
+  "macros continues inline",
+);
+assertEqual(onboardingStepNeedsNext("weight"), false, "weight skips sticky");
+assertEqual(onboardingStepNeedsNext("macros"), false, "macros skips sticky");
 assertEqual(onboardingStepNeedsNext("mode"), false, "mode hides Дальше");
 assertEqual(onboardingStepNeedsNext("ration"), false, "ration hides Дальше");
 assertEqual(
@@ -106,7 +117,8 @@ assertEqual(
   false,
   "replay keeps the current menu",
 );
-assertEqual(onboardingStepNeedsNext("lifts"), true, "lifts needs Дальше");
+assertEqual(onboardingStepInlineContinue("lifts"), true, "lifts continues inline");
+assertEqual(onboardingStepNeedsNext("lifts"), false, "lifts skips sticky");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).includes("sex"),

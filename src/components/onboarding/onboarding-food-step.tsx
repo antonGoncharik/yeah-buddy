@@ -1,5 +1,6 @@
 "use client";
 
+import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
 import { OnboardingWeightRuler } from "@/components/onboarding/onboarding-weight-ruler";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,8 @@ export function OnboardingWeightStep({
   message,
   onChange,
   showLabel = true,
+  saving = false,
+  onContinue,
 }: {
   sex: OnboardingSex;
   weight: string;
@@ -79,6 +82,8 @@ export function OnboardingWeightStep({
   message: string | null;
   onChange: (value: string) => void;
   showLabel?: boolean;
+  saving?: boolean;
+  onContinue?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -91,6 +96,14 @@ export function OnboardingWeightStep({
       />
       {invalid && message ? (
         <p className="text-base leading-snug text-destructive">{message}</p>
+      ) : null}
+      {onContinue ? (
+        <div className="mt-2">
+          <OnboardingPrimaryAction
+            saving={saving}
+            onClick={onContinue}
+          />
+        </div>
       ) : null}
     </div>
   );
@@ -148,11 +161,17 @@ export function OnboardingMacrosSummary({
   weight,
   goal,
   foodOnly = false,
+  saving = false,
+  isLast = false,
+  onContinue,
 }: {
   sex: OnboardingSex;
   weight: string;
   goal: OnboardingGoal;
   foodOnly?: boolean;
+  saving?: boolean;
+  isLast?: boolean;
+  onContinue?: () => void;
 }) {
   const weightKg = parseDecimal(weight);
   const preview =
@@ -165,18 +184,27 @@ export function OnboardingMacrosSummary({
   }
 
   return (
-    <div className="card-surface flex flex-col gap-3 px-5 py-4">
-      <p className="text-sm font-medium text-muted-foreground">
-        Посчитали цели
-      </p>
-      <p className="text-3xl font-semibold tracking-tight tabular-nums">
-        {preview.protein} г белка
-      </p>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {foodOnly
-          ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
-          : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки — ${formatKcal(preview.training.kcal)} ккал, углеводов ${preview.training.carbs} г. Свой БЖУ всегда можно изменить в Настройках → «Цели на день».`}
-      </p>
+    <div className="flex flex-col gap-4">
+      <div className="card-surface flex flex-col gap-3 px-5 py-4">
+        <p className="text-sm font-medium text-muted-foreground">
+          Посчитали цели
+        </p>
+        <p className="text-3xl font-semibold tracking-tight tabular-nums">
+          {preview.protein} г белка
+        </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {foodOnly
+            ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
+            : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки — ${formatKcal(preview.training.kcal)} ккал, углеводов ${preview.training.carbs} г. Свой БЖУ всегда можно изменить в Настройках → «Цели на день».`}
+        </p>
+      </div>
+      {onContinue ? (
+        <OnboardingPrimaryAction
+          saving={saving}
+          isLast={isLast}
+          onClick={onContinue}
+        />
+      ) : null}
     </div>
   );
 }

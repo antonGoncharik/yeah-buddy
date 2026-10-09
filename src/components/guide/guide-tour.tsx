@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { GuidePageBody } from "@/components/guide/guide-page-body";
+import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import { OnboardingStepShell } from "@/components/onboarding/onboarding-shell";
 import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL, onboardingIntroPages } from "@/lib/guide";
@@ -77,28 +78,8 @@ export function GuideTour({
       }
       title={page.title}
       subtitle={null}
-      showSticky
-      sticky={
-        <>
-          {last ? null : (
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-12 w-full text-base"
-              data-keyboard-secondary
-              onClick={() => {
-                haptic("tap");
-                onSkip();
-              }}
-            >
-              Пропустить
-            </Button>
-          )}
-          <Button className="h-14 w-full text-lg" onClick={goNext}>
-            {last ? "К настройке" : "Дальше"}
-          </Button>
-        </>
-      }
+      showSticky={false}
+      sticky={null}
     >
       <section className="card-surface flex flex-col gap-4 px-5 py-5">
         <GuidePageBody page={page} showDoodle={false} />
@@ -108,6 +89,26 @@ export function GuideTour({
           {`Подробнее — в Настройках → «${GUIDE_LABEL}».`}
         </p>
       ) : null}
+      <div className="mt-4 flex flex-col gap-2">
+        {last ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-12 w-full text-base"
+            data-keyboard-secondary
+            onClick={() => {
+              haptic("tap");
+              onSkip();
+            }}
+          >
+            Пропустить
+          </Button>
+        )}
+        <OnboardingPrimaryAction
+          label={last ? "К настройке" : "Дальше"}
+          onClick={goNext}
+        />
+      </div>
       {error ? (
         <p className="mt-3 text-center text-base leading-snug text-destructive">{error}</p>
       ) : null}

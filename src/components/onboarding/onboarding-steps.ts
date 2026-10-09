@@ -73,17 +73,21 @@ export function onboardingStepAutoAdvance(step: OnboardingStep): boolean {
   );
 }
 
+/** Continue control sits in the scroll area, next to the field or summary. */
+export function onboardingStepInlineContinue(step: OnboardingStep): boolean {
+  return step === "weight" || step === "macros" || step === "lifts";
+}
+
+/** Fixed footer «Дальше» — only when the step has no inline continue. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
-  if (onboardingStepAutoAdvance(step)) {
+  if (
+    onboardingStepAutoAdvance(step) ||
+    onboardingStepInlineContinue(step) ||
+    step === "guide"
+  ) {
     return false;
   }
-  return (
-    step === "guide" ||
-    step === "weight" ||
-    step === "macros" ||
-    step === "lifts" ||
-    step === "circle"
-  );
+  return step === "circle";
 }
 
 export function onboardingSteps({
