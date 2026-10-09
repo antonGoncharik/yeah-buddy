@@ -12,25 +12,31 @@ import { haptic } from "@/lib/telegram/haptic";
 export function GuideTour({
   gymEnabled = true,
   pages,
+  pageIndex,
+  onPageIndexChange,
   allowBackToPreviousStep = false,
-  onBackToPreviousStep,
+  onRetreat,
   error = null,
   onDone,
   onSkip,
 }: {
   gymEnabled?: boolean;
   pages?: GuidePage[];
+  pageIndex?: number;
+  onPageIndexChange?: (index: number) => void;
   allowBackToPreviousStep?: boolean;
-  onBackToPreviousStep?: () => void;
+  onRetreat?: () => void;
   error?: string | null;
   onDone: () => void;
   onSkip: () => void;
 }) {
   const introPages = pages ?? onboardingIntroPages(gymEnabled);
-  const [index, setIndex] = useState(0);
+  const [internalIndex, setInternalIndex] = useState(0);
+  const index = pageIndex ?? internalIndex;
+  const setIndex = onPageIndexChange ?? setInternalIndex;
   const page = introPages[index] ?? introPages[0];
   const last = index === introPages.length - 1;
-  const canBack = index > 0;
+  const canBack = index > 0 || allowBackToPreviousStep;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -45,13 +51,6 @@ export function GuideTour({
     window.scrollTo(0, 0);
   }
 
-  function goBack() {
-    if (index > 0) {
-      haptic("tap");
-      showPage(index - 1);
-    }
-  }
-
   function goNext() {
     haptic("tick");
     if (last) {
@@ -62,14 +61,11 @@ export function GuideTour({
   }
 
   function handleBack() {
-    if (canBack) {
-      goBack();
+    if (!canBack || !onRetreat) {
       return;
     }
-    if (allowBackToPreviousStep && onBackToPreviousStep) {
-      haptic("tap");
-      onBackToPreviousStep();
-    }
+    haptic("tap");
+    onRetreat();
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { GuideTour } from "@/components/guide/guide-tour";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -84,16 +84,12 @@ export function OnboardingScreen() {
     onTrainingAgePick,
     onLiftChange,
     onRationPick,
+    guidePageIndex,
+    setGuidePageIndex,
+    programShelf,
+    setProgramShelf,
   } = useOnboardingScreen();
-  const [programShelf, setProgramShelf] =
-    useState<OnboardingProgramShelf | null>(null);
   const pickingProgram = programShelf != null;
-
-  useEffect(() => {
-    if (step !== "circle") {
-      setProgramShelf(null);
-    }
-  }, [step]);
 
   if (loading) {
     return (
@@ -144,8 +140,10 @@ export function OnboardingScreen() {
     return (
       <GuideTour
         gymEnabled={gymEnabled === true}
+        pageIndex={guidePageIndex}
+        onPageIndexChange={setGuidePageIndex}
         allowBackToPreviousStep
-        onBackToPreviousStep={goBack}
+        onRetreat={goBack}
         error={error}
         onDone={goNext}
         onSkip={goNext}
@@ -181,10 +179,6 @@ export function OnboardingScreen() {
   }
 
   function handleBack() {
-    if (step === "circle" && pickingProgram) {
-      setProgramShelf(null);
-      return;
-    }
     goBack();
   }
 

@@ -14,10 +14,14 @@ import {
   liftAnswersDraftInvalid,
   liftAnswersHaveInput,
 } from "@/components/onboarding/onboarding-lifts-step";
+import type { OnboardingProgramShelf } from "@/components/onboarding/onboarding-circle-step";
 import {
   type OnboardingStep,
+  isOnboardingStep,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
+import type { WizardScreenEntry } from "@/lib/navigation/wizard-history";
+import { useWizardScreenHistory } from "@/lib/navigation/use-wizard-screen-history";
 import { mutateJson } from "@/lib/api-cache";
 import type { RationId } from "@/lib/food/ration";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
@@ -55,6 +59,8 @@ export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
 export const MODE_REQUIRED = "Выбери, что тебе нужно.";
 export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
 
+const ONBOARDING_WIZARD_FLOW = "onboarding";
+
 type GoNextOptions = {
   circleOverride?: OnboardingCircle;
   gymEnabled?: boolean;
@@ -63,7 +69,38 @@ type GoNextOptions = {
   trainingAge?: UserTrainingAge;
   ration?: RationId | null;
   skipRation?: boolean;
+  skipLiftsStep?: boolean;
 };
+
+function onboardingWizardSub(
+  step: OnboardingStep,
+  guidePageIndex: number,
+  programShelf: OnboardingProgramShelf | null,
+): string | null {
+  if (step === "guide") {
+    return `g:${guidePageIndex}`;
+  }
+  if (step === "circle" && programShelf != null) {
+    return `shelf:${programShelf}`;
+  }
+  return null;
+}
+
+function parseGuidePageIndex(sub: string | null): number {
+  if (sub == null || !sub.startsWith("g:")) {
+    return 0;
+  }
+  const page = Number.parseInt(sub.slice(2), 10);
+  return Number.isFinite(page) && page >= 0 ? page : 0;
+}
+
+function parseProgramShelf(sub: string | null): OnboardingProgramShelf | null {
+  if (sub == null || !sub.startsWith("shelf:")) {
+    return null;
+  }
+  const shelf = sub.slice(6);
+  return shelf === "home" || shelf === "all" ? shelf : null;
+}
 
 function weightAfterSexPick(value: OnboardingSex, current: string): string {
   const nextDefault = String(onboardingDefaultWeightKg(value));
@@ -131,6 +168,9 @@ export function useOnboardingScreen() {
   const [pendingKind, setPendingKind] = useState<SharePackKind | null>(null);
   const [pendingProgramId, setPendingProgramId] =
     useState<PublicProgramId | null>(null);
+  const [guidePageIndex, setGuidePageIndex] = useState(0);
+  const [programShelf, setProgramShelf] =
+    useState<OnboardingProgramShelf | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -201,13 +241,36 @@ export function useOnboardingScreen() {
   const stepIndex = Math.max(0, steps.indexOf(step));
   const isLast = step === steps[steps.length - 1];
 
-  const goBack = useCallback(() => {
-    const previous = steps[stepIndex - 1];
-    if (previous) {
+  const restoreWizardStep = useCallback(
+    (entry: WizardScreenEntry) => {
       setError(null);
-      setStep(previous);
+      const parsed = isOnboardingStep(entry.step) ? entry.step : null;
+      const nextStep =
+        parsed != null && steps.includes(parsed)
+          ? parsed
+          : (steps[0] ?? "mode");
+      setGuidePageIndex(parseGuidePageIndex(entry.sub));
+      setProgramShelf(parseProgramShelf(entry.sub));
+      setStep(nextStep);
+    },
+    [steps],
+  );
+
+  const { retreat } = useWizardScreenHistory({
+    flow: ONBOARDING_WIZARD_FLOW,
+    step,
+    sub: onboardingWizardSub(step, guidePageIndex, programShelf),
+    enabled: !loading && state != null,
+    onRestore: restoreWizardStep,
+  });
+
+  const goBack = useCallback(() => {
+    if (programShelf == null && guidePageIndex <= 0 && stepIndex <= 0) {
+      return;
     }
-  }, [stepIndex, steps]);
+    setError(null);
+    retreat();
+  }, [guidePageIndex, programShelf, retreat, stepIndex]);
 
   function goNext(options?: GoNextOptions) {
     if (saving) {
@@ -305,7 +368,7 @@ export function useOnboardingScreen() {
       setError(null);
     }
 
-    if (step === "lifts") {
+    if (step === "lifts" && !options?.skipLiftsStep) {
       if (!liftAnswersHaveInput(lifts)) {
         haptic("warn");
         setError(LIFTS_NEED_INPUT_OR_SKIP);
@@ -343,6 +406,12 @@ export function useOnboardingScreen() {
     if (following) {
       if (circleOverride) {
         setCircle(circleOverride);
+      }
+      if (following !== "guide") {
+        setGuidePageIndex(0);
+      }
+      if (following !== "circle") {
+        setProgramShelf(null);
       }
       setStep(following);
       return;
@@ -446,13 +515,7 @@ export function useOnboardingScreen() {
     setLifts(emptyLiftAnswers());
     setError(null);
     haptic("tick");
-    const following = steps[stepIndex + 1];
-    if (following) {
-      setStep(following);
-      return;
-    }
-    setSaving(true);
-    void finish();
+    goNext({ skipLiftsStep: true });
   }
 
   function confirmLifts() {
@@ -482,6 +545,10 @@ export function useOnboardingScreen() {
     lifts,
     circle,
     setCircle,
+    guidePageIndex,
+    setGuidePageIndex,
+    programShelf,
+    setProgramShelf,
     onGymModePick: (enabled: boolean) => {
       haptic("tick");
       goNext({ gymEnabled: enabled });

@@ -12,6 +12,23 @@ export type OnboardingStep =
   | "lifts"
   | "circle";
 
+const ONBOARDING_STEP_IDS = [
+  "mode",
+  "guide",
+  "sex",
+  "weight",
+  "goal",
+  "training_age",
+  "macros",
+  "ration",
+  "lifts",
+  "circle",
+] as const satisfies readonly OnboardingStep[];
+
+export function isOnboardingStep(value: string): value is OnboardingStep {
+  return (ONBOARDING_STEP_IDS as readonly string[]).includes(value);
+}
+
 const PERSON_STEP_IDS = [
   "sex",
   "weight",
