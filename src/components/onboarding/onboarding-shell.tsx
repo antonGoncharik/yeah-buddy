@@ -21,7 +21,7 @@ export function OnboardingStepShell({
 }: {
   canGoBack: boolean;
   onBack: () => void;
-  progressLabel: string;
+  progressLabel?: string | null;
   stepDots?: ReactNode;
   title: string;
   subtitle?: string | null;
@@ -45,10 +45,16 @@ export function OnboardingStepShell({
             </button>
           ) : null}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm text-muted-foreground">{progressLabel}</p>
-              {stepDots}
-            </div>
+            {progressLabel || stepDots ? (
+              <div className="flex items-center justify-between gap-2">
+                {progressLabel ? (
+                  <p className="text-sm text-muted-foreground">{progressLabel}</p>
+                ) : (
+                  <span className="min-w-0 flex-1" />
+                )}
+                {stepDots}
+              </div>
+            ) : null}
             <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight">
               {title}
             </h1>

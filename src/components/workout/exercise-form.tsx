@@ -85,7 +85,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
               : "От этого максимума считаются проценты в подходах."}
           </p>
           {maxWeightOutOfRange(form.max_weight) ? (
-            <p className="text-sm text-destructive">Вес от 0,1 до 1000 кг.</p>
+            <p className="text-base leading-snug text-destructive">Вес от 0,1 до 1000 кг.</p>
           ) : null}
         </Field>
       )}
@@ -94,7 +94,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
 
       {exercise ? <ExerciseMaxHistory exercise={exercise} /> : null}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
 
       <StickyActions>
         <Button type="submit" className="h-14 text-lg" disabled={saving}>

@@ -2,13 +2,36 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { OnboardingSex } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
 
 export const ONBOARDING_WEIGHT_MIN_KG = 30;
 export const ONBOARDING_WEIGHT_MAX_KG = 250;
-export const ONBOARDING_WEIGHT_DEFAULT_KG = 65;
+export const ONBOARDING_WEIGHT_DEFAULT_MALE_KG = 80;
+export const ONBOARDING_WEIGHT_DEFAULT_FEMALE_KG = 60;
+
+/** @deprecated Use `onboardingDefaultWeightKg`. */
+export const ONBOARDING_WEIGHT_DEFAULT_KG = ONBOARDING_WEIGHT_DEFAULT_MALE_KG;
+
+export function onboardingDefaultWeightKg(sex: OnboardingSex | null): number {
+  if (sex === "female") {
+    return ONBOARDING_WEIGHT_DEFAULT_FEMALE_KG;
+  }
+  if (sex === "male") {
+    return ONBOARDING_WEIGHT_DEFAULT_MALE_KG;
+  }
+  return ONBOARDING_WEIGHT_DEFAULT_MALE_KG;
+}
+
+export function isOnboardingPresetWeightKg(kg: number): boolean {
+  return (
+    kg === ONBOARDING_WEIGHT_DEFAULT_MALE_KG ||
+    kg === ONBOARDING_WEIGHT_DEFAULT_FEMALE_KG ||
+    kg === 65
+  );
+}
 const ITEM_WIDTH_PX = 14;
 
 const WEIGHTS = Array.from(
@@ -16,7 +39,10 @@ const WEIGHTS = Array.from(
   (_, index) => ONBOARDING_WEIGHT_MIN_KG + index,
 );
 
-export function onboardingWeightKgFromDraft(raw: string): number {
+export function onboardingWeightKgFromDraft(
+  raw: string,
+  sex: OnboardingSex | null = null,
+): number {
   const parsed = parseDecimal(raw);
   if (
     parsed != null &&
@@ -25,14 +51,16 @@ export function onboardingWeightKgFromDraft(raw: string): number {
   ) {
     return Math.round(parsed);
   }
-  return ONBOARDING_WEIGHT_DEFAULT_KG;
+  return onboardingDefaultWeightKg(sex);
 }
 
 export function OnboardingWeightRuler({
+  sex,
   weight,
   invalid,
   onChange,
 }: {
+  sex: OnboardingSex;
   weight: string;
   invalid: boolean;
   onChange: (value: string) => void;
@@ -44,7 +72,7 @@ export function OnboardingWeightRuler({
   const suppressScrollEmitRef = useRef(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [displayKg, setDisplayKg] = useState(() =>
-    onboardingWeightKgFromDraft(weight),
+    onboardingWeightKgFromDraft(weight, sex),
   );
 
   const edgePadding =
@@ -53,12 +81,12 @@ export function OnboardingWeightRuler({
   const readKgFromScroll = useCallback((): number => {
     const el = scrollRef.current;
     if (!el) {
-      return ONBOARDING_WEIGHT_DEFAULT_KG;
+      return onboardingDefaultWeightKg(sex);
     }
     const index = Math.round(el.scrollLeft / ITEM_WIDTH_PX);
     const clamped = Math.min(Math.max(index, 0), WEIGHTS.length - 1);
     return ONBOARDING_WEIGHT_MIN_KG + clamped;
-  }, []);
+  }, [sex]);
 
   const scrollToKg = useCallback((kg: number, behavior: ScrollBehavior) => {
     const el = scrollRef.current;
@@ -130,26 +158,26 @@ export function OnboardingWeightRuler({
     observer.observe(el);
     setContainerWidth(el.clientWidth);
     return () => observer.disconnect();
-  }, []);
+  }, [sex]);
 
   useEffect(() => {
     if (weight.trim() === "") {
-      onChange(String(ONBOARDING_WEIGHT_DEFAULT_KG));
+      onChange(String(onboardingDefaultWeightKg(sex)));
     }
-  }, [onChange, weight]);
+  }, [onChange, sex, weight]);
 
   useEffect(() => {
     if (containerWidth === 0 || userScrollingRef.current) {
       return;
     }
-    const kg = onboardingWeightKgFromDraft(weight);
+    const kg = onboardingWeightKgFromDraft(weight, sex);
     if (kg === readKgFromScroll()) {
       setDisplayKg(kg);
       lastEmittedKgRef.current = kg;
       return;
     }
     scrollToKg(kg, "auto");
-  }, [containerWidth, readKgFromScroll, scrollToKg, weight]);
+  }, [containerWidth, readKgFromScroll, scrollToKg, sex, weight]);
 
   useEffect(() => {
     const el = scrollRef.current;

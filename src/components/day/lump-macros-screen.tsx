@@ -185,7 +185,7 @@ export function LumpMacrosScreen({
       <p className="text-lg font-semibold tabular-nums">
         {parsed ? `${formatKcal(parsed.kcal)} ккал` : "ккал посчитаются"}
       </p>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
 
       {readOnly || !save ? null : (
         <StickyActions>

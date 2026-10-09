@@ -1,5 +1,6 @@
 import {
-  ONBOARDING_FOOD_STEPS,
+  isOnboardingPersonStep,
+  onboardingPersonSteps,
   onboardingStepNeedsNext,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
@@ -19,36 +20,48 @@ const empty = {
   gymEnabled: true,
 };
 
-const food = "profile";
+const personGym = "sex,weight,goal,training_age,macros";
+const personFood = "sex,weight,goal,macros";
+
+assertEqual(
+  onboardingPersonSteps(true).join(),
+  personGym,
+  "person steps with gym",
+);
+assertEqual(
+  onboardingPersonSteps(false).join(),
+  personFood,
+  "person steps food-only",
+);
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,guide,${food},ration,lifts,circle`,
+  `mode,guide,${personGym},ration,lifts,circle`,
   "first run with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, gymEnabled: false }).join(),
-  `mode,guide,${food},ration`,
+  `mode,guide,${personFood},ration`,
   "food-only skips lifts and program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
-  `${food},lifts`,
+  `${personGym},lifts`,
   "protein replay with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true, gymEnabled: false }).join(),
-  food,
-  "replay food-only is profile only",
+  personFood,
+  "replay food-only is person steps only",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `mode,guide,${food},ration,lifts`,
+  `mode,guide,${personGym},ration,lifts`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `mode,guide,${food},ration,lifts`,
+  `mode,guide,${personGym},ration,lifts`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
@@ -63,14 +76,14 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,guide,${food},ration,lifts,circle`,
+  `mode,guide,${personGym},ration,lifts,circle`,
   "one meal pack still asks protein, ration, lifts and program",
 );
 
-for (const step of ONBOARDING_FOOD_STEPS) {
+for (const step of onboardingPersonSteps(true)) {
   const listed = onboardingSteps(empty);
   if (!listed.includes(step)) {
-    throw new Error(`food step ${step} must stay in the first-run path`);
+    throw new Error(`person step ${step} must stay in the first-run path`);
   }
   assertEqual(
     onboardingStepNeedsNext(step),
@@ -89,9 +102,11 @@ assertEqual(
 assertEqual(onboardingStepNeedsNext("lifts"), true, "lifts needs Дальше");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(
-  onboardingSteps({ ...empty, replay: true }).includes("profile"),
+  onboardingSteps({ ...empty, replay: true }).includes("sex"),
   true,
-  "replay still walks profile before lifts",
+  "replay still walks person steps before lifts",
 );
+assertEqual(isOnboardingPersonStep("weight"), true, "weight is person");
+assertEqual(isOnboardingPersonStep("ration"), false, "ration is not person");
 
 console.log("onboarding steps ok");

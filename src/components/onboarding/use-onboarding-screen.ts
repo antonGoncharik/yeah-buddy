@@ -19,7 +19,7 @@ import {
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import { mutateJson } from "@/lib/api-cache";
-import { type RationId, RECOMMENDED_RATION_ID } from "@/lib/food/ration";
+import type { RationId } from "@/lib/food/ration";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import { LOAD_FAILED } from "@/lib/messages";
 import {
@@ -38,6 +38,10 @@ import type { PublicProgramId } from "@/lib/share/program-public";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
+import {
+  isOnboardingPresetWeightKg,
+  onboardingDefaultWeightKg,
+} from "@/components/onboarding/onboarding-weight-ruler";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
 
 export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
@@ -48,6 +52,8 @@ export const WEIGHT_INVALID = "Вес от 30 до 250 кг.";
 export const SEX_REQUIRED = "Выбери, кто ты.";
 export const GOAL_REQUIRED = "Выбери цель.";
 export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
+export const MODE_REQUIRED = "Выбери, что тебе нужно.";
+export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
 
 function proteinValid(value: number | null): value is number {
   return value != null && value > 0 && value <= 400;
@@ -89,7 +95,7 @@ export function useOnboardingScreen() {
   const [weight, setWeight] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
-  const [ration, setRation] = useState<RationId>(RECOMMENDED_RATION_ID);
+  const [ration, setRation] = useState<RationId | null>(null);
   const [skipRation, setSkipRation] = useState(false);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
   const [circle, setCircle] = useState<OnboardingCircle>(
@@ -118,11 +124,9 @@ export function useOnboardingScreen() {
       setPendingKind(incoming);
       setPendingProgramId(incomingProgram);
       setState(onboarding);
-      const gymOn =
-        incomingProgram != null || incoming === "workouts"
-          ? true
-          : onboarding.settings.gym_enabled;
-      setGymEnabled(gymOn);
+      const gymFromLink =
+        incomingProgram != null || incoming === "workouts";
+      setGymEnabled(gymFromLink ? true : null);
       setCircle(
         incomingProgram ?? defaultOnboardingCircle(onboarding.circle, replay),
       );
@@ -131,7 +135,7 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
-      setStep(replay ? "profile" : "mode");
+      setStep(replay ? "sex" : "mode");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);
@@ -157,14 +161,14 @@ export function useOnboardingScreen() {
         pendingKind,
         pendingProgram: pendingProgramId != null,
         replay,
-        gymEnabled: gymEnabled ?? true,
+        gymEnabled: gymEnabled === true,
       }),
     [gymEnabled, pendingKind, pendingProgramId, replay],
   );
 
   useEffect(() => {
     if (!steps.includes(step)) {
-      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "profile"));
+      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "sex"));
     }
   }, [step, steps]);
 
@@ -183,16 +187,26 @@ export function useOnboardingScreen() {
     if (step === "mode") {
       if (gymEnabled == null) {
         haptic("warn");
-        setError("Выбери, что тебе нужно.");
+        setError(MODE_REQUIRED);
         return;
       }
       setError(null);
     }
 
-    if (step === "profile") {
+    if (step === "sex") {
       if (sex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
+        return;
+      }
+      setError(null);
+    }
+
+    if (step === "weight") {
+      if (sex == null) {
+        haptic("warn");
+        setError(SEX_REQUIRED);
+        setStep("sex");
         return;
       }
       if (weight.trim() === "") {
@@ -205,19 +219,40 @@ export function useOnboardingScreen() {
         setError(WEIGHT_INVALID);
         return;
       }
+      setError(null);
+    }
+
+    if (step === "goal") {
       if (goal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
         return;
       }
-      if (gymEnabled && trainingAge == null) {
+      setError(null);
+    }
+
+    if (step === "training_age") {
+      if (trainingAge == null) {
         haptic("warn");
         setError(TRAINING_AGE_REQUIRED);
         return;
       }
+      setError(null);
+    }
+
+    if (step === "macros") {
       if (!proteinValid(proteinValue)) {
         haptic("warn");
         setError(PROTEIN_INVALID);
+        return;
+      }
+      setError(null);
+    }
+
+    if (step === "ration") {
+      if (!skipRation && ration == null) {
+        haptic("warn");
+        setError(RATION_REQUIRED);
         return;
       }
       setError(null);
@@ -262,37 +297,45 @@ export function useOnboardingScreen() {
         haptic("warn");
         setSaving(false);
         setError(SEX_REQUIRED);
-        setStep("profile");
+        setStep("sex");
         return;
       }
       if (!weightDraftOk(weight)) {
         haptic("warn");
         setSaving(false);
         setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
-        setStep("profile");
+        setStep("weight");
         return;
       }
       if (goal == null) {
         haptic("warn");
         setSaving(false);
         setError(GOAL_REQUIRED);
-        setStep("profile");
+        setStep("goal");
         return;
       }
       if (gymEnabled && trainingAge == null) {
         haptic("warn");
         setSaving(false);
         setError(TRAINING_AGE_REQUIRED);
-        setStep("profile");
+        setStep("training_age");
         return;
       }
       if (!proteinValid(proteinValue)) {
         haptic("warn");
         setSaving(false);
         setError(PROTEIN_INVALID);
-        setStep("profile");
+        setStep("macros");
         return;
       }
+    }
+
+    if (gymEnabled == null) {
+      haptic("warn");
+      setSaving(false);
+      setError(MODE_REQUIRED);
+      setStep("mode");
+      return;
     }
 
     try {
@@ -313,7 +356,7 @@ export function useOnboardingScreen() {
         replay,
         circle: chosen,
         ration: skipRation ? null : ration,
-        gymEnabled: gymEnabled ?? true,
+        gymEnabled: gymEnabled === true,
       });
       if (isProgramPresetId(chosen) || pendingProgramId != null) {
         markProgramEditableHintPending();
@@ -327,17 +370,11 @@ export function useOnboardingScreen() {
     }
   }
 
-  function skipRationStep() {
+  function pickSelfRation() {
     setSkipRation(true);
+    setRation(null);
     setError(null);
     haptic("tick");
-    const following = steps[stepIndex + 1];
-    if (following) {
-      setStep(following);
-      return;
-    }
-    setSaving(true);
-    void finish();
   }
 
   function skipLifts() {
@@ -386,13 +423,28 @@ export function useOnboardingScreen() {
     },
     goBack,
     goNext,
-    skipRation: skipRationStep,
+    pickSelfRation,
     skipLifts,
     confirmLifts,
-    skipRationChosen: skipRation,
+    rationSelfSetup: skipRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     onSexPick: (value: OnboardingSex) => {
       setSex(value);
+      setWeight((current) => {
+        const nextDefault = String(onboardingDefaultWeightKg(value));
+        if (current.trim() === "") {
+          return nextDefault;
+        }
+        const kg = parseDecimal(current);
+        if (kg == null) {
+          return nextDefault;
+        }
+        const rounded = Math.round(kg);
+        if (isOnboardingPresetWeightKg(rounded)) {
+          return nextDefault;
+        }
+        return current;
+      });
       setError(null);
     },
     onWeightChange: (value: string) => {
@@ -414,6 +466,7 @@ export function useOnboardingScreen() {
     onRationPick: (value: RationId) => {
       setSkipRation(false);
       setRation(value);
+      setError(null);
     },
   };
 }

@@ -3,20 +3,35 @@
 import { CookieMark, Doodle, DUMBBELL_VIEWBOX, DumbbellMark } from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
 import { haptic } from "@/lib/telegram/haptic";
+import { cn } from "@/lib/utils";
 
 export function OnboardingModeStep({
   gymEnabled,
+  invalid = false,
   onPick,
 }: {
   gymEnabled: boolean | null;
+  invalid?: boolean;
   onPick: (gymEnabled: boolean) => void;
 }) {
+  const unselected = gymEnabled == null;
+
   return (
-    <div className="flex flex-col gap-3">
+    <div
+      className="flex flex-col gap-3"
+      role="group"
+      aria-label="Что ведём"
+      aria-invalid={invalid || undefined}
+    >
       <Button
         type="button"
         variant={gymEnabled === false ? "default" : "outline"}
-        className="h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal"
+        aria-pressed={gymEnabled === false}
+        className={cn(
+          "h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal",
+          unselected && "border-border",
+          invalid && unselected && "border-destructive/50",
+        )}
         onClick={() => {
           haptic("tick");
           onPick(false);
@@ -41,7 +56,12 @@ export function OnboardingModeStep({
       <Button
         type="button"
         variant={gymEnabled === true ? "default" : "outline"}
-        className="h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal"
+        aria-pressed={gymEnabled === true}
+        className={cn(
+          "h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal",
+          unselected && "border-border",
+          invalid && unselected && "border-destructive/50",
+        )}
         onClick={() => {
           haptic("tick");
           onPick(true);

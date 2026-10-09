@@ -131,7 +131,7 @@ export function TodayTextMealForm({
         <p className="text-xs text-muted-foreground">{quotaLine}</p>
       ) : null}
       <MealChatHint className="text-xs" />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
       <Button
         type="button"
         className={cn("w-full", mealActionButtonClass)}

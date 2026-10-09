@@ -9,7 +9,11 @@ import {
   type OnboardingProgramShelf,
 } from "@/components/onboarding/onboarding-circle-step";
 import {
-  OnboardingProfileStep,
+  OnboardingGoalStep,
+  OnboardingMacrosSummary,
+  OnboardingSexStep,
+  OnboardingTrainingAgeStep,
+  OnboardingWeightStep,
   profileStepSubtitle,
 } from "@/components/onboarding/onboarding-food-step";
 import { OnboardingModeStep } from "@/components/onboarding/onboarding-mode-step";
@@ -21,6 +25,7 @@ import {
 } from "@/components/onboarding/onboarding-shell";
 import {
   type OnboardingStep,
+  isOnboardingPersonStep,
   onboardingSetupSteps,
   onboardingStepNeedsNext,
 } from "@/components/onboarding/onboarding-steps";
@@ -29,6 +34,8 @@ import {
   SEX_REQUIRED,
   TRAINING_AGE_REQUIRED,
   useOnboardingScreen,
+  MODE_REQUIRED,
+  RATION_REQUIRED,
   WEIGHT_INVALID,
   WEIGHT_REQUIRED,
 } from "@/components/onboarding/use-onboarding-screen";
@@ -66,8 +73,8 @@ export function OnboardingScreen() {
     setCircle,
     goBack,
     goNext,
-    skipRation,
-    skipRationChosen,
+    pickSelfRation,
+    rationSelfSetup,
     skipLifts,
     confirmLifts,
     weightInvalid,
@@ -119,19 +126,25 @@ export function OnboardingScreen() {
         sticky={
           <Button
             className="h-14 w-full text-lg"
-            disabled={saving || gymEnabled == null}
+            disabled={saving}
             onClick={() => goNext()}
           >
             {saving ? "Секунду…" : "Дальше"}
           </Button>
         }
       >
+        {gymEnabled == null ? (
+          <p className="mb-3 text-base text-muted-foreground">
+            Выбери один вариант — от этого зависит, что настроим дальше.
+          </p>
+        ) : null}
         <OnboardingModeStep
           gymEnabled={gymEnabled}
+          invalid={error === MODE_REQUIRED}
           onPick={onGymModePick}
         />
         {error ? (
-          <p className="mt-2 text-center text-sm text-destructive">{error}</p>
+          <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
         ) : null}
       </OnboardingStepShell>
     );
@@ -157,10 +170,25 @@ export function OnboardingScreen() {
   const canLeaveStep = stepIndex > 0 || pickingProgram;
   const weightFieldError =
     error === WEIGHT_REQUIRED || error === WEIGHT_INVALID;
-  const profileFieldError =
-    error === SEX_REQUIRED ||
-    error === GOAL_REQUIRED ||
-    error === TRAINING_AGE_REQUIRED;
+
+  function showPersonError(stepId: OnboardingStep): boolean {
+    if (!error || !isOnboardingPersonStep(stepId)) {
+      return false;
+    }
+    if (stepId === "sex") {
+      return error === SEX_REQUIRED;
+    }
+    if (stepId === "weight") {
+      return error === WEIGHT_REQUIRED || error === WEIGHT_INVALID;
+    }
+    if (stepId === "goal") {
+      return error === GOAL_REQUIRED;
+    }
+    if (stepId === "training_age") {
+      return error === TRAINING_AGE_REQUIRED;
+    }
+    return false;
+  }
 
   function handleBack() {
     if (step === "circle" && pickingProgram) {
@@ -172,18 +200,6 @@ export function OnboardingScreen() {
 
   const sticky = (
     <>
-      {step === "ration" ? (
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-12 w-full text-base"
-          data-keyboard-secondary
-          disabled={saving}
-          onClick={() => skipRation()}
-        >
-          Настрою сам — позже
-        </Button>
-      ) : null}
       {step === "lifts" ? (
         <Button
           type="button"
@@ -218,36 +234,84 @@ export function OnboardingScreen() {
         showSticky={showNext}
         sticky={sticky}
       >
-      {step === "profile" ? (
+      {step === "sex" ? (
         <>
-          <OnboardingProfileStep
+          <OnboardingSexStep
             sex={sex}
-            weight={weight}
-            goal={goal}
-            trainingAge={trainingAge}
-            foodOnly={foodOnly}
-            weightInvalid={weightInvalid}
-            weightMessage={weightFieldError ? error : null}
-            onSexPick={onSexPick}
-            onWeightChange={onWeightChange}
-            onGoalPick={onGoalPick}
-            onTrainingAgePick={onTrainingAgePick}
+            showLabel={false}
+            onPick={onSexPick}
           />
-          {error && profileFieldError ? (
-            <p className="mt-2 text-center text-sm text-destructive">{error}</p>
+          {showPersonError("sex") ? (
+            <p className="mt-2 text-center text-base leading-snug text-destructive">
+              {error}
+            </p>
           ) : null}
         </>
       ) : null}
 
-      {step === "ration" ? (
-        <OnboardingRationStep
-          ration={ration}
-          skipped={skipRationChosen}
+      {step === "weight" && sex != null ? (
+        <>
+          <OnboardingWeightStep
+            sex={sex}
+            weight={weight}
+            invalid={weightInvalid}
+            message={weightFieldError ? error : null}
+            showLabel={false}
+            onChange={onWeightChange}
+          />
+        </>
+      ) : null}
+
+      {step === "goal" ? (
+        <>
+          <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
+          {showPersonError("goal") ? (
+            <p className="mt-2 text-center text-base leading-snug text-destructive">
+              {error}
+            </p>
+          ) : null}
+        </>
+      ) : null}
+
+      {step === "training_age" ? (
+        <>
+          <OnboardingTrainingAgeStep
+            trainingAge={trainingAge}
+            onPick={onTrainingAgePick}
+          />
+          {showPersonError("training_age") ? (
+            <p className="mt-2 text-center text-base leading-snug text-destructive">
+              {error}
+            </p>
+          ) : null}
+        </>
+      ) : null}
+
+      {step === "macros" && sex != null && goal != null ? (
+        <OnboardingMacrosSummary
           sex={sex}
           weight={weight}
           goal={goal}
-          onPick={onRationPick}
+          foodOnly={foodOnly}
         />
+      ) : null}
+
+      {step === "ration" ? (
+        <>
+          <OnboardingRationStep
+            ration={ration}
+            selfSetup={rationSelfSetup}
+            invalid={error === RATION_REQUIRED}
+            sex={sex}
+            weight={weight}
+            goal={goal}
+            onPickSelfSetup={pickSelfRation}
+            onPick={onRationPick}
+          />
+          {error === RATION_REQUIRED ? (
+            <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
+          ) : null}
+        </>
       ) : null}
 
       {step === "lifts" ? (
@@ -274,8 +338,13 @@ export function OnboardingScreen() {
         />
       ) : null}
 
-      {error && step !== "profile" ? (
-        <p className="mt-2 text-center text-sm text-destructive">{error}</p>
+      {error &&
+      !isOnboardingPersonStep(step) &&
+      step !== "ration" &&
+      step !== "mode" ? (
+        <p className="mt-2 text-center text-base leading-snug text-destructive">
+          {error}
+        </p>
       ) : null}
       </OnboardingStepShell>
       {saving ? (
@@ -289,11 +358,26 @@ function titleForStep(
   step: OnboardingStep,
   shelf: OnboardingProgramShelf | null,
 ): string {
+  if (step === "guide") {
+    return "О чём это приложение";
+  }
   if (step === "mode") {
     return "Что ведём";
   }
-  if (step === "profile") {
-    return "Про тебя";
+  if (step === "sex") {
+    return "Пол";
+  }
+  if (step === "weight") {
+    return "Вес";
+  }
+  if (step === "goal") {
+    return "Цель";
+  }
+  if (step === "training_age") {
+    return "Стаж в зале";
+  }
+  if (step === "macros") {
+    return "Твои цели";
   }
   if (step === "ration") {
     return "Еда на день";
@@ -307,7 +391,7 @@ function titleForStep(
     }
     return shelf === "all" ? "Выбери программу" : "Программа";
   }
-  return "Кратко";
+  return "О чём это приложение";
 }
 
 function subtitleForStep(
@@ -316,11 +400,25 @@ function subtitleForStep(
   pendingKind: string | null,
   pendingProgramId: unknown,
 ): string | null {
-  if (step === "profile") {
-    return profileStepSubtitle(
-      replay,
-      pendingKind === "workouts" || pendingProgramId != null,
+  if (step === "sex") {
+    return (
+      profileStepSubtitle(
+        replay,
+        pendingKind === "workouts" || pendingProgramId != null,
+      ) ?? "Для расчёта белка и калорий."
     );
+  }
+  if (step === "weight") {
+    return "Свайпни линейку. Потом можно менять в дневнике.";
+  }
+  if (step === "goal") {
+    return "От этого зависят калории и белок.";
+  }
+  if (step === "training_age") {
+    return "Чтобы стартовые веса в программе были реалистичными.";
+  }
+  if (step === "macros") {
+    return "Позже всё можно подправить в настройках.";
   }
   if (step === "ration") {
     return "Шаблон продуктов на каждый день.";

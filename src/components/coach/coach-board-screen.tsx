@@ -105,7 +105,7 @@ export function CoachBoardScreen({ grantId }: { grantId: string }) {
             <p className="text-sm text-muted-foreground">
               Online дневник. Цифры обновляются сами.
             </p>
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
           </>
         ) : null}
       </div>

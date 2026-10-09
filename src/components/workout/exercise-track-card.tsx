@@ -144,7 +144,7 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
             disabled={busy}
             onChange={(event) => setWeightText(event.target.value)}
           />
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
           <div className="flex gap-2">
             <Button
               type="button"
@@ -168,7 +168,7 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
       ) : null}
 
       {!editing && error ? (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
     </section>
   );

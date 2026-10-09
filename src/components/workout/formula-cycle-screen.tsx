@@ -229,7 +229,7 @@ export function FormulaCycleScreen() {
               </>
             ) : null}
 
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
             {saved ? (
               <p className="animate-fade text-sm text-muted-foreground">
                 Сохранено.

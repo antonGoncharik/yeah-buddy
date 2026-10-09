@@ -185,7 +185,7 @@ export function SettingsAuthor() {
           </Button>
         </span>
         {starsInvalid ? (
-          <p className="text-sm text-destructive">{DONATE_STARS_INVALID}</p>
+          <p className="text-base leading-snug text-destructive">{DONATE_STARS_INVALID}</p>
         ) : (
           <p className="text-xs text-muted-foreground">
             От {DONATE_MIN} до {DONATE_MAX.toLocaleString("ru-RU")}.
@@ -194,7 +194,7 @@ export function SettingsAuthor() {
       </form>
       {thanks ? <p className="text-lg font-medium">{DONATE_THANKS}</p> : null}
       {error && !starsInvalid ? (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
     </section>
   );

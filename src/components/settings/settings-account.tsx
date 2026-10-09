@@ -86,7 +86,7 @@ export function SettingsAccount() {
       >
         {busy === "delete" ? "Удаляю…" : "Удалить дневник"}
       </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
     </section>
   );
 }

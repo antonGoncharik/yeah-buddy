@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { formatBodyWeight, parseBodyWeight } from "@/lib/day/body-weight";
+import { FIELD_ERROR_CLASS } from "@/lib/form/field-error";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
@@ -138,7 +139,7 @@ export function BodyWeightField({
         </span>
       </div>
       {invalid ? (
-        <p className="text-xs text-destructive">{invalidHint}</p>
+        <p className={FIELD_ERROR_CLASS}>{invalidHint}</p>
       ) : null}
     </div>
   );

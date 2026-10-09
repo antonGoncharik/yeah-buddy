@@ -153,7 +153,7 @@ export function PacksLibraryScreen() {
               ))}
             </div>
             {shareError ? (
-              <p className="text-sm text-destructive">{shareError}</p>
+              <p className="text-base leading-snug text-destructive">{shareError}</p>
             ) : null}
           </section>
         ) : null}
@@ -196,7 +196,7 @@ export function PacksLibraryScreen() {
         ) : null}
 
         {!loading && error && packs.length > 0 ? (
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-base leading-snug text-destructive">{error}</p>
         ) : null}
       </div>
 

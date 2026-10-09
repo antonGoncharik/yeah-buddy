@@ -86,13 +86,13 @@ export function FoodForm({
 
       <FoodYieldFields form={form} onChange={patch} />
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
 
       {food ? (
         <Button
           type="button"
           variant="ghost"
-          className="h-11 text-sm text-destructive"
+          className="h-11 text-base leading-snug text-destructive"
           disabled={saving || deleting}
           onClick={() => void onDelete()}
         >

@@ -76,9 +76,11 @@ export function GuideTour({
     <OnboardingStepShell
       canGoBack={canBack || allowBackToPreviousStep}
       onBack={handleBack}
-      progressLabel={`${index + 1} из ${introPages.length}`}
+      progressLabel={
+        introPages.length > 1 ? `${index + 1} из ${introPages.length}` : null
+      }
       title={page.title}
-      subtitle={page.lead}
+      subtitle={null}
       showSticky
       sticky={
         <>
@@ -103,7 +105,7 @@ export function GuideTour({
       }
     >
       <section className="card-surface flex flex-col gap-4 px-5 py-5">
-        <GuidePageBody page={page} omitLead />
+        <GuidePageBody page={page} />
       </section>
       {last ? (
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
@@ -111,7 +113,7 @@ export function GuideTour({
         </p>
       ) : null}
       {error ? (
-        <p className="mt-3 text-center text-sm text-destructive">{error}</p>
+        <p className="mt-3 text-center text-base leading-snug text-destructive">{error}</p>
       ) : null}
     </OnboardingStepShell>
   );

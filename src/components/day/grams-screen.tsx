@@ -140,7 +140,7 @@ export function GramsScreen({
       )}
 
       {grams.error ? (
-        <p className="text-sm text-destructive">{grams.error}</p>
+        <p className="text-base leading-snug text-destructive">{grams.error}</p>
       ) : null}
 
       {readOnly ? null : (

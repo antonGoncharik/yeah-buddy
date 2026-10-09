@@ -100,7 +100,7 @@ export function PackDetailScreen({ token }: { token: string }) {
             ) : null}
 
             {ownLive ? null : error ? (
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-base leading-snug text-destructive">{error}</p>
             ) : null}
           </>
         ) : null}
@@ -155,7 +155,7 @@ function PackOwnerActions({
           Ссылка скопирована.
         </p>
       ) : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
     </div>
   );
 }

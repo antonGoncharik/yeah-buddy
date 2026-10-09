@@ -94,7 +94,7 @@ export function ReviewScreen() {
                     />
                   ) : null}
                   {error ? (
-                    <p className="text-sm text-destructive">{error}</p>
+                    <p className="text-base leading-snug text-destructive">{error}</p>
                   ) : null}
                   {empty ? (
                     <p className="text-base text-muted-foreground">

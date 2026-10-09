@@ -4,10 +4,12 @@ export const GUIDE_LABEL = "Как пользоваться";
 export const GUIDE_HREF = "/settings/guide";
 export const GUIDE_HINT = "Как устроены день и зал";
 
-/** Onboarding «Кратко» after the user picks food-only vs food+gym. */
+export const ONBOARDING_INTRO_TITLE = "О чём это приложение";
+
+/** Onboarding intro after the user picks food-only vs food+gym. */
 export const GUIDE_INTRO_PAGE_FOOD: GuidePage = {
   id: "intro-food",
-  title: "Кратко",
+  title: ONBOARDING_INTRO_TITLE,
   doodle: "mealday",
   lead:
     "Yeah Buddy — дневник еды. Записываешь приёмы, а белок, жир, углеводы и калории считаются сами.",
@@ -20,7 +22,7 @@ export const GUIDE_INTRO_PAGE_FOOD: GuidePage = {
 
 export const GUIDE_INTRO_PAGE_GYM: GuidePage = {
   id: "intro-gym",
-  title: "Кратко",
+  title: ONBOARDING_INTRO_TITLE,
   doodle: "mealday",
   lead:
     "Yeah Buddy — дневник еды и тренировок. Записываешь, что съел и что сделал в зале, цифры посчитаются сами.",

@@ -45,7 +45,7 @@ export function SettingsMacroField({
         className="h-12 text-base"
       />
       {invalid ? (
-        <p className="text-sm text-destructive">Число от 0 и выше.</p>
+        <p className="text-base leading-snug text-destructive">Число от 0 и выше.</p>
       ) : null}
     </div>
   );

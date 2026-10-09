@@ -146,7 +146,7 @@ export function WeekProgressShare({
         </div>
       </div>
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
     </div>
   );
 }
