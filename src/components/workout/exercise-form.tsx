@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+import { SectionHeading } from "@/components/layout/section-heading";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ExerciseCatalogLinkSection } from "@/components/workout/exercise-catalog-link-section";
+import { ExerciseFormSettings } from "@/components/workout/exercise-form-settings";
 import { ExerciseIdentityFields } from "@/components/workout/exercise-identity-fields";
 import { ExerciseMaxHistory } from "@/components/workout/exercise-max-history";
+import { ExerciseTechniquePanel } from "@/components/workout/exercise-technique-panel";
 import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
-import {
-  ExerciseTechniquePlaceholder,
-  ExerciseTechniqueSection,
-} from "@/components/workout/exercise-technique-section";
-import { ExerciseTypeFields } from "@/components/workout/exercise-type-fields";
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
@@ -54,34 +51,44 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     : null;
 
   return (
-    <form className="flex flex-col gap-4 pb-36" onSubmit={onSubmit}>
-      <ExerciseIdentityFields
-        form={form}
-        setForm={setForm}
-        showActive={Boolean(exercise)}
-        active={active}
-        toggling={toggling}
-        onToggleActive={(next) => void toggleActive(next)}
-      />
-
-      <ExerciseTypeFields form={form} setForm={setForm} />
+    <form
+      className="flex flex-col gap-5 pb-36 animate-rise"
+      onSubmit={onSubmit}
+    >
+      {catalogExercise ? (
+        <ExerciseTechniquePanel
+          exercise={catalogExercise}
+          onLinked={(next) => setCatalogExerciseId(next.catalog_exercise_id)}
+        />
+      ) : null}
 
       {exercise && !canCorrectMax ? (
-        <div className="card-surface flex scroll-mb-36 flex-col gap-2 px-5 py-4">
-          <p className="text-base font-medium">Максимум на раз</p>
-          <p className="text-2xl font-semibold tracking-tight">
+        <section className="card-surface flex flex-col gap-2 px-5 py-4">
+          <p className="text-sm font-medium text-muted-foreground">
+            Максимум на раз
+          </p>
+          <p className="text-3xl font-semibold tracking-tight">
             {exercise.current_max
               ? `${formatWeight(exercise.current_max.max_weight)} кг`
               : "не задан"}
           </p>
-          <p className="text-sm text-muted-foreground">
-            От этого максимума считаются проценты. Идёт цикл, поэтому здесь он
-            не меняется: поднять — на смене недели, поправить текущий — в
-            «Недели».
+          <p className="text-sm leading-snug text-muted-foreground">
+            От этого считаются проценты. Пока идёт цикл, меняется на смене
+            недели — в «Недели».
           </p>
-        </div>
+        </section>
       ) : (
-        <Field label="На раз, кг">
+        <section className="card-surface flex flex-col gap-3 px-5 py-5">
+          <div className="flex flex-col gap-1">
+            <Label className="text-lg font-semibold tracking-tight">
+              {exercise ? "Максимум на раз" : "На раз, кг"}
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              {exercise
+                ? "Без цикла можно править здесь."
+                : "От него считаются проценты в подходах."}
+            </p>
+          </div>
           <Input
             required
             inputMode="decimal"
@@ -97,39 +104,41 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
             onKeyDown={handleNumericEnter}
             className="h-12 text-base"
           />
-          <p className="text-sm text-muted-foreground">
-            {exercise
-              ? "От этого максимума считаются проценты. Без цикла меняй здесь."
-              : "От этого максимума считаются проценты в подходах."}
-          </p>
           {maxWeightOutOfRange(form.max_weight) ? (
-            <p className="text-base leading-snug text-destructive">Вес от 0,1 до 1000 кг.</p>
+            <p className="text-base leading-snug text-destructive">
+              Вес от 0,1 до 1000 кг.
+            </p>
           ) : null}
-        </Field>
+        </section>
       )}
 
-      {catalogExercise ? (
-        <>
-          {catalogExercise.catalog_exercise_id ? (
-            <ExerciseTechniqueSection
-              catalogExerciseId={catalogExercise.catalog_exercise_id}
-            />
-          ) : (
-            <ExerciseTechniquePlaceholder />
-          )}
-          <ExerciseCatalogLinkSection
-            exercise={catalogExercise}
-            searchInputId="exercise-catalog-search"
-            onLinked={(next) => setCatalogExerciseId(next.catalog_exercise_id)}
+      <div className="flex flex-col gap-3">
+        <SectionHeading title="Название" hint="Как видишь в списке и в зале." />
+        <div className="card-surface flex flex-col gap-4 px-5 py-5">
+          <ExerciseIdentityFields
+            form={form}
+            setForm={setForm}
+            showActive={Boolean(exercise)}
+            active={active}
+            toggling={toggling}
+            onToggleActive={(next) => void toggleActive(next)}
           />
-        </>
-      ) : null}
+        </div>
+      </div>
+
+      <ExerciseFormSettings
+        form={form}
+        setForm={setForm}
+        defaultOpen={!exercise}
+      />
 
       {exercise ? <ExerciseTrackCard exercise={exercise} /> : null}
 
       {exercise ? <ExerciseMaxHistory exercise={exercise} /> : null}
 
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
 
       <StickyActions>
         <Button type="submit" className="h-14 text-lg" disabled={saving}>
@@ -137,20 +146,5 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
         </Button>
       </StickyActions>
     </form>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label className="text-base">{label}</Label>
-      {children}
-    </div>
   );
 }

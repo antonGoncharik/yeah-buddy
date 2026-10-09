@@ -9,6 +9,7 @@ import { ExerciseForm } from "@/components/workout/exercise-form";
 import { LOAD_FAILED } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import type { ExerciseWithMax } from "@/lib/types";
+import { exerciseShortLabel } from "@/lib/workout/labels";
 import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 
 export default function ExercisePage() {
@@ -16,7 +17,11 @@ export default function ExercisePage() {
   if (params.id === "new") {
     return (
       <div className="flex flex-col gap-4">
-        <AppHeader title="Новое упражнение" backHref="/workouts/exercises" />
+        <AppHeader
+          title="Новое упражнение"
+          subtitle="Название, максимум и расчёт"
+          backHref="/workouts/exercises"
+        />
         <div className="px-4 pb-4">
           <ExerciseForm />
         </div>
@@ -78,9 +83,17 @@ function EditExercisePage({ id }: { id: string }) {
     };
   }, [id, reloadToken]);
 
+  const title = exercise
+    ? exerciseShortLabel(exercise.short_name, exercise.name)
+    : "Упражнение";
+
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Упражнение" backHref="/workouts/exercises" />
+      <AppHeader
+        title={title}
+        subtitle={exercise ? "Техника и настройки" : undefined}
+        backHref="/workouts/exercises"
+      />
       <div className="px-4 pb-4">
         {loading ? <ScreenLoading /> : null}
         {!loading && error ? (
