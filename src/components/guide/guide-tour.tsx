@@ -5,21 +5,31 @@ import { useEffect, useState } from "react";
 import { GuidePageBody } from "@/components/guide/guide-page-body";
 import { OnboardingStepShell } from "@/components/onboarding/onboarding-shell";
 import { Button } from "@/components/ui/button";
-import { GUIDE_INTRO_PAGES, GUIDE_LABEL } from "@/lib/guide";
+import { GUIDE_LABEL, onboardingIntroPages } from "@/lib/guide";
+import type { GuidePage } from "@/lib/guide/types";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function GuideTour({
+  gymEnabled = true,
+  pages,
+  allowBackToPreviousStep = false,
+  onBackToPreviousStep,
   error = null,
   onDone,
   onSkip,
 }: {
+  gymEnabled?: boolean;
+  pages?: GuidePage[];
+  allowBackToPreviousStep?: boolean;
+  onBackToPreviousStep?: () => void;
   error?: string | null;
   onDone: () => void;
   onSkip: () => void;
 }) {
+  const introPages = pages ?? onboardingIntroPages(gymEnabled);
   const [index, setIndex] = useState(0);
-  const page = GUIDE_INTRO_PAGES[index] ?? GUIDE_INTRO_PAGES[0];
-  const last = index === GUIDE_INTRO_PAGES.length - 1;
+  const page = introPages[index] ?? introPages[0];
+  const last = index === introPages.length - 1;
   const canBack = index > 0;
 
   useEffect(() => {
@@ -51,11 +61,22 @@ export function GuideTour({
     showPage(index + 1);
   }
 
+  function handleBack() {
+    if (canBack) {
+      goBack();
+      return;
+    }
+    if (allowBackToPreviousStep && onBackToPreviousStep) {
+      haptic("tap");
+      onBackToPreviousStep();
+    }
+  }
+
   return (
     <OnboardingStepShell
-      canGoBack={canBack}
-      onBack={goBack}
-      progressLabel={`${index + 1} из ${GUIDE_INTRO_PAGES.length}`}
+      canGoBack={canBack || allowBackToPreviousStep}
+      onBack={handleBack}
+      progressLabel={`${index + 1} из ${introPages.length}`}
       title={page.title}
       subtitle={page.lead}
       showSticky

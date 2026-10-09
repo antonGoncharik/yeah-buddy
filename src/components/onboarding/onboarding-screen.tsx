@@ -110,8 +110,8 @@ export function OnboardingScreen() {
   if (step === "mode") {
     return (
       <OnboardingStepShell
-        canGoBack={stepIndex > 0}
-        onBack={goBack}
+        canGoBack={false}
+        onBack={() => {}}
         progressLabel="С чего начнём"
         title="Что ведём"
         subtitle="Можно сменить в настройках — данные никуда не пропадут."
@@ -138,7 +138,16 @@ export function OnboardingScreen() {
   }
 
   if (step === "guide") {
-    return <GuideTour error={error} onDone={goNext} onSkip={goNext} />;
+    return (
+      <GuideTour
+        gymEnabled={gymEnabled === true}
+        allowBackToPreviousStep
+        onBackToPreviousStep={goBack}
+        error={error}
+        onDone={goNext}
+        onSkip={goNext}
+      />
+    );
   }
 
   const setupSteps = onboardingSetupSteps(steps);

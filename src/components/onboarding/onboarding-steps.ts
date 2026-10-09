@@ -65,7 +65,7 @@ export function onboardingSteps({
     return [...ONBOARDING_FOOD_STEPS];
   }
 
-  const next: OnboardingStep[] = ["guide", "mode"];
+  const next: OnboardingStep[] = ["mode", "guide"];
 
   if (pendingKind !== "meals") {
     next.push(...ONBOARDING_FOOD_STEPS, "ration");

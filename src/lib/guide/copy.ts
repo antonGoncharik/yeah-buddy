@@ -4,20 +4,39 @@ export const GUIDE_LABEL = "Как пользоваться";
 export const GUIDE_HREF = "/settings/guide";
 export const GUIDE_HINT = "Как устроены день и зал";
 
-/** Short walkthrough shown once, before setup (one screen). */
-export const GUIDE_INTRO_PAGES: GuidePage[] = [
-  {
-    id: "intro-welcome",
-    title: "Кратко",
-    doodle: "mealday",
-    lead: "Yeah Buddy — дневник еды и тренировок. Ты записываешь, что съел и что сделал в зале, а цифры посчитаются сами.",
-    paragraphs: [
-      "На экране «Сегодня» главная цифра — белок: сколько его ещё съесть. Режим «Отдых» или «Тренировочный» меняет цели и приёмы еды.",
-      "Программа в зале идёт по списку, а не по дням недели (например пн, ср, пт): пропустил день — ничего страшного, тренировка никуда не пропадет.",
-      "Три вкладки внизу: Сегодня, Тренировки, Настройки. Открывай, когда ешь и когда идёшь в зал.",
-    ],
-  },
-];
+/** Onboarding «Кратко» after the user picks food-only vs food+gym. */
+export const GUIDE_INTRO_PAGE_FOOD: GuidePage = {
+  id: "intro-food",
+  title: "Кратко",
+  doodle: "mealday",
+  lead:
+    "Yeah Buddy — дневник еды. Записываешь приёмы, а белок, жир, углеводы и калории считаются сами.",
+  paragraphs: [
+    "На «Сегодня» главная цифра — белок: сколько его ещё съесть до цели на день.",
+    "Свои продукты и шаблоны приёмов, штрихкод в поиске. Зал и вкладку тренировок можно включить позже в настройках.",
+    "Внизу «Сегодня» и «Настройки» — когда ешь и когда правишь цели.",
+  ],
+};
+
+export const GUIDE_INTRO_PAGE_GYM: GuidePage = {
+  id: "intro-gym",
+  title: "Кратко",
+  doodle: "mealday",
+  lead:
+    "Yeah Buddy — дневник еды и тренировок. Записываешь, что съел и что сделал в зале, цифры посчитаются сами.",
+  paragraphs: [
+    "На «Сегодня» главная цифра — белок: сколько его ещё съесть. Режим «Отдых» или «Тренировочный» меняет цели и приёмы еды.",
+    "Программа в зале идёт по списку, а не по дням недели: пропустил день — ничего страшного, следующая тренировка никуда не пропадёт.",
+    "Три вкладки внизу: Сегодня, Тренировки, Настройки. Открывай, когда ешь и когда идёшь в зал.",
+  ],
+};
+
+/** @deprecated Prefer `onboardingIntroPages` — intro copy depends on gym mode. */
+export const GUIDE_INTRO_PAGES: GuidePage[] = [GUIDE_INTRO_PAGE_GYM];
+
+export function onboardingIntroPages(gymEnabled: boolean): GuidePage[] {
+  return [gymEnabled ? GUIDE_INTRO_PAGE_GYM : GUIDE_INTRO_PAGE_FOOD];
+}
 
 /** Full reference, readable from Settings at any time. */
 export const GUIDE_PAGES: GuidePage[] = [

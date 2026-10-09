@@ -1,4 +1,6 @@
 import {
+  GUIDE_INTRO_PAGE_FOOD,
+  GUIDE_INTRO_PAGE_GYM,
   GUIDE_INTRO_PAGES,
   GUIDE_PAGES,
   GUIDE_TIPS,
@@ -7,6 +9,7 @@ import {
   guidePageById,
   guidePageText,
   guideTipById,
+  onboardingIntroPages,
 } from "@/lib/guide/copy";
 import {
   emptyGuideSeen,
@@ -39,10 +42,14 @@ assert(
 assert(GUIDE_PAGES.length >= 6, "reference covers the whole diary");
 assert(GUIDE_TIPS.length === 4, "today, day type, body, and workouts tips");
 
-const ids = [...GUIDE_INTRO_PAGES, ...GUIDE_PAGES].map((page) => page.id);
+const ids = [
+  GUIDE_INTRO_PAGE_FOOD,
+  GUIDE_INTRO_PAGE_GYM,
+  ...GUIDE_PAGES,
+].map((page) => page.id);
 assertEqual(new Set(ids).size, ids.length, "page ids unique");
 
-for (const page of GUIDE_INTRO_PAGES) {
+for (const page of [GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM]) {
   const text = guidePageText(page);
   assert(page.title.trim().length > 0, `${page.id} has title`);
   assert(page.lead.trim().length >= 40, `${page.id} lead is a sentence`);
@@ -61,7 +68,9 @@ for (const page of GUIDE_INTRO_PAGES) {
 }
 
 assert(
-  GUIDE_INTRO_PAGES.every((page) => page.remember == null),
+  [GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM].every(
+    (page) => page.remember == null,
+  ),
   "intro pages have no remember takeaway",
 );
 assert(
@@ -69,28 +78,38 @@ assert(
   "guide never uses the 1ПМ abbreviation",
 );
 assert(
-  !GUIDE_INTRO_PAGES.some((page) =>
+  ![GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM].some((page) =>
     guidePageText(page).includes("очередь или"),
   ),
   "intro does not explain the day with «очередь»",
 );
 assert(
-  GUIDE_INTRO_PAGES.some((page) => {
-    const text = guidePageText(page);
-    return (
-      text.includes("сколько его ещё съесть") &&
-      text.includes("«Отдых»") &&
-      text.includes("«Тренировочный»")
-    );
-  }),
-  "intro says protein left and the two day modes",
+  guidePageText(GUIDE_INTRO_PAGE_GYM).includes("сколько его ещё съесть") &&
+    guidePageText(GUIDE_INTRO_PAGE_GYM).includes("«Отдых»") &&
+    guidePageText(GUIDE_INTRO_PAGE_GYM).includes("«Тренировочный»"),
+  "gym intro says protein left and the two day modes",
+);
+assert(
+  guidePageText(GUIDE_INTRO_PAGE_FOOD).includes("сколько его ещё съесть") &&
+    !guidePageText(GUIDE_INTRO_PAGE_FOOD).includes("«Тренировочный»"),
+  "food intro stays about the diary without gym day modes",
+);
+assertEqual(
+  onboardingIntroPages(false)[0]?.id,
+  "intro-food",
+  "food-only onboarding intro",
+);
+assertEqual(
+  onboardingIntroPages(true)[0]?.id,
+  "intro-gym",
+  "gym onboarding intro",
 );
 assert(
   guidePageById("day")?.lead.includes("приёмы еды") === true,
   "day page uses the onboarding meal wording",
 );
 assert(
-  !GUIDE_INTRO_PAGES.some((page) =>
+  ![GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM].some((page) =>
     (page.remember ?? "").includes(
       "Сначала отметь, какой это день — отдых или тренировка",
     ),
