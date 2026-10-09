@@ -124,7 +124,7 @@ export function OnboardingScreen() {
         <p className="mb-3 text-base text-muted-foreground">
           Выбери один вариант — от этого зависит, что настроим дальше.
         </p>
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
           <OnboardingModeStep
             gymEnabled={gymEnabled}
             invalid={error === MODE_REQUIRED}
@@ -207,7 +207,7 @@ export function OnboardingScreen() {
         }
       >
       {step === "sex" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
           <OnboardingSexStep
             sex={sex}
             showLabel={false}
@@ -237,7 +237,7 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "goal" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
           <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
           {showPersonError("goal") ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">
@@ -248,7 +248,7 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "training_age" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
           <OnboardingTrainingAgeStep
             trainingAge={trainingAge}
             onPick={onTrainingAgePick}
@@ -274,7 +274,7 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "ration" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-end">
+        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
           <OnboardingRationStep
             ration={ration}
             selfSetup={rationSelfSetup}
