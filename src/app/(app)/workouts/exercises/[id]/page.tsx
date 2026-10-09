@@ -91,7 +91,7 @@ function EditExercisePage({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <AppHeader
         title={title}
-        subtitle={exercise ? "Техника и настройки" : undefined}
+        subtitle={exercise ? "Техника, веса, название" : undefined}
         backHref="/workouts/exercises"
       />
       <div className="px-4 pb-4">

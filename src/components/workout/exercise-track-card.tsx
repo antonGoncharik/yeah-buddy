@@ -17,7 +17,13 @@ import { trackCurrentWeight } from "@/lib/workout/track-line";
 /**
  * Working kilograms for slots that use kg, same role as 1RM for percent.
  */
-export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
+export function ExerciseTrackCard({
+  exercise,
+  embedded = false,
+}: {
+  exercise: ExerciseWithMax;
+  embedded?: boolean;
+}) {
   const confirm = useConfirm();
   const [track, setTrack] = useState<ExerciseTrack | null>(exercise.track);
   const [editing, setEditing] = useState(false);
@@ -83,40 +89,60 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
     }
   }
 
-  return (
-    <section className="card-surface flex flex-col gap-3 px-5 py-4">
-      <div>
-        <p className="text-base font-medium">Рабочий кг</p>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Нужен, если в дне стоит «Кг». После недели, если в цикле стоит
-          прибавка, иначе — после тренировки. Максимум на раз отдельно.
-        </p>
-      </div>
+  const body = (
+    <>
+      {!embedded ? (
+        <div>
+          <p className="text-base font-medium">Рабочий кг</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            Нужен, если в дне стоит «Кг». После недели, если в цикле стоит
+            прибавка, иначе — после тренировки. Максимум на раз отдельно.
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm font-medium">Рабочий</p>
+      )}
 
       {track && !editing ? (
         <>
-          <p className="text-lg font-semibold tracking-tight tabular-nums">
-            {current != null ? `${formatWeight(current)} кг` : "нет"}
+          <p
+            className={
+              embedded
+                ? "text-2xl font-semibold tracking-tight tabular-nums"
+                : "text-lg font-semibold tracking-tight tabular-nums"
+            }
+          >
+            {current != null ? `${formatWeight(current)} кг` : "—"}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div
+            className={
+              embedded ? "flex flex-col gap-1.5" : "flex flex-wrap gap-2"
+            }
+          >
             <Button
               type="button"
-              variant="secondary"
-              className="h-11 text-base"
+              variant={embedded ? "ghost" : "secondary"}
+              className={
+                embedded
+                  ? "h-9 justify-start px-0 text-sm font-medium"
+                  : "h-11 text-base"
+              }
               disabled={busy}
               onClick={() => startEditing(current)}
             >
               Поправить
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-11 text-base text-muted-foreground"
-              disabled={busy}
-              onClick={() => void remove()}
-            >
-              Убрать
-            </Button>
+            {!embedded ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 text-base text-muted-foreground"
+                disabled={busy}
+                onClick={() => void remove()}
+              >
+                Убрать
+              </Button>
+            ) : null}
           </div>
         </>
       ) : null}
@@ -124,40 +150,60 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
       {!track && !editing ? (
         <Button
           type="button"
-          variant="secondary"
-          className="h-11 text-base"
+          variant={embedded ? "ghost" : "secondary"}
+          className={
+            embedded
+              ? "h-9 justify-start px-0 text-sm font-medium"
+              : "h-11 text-base"
+          }
           onClick={() => startEditing(null)}
         >
-          Задать кг
+          {embedded ? "Задать" : "Задать кг"}
         </Button>
       ) : null}
 
       {editing ? (
-        <div className="flex flex-col gap-3" data-field-group>
+        <div className="flex flex-col gap-2" data-field-group>
           <Input
             aria-label="Рабочий кг"
             value={weightText}
             placeholder="кг"
             inputMode="decimal"
             enterKeyHint="done"
-            className="h-12 text-base tabular-nums"
+            className={
+              embedded
+                ? "h-11 text-base tabular-nums"
+                : "h-12 text-base tabular-nums"
+            }
             disabled={busy}
             onChange={(event) => setWeightText(event.target.value)}
           />
-          {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+          {error ? (
+            <p
+              className={
+                embedded
+                  ? "text-xs text-destructive"
+                  : "text-base leading-snug text-destructive"
+              }
+            >
+              {error}
+            </p>
+          ) : null}
           <div className="flex gap-2">
             <Button
               type="button"
-              className="h-11 flex-1 text-base"
+              className={
+                embedded ? "h-9 flex-1 text-sm" : "h-11 flex-1 text-base"
+              }
               disabled={busy || parsed == null || parsed <= 0}
               onClick={() => void save()}
             >
-              {busy ? "Сохранение…" : "Сохранить"}
+              {busy ? "…" : "Ок"}
             </Button>
             <Button
               type="button"
               variant="ghost"
-              className="h-11 text-base"
+              className={embedded ? "h-9 text-sm" : "h-11 text-base"}
               disabled={busy}
               onClick={() => setEditing(false)}
             >
@@ -167,9 +213,36 @@ export function ExerciseTrackCard({ exercise }: { exercise: ExerciseWithMax }) {
         </div>
       ) : null}
 
-      {!editing && error ? (
+      {!editing && error && embedded ? (
+        <p className="text-xs text-destructive">{error}</p>
+      ) : null}
+      {!editing && error && !embedded ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
+        {body}
+        {track && !editing ? (
+          <button
+            type="button"
+            className="self-start text-xs text-muted-foreground underline-offset-2 hover:underline"
+            disabled={busy}
+            onClick={() => void remove()}
+          >
+            Убрать рабочий
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <section className="card-surface flex flex-col gap-3 px-5 py-4">
+      {body}
     </section>
   );
 }

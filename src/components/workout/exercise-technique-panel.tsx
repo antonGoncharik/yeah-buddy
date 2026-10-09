@@ -69,8 +69,8 @@ export function ExerciseTechniquePanel({
         <h2 className="text-lg font-semibold tracking-tight">Как делать</h2>
         <p className="text-sm leading-snug text-muted-foreground">
           {linked
-            ? "Гифка и шаги из библиотеки. Название в тренировке можешь оставить своим."
-            : "Привяжи к библиотеке — покажем технику. Ищи по-русски или по-английски."}
+            ? "Гифка и шаги из библиотеки — только для подсказки, не меняют твоё название."
+            : "Привяжи к библиотеке, чтобы показать технику. Поиск по-русски или по-английски."}
         </p>
       </div>
 
@@ -255,13 +255,11 @@ function TechniquePreview({
     detail.instruction_steps.ru ?? detail.instruction_steps.en ?? [];
   const visibleSteps = stepsExpanded ? steps : steps.slice(0, STEP_PREVIEW);
   const hiddenCount = steps.length - visibleSteps.length;
-  const title = catalogExerciseDisplayName(detail, "ru");
   const gifOk =
     detail.gif_url.length > 0 && !detail.gif_url.includes("undefined");
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm font-medium text-muted-foreground">{title}</p>
       {gifOk ? (
         <div className="mx-auto w-full max-w-[12.5rem] overflow-hidden rounded-2xl bg-muted shadow-sm ring-1 ring-border/40">
           {/* biome-ignore lint/performance/noImgElement: animated gif from external catalog cdn */}
