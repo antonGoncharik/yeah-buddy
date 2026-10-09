@@ -17,7 +17,6 @@ import {
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
   OPEN_VIA_BOT_FAQ_TITLE,
-  OPEN_VIA_BOT_FEATURES_TITLE,
   OPEN_VIA_BOT_HERO,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
@@ -125,25 +124,23 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
         </div>
       </header>
 
-      <LandingSection title={OPEN_VIA_BOT_FEATURES_TITLE}>
-        <ul className="grid w-full gap-3">
-          {OPEN_VIA_BOT_POINTS.map((point) => (
-            <li key={point.title} className="card-surface flex gap-3 px-4 py-4">
-              <MarkBadge className="size-10 rounded-xl">
-                {POINT_ICONS[point.title]}
-              </MarkBadge>
-              <span className="min-w-0 flex-1 text-left">
-                <span className="block text-base font-semibold">
-                  {point.title}
-                </span>
-                <span className="mt-0.5 block text-sm leading-relaxed text-muted-foreground">
-                  {point.body}
-                </span>
+      <ul className="grid w-full gap-3">
+        {OPEN_VIA_BOT_POINTS.map((point) => (
+          <li key={point.title} className="card-surface flex gap-3 px-4 py-4">
+            <MarkBadge className="size-10 rounded-xl">
+              {POINT_ICONS[point.title]}
+            </MarkBadge>
+            <span className="min-w-0 flex-1 text-left">
+              <span className="block text-base font-semibold">
+                {point.title}
               </span>
-            </li>
-          ))}
-        </ul>
-      </LandingSection>
+              <span className="mt-0.5 block text-sm leading-relaxed text-muted-foreground">
+                {point.body}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
 
       <LandingSection title={OPEN_VIA_BOT_STEPS_TITLE}>
         <ol className="flex w-full flex-col gap-3">

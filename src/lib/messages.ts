@@ -21,7 +21,6 @@ export const OPEN_VIA_BOT_PILLS = [
   "Фото и голос в боте",
   "Программы с авто-весом",
 ] as const;
-export const OPEN_VIA_BOT_FEATURES_TITLE = "Не два приложения";
 export const OPEN_VIA_BOT_FAQ_TITLE = "Коротко о важном";
 export const OPEN_VIA_BOT_FAQ = [
   {

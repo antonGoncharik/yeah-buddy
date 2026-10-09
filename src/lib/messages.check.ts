@@ -10,7 +10,6 @@ import {
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
   OPEN_VIA_BOT_FAQ_TITLE,
-  OPEN_VIA_BOT_FEATURES_TITLE,
   OPEN_VIA_BOT_HERO,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
@@ -119,11 +118,6 @@ assertEqual(
   OPEN_VIA_BOT_PILLS.join(" · "),
   "Без регистрации · Фото и голос в боте · Программы с авто-весом",
   "landing pills",
-);
-assertEqual(
-  OPEN_VIA_BOT_FEATURES_TITLE,
-  "Не два приложения",
-  "landing features title",
 );
 assertEqual(
   OPEN_VIA_BOT_FAQ_TITLE,
