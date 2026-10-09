@@ -1,10 +1,9 @@
 "use client";
 
 import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
+import { OnboardingWeightRuler } from "@/components/onboarding/onboarding-weight-ruler";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import {
   formatKcal,
   ONBOARDING_SEX_OPTIONS,
@@ -77,18 +76,11 @@ export function OnboardingWeightStep({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="onboarding-weight" className="text-base">
-        Вес, кг
-      </Label>
-      <Input
-        id="onboarding-weight"
-        inputMode="decimal"
-        enterKeyHint="done"
-        autoComplete="off"
-        value={weight}
-        aria-invalid={invalid || undefined}
-        onChange={(event) => onChange(sanitizeDecimalDraft(event.target.value))}
-        className="h-12 text-base"
+      <Label className="text-base">Вес</Label>
+      <OnboardingWeightRuler
+        weight={weight}
+        invalid={invalid}
+        onChange={onChange}
       />
       {invalid && message ? (
         <p className="text-sm text-destructive">{message}</p>

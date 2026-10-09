@@ -16,38 +16,50 @@ export function OnboardingModeStep({
       <Button
         type="button"
         variant={gymEnabled === false ? "default" : "outline"}
-        className="h-auto min-h-16 flex-col items-start gap-1 px-5 py-4 text-left"
+        className="h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal"
         onClick={() => {
           haptic("tick");
           onPick(false);
         }}
       >
         <span className="flex items-center gap-2 text-lg font-medium">
-          <Doodle className="size-5" viewBox="-12 -12 24 24">
+          <Doodle className="size-5 shrink-0" viewBox="-12 -12 24 24">
             <CookieMark />
           </Doodle>
           Только питание
         </span>
-        <span className="text-sm font-normal text-muted-foreground">
+        <span
+          className={
+            gymEnabled === false
+              ? "text-sm font-normal leading-snug text-primary-foreground/85"
+              : "text-sm font-normal leading-snug text-muted-foreground"
+          }
+        >
           Дневник еды и цели. Зал можно включить позже в настройках.
         </span>
       </Button>
       <Button
         type="button"
         variant={gymEnabled === true ? "default" : "outline"}
-        className="h-auto min-h-16 flex-col items-start gap-1 px-5 py-4 text-left"
+        className="h-auto min-h-16 w-full flex-col items-stretch gap-1.5 px-5 py-4 text-left whitespace-normal"
         onClick={() => {
           haptic("tick");
           onPick(true);
         }}
       >
         <span className="flex items-center gap-2 text-lg font-medium">
-          <Doodle className="size-5" viewBox={DUMBBELL_VIEWBOX}>
+          <Doodle className="size-5 shrink-0" viewBox={DUMBBELL_VIEWBOX}>
             <DumbbellMark />
           </Doodle>
           Питание и тренировки
         </span>
-        <span className="text-sm font-normal text-muted-foreground">
+        <span
+          className={
+            gymEnabled === true
+              ? "text-sm font-normal leading-snug text-primary-foreground/85"
+              : "text-sm font-normal leading-snug text-muted-foreground"
+          }
+        >
           Еда, программа в зале, веса и разборы.
         </span>
       </Button>

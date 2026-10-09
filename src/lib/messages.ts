@@ -86,7 +86,7 @@ export function switchDayTypeMessage(input: {
   toTraining: boolean;
   canSwapMeals: boolean;
 }): string {
-  const target = input.toTraining ? "тренировочным" : "днём отдыха";
+  const target = input.toTraining ? "тренировочный день" : "день отдыха";
   if (input.canSwapMeals) {
     return `Сменить на ${target}? «Подставить из шаблона» заменит приёмы. «Только цели» оставит записанную еду.`;
   }

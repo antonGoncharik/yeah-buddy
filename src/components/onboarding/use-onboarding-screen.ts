@@ -83,7 +83,7 @@ export function useOnboardingScreen() {
   const [state, setState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<OnboardingStep>("mode");
+  const [step, setStep] = useState<OnboardingStep>("guide");
   const [gymEnabled, setGymEnabled] = useState<boolean | null>(null);
   const [sex, setSex] = useState<OnboardingSex | null>(null);
   const [weight, setWeight] = useState("");
@@ -131,7 +131,7 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
-      setStep(replay ? "profile" : "mode");
+      setStep(replay ? "profile" : "guide");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       setState(null);

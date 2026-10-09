@@ -23,13 +23,13 @@ const food = "profile";
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,guide,${food},ration,lifts,circle`,
+  `guide,mode,${food},ration,lifts,circle`,
   "first run with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, gymEnabled: false }).join(),
-  `mode,${food},ration`,
-  "food-only skips guide, lifts and program",
+  `guide,mode,${food},ration`,
+  "food-only skips lifts and program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
@@ -43,27 +43,27 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `mode,guide,${food},ration,lifts`,
+  `guide,mode,${food},ration,lifts`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `mode,guide,${food},ration,lifts`,
+  `guide,mode,${food},ration,lifts`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: true }).join(),
-  "mode,guide,circle",
+  "guide,mode,circle",
   "meal pack with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: false }).join(),
-  "mode",
-  "meal pack food-only is just the mode step",
+  "guide,mode",
+  "meal pack food-only is intro and mode",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,guide,${food},ration,lifts,circle`,
+  `guide,mode,${food},ration,lifts,circle`,
   "one meal pack still asks protein, ration, lifts and program",
 );
 

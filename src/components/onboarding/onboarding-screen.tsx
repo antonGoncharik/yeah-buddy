@@ -110,8 +110,8 @@ export function OnboardingScreen() {
   if (step === "mode") {
     return (
       <OnboardingStepShell
-        canGoBack={false}
-        onBack={() => {}}
+        canGoBack={stepIndex > 0}
+        onBack={goBack}
         progressLabel="С чего начнём"
         title="Что ведём"
         subtitle="Можно сменить в настройках — данные никуда не пропадут."

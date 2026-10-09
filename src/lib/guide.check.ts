@@ -80,7 +80,7 @@ assert(
     return (
       text.includes("сколько его ещё съесть") &&
       text.includes("«Отдых»") &&
-      text.includes("«Тренировка»")
+      text.includes("«Тренировочный»")
     );
   }),
   "intro says protein left and the two day modes",

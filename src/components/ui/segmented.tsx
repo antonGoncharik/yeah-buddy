@@ -48,7 +48,7 @@ export function Segmented<T extends string>({
             variant="ghost"
             disabled={disabled}
             className={cn(
-              "relative z-10 h-auto min-h-11 min-w-0 w-full shrink gap-1 rounded-xl px-1.5 py-1.5 text-center text-sm leading-tight whitespace-normal shadow-none hover:bg-transparent",
+              "relative z-10 inline-flex h-auto min-h-11 min-w-0 w-full shrink items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-center text-sm leading-none whitespace-normal shadow-none hover:bg-transparent",
               selected
                 ? "bg-transparent text-foreground"
                 : "text-muted-foreground hover:text-foreground",

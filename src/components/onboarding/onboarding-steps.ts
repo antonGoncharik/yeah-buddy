@@ -32,6 +32,7 @@ export function onboardingSetupSteps(
  * recalculates protein and leaves the existing menu alone. */
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
   return (
+    step === "guide" ||
     step === "mode" ||
     step === "profile" ||
     step === "ration" ||
@@ -64,11 +65,7 @@ export function onboardingSteps({
     return [...ONBOARDING_FOOD_STEPS];
   }
 
-  const next: OnboardingStep[] = ["mode"];
-
-  if (forceGym) {
-    next.push("guide");
-  }
+  const next: OnboardingStep[] = ["guide", "mode"];
 
   if (pendingKind !== "meals") {
     next.push(...ONBOARDING_FOOD_STEPS, "ration");
