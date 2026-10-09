@@ -890,6 +890,15 @@ html[data-density="compact"] [data-diary-compact-scope] :where(.min-h-12) {
   min-height: 2.375rem;
 }
 
+html[data-density="compact"] [data-diary-compact-scope] :where(.size-12) {
+  width: 2.375rem;
+  height: 2.375rem;
+}
+
+html[data-density="compact"] [data-diary-compact-scope] :where(.w-12) {
+  width: 2.375rem;
+}
+
 html[data-density="compact"] [data-diary-compact-scope] :where(.h-11) {
   height: 2.125rem;
 }
