@@ -45,15 +45,25 @@ export function onboardingSetupSteps(
   return steps.filter((id) => id !== "guide");
 }
 
-/** Person, ration and lifts need «Дальше»; circle uses cards or Готово.
- * Meal-pack flow omits food steps (`pendingKind === "meals"`). Replay
- * recalculates protein and leaves the existing menu alone. */
+/** Choice steps advance on tap; weight, macros summary and lifts keep «Дальше». */
+export function onboardingStepAutoAdvance(step: OnboardingStep): boolean {
+  return (
+    step === "mode" ||
+    step === "sex" ||
+    step === "goal" ||
+    step === "training_age" ||
+    step === "ration"
+  );
+}
+
 export function onboardingStepNeedsNext(step: OnboardingStep): boolean {
+  if (onboardingStepAutoAdvance(step)) {
+    return false;
+  }
   return (
     step === "guide" ||
-    step === "mode" ||
-    isOnboardingPersonStep(step) ||
-    step === "ration" ||
+    step === "weight" ||
+    step === "macros" ||
     step === "lifts" ||
     step === "circle"
   );

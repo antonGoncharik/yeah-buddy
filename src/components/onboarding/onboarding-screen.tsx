@@ -122,22 +122,12 @@ export function OnboardingScreen() {
         progressLabel="С чего начнём"
         title="Что ведём"
         subtitle="Можно сменить в настройках — данные никуда не пропадут."
-        showSticky
-        sticky={
-          <Button
-            className="h-14 w-full text-lg"
-            disabled={saving}
-            onClick={() => goNext()}
-          >
-            {saving ? "Секунду…" : "Дальше"}
-          </Button>
-        }
+        showSticky={false}
+        sticky={null}
       >
-        {gymEnabled == null ? (
-          <p className="mb-3 text-base text-muted-foreground">
-            Выбери один вариант — от этого зависит, что настроим дальше.
-          </p>
-        ) : null}
+        <p className="mb-3 text-base text-muted-foreground">
+          Выбери один вариант — от этого зависит, что настроим дальше.
+        </p>
         <OnboardingModeStep
           gymEnabled={gymEnabled}
           invalid={error === MODE_REQUIRED}
@@ -327,7 +317,9 @@ export function OnboardingScreen() {
           saving={saving}
           sex={sex}
           onChange={setCircle}
-          onBeginner={() => void goNext(RECOMMENDED_PROGRAM_PRESET_ID)}
+          onBeginner={() =>
+            void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
+          }
           onHome={() => {
             setProgramShelf("home");
             if (sex === "female" && !isProgramPresetId(circle)) {

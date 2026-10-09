@@ -1,6 +1,7 @@
 import {
   isOnboardingPersonStep,
   onboardingPersonSteps,
+  onboardingStepAutoAdvance,
   onboardingStepNeedsNext,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
@@ -85,15 +86,21 @@ for (const step of onboardingPersonSteps(true)) {
   if (!listed.includes(step)) {
     throw new Error(`person step ${step} must stay in the first-run path`);
   }
-  assertEqual(
-    onboardingStepNeedsNext(step),
-    true,
-    `${step} only advances with Дальше`,
-  );
 }
 
-assertEqual(onboardingStepNeedsNext("mode"), true, "mode needs Дальше");
-assertEqual(onboardingStepNeedsNext("ration"), true, "ration needs Дальше");
+assertEqual(onboardingStepAutoAdvance("mode"), true, "mode advances on pick");
+assertEqual(onboardingStepAutoAdvance("sex"), true, "sex advances on pick");
+assertEqual(onboardingStepAutoAdvance("goal"), true, "goal advances on pick");
+assertEqual(
+  onboardingStepAutoAdvance("training_age"),
+  true,
+  "training age advances on pick",
+);
+assertEqual(onboardingStepAutoAdvance("ration"), true, "ration advances on pick");
+assertEqual(onboardingStepNeedsNext("weight"), true, "weight keeps Дальше");
+assertEqual(onboardingStepNeedsNext("macros"), true, "macros keeps Дальше");
+assertEqual(onboardingStepNeedsNext("mode"), false, "mode hides Дальше");
+assertEqual(onboardingStepNeedsNext("ration"), false, "ration hides Дальше");
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).includes("ration"),
   false,

@@ -55,6 +55,32 @@ export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
 export const MODE_REQUIRED = "Выбери, что тебе нужно.";
 export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
 
+type GoNextOptions = {
+  circleOverride?: OnboardingCircle;
+  gymEnabled?: boolean;
+  sex?: OnboardingSex;
+  goal?: OnboardingGoal;
+  trainingAge?: UserTrainingAge;
+  ration?: RationId | null;
+  skipRation?: boolean;
+};
+
+function weightAfterSexPick(value: OnboardingSex, current: string): string {
+  const nextDefault = String(onboardingDefaultWeightKg(value));
+  if (current.trim() === "") {
+    return nextDefault;
+  }
+  const kg = parseDecimal(current);
+  if (kg == null) {
+    return nextDefault;
+  }
+  const rounded = Math.round(kg);
+  if (isOnboardingPresetWeightKg(rounded)) {
+    return nextDefault;
+  }
+  return current;
+}
+
 function proteinValid(value: number | null): value is number {
   return value != null && value > 0 && value <= 400;
 }
@@ -183,9 +209,30 @@ export function useOnboardingScreen() {
     }
   }, [stepIndex, steps]);
 
-  function goNext(circleOverride?: OnboardingCircle) {
+  function goNext(options?: GoNextOptions) {
+    if (saving) {
+      return;
+    }
+
+    const circleOverride = options?.circleOverride;
+    const effectiveGym = options?.gymEnabled ?? gymEnabled;
+    const effectiveSex = options?.sex ?? sex;
+    const effectiveGoal = options?.goal ?? goal;
+    const effectiveTrainingAge = options?.trainingAge ?? trainingAge;
+    const effectiveSkipRation = options?.skipRation ?? skipRation;
+    const effectiveRation =
+      options?.ration !== undefined ? options.ration : ration;
+
+    const activeSteps = onboardingSteps({
+      pendingKind,
+      pendingProgram: pendingProgramId != null,
+      replay,
+      gymEnabled: effectiveGym === true,
+    });
+    const activeIndex = Math.max(0, activeSteps.indexOf(step));
+
     if (step === "mode") {
-      if (gymEnabled == null) {
+      if (effectiveGym == null) {
         haptic("warn");
         setError(MODE_REQUIRED);
         return;
@@ -194,7 +241,7 @@ export function useOnboardingScreen() {
     }
 
     if (step === "sex") {
-      if (sex == null) {
+      if (effectiveSex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
         return;
@@ -203,7 +250,7 @@ export function useOnboardingScreen() {
     }
 
     if (step === "weight") {
-      if (sex == null) {
+      if (effectiveSex == null) {
         haptic("warn");
         setError(SEX_REQUIRED);
         setStep("sex");
@@ -223,7 +270,7 @@ export function useOnboardingScreen() {
     }
 
     if (step === "goal") {
-      if (goal == null) {
+      if (effectiveGoal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
         return;
@@ -232,7 +279,7 @@ export function useOnboardingScreen() {
     }
 
     if (step === "training_age") {
-      if (trainingAge == null) {
+      if (effectiveTrainingAge == null) {
         haptic("warn");
         setError(TRAINING_AGE_REQUIRED);
         return;
@@ -250,7 +297,7 @@ export function useOnboardingScreen() {
     }
 
     if (step === "ration") {
-      if (!skipRation && ration == null) {
+      if (!effectiveSkipRation && effectiveRation == null) {
         haptic("warn");
         setError(RATION_REQUIRED);
         return;
@@ -272,7 +319,27 @@ export function useOnboardingScreen() {
       setError(null);
     }
 
-    const following = steps[stepIndex + 1];
+    if (options?.gymEnabled !== undefined) {
+      setGymEnabled(options.gymEnabled);
+    }
+    if (options?.sex !== undefined) {
+      setSex(options.sex);
+      setWeight((current) => weightAfterSexPick(options.sex!, current));
+    }
+    if (options?.goal !== undefined) {
+      setGoal(options.goal);
+    }
+    if (options?.trainingAge !== undefined) {
+      setTrainingAge(options.trainingAge);
+    }
+    if (options?.skipRation !== undefined) {
+      setSkipRation(options.skipRation);
+    }
+    if (options?.ration !== undefined) {
+      setRation(options.ration);
+    }
+
+    const following = activeSteps[activeIndex + 1];
     if (following) {
       if (circleOverride) {
         setCircle(circleOverride);
@@ -371,10 +438,8 @@ export function useOnboardingScreen() {
   }
 
   function pickSelfRation() {
-    setSkipRation(true);
-    setRation(null);
-    setError(null);
     haptic("tick");
+    goNext({ skipRation: true, ration: null });
   }
 
   function skipLifts() {
@@ -418,8 +483,8 @@ export function useOnboardingScreen() {
     circle,
     setCircle,
     onGymModePick: (enabled: boolean) => {
-      setGymEnabled(enabled);
-      setError(null);
+      haptic("tick");
+      goNext({ gymEnabled: enabled });
     },
     goBack,
     goNext,
@@ -429,44 +494,25 @@ export function useOnboardingScreen() {
     rationSelfSetup: skipRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     onSexPick: (value: OnboardingSex) => {
-      setSex(value);
-      setWeight((current) => {
-        const nextDefault = String(onboardingDefaultWeightKg(value));
-        if (current.trim() === "") {
-          return nextDefault;
-        }
-        const kg = parseDecimal(current);
-        if (kg == null) {
-          return nextDefault;
-        }
-        const rounded = Math.round(kg);
-        if (isOnboardingPresetWeightKg(rounded)) {
-          return nextDefault;
-        }
-        return current;
-      });
-      setError(null);
+      goNext({ sex: value });
     },
     onWeightChange: (value: string) => {
       setError(null);
       setWeight(value);
     },
     onGoalPick: (value: OnboardingGoal) => {
-      setGoal(value);
-      setError(null);
+      goNext({ goal: value });
     },
     onTrainingAgePick: (value: UserTrainingAge) => {
-      setTrainingAge(value);
-      setError(null);
+      goNext({ trainingAge: value });
     },
     onLiftChange: (key: LiftKey, value: string | null) => {
       setError(null);
       setLifts((current) => ({ ...current, [key]: value }));
     },
     onRationPick: (value: RationId) => {
-      setSkipRation(false);
-      setRation(value);
-      setError(null);
+      haptic("tick");
+      goNext({ ration: value, skipRation: false });
     },
   };
 }
