@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef } from "react";
-
-import { DumbbellDoodle } from "@/components/layout/doodles";
+import { useCallback, useEffect, useRef } from "react";
 import { AppHeader } from "@/components/layout/app-header";
+import { DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
+import { MuscleHeatGrid } from "@/components/workout/muscle-heat-grid";
 import {
   type MuscleHorizon,
   useMuscleScreen,
@@ -65,6 +65,12 @@ export function MuscleScreen() {
   } = useMuscleScreen();
 
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (selected && selected.view !== view) {
+      setSelectedId(null);
+    }
+  }, [selected, setSelectedId, view]);
 
   const onTouchStart = useCallback((event: React.TouchEvent) => {
     const touch = event.touches[0];
@@ -151,8 +157,8 @@ export function MuscleScreen() {
                 selectedId={selectedId}
                 onSelect={setSelectedId}
               />
-              <p className="text-center text-sm text-muted-foreground">
-                Свайп влево или вправо — другой ракурс
+              <p className="text-center text-xs text-muted-foreground">
+                Точки на схеме — зоны. Удобнее выбирать списком ниже.
               </p>
               {snapshot.planned_template_name ? (
                 <p className="text-center text-sm leading-snug">
@@ -164,11 +170,22 @@ export function MuscleScreen() {
               ) : null}
             </div>
 
+            <section className="flex flex-col gap-2">
+              <h2 className="px-1 text-sm font-medium text-muted-foreground">
+                Зоны · {view === "front" ? "спереди" : "сзади"}
+              </h2>
+              <MuscleHeatGrid
+                muscles={snapshot.muscles.filter((item) => item.view === view)}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
+            </section>
+
             <ul className="flex flex-wrap gap-2 px-1">
               {STATUS_LEGEND.map((item) => (
                 <li
                   key={item.status}
-                  className="rounded-full bg-muted/80 px-3 py-1 text-sm text-muted-foreground"
+                  className="rounded-full bg-muted/80 px-3 py-1 text-xs text-muted-foreground"
                 >
                   <LegendDot status={item.status} />
                   {item.label}
@@ -221,7 +238,7 @@ export function MuscleScreen() {
                           {hit.name}
                         </span>
                         <span className="shrink-0 text-muted-foreground tabular-nums">
-                            {formatIsoDate(hit.last_date, "d MMM")}
+                          {formatIsoDate(hit.last_date, "d MMM")}
                           {hit.tonnage > 0
                             ? ` · ${formatTonnage(hit.tonnage)}`
                             : null}
@@ -237,7 +254,7 @@ export function MuscleScreen() {
               </section>
             ) : (
               <p className="px-1 text-sm text-muted-foreground">
-                Нажми на зону на схеме — покажем упражнения и даты.
+                Выбери зону в списке — покажем упражнения и даты.
               </p>
             )}
           </>
