@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Input } from "@/components/ui/input";
 import type { ExerciseFormState } from "@/components/workout/exercise-form-state";
+import { EXERCISE_LOAD_INPUT_CLASS } from "@/components/workout/exercise-load-field";
 import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
@@ -45,14 +46,20 @@ export function ExerciseLoadsSection({
 
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 min-[400px]:gap-4">
         <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-          <p className="text-sm font-medium">На раз</p>
+          <p className="text-sm font-medium">На раз, кг</p>
           {maxLocked ? (
             <>
-              <p className="text-2xl font-semibold tracking-tight tabular-nums">
-                {exercise.current_max
-                  ? `${formatWeight(exercise.current_max.max_weight)} кг`
-                  : "—"}
-              </p>
+              <Input
+                readOnly
+                tabIndex={-1}
+                aria-label="Максимум на раз, кг"
+                value={
+                  exercise.current_max
+                    ? formatWeight(exercise.current_max.max_weight)
+                    : ""
+                }
+                className={EXERCISE_LOAD_INPUT_CLASS}
+              />
               <p className="text-xs leading-snug text-muted-foreground">
                 Идёт цикл — меняется в «Недели».
               </p>
@@ -73,7 +80,7 @@ export function ExerciseLoadsSection({
                   }))
                 }
                 onKeyDown={handleNumericEnter}
-                className="h-11 text-base tabular-nums"
+                className={EXERCISE_LOAD_INPUT_CLASS}
               />
               {maxWeightOutOfRange(form.max_weight) ? (
                 <p className="text-xs text-destructive">0,1–1000 кг</p>
@@ -116,7 +123,7 @@ export function ExerciseLoadsSectionNew({
           }))
         }
         onKeyDown={handleNumericEnter}
-        className="h-12 text-base tabular-nums"
+        className={EXERCISE_LOAD_INPUT_CLASS}
       />
       {maxWeightOutOfRange(form.max_weight) ? (
         <p className="text-base leading-snug text-destructive">

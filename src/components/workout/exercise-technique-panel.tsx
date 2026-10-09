@@ -65,14 +65,7 @@ export function ExerciseTechniquePanel({
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">Как делать</h2>
-        <p className="text-sm leading-snug text-muted-foreground">
-          {linked
-            ? "Гифка и шаги из библиотеки — только для подсказки, не меняют твоё название."
-            : "Привяжи к библиотеке, чтобы показать технику. Поиск по-русски или по-английски."}
-        </p>
-      </div>
+      <h2 className="text-lg font-semibold tracking-tight">Как делать</h2>
 
       {linked && exercise.catalog_exercise_id ? (
         <TechniquePreview
