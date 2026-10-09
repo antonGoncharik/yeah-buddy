@@ -234,6 +234,12 @@ export function WorkoutsHubNavSections({
           icon={<BarbellDoodle />}
         />
         <NavRow
+          href="/workouts/muscles"
+          title="Мышцы"
+          hint="Схема нагрузки и пропусков"
+          icon={<ChartDoodle />}
+        />
+        <NavRow
           href={reviewHref("workouts")}
           title={REVIEW_LABEL}
           hint="За 14, 30 или 90 дней"

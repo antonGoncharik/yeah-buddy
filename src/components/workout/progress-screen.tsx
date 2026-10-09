@@ -168,6 +168,12 @@ export function ProgressScreen() {
             <ReviewCta from="workouts" />
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
               <NavRow
+                href="/workouts/muscles"
+                title="Мышцы"
+                hint="Схема нагрузки и пропусков"
+                icon={<DumbbellDoodle />}
+              />
+              <NavRow
                 href="/workouts/history"
                 title="История тренировок"
                 hint="Какие были занятия"
