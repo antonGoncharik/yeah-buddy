@@ -17,7 +17,10 @@ export default function OnboardingLayout({
 }) {
   return (
     <TelegramGate>
-      <div className="app-safe-pad mx-auto flex h-[var(--app-viewport-height)] w-full max-w-lg flex-col">
+      <div
+        className="app-safe-pad mx-auto flex h-[var(--app-viewport-height)] w-full max-w-lg flex-col"
+        data-onboarding-ui
+      >
         {children}
       </div>
     </TelegramGate>

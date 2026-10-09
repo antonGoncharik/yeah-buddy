@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { GuideTour } from "@/components/guide/guide-tour";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -22,6 +22,7 @@ import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-
 import {
   OnboardingStepDots,
   OnboardingStepShell,
+  OnboardingThumbZone,
 } from "@/components/onboarding/onboarding-shell";
 import {
   type OnboardingStep,
@@ -121,17 +122,21 @@ export function OnboardingScreen() {
         showSticky={false}
         sticky={null}
       >
-        <p className="mb-3 text-base text-muted-foreground">
-          Выбери один вариант — от этого зависит, что настроим дальше.
-        </p>
-        <OnboardingModeStep
-          gymEnabled={gymEnabled}
-          invalid={error === MODE_REQUIRED}
-          onPick={onGymModePick}
-        />
-        {error ? (
-          <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
-        ) : null}
+        <OnboardingThumbZone>
+          <p className="mb-3 text-base text-muted-foreground">
+            Выбери один вариант — от этого зависит, что настроим дальше.
+          </p>
+          <OnboardingModeStep
+            gymEnabled={gymEnabled}
+            invalid={error === MODE_REQUIRED}
+            onPick={onGymModePick}
+          />
+          {error ? (
+            <p className="mt-2 text-center text-base leading-snug text-destructive">
+              {error}
+            </p>
+          ) : null}
+        </OnboardingThumbZone>
       </OnboardingStepShell>
     );
   }
@@ -205,7 +210,7 @@ export function OnboardingScreen() {
         }
       >
       {step === "sex" ? (
-        <>
+        <OnboardingThumbZone>
           <OnboardingSexStep
             sex={sex}
             showLabel={false}
@@ -216,7 +221,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </>
+        </OnboardingThumbZone>
       ) : null}
 
       {step === "weight" && sex != null ? (
@@ -235,18 +240,18 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "goal" ? (
-        <>
+        <OnboardingThumbZone>
           <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
           {showPersonError("goal") ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">
               {error}
             </p>
           ) : null}
-        </>
+        </OnboardingThumbZone>
       ) : null}
 
       {step === "training_age" ? (
-        <>
+        <OnboardingThumbZone>
           <OnboardingTrainingAgeStep
             trainingAge={trainingAge}
             onPick={onTrainingAgePick}
@@ -256,7 +261,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </>
+        </OnboardingThumbZone>
       ) : null}
 
       {step === "macros" && sex != null && goal != null ? (
@@ -272,7 +277,7 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "ration" ? (
-        <>
+        <OnboardingThumbZone>
           <OnboardingRationStep
             ration={ration}
             selfSetup={rationSelfSetup}
@@ -284,9 +289,11 @@ export function OnboardingScreen() {
             onPick={onRationPick}
           />
           {error === RATION_REQUIRED ? (
-            <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
+            <p className="mt-2 text-center text-base leading-snug text-destructive">
+              {error}
+            </p>
           ) : null}
-        </>
+        </OnboardingThumbZone>
       ) : null}
 
       {step === "lifts" ? (
@@ -301,25 +308,27 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "circle" ? (
-        <OnboardingCircleStep
-          value={circle}
-          fromMealPack={pendingKind === "meals"}
-          picking={pickingProgram}
-          shelf={programShelf}
-          saving={saving}
-          sex={sex}
-          onChange={setCircle}
-          onBeginner={() =>
-            void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
-          }
-          onHome={() => {
-            setProgramShelf("home");
-            if (sex === "female" && !isProgramPresetId(circle)) {
-              setCircle("home_glutes");
+        <CircleStepLayout thumb={!pickingProgram}>
+          <OnboardingCircleStep
+            value={circle}
+            fromMealPack={pendingKind === "meals"}
+            picking={pickingProgram}
+            shelf={programShelf}
+            saving={saving}
+            sex={sex}
+            onChange={setCircle}
+            onBeginner={() =>
+              void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
             }
-          }}
-          onPickYourself={() => setProgramShelf("all")}
-        />
+            onHome={() => {
+              setProgramShelf("home");
+              if (sex === "female" && !isProgramPresetId(circle)) {
+                setCircle("home_glutes");
+              }
+            }}
+            onPickYourself={() => setProgramShelf("all")}
+          />
+        </CircleStepLayout>
       ) : null}
 
       {error &&
@@ -335,6 +344,19 @@ export function OnboardingScreen() {
       ) : null}
     </>
   );
+}
+
+function CircleStepLayout({
+  thumb,
+  children,
+}: {
+  thumb: boolean;
+  children: ReactNode;
+}) {
+  if (thumb) {
+    return <OnboardingThumbZone>{children}</OnboardingThumbZone>;
+  }
+  return children;
 }
 
 function titleForStep(

@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 
 import { GuidePageBody } from "@/components/guide/guide-page-body";
 import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
-import { OnboardingStepShell } from "@/components/onboarding/onboarding-shell";
+import {
+  OnboardingStepShell,
+  OnboardingThumbZone,
+} from "@/components/onboarding/onboarding-shell";
 import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL, onboardingIntroPages } from "@/lib/guide";
 import type { GuidePage } from "@/lib/guide/types";
@@ -81,37 +84,41 @@ export function GuideTour({
       showSticky={false}
       sticky={null}
     >
-      <section className="card-surface flex flex-col gap-4 px-5 py-5">
-        <GuidePageBody page={page} showDoodle={false} />
-      </section>
-      {last ? (
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          {`Подробнее — в Настройках → «${GUIDE_LABEL}».`}
-        </p>
-      ) : null}
-      <div className="mt-4 flex flex-col gap-2">
-        {last ? null : (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-12 w-full text-base"
-            data-keyboard-secondary
-            onClick={() => {
-              haptic("tap");
-              onSkip();
-            }}
-          >
-            Пропустить
-          </Button>
-        )}
-        <OnboardingPrimaryAction
-          label={last ? "К настройке" : "Дальше"}
-          onClick={goNext}
-        />
-      </div>
-      {error ? (
-        <p className="mt-3 text-center text-base leading-snug text-destructive">{error}</p>
-      ) : null}
+      <OnboardingThumbZone>
+        <section className="card-surface flex flex-col gap-4 px-5 py-5">
+          <GuidePageBody page={page} showDoodle={false} />
+        </section>
+        {last ? (
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            {`Подробнее — в Настройках → «${GUIDE_LABEL}».`}
+          </p>
+        ) : null}
+        <div className="mt-4 flex flex-col gap-2">
+          {last ? null : (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-12 w-full text-base"
+              data-keyboard-secondary
+              onClick={() => {
+                haptic("tap");
+                onSkip();
+              }}
+            >
+              Пропустить
+            </Button>
+          )}
+          <OnboardingPrimaryAction
+            label={last ? "К настройке" : "Дальше"}
+            onClick={goNext}
+          />
+        </div>
+        {error ? (
+          <p className="mt-3 text-center text-base leading-snug text-destructive">
+            {error}
+          </p>
+        ) : null}
+      </OnboardingThumbZone>
     </OnboardingStepShell>
   );
 }

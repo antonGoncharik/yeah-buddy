@@ -67,11 +67,33 @@ export function OnboardingStepShell({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
-        {children}
-        {showSticky && sticky ? (
-          <div className="mt-4 flex flex-col gap-2">{sticky}</div>
-        ) : null}
+        <div className="flex min-h-full flex-col">
+          {children}
+          {showSticky && sticky ? (
+            <div className="mt-4 flex shrink-0 flex-col gap-2">{sticky}</div>
+          ) : null}
+        </div>
       </div>
+    </div>
+  );
+}
+
+/** Tap targets sit in the lower-middle of the screen — comfortable one-handed reach. */
+export function OnboardingThumbZone({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-1 flex-col justify-center pt-1 pb-[clamp(1.75rem,14vh,6rem)]",
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }

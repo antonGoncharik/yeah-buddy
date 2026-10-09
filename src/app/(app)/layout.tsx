@@ -22,7 +22,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <TelegramGate>
       <OnboardingGate>
-        <div className="app-safe-pad app-viewport-min mx-auto w-full min-w-0 max-w-lg pb-[var(--app-nav-clearance)]">
+        <div
+          className="app-safe-pad app-viewport-min mx-auto w-full min-w-0 max-w-lg pb-[var(--app-nav-clearance)]"
+          data-diary-compact-scope
+        >
           <ResetWindowScroll />
           <TelegramBackSwipeGuard />
           <CoachCatcher>
