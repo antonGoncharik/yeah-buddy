@@ -17,7 +17,7 @@ export function StickyActions({
     <div
       className={cn(
         "app-sticky-actions app-chrome-bar pointer-events-none pt-3",
-        overlay && "app-fixed-bottom fixed inset-x-0 z-[9]",
+        overlay && "app-fixed-bottom fixed inset-x-0 z-[25]",
         withNav
           ? "pb-[var(--app-nav-clearance)]"
           : "pb-[max(1.25rem,var(--app-safe-bottom))]",

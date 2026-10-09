@@ -558,6 +558,19 @@ html[data-keyboard="open"] .app-bottom-nav {
   pointer-events: none;
 }
 
+.app-sticky-actions {
+  isolation: isolate;
+  background-color: var(--background);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--background) 82%, transparent),
+    var(--background) 1.5rem
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -12px 28px -14px color-mix(in oklch, var(--foreground) 14%, transparent);
+}
+
 html[data-keyboard="open"] .app-sticky-actions {
   padding-bottom: max(0.75rem, var(--app-safe-bottom));
 }
