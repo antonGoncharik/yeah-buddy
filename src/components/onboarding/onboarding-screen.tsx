@@ -124,13 +124,11 @@ export function OnboardingScreen() {
         <p className="mb-3 text-base text-muted-foreground">
           Выбери один вариант — от этого зависит, что настроим дальше.
         </p>
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
-          <OnboardingModeStep
-            gymEnabled={gymEnabled}
-            invalid={error === MODE_REQUIRED}
-            onPick={onGymModePick}
-          />
-        </div>
+        <OnboardingModeStep
+          gymEnabled={gymEnabled}
+          invalid={error === MODE_REQUIRED}
+          onPick={onGymModePick}
+        />
         {error ? (
           <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
         ) : null}
@@ -207,7 +205,7 @@ export function OnboardingScreen() {
         }
       >
       {step === "sex" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
+        <>
           <OnboardingSexStep
             sex={sex}
             showLabel={false}
@@ -218,7 +216,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       {step === "weight" && sex != null ? (
@@ -237,18 +235,18 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "goal" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
+        <>
           <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
           {showPersonError("goal") ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">
               {error}
             </p>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       {step === "training_age" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
+        <>
           <OnboardingTrainingAgeStep
             trainingAge={trainingAge}
             onPick={onTrainingAgePick}
@@ -258,7 +256,7 @@ export function OnboardingScreen() {
               {error}
             </p>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       {step === "macros" && sex != null && goal != null ? (
@@ -274,7 +272,7 @@ export function OnboardingScreen() {
       ) : null}
 
       {step === "ration" ? (
-        <div className="flex min-h-[min(58vh,28rem)] flex-col justify-center">
+        <>
           <OnboardingRationStep
             ration={ration}
             selfSetup={rationSelfSetup}
@@ -288,7 +286,7 @@ export function OnboardingScreen() {
           {error === RATION_REQUIRED ? (
             <p className="mt-2 text-center text-base leading-snug text-destructive">{error}</p>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       {step === "lifts" ? (

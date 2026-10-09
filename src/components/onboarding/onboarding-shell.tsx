@@ -3,7 +3,6 @@
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { StickyActions } from "@/components/layout/sticky-actions";
 import { TelegramBackButton } from "@/components/layout/telegram-back-button";
 import type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
 import { cn } from "@/lib/utils";
@@ -67,18 +66,12 @@ export function OnboardingStepShell({
         </div>
       </header>
 
-      <div
-        className={cn(
-          "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4",
-          showSticky ? "pb-44" : "pb-4",
-        )}
-      >
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
         {children}
+        {showSticky && sticky ? (
+          <div className="mt-4 flex flex-col gap-2">{sticky}</div>
+        ) : null}
       </div>
-
-      {showSticky ? (
-        <StickyActions withNav={false}>{sticky}</StickyActions>
-      ) : null}
     </div>
   );
 }
