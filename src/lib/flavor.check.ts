@@ -85,15 +85,19 @@ assertEqual(
 assertEqual(loadingFlavor({}), "idle", "plain loader");
 assertEqual(
   loadingLine("boot", 0),
-  "Загрузка углеводами…",
+  "Ищем мотивацию. Если не найдем, запустим так.",
   "boot hour 0 is the known line",
 );
 assertEqual(
   loadingLine("boot", 3_600_000),
-  "Греем блины…",
+  "Тут 20 строчек кода, а не 3 по 8. Погоди секунду.",
   "boot rotates hourly",
 );
-assertEqual(loadingLine("idle", 0), "Загрузка…", "idle keeps Загрузка");
+assertEqual(
+  loadingLine("idle", 0),
+  "Грузимся... Как твоя голова после дня ног.",
+  "idle hour 0",
+);
 
 assertEqual(sessionDoneHeadline(null), "Готово", "no feel yet");
 assertEqual(sessionDoneHeadline("easy"), "Yeah buddy.", "easy headline");
