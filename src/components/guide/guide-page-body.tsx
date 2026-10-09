@@ -30,11 +30,13 @@ export function GuidePageBody({
   className,
   omitLead = false,
   compact = false,
+  showDoodle = true,
 }: {
   page: GuidePage;
   className?: string;
   omitLead?: boolean;
   compact?: boolean;
+  showDoodle?: boolean;
 }) {
   return (
     <article
@@ -43,7 +45,9 @@ export function GuidePageBody({
         className,
       )}
     >
-      {compact ? null : <GuideDoodleIcon kind={page.doodle} />}
+      {compact || !showDoodle ? null : (
+        <GuideDoodleIcon kind={page.doodle} />
+      )}
       {omitLead ? null : (
         <p
           className={cn(

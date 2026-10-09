@@ -105,7 +105,7 @@ export function GuideTour({
       }
     >
       <section className="card-surface flex flex-col gap-4 px-5 py-5">
-        <GuidePageBody page={page} />
+        <GuidePageBody page={page} showDoodle={false} />
       </section>
       {last ? (
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
