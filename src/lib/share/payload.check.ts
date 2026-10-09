@@ -212,6 +212,7 @@ const squat: WorkoutTemplateDetail["exercises"][number] = {
   user_id: "u1",
   name: "Приседания со штангой",
   short_name: "Присед",
+  catalog_exercise_id: null,
   category: "base",
   workout_type: "dynamic",
   unit: "reps",

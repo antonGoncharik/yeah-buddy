@@ -20,6 +20,7 @@ function exercise(
     user_id: "u",
     name: id,
     short_name: null,
+    catalog_exercise_id: null,
     category: "base",
     workout_type: "dynamic",
     unit: "reps",

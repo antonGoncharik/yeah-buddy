@@ -1,12 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ExerciseCatalogLinkSection } from "@/components/workout/exercise-catalog-link-section";
 import { ExerciseIdentityFields } from "@/components/workout/exercise-identity-fields";
 import { ExerciseMaxHistory } from "@/components/workout/exercise-max-history";
 import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
+import {
+  ExerciseTechniquePlaceholder,
+  ExerciseTechniqueSection,
+} from "@/components/workout/exercise-technique-section";
 import { ExerciseTypeFields } from "@/components/workout/exercise-type-fields";
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
 import { handleNumericEnter } from "@/lib/form/field-nav";
@@ -34,6 +41,17 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     onSubmit,
     toggleActive,
   } = useExerciseForm(exercise);
+  const [catalogExerciseId, setCatalogExerciseId] = useState(
+    exercise?.catalog_exercise_id ?? null,
+  );
+
+  useEffect(() => {
+    setCatalogExerciseId(exercise?.catalog_exercise_id ?? null);
+  }, [exercise?.catalog_exercise_id]);
+
+  const catalogExercise = exercise
+    ? { ...exercise, catalog_exercise_id: catalogExerciseId }
+    : null;
 
   return (
     <form className="flex flex-col gap-4 pb-36" onSubmit={onSubmit}>
@@ -89,6 +107,23 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
           ) : null}
         </Field>
       )}
+
+      {catalogExercise ? (
+        <>
+          {catalogExercise.catalog_exercise_id ? (
+            <ExerciseTechniqueSection
+              catalogExerciseId={catalogExercise.catalog_exercise_id}
+            />
+          ) : (
+            <ExerciseTechniquePlaceholder />
+          )}
+          <ExerciseCatalogLinkSection
+            exercise={catalogExercise}
+            searchInputId="exercise-catalog-search"
+            onLinked={(next) => setCatalogExerciseId(next.catalog_exercise_id)}
+          />
+        </>
+      ) : null}
 
       {exercise ? <ExerciseTrackCard exercise={exercise} /> : null}
 

@@ -7,7 +7,10 @@ import type {
   ExerciseCreateInput,
   ExerciseUpdateInput,
 } from "@/lib/workout/exercise-schema";
+import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
+import { getCatalogExercise } from "@/lib/workout/exercise-catalog-store";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
+import { catalogUuidForStarterName } from "@/lib/workout/starter-catalog-link";
 import {
   attachMaxes,
   copyMaxToCurrentPhase,
@@ -106,6 +109,7 @@ export async function ensureNamedExercise(
   }
 
   const supabase = createSupabaseServerClient();
+  const catalogExerciseId = await catalogUuidForStarterName(supabase, input.name);
   const inserted = await supabase
     .from("exercises")
     .insert({
@@ -117,6 +121,7 @@ export async function ensureNamedExercise(
       unit: input.unit,
       weight_step: input.weight_step,
       formula_preset: input.formula_preset,
+      ...(catalogExerciseId ? { catalog_exercise_id: catalogExerciseId } : {}),
     })
     .select("*")
     .single();
@@ -146,6 +151,7 @@ export async function createExercise(
   input: ExerciseCreateInput,
 ): Promise<ExerciseWithMax> {
   const supabase = createSupabaseServerClient();
+  const catalogExerciseId = await catalogUuidForStarterName(supabase, input.name);
   const inserted = await supabase
     .from("exercises")
     .insert({
@@ -158,6 +164,7 @@ export async function createExercise(
       weight_step: input.weight_step,
       formula_preset: input.formula_preset,
       slot: input.slot,
+      ...(catalogExerciseId ? { catalog_exercise_id: catalogExerciseId } : {}),
     })
     .select("*")
     .single();
@@ -190,6 +197,15 @@ export async function updateExercise(
   id: string,
   input: ExerciseUpdateInput,
 ): Promise<ExerciseWithMax | null> {
+  if (input.catalog_exercise_id !== undefined) {
+    if (input.catalog_exercise_id != null) {
+      const catalog = await getCatalogExercise(input.catalog_exercise_id);
+      if (!catalog) {
+        throw new CatalogExerciseNotFoundError();
+      }
+    }
+  }
+
   const supabase = createSupabaseServerClient();
   const updated = await supabase
     .from("exercises")
@@ -204,6 +220,9 @@ export async function updateExercise(
         ? { formula_preset: input.formula_preset }
         : {}),
       ...(input.slot !== undefined ? { slot: input.slot } : {}),
+      ...(input.catalog_exercise_id !== undefined
+        ? { catalog_exercise_id: input.catalog_exercise_id }
+        : {}),
     })
     .eq("user_id", userId)
     .eq("id", id)

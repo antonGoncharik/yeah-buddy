@@ -81,6 +81,7 @@ export interface Exercise {
   user_id: string;
   name: string;
   short_name: string | null;
+  catalog_exercise_id: string | null;
   category: ExerciseCategory;
   workout_type: ExerciseWorkoutType;
   unit: ExerciseUnit;

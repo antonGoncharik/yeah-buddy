@@ -20,6 +20,7 @@ export function mapExercise(row: Record<string, unknown>): Exercise {
     user_id: String(row.user_id),
     name: String(row.name),
     short_name: toNullableString(row.short_name),
+    catalog_exercise_id: toNullableString(row.catalog_exercise_id),
     category: toCategory(row.category),
     workout_type: toWorkoutType(row.workout_type),
     unit: toUnit(row.unit),

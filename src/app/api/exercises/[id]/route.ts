@@ -3,6 +3,7 @@ import type { NextResponse } from "next/server";
 import { failRoute, jsonError, jsonOk, whenError } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { CHECK_FIELDS } from "@/lib/messages";
+import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
 import {
   archiveExercise,
   exerciseUpdateSchema,
@@ -91,7 +92,10 @@ export async function PATCH(
 
     return jsonOk({ exercise });
   } catch (error) {
-    return failRoute(error, [whenError(StartingMaxLockedError, 409)]);
+    return failRoute(error, [
+      whenError(StartingMaxLockedError, 409),
+      whenError(CatalogExerciseNotFoundError, 404),
+    ]);
   }
 }
 

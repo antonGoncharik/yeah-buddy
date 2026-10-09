@@ -53,6 +53,10 @@ export class StartingMaxLockedError extends Error {
   }
 }
 
+const catalogExerciseId = z
+  .union([z.string().uuid(), z.null()])
+  .optional();
+
 export const exerciseUpdateSchema = z.object({
   name: z.string().trim().min(1, "Название обязательно."),
   short_name: optionalText,
@@ -63,6 +67,11 @@ export const exerciseUpdateSchema = z.object({
   formula_preset: z.enum(FORMULA_PRESETS).optional(),
   slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
   max_weight: z.number().finite().positive().optional(),
+  catalog_exercise_id: catalogExerciseId,
+});
+
+export const exerciseCatalogLinkSchema = z.object({
+  catalog_exercise_id: z.union([z.string().uuid(), z.null()]),
 });
 
 export type ExerciseCreateInput = z.infer<typeof exerciseCreateSchema>;

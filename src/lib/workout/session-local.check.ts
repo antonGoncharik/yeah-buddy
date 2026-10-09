@@ -28,6 +28,7 @@ const exercise: Exercise = {
   user_id: "u",
   name: "Bench",
   short_name: null,
+  catalog_exercise_id: null,
   category: "base",
   workout_type: "dynamic",
   unit: "reps",

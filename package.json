@@ -9,6 +9,8 @@
     "lint": "biome check",
     "format": "biome format --write",
     "catalog:import": "tsx --env-file=.env.local scripts/import-catalog.ts",
+    "exercise-catalog:import": "tsx --env-file=.env.local scripts/import-exercise-catalog.ts",
+    "exercise-catalog:backfill": "tsx --env-file=.env.local scripts/backfill-exercise-catalog-links.ts",
     "user:delete": "tsx --env-file=.env.local scripts/delete-user.ts",
     "program:grant": "tsx --env-file=.env.local scripts/grant-program.ts",
     "test": "tsx scripts/run-checks.ts"
