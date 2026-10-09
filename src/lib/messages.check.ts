@@ -7,8 +7,14 @@ import {
   EMPTY_START_ADD,
   EMPTY_START_REPEAT,
   OPEN_VIA_BOT_CTA,
+  OPEN_VIA_BOT_EYEBROW,
+  OPEN_VIA_BOT_FAQ,
+  OPEN_VIA_BOT_FAQ_TITLE,
+  OPEN_VIA_BOT_FEATURES_TITLE,
+  OPEN_VIA_BOT_HERO,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
+  OPEN_VIA_BOT_PILLS,
   OPEN_VIA_BOT_POINTS,
   OPEN_VIA_BOT_QR_CAPTION,
   OPEN_VIA_BOT_STEPS,
@@ -103,6 +109,28 @@ assertEqual(
   "День отдыха и день зала с разными целями. Программа сама ставит вес.",
   "outside Telegram lead",
 );
+assertEqual(OPEN_VIA_BOT_EYEBROW, "Дневник в Telegram", "landing eyebrow");
+assertEqual(
+  OPEN_VIA_BOT_HERO,
+  "Зал или отдых — цели и вес уже правильные.",
+  "landing hero",
+);
+assertEqual(
+  OPEN_VIA_BOT_PILLS.join(" · "),
+  "Без регистрации · Фото и голос в боте · Программы с авто-весом",
+  "landing pills",
+);
+assertEqual(
+  OPEN_VIA_BOT_FEATURES_TITLE,
+  "Не два приложения",
+  "landing features title",
+);
+assertEqual(
+  OPEN_VIA_BOT_FAQ_TITLE,
+  "Коротко о важном",
+  "landing faq title",
+);
+assertEqual(OPEN_VIA_BOT_FAQ.length, 4, "landing faq count");
 assertEqual(OPEN_VIA_BOT_CTA, "Открыть в Telegram", "outside Telegram cta");
 assertEqual(
   OPEN_VIA_BOT_QR_CAPTION,

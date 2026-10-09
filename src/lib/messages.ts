@@ -13,6 +13,36 @@ export const MEAL_CHAT_INBOX_NOTE =
   "Написать админу — в «Написать» ниже: сначала выбери тему, потом текст или вложение.";
 export const OPEN_VIA_BOT_LEAD =
   "День отдыха и день зала с разными целями. Программа сама ставит вес.";
+export const OPEN_VIA_BOT_EYEBROW = "Дневник в Telegram";
+export const OPEN_VIA_BOT_HERO =
+  "Зал или отдых — цели и вес уже правильные.";
+export const OPEN_VIA_BOT_PILLS = [
+  "Без регистрации",
+  "Фото и голос в боте",
+  "Программы с авто-весом",
+] as const;
+export const OPEN_VIA_BOT_FEATURES_TITLE = "Не два приложения";
+export const OPEN_VIA_BOT_FAQ_TITLE = "Коротко о важном";
+export const OPEN_VIA_BOT_FAQ = [
+  {
+    question: "Сколько это стоит?",
+    answer: "Yeah Buddy бесплатный.",
+  },
+  {
+    question: "Нужно ставить приложение?",
+    answer:
+      "Нет. Открой бота или мини-приложение в Telegram — этого достаточно.",
+  },
+  {
+    question: "Это только калории?",
+    answer:
+      "Нет. День отдыха и день зала с разными целями, плюс силовые программы.",
+  },
+  {
+    question: "Что уходит в чат?",
+    answer: "В чат уходит только то, чем сам поделился.",
+  },
+] as const;
 export const OPEN_VIA_BOT_CTA = "Открыть в Telegram";
 export const OPEN_VIA_BOT_QR_CAPTION = "Наведи камеру — откроется бот.";
 export const OPEN_VIA_BOT_POINTS = [
