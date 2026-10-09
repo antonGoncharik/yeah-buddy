@@ -143,7 +143,7 @@ export function DaySummary({
       : proteinOverflow
         ? `+${formatMacro(Math.abs(remainingProtein))}`
         : formatMacro(Math.max(0, remainingProtein));
-  const bodyMetrics = loop && showWeight;
+  const bodyMetrics = showWeight;
 
   return (
     <section
@@ -217,18 +217,6 @@ export function DaySummary({
           </div>
           {loop ? (
             gym
-          ) : showWeight ? (
-            <WeightBlock
-              bodyWeight={bodyWeight}
-              lastBodyWeight={lastBodyWeight}
-              waist={waist}
-              lastWaist={lastWaist}
-              readOnly={bodyWeightReadOnly}
-              busy={bodyWeightBusy}
-              note={compact ? null : weightNote}
-              onSave={onSaveBodyWeight}
-              onSaveWaist={onSaveWaist}
-            />
           ) : (
             <div className="text-right">
               <p className="text-sm font-medium text-muted-foreground">
