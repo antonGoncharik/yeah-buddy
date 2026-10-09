@@ -10,11 +10,14 @@ import {
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
   OPEN_VIA_BOT_FAQ_TITLE,
+  OPEN_VIA_BOT_FINAL_LEAD,
+  OPEN_VIA_BOT_FINAL_TITLE,
   OPEN_VIA_BOT_HERO,
   OPEN_VIA_BOT_LEAD,
   OPEN_VIA_BOT_NOTE,
-  OPEN_VIA_BOT_PILLS,
   OPEN_VIA_BOT_POINTS,
+  OPEN_VIA_BOT_POINTS_TITLE,
+  OPEN_VIA_BOT_PREVIEW,
   OPEN_VIA_BOT_QR_CAPTION,
   OPEN_VIA_BOT_STEPS,
   OPEN_VIA_BOT_STEPS_TITLE,
@@ -105,23 +108,23 @@ assertEqual(
 assertEqual(STARTER_CATALOG_NOTE, "", "starter catalog explains itself");
 assertEqual(
   OPEN_VIA_BOT_LEAD,
-  "День отдыха и день зала с разными целями. Программа сама ставит вес.",
+  "Сфотографируй еду — бот посчитает КБЖУ. В зале открой тренировку: подходы, веса и прогресс уже на месте.",
   "outside Telegram lead",
 );
-assertEqual(OPEN_VIA_BOT_EYEBROW, "Дневник в Telegram", "landing eyebrow");
+assertEqual(OPEN_VIA_BOT_EYEBROW, "Yeah Buddy · в Telegram", "landing eyebrow");
 assertEqual(
   OPEN_VIA_BOT_HERO,
-  "Зал или отдых — цели и вес уже правильные.",
+  "Ешь как обычно. Тренируйся по плану.",
   "landing hero",
 );
 assertEqual(
-  OPEN_VIA_BOT_PILLS.join(" · "),
-  "Без регистрации · Фото и голос в боте · Программы с авто-весом",
-  "landing pills",
+  OPEN_VIA_BOT_PREVIEW.workoutValue,
+  "72,5 кг × 5",
+  "landing product preview",
 );
 assertEqual(
   OPEN_VIA_BOT_FAQ_TITLE,
-  "Коротко о важном",
+  "Если остались вопросы",
   "landing faq title",
 );
 assertEqual(OPEN_VIA_BOT_FAQ.length, 4, "landing faq count");
@@ -135,24 +138,42 @@ assertEqual(
   OPEN_VIA_BOT_POINTS.map((point) => `${point.title}: ${point.body}`).join(
     "\n",
   ),
-  "День отдыха: Свои белок и калории.\nДень зала: Другие цели. Углеводов больше.\nПрограмма: Сама ставит рабочий вес.",
+  "Сфоткал — записано: Еду можно отправить фото, голосом или текстом. Бот разберёт и добавит в день.\nВ зале без блокнота: Подходы, повторы и рабочие веса в телефоне. История остаётся рядом.\nВес не надо угадывать: Программа знает прошлую тренировку и подсказывает, сколько ставить сегодня.",
   "outside Telegram facts",
 );
-assertEqual(OPEN_VIA_BOT_STEPS_TITLE, "Как начать", "outside Telegram steps");
+assertEqual(
+  OPEN_VIA_BOT_POINTS_TITLE,
+  "Еда и тренировки — в одном дневнике",
+  "landing points title",
+);
+assertEqual(
+  OPEN_VIA_BOT_STEPS_TITLE,
+  "Один обычный день",
+  "outside Telegram steps",
+);
 assertEqual(
   OPEN_VIA_BOT_STEPS.map((step) => `${step.title}: ${step.body}`).join("\n"),
-  "Открой бота: Кнопка или QR. Регистрации нет.\nЗапиши день: Отдых или зал — цели разные. Еда в граммах.\nВечером: Около вечера — одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
+  "Поел: Кинул фото тарелки в бот. КБЖУ появилось в дневнике.\nПришёл в зал: Открыл тренировку и пошёл по подходам. Вес уже рассчитан.\nЗакрыл день: Сразу видно, что получилось по еде и как прошла тренировка.",
   "outside Telegram steps copy",
 );
 assertEqual(
   OPEN_VIA_BOT_NOTE,
-  "В чат уходит только то, чем сам поделился.",
+  "Бесплатно · без регистрации · открывается в Telegram",
   "outside Telegram note",
 );
-assertEqual(PROGRAM_SHELF_TITLE, "Программы", "program shelf title");
+assertEqual(
+  `${OPEN_VIA_BOT_FINAL_TITLE}: ${OPEN_VIA_BOT_FINAL_LEAD}`,
+  "Можно просто попробовать сегодня: Открой бота и отправь ему то, что ел. Настройки и программа подождут.",
+  "landing final call to action",
+);
+assertEqual(
+  PROGRAM_SHELF_TITLE,
+  "Не знаешь, с чего начать?",
+  "program shelf title",
+);
 assertEqual(
   PROGRAM_SHELF_LEAD,
-  "5×5, дом и ягодицы. Поставишь — рабочий вес двигается сам.",
+  "Возьми готовую программу. Есть зал, дом и варианты без оборудования.",
   "program shelf lead",
 );
 assertEqual(

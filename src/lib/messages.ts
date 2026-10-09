@@ -12,71 +12,80 @@ export const MEAL_CHAT_HINT =
 export const MEAL_CHAT_INBOX_NOTE =
   "Написать админу — в «Написать» ниже: сначала выбери тему, потом текст или вложение.";
 export const OPEN_VIA_BOT_LEAD =
-  "День отдыха и день зала с разными целями. Программа сама ставит вес.";
-export const OPEN_VIA_BOT_EYEBROW = "Дневник в Telegram";
-export const OPEN_VIA_BOT_HERO =
-  "Зал или отдых — цели и вес уже правильные.";
-export const OPEN_VIA_BOT_PILLS = [
-  "Без регистрации",
-  "Фото и голос в боте",
-  "Программы с авто-весом",
-] as const;
-export const OPEN_VIA_BOT_FAQ_TITLE = "Коротко о важном";
+  "Сфотографируй еду — бот посчитает КБЖУ. В зале открой тренировку: подходы, веса и прогресс уже на месте.";
+export const OPEN_VIA_BOT_EYEBROW = "Yeah Buddy · в Telegram";
+export const OPEN_VIA_BOT_HERO = "Ешь как обычно. Тренируйся по плану.";
+export const OPEN_VIA_BOT_PREVIEW = {
+  eyebrow: "Сегодня · день зала",
+  mealTitle: "Обед по фото",
+  mealBody: "Рис, курица и овощи",
+  mealValue: "640 ккал · 46 г белка",
+  workoutTitle: "Жим лёжа · 5×5",
+  workoutBody: "Следующий подход",
+  workoutValue: "72,5 кг × 5",
+} as const;
+export const OPEN_VIA_BOT_FAQ_TITLE = "Если остались вопросы";
 export const OPEN_VIA_BOT_FAQ = [
   {
-    question: "Сколько это стоит?",
-    answer: "Yeah Buddy бесплатный.",
-  },
-  {
-    question: "Нужно ставить приложение?",
+    question: "Нужно что-то скачивать?",
     answer:
-      "Нет. Открой бота или мини-приложение в Telegram — этого достаточно.",
+      "Нет. Yeah Buddy открывается внутри Telegram — как обычный бот и мини-приложение.",
   },
   {
-    question: "Это только калории?",
+    question: "Можно пользоваться только дневником еды?",
     answer:
-      "Нет. День отдыха и день зала с разными целями, плюс силовые программы.",
+      "Да. Тренировки и программы не обязательны. В день без зала останутся только еда и твои цели.",
   },
   {
-    question: "Что уходит в чат?",
-    answer: "В чат уходит только то, чем сам поделился.",
+    question: "Сколько стоит?",
+    answer: "Пока бесплатно.",
+  },
+  {
+    question: "Другие увидят мой дневник?",
+    answer:
+      "Нет. Он личный. В чат попадёт только то, чем ты сам решишь поделиться.",
   },
 ] as const;
 export const OPEN_VIA_BOT_CTA = "Открыть в Telegram";
 export const OPEN_VIA_BOT_QR_CAPTION = "Наведи камеру — откроется бот.";
 export const OPEN_VIA_BOT_POINTS = [
   {
-    title: "День отдыха",
-    body: "Свои белок и калории.",
+    title: "Сфоткал — записано",
+    body: "Еду можно отправить фото, голосом или текстом. Бот разберёт и добавит в день.",
   },
   {
-    title: "День зала",
-    body: "Другие цели. Углеводов больше.",
+    title: "В зале без блокнота",
+    body: "Подходы, повторы и рабочие веса в телефоне. История остаётся рядом.",
   },
   {
-    title: "Программа",
-    body: "Сама ставит рабочий вес.",
+    title: "Вес не надо угадывать",
+    body: "Программа знает прошлую тренировку и подсказывает, сколько ставить сегодня.",
   },
 ] as const;
-export const OPEN_VIA_BOT_STEPS_TITLE = "Как начать";
+export const OPEN_VIA_BOT_POINTS_TITLE = "Еда и тренировки — в одном дневнике";
+export const OPEN_VIA_BOT_STEPS_TITLE = "Один обычный день";
 export const OPEN_VIA_BOT_STEPS = [
   {
-    title: "Открой бота",
-    body: "Кнопка или QR. Регистрации нет.",
+    title: "Поел",
+    body: "Кинул фото тарелки в бот. КБЖУ появилось в дневнике.",
   },
   {
-    title: "Запиши день",
-    body: "Отдых или зал — цели разные. Еда в граммах.",
+    title: "Пришёл в зал",
+    body: "Открыл тренировку и пошёл по подходам. Вес уже рассчитан.",
   },
   {
-    title: "Вечером",
-    body: "Около вечера — одно сообщение: белок, жир, углеводы и калории из цели, был ли зал.",
+    title: "Закрыл день",
+    body: "Сразу видно, что получилось по еде и как прошла тренировка.",
   },
 ] as const;
-export const OPEN_VIA_BOT_NOTE = "В чат уходит только то, чем сам поделился.";
-export const PROGRAM_SHELF_TITLE = "Программы";
+export const OPEN_VIA_BOT_NOTE =
+  "Бесплатно · без регистрации · открывается в Telegram";
+export const OPEN_VIA_BOT_FINAL_TITLE = "Можно просто попробовать сегодня";
+export const OPEN_VIA_BOT_FINAL_LEAD =
+  "Открой бота и отправь ему то, что ел. Настройки и программа подождут.";
+export const PROGRAM_SHELF_TITLE = "Не знаешь, с чего начать?";
 export const PROGRAM_SHELF_LEAD =
-  "5×5, дом и ягодицы. Поставишь — рабочий вес двигается сам.";
+  "Возьми готовую программу. Есть зал, дом и варианты без оборудования.";
 export const PROGRAM_PAGE_PROMISE =
   "В дневнике день отдыха и день зала с разными целями. Эта программа сама ставит рабочий вес.";
 export const PROGRAM_PAGE_CTA = "Поставить в Telegram";
