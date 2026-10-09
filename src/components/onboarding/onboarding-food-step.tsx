@@ -19,7 +19,7 @@ import { parseDecimal } from "@/lib/workout/numbers";
 export function profileStepSubtitle(
   replay: boolean,
   fromWorkoutPack: boolean,
-): string {
+): string | null {
   if (fromWorkoutPack) {
     return "Программа из ссылки. Нужны пол и вес — посчитаем белок.";
   }

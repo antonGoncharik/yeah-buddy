@@ -326,8 +326,7 @@ export function OnboardingScreen() {
 
       {error &&
       !isOnboardingPersonStep(step) &&
-      step !== "ration" &&
-      step !== "mode" ? (
+      step !== "ration" ? (
         <p className="mt-2 text-center text-base leading-snug text-destructive">
           {error}
         </p>
