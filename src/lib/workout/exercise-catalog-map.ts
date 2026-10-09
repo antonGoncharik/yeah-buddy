@@ -92,15 +92,43 @@ export function mapCatalogExerciseDetail(
   row: Record<string, unknown>,
 ): CatalogExerciseDetail {
   const summary = mapCatalogExerciseSummary(row);
-  const gifPath = String(row.gif_path);
-  const imagePath = String(row.image_path);
+  const gifPath = toNullableString(row.gif_path);
+  const imagePath = toNullableString(row.image_path);
+  const gifUrl = resolveCatalogMediaUrl(
+    toNullableString(row.gif_url),
+    gifPath,
+    catalogExerciseGifUrl,
+  );
+  const imageUrl = resolveCatalogMediaUrl(
+    toNullableString(row.image_url),
+    imagePath,
+    catalogExerciseImageUrl,
+  );
   return {
     ...summary,
     source_exercise_id: String(row.source_exercise_id),
-    gif_url: catalogExerciseGifUrl(gifPath),
-    image_url: catalogExerciseImageUrl(imagePath),
+    gif_url: gifUrl,
+    image_url: imageUrl,
     instruction_steps: parseInstructionSteps(row.instruction_steps),
   };
+}
+
+function resolveCatalogMediaUrl(
+  absoluteUrl: string | null,
+  relativePath: string | null,
+  buildFromPath: (path: string) => string,
+): string {
+  if (absoluteUrl && isAbsoluteHttpUrl(absoluteUrl)) {
+    return absoluteUrl;
+  }
+  if (relativePath) {
+    return buildFromPath(relativePath);
+  }
+  return "";
+}
+
+function isAbsoluteHttpUrl(value: string): boolean {
+  return value.startsWith("https://") || value.startsWith("http://");
 }
 
 export function parseCatalogExerciseSummary(
