@@ -16,15 +16,20 @@ export function StickyActions({
   return (
     <div
       className={cn(
-        "app-sticky-actions app-chrome-bar pointer-events-none pt-3",
-        overlay && "app-fixed-bottom fixed inset-x-0 z-[25]",
+        "app-sticky-actions app-chrome-bar pointer-events-none fixed inset-x-0 z-[20]",
+        overlay &&
+          (withNav
+            ? "bottom-[calc(var(--app-bottom-nav-block)+var(--app-fixed-bottom))]"
+            : "app-fixed-bottom bottom-[var(--app-fixed-bottom)]"),
         withNav
-          ? "pb-[var(--app-nav-clearance)]"
-          : "pb-[max(1.25rem,var(--app-safe-bottom))]",
+          ? "py-3"
+          : "pt-3 pb-[max(1.25rem,var(--app-safe-bottom))]",
         className,
       )}
     >
-      <div className="pointer-events-auto mx-auto flex w-full max-w-lg flex-col gap-2 px-4">
+      <div
+        className="pointer-events-auto mx-auto flex w-full max-w-lg flex-col items-stretch gap-2 px-4 [&_a]:w-full [&_button]:w-full"
+      >
         {children}
       </div>
     </div>

@@ -61,7 +61,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="app-bottom-nav app-chrome-bar app-fixed-bottom fixed inset-x-0 z-10 overflow-hidden">
+    <nav className="app-bottom-nav app-chrome-bar app-fixed-bottom fixed inset-x-0 z-30 overflow-hidden">
       <ul
         className={cn(
           "mx-auto grid h-16 w-full max-w-lg",

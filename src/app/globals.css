@@ -250,7 +250,8 @@
     calc(100dvh - var(--tg-viewport-stable-height, 100dvh))
   );
   --app-bottom-nav-inset: max(var(--app-safe-bottom), 1rem);
-  --app-nav-clearance: calc(4.5rem + var(--app-bottom-nav-inset));
+  --app-bottom-nav-block: calc(4rem + var(--app-bottom-nav-inset));
+  --app-nav-clearance: var(--app-bottom-nav-block);
   --app-fixed-bottom: var(--app-chrome-bottom);
   --app-field-scroll-pad: calc(5.5rem + var(--app-nav-clearance));
 }
