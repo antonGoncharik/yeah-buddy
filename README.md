@@ -99,7 +99,7 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram
 
 Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods and exercises without maxes. Onboarding applies macros from sex / weight / goal / training age, optional **ration** into meal templates, anchor lifts, then a program (default suggestion «Всё тело»; female users see the home shelf with glutes first). The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding: mode → profile → ration → program circle (with gym). Guide tour lives on Today; working weights are asked in the first workout, not in onboarding. максимум на раз is not part of that setup — a workout can start as soon as the day has at least one exercise with a set scheme, and missing working weights are asked inside the session (`POST /api/sessions/:id/maxes`).
 
-Scripts: `npm run dev` · `build` · `start` · `verify` (lint + `test` + `tsc`) · `lint` · `format` · `test` (`*.check.ts`) · `catalog:import` · `user:delete` · `program:grant`. Vercel runs `verify` then `build` via `vercel.json` `buildCommand`.
+Scripts: `npm run dev` · `build` · `start` · `verify` (lint + `test` + `tsc`) · `lint` · `format` · `test` (`*.check.ts`) · `e2e` / `e2e:smoke` (Playwright; smoke needs `.env.local` with Supabase + session secrets and `E2E_SMOKE=1` — starts dev on port 3000, hits dev auth → food → optional session → outbox flush) · `catalog:import` · `user:delete` · `program:grant`. Vercel runs `verify` then `build` via `vercel.json` `buildCommand`.
 
 ## Repo map
 

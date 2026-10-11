@@ -14,7 +14,9 @@
     "exercise-catalog:backfill": "tsx --env-file=.env.local scripts/backfill-exercise-catalog-links.ts",
     "user:delete": "tsx --env-file=.env.local scripts/delete-user.ts",
     "program:grant": "tsx --env-file=.env.local scripts/grant-program.ts",
-    "test": "tsx scripts/run-checks.ts"
+    "test": "tsx scripts/run-checks.ts",
+    "e2e": "playwright test",
+    "e2e:smoke": "E2E_SMOKE=1 playwright test e2e/smoke.spec.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -45,6 +47,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.18",

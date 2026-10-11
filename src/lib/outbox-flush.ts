@@ -35,19 +35,17 @@ import {
 } from "@/lib/workout/session-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
-let flushing = false;
+let flushPromise: Promise<void> | null = null;
 
 export async function flushOutbox(): Promise<void> {
-  if (flushing) {
-    return;
+  if (flushPromise) {
+    return flushPromise;
   }
 
-  flushing = true;
-  try {
-    await flushOnce();
-  } finally {
-    flushing = false;
-  }
+  flushPromise = flushOnce().finally(() => {
+    flushPromise = null;
+  });
+  return flushPromise;
 }
 
 async function flushOnce(): Promise<void> {
