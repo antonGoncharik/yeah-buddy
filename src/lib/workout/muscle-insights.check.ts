@@ -1,5 +1,8 @@
 import type { MuscleCell } from "@/lib/types";
-import { buildMuscleInsights } from "@/lib/workout/muscle-insights";
+import {
+  buildMuscleBalance,
+  buildMuscleInsights,
+} from "@/lib/workout/muscle-insights";
 
 function assert(condition: boolean, label: string): void {
   if (!condition) {
@@ -20,6 +23,8 @@ const muscles: MuscleCell[] = [
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [4, 4],
+    direct_sets: 8,
+    assist_sets: 0,
     recovery_percent: 40,
   },
   {
@@ -34,6 +39,8 @@ const muscles: MuscleCell[] = [
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [6, 6],
+    direct_sets: 12,
+    assist_sets: 0,
     recovery_percent: 72,
   },
 ];
@@ -84,6 +91,8 @@ const skewed = buildMuscleInsights({
       in_next_session: false,
       missed_sessions: 0,
       weekly_sets: [1],
+      direct_sets: 2,
+      assist_sets: 0,
       recovery_percent: 90,
     },
   ],
@@ -98,4 +107,37 @@ assert(
 assert(
   skewed.every((line) => !line.startsWith("Грудь слабее")),
   "does not call the heavier chest weak",
+);
+
+const balance = buildMuscleBalance([
+  {
+    ...muscles[0],
+    sets_per_week: 10,
+    direct_sets: 10,
+    assist_sets: 0,
+  },
+  {
+    id: "lats",
+    label: "Широчайшие",
+    view: "back",
+    sets: 2,
+    sets_per_week: 1,
+    volume_band: 1,
+    last_trained: "2026-10-10",
+    days_since: 1,
+    in_next_session: false,
+    missed_sessions: 0,
+    weekly_sets: [1],
+    direct_sets: 2,
+    assist_sets: 0,
+    recovery_percent: 90,
+  },
+]);
+const chestBack = balance.find((item) => item.a === "chest");
+assert(chestBack?.label_a === "Грудь", "balance names chest");
+assert(chestBack?.label_b === "Спина", "balance folds lats into the back side");
+assert(chestBack?.sets_a === 10, "balance keeps chest weekly sets");
+assert(
+  chestBack?.sets_b === 1,
+  "balance keeps lat weekly sets on the back side",
 );

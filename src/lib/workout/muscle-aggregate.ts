@@ -74,6 +74,8 @@ export function buildMuscleSnapshot(
 ): MuscleSnapshot {
   const weeks = weekCount(input.horizon_days);
   const weightedSets = emptyMuscleMap();
+  const directSets = emptyMuscleMap();
+  const assistSets = emptyMuscleMap();
   const weeklySets = initWeeklyBuckets(weeks);
   const lastTrained = new Map<MuscleId, string>();
   const missedCount = emptyMuscleMap();
@@ -149,6 +151,11 @@ export function buildMuscleSnapshot(
         }
         const contribution = setCount * weight;
         weightedSets[muscleId] += contribution;
+        if (isPrimaryWeight(weights, weight)) {
+          directSets[muscleId] += contribution;
+        } else {
+          assistSets[muscleId] += contribution;
+        }
         if (weekIndex >= 0 && weekIndex < weeks) {
           weeklySets[muscleId][weekIndex] += contribution;
         }
@@ -193,6 +200,8 @@ export function buildMuscleSnapshot(
       in_next_session: plannedMuscles.has(id),
       missed_sessions: missedCount[id],
       weekly_sets: weeklySets[id].map((value) => Math.round(value * 10) / 10),
+      direct_sets: Math.round(directSets[id] * 10) / 10,
+      assist_sets: Math.round(assistSets[id] * 10) / 10,
       recovery_percent: muscleRecoveryPercent({
         muscleId: id,
         days_since: daysSince,
@@ -247,6 +256,19 @@ function daysBetween(from: string | null, to: string): number | null {
     return null;
   }
   return Math.round((end - start) / 86_400_000);
+}
+
+function isPrimaryWeight(
+  weights: Partial<Record<MuscleId, number>>,
+  weight: number,
+): boolean {
+  let max = 0;
+  for (const value of Object.values(weights)) {
+    if (value != null && value > max) {
+      max = value;
+    }
+  }
+  return weight > 0 && weight >= max;
 }
 
 function musclesForMeta(

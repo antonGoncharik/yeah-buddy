@@ -64,6 +64,8 @@ export function sessionMuscleCells(
       in_next_session: false,
       missed_sessions: 0,
       weekly_sets: [rounded],
+      direct_sets: rounded,
+      assist_sets: 0,
       recovery_percent: null,
     });
   }

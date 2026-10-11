@@ -9,6 +9,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { MuscleWeekProgressShare } from "@/components/share/muscle-week-progress-share";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { MuscleBalanceBars } from "@/components/workout/muscle-balance-bars";
 import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
 import { MuscleHeatGrid } from "@/components/workout/muscle-heat-grid";
 import { MuscleWeeklySparkline } from "@/components/workout/muscle-weekly-sparkline";
@@ -26,6 +27,7 @@ import {
 } from "@/lib/workout/muscle-heat-style";
 import { setsShortOfGrowthZone } from "@/lib/workout/muscle-insights";
 import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
+import { muscleVolumeLandmarkLine } from "@/lib/workout/muscle-volume-landmarks";
 import { formatTonnage } from "@/lib/workout/numbers";
 
 const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
@@ -222,6 +224,11 @@ export function MuscleScreen() {
                 Нажми на зону. Кнопки или щипок двумя пальцами — крупнее, потом
                 можно двигать.
               </p>
+              {snapshot.unmapped_exercise_count > 0 ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  {unmappedExerciseLine(snapshot.unmapped_exercise_count)}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -271,6 +278,8 @@ export function MuscleScreen() {
                             in_next_session: false,
                             missed_sessions: 0,
                             weekly_sets: [],
+                            direct_sets: 0,
+                            assist_sets: 0,
                             recovery_percent: null,
                           },
                           "volume",
@@ -289,6 +298,8 @@ export function MuscleScreen() {
               </p>
             )}
 
+            <MuscleBalanceBars pairs={snapshot.balance} />
+
             {selected ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <div>
@@ -298,6 +309,9 @@ export function MuscleScreen() {
                   </p>
                 </div>
                 <MuscleWeeklySparkline cell={selected} />
+                <p className="text-sm text-muted-foreground">
+                  {muscleVolumeLandmarkLine(selected.id)}
+                </p>
                 {setsShortOfGrowthZone(selected) != null ? (
                   <p className="text-sm text-muted-foreground">
                     До зоны роста ещё ~{setsShortOfGrowthZone(selected)} взвеш.
@@ -305,14 +319,31 @@ export function MuscleScreen() {
                   </p>
                 ) : null}
                 <dl className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <dt className="text-muted-foreground">
-                      Взвешенные подходы
-                    </dt>
-                    <dd className="font-medium tabular-nums">
-                      {selected.sets}
-                    </dd>
-                  </div>
+                  {selected.direct_sets > 0 || selected.assist_sets > 0 ? (
+                    <>
+                      <div>
+                        <dt className="text-muted-foreground">Прямые</dt>
+                        <dd className="font-medium tabular-nums">
+                          {formatSets(selected.direct_sets)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Помощь</dt>
+                        <dd className="font-medium tabular-nums">
+                          {formatSets(selected.assist_sets)}
+                        </dd>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <dt className="text-muted-foreground">
+                        Взвешенные подходы
+                      </dt>
+                      <dd className="font-medium tabular-nums">
+                        {formatSets(selected.sets)}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt className="text-muted-foreground">В неделю</dt>
                     <dd className="font-medium tabular-nums">
@@ -360,6 +391,7 @@ export function MuscleScreen() {
                           {hit.name}
                         </span>
                         <span className="shrink-0 text-muted-foreground tabular-nums">
+                          {formatSets(hit.sets)} подх. ·{" "}
                           {formatIsoDate(hit.last_date, "d MMM")}
                           {hit.tonnage > 0
                             ? ` · ${formatTonnage(hit.tonnage)}`
@@ -388,4 +420,22 @@ export function MuscleScreen() {
       </div>
     </div>
   );
+}
+
+function formatSets(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function unmappedExerciseLine(count: number): string {
+  const n = Math.abs(Math.trunc(count));
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const verb =
+    mod10 === 1 && mod100 !== 11
+      ? "упражнение не попало"
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? "упражнения не попали"
+        : "упражнений не попали";
+  return `${n} ${verb} на схему`;
 }

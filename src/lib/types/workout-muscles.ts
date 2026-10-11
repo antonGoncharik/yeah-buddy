@@ -38,6 +38,10 @@ export interface MuscleCell {
   in_next_session: boolean;
   missed_sessions: number;
   weekly_sets: number[];
+  /** Weighted sets where this muscle was a primary target. */
+  direct_sets: number;
+  /** Weighted sets where this muscle only assisted. */
+  assist_sets: number;
   /** Readiness 0–100; null if no load in the period. */
   recovery_percent: number | null;
 }
@@ -59,8 +63,12 @@ export interface MuscleMissedEvent {
 export interface MuscleBalancePair {
   a: MuscleId;
   b: MuscleId;
+  sets_a: number;
+  sets_b: number;
   ratio: number;
   label: string;
+  label_a: string;
+  label_b: string;
 }
 
 export interface MuscleSnapshot {

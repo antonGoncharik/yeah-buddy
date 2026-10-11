@@ -4,7 +4,6 @@ import type {
   MuscleId,
   MuscleMissedEvent,
 } from "@/lib/types";
-import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 import { volumeLandmarksForMuscle } from "@/lib/workout/muscle-volume-landmarks";
 
 const STALE_DAYS = 10;
@@ -104,13 +103,24 @@ export function buildMuscleBalance(muscles: MuscleCell[]): MuscleBalancePair[] {
       "upper_back",
       pick("chest"),
       pick("upper_back") + pick("lats"),
+      "Грудь",
+      "Спина",
     ),
-    balancePair("quads", "hamstrings", pick("quads"), pick("hamstrings")),
+    balancePair(
+      "quads",
+      "hamstrings",
+      pick("quads"),
+      pick("hamstrings"),
+      "Квадрицепс",
+      "Бицепс бедра",
+    ),
     balancePair(
       "front_delts",
       "rear_delts",
       pick("front_delts") + pick("side_delts"),
       pick("rear_delts"),
+      "Передняя и средняя дельта",
+      "Задняя дельта",
     ),
   ].filter((item): item is MuscleBalancePair => item != null);
 }
@@ -120,6 +130,8 @@ function balancePair(
   b: MuscleId,
   aSets: number,
   bSets: number,
+  labelA: string,
+  labelB: string,
 ): MuscleBalancePair | null {
   const sum = aSets + bSets;
   if (sum < 2) {
@@ -131,8 +143,12 @@ function balancePair(
   return {
     a,
     b,
+    sets_a: Math.round(aSets * 10) / 10,
+    sets_b: Math.round(bSets * 10) / 10,
     ratio: Math.round(ratio * 100) / 100,
-    label: `${MUSCLE_LABELS[a]} / ${MUSCLE_LABELS[b]}`,
+    label: `${labelA} / ${labelB}`,
+    label_a: labelA,
+    label_b: labelB,
   };
 }
 

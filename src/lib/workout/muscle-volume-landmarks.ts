@@ -39,6 +39,12 @@ export function volumeLandmarksForMuscle(id: MuscleId): MuscleVolumeLandmarks {
   return LANDMARKS[id];
 }
 
+/** Weekly thresholds in the same units as weighted sets per week. */
+export function muscleVolumeLandmarkLine(id: MuscleId): string {
+  const marks = volumeLandmarksForMuscle(id);
+  return `Мало до ${marks.mev} · ниже зоны до ${marks.mav} · в зоне до ${marks.mrv} · дальше много, подх./нед`;
+}
+
 /** Large muscles stay sore longer. Core recovers with the small muscles. */
 export function muscleSize(id: MuscleId): MuscleSize {
   const landmarks = LANDMARKS[id];

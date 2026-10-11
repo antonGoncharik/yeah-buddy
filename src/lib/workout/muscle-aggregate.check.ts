@@ -95,6 +95,17 @@ assertEqual(
 
 const hits = snapshot.hits_by_muscle.chest?.[0]?.exercise_id;
 assertEqual(hits, "ex-bench", "bench listed under chest");
+assertEqual(
+  snapshot.hits_by_muscle.chest?.[0]?.sets,
+  1,
+  "bench hit counts work sets",
+);
+
+const triceps = snapshot.muscles.find((item) => item.id === "triceps");
+assertEqual(chest?.direct_sets, 1, "bench press is direct chest work");
+assertEqual(chest?.assist_sets, 0, "bench press does not assist chest");
+assertEqual(triceps?.direct_sets, 0, "bench triceps are not the target");
+assertEqual(triceps?.assist_sets, 0.5, "bench triceps count as assistance");
 
 assertEqual(snapshot.missed.length, 1, "one missed event");
 assertEqual(snapshot.missed[0]?.template_name, "Спина", "missed template name");

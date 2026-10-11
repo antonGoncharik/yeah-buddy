@@ -92,6 +92,8 @@ export function programMusclePreviewCells(
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [row.sets_per_week],
+    direct_sets: row.sets_per_week,
+    assist_sets: 0,
     recovery_percent: null,
   }));
 }

@@ -19,6 +19,8 @@ function cell(patch: Partial<MuscleCell> & Pick<MuscleCell, "id">): MuscleCell {
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [4],
+    direct_sets: 8,
+    assist_sets: 0,
     recovery_percent: 40,
     ...patch,
   };

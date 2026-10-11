@@ -97,6 +97,8 @@ function parseMuscleCell(value: unknown): MuscleCell | null {
     in_next_session: value.in_next_session === true,
     missed_sessions: toNumber(value.missed_sessions),
     weekly_sets: weekly,
+    direct_sets: toNumber(value.direct_sets),
+    assist_sets: toNumber(value.assist_sets),
     recovery_percent:
       value.recovery_percent == null ? null : toNumber(value.recovery_percent),
   };
@@ -148,8 +150,18 @@ function parseBalance(value: unknown): MuscleBalancePair | null {
   return {
     a: value.a as MuscleId,
     b: value.b as MuscleId,
+    sets_a: toNumber(value.sets_a),
+    sets_b: toNumber(value.sets_b),
     ratio: toNumber(value.ratio),
     label: String(value.label ?? ""),
+    label_a:
+      typeof value.label_a === "string"
+        ? value.label_a
+        : (String(value.label ?? "").split(" / ")[0] ?? ""),
+    label_b:
+      typeof value.label_b === "string"
+        ? value.label_b
+        : (String(value.label ?? "").split(" / ")[1] ?? ""),
   };
 }
 
