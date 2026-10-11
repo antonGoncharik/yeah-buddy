@@ -22,7 +22,7 @@ export async function refreshEstimateMaxesFromSession(
 
   for (const item of detail.exercises) {
     const current = pickCurrentMax(maxes.get(item.exercise_id) ?? []);
-    if (!current || current.source !== "estimate") {
+    if (current?.source !== "estimate") {
       continue;
     }
 

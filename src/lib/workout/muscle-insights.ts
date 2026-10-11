@@ -4,7 +4,10 @@ import type {
   MuscleId,
   MuscleMissedEvent,
 } from "@/lib/types";
-import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
+import {
+  MUSCLE_LABELS,
+  MUSCLE_LABELS_GENITIVE,
+} from "@/lib/workout/muscle-taxonomy";
 
 const STALE_DAYS = 10;
 
@@ -18,7 +21,7 @@ export function buildMuscleInsights(input: {
   for (const pair of buildMuscleBalance(input.muscles)) {
     if (pair.ratio < 0.45) {
       lines.push(
-        `${MUSCLE_LABELS[pair.a]} слабее ${MUSCLE_LABELS[pair.b]} за период (${formatRatio(pair.ratio)}).`,
+        `${MUSCLE_LABELS[pair.a]} слабее ${MUSCLE_LABELS_GENITIVE[pair.b]} за период (${formatRatio(pair.ratio)}).`,
       );
     }
   }
@@ -98,7 +101,9 @@ function balancePair(
   if (sum < 2) {
     return null;
   }
-  const ratio = aSets / Math.max(bSets, 0.5);
+  const hi = Math.max(aSets, bSets, 0.5);
+  const lo = Math.min(aSets, bSets);
+  const ratio = lo / hi;
   return {
     a,
     b,

@@ -1,4 +1,5 @@
-import { calendarToday, shiftIsoDate } from "@/lib/day/dates";
+import { shiftIsoDate } from "@/lib/day/dates";
+import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MuscleSnapshot } from "@/lib/types";
 import {
@@ -17,7 +18,7 @@ export async function getMuscleSnapshot(
   userId: string,
   horizonDays: number,
 ): Promise<MuscleSnapshot> {
-  const until = calendarToday();
+  const until = await getUserCalendarToday(userId);
   const since = shiftIsoDate(until, 1 - horizonDays);
 
   const supabase = createSupabaseServerClient();

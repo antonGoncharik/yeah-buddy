@@ -21,6 +21,27 @@ export const MUSCLE_IDS: MuscleId[] = [
   "hamstrings",
 ];
 
+export const MUSCLE_LABELS_GENITIVE: Record<MuscleId, string> = {
+  chest: "груди",
+  lats: "широчайших",
+  upper_back: "верха спины",
+  traps: "трапеций",
+  lower_back: "поясницы",
+  abs: "пресса",
+  obliques: "косых",
+  front_delts: "передней дельты",
+  side_delts: "средней дельты",
+  rear_delts: "задней дельты",
+  biceps: "бицепса",
+  triceps: "трицепса",
+  forearms: "предплечий",
+  quads: "квадрицепса",
+  hamstrings: "бицепса бедра",
+  glutes: "ягодиц",
+  adductors: "приводящих",
+  calves: "икр",
+};
+
 export const MUSCLE_LABELS: Record<MuscleId, string> = {
   chest: "Грудь",
   lats: "Широчайшие",

@@ -49,6 +49,8 @@ export interface MuscleSessionWork {
       planned_weight: number | null;
       actual_reps: number | null;
       planned_reps: number | null;
+      actual_rir?: number | null;
+      planned_rir?: number | null;
     }>;
   }>;
 }
@@ -276,13 +278,22 @@ function recordHit(
   hits.set(muscleId, byExercise);
 }
 
-function countWorkSets(sets: Array<{ set_type?: string }>): number {
+const HIGH_RIR_THRESHOLD = 3;
+
+function countWorkSets(
+  sets: Array<{
+    set_type?: string;
+    actual_rir?: number | null;
+    planned_rir?: number | null;
+  }>,
+): number {
   let count = 0;
   for (const set of sets) {
     if (set.set_type != null && set.set_type !== "work") {
       continue;
     }
-    count += 1;
+    const rir = set.actual_rir ?? set.planned_rir ?? null;
+    count += rir != null && rir >= HIGH_RIR_THRESHOLD ? 0.5 : 1;
   }
   return count;
 }
