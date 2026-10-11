@@ -80,6 +80,9 @@ Migrations: `supabase/migrations/0001_init.sql` … `0044_energy_goal_offer.sql`
 | `0044` | `energy_goal_dismissed_kcal` — «Поставить» after two weeks of weight and food. Dismiss hides that kcal until the suggestion moves |
 | `0049` | `take_ai_slot` / `refund_ai_slot` — atomic AI daily quota |
 | `0050` | `product_events` — product analytics |
+| `0051` | `users.first_start_kind` / `first_start_ref` — start_param attribution |
+| `0052` | `donations` — Telegram Stars ledger |
+| `0053` | SQL views `analytics_*` for activation and onboarding |
 
 Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there.
 
