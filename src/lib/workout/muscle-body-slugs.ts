@@ -21,7 +21,7 @@ export const SLUG_TO_MUSCLES: Record<string, MuscleId[]> = {
   deltoid_anterior: ["front_delts"],
   deltoid_lateral: ["side_delts"],
   deltoid_posterior_l: ["rear_delts"],
-  deltoid_posterior_r: ["side_delts", "rear_delts"],
+  deltoid_posterior_r: ["rear_delts"],
   "upper-back": ["upper_back", "lats"],
   "lower-back": ["lower_back"],
   gluteal: ["glutes"],

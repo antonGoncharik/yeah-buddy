@@ -33,6 +33,14 @@ function pathsForView(
   return view === "front" ? MUSCLE_BODY_PATHS_FRONT : MUSCLE_BODY_PATHS_BACK;
 }
 
+/** Back figures live in the right half of the source SVG, not at x=0. */
+function viewBoxFor(view: MuscleBodyView, sex: UserSex | null): string {
+  if (view === "front") {
+    return MUSCLE_BODY_VIEWBOX;
+  }
+  return sex === "female" ? "756 0 774 1448" : "724 0 724 1448";
+}
+
 function slugSelected(
   slug: string,
   selectedId: MuscleId | null,
@@ -76,7 +84,7 @@ export function MuscleBodyFigure({
 
   return (
     <svg
-      viewBox={MUSCLE_BODY_VIEWBOX}
+      viewBox={viewBoxFor(view, figureSex)}
       className={cn(
         "mx-auto h-auto w-full touch-none select-none",
         compact ? "max-w-[140px]" : "max-w-[200px]",

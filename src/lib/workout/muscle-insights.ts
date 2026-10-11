@@ -4,10 +4,7 @@ import type {
   MuscleId,
   MuscleMissedEvent,
 } from "@/lib/types";
-import {
-  MUSCLE_LABELS,
-  MUSCLE_LABELS_GENITIVE,
-} from "@/lib/workout/muscle-taxonomy";
+import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 
 const STALE_DAYS = 10;
 
@@ -17,12 +14,45 @@ export function buildMuscleInsights(input: {
   planned_template_name: string | null;
 }): string[] {
   const lines: string[] = [];
+  const weekly = (id: MuscleId) =>
+    input.muscles.find((item) => item.id === id)?.sets_per_week ?? 0;
 
-  for (const pair of buildMuscleBalance(input.muscles)) {
-    if (pair.ratio < 0.45) {
-      lines.push(
-        `${MUSCLE_LABELS[pair.a]} слабее ${MUSCLE_LABELS_GENITIVE[pair.b]} за период (${formatRatio(pair.ratio)}).`,
-      );
+  for (const line of [
+    imbalanceLine(
+      { name: "Грудь", genitive: "груди", sets: weekly("chest") },
+      {
+        name: "Спина",
+        genitive: "спины",
+        sets: weekly("upper_back") + weekly("lats"),
+      },
+    ),
+    imbalanceLine(
+      {
+        name: "Квадрицепс",
+        genitive: "квадрицепса",
+        sets: weekly("quads"),
+      },
+      {
+        name: "Бицепс бедра",
+        genitive: "бицепса бедра",
+        sets: weekly("hamstrings"),
+      },
+    ),
+    imbalanceLine(
+      {
+        name: "Передняя и средняя дельта",
+        genitive: "передней и средней дельты",
+        sets: weekly("front_delts") + weekly("side_delts"),
+      },
+      {
+        name: "Задняя дельта",
+        genitive: "задней дельты",
+        sets: weekly("rear_delts"),
+      },
+    ),
+  ]) {
+    if (line) {
+      lines.push(line);
     }
   }
 
@@ -114,4 +144,23 @@ function balancePair(
 
 function formatRatio(ratio: number): string {
   return `${Math.round(ratio * 100)}%`;
+}
+
+function imbalanceLine(
+  left: { name: string; genitive: string; sets: number },
+  right: { name: string; genitive: string; sets: number },
+): string | null {
+  const sum = left.sets + right.sets;
+  if (sum < 2) {
+    return null;
+  }
+  const hi = Math.max(left.sets, right.sets, 0.5);
+  const lo = Math.min(left.sets, right.sets);
+  const ratio = lo / hi;
+  if (ratio >= 0.45) {
+    return null;
+  }
+  const weaker = left.sets <= right.sets ? left : right;
+  const stronger = left.sets <= right.sets ? right : left;
+  return `${weaker.name} слабее ${stronger.genitive} за период (${formatRatio(ratio)}).`;
 }

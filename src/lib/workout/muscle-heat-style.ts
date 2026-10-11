@@ -4,7 +4,7 @@ import type {
   MuscleId,
   VolumeBand,
 } from "@/lib/types";
-import { SLUG_TO_MUSCLES } from "@/lib/workout/muscle-body-slugs";
+import { slugSelectMuscle } from "@/lib/workout/muscle-body-slugs";
 import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
 
 const VOLUME_FILL: Record<VolumeBand, string> = {
@@ -19,26 +19,26 @@ export function muscleHeatFill(
   cell: MuscleCell | undefined,
   mode: MuscleDisplayMode,
 ): string {
+  if (mode === "recovery") {
+    const recovery = cell?.recovery_percent;
+    if (recovery == null || (cell?.sets ?? 0) <= 0) {
+      return VOLUME_FILL[0];
+    }
+    if (recovery >= 90) {
+      return "color-mix(in oklch, var(--chart-4, var(--primary)) 72%, var(--muted))";
+    }
+    if (recovery >= 70) {
+      return VOLUME_FILL[3];
+    }
+    if (recovery >= 50) {
+      return VOLUME_FILL[2];
+    }
+    return VOLUME_FILL[1];
+  }
   if (!cell || cell.volume_band === 0) {
     return VOLUME_FILL[0];
   }
-  if (mode === "volume") {
-    return VOLUME_FILL[cell.volume_band];
-  }
-  const recovery = cell.recovery_percent;
-  if (recovery == null || cell.sets <= 0) {
-    return VOLUME_FILL[0];
-  }
-  if (recovery >= 90) {
-    return "color-mix(in oklch, var(--chart-4, var(--primary)) 72%, var(--muted))";
-  }
-  if (recovery >= 70) {
-    return VOLUME_FILL[3];
-  }
-  if (recovery >= 50) {
-    return VOLUME_FILL[2];
-  }
-  return VOLUME_FILL[1];
+  return VOLUME_FILL[cell.volume_band];
 }
 
 export function muscleHeatRing(
@@ -66,42 +66,8 @@ export function slugHeatFill(
   byId: Map<MuscleId, MuscleCell>,
   mode: MuscleDisplayMode,
 ): string {
-  const ids = SLUG_TO_MUSCLES[slug] ?? [];
-  let band = 0 as VolumeBand;
-  let days: number | null = null;
-  let sets = 0;
-  let inNext = false;
-  for (const id of ids) {
-    const cell = byId.get(id);
-    if (!cell) {
-      continue;
-    }
-    if (cell.volume_band > band) {
-      band = cell.volume_band;
-    }
-    sets += cell.sets;
-    if (cell.in_next_session) {
-      inNext = true;
-    }
-    if (cell.days_since != null && (days == null || cell.days_since < days)) {
-      days = cell.days_since;
-    }
-  }
-  const pseudo: MuscleCell = {
-    id: ids[0] ?? "chest",
-    label: "",
-    view: "front",
-    sets,
-    sets_per_week: 0,
-    volume_band: band,
-    last_trained: null,
-    days_since: days,
-    in_next_session: inNext,
-    missed_sessions: 0,
-    weekly_sets: [],
-    recovery_percent: null,
-  };
-  return muscleHeatFill(pseudo, mode);
+  const id = slugSelectMuscle(slug, byId);
+  return muscleHeatFill(id ? byId.get(id) : undefined, mode);
 }
 
 export function muscleCellHint(cell: MuscleCell): string {

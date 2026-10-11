@@ -93,8 +93,12 @@ export function MuscleScreen() {
   const onSelectMuscle = useCallback(
     (id: MuscleId) => {
       setSelectedId(id);
+      const cell = snapshot?.muscles.find((item) => item.id === id);
+      if (cell) {
+        setView(cell.view);
+      }
     },
-    [setSelectedId],
+    [setSelectedId, setView, snapshot],
   );
 
   return (
@@ -218,17 +222,29 @@ export function MuscleScreen() {
               </p>
             </div>
 
-            <section className="flex flex-col gap-2">
-              <h2 className="px-1 text-sm font-medium text-muted-foreground">
-                Зоны · {view === "front" ? "спереди" : "сзади"}
-              </h2>
-              <MuscleHeatGrid
-                muscles={snapshot.muscles.filter((item) => item.view === view)}
-                selectedId={selectedId}
-                displayMode={displayMode}
-                onSelect={onSelectMuscle}
-              />
-            </section>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {(["front", "back"] as const).map((side) => (
+                <section
+                  key={side}
+                  className={cn(
+                    "flex flex-col gap-2",
+                    side !== view && "hidden sm:flex",
+                  )}
+                >
+                  <h2 className="px-1 text-sm font-medium text-muted-foreground">
+                    Зоны · {side === "front" ? "спереди" : "сзади"}
+                  </h2>
+                  <MuscleHeatGrid
+                    muscles={snapshot.muscles.filter(
+                      (item) => item.view === side,
+                    )}
+                    selectedId={selectedId}
+                    displayMode={displayMode}
+                    onSelect={onSelectMuscle}
+                  />
+                </section>
+              ))}
+            </div>
 
             {displayMode === "volume" ? (
               <ul className="flex flex-wrap gap-2 px-1">

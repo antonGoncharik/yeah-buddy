@@ -62,3 +62,40 @@ assert(
   lines.some((line) => line.includes("Ноги")),
   "planned insight",
 );
+
+const skewed = buildMuscleInsights({
+  muscles: [
+    {
+      ...muscles[0],
+      sets: 20,
+      sets_per_week: 10,
+      days_since: 1,
+      last_trained: "2026-10-11",
+    },
+    {
+      id: "lats",
+      label: "Широчайшие",
+      view: "back",
+      sets: 2,
+      sets_per_week: 1,
+      volume_band: 1,
+      last_trained: "2026-10-10",
+      days_since: 1,
+      in_next_session: false,
+      missed_sessions: 0,
+      weekly_sets: [1],
+      recovery_percent: 90,
+    },
+  ],
+  missed: [],
+  planned_template_name: null,
+});
+
+assert(
+  skewed.some((line) => line.startsWith("Спина слабее груди")),
+  "names the lighter side, not the first id",
+);
+assert(
+  skewed.every((line) => !line.startsWith("Грудь слабее")),
+  "does not call the heavier chest weak",
+);
