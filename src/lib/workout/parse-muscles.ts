@@ -61,6 +61,10 @@ export function parseMuscleSnapshot(data: unknown): MuscleSnapshot | null {
     completed_sessions: toNumber(data.completed_sessions),
     skipped_sessions: toNumber(data.skipped_sessions),
     unmapped_exercise_count: toNumber(data.unmapped_exercise_count),
+    figure_sex:
+      data.figure_sex === "female" || data.figure_sex === "male"
+        ? data.figure_sex
+        : null,
   };
 }
 

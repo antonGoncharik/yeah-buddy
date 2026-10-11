@@ -1,3 +1,5 @@
+import type { UserSex } from "@/lib/types/user";
+
 export type MuscleId =
   | "chest"
   | "lats"
@@ -65,6 +67,8 @@ export interface MuscleSnapshot {
   horizon_days: number;
   since: string;
   until: string;
+  /** Silhouette on the muscle map (from profile sex). */
+  figure_sex: UserSex | null;
   muscles: MuscleCell[];
   hits_by_muscle: Partial<Record<MuscleId, MuscleExerciseHit[]>>;
   missed: MuscleMissedEvent[];

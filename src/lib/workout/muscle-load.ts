@@ -1,5 +1,6 @@
 import { shiftIsoDate } from "@/lib/day/dates";
 import { getUserCalendarToday } from "@/lib/day/writable";
+import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MuscleSnapshot } from "@/lib/types";
 import {
@@ -20,6 +21,7 @@ export async function getMuscleSnapshot(
 ): Promise<MuscleSnapshot> {
   const until = await getUserCalendarToday(userId);
   const since = shiftIsoDate(until, 1 - horizonDays);
+  const settings = await getUserSettings(userId);
 
   const supabase = createSupabaseServerClient();
   const sessionsResult = await supabase
@@ -114,17 +116,20 @@ export async function getMuscleSnapshot(
         : [],
   }));
 
-  return buildMuscleSnapshot({
-    horizon_days: horizonDays,
-    since,
-    until,
-    today: until,
-    metaByExercise,
-    sessions: sessionPayload,
-    templateExerciseIds,
-    planned_template_name: nextTemplate?.name ?? null,
-    planned_exercise_ids: plannedExerciseIds,
-  });
+  return {
+    ...buildMuscleSnapshot({
+      horizon_days: horizonDays,
+      since,
+      until,
+      today: until,
+      metaByExercise,
+      sessions: sessionPayload,
+      templateExerciseIds,
+      planned_template_name: nextTemplate?.name ?? null,
+      planned_exercise_ids: plannedExerciseIds,
+    }),
+    figure_sex: settings?.sex ?? null,
+  };
 }
 
 async function currentPhaseId(userId: string): Promise<string | null> {

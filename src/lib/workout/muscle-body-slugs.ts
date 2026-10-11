@@ -18,7 +18,10 @@ export const SLUG_TO_MUSCLES: Record<string, MuscleId[]> = {
   calves: ["calves"],
   tibialis: ["calves"],
   trapezius: ["traps"],
-  deltoids: ["front_delts", "side_delts", "rear_delts"],
+  deltoid_anterior: ["front_delts"],
+  deltoid_lateral: ["side_delts"],
+  deltoid_posterior_l: ["rear_delts"],
+  deltoid_posterior_r: ["side_delts", "rear_delts"],
   "upper-back": ["upper_back", "lats"],
   "lower-back": ["lower_back"],
   gluteal: ["glutes"],
@@ -28,7 +31,8 @@ export const SLUG_TO_MUSCLES: Record<string, MuscleId[]> = {
 export const BODY_SLUGS_BY_VIEW: Record<MuscleBodyView, string[]> = {
   front: [
     "chest",
-    "deltoids",
+    "deltoid_anterior",
+    "deltoid_lateral",
     "trapezius",
     "biceps",
     "triceps",
@@ -42,7 +46,8 @@ export const BODY_SLUGS_BY_VIEW: Record<MuscleBodyView, string[]> = {
   ],
   back: [
     "trapezius",
-    "deltoids",
+    "deltoid_posterior_l",
+    "deltoid_posterior_r",
     "upper-back",
     "triceps",
     "lower-back",

@@ -5,11 +5,14 @@ import type {
   MuscleCell,
   MuscleDisplayMode,
   MuscleId,
+  UserSex,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   MUSCLE_BODY_PATHS_BACK,
+  MUSCLE_BODY_PATHS_BACK_FEMALE,
   MUSCLE_BODY_PATHS_FRONT,
+  MUSCLE_BODY_PATHS_FRONT_FEMALE,
   MUSCLE_BODY_VIEWBOX,
 } from "@/lib/workout/muscle-body-paths";
 import {
@@ -18,7 +21,15 @@ import {
 } from "@/lib/workout/muscle-body-slugs";
 import { muscleHeatRing, slugHeatFill } from "@/lib/workout/muscle-heat-style";
 
-function pathsForView(view: MuscleBodyView): Record<string, string[]> {
+function pathsForView(
+  view: MuscleBodyView,
+  sex: UserSex | null,
+): Record<string, string[]> {
+  if (sex === "female") {
+    return view === "front"
+      ? MUSCLE_BODY_PATHS_FRONT_FEMALE
+      : MUSCLE_BODY_PATHS_BACK_FEMALE;
+  }
   return view === "front" ? MUSCLE_BODY_PATHS_FRONT : MUSCLE_BODY_PATHS_BACK;
 }
 
@@ -49,6 +60,7 @@ export function MuscleBodyFigure({
   displayMode,
   onSelect,
   compact = false,
+  figureSex = null,
 }: {
   view: MuscleBodyView;
   muscles: MuscleCell[];
@@ -56,10 +68,11 @@ export function MuscleBodyFigure({
   displayMode: MuscleDisplayMode;
   onSelect: (id: MuscleId) => void;
   compact?: boolean;
+  figureSex?: UserSex | null;
 }) {
   const byId = new Map(muscles.map((item) => [item.id, item]));
   const slugs = BODY_SLUGS_BY_VIEW[view];
-  const pathMap = pathsForView(view);
+  const pathMap = pathsForView(view, figureSex);
 
   return (
     <svg

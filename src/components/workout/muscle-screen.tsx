@@ -183,6 +183,7 @@ export function MuscleScreen() {
                     selectedId={selectedId}
                     displayMode={displayMode}
                     onSelect={onSelectMuscle}
+                    figureSex={snapshot.figure_sex}
                     compact
                   />
                 </div>
@@ -194,6 +195,7 @@ export function MuscleScreen() {
                     selectedId={selectedId}
                     displayMode={displayMode}
                     onSelect={onSelectMuscle}
+                    figureSex={snapshot.figure_sex}
                     compact
                   />
                 </div>
@@ -206,6 +208,7 @@ export function MuscleScreen() {
                   selectedId={selectedId}
                   displayMode={displayMode}
                   onSelect={onSelectMuscle}
+                  figureSex={snapshot.figure_sex}
                 />
               </div>
 

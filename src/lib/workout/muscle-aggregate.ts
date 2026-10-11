@@ -214,6 +214,7 @@ export function buildMuscleSnapshot(
     horizon_days: input.horizon_days,
     since: input.since,
     until: input.until,
+    figure_sex: null,
     muscles,
     hits_by_muscle,
     missed: missedEvents,
