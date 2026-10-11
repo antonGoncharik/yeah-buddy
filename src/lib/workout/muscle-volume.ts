@@ -1,4 +1,8 @@
-import type { VolumeBand } from "@/lib/types";
+import type { MuscleId, VolumeBand } from "@/lib/types";
+import {
+  volumeBandFromLandmarks,
+  volumeLandmarksForMuscle,
+} from "@/lib/workout/muscle-volume-landmarks";
 
 export const VOLUME_BAND_LABELS: Record<VolumeBand, string> = {
   0: "Нет",
@@ -14,7 +18,16 @@ export function setsPerWeek(weightedSets: number, horizonDays: number): number {
   return Math.round((weightedSets / weeks) * 10) / 10;
 }
 
-export function volumeBandFromWeeklySets(setsPerWeek: number): VolumeBand {
+export function volumeBandFromWeeklySets(
+  setsPerWeek: number,
+  muscleId?: MuscleId,
+): VolumeBand {
+  if (muscleId != null) {
+    return volumeBandFromLandmarks(
+      setsPerWeek,
+      volumeLandmarksForMuscle(muscleId),
+    );
+  }
   if (setsPerWeek < 0.5) {
     return 0;
   }

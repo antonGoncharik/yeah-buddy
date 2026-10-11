@@ -9,6 +9,7 @@ import {
   buildMuscleBalance,
   buildMuscleInsights,
 } from "@/lib/workout/muscle-insights";
+import { muscleRecoveryPercent } from "@/lib/workout/muscle-recovery";
 import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
 import {
   MUSCLE_IDS,
@@ -167,7 +168,7 @@ export function buildMuscleSnapshot(
   const muscles: MuscleCell[] = MUSCLE_IDS.map((id) => {
     const sets = Math.round(weightedSets[id] * 10) / 10;
     const perWeek = setsPerWeek(sets, input.horizon_days);
-    const band = volumeBandFromWeeklySets(perWeek);
+    const band = volumeBandFromWeeklySets(perWeek, id);
     const last = lastTrained.get(id) ?? null;
     const daysSince = daysBetween(last, input.today);
 
@@ -183,6 +184,11 @@ export function buildMuscleSnapshot(
       in_next_session: plannedMuscles.has(id),
       missed_sessions: missedCount[id],
       weekly_sets: weeklySets[id].map((value) => Math.round(value * 10) / 10),
+      recovery_percent: muscleRecoveryPercent({
+        days_since: daysSince,
+        sets_per_week: perWeek,
+        sets,
+      }),
     };
   });
 
