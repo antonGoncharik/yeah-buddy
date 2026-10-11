@@ -7,3 +7,5 @@ import { baseSentryInitOptions } from "@/lib/monitoring/sentry-options";
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
 Sentry.init(baseSentryInitOptions(dsn));
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
