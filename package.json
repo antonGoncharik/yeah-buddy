@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "verify": "npm run lint && npm test && tsc --noEmit --incremental false",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",

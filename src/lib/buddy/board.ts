@@ -24,8 +24,7 @@ export async function loadBuddyBoard(
   ]);
 
   const fact = day != null ? sumMeals(day.meals) : null;
-  const foodLogged =
-    day?.meals.some((meal) => meal.items.length > 0) ?? false;
+  const foodLogged = day?.meals.some((meal) => meal.items.length > 0) ?? false;
   const proteinOk =
     day != null &&
     fact != null &&
