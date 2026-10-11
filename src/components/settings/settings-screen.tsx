@@ -10,6 +10,7 @@ import {
   BookDoodle,
   CoachDoodle,
   FriendsDoodle,
+  LinkDoodle,
   MacroDoodle,
   MealDayDoodle,
   ProductDoodle,
@@ -120,7 +121,7 @@ export function SettingsScreen({
         </section>
 
         <section className="flex flex-col gap-2">
-          <SectionHeading title="Еда" />
+          <SectionHeading title="Еда и цели" />
           {!loading && form ? (
             <div className="card-surface animate-rise px-5 py-2">
               <button
@@ -210,7 +211,7 @@ export function SettingsScreen({
         ) : null}
 
         <section className="flex flex-col gap-2">
-          <SectionHeading title="Ещё" />
+          <SectionHeading title="Доступ" />
           <SettingsHomeScreenTip />
           <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
             <NavRow
@@ -229,7 +230,7 @@ export function SettingsScreen({
               href="/settings/packs"
               title={PACKS_LABEL}
               hint="Поделись едой на день, приёмом или программой"
-              icon={<FriendsDoodle />}
+              icon={<LinkDoodle />}
             />
             {form?.gym_enabled ? (
               <NavRow
@@ -250,7 +251,7 @@ export function SettingsScreen({
         </section>
 
         <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-          <h2 className="text-xl font-semibold">Тема</h2>
+          <h2 className="text-xl font-semibold">Вид</h2>
           <Segmented
             value={theme}
             options={[
@@ -267,10 +268,6 @@ export function SettingsScreen({
             ]}
             onChange={setTheme}
           />
-        </section>
-
-        <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-          <h2 className="text-xl font-semibold">Вид</h2>
           <Segmented
             value={density}
             options={[
@@ -354,7 +351,12 @@ export function SettingsScreen({
           </section>
         ) : null}
 
-        {!loading && form ? <SettingsAccount /> : null}
+        {!loading && form ? (
+          <section className="flex flex-col gap-2">
+            <SectionHeading title="Данные и приватность" />
+            <SettingsAccount />
+          </section>
+        ) : null}
 
         {mealChatHint ? (
           <section className="card-surface animate-rise flex flex-col gap-2 px-5 py-4">
@@ -366,9 +368,11 @@ export function SettingsScreen({
           </section>
         ) : null}
 
-        <SettingsInbox />
-
-        <SettingsAuthor />
+        <section className="flex flex-col gap-2">
+          <SectionHeading title="Связь" />
+          <SettingsInbox />
+          <SettingsAuthor />
+        </section>
       </div>
     </div>
   );

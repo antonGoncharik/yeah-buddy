@@ -64,7 +64,7 @@ export function SettingsAccount() {
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-      <h2 className="text-xl font-semibold">Данные</h2>
+      <h2 className="text-xl font-semibold sr-only">Данные и приватность</h2>
       <p className="text-sm text-muted-foreground">
         Скачай копию дневника или удали всё с сервера
       </p>
