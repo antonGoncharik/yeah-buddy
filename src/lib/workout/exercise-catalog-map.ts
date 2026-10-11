@@ -36,13 +36,15 @@ export interface CatalogExerciseDumpRow {
   name: string;
   body_part: string;
   equipment: string;
+  target: string;
+  secondary_muscles: string[];
   image: string;
   gif_url: string;
   instruction_steps: CatalogInstructionSteps;
 }
 
 const LIST_COLUMNS =
-  "id, source_exercise_id, name_en, name_ru, equipment, body_part";
+  "id, source_exercise_id, name_en, name_ru, equipment, body_part, target, secondary_muscles";
 
 export function catalogExerciseListColumns(): string {
   return LIST_COLUMNS;
@@ -59,9 +61,10 @@ export function parseCatalogExerciseDumpRow(
   const name = toNullableString(value.name);
   const bodyPart = toNullableString(value.body_part);
   const equipment = toNullableString(value.equipment);
+  const target = toNullableString(value.target);
   const image = toNullableString(value.image);
   const gifPath = toNullableString(value.gif_url);
-  if (!id || !name || !bodyPart || !equipment || !image || !gifPath) {
+  if (!id || !name || !bodyPart || !equipment || !target || !image || !gifPath) {
     return null;
   }
 
@@ -70,10 +73,22 @@ export function parseCatalogExerciseDumpRow(
     name,
     body_part: bodyPart,
     equipment,
+    target,
+    secondary_muscles: parseSecondaryMuscles(value.secondary_muscles),
     image,
     gif_url: gifPath,
     instruction_steps: parseInstructionSteps(value.instruction_steps),
   };
+}
+
+function parseSecondaryMuscles(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
 }
 
 export function mapCatalogExerciseSummary(

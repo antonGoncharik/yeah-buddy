@@ -173,17 +173,22 @@ async function loadExerciseMuscleMeta(
   const catalogById = new Map<
     string,
     {
+      source_exercise_id: string;
       body_part: string | null;
       name_en: string;
       name_ru: string | null;
       equipment: string | null;
+      target: string | null;
+      secondary_muscles: string[] | null;
     }
   >();
 
   if (catalogIds.length > 0) {
     const catalog = await supabase
       .from("catalog_exercises")
-      .select("id, body_part, name_en, name_ru, equipment")
+      .select(
+        "id, source_exercise_id, body_part, name_en, name_ru, equipment, target, secondary_muscles",
+      )
       .in("id", catalogIds);
 
     if (catalog.error) {
@@ -192,6 +197,7 @@ async function loadExerciseMuscleMeta(
 
     for (const row of catalog.data ?? []) {
       catalogById.set(String(row.id), {
+        source_exercise_id: String(row.source_exercise_id ?? ""),
         body_part: typeof row.body_part === "string" ? row.body_part : null,
         name_en: String(row.name_en ?? ""),
         name_ru:
@@ -199,6 +205,8 @@ async function loadExerciseMuscleMeta(
             ? row.name_ru
             : null,
         equipment: typeof row.equipment === "string" ? row.equipment : null,
+        target: typeof row.target === "string" ? row.target : null,
+        secondary_muscles: parseSecondaryMusclesRow(row.secondary_muscles),
       });
     }
   }
@@ -221,8 +229,25 @@ async function loadExerciseMuscleMeta(
       name_en: catalog?.name_en ?? null,
       name_ru: catalog?.name_ru ?? String(row.name),
       equipment: catalog?.equipment ?? null,
+      source_exercise_id:
+        catalog?.source_exercise_id && catalog.source_exercise_id !== ""
+          ? catalog.source_exercise_id
+          : null,
+      target: catalog?.target ?? null,
+      secondary_muscles: catalog?.secondary_muscles ?? null,
     });
   }
 
   return map;
+}
+
+function parseSecondaryMusclesRow(value: unknown): string[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const list = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+  return list.length > 0 ? list : [];
 }

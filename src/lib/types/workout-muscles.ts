@@ -2,8 +2,10 @@ export type MuscleId =
   | "chest"
   | "lats"
   | "upper_back"
+  | "traps"
   | "lower_back"
   | "abs"
+  | "obliques"
   | "front_delts"
   | "side_delts"
   | "rear_delts"
@@ -13,6 +15,7 @@ export type MuscleId =
   | "quads"
   | "hamstrings"
   | "glutes"
+  | "adductors"
   | "calves";
 
 export type MuscleStatus = "trained" | "stale" | "missed" | "planned" | "idle";

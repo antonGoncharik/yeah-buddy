@@ -19,6 +19,9 @@ const meta = new Map<string, ExerciseMuscleMeta>([
       name_en: "bench press",
       name_ru: "Жим лёжа",
       equipment: "barbell",
+      source_exercise_id: "0025",
+      target: "pectorals",
+      secondary_muscles: ["triceps", "shoulders"],
     },
   ],
   [
@@ -30,6 +33,9 @@ const meta = new Map<string, ExerciseMuscleMeta>([
       name_en: "barbell row",
       name_ru: "Тяга штанги",
       equipment: "barbell",
+      source_exercise_id: "0027",
+      target: "upper back",
+      secondary_muscles: ["biceps", "forearms"],
     },
   ],
 ]);

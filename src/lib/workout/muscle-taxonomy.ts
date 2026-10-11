@@ -7,9 +7,12 @@ export const MUSCLE_IDS: MuscleId[] = [
   "biceps",
   "forearms",
   "abs",
+  "obliques",
   "quads",
+  "adductors",
   "calves",
   "upper_back",
+  "traps",
   "rear_delts",
   "lats",
   "triceps",
@@ -22,8 +25,10 @@ export const MUSCLE_LABELS: Record<MuscleId, string> = {
   chest: "Грудь",
   lats: "Широчайшие",
   upper_back: "Верх спины",
+  traps: "Трапеции",
   lower_back: "Поясница",
   abs: "Пресс",
+  obliques: "Косые",
   front_delts: "Передняя дельта",
   side_delts: "Средняя дельта",
   rear_delts: "Задняя дельта",
@@ -33,6 +38,7 @@ export const MUSCLE_LABELS: Record<MuscleId, string> = {
   quads: "Квадрицепс",
   hamstrings: "Бицепс бедра",
   glutes: "Ягодицы",
+  adductors: "Приводящие",
   calves: "Икры",
 };
 
@@ -43,9 +49,12 @@ export const MUSCLE_VIEW: Record<MuscleId, MuscleBodyView> = {
   biceps: "front",
   forearms: "front",
   abs: "front",
+  obliques: "front",
   quads: "front",
+  adductors: "front",
   calves: "front",
   upper_back: "back",
+  traps: "back",
   rear_delts: "back",
   lats: "back",
   triceps: "back",
@@ -190,7 +199,7 @@ function refineByName(
     return { lats: 0.35, upper_back: 0.35, rear_delts: 0.35, biceps: 0.15 };
   }
   if (includesAny(name, ["шраг", "shrug"])) {
-    return { upper_back: 1 };
+    return { traps: 1, upper_back: 0.35 };
   }
   if (
     includesAny(name, ["гипер", "hyper", "good morning", "наклон со штанг"])

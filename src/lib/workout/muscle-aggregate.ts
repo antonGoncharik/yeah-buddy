@@ -5,11 +5,11 @@ import type {
   MuscleSnapshot,
   MuscleStatus,
 } from "@/lib/types";
+import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
 import {
   MUSCLE_IDS,
   MUSCLE_LABELS,
   MUSCLE_VIEW,
-  resolveExerciseMuscles,
 } from "@/lib/workout/muscle-taxonomy";
 import { workTonnage } from "@/lib/workout/session-tonnage";
 
@@ -20,6 +20,9 @@ export interface ExerciseMuscleMeta {
   name_en: string | null;
   name_ru: string | null;
   equipment: string | null;
+  source_exercise_id: string | null;
+  target: string | null;
+  secondary_muscles: string[] | null;
 }
 
 export interface MuscleSessionWork {
@@ -220,12 +223,7 @@ function daysBetween(from: string | null, to: string): number | null {
 function musclesForMeta(
   meta: ExerciseMuscleMeta,
 ): Partial<Record<MuscleId, number>> {
-  return resolveExerciseMuscles({
-    body_part: meta.body_part,
-    name_en: meta.name_en,
-    name_ru: meta.name_ru,
-    equipment: meta.equipment,
-  });
+  return resolveExerciseMuscleWeights(meta);
 }
 
 function musclesForExerciseIds(

@@ -18,7 +18,7 @@ import { starterNameRuForSourceId } from "@/lib/workout/starter-catalog-map";
 export { CatalogExerciseNotFoundError };
 
 const DETAIL_COLUMNS =
-  "id, source_exercise_id, name_en, name_ru, equipment, body_part, gif_path, image_path, instruction_steps";
+  "id, source_exercise_id, name_en, name_ru, equipment, body_part, target, secondary_muscles, gif_path, image_path, instruction_steps";
 
 export async function searchCatalogExercises(
   query: string,
@@ -122,6 +122,8 @@ export async function upsertCatalogExerciseDump(
     name_ru: starterNameRuForSourceId(row.id),
     equipment: row.equipment,
     body_part: row.body_part,
+    target: row.target,
+    secondary_muscles: row.secondary_muscles,
     gif_path: row.gif_url,
     image_path: row.image,
     instruction_steps: row.instruction_steps,
