@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics/track";
 import { markDateAsTrainingIfExists } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutKind, WorkoutSession } from "@/lib/types";
@@ -81,6 +82,7 @@ async function insertSession(
   }
 
   await markDateAsTrainingIfExists(userId, input.session_date);
+  await trackEvent(userId, "workout_started");
 
   return mapWorkoutSession(inserted.data as Record<string, unknown>);
 }

@@ -17,6 +17,7 @@ import {
   setRowGrams,
   withGramsMode,
 } from "@/components/day/plate-draft";
+import type { FoodLogMethod } from "@/lib/analytics/food-log";
 import type { GramsMode } from "@/lib/food/yield";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
@@ -28,6 +29,7 @@ export function usePlateDraft({
   date,
   doneHref,
   onSaved,
+  logVia = "plate",
 }: {
   view: PlateStatus;
   setView: Dispatch<SetStateAction<PlateStatus>>;
@@ -35,6 +37,7 @@ export function usePlateDraft({
   date: string;
   doneHref: string;
   onSaved?: () => void;
+  logVia?: Extract<FoodLogMethod, "plate" | "dictate" | "text" | "chat">;
 }) {
   const router = useRouter();
   const [picker, setPicker] = useState<PlatePicker>(null);
@@ -155,7 +158,12 @@ export function usePlateDraft({
   }
 
   async function saveRows(items: PlateRow[]): Promise<boolean> {
-    const result = await persistPlateRows({ date, mealId, rows: items });
+    const result = await persistPlateRows({
+      date,
+      mealId,
+      rows: items,
+      logVia,
+    });
     if (!result.ok) {
       haptic("warn");
       setSaveError(result.message);

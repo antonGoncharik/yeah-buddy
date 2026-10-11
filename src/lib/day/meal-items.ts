@@ -1,3 +1,5 @@
+import type { FoodLogMethod } from "@/lib/analytics/food-log";
+import { logFoodWrite } from "@/lib/analytics/food-write";
 import {
   LUMP_PORTION_G,
   type LumpMealItemInput,
@@ -6,7 +8,6 @@ import {
 import { mapMealItem } from "@/lib/day/map";
 import { assertUserDayWritable } from "@/lib/day/writable";
 import { getFood } from "@/lib/food/store";
-import { recordFunnelEvent } from "@/lib/funnel";
 import {
   calcMacrosFromPer100,
   type Macros,
@@ -93,13 +94,19 @@ export async function addMealItem(
   mealId: string,
   foodId: string,
   grams: number,
+  logMethod: FoodLogMethod = "manual",
 ): Promise<MealItem> {
   const food = await getFood(userId, foodId);
   if (!food) {
     throw new Error("Food not found");
   }
 
-  const items = await addMealItems(userId, mealId, [{ food, grams }]);
+  const items = await addMealItems(
+    userId,
+    mealId,
+    [{ food, grams }],
+    logMethod,
+  );
   const item = items[0];
   if (!item) {
     throw new Error("Meal item insert failed");
@@ -111,6 +118,7 @@ export async function addMealItems(
   userId: string,
   mealId: string,
   entries: Array<{ food: Food; grams: number }>,
+  logMethod: FoodLogMethod = "manual",
 ): Promise<MealItem[]> {
   return addMealItemWrites(
     userId,
@@ -120,6 +128,7 @@ export async function addMealItems(
       food: entry.food,
       grams: entry.grams,
     })),
+    logMethod,
   );
 }
 
@@ -127,10 +136,14 @@ export async function addLumpMealItem(
   userId: string,
   mealId: string,
   input: LumpMealItemInput,
+  logMethod: FoodLogMethod = "manual",
 ): Promise<MealItem> {
-  const items = await addMealItemWrites(userId, mealId, [
-    { kind: "lump", input },
-  ]);
+  const items = await addMealItemWrites(
+    userId,
+    mealId,
+    [{ kind: "lump", input }],
+    logMethod,
+  );
   const item = items[0];
   if (!item) {
     throw new Error("Meal item insert failed");
@@ -142,6 +155,7 @@ export async function addMealItemWrites(
   userId: string,
   mealId: string,
   writes: MealItemWrite[],
+  logMethod: FoodLogMethod = "manual",
 ): Promise<MealItem[]> {
   if (writes.length === 0) {
     throw new Error("Meal items empty");
@@ -163,7 +177,7 @@ export async function addMealItemWrites(
     throw inserted.error;
   }
 
-  await recordFunnelEvent(userId, "first_food");
+  await logFoodWrite(userId, logMethod);
 
   return (inserted.data ?? []).map((row) =>
     mapMealItem(row as Record<string, unknown>),

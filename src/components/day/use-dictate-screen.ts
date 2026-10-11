@@ -41,7 +41,14 @@ export function useDictateScreen({
   const [view, setView] = useState<PlateStatus>(
     configured ? { status: "idle" } : { status: "unavailable" },
   );
-  const draft = usePlateDraft({ view, setView, mealId, date, doneHref });
+  const draft = usePlateDraft({
+    view,
+    setView,
+    mealId,
+    date,
+    doneHref,
+    logVia: "dictate",
+  });
   const recorder = useSpeechRecorder();
   const busy = view.status === "working" || view.status === "saving";
 

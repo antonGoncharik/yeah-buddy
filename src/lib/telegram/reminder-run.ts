@@ -1,4 +1,5 @@
 import { getReviewSnapshot } from "@/lib/ai/review";
+import { trackEvent } from "@/lib/analytics/track";
 import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
 import {
@@ -174,12 +175,18 @@ export async function runEveningReminders(
     );
     if (sent === "sent") {
       result.sent += 1;
+      await trackEvent(candidate.userId, "reminder_sent", {
+        kind: sunday.query ? "sunday" : "evening",
+      });
       continue;
     }
 
     if (sent === "blocked") {
       await disableReminders(candidate.userId);
       result.blocked += 1;
+      await trackEvent(candidate.userId, "reminder_blocked", {
+        kind: sunday.query ? "sunday" : "evening",
+      });
       continue;
     }
 
@@ -279,12 +286,16 @@ export async function runMiddayReminders(
     const sent = await sendDiaryMessage(candidate.telegramId, text, env);
     if (sent === "sent") {
       result.sent += 1;
+      await trackEvent(candidate.userId, "reminder_sent", { kind: "midday" });
       continue;
     }
 
     if (sent === "blocked") {
       await disableReminders(candidate.userId);
       result.blocked += 1;
+      await trackEvent(candidate.userId, "reminder_blocked", {
+        kind: "midday",
+      });
       continue;
     }
 

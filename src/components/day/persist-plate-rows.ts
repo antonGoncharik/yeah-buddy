@@ -4,6 +4,7 @@ import {
   toCommitItem,
 } from "@/components/day/plate-draft-commit";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
+import type { FoodLogMethod } from "@/lib/analytics/food-log";
 import { postJson } from "@/lib/api-cache";
 import { daysUrl, readCachedDay, withDayOptimistic } from "@/lib/day/cache";
 import {
@@ -20,15 +21,22 @@ export async function persistPlateRows({
   date,
   mealId,
   rows,
+  logVia = "plate",
 }: {
   date: string;
   mealId: string;
   rows: PlateRow[];
+  logVia?: Extract<FoodLogMethod, "plate" | "dictate" | "text" | "chat">;
 }): Promise<{ ok: true } | { ok: false; message: string }> {
   const prepared = commitItemsFromRows(rows);
   if (!prepared.ok) {
     return { ok: false, message: prepared.message };
   }
+
+  const body = {
+    items: prepared.items.map(toCommitItem),
+    logVia,
+  };
 
   const current = readCachedDay(date);
   if (current) {
@@ -42,7 +50,7 @@ export async function persistPlateRows({
         const data = await queueMutate({
           method: "POST",
           url: `/api/meals/${mealId}/plate`,
-          body: { items: prepared.items.map(toCommitItem) },
+          body,
           cacheUrls: [daysUrl(date)],
           clientIds: temps.map((item) => item.id),
         });
@@ -64,9 +72,7 @@ export async function persistPlateRows({
     return { ok: true };
   }
 
-  await postJson(`/api/meals/${mealId}/plate`, {
-    items: prepared.items.map(toCommitItem),
-  });
+  await postJson(`/api/meals/${mealId}/plate`, body);
   return { ok: true };
 }
 

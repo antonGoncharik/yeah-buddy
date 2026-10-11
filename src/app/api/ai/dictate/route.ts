@@ -3,6 +3,7 @@ import { analyzeDictate } from "@/lib/ai/dictate";
 import { readDictateAudioPart } from "@/lib/ai/dictate-audio";
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
+import { trackAiRequest } from "@/lib/analytics/ai";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { listFoods } from "@/lib/food/store";
@@ -35,8 +36,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       audio,
       allRefs,
     );
+    await trackAiRequest(auth.session.userId, "dictate", true);
     return jsonOk(draft);
   } catch (error) {
+    await trackAiRequest(auth.session.userId, "dictate", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError

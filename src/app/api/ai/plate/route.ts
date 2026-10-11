@@ -4,6 +4,7 @@ import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { analyzePlate } from "@/lib/ai/plate";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { readPlateImagePart } from "@/lib/ai/plate-image";
+import { trackAiRequest } from "@/lib/analytics/ai";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { listFoods } from "@/lib/food/store";
@@ -36,8 +37,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       image,
       allRefs,
     );
+    await trackAiRequest(auth.session.userId, "plate", true);
     return jsonOk(draft);
   } catch (error) {
+    await trackAiRequest(auth.session.userId, "plate", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError

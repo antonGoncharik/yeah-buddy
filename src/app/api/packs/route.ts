@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { trackEvent } from "@/lib/analytics/track";
 import {
   failRoute,
   jsonError,
@@ -83,6 +83,9 @@ export async function POST(request: Request): Promise<NextResponse> {
             parsed.data.title,
           );
     await recordFunnelEvent(auth.session.userId, "share");
+    await trackEvent(auth.session.userId, "share_publish", {
+      kind: parsed.data.kind,
+    });
     return jsonOk({ pack });
   } catch (error) {
     return failRoute(error, [

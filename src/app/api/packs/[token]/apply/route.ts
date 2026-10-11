@@ -1,5 +1,5 @@
 import type { NextResponse } from "next/server";
-
+import { trackEvent } from "@/lib/analytics/track";
 import { failRoute, jsonOk, whenError } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import {
@@ -30,6 +30,7 @@ export async function POST(
 
   try {
     const pack = await applyPack(auth.session.userId, token);
+    await trackEvent(auth.session.userId, "pack_apply", { kind: pack.kind });
     return jsonOk({ pack });
   } catch (error) {
     return failRoute(error, [

@@ -1,3 +1,4 @@
+import { trackEvent } from "@/lib/analytics/track";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
@@ -199,6 +200,7 @@ export async function completeSessionAsPlanned(
     }
     await maybeAutoEndPhase(userId);
     await recordFunnelEvent(userId, "first_session");
+    await trackEvent(userId, "workout_completed");
   }
   const refreshed = await getSession(userId, sessionId);
   if (!refreshed) {

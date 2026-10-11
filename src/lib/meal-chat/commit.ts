@@ -25,6 +25,6 @@ export async function commitPlateDraft(
   }
 
   const mapped = ready.map((item) => toCommitItem(item));
-  const parsed = plateCommitSchema.parse({ items: mapped });
+  const parsed = plateCommitSchema.parse({ items: mapped, logVia: "chat" });
   return commitPlateItems(userId, mealId, parsed);
 }

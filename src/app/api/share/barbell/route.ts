@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { trackEvent } from "@/lib/analytics/track";
 import { jsonError, jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
 import { getServerEnv } from "@/lib/env";
@@ -85,6 +85,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   await recordFunnelEvent(auth.session.userId, "share");
+  await trackEvent(auth.session.userId, "share_send", { channel: "barbell" });
   return jsonOk({
     id,
     query,

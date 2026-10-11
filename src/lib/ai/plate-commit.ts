@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { PLATE_GRAMS_MAX, PLATE_ITEM_LIMIT } from "@/lib/ai/plate-types";
+import type { FoodLogMethod } from "@/lib/analytics/food-log";
 import {
   LUMP_MACRO_MAX,
   LUMP_NAME_MAX,
@@ -25,9 +26,12 @@ export const plateCommitItemSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+const plateLogViaSchema = z.enum(["plate", "dictate", "text", "chat"]);
+
 export const plateCommitSchema = z
   .object({
     items: z.array(plateCommitItemSchema).min(1).max(PLATE_ITEM_LIMIT),
+    logVia: plateLogViaSchema.optional(),
   })
   .superRefine((value, ctx) => {
     for (const [index, item] of value.items.entries()) {
@@ -76,7 +80,8 @@ export async function commitPlateItems(
     });
   }
 
-  return addMealItemWrites(userId, mealId, writes);
+  const logMethod: FoodLogMethod = input.logVia ?? "plate";
+  return addMealItemWrites(userId, mealId, writes, logMethod);
 }
 
 async function resolveCommitFood(

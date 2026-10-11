@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { trackEvent } from "@/lib/analytics/track";
 import {
   failRoute,
   jsonError,
@@ -40,6 +40,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     if (!result) {
       return jsonError("Настройки не нашлись.", 404);
     }
+    await trackEvent(
+      auth.session.userId,
+      parsed.data.action === "apply"
+        ? "energy_offer_applied"
+        : "energy_offer_dismissed",
+    );
     return jsonOk(result);
   } catch (error) {
     return failRoute(error);

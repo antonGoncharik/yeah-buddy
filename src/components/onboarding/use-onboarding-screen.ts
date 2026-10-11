@@ -24,6 +24,7 @@ import {
   isOnboardingPresetWeightKg,
   onboardingDefaultWeightKg,
 } from "@/components/onboarding/onboarding-weight-ruler";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { mutateJson } from "@/lib/api-cache";
 import type { RationId } from "@/lib/food/ration";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
@@ -239,6 +240,13 @@ export function useOnboardingScreen() {
     }
   }, [step, steps]);
 
+  useEffect(() => {
+    if (loading || state == null) {
+      return;
+    }
+    void trackClientEvent("onboarding_step_view", { step });
+  }, [loading, state, step]);
+
   const stepIndex = Math.max(0, steps.indexOf(step));
   const isLast = step === steps[steps.length - 1];
 
@@ -414,10 +422,12 @@ export function useOnboardingScreen() {
       if (following !== "circle") {
         setProgramShelf(null);
       }
+      void trackClientEvent("onboarding_step_complete", { step });
       setStep(following);
       return;
     }
 
+    void trackClientEvent("onboarding_step_complete", { step });
     setSaving(true);
     setError(null);
     void finish(circleOverride);

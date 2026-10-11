@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { Button } from "@/components/ui/button";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { formatKcal } from "@/lib/nutrition";
 import {
   type EnergyGoalOffer,
@@ -45,8 +47,20 @@ export function EnergyGoalCard({
   onApply: () => void;
   onDismiss: () => void;
 }) {
+  const shown = useRef(false);
   const { density } = useDiaryDensity();
   const compact = density === "compact";
+
+  useEffect(() => {
+    if (shown.current) {
+      return;
+    }
+    shown.current = true;
+    void trackClientEvent("energy_offer_shown", {
+      rest_kcal: offer.restKcal,
+    });
+  }, [offer.restKcal]);
+
   const shift =
     currentRestKcal != null &&
     currentRestKcal > 0 &&

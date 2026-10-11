@@ -6,6 +6,7 @@ import {
   getReviewSnapshot,
   parseReviewRange,
 } from "@/lib/ai/review";
+import { trackAiRequest } from "@/lib/analytics/ai";
 import {
   failRoute,
   jsonError,
@@ -57,8 +58,10 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const snapshot = await createReview(auth.session.userId, parsed.data.days);
+    await trackAiRequest(auth.session.userId, "review", true);
     return jsonOk(snapshot);
   } catch (error) {
+    await trackAiRequest(auth.session.userId, "review", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError

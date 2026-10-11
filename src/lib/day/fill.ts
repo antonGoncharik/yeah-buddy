@@ -1,3 +1,4 @@
+import { logFoodWrite } from "@/lib/analytics/food-write";
 import type { DayWithMeals } from "@/lib/day/map";
 import { buildMealItemRow, getDateForMeal } from "@/lib/day/meal-items";
 import { recipeFromTemplate, remainingFills } from "@/lib/day/remaining";
@@ -148,6 +149,7 @@ async function applyRemainingFills(
     if (inserted.error) {
       throw inserted.error;
     }
+    await logFoodWrite(userId, "template");
   }
 
   const next = await getDayByDate(userId, day.date);

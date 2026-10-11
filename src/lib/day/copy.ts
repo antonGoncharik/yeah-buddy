@@ -1,3 +1,4 @@
+import { logFoodWrite } from "@/lib/analytics/food-write";
 import { insertEmptyMeals } from "@/lib/day/create";
 import {
   DayConflictError,
@@ -110,6 +111,7 @@ export async function copyYesterday(
     if (insertedItems.error) {
       throw insertedItems.error;
     }
+    await logFoodWrite(userId, "copy");
   }
 
   const day = await getDayByDate(userId, date);
@@ -201,6 +203,8 @@ export async function copyMealFromDate(
   if (inserted.error) {
     throw inserted.error;
   }
+
+  await logFoodWrite(userId, "copy");
 
   const day = await getDayByDate(userId, date);
   if (!day) {

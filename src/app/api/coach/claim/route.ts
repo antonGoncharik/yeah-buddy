@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { trackEvent } from "@/lib/analytics/track";
 import {
   failRoute,
   jsonOk,
@@ -43,7 +43,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    return jsonOk(await claimCoachGrant(auth.session.userId, token));
+    const grant = await claimCoachGrant(auth.session.userId, token);
+    await trackEvent(auth.session.userId, "coach_claim");
+    return jsonOk(grant);
   } catch (error) {
     return failRoute(error, [
       whenError(CoachNotFoundError, 404),

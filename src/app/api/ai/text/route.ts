@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { analyzeTextMeal, normalizeMealLogText } from "@/lib/ai/text-meal";
+import { trackAiRequest } from "@/lib/analytics/ai";
 import {
   failRoute,
   jsonError,
@@ -50,8 +51,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.text,
       allRefs,
     );
+    await trackAiRequest(auth.session.userId, "text", true);
     return jsonOk(draft);
   } catch (error) {
+    await trackAiRequest(auth.session.userId, "text", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError

@@ -80,6 +80,7 @@ export function TodayTextMealForm({
         date,
         mealId,
         rows: draft.items,
+        logVia: "text",
       });
       if (!saved.ok) {
         setError(saved.message);
