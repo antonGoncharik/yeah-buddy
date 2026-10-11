@@ -1,6 +1,7 @@
 import type { Bot } from "grammy";
 
-import { donateCheckoutOk } from "@/lib/donate/amount";
+import { donateCheckoutOk, parseDonatePayload } from "@/lib/donate/amount";
+import { findUserIdByTelegramId, recordDonation } from "@/lib/donate/record";
 import { DONATE_REJECT, DONATE_THANKS } from "@/lib/messages";
 
 export function registerDonatePayments(bot: Bot): void {
@@ -28,6 +29,19 @@ export function registerDonatePayments(bot: Bot): void {
       })
     ) {
       return;
+    }
+
+    const stars = parseDonatePayload(payment.invoice_payload);
+    const telegramId = ctx.from?.id;
+    if (stars != null && telegramId != null) {
+      const userId = await findUserIdByTelegramId(telegramId);
+      if (userId) {
+        await recordDonation({
+          userId,
+          stars,
+          telegramPaymentChargeId: payment.telegram_payment_charge_id,
+        });
+      }
     }
 
     try {
