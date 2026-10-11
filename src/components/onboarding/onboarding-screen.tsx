@@ -42,6 +42,7 @@ import {
 } from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED } from "@/lib/messages";
+import { parseDecimal } from "@/lib/workout/numbers";
 import {
   isProgramPresetId,
   RECOMMENDED_PROGRAM_PRESET_ID,
@@ -293,6 +294,9 @@ export function OnboardingScreen() {
         {step === "lifts" ? (
           <OnboardingLiftsStep
             answers={lifts}
+            sex={sex}
+            trainingAge={trainingAge}
+            bodyWeightKg={parseDecimal(weight)}
             saving={saving}
             isLast={isLast}
             onChange={onLiftChange}

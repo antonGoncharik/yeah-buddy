@@ -1,6 +1,6 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { GlobalMax } from "@/lib/types";
+import type { GlobalMax, GlobalMaxSource } from "@/lib/types";
 import { StartingMaxLockedError } from "@/lib/workout/exercise-schema";
 import {
   pickCurrentMax,
@@ -29,6 +29,7 @@ export async function correctStartingMax(input: {
     return insertGlobalMax(input.userId, {
       exerciseId: input.exerciseId,
       maxWeight: input.maxWeight,
+      source: "manual",
       achievedAt: resolveAchievedAt(
         undefined,
         await getUserCalendarToday(input.userId),
@@ -43,7 +44,7 @@ export async function correctStartingMax(input: {
   const supabase = createSupabaseServerClient();
   const updated = await supabase
     .from("global_maxes")
-    .update({ max_weight: input.maxWeight })
+    .update({ max_weight: input.maxWeight, source: "manual" })
     .eq("user_id", input.userId)
     .eq("id", current.id)
     .select("*")
@@ -59,11 +60,21 @@ export async function correctStartingMax(input: {
 /** One phase check and one insert for every new starting max. */
 export async function setStartingMaxes(
   userId: string,
-  rows: Array<{ exerciseId: string; maxWeight: number }>,
+  rows: Array<{
+    exerciseId: string;
+    maxWeight: number;
+    source?: GlobalMaxSource;
+  }>,
 ): Promise<void> {
-  const byExercise = new Map<string, number>();
+  const byExercise = new Map<
+    string,
+    { maxWeight: number; source: GlobalMaxSource }
+  >();
   for (const row of rows) {
-    byExercise.set(row.exerciseId, row.maxWeight);
+    byExercise.set(row.exerciseId, {
+      maxWeight: row.maxWeight,
+      source: row.source ?? "manual",
+    });
   }
   if (byExercise.size === 0) {
     return;
@@ -82,29 +93,39 @@ export async function setStartingMaxes(
     user_id: string;
     exercise_id: string;
     max_weight: number;
+    source: GlobalMaxSource;
     achieved_at: string;
     phase_id: null;
     workout_session_id: null;
   }> = [];
-  const updates: Array<{ id: string; maxWeight: number }> = [];
+  const updates: Array<{
+    id: string;
+    maxWeight: number;
+    source: GlobalMaxSource;
+  }> = [];
 
-  for (const [exerciseId, maxWeight] of byExercise) {
+  for (const [exerciseId, row] of byExercise) {
     const current = pickCurrentMax(existing.get(exerciseId) ?? []);
     if (!current) {
       inserts.push({
         user_id: userId,
         exercise_id: exerciseId,
-        max_weight: maxWeight,
+        max_weight: row.maxWeight,
+        source: row.source,
         achieved_at: achievedAt,
         phase_id: null,
         workout_session_id: null,
       });
       continue;
     }
-    if (current.max_weight === maxWeight) {
+    if (current.max_weight === row.maxWeight && current.source === row.source) {
       continue;
     }
-    updates.push({ id: current.id, maxWeight });
+    updates.push({
+      id: current.id,
+      maxWeight: row.maxWeight,
+      source: row.source,
+    });
   }
 
   const supabase = createSupabaseServerClient();
@@ -123,7 +144,7 @@ export async function setStartingMaxes(
     updates.map((row) =>
       supabase
         .from("global_maxes")
-        .update({ max_weight: row.maxWeight })
+        .update({ max_weight: row.maxWeight, source: row.source })
         .eq("user_id", userId)
         .eq("id", row.id),
     ),
@@ -151,6 +172,7 @@ export async function raiseGlobalMax(input: {
   return insertGlobalMax(input.userId, {
     exerciseId: input.exerciseId,
     maxWeight: input.maxWeight,
+    source: input.workoutSessionId ? "session" : "manual",
     achievedAt: input.achievedAt,
     phaseId: input.phaseId ?? null,
     workoutSessionId: input.workoutSessionId ?? null,
@@ -228,18 +250,22 @@ export async function insertGlobalMax(
   input: {
     exerciseId: string;
     maxWeight: number;
+    source?: GlobalMaxSource;
     achievedAt: string;
     phaseId?: string | null;
     workoutSessionId?: string | null;
   },
 ): Promise<GlobalMax> {
   const supabase = createSupabaseServerClient();
+  const source =
+    input.source ?? (input.workoutSessionId != null ? "session" : "manual");
   const inserted = await supabase
     .from("global_maxes")
     .insert({
       user_id: userId,
       exercise_id: input.exerciseId,
       max_weight: input.maxWeight,
+      source,
       achieved_at: input.achievedAt,
       phase_id: input.phaseId ?? null,
       workout_session_id: input.workoutSessionId ?? null,

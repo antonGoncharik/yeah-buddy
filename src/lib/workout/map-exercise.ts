@@ -8,6 +8,7 @@ import type {
 import {
   toCategory,
   toExerciseSlot,
+  toGlobalMaxSource,
   toUnit,
   toWorkoutType,
 } from "@/lib/workout/map-enums";
@@ -40,6 +41,7 @@ export function mapGlobalMax(row: Record<string, unknown>): GlobalMax {
     user_id: String(row.user_id),
     exercise_id: String(row.exercise_id),
     max_weight: toNumber(row.max_weight),
+    source: toGlobalMaxSource(row.source),
     achieved_at: String(row.achieved_at).slice(0, 10),
     phase_id: toNullableString(row.phase_id),
     workout_session_id: toNullableString(row.workout_session_id),

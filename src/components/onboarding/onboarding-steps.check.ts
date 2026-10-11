@@ -38,7 +38,7 @@ assertEqual(
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,${personGym},ration,circle`,
+  `mode,${personGym},ration,lifts,circle`,
   "first run with gym",
 );
 assertEqual(
@@ -83,7 +83,7 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,${personGym},ration,circle`,
+  `mode,${personGym},ration,lifts,circle`,
   "one meal pack with gym uses profile and program",
 );
 

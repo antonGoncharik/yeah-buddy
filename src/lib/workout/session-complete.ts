@@ -3,6 +3,7 @@ import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
+import { refreshEstimateMaxesFromSession } from "@/lib/workout/estimate-max-refresh";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
 import { getSessionDetail } from "@/lib/workout/session-detail";
@@ -190,6 +191,12 @@ export async function completeSessionAsPlanned(
     await recordFunnelEvent(userId, "first_session");
     await trackEvent(userId, "workout_completed");
   }
+
+  const afterSets = await getSessionDetail(userId, sessionId);
+  if (afterSets) {
+    await refreshEstimateMaxesFromSession(userId, afterSets);
+  }
+
   const refreshed = await getSession(userId, sessionId);
   if (!refreshed) {
     return null;

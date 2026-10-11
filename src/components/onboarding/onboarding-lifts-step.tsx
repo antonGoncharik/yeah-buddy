@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
-import { parseDecimal } from "@/lib/workout/numbers";
+import type { UserSex, UserTrainingAge } from "@/lib/types";
+import {
+  type AnchorLift,
+  estimateAnchorMax,
+} from "@/lib/workout/estimate-maxes";
+import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export type LiftKey = "squat" | "bench" | "deadlift";
 
@@ -46,9 +51,32 @@ export function liftAnswersDraftInvalid(answers: LiftAnswers): boolean {
   return false;
 }
 
+function liftPreviewKg(
+  sex: UserSex | null,
+  trainingAge: UserTrainingAge | null,
+  weightKg: number | null,
+  lift: AnchorLift,
+  knownRaw: string | null,
+): number | null {
+  if (sex == null || trainingAge == null || weightKg == null) {
+    return null;
+  }
+  const known = parseDecimal(knownRaw ?? "");
+  return estimateAnchorMax({
+    sex,
+    trainingAge,
+    weightKg,
+    lift,
+    knownKg: known != null && known > 0 ? known : null,
+  });
+}
+
 export function OnboardingLiftsStep({
   answers,
   onChange,
+  sex = null,
+  trainingAge = null,
+  bodyWeightKg = null,
   saving = false,
   isLast = false,
   onConfirm,
@@ -56,17 +84,51 @@ export function OnboardingLiftsStep({
 }: {
   answers: LiftAnswers;
   onChange: (key: LiftKey, value: string | null) => void;
+  sex?: UserSex | null;
+  trainingAge?: UserTrainingAge | null;
+  bodyWeightKg?: number | null;
   saving?: boolean;
   isLast?: boolean;
   onConfirm?: () => void;
   onSkip?: () => void;
 }) {
+  const previews = ONBOARDING_LIFT_FIELDS.map((field) => ({
+    id: field.id,
+    label: field.label,
+    kg: liftPreviewKg(
+      sex,
+      trainingAge,
+      bodyWeightKg,
+      field.id,
+      answers[field.id],
+    ),
+  }));
+  const showPreview = previews.some((item) => item.kg != null);
+
   return (
     <div className="flex flex-col gap-3 pb-2">
       <p className="text-base text-muted-foreground">
-        Если знаешь присед, жим или становую — впиши вес. Если нет — посчитаем
-        сами.
+        Если знаешь присед, жим или становую — впиши вес. Остальные упражнения в
+        программе получат оценку по твоему профилю; её можно поправить после
+        тренировок.
       </p>
+      {showPreview ? (
+        <ul className="card-surface flex flex-col gap-2 px-5 py-4 text-sm text-muted-foreground">
+          {previews.map((item) =>
+            item.kg == null ? null : (
+              <li
+                key={item.id}
+                className="flex justify-between gap-3 tabular-nums"
+              >
+                <span>{item.label}</span>
+                <span className="font-medium text-foreground">
+                  ~{formatWeight(item.kg)} кг
+                </span>
+              </li>
+            ),
+          )}
+        </ul>
+      ) : null}
       <div className="flex flex-col gap-3">
         {ONBOARDING_LIFT_FIELDS.map((field) => {
           const value = answers[field.id] ?? "";

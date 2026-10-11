@@ -4,6 +4,7 @@ import type {
   ExerciseSlot,
   ExerciseUnit,
   ExerciseWorkoutType,
+  GlobalMaxSource,
   MaxSource,
   PhaseType,
   SessionFeel,
@@ -79,4 +80,11 @@ export function toPhaseType(value: unknown): PhaseType {
 
 export function toMaxSource(value: unknown): MaxSource {
   return value === "manual" ? "manual" : "auto";
+}
+
+export function toGlobalMaxSource(value: unknown): GlobalMaxSource {
+  if (value === "estimate" || value === "session") {
+    return value;
+  }
+  return "manual";
 }

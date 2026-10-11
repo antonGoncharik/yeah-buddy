@@ -116,6 +116,9 @@ export function onboardingSteps({
   }
 
   if (forceGym && pendingKind !== "workouts" && !pendingProgram) {
+    if (pendingKind !== "meals") {
+      next.push("lifts");
+    }
     next.push("circle");
   }
 

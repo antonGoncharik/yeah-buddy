@@ -218,7 +218,10 @@ async function applyStartingMaxes(
 
   const exercises = await listExercises(userId, "active");
   const byId = new Map(exercises.map((item) => [item.id, item]));
-  const wanted = new Map<string, number>();
+  const wanted = new Map<
+    string,
+    { maxWeight: number; source: "estimate" | "manual" }
+  >();
 
   for (const item of input.maxes) {
     const exercise = byId.get(item.exerciseId);
@@ -228,7 +231,7 @@ async function applyStartingMaxes(
     if (!firstRun && exercise.current_max) {
       continue;
     }
-    wanted.set(exercise.name, item.maxWeight);
+    wanted.set(exercise.name, { maxWeight: item.maxWeight, source: "manual" });
   }
 
   const sex = input.sex ?? settings?.sex ?? null;
@@ -253,10 +256,25 @@ async function applyStartingMaxes(
       })),
     });
 
+    const manualFromAnchor = new Set<string>();
+    if (input.anchors?.squat != null) {
+      manualFromAnchor.add("Приседания со штангой");
+    }
+    if (input.anchors?.bench != null) {
+      manualFromAnchor.add("Жим лёжа");
+    }
+    if (input.anchors?.deadlift != null) {
+      manualFromAnchor.add("Становая тяга");
+    }
+
     for (const item of estimated) {
-      if (!wanted.has(item.name)) {
-        wanted.set(item.name, item.maxWeight);
+      if (wanted.has(item.name)) {
+        continue;
       }
+      wanted.set(item.name, {
+        maxWeight: item.maxWeight,
+        source: manualFromAnchor.has(item.name) ? "manual" : "estimate",
+      });
     }
   }
 
@@ -265,16 +283,24 @@ async function applyStartingMaxes(
 
 async function writeStartingMaxes(
   userId: string,
-  wanted: Map<string, number>,
+  wanted: Map<string, { maxWeight: number; source: "estimate" | "manual" }>,
 ): Promise<void> {
   const exercises = await listExercises(userId, "active");
-  const rows: Array<{ exerciseId: string; maxWeight: number }> = [];
-  for (const [name, maxWeight] of wanted) {
+  const rows: Array<{
+    exerciseId: string;
+    maxWeight: number;
+    source: "estimate" | "manual";
+  }> = [];
+  for (const [name, row] of wanted) {
     const exerciseId = liveExerciseId(exercises, name);
     if (!exerciseId) {
       continue;
     }
-    rows.push({ exerciseId, maxWeight });
+    rows.push({
+      exerciseId,
+      maxWeight: row.maxWeight,
+      source: row.source,
+    });
   }
 
   try {
@@ -294,16 +320,20 @@ async function writeStartingMaxes(
 
 async function writeStartingMaxesOneByOne(
   userId: string,
-  wanted: Map<string, number>,
+  wanted: Map<string, { maxWeight: number; source: "estimate" | "manual" }>,
 ): Promise<void> {
   let exercises = await listExercises(userId, "active");
-  for (const [name, maxWeight] of wanted) {
+  for (const [name, row] of wanted) {
     const exerciseId = liveExerciseId(exercises, name);
     if (!exerciseId) {
       continue;
     }
     try {
-      await correctStartingMax({ userId, exerciseId, maxWeight });
+      await correctStartingMax({
+        userId,
+        exerciseId,
+        maxWeight: row.maxWeight,
+      });
     } catch (error) {
       if (error instanceof StartingMaxLockedError) {
         return;
@@ -320,7 +350,7 @@ async function writeStartingMaxesOneByOne(
         await correctStartingMax({
           userId,
           exerciseId: again,
-          maxWeight,
+          maxWeight: row.maxWeight,
         });
       } catch (retry) {
         if (retry instanceof StartingMaxLockedError) {

@@ -39,6 +39,7 @@ function exercise(
             user_id: "u",
             exercise_id: id,
             max_weight: max,
+            source: "manual",
             achieved_at: "2026-01-01",
             phase_id: null,
             workout_session_id: null,

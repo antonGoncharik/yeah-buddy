@@ -14,6 +14,8 @@ export type CycleStatus = "current" | "completed";
 
 export type MaxSource = "auto" | "manual";
 
+export type GlobalMaxSource = "estimate" | "manual" | "session";
+
 export type SessionStatus = "planned" | "completed" | "skipped";
 
 export type SessionFeel = "easy" | "close" | "miss";
@@ -99,6 +101,7 @@ export interface GlobalMax {
   user_id: string;
   exercise_id: string;
   max_weight: number;
+  source: GlobalMaxSource;
   achieved_at: string;
   phase_id: string | null;
   workout_session_id: string | null;
