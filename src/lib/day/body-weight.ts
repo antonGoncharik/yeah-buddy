@@ -165,6 +165,9 @@ export function bodyWeightWindow(
   let perKgCount = 0;
 
   for (const day of days) {
+    if (day.fact_protein <= 0) {
+      continue;
+    }
     const body = carried.get(day.date);
     if (body == null) {
       continue;

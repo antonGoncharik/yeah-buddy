@@ -12,9 +12,9 @@ export const KCAL_PER_BODY_KG = 7700;
 
 /** Under a week the scale is mostly water. */
 const MIN_SPAN_DAYS = 7;
-const MIN_LOGGED_DAYS = 5;
-/** Logged food has to cover at least half the days between the weigh-ins. */
-const MIN_COVERAGE = 0.5;
+const MIN_LOGGED_DAYS = 6;
+/** Logged food has to cover most days between the weigh-ins. */
+const MIN_COVERAGE = 0.55;
 /** Fewer points and the scale line is mostly guesswork. */
 const MIN_WEIGH_INS = 3;
 /** Recent days weigh more than the start of the window (half-life in days). */
