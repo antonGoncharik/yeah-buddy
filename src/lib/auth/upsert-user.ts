@@ -1,3 +1,4 @@
+import type { FirstStartKind } from "@/lib/analytics/start-attribution";
 import {
   DEFAULT_REST_MACRO_GOALS,
   DEFAULT_TRAINING_MACRO_GOALS,
@@ -12,9 +13,15 @@ export type TelegramProfile = {
   language_code?: string | null;
 };
 
+export type UserCreateAttribution = {
+  kind: FirstStartKind;
+  ref: string;
+};
+
 export async function upsertTelegramUser(
   telegramUser: TelegramProfile,
-): Promise<User> {
+  attribution?: UserCreateAttribution | null,
+): Promise<{ user: User; created: boolean }> {
   const supabase = createSupabaseServerClient();
   const profile = {
     username: telegramUser.username,
@@ -33,19 +40,26 @@ export async function upsertTelegramUser(
   }
 
   let userRow = existing.data;
+  let created = false;
 
   if (!userRow) {
-    const created = await supabase
+    const inserted = await supabase
       .from("users")
       .insert({
         telegram_id: telegramUser.id,
         ...profile,
+        ...(attribution
+          ? {
+              first_start_kind: attribution.kind,
+              first_start_ref: attribution.ref.slice(0, 200),
+            }
+          : {}),
       })
       .select("*")
       .single();
 
-    if (created.error) {
-      if (created.error.code === "23505") {
+    if (inserted.error) {
+      if (inserted.error.code === "23505") {
         const raced = await supabase
           .from("users")
           .select("*")
@@ -58,11 +72,16 @@ export async function upsertTelegramUser(
 
         userRow = raced.data;
       } else {
-        throw created.error;
+        throw inserted.error;
       }
     } else {
-      userRow = created.data;
+      userRow = inserted.data;
+      created = true;
     }
+  }
+
+  if (!userRow) {
+    throw new Error("User lookup failed");
   }
 
   const updated = await supabase
@@ -102,7 +121,7 @@ export async function upsertTelegramUser(
     }
   }
 
-  return mapUser(updated.data);
+  return { user: mapUser(updated.data), created };
 }
 
 function mapUser(row: Record<string, unknown>): User {

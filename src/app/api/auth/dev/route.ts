@@ -13,7 +13,7 @@ export async function POST(): Promise<NextResponse> {
   }
 
   try {
-    const user = await upsertTelegramUser({
+    const { user } = await upsertTelegramUser({
       id: DEV_TELEGRAM_ID,
       username: "dev",
       first_name: "Dev",

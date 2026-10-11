@@ -18,6 +18,14 @@ export type TelegramWebAppUser = {
   language_code: string | null;
 };
 
+export function readStartParamFromInitData(initData: string): string | null {
+  if (!initData) {
+    return null;
+  }
+  const value = new URLSearchParams(initData).get("start_param");
+  return value ? emptyToNull(value) : null;
+}
+
 export function verifyTelegramInitData(
   initData: string,
   botToken: string,

@@ -1,6 +1,6 @@
 import type { NextResponse } from "next/server";
 import { z } from "zod";
-
+import { classifyStartAttribution } from "@/lib/analytics/start-attribution";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { setSessionCookie } from "@/lib/auth/session";
 import { upsertTelegramUser } from "@/lib/auth/upsert-user";
@@ -8,7 +8,10 @@ import { getServerEnv } from "@/lib/env";
 import { OPEN_VIA_BOT } from "@/lib/messages";
 import { ensureInitialData } from "@/lib/seed";
 import { rememberUserTimezone } from "@/lib/telegram/reminders";
-import { verifyTelegramInitData } from "@/lib/telegram/verify-init-data";
+import {
+  readStartParamFromInitData,
+  verifyTelegramInitData,
+} from "@/lib/telegram/verify-init-data";
 
 const bodySchema = z.object({
   initData: z.string().min(1),
@@ -44,7 +47,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const user = await upsertTelegramUser(telegramUser);
+    const startParam = readStartParamFromInitData(parsedBody.data.initData);
+    const attribution =
+      startParam != null ? classifyStartAttribution(startParam) : null;
+    const { user } = await upsertTelegramUser(
+      telegramUser,
+      attribution ? { kind: attribution.kind, ref: attribution.ref } : null,
+    );
     await ensureInitialData(user.id);
     await rememberUserTimezone(user.id, parsedBody.data.timeZone);
     await setSessionCookie({
