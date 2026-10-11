@@ -11,7 +11,9 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request): Promise<Response> {
   try {
     const env = getServerEnv();
-    const handleUpdate = webhookCallback(createBot(env), "std/http");
+    const handleUpdate = webhookCallback(createBot(env), "std/http", {
+      secretToken: env.TELEGRAM_WEBHOOK_SECRET,
+    });
     return await handleUpdate(request);
   } catch (error) {
     console.error(error);

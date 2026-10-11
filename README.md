@@ -88,7 +88,7 @@ Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary�
 Cron: `GET /api/cron/reminders` once per UTC hour (`0 0-23 * * *` as 24 daily jobs so Vercel Hobby can deploy) with `CRON_SECRET`; response includes `{ evening, midday }` counts. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
 
 ```text
-https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook
+https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>
 ```
 
 Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods and exercises without maxes. Onboarding applies macros from sex / weight / goal / training age, optional **ration** into meal templates, anchor lifts, then a program (default suggestion «Всё тело»; female users see the home shelf with glutes first). The gym queue is empty until onboarding (or the queue screen) applies a program. First visit with no history opens onboarding: guide tour → profile → ration → lifts → program circle. максимум на раз is not part of that setup — a workout can start as soon as the day has at least one exercise with a set scheme, and missing working weights are asked inside the session (`POST /api/sessions/:id/maxes`).
