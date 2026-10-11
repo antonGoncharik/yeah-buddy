@@ -5,6 +5,7 @@ import type {
   MuscleMissedEvent,
 } from "@/lib/types";
 import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
+import { volumeLandmarksForMuscle } from "@/lib/workout/muscle-volume-landmarks";
 
 const STALE_DAYS = 10;
 
@@ -14,6 +15,10 @@ export function buildMuscleInsights(input: {
   planned_template_name: string | null;
 }): string[] {
   const lines: string[] = [];
+  const catchUp = catchUpLine(input.muscles);
+  if (catchUp) {
+    lines.push(catchUp);
+  }
   const weekly = (id: MuscleId) =>
     input.muscles.find((item) => item.id === id)?.sets_per_week ?? 0;
 
@@ -69,17 +74,6 @@ export function buildMuscleInsights(input: {
   for (const item of stale) {
     lines.push(
       `${item.label} не трогали ${item.days_since} дн — последний раз ${item.last_trained ?? "—"}.`,
-    );
-  }
-
-  const lowVolume = input.muscles
-    .filter((item) => item.volume_band <= 1 && item.sets > 0)
-    .sort((left, right) => left.sets_per_week - right.sets_per_week)
-    .slice(0, 1);
-
-  for (const item of lowVolume) {
-    lines.push(
-      `${item.label} — мало объёма: ~${item.sets_per_week} раб. подх./нед.`,
     );
   }
 
@@ -140,6 +134,36 @@ function balancePair(
     ratio: Math.round(ratio * 100) / 100,
     label: `${MUSCLE_LABELS[a]} / ${MUSCLE_LABELS[b]}`,
   };
+}
+
+/** How many weighted sets a muscle still needs to reach its growth zone. */
+export function setsShortOfGrowthZone(cell: MuscleCell): number | null {
+  if (cell.sets <= 0) {
+    return null;
+  }
+  const mav = volumeLandmarksForMuscle(cell.id).mav;
+  if (cell.sets_per_week >= mav) {
+    return null;
+  }
+  return Math.round((mav - cell.sets_per_week) * 10) / 10;
+}
+
+export function catchUpLine(muscles: MuscleCell[]): string | null {
+  const short = muscles
+    .filter((item) => setsShortOfGrowthZone(item) != null)
+    .sort(
+      (left, right) =>
+        (setsShortOfGrowthZone(right) ?? 0) -
+        (setsShortOfGrowthZone(left) ?? 0),
+    )[0];
+  if (!short) {
+    return null;
+  }
+  const gap = setsShortOfGrowthZone(short);
+  if (gap == null) {
+    return null;
+  }
+  return `${short.label}: до зоны роста ещё ~${gap} взвеш. подх./нед.`;
 }
 
 function formatRatio(ratio: number): string {

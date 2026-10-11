@@ -106,6 +106,17 @@ export const STARTER_FOODS: StarterFood[] = [
   food("Киви", "as_is", 1, 0, 15, 64, 80, "1 шт"),
   food("Клубника", "as_is", 1, 0, 8, 36, 150),
   food("Протеин сывороточный", "dry", 80, 5, 8, 397, 30),
+  food("Пельмени", "as_is", 12, 15, 28, 290, 200),
+  food("Йогурт греческий 2%", "as_is", 8, 2, 4, 66, 150),
+  food("Колбаса варёная", "as_is", 12, 22, 2, 254, 50),
+  {
+    ...food("Пшено сухое", "dry", 11, 3, 67, 340, 70),
+    yield_from_g: 70,
+    yield_to_g: 210,
+  },
+  food("Ряженка 2.5%", "liquid", 3, 3, 4, 54, 200),
+  food("Сосиски", "as_is", 11, 20, 2, 230, 80),
+  food("Фарш говяжий сырой", "raw", 18, 15, 0, 210, 150),
 ];
 
 export const STARTER_MEAL_TEMPLATES: StarterMealTemplate[] = [

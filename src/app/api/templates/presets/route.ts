@@ -10,6 +10,7 @@ import {
 import { sessionRoute } from "@/lib/api/session-route";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
+import { syncTrainingCarbsToProgram } from "@/lib/nutrition/training-day";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
 import {
   applyProgramPreset,
@@ -38,6 +39,7 @@ export const POST = sessionRoute(async (session, request) => {
       session.userId,
       parsed.data.preset,
     );
+    await syncTrainingCarbsToProgram(session.userId, parsed.data.preset);
     if (parsed.data.fromStart) {
       await recordFunnelEvent(session.userId, "program_start");
     }

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import {
   defaultOnboardingCircle,
   isExtraProgram,
+  programForTrainingAge,
   scaledTemplateGrams,
 } from "@/lib/onboarding/setup";
 import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
@@ -43,6 +44,26 @@ assert(
 assert(
   defaultOnboardingCircle("ppl", false) === "ppl",
   "existing program stays",
+);
+assert(
+  programForTrainingAge(null) === "full_body",
+  "new lifter gets full body",
+);
+assert(
+  programForTrainingAge("beginner") === "full_body",
+  "beginner stays on full body",
+);
+assert(
+  programForTrainingAge("year") === "five_by_five",
+  "a year of training gets 5×5",
+);
+assert(
+  programForTrainingAge("years") === "upper_lower",
+  "several years get upper/lower",
+);
+assert(
+  defaultOnboardingCircle("empty", false, "year") === "five_by_five",
+  "empty circle follows training age",
 );
 assert(!isExtraProgram("full_body"), "full body is the featured start");
 assert(isExtraProgram("one_day"), "other beginner sits under more");

@@ -176,6 +176,7 @@ export function withRecountedProtein(
     activity_level: form.activity_level,
     height_cm: parseOptionalHeight(form.height_cm),
     birth_year: parseOptionalBirthYear(form.birth_year),
+    goal_pace: form.goal === "keep" ? null : form.goal_pace,
   });
   if (goals == null) {
     return null;

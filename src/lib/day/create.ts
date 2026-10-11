@@ -13,10 +13,12 @@ import {
   type Macros,
   MEAL_DISPLAY_ORDER,
 } from "@/lib/nutrition";
+import { carbsForDay } from "@/lib/nutrition/training-day";
 import { getUserSettings } from "@/lib/settings";
 import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, MealTemplateDetail, MealType } from "@/lib/types";
+import { isCurrentPhaseDeload } from "@/lib/workout/current-phase";
 
 export async function createDayFromTemplate(
   userId: string,
@@ -163,10 +165,17 @@ export async function getTargets(
   const fat =
     (dayType === "training" ? settings?.training_fat : settings?.rest_fat) ??
     fallback.fat;
-  const carbs =
-    (dayType === "training"
-      ? settings?.training_carbs
-      : settings?.rest_carbs) ?? fallback.carbs;
+  const restCarbs = settings?.rest_carbs ?? defaultMacroGoals("rest").carbs;
+  const trainingCarbs =
+    settings?.training_carbs ?? defaultMacroGoals("training").carbs;
+  const deload =
+    dayType === "training" ? await isCurrentPhaseDeload(userId) : false;
+  const carbs = carbsForDay({
+    dayType,
+    restCarbs,
+    trainingCarbs,
+    deload,
+  });
 
   return {
     protein,

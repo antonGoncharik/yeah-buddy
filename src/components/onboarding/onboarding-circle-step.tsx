@@ -2,8 +2,9 @@
 
 import { ProgramPresetCatalog } from "@/components/workout/program-preset-list";
 import type { OnboardingCircle } from "@/lib/onboarding";
+import { beginnerProgramPitch } from "@/lib/onboarding/setup";
 import { haptic } from "@/lib/telegram/haptic";
-import type { UserSex } from "@/lib/types";
+import type { UserSex, UserTrainingAge } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   homeProgramPresetIds,
@@ -18,6 +19,7 @@ export function OnboardingCircleStep({
   picking,
   shelf,
   saving,
+  trainingAge,
   onChange,
   onBeginner,
   onHome,
@@ -29,6 +31,7 @@ export function OnboardingCircleStep({
   picking: boolean;
   shelf: OnboardingProgramShelf | null;
   saving: boolean;
+  trainingAge: UserTrainingAge | null;
   sex: UserSex | null;
   onChange: (value: OnboardingCircle) => void;
   onBeginner: () => void;
@@ -40,7 +43,7 @@ export function OnboardingCircleStep({
     const beginner = (
       <ChoiceCard
         title="Не знаю что делать"
-        hint="Поставим «Всё тело»: 2 разные тренировки, обычно ходят 2–3 раза в неделю."
+        hint={beginnerProgramPitch(trainingAge).hint}
         disabled={saving}
         onClick={() => {
           haptic("tick");

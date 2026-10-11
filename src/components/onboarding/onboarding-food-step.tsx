@@ -5,6 +5,7 @@ import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step
 import { OnboardingWeightRuler } from "@/components/onboarding/onboarding-weight-ruler";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { proteinPerKg } from "@/lib/day/body-weight";
 import {
   formatKcal,
   ONBOARDING_SEX_OPTIONS,
@@ -12,8 +13,9 @@ import {
   type OnboardingSex,
   suggestMacroGoals,
 } from "@/lib/nutrition";
+import { paceHint } from "@/lib/nutrition/profile-energy";
 import { haptic } from "@/lib/telegram/haptic";
-import type { UserTrainingAge } from "@/lib/types";
+import type { UserGoalPace, UserTrainingAge } from "@/lib/types";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { parseDecimal } from "@/lib/workout/numbers";
 
@@ -153,28 +155,46 @@ export function OnboardingTrainingAgeStep({
   );
 }
 
+function proteinLine(protein: number, weightKg: number | null): string {
+  const perKg = weightKg != null ? proteinPerKg(protein, weightKg) : null;
+  if (perKg == null) {
+    return "";
+  }
+  const shown = perKg.toLocaleString("ru-RU", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${shown} г на кг текущего веса.`;
+}
+
 export function OnboardingMacrosSummary({
   sex,
   weight,
   goal,
   activity = null,
+  goalPace = null,
   heightCm = "",
   birthYear = "",
   foodOnly = false,
   saving = false,
   isLast = false,
+  canEnterDiary = false,
   onContinue,
+  onEnterDiary,
 }: {
   sex: OnboardingSex;
   weight: string;
   goal: OnboardingGoal;
   activity?: import("@/lib/types").UserActivityLevel | null;
+  goalPace?: UserGoalPace | null;
   heightCm?: string;
   birthYear?: string;
   foodOnly?: boolean;
   saving?: boolean;
   isLast?: boolean;
+  canEnterDiary?: boolean;
   onContinue?: () => void;
+  onEnterDiary?: () => void;
 }) {
   const weightKg = parseDecimal(weight);
   const height = parseDecimal(heightCm);
@@ -190,6 +210,7 @@ export function OnboardingMacrosSummary({
           height_cm: height,
           birth_year:
             birthYear.trim() !== "" && Number.isFinite(year) ? year : null,
+          goal_pace: goal === "keep" ? null : goalPace,
         })
       : null;
 
@@ -207,19 +228,40 @@ export function OnboardingMacrosSummary({
           {preview.protein} г белка
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          {foodOnly
-            ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
-            : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки — ${formatKcal(preview.training.kcal)} ккал, углеводов ${preview.training.carbs} г. Свой БЖУ всегда можно изменить в Настройках → «Цели на день».`}
+          {proteinLine(preview.protein, weightKg)}
+          {goal === "keep"
+            ? " Баланс: калории рядом с расходом, без дефицита и профицита."
+            : ` Темп уже в калориях: ${paceHint(goal, goalPace ?? "normal")}.`}
         </p>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Через 2 недели регулярных взвешиваний и еды калории подстроятся под
-          тебя автоматически.
+          {foodOnly
+            ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
+            : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки в зале — ${formatKcal(preview.training.kcal)} ккал. Дома и разгрузка остаются на калориях отдыха. Свой БЖУ можно изменить в Настройках → «Цели на день».`}
+        </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Когда две недели есть еда и хотя бы три взвешивания, предложим новую
+          цифру. Пока не нажмёшь «Поставить», цели не меняются.
         </p>
       </div>
+      {canEnterDiary && onEnterDiary ? (
+        <OnboardingPrimaryAction
+          saving={saving}
+          label="К дневнику"
+          onClick={onEnterDiary}
+        />
+      ) : null}
       {onContinue ? (
         <OnboardingPrimaryAction
           saving={saving}
           isLast={isLast}
+          variant={canEnterDiary ? "outline" : "default"}
+          label={
+            canEnterDiary
+              ? foodOnly
+                ? "Еда на день"
+                : "Рацион и программа"
+              : undefined
+          }
           onClick={onContinue}
         />
       ) : null}

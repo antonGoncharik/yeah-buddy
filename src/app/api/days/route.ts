@@ -236,6 +236,8 @@ export const GET = sessionRoute(async (session, request) => {
             settings?.training_protein ?? DEFAULT_TRAINING_MACRO_GOALS.protein,
           trainingFat:
             settings?.training_fat ?? DEFAULT_TRAINING_MACRO_GOALS.fat,
+          trainingCarbs:
+            settings?.training_carbs ?? DEFAULT_TRAINING_MACRO_GOALS.carbs,
           dismissedKcal: settings?.energy_goal_dismissed_kcal ?? null,
         };
         const energyPlan = viewingToday ? energyGoalOffer(energyInputs) : null;

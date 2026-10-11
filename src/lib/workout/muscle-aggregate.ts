@@ -194,6 +194,7 @@ export function buildMuscleSnapshot(
       missed_sessions: missedCount[id],
       weekly_sets: weeklySets[id].map((value) => Math.round(value * 10) / 10),
       recovery_percent: muscleRecoveryPercent({
+        muscleId: id,
         days_since: daysSince,
         sets_per_week: perWeek,
         sets,

@@ -50,7 +50,10 @@ import {
 } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
-import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
+import {
+  defaultOnboardingCircle,
+  programForTrainingAge,
+} from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { peekPendingProgramId } from "@/lib/share/pending";
 import type { PublicProgramId } from "@/lib/share/program-public";
@@ -151,7 +154,12 @@ export function useOnboardingScreen() {
       const gymFromLink = incomingProgram != null || incoming === "workouts";
       setGymEnabled(gymFromLink ? true : null);
       setCircle(
-        incomingProgram ?? defaultOnboardingCircle(onboarding.circle, replay),
+        incomingProgram ??
+          defaultOnboardingCircle(
+            onboarding.circle,
+            replay,
+            onboarding.settings.training_age,
+          ),
       );
       if (replay) {
         setSex(onboarding.settings.sex);
@@ -186,6 +194,7 @@ export function useOnboardingScreen() {
           activity_level: activity,
           height_cm: parsedHeight,
           birth_year: parsedBirthYear,
+          goal_pace: goal === "keep" ? null : goalPace,
         })
       : null;
   const proteinValue =
@@ -315,7 +324,16 @@ export function useOnboardingScreen() {
       setGoal(options.goal);
     }
     if (options?.trainingAge !== undefined) {
-      setTrainingAge(options.trainingAge);
+      const age = options.trainingAge;
+      setTrainingAge(age);
+      setCircle((current) =>
+        current === "empty" ||
+        current === "full_body" ||
+        current === "five_by_five" ||
+        current === "upper_lower"
+          ? programForTrainingAge(age)
+          : current,
+      );
     }
     if (options?.activity !== undefined) {
       setActivity(options.activity);
@@ -359,8 +377,12 @@ export function useOnboardingScreen() {
     void finish(circleOverride);
   }
 
-  async function finish(circleOverride?: OnboardingCircle) {
-    const chosen = circleOverride ?? circle;
+  async function finish(circleOverride?: OnboardingCircle, skipTail = false) {
+    const chosen =
+      circleOverride ??
+      (skipTail && gymEnabled === true
+        ? programForTrainingAge(trainingAge)
+        : circle);
     if (circleOverride) {
       setCircle(circleOverride);
     }
@@ -407,7 +429,7 @@ export function useOnboardingScreen() {
         pendingProgramId,
         replay,
         circle: chosen,
-        ration: skipRation ? null : ration,
+        ration: skipTail || skipRation ? null : ration,
         gymEnabled: gymEnabled === true,
       });
       if (isProgramPresetId(chosen) || pendingProgramId != null) {
@@ -436,6 +458,10 @@ export function useOnboardingScreen() {
 
   function confirmLifts() {
     goNext();
+  }
+
+  function finishDiary() {
+    void finish(undefined, true);
   }
 
   return {
@@ -478,6 +504,7 @@ export function useOnboardingScreen() {
     pickSelfRation,
     skipLifts,
     confirmLifts,
+    finishDiary,
     rationSelfSetup: skipRation,
     weightInvalid: error === WEIGHT_REQUIRED || error === WEIGHT_INVALID,
     onSexPick: (value: OnboardingSex) => {

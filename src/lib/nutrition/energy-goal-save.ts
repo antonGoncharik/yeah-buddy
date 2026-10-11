@@ -135,6 +135,7 @@ function offerFrom(
     restCarbs: settings.rest_carbs,
     trainingProtein: settings.training_protein,
     trainingFat: settings.training_fat,
+    trainingCarbs: settings.training_carbs,
     dismissedKcal: settings.energy_goal_dismissed_kcal,
   });
 }

@@ -113,6 +113,7 @@ export function AddMealItemScreen({
         startScan={startScan}
         showFavoriteOffer
         lumpEmptyHint={Boolean(lumpHrefBase)}
+        lumpHref={lumpHrefBase}
         stickyHideWhenSearch={Boolean(lumpHrefBase)}
         onScanConsumed={consumeScanParam}
         hrefForFood={(food) => appendFoodHrefSegment(foodHrefBase, food.id)}

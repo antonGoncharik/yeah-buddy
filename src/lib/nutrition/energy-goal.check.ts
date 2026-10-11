@@ -74,7 +74,7 @@ assertEqual(
 );
 assertEqual(lose?.rest.protein, 160, "protein follows 2 g/kg at 80 kg");
 assertEqual(lose?.restCarbs, 175, "carbs fill the cut after protein");
-assertEqual(lose?.trainingCarbs, 225, "training keeps the extra 50 g");
+assertEqual(lose?.trainingCarbs, 200, "cut training adds 25 g, not 50");
 assertEqual(lose?.rest.fat, 70, "fat stays while carbs can move");
 assert(lose != null, "lose offer");
 if (lose) {

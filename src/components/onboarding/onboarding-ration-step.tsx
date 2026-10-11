@@ -8,6 +8,7 @@ import {
   suggestMacroGoals,
 } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
+import type { UserActivityLevel, UserGoalPace } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
 
@@ -18,6 +19,10 @@ export function OnboardingRationStep({
   sex,
   weight,
   goal,
+  activity = null,
+  goalPace = null,
+  heightCm = "",
+  birthYear = "",
   onPickSelfSetup,
   onPick,
 }: {
@@ -27,13 +32,29 @@ export function OnboardingRationStep({
   sex: OnboardingSex | null;
   weight: string;
   goal: OnboardingGoal | null;
+  activity?: UserActivityLevel | null;
+  goalPace?: UserGoalPace | null;
+  heightCm?: string;
+  birthYear?: string;
   onPickSelfSetup: () => void;
   onPick: (id: RationId) => void;
 }) {
   const weightKg = parseDecimal(weight);
+  const height = parseDecimal(heightCm);
+  const year = Number.parseInt(birthYear, 10);
   const suggested =
     sex && goal && weightKg != null
-      ? suggestMacroGoals({ sex, weightKg, goal, protein: null })
+      ? suggestMacroGoals({
+          sex,
+          weightKg,
+          goal,
+          protein: null,
+          activity_level: activity,
+          height_cm: height,
+          birth_year:
+            birthYear.trim() !== "" && Number.isFinite(year) ? year : null,
+          goal_pace: goal === "keep" ? null : goalPace,
+        })
       : null;
 
   if (suggested == null) {

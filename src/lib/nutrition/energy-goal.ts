@@ -12,7 +12,8 @@ import { minGoalKcal, weeklyBodyRate } from "@/lib/nutrition/profile-energy";
 import {
   macroGoalsForTargetKcal,
   suggestFatGramsForProfile,
-  TRAINING_EXTRA_CARBS_G,
+  type TrainingLoad,
+  trainingExtraCarbsG,
 } from "@/lib/nutrition/suggest-protein";
 import type { UserGoal, UserGoalPace, UserSex } from "@/lib/types";
 
@@ -81,7 +82,9 @@ export function energyGoalOffer(input: {
   restCarbs: number;
   trainingProtein: number;
   trainingFat: number;
+  trainingCarbs?: number;
   dismissedKcal: number | null;
+  training_load?: TrainingLoad;
 }): EnergyGoalPlan | null {
   if (input.goal == null) {
     return null;
@@ -150,9 +153,18 @@ export function energyGoalOffer(input: {
     energy.endKg,
     input.goal,
   );
+  const load =
+    input.training_load ??
+    (input.trainingCarbs != null && input.trainingCarbs <= input.restCarbs
+      ? "home"
+      : "gym");
   const trainingCarbs = Math.min(
     MAX_CARBS_G,
-    rest.carbs + TRAINING_EXTRA_CARBS_G,
+    rest.carbs +
+      trainingExtraCarbsG({
+        goal: input.goal,
+        load,
+      }),
   );
   const training: Macros = {
     protein: trainingProtein,

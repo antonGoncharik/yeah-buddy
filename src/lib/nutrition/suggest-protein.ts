@@ -1,9 +1,11 @@
+import { KCAL_PER_BODY_KG } from "@/lib/ai/energy";
 import { calcKcalFromMacros, type Macros } from "@/lib/nutrition/macros";
 import {
   activityScale,
   mifflinRestKcal,
   minGoalKcal,
   referenceBodyWeightKg,
+  weeklyBodyRate,
 } from "@/lib/nutrition/profile-energy";
 import type {
   UserActivityLevel,
@@ -45,24 +47,48 @@ const FAT_G_PER_KG: Record<OnboardingGoal, number> = {
 };
 
 /**
- * Rough daily energy without height/age: bodyweight × kcal/kg.
- * Between sedentary and lightly active — enough for a diary start.
+ * Maintenance without height and age: body weight × kcal/kg.
+ * The goal and pace are applied on top, not baked into this table.
  */
-const KCAL_PER_KG: Record<OnboardingSex, Record<OnboardingGoal, number>> = {
-  male: { lose: 28, keep: 33, gain: 38 },
-  female: { lose: 25, keep: 30, gain: 35 },
+const KEEP_KCAL_PER_KG: Record<OnboardingSex, number> = {
+  male: 33,
+  female: 30,
 };
 
-/** Extra carbs on a training day (≈ +200 kcal), same gap as the old defaults. */
+/** Extra carbs on a heavy gym day at maintenance. Cuts use less, home uses none. */
 export const TRAINING_EXTRA_CARBS_G = 50;
 
 const CARB_FLOOR_G = 80;
 
-/** Rough lean-mass share — same scale for both sexes keeps g/kg honest. */
-const LEAN_SHARE: Record<OnboardingSex, number> = {
-  male: 1,
-  female: 0.9,
-};
+export type TrainingLoad = "gym" | "home" | "deload";
+
+/** Carbs added on top of the rest day. Home and deload stay flat. */
+export function trainingExtraCarbsG(input: {
+  goal: OnboardingGoal;
+  load?: TrainingLoad;
+}): number {
+  const load = input.load ?? "gym";
+  if (load === "home" || load === "deload") {
+    return 0;
+  }
+  if (input.goal === "lose") {
+    return 25;
+  }
+  if (input.goal === "gain") {
+    return 75;
+  }
+  return TRAINING_EXTRA_CARBS_G;
+}
+
+/** kcal/day added to maintenance so the weekly pace actually happens. */
+export function dailyGoalShiftKcal(input: {
+  weightKg: number;
+  goal: OnboardingGoal;
+  goal_pace?: UserGoalPace | null;
+}): number {
+  const rate = weeklyBodyRate(input.goal, input.goal_pace ?? null);
+  return Math.round((input.weightKg * rate * KCAL_PER_BODY_KG) / 7);
+}
 
 export const ONBOARDING_SEX_OPTIONS: Array<{
   id: OnboardingSex;
@@ -109,7 +135,7 @@ export function suggestProteinGrams(input: {
     weightKg: input.weightKg,
     height_cm: input.height_cm,
   });
-  const raw = baseKg * PROTEIN_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  const raw = baseKg * PROTEIN_G_PER_KG[input.goal];
   return clampProtein(roundToFive(raw));
 }
 
@@ -150,7 +176,7 @@ export function suggestFatGrams(input: {
     weightKg: input.weightKg,
     height_cm: input.height_cm,
   });
-  const raw = baseKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  const raw = baseKg * FAT_G_PER_KG[input.goal];
   return clampFat(roundToFive(raw));
 }
 
@@ -180,29 +206,35 @@ export function suggestRestKcal(input: {
   activity_level?: UserActivityLevel | null;
   height_cm?: number | null;
   birth_year?: number | null;
+  goal_pace?: UserGoalPace | null;
 }): number | null {
   if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
     return null;
   }
   const activity = input.activity_level ?? null;
+  let maintenance: number | null = null;
   if (activity != null && input.height_cm != null && input.birth_year != null) {
-    const mifflin = mifflinRestKcal({
+    maintenance = mifflinRestKcal({
       sex: input.sex,
       weightKg: input.weightKg,
       height_cm: input.height_cm,
       birth_year: input.birth_year,
       activity,
     });
-    if (mifflin != null) {
-      return Math.max(minGoalKcal(input.sex), mifflin);
-    }
   }
-  const scaled = Math.round(
-    input.weightKg *
-      KCAL_PER_KG[input.sex][input.goal] *
-      activityScale(activity),
-  );
-  return Math.max(minGoalKcal(input.sex), scaled);
+  if (maintenance == null) {
+    maintenance = Math.round(
+      input.weightKg * KEEP_KCAL_PER_KG[input.sex] * activityScale(activity),
+    );
+  }
+  const shifted =
+    maintenance +
+    dailyGoalShiftKcal({
+      weightKg: input.weightKg,
+      goal: input.goal,
+      goal_pace: input.goal_pace,
+    });
+  return Math.max(minGoalKcal(input.sex), shifted);
 }
 
 /**
@@ -218,6 +250,8 @@ export function suggestMacroGoals(input: {
   activity_level?: UserActivityLevel | null;
   height_cm?: number | null;
   birth_year?: number | null;
+  goal_pace?: UserGoalPace | null;
+  training_load?: TrainingLoad;
 }): { protein: number; rest: Macros; training: Macros } | null {
   const suggested = suggestProteinGrams(input);
   const fat = suggestFatGrams(input);
@@ -232,7 +266,12 @@ export function suggestMacroGoals(input: {
       : suggested;
 
   const restCarbs = carbsForTargetKcal(restKcal, protein, fat);
-  const trainingCarbs = restCarbs + TRAINING_EXTRA_CARBS_G;
+  const trainingCarbs =
+    restCarbs +
+    trainingExtraCarbsG({
+      goal: input.goal,
+      load: input.training_load,
+    });
 
   return {
     protein,

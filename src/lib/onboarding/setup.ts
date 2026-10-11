@@ -1,3 +1,4 @@
+import type { UserTrainingAge } from "@/lib/types";
 import {
   isProgramPresetId,
   type ProgramPresetId,
@@ -6,14 +7,47 @@ import {
 
 export type OnboardingCircleChoice = ProgramPresetId | "empty";
 
+/** Linear full body, then 5×5, then upper/lower. Home stays a separate shelf. */
+export function programForTrainingAge(
+  trainingAge: UserTrainingAge | null,
+): ProgramPresetId {
+  if (trainingAge === "years") {
+    return "upper_lower";
+  }
+  if (trainingAge === "year") {
+    return "five_by_five";
+  }
+  return RECOMMENDED_PROGRAM_PRESET_ID;
+}
+
+export function beginnerProgramPitch(trainingAge: UserTrainingAge | null): {
+  hint: string;
+} {
+  const id = programForTrainingAge(trainingAge);
+  if (id === "five_by_five") {
+    return {
+      hint: "Поставим «Пять по пять»: одни и те же движения, вес растёт, когда зал идёт.",
+    };
+  }
+  if (id === "upper_lower") {
+    return {
+      hint: "Поставим «Верх / Низ»: один день верх, другой ноги.",
+    };
+  }
+  return {
+    hint: "Поставим «Всё тело»: 2 разные тренировки, обычно ходят 2–3 раза в неделю.",
+  };
+}
+
 export function defaultOnboardingCircle(
   circle: OnboardingCircleChoice,
   replay: boolean,
+  trainingAge: UserTrainingAge | null = null,
 ): OnboardingCircleChoice {
   if (replay || circle !== "empty") {
     return circle;
   }
-  return RECOMMENDED_PROGRAM_PRESET_ID;
+  return programForTrainingAge(trainingAge);
 }
 
 export function isExtraProgram(circle: OnboardingCircleChoice): boolean {

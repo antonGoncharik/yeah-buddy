@@ -80,5 +80,5 @@ export function muscleCellHint(cell: MuscleCell): string {
   if (cell.volume_band === 0) {
     return "За период почти не было нагрузки";
   }
-  return `~${cell.sets_per_week} раб. подх./нед · ${muscleBandLabel(cell.volume_band)}`;
+  return `~${cell.sets_per_week} взвеш. подх./нед · ${muscleBandLabel(cell.volume_band)}`;
 }

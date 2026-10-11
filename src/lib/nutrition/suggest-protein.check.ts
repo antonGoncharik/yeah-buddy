@@ -27,8 +27,8 @@ assertEqual(
 );
 assertEqual(
   suggestProteinGrams({ sex: "female", weightKg: 80, goal: "keep" }),
-  130,
-  "80 kg woman keep → 1.8 × 0.9",
+  145,
+  "80 kg woman keep → 1.8 g/kg, same scale as men",
 );
 assertEqual(
   suggestProteinGrams({ sex: "male", weightKg: 80, goal: "lose" }),
@@ -58,13 +58,46 @@ assertEqual(
 );
 assertEqual(
   suggestFatGrams({ sex: "female", weightKg: 80, goal: "keep" }),
-  65,
-  "80 × 0.9 × 0.9 → 64.8 → 65",
+  70,
+  "80 × 0.9 → 72 → 70, no sex haircut",
 );
 assertEqual(
   suggestRestKcal({ sex: "male", weightKg: 80, goal: "keep" }),
   2640,
-  "80 × 33",
+  "80 × 33 maintenance",
+);
+assertEqual(
+  suggestRestKcal({
+    sex: "male",
+    weightKg: 80,
+    goal: "lose",
+    goal_pace: "normal",
+  }),
+  2200,
+  "kcal/kg cut subtracts a normal pace",
+);
+assertEqual(
+  suggestRestKcal({
+    sex: "male",
+    weightKg: 80,
+    goal: "lose",
+    goal_pace: "slow",
+  }),
+  2420,
+  "slow cut is a smaller deficit",
+);
+assertEqual(
+  suggestRestKcal({
+    sex: "male",
+    weightKg: 80,
+    goal: "lose",
+    goal_pace: "normal",
+    activity_level: "moderate",
+    height_cm: 180,
+    birth_year: 1996,
+  }),
+  2230,
+  "mifflin maintenance minus a normal cut",
 );
 
 const goals = suggestMacroGoals({

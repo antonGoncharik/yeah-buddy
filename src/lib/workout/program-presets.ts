@@ -1,6 +1,7 @@
 export {
   HOME_PROGRAM_PRESET_IDS,
   homeProgramPresetIds,
+  isHomeProgramPresetId,
   LISTED_PROGRAM_PRESET_IDS,
   PROGRAM_LEVEL_LABELS,
   PROGRAM_LEVELS,

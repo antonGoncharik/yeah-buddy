@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
 import {
@@ -22,9 +23,11 @@ import type { Food } from "@/lib/types";
 
 export function UnknownBarcodeCard({
   ean,
+  lumpHref,
   onSaved,
 }: {
   ean: string;
+  lumpHref?: string;
   onSaved: (food: Food) => void | Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -83,8 +86,8 @@ export function UnknownBarcodeCard({
       <div>
         <p className="text-base font-medium">Своя пачка</p>
         <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-          Этого кода нет в каталоге. Название и БЖУ с упаковки — код останется в
-          твоих продуктах.
+          Этого кода нет в каталоге. Можно запомнить пачку или записать только
+          сегодняшнюю порцию, без карточки продукта.
         </p>
         <p className="mt-2 text-sm tabular-nums tracking-wide text-muted-foreground">
           {ean}
@@ -119,8 +122,16 @@ export function UnknownBarcodeCard({
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
       <Button type="submit" className="h-12 text-base" disabled={saving}>
-        {saving ? "Запоминаю…" : "Запомнить"}
+        {saving ? "Запоминаю…" : "Запомнить пачку"}
       </Button>
+      {lumpHref ? (
+        <Link
+          href={lumpHref}
+          className="text-center text-base font-medium text-primary"
+        >
+          Только эту порцию
+        </Link>
+      ) : null}
     </form>
   );
 }

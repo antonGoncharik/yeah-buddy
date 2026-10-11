@@ -33,8 +33,22 @@ const LANDMARKS: Record<MuscleId, MuscleVolumeLandmarks> = {
   calves: SMALL,
 };
 
+export type MuscleSize = "large" | "medium" | "small";
+
 export function volumeLandmarksForMuscle(id: MuscleId): MuscleVolumeLandmarks {
   return LANDMARKS[id];
+}
+
+/** Large muscles stay sore longer. Core recovers with the small muscles. */
+export function muscleSize(id: MuscleId): MuscleSize {
+  const landmarks = LANDMARKS[id];
+  if (landmarks === LARGE) {
+    return "large";
+  }
+  if (landmarks === MEDIUM) {
+    return "medium";
+  }
+  return "small";
 }
 
 export function volumeBandFromLandmarks(

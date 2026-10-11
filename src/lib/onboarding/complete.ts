@@ -11,6 +11,7 @@ import {
   macroGoalsFromProtein,
   suggestMacroGoals,
 } from "@/lib/nutrition";
+import { syncTrainingCarbsToProgram } from "@/lib/nutrition/training-day";
 import { scaledTemplateGrams } from "@/lib/onboarding/setup";
 import type { OnboardingState } from "@/lib/onboarding/types";
 import {
@@ -152,6 +153,7 @@ export async function completeOnboarding(
 
     if (isProgramPresetId(input.circle)) {
       await applyProgramPreset(userId, input.circle);
+      await syncTrainingCarbsToProgram(userId, input.circle);
     } else if (input.circle === "empty") {
       const templates = await listTemplates(userId);
       if (templates.length > 0) {
@@ -209,6 +211,7 @@ function goalsForOnboarding(
       activity_level: input.activity_level ?? current.activity_level,
       height_cm: input.height_cm ?? current.height_cm,
       birth_year: input.birth_year ?? current.birth_year,
+      goal_pace: input.goal_pace ?? current.goal_pace,
     });
     if (suggested != null) {
       return { rest: suggested.rest, training: suggested.training };

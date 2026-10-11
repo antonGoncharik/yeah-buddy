@@ -20,11 +20,13 @@ export function CatalogFoodSection({
   onAdded,
   onHits,
   barcodeTaken = false,
+  lumpHref,
 }: {
   query: string;
   onAdded: (food: Food) => void | Promise<void>;
   onHits?: (hasHits: boolean) => void;
   barcodeTaken?: boolean;
+  lumpHref?: string;
 }) {
   const catalog = useCatalogSearch(query);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -94,7 +96,12 @@ export function CatalogFoodSection({
         />
       ) : null}
       {showOwn && ean ? (
-        <UnknownBarcodeCard key={ean} ean={ean} onSaved={onAdded} />
+        <UnknownBarcodeCard
+          key={ean}
+          ean={ean}
+          lumpHref={lumpHref}
+          onSaved={onAdded}
+        />
       ) : null}
     </div>
   );

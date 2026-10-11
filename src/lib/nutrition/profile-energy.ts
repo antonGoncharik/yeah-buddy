@@ -34,8 +34,8 @@ export const ONBOARDING_PACE_OPTIONS: Array<{
   hint: string;
 }> = [
   { id: "slow", label: "Плавно", hint: "≈0,25% веса в неделю" },
-  { id: "normal", label: "Обычно", hint: "≈0,5% на сушке" },
-  { id: "fast", label: "Быстрее", hint: "≈0,75% на сушке" },
+  { id: "normal", label: "Обычно", hint: "≈0,5% веса в неделю" },
+  { id: "fast", label: "Быстрее", hint: "≈0,75% веса в неделю" },
 ];
 
 const PACE_LOSE_RATE: Record<UserGoalPace, number> = {
@@ -118,4 +118,20 @@ export function weeklyBodyRate(
     return PACE_LOSE_RATE[p];
   }
   return PACE_GAIN_RATE[p];
+}
+
+/** Percent of body weight per week, for the pace buttons. */
+export function paceHint(goal: UserGoal, pace: UserGoalPace): string {
+  if (goal === "keep") {
+    return "вес держим";
+  }
+  const percent = Math.abs(weeklyBodyRate(goal, pace)) * 100;
+  const digits = percent >= 0.1 ? 2 : 1;
+  const shown = percent.toLocaleString("ru-RU", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  return goal === "lose"
+    ? `около ${shown}% веса в неделю вниз`
+    : `около ${shown}% веса в неделю вверх`;
 }

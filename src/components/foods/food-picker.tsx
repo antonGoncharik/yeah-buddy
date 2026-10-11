@@ -28,6 +28,7 @@ export function FoodPicker({
   showFavoriteOffer = false,
   skipEmptyFavorites = true,
   lumpEmptyHint = false,
+  lumpHref,
   topSlot,
   hrefForFood,
   onSelectFood,
@@ -44,6 +45,7 @@ export function FoodPicker({
   showFavoriteOffer?: boolean;
   skipEmptyFavorites?: boolean;
   lumpEmptyHint?: boolean;
+  lumpHref?: string;
   topSlot?: ReactNode;
   hrefForFood?: (food: Food) => string;
   onSelectFood?: (food: Food) => void;
@@ -169,6 +171,7 @@ export function FoodPicker({
           <CatalogFoodSection
             query={query}
             barcodeTaken={ownsBarcode(foods, query)}
+            lumpHref={lumpHref}
             onHits={setShopHits}
             onAdded={(food) => {
               setStarterOnly(false);

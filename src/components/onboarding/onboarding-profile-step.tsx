@@ -7,6 +7,7 @@ import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import {
   ONBOARDING_ACTIVITY_OPTIONS,
   ONBOARDING_PACE_OPTIONS,
+  paceHint,
 } from "@/lib/nutrition/profile-energy";
 import type { OnboardingGoal } from "@/lib/nutrition/suggest-protein";
 import { haptic } from "@/lib/telegram/haptic";
@@ -148,7 +149,9 @@ export function OnboardingGoalPaceStep({
           }}
         >
           <span className="text-base font-medium">{option.label}</span>
-          <span className="text-sm font-normal opacity-80">{option.hint}</span>
+          <span className="text-sm font-normal opacity-80">
+            {paceHint(goal, option.id)}
+          </span>
         </Button>
       ))}
     </div>

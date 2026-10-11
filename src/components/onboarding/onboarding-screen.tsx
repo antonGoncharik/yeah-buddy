@@ -49,11 +49,9 @@ import {
 } from "@/components/onboarding/use-onboarding-screen";
 import { Button } from "@/components/ui/button";
 import { LOAD_FAILED } from "@/lib/messages";
+import { programForTrainingAge } from "@/lib/onboarding/setup";
 import { parseDecimal } from "@/lib/workout/numbers";
-import {
-  isProgramPresetId,
-  RECOMMENDED_PROGRAM_PRESET_ID,
-} from "@/lib/workout/program-presets";
+import { isProgramPresetId } from "@/lib/workout/program-presets";
 
 export function OnboardingScreen() {
   const {
@@ -90,6 +88,7 @@ export function OnboardingScreen() {
     rationSelfSetup,
     skipLifts,
     confirmLifts,
+    finishDiary,
     weightInvalid,
     onSexPick,
     onWeightChange,
@@ -323,12 +322,15 @@ export function OnboardingScreen() {
             weight={weight}
             goal={goal}
             activity={activity}
+            goalPace={goalPace}
             heightCm={heightCm}
             birthYear={birthYear}
             foodOnly={foodOnly}
             saving={saving}
             isLast={isLast}
+            canEnterDiary={!replay && !isLast}
             onContinue={() => void goNext()}
+            onEnterDiary={() => finishDiary()}
           />
         ) : null}
 
@@ -341,6 +343,10 @@ export function OnboardingScreen() {
               sex={sex}
               weight={weight}
               goal={goal}
+              activity={activity}
+              goalPace={goalPace}
+              heightCm={heightCm}
+              birthYear={birthYear}
               onPickSelfSetup={pickSelfRation}
               onPick={onRationPick}
             />
@@ -376,8 +382,11 @@ export function OnboardingScreen() {
               saving={saving}
               sex={sex}
               onChange={setCircle}
+              trainingAge={trainingAge}
               onBeginner={() =>
-                void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
+                void goNext({
+                  circleOverride: programForTrainingAge(trainingAge),
+                })
               }
               onHome={() => {
                 setProgramShelf("home");

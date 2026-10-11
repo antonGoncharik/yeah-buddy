@@ -24,6 +24,8 @@ import {
   muscleCellHint,
   muscleHeatFill,
 } from "@/lib/workout/muscle-heat-style";
+import { setsShortOfGrowthZone } from "@/lib/workout/muscle-insights";
+import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
 import { formatTonnage } from "@/lib/workout/numbers";
 
 const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
@@ -33,13 +35,9 @@ const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
   { id: "90", label: "90" },
 ];
 
-const VOLUME_LEGEND: Array<{ band: VolumeBand; label: string }> = [
-  { band: 0, label: "Нет" },
-  { band: 1, label: "Мало" },
-  { band: 2, label: "Средне" },
-  { band: 3, label: "Норма" },
-  { band: 4, label: "Много" },
-];
+const VOLUME_LEGEND: Array<{ band: VolumeBand; label: string }> = (
+  [0, 1, 2, 3, 4] as const
+).map((band) => ({ band, label: VOLUME_BAND_LABELS[band] }));
 
 export function MuscleScreen() {
   const {
@@ -282,8 +280,8 @@ export function MuscleScreen() {
               </ul>
             ) : (
               <p className="px-1 text-xs text-muted-foreground">
-                Восстановление: выше % — зона готова к тяжёлой работе; ниже —
-                ещё отходит от недавнего объёма.
+                Восстановление: выше % — зона готова к тяжёлой работе. Крупные
+                мышцы отходят дольше мелких.
               </p>
             )}
 
@@ -296,9 +294,17 @@ export function MuscleScreen() {
                   </p>
                 </div>
                 <MuscleWeeklySparkline cell={selected} />
+                {setsShortOfGrowthZone(selected) != null ? (
+                  <p className="text-sm text-muted-foreground">
+                    До зоны роста ещё ~{setsShortOfGrowthZone(selected)} взвеш.
+                    подх./нед.
+                  </p>
+                ) : null}
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-muted-foreground">Подходы (вес)</dt>
+                    <dt className="text-muted-foreground">
+                      Взвешенные подходы
+                    </dt>
                     <dd className="font-medium tabular-nums">
                       {selected.sets}
                     </dd>
@@ -360,7 +366,7 @@ export function MuscleScreen() {
                   </ol>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Нет упражнений с рабочими подходами за период.
+                    Нет упражнений с взвешенными подходами за период.
                   </p>
                 )}
               </section>
