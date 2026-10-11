@@ -6,8 +6,7 @@ export function sentryEnvironment(): string {
 
 /** Must match the release name created during `next build` (Vercel git SHA or SENTRY_RELEASE). */
 export function sentryRelease(): string | undefined {
-  const raw =
-    process.env.SENTRY_RELEASE ?? process.env.VERCEL_GIT_COMMIT_SHA;
+  const raw = process.env.SENTRY_RELEASE ?? process.env.VERCEL_GIT_COMMIT_SHA;
   return raw && raw.length > 0 ? raw : undefined;
 }
 
