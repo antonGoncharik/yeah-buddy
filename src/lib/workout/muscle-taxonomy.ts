@@ -122,8 +122,7 @@ export function resolveExerciseMuscles(input: {
   }
 
   const fromPart = bodyPartWeights(part);
-  const refined = refineByName(name, part, fromPart);
-  return normalizeMuscleWeights(refined);
+  return refineByName(name, part, fromPart);
 }
 
 function bodyPartWeights(part: string): MuscleWeights {
@@ -155,7 +154,30 @@ function refineByName(
   base: MuscleWeights,
 ): MuscleWeights {
   if (
-    includesAny(name, ["трицеп", "triceps", "разгиб", "extension", "франц"])
+    includesAny(name, [
+      "присед",
+      "squat",
+      "жим ног",
+      "leg press",
+      "разгибание ног",
+      "leg extension",
+      "выпад",
+      "lunge",
+      "гак",
+      "hack",
+    ])
+  ) {
+    return { quads: 0.55, glutes: 0.4, hamstrings: 0.1 };
+  }
+  if (
+    includesAny(name, ["сгибание ног", "leg curl", "болгар", "split squat"])
+  ) {
+    return { hamstrings: 0.55, glutes: 0.35, quads: 0.15 };
+  }
+  if (
+    includesAny(name, ["трицеп", "triceps", "франц"]) ||
+    (includesAny(name, ["разгиб", "extension"]) &&
+      !includesAny(name, ["ног", "leg"]))
   ) {
     return { triceps: 1, chest: 0.15 };
   }
@@ -167,7 +189,8 @@ function refineByName(
       "сгибание рук",
       "молот",
       "скотт",
-    ])
+    ]) &&
+    !includesAny(name, ["ног", "leg curl"])
   ) {
     return { biceps: 1, forearms: 0.2 };
   }
@@ -213,27 +236,6 @@ function refineByName(
       lower_back: 0.35,
       upper_back: 0.15,
     };
-  }
-  if (
-    includesAny(name, [
-      "присед",
-      "squat",
-      "жим ног",
-      "leg press",
-      "разгибание ног",
-      "leg extension",
-      "выпад",
-      "lunge",
-      "гак",
-      "hack",
-    ])
-  ) {
-    return { quads: 0.55, glutes: 0.4, hamstrings: 0.1 };
-  }
-  if (
-    includesAny(name, ["сгибание ног", "leg curl", "болгар", "split squat"])
-  ) {
-    return { hamstrings: 0.55, glutes: 0.35, quads: 0.15 };
   }
   if (includesAny(name, ["ягод", "glute", "hip thrust", "мост"])) {
     return { glutes: 1, hamstrings: 0.25 };

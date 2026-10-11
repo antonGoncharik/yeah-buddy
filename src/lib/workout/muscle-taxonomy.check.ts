@@ -41,3 +41,13 @@ const cardio = resolveExerciseMuscles({
 });
 
 assert(Object.keys(cardio).length === 0, "cardio has no muscle map");
+
+const legExt = resolveExerciseMuscles({
+  body_part: "upper legs",
+  name_en: "leg extension",
+  name_ru: "Разгибание ног",
+  equipment: "machine",
+});
+
+assert((legExt.quads ?? 0) > 0.5, "leg extension hits quads not triceps");
+assert((legExt.triceps ?? 0) === 0, "leg extension is not triceps");
