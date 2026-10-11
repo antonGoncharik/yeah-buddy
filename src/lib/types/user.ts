@@ -12,6 +12,8 @@ export interface User {
 export type UserSex = "male" | "female";
 export type UserGoal = "lose" | "keep" | "gain";
 export type UserTrainingAge = "beginner" | "year" | "years";
+export type UserActivityLevel = "low" | "moderate" | "high";
+export type UserGoalPace = "slow" | "normal" | "fast";
 
 export interface UserSettings {
   user_id: string;
@@ -38,5 +40,10 @@ export interface UserSettings {
   energy_goal_dismissed_kcal: number | null;
   /** Workouts tab, day-type switch, gym reminders and AI gym review. */
   gym_enabled: boolean;
+  height_cm: number | null;
+  activity_level: UserActivityLevel | null;
+  goal_pace: UserGoalPace | null;
+  reminder_hour: number;
+  review_cooldown_until: string | null;
   updated_at: string;
 }

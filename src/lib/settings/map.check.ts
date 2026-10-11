@@ -51,6 +51,13 @@ const row = {
   training_age: "year",
   granted_programs: [],
   gym_enabled: true,
+  height_cm: null,
+  activity_level: null,
+  goal_pace: null,
+  reminder_hour: 21,
+  review_cooldown_until: null,
+  energy_goal_dismissed_kcal: null,
+  meal_template_fill_prompt_dismissed: false,
   updated_at: "2026-01-01",
 };
 

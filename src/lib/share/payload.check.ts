@@ -91,6 +91,11 @@ const settings: UserSettings = {
   meal_template_fill_prompt_dismissed: false,
   gym_enabled: true,
   energy_goal_dismissed_kcal: null,
+  height_cm: null,
+  activity_level: null,
+  goal_pace: null,
+  reminder_hour: 21,
+  review_cooldown_until: null,
   updated_at: "2026-01-01",
 };
 

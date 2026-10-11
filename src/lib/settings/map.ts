@@ -6,7 +6,9 @@ import { isRecord, toNumber } from "@/lib/read";
 import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
 import type {
+  UserActivityLevel,
   UserGoal,
+  UserGoalPace,
   UserSettings,
   UserSex,
   UserTrainingAge,
@@ -42,8 +44,41 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
       row.energy_goal_dismissed_kcal,
     ),
     gym_enabled: parseGymEnabled(row.gym_enabled),
+    height_cm: parseStoredHeight(row.height_cm),
+    activity_level: parseStoredActivity(row.activity_level),
+    goal_pace: parseStoredGoalPace(row.goal_pace),
+    reminder_hour: parseReminderHour(row.reminder_hour),
+    review_cooldown_until:
+      typeof row.review_cooldown_until === "string"
+        ? row.review_cooldown_until
+        : null,
     updated_at: String(row.updated_at),
   };
+}
+
+function parseStoredHeight(value: unknown): number | null {
+  const n = toNumber(value);
+  return n > 0 ? n : null;
+}
+
+function parseStoredActivity(value: unknown): UserActivityLevel | null {
+  return value === "low" || value === "moderate" || value === "high"
+    ? value
+    : null;
+}
+
+function parseStoredGoalPace(value: unknown): UserGoalPace | null {
+  return value === "slow" || value === "normal" || value === "fast"
+    ? value
+    : null;
+}
+
+function parseReminderHour(value: unknown): number {
+  const hour = toNumber(value);
+  if (hour >= 17 && hour <= 23) {
+    return hour;
+  }
+  return 21;
 }
 
 export function parseStoredSex(value: unknown): UserSex | null {
