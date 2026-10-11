@@ -21,10 +21,9 @@ import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { SettingsAccessSection } from "@/components/settings/settings-access-section";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAppearanceSection } from "@/components/settings/settings-appearance-section";
-import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { SettingsGymModeSection } from "@/components/settings/settings-gym-mode-section";
-import { SettingsInbox } from "@/components/settings/settings-inbox";
+import { SettingsContactSection } from "@/components/settings/settings-contact-section";
 import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
@@ -220,11 +219,7 @@ export function SettingsScreen({
           </section>
         ) : null}
 
-        <section className="flex flex-col gap-2">
-          <SectionHeading title="Связь" />
-          <SettingsInbox />
-          <SettingsAuthor />
-        </section>
+        <SettingsContactSection />
       </div>
     </div>
   );
