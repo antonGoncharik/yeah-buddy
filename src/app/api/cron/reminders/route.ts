@@ -2,6 +2,10 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { getServerEnv } from "@/lib/env";
+import {
+  captureServerError,
+  reportRemindersCronResult,
+} from "@/lib/monitoring/sentry";
 import { isCronAuthorized, runRemindersCron } from "@/lib/telegram/reminders";
 
 export const runtime = "nodejs";
@@ -35,8 +39,11 @@ async function runCron(request: Request): Promise<NextResponse> {
   }
 
   try {
-    return jsonOk(await runRemindersCron());
+    const result = await runRemindersCron();
+    reportRemindersCronResult(result);
+    return jsonOk(result);
   } catch (error) {
+    captureServerError(error, { subsystem: "cron_reminders" });
     return failRoute(error);
   }
 }

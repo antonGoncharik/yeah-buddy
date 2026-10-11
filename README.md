@@ -59,6 +59,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `NEXT_PUBLIC_APP_URL` | no | public HTTPS app host; Mini App fallback and doodle/sticker files |
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
+| `SENTRY_DSN` | no | Server errors, Gemini failures, and reminder cron stats (org `antgoncharikgmailcom`). Optional `NEXT_PUBLIC_SENTRY_DSN` for the Mini App client |
 | `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
 | `GEMINI_API_KEY` | no | text review «Как прошло». Up to four comma-separated keys, each from its own Google project (one project shares one Gemini quota). **Three** reviews per user per day. A limited key is skipped for the next call. Without a key the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo, same pool of up to four keys from separate projects. **Three** photos per user per day. Without a key the camera link is hidden, food still logs by hand |

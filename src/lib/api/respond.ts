@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isIsoDate } from "@/lib/day/dates";
 import { CHECK_DATE, CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
+import { captureServerError } from "@/lib/monitoring/sentry";
 
 export function jsonError(
   error: string,
@@ -72,6 +73,7 @@ export function failRoute(
   }
 
   console.error(error);
+  captureServerError(error, { subsystem: "api" });
   return jsonError(LOAD_FAILED, 500);
 }
 

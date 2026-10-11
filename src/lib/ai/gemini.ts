@@ -17,6 +17,7 @@ import {
   AI_REVIEW_LIMIT,
   AI_REVIEW_NO_KEY,
 } from "@/lib/messages";
+import { captureServerError } from "@/lib/monitoring/sentry";
 
 const reviewTextSchema = z.object({
   headline: z.string().trim().min(1).max(REVIEW_HEADLINE_CHARS),
@@ -338,6 +339,10 @@ export async function generateGeminiJson({
     if (!response.ok) {
       console.error("gemini request failed", response.status, payload);
       if (!isGeminiLimit(response.status, payload)) {
+        captureServerError(new Error(`gemini http ${response.status}`), {
+          subsystem: "gemini",
+          status: String(response.status),
+        });
         throw new ReviewError("GEMINI", failedMessage);
       }
       noteGeminiLimited(key, geminiCooldownUntil(payload, Date.now()));

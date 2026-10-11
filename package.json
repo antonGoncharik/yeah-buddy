@@ -22,6 +22,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@resvg/resvg-js": "^2.6.2",
+    "@sentry/nextjs": "^11.6.0",
     "@supabase/supabase-js": "^2.114.0",
     "@twa-dev/sdk": "^8.0.2",
     "@zxing/browser": "^0.2.1",
