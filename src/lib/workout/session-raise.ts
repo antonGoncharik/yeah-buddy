@@ -3,6 +3,7 @@ import type {
   SessionFeel,
   SessionMaxRaiseOffer,
 } from "@/lib/types";
+import { estimateE1rm } from "@/lib/workout/e1rm";
 import { floorToStep, increaseMax } from "@/lib/workout/formulas";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
@@ -14,6 +15,10 @@ export function proposeMaxFromWorkSets(input: {
     set_type: string;
     planned_weight: number | null;
     actual_weight: number | null;
+    planned_reps: number | null;
+    actual_reps: number | null;
+    planned_rir?: number | null;
+    actual_rir?: number | null;
   }>;
 }): number | null {
   let best: number | null = null;
@@ -24,12 +29,24 @@ export function proposeMaxFromWorkSets(input: {
     if (set.planned_weight == null || set.planned_weight <= 0) {
       continue;
     }
-    if (set.actual_weight == null || set.actual_weight <= set.planned_weight) {
+    const plannedWeight = set.planned_weight;
+    const actualWeight = set.actual_weight ?? set.planned_weight;
+    const plannedE1 = estimateE1rm(
+      plannedWeight,
+      set.planned_reps,
+      set.planned_rir ?? null,
+    );
+    const actualE1 = estimateE1rm(
+      actualWeight,
+      set.actual_reps ?? set.planned_reps,
+      set.actual_rir ?? set.planned_rir ?? null,
+    );
+    if (plannedE1 == null || actualE1 == null || actualE1 <= plannedE1) {
       continue;
     }
 
     const next = floorToStep(
-      (set.actual_weight * input.sessionMax) / set.planned_weight,
+      (input.sessionMax * actualE1) / plannedE1,
       input.step,
     );
     if (best == null || next > best) {
@@ -54,6 +71,10 @@ export function proposeSessionMaxRaises(input: {
       set_type: string;
       planned_weight: number | null;
       actual_weight: number | null;
+      planned_reps: number | null;
+      actual_reps: number | null;
+      planned_rir?: number | null;
+      actual_rir?: number | null;
     }>;
   }>;
 }): SessionMaxRaiseOffer[] {
@@ -108,8 +129,6 @@ export function sessionRaiseOffers(
     feel: detail.session.feel,
     increasePercent,
     currentMaxByExercise,
-    // Only exercises planned from 1RM can raise it; lines,
-    // fixed kilograms and «по самочувствию» have nothing to scale.
     exercises: detail.exercises.flatMap((item) =>
       item.max_weight != null
         ? [

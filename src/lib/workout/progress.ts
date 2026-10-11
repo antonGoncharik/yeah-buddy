@@ -94,6 +94,7 @@ export async function getStrengthProgress(
     list.push({
       date: record.achieved_at.slice(0, 10),
       weight: record.max_weight,
+      e1rm: null,
       seconds: null,
       tonnage: null,
       circle_tonnage: null,

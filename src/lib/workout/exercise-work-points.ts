@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ProgressPoint, SessionFeel } from "@/lib/types";
+import { e1rmFromWorkSet } from "@/lib/workout/e1rm";
 import {
   formatWorkDate,
   loadPhaseMeta,
@@ -120,11 +121,13 @@ async function pointsFromSessions(
       }
 
       const seconds = peakWorkSeconds(item.sets);
+      const e1rm = e1rmFromWorkSet(work);
       draft.push({
         sessionIndex: index,
         exerciseId: item.exercise_id,
         date: session.session_date,
         weight,
+        e1rm,
         seconds: seconds != null && seconds > 0 ? seconds : null,
         tonnage: workTonnage(item.sets),
         circle_tonnage: null,
@@ -149,6 +152,7 @@ async function pointsFromSessions(
     list.push({
       date: row.date,
       weight: row.weight,
+      e1rm: row.e1rm,
       seconds: row.seconds,
       tonnage: row.tonnage,
       circle_tonnage: circle[index] ?? null,

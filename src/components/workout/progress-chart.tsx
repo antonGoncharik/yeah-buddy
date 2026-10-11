@@ -41,7 +41,7 @@ export function ProgressChart({
       ? "с"
       : metric === "relative"
         ? ""
-        : metric === "tonnage"
+        : metric === "tonnage" || metric === "e1rm"
           ? "кг"
           : "кг";
   const formatValue =
@@ -91,7 +91,9 @@ export function ProgressChart({
                     ? (point.relative ?? 0)
                     : metric === "tonnage"
                       ? (point.tonnage ?? 0)
-                      : point.weight,
+                      : metric === "e1rm"
+                        ? (point.e1rm ?? 0)
+                        : point.weight,
               )}
               {unit ? ` ${unit}` : ""}
               {metric === "weight" && point.tonnage != null

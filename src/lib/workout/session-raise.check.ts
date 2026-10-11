@@ -17,6 +17,8 @@ const work = {
   set_type: "work",
   planned_weight: 80,
   actual_weight: 85,
+  planned_reps: 5,
+  actual_reps: 5,
 };
 
 assertEqual(
@@ -26,14 +28,14 @@ assertEqual(
     sets: [work],
   }),
   105,
-  "fact 85 from 80% of 100 floors to 105",
+  "fact 85x5 vs plan 80x5 raises max",
 );
 
 assertEqual(
   proposeMaxFromWorkSets({
     sessionMax: 100,
     step: 2.5,
-    sets: [{ ...work, actual_weight: 80 }],
+    sets: [{ ...work, actual_weight: 80, actual_reps: 5 }],
   }),
   null,
   "at plan is not a raise from fact",
@@ -43,7 +45,35 @@ assertEqual(
   proposeMaxFromWorkSets({
     sessionMax: 100,
     step: 2.5,
-    sets: [{ set_type: "warmup", planned_weight: 60, actual_weight: 80 }],
+    sets: [{ ...work, actual_weight: 85, actual_reps: 2, planned_reps: 5 }],
+  }),
+  null,
+  "heavy weight with low reps is not a raise",
+);
+
+assertEqual(
+  proposeMaxFromWorkSets({
+    sessionMax: 100,
+    step: 2.5,
+    sets: [{ ...work, actual_weight: 80, actual_reps: 10, planned_reps: 5 }],
+  }),
+  112.5,
+  "extra reps at plan weight raises max",
+);
+
+assertEqual(
+  proposeMaxFromWorkSets({
+    sessionMax: 100,
+    step: 2.5,
+    sets: [
+      {
+        set_type: "warmup",
+        planned_weight: 60,
+        actual_weight: 80,
+        planned_reps: null,
+        actual_reps: null,
+      },
+    ],
   }),
   null,
   "warmup does not raise",
@@ -55,7 +85,9 @@ const exercises = [
     name: "Присед",
     max_weight: 100,
     weight_step: 2.5,
-    sets: [{ ...work, set_type: "work" as const }],
+    sets: [
+      { ...work, set_type: "work" as const, planned_reps: 5, actual_reps: 5 },
+    ],
   },
 ];
 

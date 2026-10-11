@@ -385,6 +385,7 @@ const seedBrief = buildReviewBrief({
           {
             date: "2026-08-20",
             weight: 175,
+            e1rm: null,
             seconds: null,
             tonnage: null,
             circle_tonnage: null,
@@ -397,6 +398,7 @@ const seedBrief = buildReviewBrief({
           {
             date: "2026-09-10",
             weight: 175,
+            e1rm: null,
             seconds: null,
             tonnage: null,
             circle_tonnage: null,

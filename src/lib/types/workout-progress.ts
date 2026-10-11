@@ -8,6 +8,8 @@ import type {
 export interface ProgressPoint {
   date: string;
   weight: number;
+  /** Estimated 1RM from peak work set (Epley + RIR). */
+  e1rm: number | null;
   seconds: number | null;
   tonnage: number | null;
   circle_tonnage: number | null;

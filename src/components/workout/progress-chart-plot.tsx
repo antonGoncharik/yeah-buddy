@@ -46,7 +46,9 @@ export function ProgressChartPlot({
         ? "К весу тела"
         : metric === "tonnage"
           ? "Тоннаж за тренировку"
-          : "Тяжёлый рабочий";
+          : metric === "e1rm"
+            ? "Оценка 1ПМ"
+            : "Тяжёлый рабочий";
   const mean = chartMean(values);
   const last = values[values.length - 1];
   const withUnit = (value: number) =>
@@ -69,7 +71,9 @@ export function ProgressChartPlot({
               ? "Прогресс к весу тела"
               : metric === "tonnage"
                 ? "Прогресс тоннажа"
-                : "Прогресс тяжёлого рабочего веса"
+                : metric === "e1rm"
+                  ? "Прогресс оценки 1ПМ"
+                  : "Прогресс тяжёлого рабочего веса"
         }
         maxLabel={withUnit(shape.dataMax)}
         minLabel={withUnit(shape.dataMin)}
@@ -131,7 +135,9 @@ function progressInsight(
         ? "к весу тела"
         : metric === "tonnage"
           ? "тоннаж"
-          : "тяжёлый рабочий";
+          : metric === "e1rm"
+            ? "оценка 1ПМ"
+            : "тяжёлый рабочий";
   return chartInsight([
     span && span.first !== span.last
       ? `${weightLabel} ${format(span.first)} → ${format(span.last)}`

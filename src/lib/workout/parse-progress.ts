@@ -201,6 +201,7 @@ function parseProgressPoint(
   return {
     date: row.date,
     weight: toNumber(row.weight),
+    e1rm: toNullableNumber(row.e1rm),
     seconds: seconds != null && seconds > 0 ? seconds : null,
     tonnage: toNullableNumber(row.tonnage),
     circle_tonnage: toNullableNumber(row.circle_tonnage),

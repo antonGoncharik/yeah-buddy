@@ -28,6 +28,7 @@ function point(
   return {
     date,
     weight,
+    e1rm: null,
     seconds: null,
     tonnage: null,
     circle_tonnage: null,

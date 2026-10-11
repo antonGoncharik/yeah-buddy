@@ -6,7 +6,12 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 
-export type ProgressMetric = "weight" | "seconds" | "relative" | "tonnage";
+export type ProgressMetric =
+  | "weight"
+  | "e1rm"
+  | "seconds"
+  | "relative"
+  | "tonnage";
 
 export const CATEGORY_SHORT_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
@@ -52,6 +57,14 @@ export function hasTonnageSeries(points: ProgressPoint[]): boolean {
   return tonnageSeries(points).length >= 2;
 }
 
+export function e1rmSeries(points: ProgressPoint[]): ProgressPoint[] {
+  return points.filter((point) => point.e1rm != null && point.e1rm > 0);
+}
+
+export function hasE1rmSeries(points: ProgressPoint[]): boolean {
+  return e1rmSeries(points).length >= 2;
+}
+
 export function relativeSeries(points: ProgressPoint[]): ProgressPoint[] {
   return points.filter((point) => point.relative != null && point.relative > 0);
 }
@@ -73,6 +86,9 @@ export function metricPoints(
   if (metric === "tonnage") {
     return tonnageSeries(points);
   }
+  if (metric === "e1rm") {
+    return e1rmSeries(points);
+  }
   return points;
 }
 
@@ -88,6 +104,9 @@ export function metricValues(
   }
   if (metric === "tonnage") {
     return tonnageSeries(points).map((point) => point.tonnage ?? 0);
+  }
+  if (metric === "e1rm") {
+    return e1rmSeries(points).map((point) => point.e1rm ?? 0);
   }
 
   return points.map((point) => point.weight);

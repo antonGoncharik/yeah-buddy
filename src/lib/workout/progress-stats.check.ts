@@ -23,6 +23,7 @@ const points = withRelativePoints(
     {
       date: "2026-09-03",
       weight: 175,
+      e1rm: null,
       seconds: null,
       tonnage: 2625,
       circle_tonnage: 2625,
@@ -35,6 +36,7 @@ const points = withRelativePoints(
     {
       date: "2026-09-10",
       weight: 175,
+      e1rm: null,
       seconds: null,
       tonnage: 2625,
       circle_tonnage: 2625,
@@ -136,6 +138,7 @@ function workPoint(
   return {
     date,
     weight,
+    e1rm: null,
     seconds,
     tonnage: kind === "dynamic" ? weight * 5 : null,
     circle_tonnage: null,
