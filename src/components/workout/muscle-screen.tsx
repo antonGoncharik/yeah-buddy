@@ -177,8 +177,8 @@ export function MuscleScreen() {
                 </div>
               </div>
 
-              <div className="hidden items-end justify-center gap-4 sm:flex">
-                <div className="flex flex-col items-center gap-1">
+              <div className="hidden w-full items-start justify-center gap-3 sm:flex">
+                <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
                   <span className="text-xs text-muted-foreground">Спереди</span>
                   <MuscleBodyFigure
                     view="front"
@@ -187,10 +187,11 @@ export function MuscleScreen() {
                     displayMode={displayMode}
                     onSelect={onSelectMuscle}
                     figureSex={snapshot.figure_sex}
-                    compact
+                    zoomable
+                    className="max-w-full"
                   />
                 </div>
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
                   <span className="text-xs text-muted-foreground">Сзади</span>
                   <MuscleBodyFigure
                     view="back"
@@ -199,7 +200,8 @@ export function MuscleScreen() {
                     displayMode={displayMode}
                     onSelect={onSelectMuscle}
                     figureSex={snapshot.figure_sex}
-                    compact
+                    zoomable
+                    className="max-w-full"
                   />
                 </div>
               </div>
@@ -212,11 +214,13 @@ export function MuscleScreen() {
                   displayMode={displayMode}
                   onSelect={onSelectMuscle}
                   figureSex={snapshot.figure_sex}
+                  zoomable
                 />
               </div>
 
               <p className="text-center text-xs text-muted-foreground">
-                Нажми на зону на схеме или в списке ниже.
+                Нажми на зону. Кнопки или щипок двумя пальцами — крупнее, потом
+                можно двигать.
               </p>
             </div>
 
