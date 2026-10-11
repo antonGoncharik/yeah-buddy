@@ -198,6 +198,15 @@ export function TodayDayView({
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
   const quickLogMealId = pickQuickLogMealId(visibleMeals);
   const showEmptyStart = !viewOnly && !dayHasItems;
+  const emptyTextMeal =
+    showEmptyStart &&
+    aiText &&
+    date === today &&
+    accountAgeDays != null &&
+    accountAgeDays < 3 &&
+    quickLogMealId
+      ? { date, mealId: quickLogMealId, busy }
+      : null;
   const showSaveTemplate = !viewOnly && dayHasItems && !isTempId(shownDay.id);
   const proteinMealCount = shownDay.meals.filter(
     (meal) => sumMealItems(meal.items).protein > 0,
@@ -428,6 +437,7 @@ export function TodayDayView({
             addHref={addHref}
             busy={busy}
             onCopyYesterday={() => void copyYesterday()}
+            textMeal={emptyTextMeal}
           />
         </div>
       ) : null}

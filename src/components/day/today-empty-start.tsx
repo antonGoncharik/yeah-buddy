@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { CopyYesterdayButton } from "@/components/day/copy-yesterday-button";
+import { TodayTextMealForm } from "@/components/day/today-text-meal-log";
 import { buttonVariants } from "@/components/ui/button";
 import { EMPTY_START_ADD, EMPTY_START_REPEAT } from "@/lib/messages";
 import type { EmptyStartCopy } from "@/lib/retention";
@@ -15,14 +16,20 @@ export function TodayEmptyStart({
   addHref,
   busy,
   onCopyYesterday,
+  textMeal,
 }: {
   yesterdayHasFood: boolean;
   copy: EmptyStartCopy | null;
   addHref: string | null;
   busy: boolean;
   onCopyYesterday: () => void;
+  textMeal?: {
+    date: string;
+    mealId: string;
+    busy: boolean;
+  } | null;
 }) {
-  if (!yesterdayHasFood && !addHref) {
+  if (!yesterdayHasFood && !addHref && !textMeal) {
     return null;
   }
 
@@ -44,12 +51,23 @@ export function TodayEmptyStart({
           onCopy={onCopyYesterday}
         />
       ) : null}
+      {textMeal ? (
+        <div className="card-surface flex flex-col gap-3 border border-primary/20 bg-primary/5 px-4 py-4">
+          <p className="text-base font-medium">Запиши еду текстом</p>
+          <TodayTextMealForm
+            date={textMeal.date}
+            mealId={textMeal.mealId}
+            busy={textMeal.busy}
+            embedded
+          />
+        </div>
+      ) : null}
       {addHref ? (
         <Link
           href={addHref}
           className={cn(
             buttonVariants({
-              variant: repeat ? "outline" : "default",
+              variant: repeat || textMeal ? "outline" : "default",
             }),
             "h-14 w-full gap-2 text-lg",
           )}
