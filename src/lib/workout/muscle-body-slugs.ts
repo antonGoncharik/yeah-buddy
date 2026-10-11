@@ -1,4 +1,9 @@
-import type { MuscleBodyView, MuscleCell, MuscleId, VolumeBand } from "@/lib/types";
+import type {
+  MuscleBodyView,
+  MuscleCell,
+  MuscleId,
+  VolumeBand,
+} from "@/lib/types";
 
 /** SVG slug → muscle ids (react-native-body-highlighter). */
 export const SLUG_TO_MUSCLES: Record<string, MuscleId[]> = {

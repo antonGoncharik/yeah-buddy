@@ -176,22 +176,26 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     );
 
     const gymOn = readGymEnabled(peekJson(dayUrl));
-    const sessionOk = gymOn
-      ? await cachedGet(
-          sessionUrl,
-          (data) => {
-            if (!stillCurrent()) {
-              return true;
-            }
-            setWorkoutState(data);
+    let sessionOk: boolean;
+    if (gymOn) {
+      sessionOk = await cachedGet(
+        sessionUrl,
+        (data) => {
+          if (!stillCurrent()) {
             return true;
-          },
-          showCached,
-        ).then(
-          () => true,
-          () => false,
-        )
-      : (setWorkoutState(null), true);
+          }
+          setWorkoutState(data);
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      );
+    } else {
+      setWorkoutState(null);
+      sessionOk = true;
+    }
 
     const results = [dayOk, sessionOk];
 

@@ -64,7 +64,15 @@ export function parseCatalogExerciseDumpRow(
   const target = toNullableString(value.target);
   const image = toNullableString(value.image);
   const gifPath = toNullableString(value.gif_url);
-  if (!id || !name || !bodyPart || !equipment || !target || !image || !gifPath) {
+  if (
+    !id ||
+    !name ||
+    !bodyPart ||
+    !equipment ||
+    !target ||
+    !image ||
+    !gifPath
+  ) {
     return null;
   }
 

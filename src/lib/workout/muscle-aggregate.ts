@@ -5,7 +5,10 @@ import type {
   MuscleMissedEvent,
   MuscleSnapshot,
 } from "@/lib/types";
-import { buildMuscleBalance, buildMuscleInsights } from "@/lib/workout/muscle-insights";
+import {
+  buildMuscleBalance,
+  buildMuscleInsights,
+} from "@/lib/workout/muscle-insights";
 import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
 import {
   MUSCLE_IDS,
@@ -147,7 +150,14 @@ export function buildMuscleSnapshot(
         if (!prev || session.session_date > prev) {
           lastTrained.set(muscleId, session.session_date);
         }
-        recordHit(hits, muscleId, meta, session.session_date, setCount, tonnage);
+        recordHit(
+          hits,
+          muscleId,
+          meta,
+          session.session_date,
+          setCount,
+          tonnage,
+        );
       }
     }
   }
@@ -255,8 +265,7 @@ function recordHit(
   const prev = byExercise.get(meta.exercise_id);
   const nextSets = (prev?.sets ?? 0) + sets;
   const nextTonnage = (prev?.tonnage ?? 0) + tonnage;
-  const last_date =
-    !prev || date >= prev.last_date ? date : prev.last_date;
+  const last_date = !prev || date >= prev.last_date ? date : prev.last_date;
   byExercise.set(meta.exercise_id, {
     exercise_id: meta.exercise_id,
     name: meta.name,

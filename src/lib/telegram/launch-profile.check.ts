@@ -8,17 +8,11 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   }
 }
 
-const fakeWindow: {
-  location: { hash: string; search: string };
-  Telegram?: {
-    WebApp?: { initDataUnsafe?: Record<string, unknown> };
-    WebView?: { initParams?: Record<string, string> };
-  };
-} = {
+const fakeWindow = {
   location: { hash: "", search: "" },
   Telegram: {
     WebView: { initParams: { tgWebAppPlatform: "android" } },
-    WebApp: { initDataUnsafe: {} },
+    WebApp: { initDataUnsafe: {} as Record<string, unknown> },
   },
 };
 
@@ -41,7 +35,7 @@ assertEqual(
 assertEqual(botKeyboard.expandOnly, false, "bot is not expand-only");
 assertEqual(botKeyboard.shareUsesBotChatFlow, true, "bot uses prepared share");
 
-fakeWindow.Telegram!.WebApp!.initDataUnsafe = { start_param: "open" };
+fakeWindow.Telegram.WebApp.initDataUnsafe = { start_param: "open" };
 const appWebView = getTelegramLaunchProfile();
 assertEqual(appWebView.kind, "app-webview", "start_param is app webview");
 assertEqual(appWebView.expandOnly, true, "android app expand only");

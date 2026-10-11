@@ -1,3 +1,4 @@
+import type { ExerciseMuscleMeta } from "@/lib/workout/muscle-aggregate";
 import {
   applyCompoundGluteTargetFix,
   foldExerciseName,
@@ -6,7 +7,6 @@ import {
   mapDeltsFromName,
 } from "@/lib/workout/muscle-catalog-map";
 import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
-import type { ExerciseMuscleMeta } from "@/lib/workout/muscle-aggregate";
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -57,7 +57,10 @@ const calfMeta: ExerciseMuscleMeta = {
 };
 const calfWeights = resolveExerciseMuscleWeights(calfMeta);
 assertEqual(calfWeights.calves, 1, "calf primary");
-assert((calfWeights.hamstrings ?? 1) <= 0.25, "calf secondary hamstrings damped");
+assert(
+  (calfWeights.hamstrings ?? 1) <= 0.25,
+  "calf secondary hamstrings damped",
+);
 
 const squatStarter: ExerciseMuscleMeta = {
   exercise_id: "e2",

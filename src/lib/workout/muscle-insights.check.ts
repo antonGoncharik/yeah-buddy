@@ -1,5 +1,5 @@
-import { buildMuscleInsights } from "@/lib/workout/muscle-insights";
 import type { MuscleCell } from "@/lib/types";
+import { buildMuscleInsights } from "@/lib/workout/muscle-insights";
 
 function assert(condition: boolean, label: string): void {
   if (!condition) {
@@ -48,6 +48,15 @@ const lines = buildMuscleInsights({
   planned_template_name: "Ноги",
 });
 
-assert(lines.some((line) => line.includes("Грудь")), "stale chest insight");
-assert(lines.some((line) => line.includes("Пропуск")), "missed insight");
-assert(lines.some((line) => line.includes("Ноги")), "planned insight");
+assert(
+  lines.some((line) => line.includes("Грудь")),
+  "stale chest insight",
+);
+assert(
+  lines.some((line) => line.includes("Пропуск")),
+  "missed insight",
+);
+assert(
+  lines.some((line) => line.includes("Ноги")),
+  "planned insight",
+);

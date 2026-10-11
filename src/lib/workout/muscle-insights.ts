@@ -14,7 +14,6 @@ export function buildMuscleInsights(input: {
   planned_template_name: string | null;
 }): string[] {
   const lines: string[] = [];
-  const byId = new Map(input.muscles.map((item) => [item.id, item]));
 
   for (const pair of buildMuscleBalance(input.muscles)) {
     if (pair.ratio < 0.45) {
@@ -73,7 +72,12 @@ export function buildMuscleBalance(muscles: MuscleCell[]): MuscleBalancePair[] {
     muscles.find((item) => item.id === id)?.sets_per_week ?? 0;
 
   return [
-    balancePair("chest", "upper_back", pick("chest"), pick("upper_back") + pick("lats")),
+    balancePair(
+      "chest",
+      "upper_back",
+      pick("chest"),
+      pick("upper_back") + pick("lats"),
+    ),
     balancePair("quads", "hamstrings", pick("quads"), pick("hamstrings")),
     balancePair(
       "front_delts",

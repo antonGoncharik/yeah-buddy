@@ -38,10 +38,11 @@ const BACK_SLUGS = new Set([
 function extractPaths(tsSource) {
   const out = {};
   const slugRe = /slug:\s*"([^"]+)"/g;
-  let match;
   const indices = [];
-  while ((match = slugRe.exec(tsSource)) !== null) {
+  let match = slugRe.exec(tsSource);
+  while (match !== null) {
     indices.push({ slug: match[1], index: match.index });
+    match = slugRe.exec(tsSource);
   }
 
   for (let i = 0; i < indices.length; i += 1) {
@@ -50,7 +51,6 @@ function extractPaths(tsSource) {
     const block = tsSource.slice(index, end);
     const paths = [];
     const pathRe = /"([^"]+)"/g;
-    let pathMatch;
     let inPath = false;
     for (const line of block.split("\n")) {
       if (line.includes("path:")) {
@@ -59,11 +59,13 @@ function extractPaths(tsSource) {
       if (!inPath) {
         continue;
       }
-      while ((pathMatch = pathRe.exec(line)) !== null) {
+      let pathMatch = pathRe.exec(line);
+      while (pathMatch !== null) {
         const value = pathMatch[1];
         if (value.startsWith("M") || value.startsWith("m")) {
           paths.push(value);
         }
+        pathMatch = pathRe.exec(line);
       }
       if (inPath && line.trim() === "},") {
         break;

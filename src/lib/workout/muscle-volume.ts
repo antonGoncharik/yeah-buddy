@@ -9,10 +9,7 @@ export const VOLUME_BAND_LABELS: Record<VolumeBand, string> = {
 };
 
 /** Weighted work sets per calendar week (7 days from period start). */
-export function setsPerWeek(
-  weightedSets: number,
-  horizonDays: number,
-): number {
+export function setsPerWeek(weightedSets: number, horizonDays: number): number {
   const weeks = Math.max(horizonDays / 7, 1);
   return Math.round((weightedSets / weeks) * 10) / 10;
 }

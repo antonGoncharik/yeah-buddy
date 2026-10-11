@@ -14,7 +14,13 @@ export const STARTER_MUSCLE_BY_SOURCE_ID: Record<string, MuscleWeights> = {
   "0054": { quads: 0.85, glutes: 1, hamstrings: 0.35 }, // lunge
   "0585": { quads: 1, hamstrings: 0.25 },
   "0586": { hamstrings: 1, glutes: 0.35 },
-  "0032": { hamstrings: 1, glutes: 1, lower_back: 0.75, upper_back: 0.5, traps: 0.5 },
+  "0032": {
+    hamstrings: 1,
+    glutes: 1,
+    lower_back: 0.75,
+    upper_back: 0.5,
+    traps: 0.5,
+  },
   "0085": { hamstrings: 1, glutes: 0.85, lower_back: 0.5 },
   "0025": { chest: 1, triceps: 0.5, front_delts: 0.45 },
   "0047": { chest: 1, triceps: 0.45, front_delts: 0.5 },
