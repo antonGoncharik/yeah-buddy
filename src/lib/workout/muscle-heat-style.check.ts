@@ -33,13 +33,16 @@ const rearFill = slugHeatFill("deltoid_posterior_r", byId, "recovery");
 const fresh = slugHeatFill(
   "deltoid_posterior_r",
   new Map([
-    [
-      "rear_delts",
-      cell({ id: "rear_delts", recovery_percent: 95, sets: 6 }),
-    ],
+    ["rear_delts", cell({ id: "rear_delts", recovery_percent: 95, sets: 6 })],
   ]),
   "recovery",
 );
 
-assert(rearFill !== fresh, "recovery paint uses the muscle, not an empty stand-in");
-assert(rearFill.includes("22%"), "fatigued rear delt stays in the low recovery mix");
+assert(
+  rearFill !== fresh,
+  "recovery paint uses the muscle, not an empty stand-in",
+);
+assert(
+  rearFill.includes("22%"),
+  "fatigued rear delt stays in the low recovery mix",
+);

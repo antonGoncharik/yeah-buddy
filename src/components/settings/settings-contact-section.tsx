@@ -25,9 +25,7 @@ export function SettingsContactSection() {
       if (cancelled) {
         return;
       }
-      setShow(
-        readInboxOpenUrl(inbox) != null || readDonateOpen(donate),
-      );
+      setShow(readInboxOpenUrl(inbox) != null || readDonateOpen(donate));
     });
     return () => {
       cancelled = true;
