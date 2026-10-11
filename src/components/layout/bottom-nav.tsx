@@ -88,6 +88,7 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 onClick={(event) => onTabClick(item.href, event)}
                 className={cn(
                   "flex h-full flex-col items-center justify-center gap-1 px-1 text-center text-xs font-medium transition-colors duration-300 ease-[var(--ease-out-soft)] motion-reduce:transition-none sm:text-sm",

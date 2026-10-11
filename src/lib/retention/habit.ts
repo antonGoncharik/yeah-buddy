@@ -5,6 +5,8 @@ import type { DayHistoryRow } from "@/lib/types";
 
 /** First two weeks after onboarding — habit loop in the app and bot. */
 export const EARLY_HABIT_DAYS = 14;
+/** Show food-log streak in the day summary through the first month. */
+export const FOOD_STREAK_SUMMARY_DAYS = 30;
 export const FOOD_LOG_STREAK_WINDOW = 14;
 
 export function inEarlyHabitWindow(ageDays: number | null): boolean {

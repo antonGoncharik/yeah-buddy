@@ -46,6 +46,9 @@ import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
   type EarlyHabitSnapshot,
+  FOOD_STREAK_SUMMARY_DAYS,
+  foodStreakLabel,
+  inEarlyHabitWindow,
 } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
@@ -241,7 +244,13 @@ export function TodayDayView({
     yesterdayHasFood,
   });
   const habitSnapshot = useMemo(() => {
-    if (!earlyHabit || accountAgeDays == null) {
+    if (accountAgeDays == null) {
+      return null;
+    }
+    const needsSnapshot =
+      inEarlyHabitWindow(accountAgeDays) ||
+      (dayHasItems && accountAgeDays < FOOD_STREAK_SUMMARY_DAYS);
+    if (!needsSnapshot) {
       return null;
     }
     const todayProteinClosed = proteinClosed(
@@ -259,7 +268,6 @@ export function TodayDayView({
   }, [
     accountAgeDays,
     dayHasItems,
-    earlyHabit,
     earlyHabitSnapshot?.gymSessionsWeek,
     fact.protein,
     priorFoodLogDays,
@@ -279,6 +287,15 @@ export function TodayDayView({
         ? ("habit-bridge" as const)
         : null;
 
+  const foodStreakLine =
+    dayHasItems &&
+    accountAgeDays != null &&
+    accountAgeDays < FOOD_STREAK_SUMMARY_DAYS &&
+    habitSnapshot &&
+    habitSnapshot.foodLogStreak > 0
+      ? foodStreakLabel(habitSnapshot.foodLogStreak, false)
+      : null;
+
   const daySummary = (
     <DaySummary
       day={shownDay}
@@ -290,6 +307,7 @@ export function TodayDayView({
       lastWaist={lastWaist}
       weightSteady={weightSteady}
       priorProteinHits={priorProteinHits}
+      foodStreakLine={foodStreakLine}
       trainingGap={trainingGap}
       weightGap={weightGap}
       waistGap={waistGap}

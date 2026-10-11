@@ -46,6 +46,7 @@ export function DaySummary({
   bodyWeightBusy = false,
   weightSteady = false,
   priorProteinHits = 0,
+  foodStreakLine = null,
   trainingGap = null,
   weightGap = null,
   waistGap = null,
@@ -74,6 +75,7 @@ export function DaySummary({
   bodyWeightBusy?: boolean;
   weightSteady?: boolean;
   priorProteinHits?: number;
+  foodStreakLine?: string | null;
   trainingGap?: string | null;
   weightGap?: string | null;
   waistGap?: string | null;
@@ -196,6 +198,11 @@ export function DaySummary({
             {!compact && trainingGap ? (
               <p className="mt-1 text-sm text-muted-foreground">
                 {trainingGap}
+              </p>
+            ) : null}
+            {!compact && foodStreakLine ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {foodStreakLine}
               </p>
             ) : null}
             {!compact && weekLine ? (

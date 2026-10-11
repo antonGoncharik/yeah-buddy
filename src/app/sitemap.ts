@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { publicBarbellUrl } from "@/lib/share/barbell-public";
 import {
   publicProgramCards,
   publicProgramUrl,
@@ -14,6 +15,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: siteOriginUrl().href,
       changeFrequency: "monthly",
       priority: 1,
+    },
+    {
+      url: publicBarbellUrl(origin),
+      changeFrequency: "monthly",
+      priority: 0.7,
     },
     ...publicProgramCards().map((card) => ({
       url: publicProgramUrl(origin, card.id),

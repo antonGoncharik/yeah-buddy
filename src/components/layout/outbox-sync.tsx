@@ -42,7 +42,11 @@ export function OutboxSync() {
   return (
     <>
       <div className="h-11" aria-hidden />
-      <p className="app-fixed-bottom pointer-events-none fixed inset-x-0 z-[11] mx-auto max-w-lg px-4 pb-[var(--app-nav-clearance)] text-center text-sm text-muted-foreground">
+      <p
+        role="status"
+        aria-live="polite"
+        className="app-fixed-bottom pointer-events-none fixed inset-x-0 z-[11] mx-auto max-w-lg px-4 pb-[var(--app-nav-clearance)] text-center text-sm text-muted-foreground"
+      >
         <span className="mb-1 block rounded-xl bg-background/95 py-2">
           {PENDING_WRITES}
         </span>

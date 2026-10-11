@@ -27,6 +27,33 @@ export function SheetFrame({
       if (event.key === "Escape") {
         event.preventDefault();
         onCancel();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const panel = panelRef.current;
+      if (!panel) {
+        return;
+      }
+      const nodes = panel.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      const focusable = [...nodes].filter(
+        (node) => !node.hasAttribute("disabled") && node.tabIndex !== -1,
+      );
+      if (focusable.length === 0) {
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
