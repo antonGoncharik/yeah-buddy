@@ -3,7 +3,6 @@ import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
-import { bumpTracksByKg } from "@/lib/workout/exercise-tracks";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
 import { getSessionDetail } from "@/lib/workout/session-detail";
@@ -18,6 +17,7 @@ import {
   clearSkipTemplateIds,
   ensureWorkoutSettings,
 } from "@/lib/workout/settings";
+import { applyTrackProgressOnComplete } from "@/lib/workout/track-progress-apply";
 
 export async function patchWorkoutSet(
   userId: string,
@@ -184,19 +184,7 @@ export async function completeSessionAsPlanned(
     const settings = await ensureWorkoutSettings(userId);
     // Working kg grows after the session unless the week itself adds kilograms.
     if (!cycleDrivesTracks(settings.formulas.cycle)) {
-      const byStep = new Map<number, string[]>();
-      for (const item of detail.exercises) {
-        if (!item.track_id) {
-          continue;
-        }
-        const step = item.exercise.weight_step;
-        const ids = byStep.get(step) ?? [];
-        ids.push(item.exercise_id);
-        byStep.set(step, ids);
-      }
-      for (const [kg, ids] of byStep) {
-        await bumpTracksByKg(userId, ids, kg);
-      }
+      await applyTrackProgressOnComplete(userId, detail, input.feel);
     }
     await maybeAutoEndPhase(userId);
     await recordFunnelEvent(userId, "first_session");
