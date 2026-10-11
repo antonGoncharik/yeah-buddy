@@ -83,6 +83,54 @@ export async function refundAiSlot(
 ): Promise<void> {
   const usedOn = await getUserCalendarToday(userId);
   const supabase = createSupabaseServerClient();
+  const refunded = await supabase.rpc("refund_ai_slot", {
+    p_user_id: userId,
+    p_kind: kind,
+    p_used_on: usedOn,
+  });
+  if (refunded.error) {
+    if (isMissingUsageRpc(refunded.error)) {
+      await refundAiSlotLegacy(userId, kind, usedOn, supabase);
+      return;
+    }
+    throw refunded.error;
+  }
+}
+
+async function consumeAiUsage(
+  userId: string,
+  kind: AiKind,
+  usedOn: string,
+): Promise<{ remaining: number | null } | "exhausted" | "untracked"> {
+  const limit = dailyLimit(kind);
+  const supabase = createSupabaseServerClient();
+  const taken = await supabase.rpc("take_ai_slot", {
+    p_user_id: userId,
+    p_kind: kind,
+    p_used_on: usedOn,
+    p_limit: limit,
+  });
+
+  if (taken.error) {
+    if (isMissingUsageTable(taken.error) || isMissingUsageRpc(taken.error)) {
+      return consumeAiUsageLegacy(userId, kind, usedOn, limit, supabase);
+    }
+    throw taken.error;
+  }
+
+  const count = taken.data;
+  if (typeof count !== "number") {
+    return "exhausted";
+  }
+  return { remaining: remainingAfterUse(count, limit) };
+}
+
+async function refundAiSlotLegacy(
+  userId: string,
+  kind: AiKind,
+  usedOn: string,
+  supabase: UsageClient,
+): Promise<void> {
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
   if (used == null || used <= 0) {
     return;
@@ -99,13 +147,13 @@ export async function refundAiSlot(
   }
 }
 
-async function consumeAiUsage(
+async function consumeAiUsageLegacy(
   userId: string,
   kind: AiKind,
   usedOn: string,
+  limit: number,
+  supabase: UsageClient,
 ): Promise<{ remaining: number | null } | "exhausted" | "untracked"> {
-  const limit = dailyLimit(kind);
-  const supabase = createSupabaseServerClient();
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
   if (used == null) {
     return "untracked";
@@ -216,6 +264,15 @@ function quotaMessage(kind: AiKind): string {
     return AI_TEXT_MEAL_QUOTA;
   }
   return AI_REVIEW_QUOTA;
+}
+
+function isMissingUsageRpc(error: { code?: string; message?: string }): boolean {
+  return (
+    error.code === "PGRST202" ||
+    (typeof error.message === "string" &&
+      (error.message.includes("take_ai_slot") ||
+        error.message.includes("refund_ai_slot")))
+  );
 }
 
 function isMissingUsageTable(error: {
