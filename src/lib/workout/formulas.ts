@@ -12,6 +12,10 @@ import {
   shouldIncreaseMax as shouldIncreaseFromCycle,
 } from "@/lib/workout/cycle";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import {
+  EMPTY_BAR_KG,
+  warmupSetsForWorkingWeight,
+} from "@/lib/workout/warmup-from-work";
 
 export function floorToStep(weight: number, step: number): number {
   if (!(step > 0) || !Number.isFinite(weight)) {
@@ -58,22 +62,17 @@ export function previewMaxForPhase(
 
 export function resolvePhaseSpec(
   base: FormulaPhaseSpec,
-  kind: WorkoutKind,
-  skipWarmup: boolean,
-  preset: FormulaPreset,
-  warmups: WorkoutFormulas["warmups"] = DEFAULT_WORKOUT_FORMULAS.warmups,
+  _kind: WorkoutKind,
+  _skipWarmup: boolean,
+  _preset: FormulaPreset,
+  _warmups: WorkoutFormulas["warmups"] = DEFAULT_WORKOUT_FORMULAS.warmups,
 ): FormulaPhaseSpec {
-  if (preset === "none") {
+  if (_preset === "none") {
     return { warmup: [], work: [] };
   }
 
-  if (skipWarmup) {
-    return { warmup: [], work: base.work };
-  }
-
-  const pack = warmups[kind] ?? DEFAULT_WORKOUT_FORMULAS.warmups[kind];
   return {
-    warmup: pack[preset] ?? DEFAULT_WORKOUT_FORMULAS.warmups[kind][preset],
+    warmup: [],
     work: base.work,
   };
 }
@@ -82,7 +81,9 @@ export function plannedSetsFromFormula(
   spec: FormulaPhaseSpec,
   maxWeight: number,
   step: number,
-  _kind: WorkoutKind,
+  kind: WorkoutKind,
+  preset: FormulaPreset = "barbell",
+  skipWarmup = false,
 ): Array<{
   set_type: "warmup" | "work";
   set_number: number;
@@ -90,18 +91,53 @@ export function plannedSetsFromFormula(
   planned_reps: number | null;
   planned_seconds: number | null;
 }> {
+  const workRows = spec.work.map((set) => ({
+    ...set,
+    set_type: "work" as const,
+  }));
+  let topWork = 0;
+  for (const set of workRows) {
+    const weight = calcPlannedWeight(maxWeight, set.percent, step);
+    if (weight > topWork) {
+      topWork = weight;
+    }
+  }
+
+  const warmupSpec = skipWarmup
+    ? []
+    : warmupSetsForWorkingWeight(topWork, step, preset, kind);
+
   const rows = [
-    ...spec.warmup.map((set) => ({ ...set, set_type: "warmup" as const })),
-    ...spec.work.map((set) => ({ ...set, set_type: "work" as const })),
+    ...warmupSpec.map((set) => ({ ...set, set_type: "warmup" as const })),
+    ...workRows,
   ];
 
-  return rows.map((set, index) => ({
-    set_type: set.set_type,
-    set_number: index + 1,
-    planned_weight: calcPlannedWeight(maxWeight, set.percent, step),
-    planned_reps: set.reps,
-    planned_seconds: set.seconds,
-  }));
+  return rows.map((set, index) => {
+    const reference = set.set_type === "warmup" ? topWork : maxWeight;
+    let planned_weight = calcPlannedWeight(reference, set.percent, step);
+    if (set.set_type === "warmup" && set.seconds != null && set.reps == null) {
+      planned_weight = topWork;
+    } else if (
+      set.set_type === "warmup" &&
+      preset === "barbell" &&
+      kind === "dynamic"
+    ) {
+      planned_weight = Math.max(EMPTY_BAR_KG, planned_weight);
+      if (planned_weight >= topWork) {
+        planned_weight = Math.max(
+          EMPTY_BAR_KG,
+          floorToStep(topWork - step, step),
+        );
+      }
+    }
+    return {
+      set_type: set.set_type,
+      set_number: index + 1,
+      planned_weight,
+      planned_reps: set.reps,
+      planned_seconds: set.seconds,
+    };
+  });
 }
 
 export function setUsesHold(set: FormulaSetSpec): boolean {

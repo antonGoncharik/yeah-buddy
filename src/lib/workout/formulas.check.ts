@@ -98,7 +98,15 @@ const cableRamp = resolvePhaseSpec(
   false,
   "cable",
 );
-if (cableRamp.warmup.length !== 2) {
+const cableSets = plannedSetsFromFormula(
+  cableRamp,
+  100,
+  2.5,
+  "dynamic",
+  "cable",
+);
+const cableWarmups = cableSets.filter((row) => row.set_type === "warmup");
+if (cableWarmups.length !== 2) {
   throw new Error("cable warmup should be 2 sets");
 }
 
@@ -119,32 +127,47 @@ const staticBarbell = resolvePhaseSpec(
   false,
   "barbell",
 );
-if (staticBarbell.warmup.length !== 3) {
+
+const staticHold = plannedSetsFromFormula(
+  staticBarbell,
+  76,
+  1,
+  "static",
+  "barbell",
+);
+const staticWarmups = staticHold.filter((row) => row.set_type === "warmup");
+if (staticWarmups.length !== 3) {
   throw new Error("static barbell warmup should be 3 sets");
 }
 if (
-  staticBarbell.warmup[0]?.reps == null ||
-  staticBarbell.warmup[1]?.reps == null
+  staticWarmups[0]?.planned_reps == null ||
+  staticWarmups[1]?.planned_reps == null
 ) {
   throw new Error("static warmup first sets must be reps");
 }
 if (
-  staticBarbell.warmup[2]?.seconds !== 2 ||
-  staticBarbell.warmup[2]?.percent !== 100 ||
-  staticBarbell.warmup[2]?.reps != null
+  staticWarmups[2]?.planned_seconds !== 2 ||
+  staticWarmups[2]?.planned_weight !== 87
 ) {
-  throw new Error("static warmup 3rd set must be 2s at 100%");
+  throw new Error("static warmup 3rd set must be 2s at working weight");
 }
-
-const staticHold = plannedSetsFromFormula(staticBarbell, 76, 1, "static");
 assertEqual(staticHold[0]?.planned_reps ?? 0, 5, "static warmup reps");
 assertEqual(
   staticHold[0]?.planned_seconds ?? -1,
   -1,
   "static warmup no seconds",
 );
-assertEqual(staticHold[2]?.planned_weight ?? 0, 76, "static 1RM hold weight");
-assertEqual(staticHold[2]?.planned_seconds ?? 0, 2, "static 1RM hold seconds");
+assertEqual(
+  staticHold[2]?.planned_weight ?? 0,
+  87,
+  "static warmup hold weight",
+);
+assertEqual(
+  staticHold[2]?.planned_seconds ?? 0,
+  2,
+  "static warmup hold seconds",
+);
+assertEqual(staticHold[5]?.planned_weight ?? 0, 87, "static work hold weight");
 assertEqual(staticHold[3]?.planned_weight ?? 0, 87, "static work 76×115");
 assertEqual(staticHold[3]?.planned_seconds ?? 0, 6, "static work seconds");
 assertEqual(staticHold[3]?.planned_reps ?? -1, -1, "static work no reps");
@@ -159,24 +182,20 @@ if (staticDeload.warmup.length !== 0) {
   throw new Error("static deload should have no warmup");
 }
 
-const customWarmup = resolvePhaseSpec(
-  DEFAULT_WORKOUT_FORMULAS.dynamic.base,
+const fromWorkWarmup = plannedSetsFromFormula(
+  resolvePhaseSpec(
+    DEFAULT_WORKOUT_FORMULAS.dynamic.base,
+    "dynamic",
+    false,
+    "barbell",
+  ),
+  100,
+  2.5,
   "dynamic",
-  false,
   "barbell",
-  {
-    dynamic: {
-      barbell: [{ percent: 40, reps: 10, seconds: null }],
-      cable: DEFAULT_WORKOUT_FORMULAS.warmups.dynamic.cable,
-    },
-    static: DEFAULT_WORKOUT_FORMULAS.warmups.static,
-  },
-);
-if (
-  customWarmup.warmup.length !== 1 ||
-  customWarmup.warmup[0]?.percent !== 40
-) {
-  throw new Error("custom warmup preset should replace barbell warmup");
+).filter((row) => row.set_type === "warmup");
+if (fromWorkWarmup.length < 2) {
+  throw new Error("warmup should be derived from top work weight");
 }
 
 const parsed = formulasSchema.safeParse({

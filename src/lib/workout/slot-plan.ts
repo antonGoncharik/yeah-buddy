@@ -11,7 +11,6 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 import { specForPhase } from "@/lib/workout/cycle";
-import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
 import {
   calcPlannedWeight,
   floorToStep,
@@ -19,6 +18,7 @@ import {
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
 import { formatSignedWeight, formatWeight } from "@/lib/workout/numbers";
+import { warmupSetsForWorkingWeight } from "@/lib/workout/warmup-from-work";
 
 /**
  * Work sets in the default scheme sit at 80 % of 1RM, so a kilogram-based
@@ -392,6 +392,8 @@ export function plannedSetsForSlot(
       ctx.maxWeight,
       ctx.exercise.weight_step,
       ctx.kind,
+      ctx.exercise.formula_preset,
+      skipWarmup,
     ).map<PlannedSetRow>((set) => ({
       ...set,
       planned_reps_to: null,
@@ -481,17 +483,22 @@ function warmupRows(
       ? row.planned_weight
       : best;
   }, null);
-  const reference = warmupReference(groups, top, ctx);
+  const fromMax = groups.some(
+    (group) => group.load.type === "percent" || group.load.type === "orm",
+  );
+  const reference =
+    fromMax && ctx.maxWeight != null && ctx.maxWeight > 0 ? ctx.maxWeight : top;
   if (reference == null || reference <= 0) {
     return [];
   }
 
-  const pack =
-    ctx.formulas.warmups[ctx.kind] ??
-    DEFAULT_WORKOUT_FORMULAS.warmups[ctx.kind];
-  const sets =
-    pack[preset] ?? DEFAULT_WORKOUT_FORMULAS.warmups[ctx.kind][preset];
-  const cap = top ?? Number.POSITIVE_INFINITY;
+  const sets = warmupSetsForWorkingWeight(
+    reference,
+    ctx.exercise.weight_step,
+    preset,
+    ctx.kind,
+  );
+  const cap = top ?? reference;
   return sets.map<PlannedSetRow>((set) => ({
     set_type: "warmup",
     set_number: 0,
@@ -504,26 +511,6 @@ function warmupRows(
     planned_seconds: set.seconds,
     planned_rir: null,
   }));
-}
-
-/**
- * От чего считать разминку: проценты от максимума на раз — от максимума упражнения,
- * остальное (рабочий кг, один вес, самочувствие) — от верхнего рабочего
- * подхода, как от 80 % на раз.
- */
-function warmupReference(
-  groups: SlotSetGroup[],
-  top: number | null,
-  ctx: SlotPlanContext,
-): number | null {
-  if (
-    groups.some(
-      (group) => group.load.type === "percent" || group.load.type === "orm",
-    )
-  ) {
-    return ctx.maxWeight;
-  }
-  return top == null ? null : (top * 100) / WORK_REFERENCE_PERCENT;
 }
 
 function withIntensityRir(

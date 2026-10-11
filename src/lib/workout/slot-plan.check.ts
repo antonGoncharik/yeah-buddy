@@ -87,9 +87,9 @@ const bench: SlotPlan = {
 assertEqual(
   line(plannedSetsForSlot(bench, ctx({ maxWeight: null, trackWeight: 80 }))),
   [
-    "w1:50×5",
-    "w2:70×3",
-    "w3:80×1",
+    "w1:30×5",
+    "w2:47.5×3",
+    "w3:62.5×1",
     "w4:80×2",
     "w5:80×2",
     "w6:70×6",
@@ -128,8 +128,8 @@ const heavyPulls: SlotPlan = {
 assertEqual(
   line(plannedSetsForSlot(heavyPulls, ctx())),
   [
-    "w1:50×5",
-    "w2:70×3",
+    "w1:40×5",
+    "w2:60×3",
     "w3:80×1",
     "w4:80×6–8",
     "w5:80×6–8",
@@ -584,7 +584,7 @@ assertEqual(
   line(
     plannedSetsForSlot({ ...ormPlan, warmup: true }, ctx({ maxWeight: 200 })),
   ).filter((row) => row.startsWith("w1")),
-  ["w1:100×5"],
+  ["w1:80×5"],
   "warmup for a table slot is counted from 1RM",
 );
 
