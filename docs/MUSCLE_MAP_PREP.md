@@ -1,4 +1,4 @@
-# Muscle map — data layer (ready for UI TZ)
+# Muscle map — data & UI
 
 ## Catalog source
 
@@ -32,14 +32,13 @@ Compound glute target + squat/leg press/lunge name → force `quads` and `glutes
 
 ## Muscle ids
 
-`traps`, `obliques`, `adductors` added to `MuscleId`. Current SVG screen does not draw them yet — they appear in API aggregates and the zone list once UI is rebuilt.
+`traps`, `obliques`, `adductors` included in aggregates and on the anatomical SVG (body-highlighter paths).
 
-## Not done yet (UI TZ)
+## Screen (`/workouts/muscles`)
 
-- Anatomical 2D SVG (e.g. body-highlighter paths)
-- Weekly set bands instead of relative tonnage load
-- Split metrics (volume vs freshness vs missed)
-- `balance` / `insights` blocks in API
+- API: weighted sets, weekly buckets, `volume_band`, `missed`, `balance`, `insights`
+- UI: front/back figures (side-by-side on `sm+`), modes **Объём** / **Свежесть**, zone list, detail with weekly sparkline
+- Paths: `src/lib/workout/muscle-body-paths.ts` — regenerate with `node scripts/build-muscle-body-paths.mjs` (MIT, react-native-body-highlighter)
 
 ## Exercises repo hygiene
 

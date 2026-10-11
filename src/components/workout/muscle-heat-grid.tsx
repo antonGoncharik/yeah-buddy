@@ -1,31 +1,40 @@
 "use client";
 
-import type { MuscleCell, MuscleId } from "@/lib/types";
+import type { MuscleCell, MuscleDisplayMode, MuscleId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
+  muscleBandLabel,
+  muscleCellHint,
   muscleHeatFill,
   muscleHeatRing,
-  muscleStatusLabel,
 } from "@/lib/workout/muscle-heat-style";
 
 export function MuscleHeatGrid({
   muscles,
   selectedId,
+  displayMode,
   onSelect,
 }: {
   muscles: MuscleCell[];
   selectedId: MuscleId | null;
+  displayMode: MuscleDisplayMode;
   onSelect: (id: MuscleId) => void;
 }) {
   const sorted = [...muscles].sort(
     (left, right) =>
-      right.load - left.load || left.label.localeCompare(right.label, "ru"),
+      right.volume_band - left.volume_band ||
+      right.sets_per_week - left.sets_per_week ||
+      left.label.localeCompare(right.label, "ru"),
   );
 
   return (
     <ul className="grid grid-cols-2 gap-2">
       {sorted.map((cell) => {
         const selected = selectedId === cell.id;
+        const barWidth =
+          cell.volume_band === 0
+            ? 0
+            : Math.min(100, 12 + cell.volume_band * 22);
         return (
           <li key={cell.id}>
             <button
@@ -45,27 +54,36 @@ export function MuscleHeatGrid({
                 <span
                   className="mt-0.5 size-2.5 shrink-0 rounded-full ring-2 ring-offset-1 ring-offset-card"
                   style={{
-                    background: muscleHeatFill(cell),
+                    background: muscleHeatFill(cell, displayMode),
                     boxShadow: `0 0 0 2px ${muscleHeatRing(cell, selected)}`,
                   }}
                   aria-hidden
                 />
               </span>
               <span className="text-xs text-muted-foreground">
-                {muscleStatusLabel(cell.status)}
+                {displayMode === "freshness" && cell.days_since != null
+                  ? `Давность: ${cell.days_since} дн`
+                  : muscleCellHint(cell)}
               </span>
-              <span
-                className="h-1.5 overflow-hidden rounded-full bg-muted/90"
-                aria-hidden
-              >
+              {displayMode === "volume" ? (
                 <span
-                  className="block h-full rounded-full transition-[width] duration-300"
-                  style={{
-                    width: `${Math.round(Math.max(cell.load, cell.status === "idle" ? 0 : 0.12) * 100)}%`,
-                    background: muscleHeatFill(cell),
-                  }}
-                />
-              </span>
+                  className="h-1.5 overflow-hidden rounded-full bg-muted/90"
+                  aria-hidden
+                >
+                  <span
+                    className="block h-full rounded-full transition-[width] duration-300"
+                    style={{
+                      width: `${barWidth}%`,
+                      background: muscleHeatFill(cell, displayMode),
+                    }}
+                  />
+                </span>
+              ) : (
+                <span className="text-[11px] text-muted-foreground">
+                  {muscleBandLabel(cell.volume_band)} · ~{cell.sets_per_week}
+                  /нед
+                </span>
+              )}
             </button>
           </li>
         );

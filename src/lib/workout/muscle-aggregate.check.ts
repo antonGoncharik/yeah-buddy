@@ -52,6 +52,7 @@ const snapshot = buildMuscleSnapshot({
       session_date: "2026-10-08",
       status: "completed",
       template_id: "t1",
+      template_name: "Грудь",
       exercises: [
         {
           exercise_id: "ex-bench",
@@ -72,6 +73,7 @@ const snapshot = buildMuscleSnapshot({
       session_date: "2026-10-09",
       status: "skipped",
       template_id: "t-back",
+      template_name: "Спина",
       exercises: [],
     },
   ],
@@ -81,11 +83,18 @@ const snapshot = buildMuscleSnapshot({
 });
 
 const chest = snapshot.muscles.find((item) => item.id === "chest");
-assertEqual(chest?.status, "trained", "bench trains chest");
-assertEqual((chest?.work_sets ?? 0) > 0, true, "chest has work sets");
+assertEqual((chest?.sets ?? 0) > 0, true, "chest has weighted sets");
+assertEqual((chest?.volume_band ?? 0) > 0, true, "bench trains chest volume");
 
-const lats = snapshot.muscles.find((item) => item.id === "lats");
-assertEqual(lats?.status, "missed", "skipped back day flags lats");
+const upperBack = snapshot.muscles.find((item) => item.id === "upper_back");
+assertEqual(
+  (upperBack?.missed_sessions ?? 0) > 0,
+  true,
+  "skipped back day flags upper back",
+);
 
 const hits = snapshot.hits_by_muscle.chest?.[0]?.exercise_id;
 assertEqual(hits, "ex-bench", "bench listed under chest");
+
+assertEqual(snapshot.missed.length, 1, "one missed event");
+assertEqual(snapshot.missed[0]?.template_name, "Спина", "missed template name");

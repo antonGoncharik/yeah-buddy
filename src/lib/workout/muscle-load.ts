@@ -8,6 +8,7 @@ import {
 } from "@/lib/workout/muscle-aggregate";
 import { getNextTemplate } from "@/lib/workout/rotation";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
+import { templateNamesById } from "@/lib/workout/session-names";
 import { listTemplateExerciseMap } from "@/lib/workout/template-exercises";
 
 export { parseMuscleHorizonDays };
@@ -62,9 +63,10 @@ export async function getMuscleSnapshot(
     ),
   ];
 
-  const [templateMap, macroPhaseId] = await Promise.all([
+  const [templateMap, macroPhaseId, templateNames] = await Promise.all([
     listTemplateExerciseMap(userId, templateIds),
     currentPhaseId(userId),
+    templateNamesById(userId, templateIds),
   ]);
 
   const templateExerciseIds = new Map<string, string[]>();
@@ -98,6 +100,10 @@ export async function getMuscleSnapshot(
     session_date: session.session_date,
     status: session.status,
     template_id: session.template_id,
+    template_name:
+      session.template_id != null
+        ? (templateNames.get(session.template_id) ?? null)
+        : null,
     exercises:
       session.status === "completed"
         ? (workBySession.get(session.session_id) ?? []).map((row) => ({

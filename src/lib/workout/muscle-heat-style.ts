@@ -1,20 +1,44 @@
-import type { MuscleCell, MuscleStatus } from "@/lib/types";
+import type {
+  MuscleCell,
+  MuscleDisplayMode,
+  MuscleId,
+  VolumeBand,
+} from "@/lib/types";
+import { SLUG_TO_MUSCLES } from "@/lib/workout/muscle-body-slugs";
+import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
 
-export function muscleHeatFill(cell: MuscleCell | undefined): string {
-  if (!cell || cell.status === "idle") {
-    return "color-mix(in oklch, var(--muted) 88%, transparent)";
+const VOLUME_FILL: Record<VolumeBand, string> = {
+  0: "color-mix(in oklch, var(--muted) 92%, transparent)",
+  1: "color-mix(in oklch, var(--primary) 22%, var(--muted))",
+  2: "color-mix(in oklch, var(--primary) 42%, var(--muted))",
+  3: "color-mix(in oklch, var(--primary) 68%, var(--muted))",
+  4: "color-mix(in oklch, var(--primary) 88%, var(--muted))",
+};
+
+export function muscleHeatFill(
+  cell: MuscleCell | undefined,
+  mode: MuscleDisplayMode,
+): string {
+  if (!cell || cell.volume_band === 0) {
+    return VOLUME_FILL[0];
   }
-  const alpha = 0.28 + cell.load * 0.72;
-  if (cell.status === "missed") {
-    return `color-mix(in oklch, var(--destructive) ${Math.round(38 + cell.missed_sessions * 10)}%, var(--muted))`;
+  if (mode === "volume") {
+    return VOLUME_FILL[cell.volume_band];
   }
-  if (cell.status === "planned") {
-    return "color-mix(in oklch, var(--primary) 32%, var(--muted))";
+  const days = cell.days_since;
+  if (days == null || cell.sets <= 0) {
+    return VOLUME_FILL[0];
   }
-  if (cell.status === "stale") {
-    return `color-mix(in oklch, var(--primary) ${Math.round(alpha * 42)}%, var(--muted))`;
+  if (days <= 2) {
+    return "color-mix(in oklch, var(--chart-4, var(--primary)) 55%, var(--muted))";
   }
-  return `color-mix(in oklch, var(--primary) ${Math.round(alpha * 100)}%, var(--muted))`;
+  if (days <= 6) {
+    return VOLUME_FILL[Math.max(cell.volume_band, 2) as VolumeBand];
+  }
+  if (days <= 10) {
+    return VOLUME_FILL[1];
+  }
+  return VOLUME_FILL[0];
 }
 
 export function muscleHeatRing(
@@ -24,26 +48,70 @@ export function muscleHeatRing(
   if (selected) {
     return "var(--primary)";
   }
-  if (cell?.status === "missed") {
-    return "color-mix(in oklch, var(--destructive) 75%, transparent)";
-  }
-  if (cell?.status === "planned") {
+  if (cell?.in_next_session) {
     return "var(--primary)";
   }
-  return "color-mix(in oklch, var(--foreground) 14%, transparent)";
+  if ((cell?.missed_sessions ?? 0) > 0 && (cell?.sets ?? 0) < 2) {
+    return "color-mix(in oklch, var(--destructive) 70%, transparent)";
+  }
+  return "color-mix(in oklch, var(--foreground) 10%, transparent)";
 }
 
-export function muscleStatusLabel(status: MuscleStatus): string {
-  switch (status) {
-    case "trained":
-      return "Был объём";
-    case "stale":
-      return "Давно";
-    case "missed":
-      return "Пропуск";
-    case "planned":
-      return "В очереди";
-    default:
-      return "Тихо";
+export function muscleBandLabel(band: VolumeBand): string {
+  return VOLUME_BAND_LABELS[band];
+}
+
+export function slugHeatFill(
+  slug: string,
+  byId: Map<MuscleId, MuscleCell>,
+  mode: MuscleDisplayMode,
+): string {
+  const ids = SLUG_TO_MUSCLES[slug] ?? [];
+  let band = 0 as VolumeBand;
+  let days: number | null = null;
+  let sets = 0;
+  let inNext = false;
+  for (const id of ids) {
+    const cell = byId.get(id);
+    if (!cell) {
+      continue;
+    }
+    if (cell.volume_band > band) {
+      band = cell.volume_band;
+    }
+    sets += cell.sets;
+    if (cell.in_next_session) {
+      inNext = true;
+    }
+    if (cell.days_since != null && (days == null || cell.days_since < days)) {
+      days = cell.days_since;
+    }
   }
+  const pseudo: MuscleCell = {
+    id: ids[0] ?? "chest",
+    label: "",
+    view: "front",
+    sets,
+    sets_per_week: 0,
+    volume_band: band,
+    last_trained: null,
+    days_since: days,
+    in_next_session: inNext,
+    missed_sessions: 0,
+    weekly_sets: [],
+  };
+  return muscleHeatFill(pseudo, mode);
+}
+
+export function muscleCellHint(cell: MuscleCell): string {
+  if (cell.in_next_session) {
+    return "В следующей тренировке";
+  }
+  if (cell.missed_sessions > 0 && cell.sets < 2) {
+    return "Был пропуск с этой зоной";
+  }
+  if (cell.volume_band === 0) {
+    return "За период почти не было нагрузки";
+  }
+  return `~${cell.sets_per_week} раб. подх./нед · ${muscleBandLabel(cell.volume_band)}`;
 }

@@ -10,13 +10,19 @@ import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
 import { MuscleHeatGrid } from "@/components/workout/muscle-heat-grid";
+import { MuscleWeeklySparkline } from "@/components/workout/muscle-weekly-sparkline";
 import {
   type MuscleHorizon,
   useMuscleScreen,
 } from "@/components/workout/use-muscle-screen";
 import { formatIsoDate } from "@/lib/day/format";
-import type { MuscleStatus } from "@/lib/types";
+import type { MuscleId, VolumeBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import {
+  muscleBandLabel,
+  muscleCellHint,
+  muscleHeatFill,
+} from "@/lib/workout/muscle-heat-style";
 import { formatTonnage } from "@/lib/workout/numbers";
 
 const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
@@ -26,27 +32,13 @@ const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
   { id: "90", label: "90" },
 ];
 
-const STATUS_LEGEND: Array<{ status: MuscleStatus; label: string }> = [
-  { status: "trained", label: "Был объём" },
-  { status: "stale", label: "Давно" },
-  { status: "missed", label: "Пропуск дня" },
-  { status: "planned", label: "В очереди" },
+const VOLUME_LEGEND: Array<{ band: VolumeBand; label: string }> = [
+  { band: 0, label: "Нет" },
+  { band: 1, label: "Мало" },
+  { band: 2, label: "Средне" },
+  { band: 3, label: "Норма" },
+  { band: 4, label: "Много" },
 ];
-
-function statusHint(status: MuscleStatus): string {
-  switch (status) {
-    case "trained":
-      return "Есть рабочие подходы за период";
-    case "stale":
-      return "Было, но давно не трогали";
-    case "missed":
-      return "День с этой зоной пропустили";
-    case "planned":
-      return "Следующий день в очереди";
-    default:
-      return "За период почти не было нагрузки";
-  }
-}
 
 export function MuscleScreen() {
   const {
@@ -58,6 +50,8 @@ export function MuscleScreen() {
     setHorizon,
     view,
     setView,
+    displayMode,
+    setDisplayMode,
     selectedId,
     setSelectedId,
     selected,
@@ -95,11 +89,18 @@ export function MuscleScreen() {
     [setView],
   );
 
+  const onSelectMuscle = useCallback(
+    (id: MuscleId) => {
+      setSelectedId(id);
+    },
+    [setSelectedId],
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Мышцы"
-        subtitle="Что качали и что выпало"
+        subtitle="Объём и свежесть по зонам"
         backHref="/workouts"
       />
 
@@ -132,42 +133,85 @@ export function MuscleScreen() {
 
         {!loading && snapshot && snapshot.completed_sessions > 0 ? (
           <>
+            <Segmented
+              value={displayMode}
+              options={[
+                { id: "volume", label: "Объём" },
+                { id: "freshness", label: "Свежесть" },
+              ]}
+              onChange={setDisplayMode}
+            />
+
+            {snapshot.insights.length > 0 ? (
+              <ul className="card-surface flex flex-col gap-2 px-4 py-3 text-sm leading-snug">
+                {snapshot.insights.map((line) => (
+                  <li key={line} className="text-muted-foreground">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
             <div
               className="card-surface flex flex-col gap-3 px-4 py-4"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">
                   {formatIsoDate(snapshot.since, "d MMM")} —{" "}
                   {formatIsoDate(snapshot.until, "d MMM")}
                 </p>
-                <Segmented
-                  value={view}
-                  options={[
-                    { id: "front", label: "Спереди" },
-                    { id: "back", label: "Сзади" },
-                  ]}
-                  onChange={setView}
+                <div className="sm:hidden">
+                  <Segmented
+                    value={view}
+                    options={[
+                      { id: "front", label: "Спереди" },
+                      { id: "back", label: "Сзади" },
+                    ]}
+                    onChange={setView}
+                  />
+                </div>
+              </div>
+
+              <div className="hidden items-end justify-center gap-4 sm:flex">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-muted-foreground">Спереди</span>
+                  <MuscleBodyFigure
+                    view="front"
+                    muscles={snapshot.muscles}
+                    selectedId={selectedId}
+                    displayMode={displayMode}
+                    onSelect={onSelectMuscle}
+                    compact
+                  />
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs text-muted-foreground">Сзади</span>
+                  <MuscleBodyFigure
+                    view="back"
+                    muscles={snapshot.muscles}
+                    selectedId={selectedId}
+                    displayMode={displayMode}
+                    onSelect={onSelectMuscle}
+                    compact
+                  />
+                </div>
+              </div>
+
+              <div className="sm:hidden">
+                <MuscleBodyFigure
+                  view={view}
+                  muscles={snapshot.muscles}
+                  selectedId={selectedId}
+                  displayMode={displayMode}
+                  onSelect={onSelectMuscle}
                 />
               </div>
-              <MuscleBodyFigure
-                view={view}
-                muscles={snapshot.muscles}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
+
               <p className="text-center text-xs text-muted-foreground">
-                Точки на схеме — зоны. Удобнее выбирать списком ниже.
+                Нажми на зону на схеме или в списке ниже.
               </p>
-              {snapshot.planned_template_name ? (
-                <p className="text-center text-sm leading-snug">
-                  Дальше в очереди:{" "}
-                  <span className="font-medium">
-                    {snapshot.planned_template_name}
-                  </span>
-                </p>
-              ) : null}
             </div>
 
             <section className="flex flex-col gap-2">
@@ -177,35 +221,72 @@ export function MuscleScreen() {
               <MuscleHeatGrid
                 muscles={snapshot.muscles.filter((item) => item.view === view)}
                 selectedId={selectedId}
-                onSelect={setSelectedId}
+                displayMode={displayMode}
+                onSelect={onSelectMuscle}
               />
             </section>
 
-            <ul className="flex flex-wrap gap-2 px-1">
-              {STATUS_LEGEND.map((item) => (
-                <li
-                  key={item.status}
-                  className="rounded-full bg-muted/80 px-3 py-1 text-xs text-muted-foreground"
-                >
-                  <LegendDot status={item.status} />
-                  {item.label}
-                </li>
-              ))}
-            </ul>
+            {displayMode === "volume" ? (
+              <ul className="flex flex-wrap gap-2 px-1">
+                {VOLUME_LEGEND.map((item) => (
+                  <li
+                    key={item.band}
+                    className="flex items-center gap-1.5 rounded-full bg-muted/80 px-3 py-1 text-xs text-muted-foreground"
+                  >
+                    <span
+                      className="inline-block size-2.5 rounded-full"
+                      style={{
+                        background: muscleHeatFill(
+                          {
+                            id: "chest",
+                            label: "",
+                            view: "front",
+                            sets: item.band > 0 ? 1 : 0,
+                            sets_per_week: item.band * 5,
+                            volume_band: item.band,
+                            last_trained: null,
+                            days_since: null,
+                            in_next_session: false,
+                            missed_sessions: 0,
+                            weekly_sets: [],
+                          },
+                          "volume",
+                        ),
+                      }}
+                      aria-hidden
+                    />
+                    {item.label}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-1 text-xs text-muted-foreground">
+                Свежесть: ярче — недавно тренировали; бледнее — давно не было
+                нагрузки на зону.
+              </p>
+            )}
 
             {selected ? (
               <section className="card-surface flex flex-col gap-3 px-5 py-4">
                 <div>
                   <h2 className="text-lg font-semibold">{selected.label}</h2>
                   <p className="text-sm text-muted-foreground">
-                    {statusHint(selected.status)}
+                    {muscleCellHint(selected)}
                   </p>
                 </div>
+                <MuscleWeeklySparkline cell={selected} />
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-muted-foreground">Подходы</dt>
+                    <dt className="text-muted-foreground">Подходы (вес)</dt>
                     <dd className="font-medium tabular-nums">
-                      {selected.work_sets}
+                      {selected.sets}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">В неделю</dt>
+                    <dd className="font-medium tabular-nums">
+                      ~{selected.sets_per_week} ·{" "}
+                      {muscleBandLabel(selected.volume_band)}
                     </dd>
                   </div>
                   <div>
@@ -216,10 +297,18 @@ export function MuscleScreen() {
                         : "—"}
                     </dd>
                   </div>
+                  <div>
+                    <dt className="text-muted-foreground">Давность</dt>
+                    <dd className="font-medium">
+                      {selected.days_since != null
+                        ? `${selected.days_since} дн`
+                        : "—"}
+                    </dd>
+                  </div>
                   {selected.missed_sessions > 0 ? (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">
-                        Пропущенных дней
+                        Пропущенных дней с зоной
                       </dt>
                       <dd className="font-medium tabular-nums">
                         {selected.missed_sessions}
@@ -254,7 +343,7 @@ export function MuscleScreen() {
               </section>
             ) : (
               <p className="px-1 text-sm text-muted-foreground">
-                Выбери зону в списке — покажем упражнения и даты.
+                Выбери зону — покажем недельный график и упражнения.
               </p>
             )}
           </>
@@ -262,15 +351,4 @@ export function MuscleScreen() {
       </div>
     </div>
   );
-}
-
-function LegendDot({ status }: { status: MuscleStatus }) {
-  const className = cn(
-    "mr-1.5 inline-block size-2.5 rounded-full align-middle",
-    status === "trained" && "bg-primary",
-    status === "stale" && "bg-primary/40",
-    status === "missed" && "bg-destructive/80",
-    status === "planned" && "ring-2 ring-primary bg-muted",
-  );
-  return <span className={className} aria-hidden />;
 }

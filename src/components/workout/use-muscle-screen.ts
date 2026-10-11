@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import type { MuscleBodyView, MuscleId, MuscleSnapshot } from "@/lib/types";
+import type {
+  MuscleBodyView,
+  MuscleDisplayMode,
+  MuscleId,
+  MuscleSnapshot,
+} from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { parseMuscleSnapshot } from "@/lib/workout/parse-muscles";
 
@@ -14,6 +19,7 @@ export function useMuscleScreen() {
   const [snapshot, setSnapshot] = useState<MuscleSnapshot | null>(null);
   const [horizon, setHorizon] = useState<MuscleHorizon>("14");
   const [view, setView] = useState<MuscleBodyView>("front");
+  const [displayMode, setDisplayMode] = useState<MuscleDisplayMode>("volume");
   const [selectedId, setSelectedId] = useState<MuscleId | null>(null);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +84,8 @@ export function useMuscleScreen() {
     setHorizon,
     view,
     setView,
+    displayMode,
+    setDisplayMode,
     selectedId,
     setSelectedId,
     visibleMuscles,

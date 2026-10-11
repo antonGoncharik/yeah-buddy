@@ -2,15 +2,22 @@ import type {
   MuscleCell,
   MuscleExerciseHit,
   MuscleId,
+  MuscleMissedEvent,
   MuscleSnapshot,
-  MuscleStatus,
 } from "@/lib/types";
+import { buildMuscleBalance, buildMuscleInsights } from "@/lib/workout/muscle-insights";
 import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
 import {
   MUSCLE_IDS,
   MUSCLE_LABELS,
   MUSCLE_VIEW,
 } from "@/lib/workout/muscle-taxonomy";
+import {
+  setsPerWeek,
+  volumeBandFromWeeklySets,
+  weekCount,
+  weekIndexFromSince,
+} from "@/lib/workout/muscle-volume";
 import { workTonnage } from "@/lib/workout/session-tonnage";
 
 export interface ExerciseMuscleMeta {
@@ -30,6 +37,7 @@ export interface MuscleSessionWork {
   session_date: string;
   status: "completed" | "skipped";
   template_id: string | null;
+  template_name: string | null;
   exercises: Array<{
     exercise_id: string;
     sets: Array<{
@@ -54,19 +62,24 @@ export interface MuscleAggregateInput {
   planned_exercise_ids: string[];
 }
 
-const STALE_AFTER_DAYS = 10;
-
 export function buildMuscleSnapshot(
   input: MuscleAggregateInput,
 ): MuscleSnapshot {
-  const rawLoad = emptyMuscleMap();
-  const workSets = emptyMuscleMap();
+  const weeks = weekCount(input.horizon_days);
+  const weightedSets = emptyMuscleMap();
+  const weeklySets = initWeeklyBuckets(weeks);
   const lastTrained = new Map<MuscleId, string>();
   const missedCount = emptyMuscleMap();
+  const missedEvents: MuscleMissedEvent[] = [];
   const hits = new Map<MuscleId, Map<string, MuscleExerciseHit>>();
-
+  let unmappedExerciseCount = 0;
   let completedSessions = 0;
   let skippedSessions = 0;
+
+  const plannedMuscles = musclesForExerciseIds(
+    input.planned_exercise_ids,
+    input.metaByExercise,
+  );
 
   for (const session of input.sessions) {
     if (session.status === "skipped") {
@@ -75,77 +88,89 @@ export function buildMuscleSnapshot(
         session.template_id != null
           ? (input.templateExerciseIds.get(session.template_id) ?? [])
           : session.exercises.map((item) => item.exercise_id);
+      const musclesHit = new Set<MuscleId>();
       for (const exerciseId of exerciseIds) {
         const meta = input.metaByExercise.get(exerciseId);
         if (!meta) {
           continue;
         }
         const weights = musclesForMeta(meta);
+        if (Object.keys(weights).length === 0) {
+          continue;
+        }
         for (const muscleId of Object.keys(weights) as MuscleId[]) {
           missedCount[muscleId] += 1;
+          musclesHit.add(muscleId);
         }
+      }
+      if (musclesHit.size > 0) {
+        missedEvents.push({
+          date: session.session_date,
+          template_name: session.template_name,
+          muscles: [...musclesHit],
+        });
       }
       continue;
     }
 
     completedSessions += 1;
+    const weekIndex = weekIndexFromSince(input.since, session.session_date);
+
     for (const row of session.exercises) {
       const meta = input.metaByExercise.get(row.exercise_id);
       if (!meta) {
         continue;
       }
-      const tonnage = workTonnage(row.sets);
       const weights = musclesForMeta(meta);
-      const setCount = countWorkSets(row.sets);
-      if (tonnage == null && setCount === 0) {
+      if (Object.keys(weights).length === 0) {
+        unmappedExerciseCount += 1;
         continue;
       }
+      const setCount = countWorkSets(row.sets);
+      if (setCount === 0) {
+        continue;
+      }
+      const tonnage = workTonnage(row.sets) ?? 0;
 
-      const effectiveTonnage = tonnage ?? setCount * 1;
       for (const [muscleId, weight] of Object.entries(weights) as Array<
         [MuscleId, number]
       >) {
         if (weight <= 0) {
           continue;
         }
-        rawLoad[muscleId] += effectiveTonnage * weight;
-        workSets[muscleId] += setCount * weight;
+        const contribution = setCount * weight;
+        weightedSets[muscleId] += contribution;
+        if (weekIndex >= 0 && weekIndex < weeks) {
+          weeklySets[muscleId][weekIndex] += contribution;
+        }
         const prev = lastTrained.get(muscleId);
         if (!prev || session.session_date > prev) {
           lastTrained.set(muscleId, session.session_date);
         }
-        recordHit(hits, muscleId, meta, session.session_date, effectiveTonnage);
+        recordHit(hits, muscleId, meta, session.session_date, setCount, tonnage);
       }
     }
   }
 
-  const plannedMuscles = musclesForExerciseIds(
-    input.planned_exercise_ids,
-    input.metaByExercise,
-  );
-
-  const maxLoad = Math.max(...MUSCLE_IDS.map((id) => rawLoad[id]), 0);
   const muscles: MuscleCell[] = MUSCLE_IDS.map((id) => {
-    const load = maxLoad > 0 ? rawLoad[id] / maxLoad : 0;
-    const status = muscleStatus({
-      id,
-      load,
-      rawLoad: rawLoad[id],
-      lastTrained: lastTrained.get(id) ?? null,
-      missed: missedCount[id],
-      planned: plannedMuscles.has(id),
-      today: input.today,
-      since: input.since,
-    });
+    const sets = Math.round(weightedSets[id] * 10) / 10;
+    const perWeek = setsPerWeek(sets, input.horizon_days);
+    const band = volumeBandFromWeeklySets(perWeek);
+    const last = lastTrained.get(id) ?? null;
+    const daysSince = daysBetween(last, input.today);
+
     return {
       id,
       label: MUSCLE_LABELS[id],
       view: MUSCLE_VIEW[id],
-      load: roundLoad(load),
-      status,
-      last_trained: lastTrained.get(id) ?? null,
-      work_sets: Math.round(workSets[id]),
+      sets,
+      sets_per_week: perWeek,
+      volume_band: band,
+      last_trained: last,
+      days_since: daysSince,
+      in_next_session: plannedMuscles.has(id),
       missed_sessions: missedCount[id],
+      weekly_sets: weeklySets[id].map((value) => Math.round(value * 10) / 10),
     };
   });
 
@@ -153,13 +178,19 @@ export function buildMuscleSnapshot(
   for (const id of MUSCLE_IDS) {
     const list = [...(hits.get(id)?.values() ?? [])].sort(
       (left, right) =>
-        right.tonnage - left.tonnage ||
-        right.last_date.localeCompare(left.last_date),
+        right.sets - left.sets || right.last_date.localeCompare(left.last_date),
     );
     if (list.length > 0) {
       hits_by_muscle[id] = list.slice(0, 6);
     }
   }
+
+  const balance = buildMuscleBalance(muscles);
+  const insights = buildMuscleInsights({
+    muscles,
+    missed: missedEvents,
+    planned_template_name: input.planned_template_name,
+  });
 
   return {
     horizon_days: input.horizon_days,
@@ -167,45 +198,14 @@ export function buildMuscleSnapshot(
     until: input.until,
     muscles,
     hits_by_muscle,
+    missed: missedEvents,
+    balance,
+    insights,
     planned_template_name: input.planned_template_name,
     completed_sessions: completedSessions,
     skipped_sessions: skippedSessions,
+    unmapped_exercise_count: unmappedExerciseCount,
   };
-}
-
-function muscleStatus(input: {
-  id: MuscleId;
-  load: number;
-  rawLoad: number;
-  lastTrained: string | null;
-  missed: number;
-  planned: boolean;
-  today: string;
-  since: string;
-}): MuscleStatus {
-  if (input.missed > 0 && input.rawLoad <= 0) {
-    return "missed";
-  }
-  if (input.missed > 0 && input.load < 0.35) {
-    return "missed";
-  }
-  if (input.planned && input.load < 0.2) {
-    return "planned";
-  }
-  if (input.rawLoad <= 0) {
-    return "idle";
-  }
-  const daysSince = daysBetween(input.lastTrained, input.today);
-  if (daysSince != null && daysSince > STALE_AFTER_DAYS) {
-    return "stale";
-  }
-  if (input.load >= 0.12) {
-    return "trained";
-  }
-  if (input.rawLoad > 0) {
-    return "stale";
-  }
-  return "idle";
 }
 
 function daysBetween(from: string | null, to: string): number | null {
@@ -248,23 +248,22 @@ function recordHit(
   muscleId: MuscleId,
   meta: ExerciseMuscleMeta,
   date: string,
+  sets: number,
   tonnage: number,
 ) {
   const byExercise = hits.get(muscleId) ?? new Map<string, MuscleExerciseHit>();
   const prev = byExercise.get(meta.exercise_id);
-  if (!prev || date >= prev.last_date) {
-    byExercise.set(meta.exercise_id, {
-      exercise_id: meta.exercise_id,
-      name: meta.name,
-      last_date: date,
-      tonnage: (prev?.tonnage ?? 0) + tonnage,
-    });
-  } else if (prev) {
-    byExercise.set(meta.exercise_id, {
-      ...prev,
-      tonnage: prev.tonnage + tonnage,
-    });
-  }
+  const nextSets = (prev?.sets ?? 0) + sets;
+  const nextTonnage = (prev?.tonnage ?? 0) + tonnage;
+  const last_date =
+    !prev || date >= prev.last_date ? date : prev.last_date;
+  byExercise.set(meta.exercise_id, {
+    exercise_id: meta.exercise_id,
+    name: meta.name,
+    last_date,
+    sets: nextSets,
+    tonnage: nextTonnage,
+  });
   hits.set(muscleId, byExercise);
 }
 
@@ -287,8 +286,12 @@ function emptyMuscleMap(): Record<MuscleId, number> {
   return out;
 }
 
-function roundLoad(value: number): number {
-  return Math.round(value * 1000) / 1000;
+function initWeeklyBuckets(weeks: number): Record<MuscleId, number[]> {
+  const out = {} as Record<MuscleId, number[]>;
+  for (const id of MUSCLE_IDS) {
+    out[id] = Array.from({ length: weeks }, () => 0);
+  }
+  return out;
 }
 
 export function parseMuscleHorizonDays(value: string | null): number {
