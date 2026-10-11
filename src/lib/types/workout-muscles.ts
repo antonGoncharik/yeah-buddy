@@ -22,7 +22,7 @@ export type VolumeBand = 0 | 1 | 2 | 3 | 4;
 
 export type MuscleBodyView = "front" | "back";
 
-export type MuscleDisplayMode = "volume" | "freshness";
+export type MuscleDisplayMode = "volume" | "recovery";
 
 export interface MuscleCell {
   id: MuscleId;
@@ -36,6 +36,8 @@ export interface MuscleCell {
   in_next_session: boolean;
   missed_sessions: number;
   weekly_sets: number[];
+  /** Readiness 0–100; null if no load in the period. */
+  recovery_percent: number | null;
 }
 
 export interface MuscleExerciseHit {

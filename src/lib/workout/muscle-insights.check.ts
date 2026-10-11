@@ -20,6 +20,7 @@ const muscles: MuscleCell[] = [
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [4, 4],
+    recovery_percent: 40,
   },
   {
     id: "upper_back",
@@ -33,6 +34,7 @@ const muscles: MuscleCell[] = [
     in_next_session: false,
     missed_sessions: 0,
     weekly_sets: [6, 6],
+    recovery_percent: 72,
   },
 ];
 

@@ -25,20 +25,20 @@ export function muscleHeatFill(
   if (mode === "volume") {
     return VOLUME_FILL[cell.volume_band];
   }
-  const days = cell.days_since;
-  if (days == null || cell.sets <= 0) {
+  const recovery = cell.recovery_percent;
+  if (recovery == null || cell.sets <= 0) {
     return VOLUME_FILL[0];
   }
-  if (days <= 2) {
-    return "color-mix(in oklch, var(--chart-4, var(--primary)) 55%, var(--muted))";
+  if (recovery >= 90) {
+    return "color-mix(in oklch, var(--chart-4, var(--primary)) 72%, var(--muted))";
   }
-  if (days <= 6) {
-    return VOLUME_FILL[Math.max(cell.volume_band, 2) as VolumeBand];
+  if (recovery >= 70) {
+    return VOLUME_FILL[3];
   }
-  if (days <= 10) {
-    return VOLUME_FILL[1];
+  if (recovery >= 50) {
+    return VOLUME_FILL[2];
   }
-  return VOLUME_FILL[0];
+  return VOLUME_FILL[1];
 }
 
 export function muscleHeatRing(
@@ -99,6 +99,7 @@ export function slugHeatFill(
     in_next_session: inNext,
     missed_sessions: 0,
     weekly_sets: [],
+    recovery_percent: null,
   };
   return muscleHeatFill(pseudo, mode);
 }

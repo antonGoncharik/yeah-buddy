@@ -61,8 +61,8 @@ export function MuscleHeatGrid({
                 />
               </span>
               <span className="text-xs text-muted-foreground">
-                {displayMode === "freshness" && cell.days_since != null
-                  ? `Давность: ${cell.days_since} дн`
+                {displayMode === "recovery" && cell.recovery_percent != null
+                  ? `Восст. ~${cell.recovery_percent}%`
                   : muscleCellHint(cell)}
               </span>
               {displayMode === "volume" ? (

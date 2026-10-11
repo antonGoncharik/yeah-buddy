@@ -100,7 +100,7 @@ export function MuscleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Мышцы"
-        subtitle="Объём и свежесть по зонам"
+        subtitle="Объём и восстановление по зонам"
         backHref="/workouts"
       />
 
@@ -137,7 +137,7 @@ export function MuscleScreen() {
               value={displayMode}
               options={[
                 { id: "volume", label: "Объём" },
-                { id: "freshness", label: "Свежесть" },
+                { id: "recovery", label: "Восст." },
               ]}
               onChange={setDisplayMode}
             />
@@ -249,6 +249,7 @@ export function MuscleScreen() {
                             in_next_session: false,
                             missed_sessions: 0,
                             weekly_sets: [],
+                            recovery_percent: null,
                           },
                           "volume",
                         ),
@@ -261,8 +262,8 @@ export function MuscleScreen() {
               </ul>
             ) : (
               <p className="px-1 text-xs text-muted-foreground">
-                Свежесть: ярче — недавно тренировали; бледнее — давно не было
-                нагрузки на зону.
+                Восстановление: выше % — зона готова к тяжёлой работе; ниже —
+                ещё отходит от недавнего объёма.
               </p>
             )}
 
@@ -298,11 +299,13 @@ export function MuscleScreen() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Давность</dt>
+                    <dt className="text-muted-foreground">Восстановление</dt>
                     <dd className="font-medium">
-                      {selected.days_since != null
-                        ? `${selected.days_since} дн`
-                        : "—"}
+                      {selected.recovery_percent != null
+                        ? `~${selected.recovery_percent}%`
+                        : selected.days_since != null
+                          ? `${selected.days_since} дн назад`
+                          : "—"}
                     </dd>
                   </div>
                   {selected.missed_sessions > 0 ? (

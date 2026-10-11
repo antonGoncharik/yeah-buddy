@@ -93,6 +93,8 @@ function parseMuscleCell(value: unknown): MuscleCell | null {
     in_next_session: value.in_next_session === true,
     missed_sessions: toNumber(value.missed_sessions),
     weekly_sets: weekly,
+    recovery_percent:
+      value.recovery_percent == null ? null : toNumber(value.recovery_percent),
   };
 }
 
