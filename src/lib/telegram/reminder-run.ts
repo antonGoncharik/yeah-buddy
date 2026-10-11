@@ -1,5 +1,6 @@
 import { getReviewSnapshot } from "@/lib/ai/review";
 import { trackEvent } from "@/lib/analytics/track";
+import { mapWithConcurrency } from "@/lib/async/map-with-concurrency";
 import { getServerEnv } from "@/lib/env";
 import { isRecord } from "@/lib/read";
 import {
@@ -47,10 +48,29 @@ import {
   gymDoneForReminder,
   reminderText,
 } from "@/lib/telegram/reminder-text";
+import {
+  eveningDueTimezoneKeys,
+  middayDueTimezoneKeys,
+} from "@/lib/telegram/reminder-timezones";
 import { templateNamesById } from "@/lib/workout/session-names";
 import { getSessionOnDate } from "@/lib/workout/sessions";
 
 const CANDIDATE_PAGE = 100;
+const REMINDER_CONCURRENCY = 5;
+
+function mergeRunResult(
+  into: ReminderRunResult,
+  part: ReminderRunResult,
+): void {
+  into.sent += part.sent;
+  into.skipped += part.skipped;
+  into.blocked += part.blocked;
+  into.failed += part.failed;
+}
+
+function emptyRunResult(): ReminderRunResult {
+  return { sent: 0, skipped: 0, blocked: 0, failed: 0 };
+}
 
 export interface ReminderRunResult {
   sent: number;
@@ -85,228 +105,252 @@ export async function runRemindersCron(
 export async function runEveningReminders(
   now = new Date(),
 ): Promise<ReminderRunResult> {
-  const result: ReminderRunResult = {
-    sent: 0,
-    skipped: 0,
-    blocked: 0,
-    failed: 0,
-  };
-
-  for (const candidate of await listReminderCandidates()) {
-    const clock = localClock(now, candidate.timezone);
-    const reminderDate = reminderDateIfDue(clock);
-    if (!reminderDate) {
-      result.skipped += 1;
-      continue;
-    }
-    if (candidate.remindedOn === reminderDate) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const [foodLogged, isTrainingDay, session, nextTemplateName, snapshot] =
-      await Promise.all([
-        dateHasFoodRecord(candidate.userId, reminderDate),
-        dateIsTrainingDay(candidate.userId, reminderDate),
-        getSessionOnDate(candidate.userId, reminderDate),
-        nextCircleName(candidate.userId),
-        dateShareSnapshot(candidate.userId, reminderDate),
-      ]);
-    const sessionStatus = session?.status ?? null;
-    const nag = reminderText({
-      foodLogged,
-      gymDone: gymDoneForReminder({
-        isTrainingDay,
-        sessionStatus,
-      }),
-      gymClosed: gymClosedForReminder(sessionStatus),
-      nextTemplateName,
-      early: inRetentionTail(
-        onboardingAgeDays(
-          candidate.onboardedAt,
-          reminderDate,
-          candidate.timezone,
-        ),
-      ),
-    });
-    const sunday = await sundayPack(candidate.userId, reminderDate);
-    const recap = sunday.recap;
-    const facts = dayShareFacts({
-      protein: snapshot?.protein ?? 0,
-      kcal: snapshot?.kcal ?? 0,
-      sessionStatus: session?.status ?? null,
-      isTrainingDay,
-    });
-    const gymName = await completedGymName(candidate.userId, session);
-    const text = composeEveningMessage(
-      nag,
-      recap,
-      reminderDayCard({
-        protein: facts.protein,
-        fat: snapshot?.fat ?? 0,
-        carbs: snapshot?.carbs ?? 0,
-        kcal: facts.kcal,
-        targetProtein: snapshot?.targetProtein ?? 0,
-        targetFat: snapshot?.targetFat ?? 0,
-        targetCarbs: snapshot?.targetCarbs ?? 0,
-        targetKcal: snapshot?.targetKcal ?? 0,
-        gym: facts.gym,
-        gymName,
-        nextName: facts.gym === "none" ? null : nextTemplateName,
-      }),
-    );
-    if (!text) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const claimed = await claimReminderDay(candidate.userId, reminderDate);
-    if (!claimed) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const env = getServerEnv();
-    const sent = await sendEvening(
-      candidate.telegramId,
-      text,
-      sunday.query,
-      env,
-    );
-    if (sent === "sent") {
-      result.sent += 1;
-      await trackEvent(candidate.userId, "reminder_sent", {
-        kind: sunday.query ? "sunday" : "evening",
-      });
-      continue;
-    }
-
-    if (sent === "blocked") {
-      await disableReminders(candidate.userId);
-      result.blocked += 1;
-      await trackEvent(candidate.userId, "reminder_blocked", {
-        kind: sunday.query ? "sunday" : "evening",
-      });
-      continue;
-    }
-
-    await revertReminderDay(
-      candidate.userId,
-      reminderDate,
-      candidate.remindedOn,
-    );
-    result.failed += 1;
+  const result = emptyRunResult();
+  const distinct = await listDistinctReminderTimezones();
+  const dueTimezones = eveningDueTimezoneKeys(distinct, now);
+  if (dueTimezones.length === 0) {
+    return result;
   }
 
+  const candidates = await listReminderCandidates(dueTimezones);
+  const parts: ReminderRunResult[] = [];
+  await mapWithConcurrency(
+    candidates,
+    REMINDER_CONCURRENCY,
+    async (candidate) => {
+      parts.push(await processEveningCandidate(candidate, now));
+    },
+  );
+  for (const part of parts) {
+    mergeRunResult(result, part);
+  }
+
+  return result;
+}
+
+async function processEveningCandidate(
+  candidate: ReminderCandidate,
+  now: Date,
+): Promise<ReminderRunResult> {
+  const result = emptyRunResult();
+  const clock = localClock(now, candidate.timezone);
+  const reminderDate = reminderDateIfDue(clock);
+  if (!reminderDate) {
+    result.skipped += 1;
+    return result;
+  }
+  if (candidate.remindedOn === reminderDate) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const [foodLogged, isTrainingDay, session, nextTemplateName, snapshot] =
+    await Promise.all([
+      dateHasFoodRecord(candidate.userId, reminderDate),
+      dateIsTrainingDay(candidate.userId, reminderDate),
+      getSessionOnDate(candidate.userId, reminderDate),
+      nextCircleName(candidate.userId),
+      dateShareSnapshot(candidate.userId, reminderDate),
+    ]);
+  const sessionStatus = session?.status ?? null;
+  const nag = reminderText({
+    foodLogged,
+    gymDone: gymDoneForReminder({
+      isTrainingDay,
+      sessionStatus,
+    }),
+    gymClosed: gymClosedForReminder(sessionStatus),
+    nextTemplateName,
+    early: inRetentionTail(
+      onboardingAgeDays(
+        candidate.onboardedAt,
+        reminderDate,
+        candidate.timezone,
+      ),
+    ),
+  });
+  const sunday = await sundayPack(candidate.userId, reminderDate);
+  const recap = sunday.recap;
+  const facts = dayShareFacts({
+    protein: snapshot?.protein ?? 0,
+    kcal: snapshot?.kcal ?? 0,
+    sessionStatus: session?.status ?? null,
+    isTrainingDay,
+  });
+  const gymName = await completedGymName(candidate.userId, session);
+  const text = composeEveningMessage(
+    nag,
+    recap,
+    reminderDayCard({
+      protein: facts.protein,
+      fat: snapshot?.fat ?? 0,
+      carbs: snapshot?.carbs ?? 0,
+      kcal: facts.kcal,
+      targetProtein: snapshot?.targetProtein ?? 0,
+      targetFat: snapshot?.targetFat ?? 0,
+      targetCarbs: snapshot?.targetCarbs ?? 0,
+      targetKcal: snapshot?.targetKcal ?? 0,
+      gym: facts.gym,
+      gymName,
+      nextName: facts.gym === "none" ? null : nextTemplateName,
+    }),
+  );
+  if (!text) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const claimed = await claimReminderDay(candidate.userId, reminderDate);
+  if (!claimed) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const env = getServerEnv();
+  const sent = await sendEvening(candidate.telegramId, text, sunday.query, env);
+  if (sent === "sent") {
+    result.sent += 1;
+    await trackEvent(candidate.userId, "reminder_sent", {
+      kind: sunday.query ? "sunday" : "evening",
+    });
+    return result;
+  }
+
+  if (sent === "blocked") {
+    await disableReminders(candidate.userId);
+    result.blocked += 1;
+    await trackEvent(candidate.userId, "reminder_blocked", {
+      kind: sunday.query ? "sunday" : "evening",
+    });
+    return result;
+  }
+
+  await revertReminderDay(candidate.userId, reminderDate, candidate.remindedOn);
+  result.failed += 1;
   return result;
 }
 
 export async function runMiddayReminders(
   now = new Date(),
 ): Promise<ReminderRunResult> {
-  const result: ReminderRunResult = {
-    sent: 0,
-    skipped: 0,
-    blocked: 0,
-    failed: 0,
-  };
-
-  for (const candidate of await listReminderCandidates()) {
-    const clock = localClock(now, candidate.timezone);
-    const reminderDate = middayReminderDateIfDue(clock);
-    if (!reminderDate) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const ageDays = onboardingAgeDays(
-      candidate.onboardedAt,
-      reminderDate,
-      candidate.timezone,
-    );
-    if (!inEarlyHabitWindow(ageDays)) {
-      result.skipped += 1;
-      continue;
-    }
-
-    if (candidate.middayRemindedOn === reminderDate) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const [foodLogged, isTrainingDay, session, snapshot, priorFoodLogDays] =
-      await Promise.all([
-        dateHasFoodRecord(candidate.userId, reminderDate),
-        dateIsTrainingDay(candidate.userId, reminderDate),
-        getSessionOnDate(candidate.userId, reminderDate),
-        dateShareSnapshot(candidate.userId, reminderDate),
-        datePriorFoodLogDays(candidate.userId, reminderDate),
-      ]);
-    const sessionStatus = session?.status ?? null;
-    let gymTemplateName: string | null = null;
-    if (sessionStatus === "planned" && session?.template_id) {
-      const names = await templateNamesById(candidate.userId, [
-        session.template_id,
-      ]);
-      gymTemplateName = names.get(session.template_id) ?? null;
-    }
-    if (
-      !gymTemplateName &&
-      isTrainingDay === true &&
-      sessionStatus === "planned"
-    ) {
-      gymTemplateName = await nextCircleName(candidate.userId);
-    }
-
-    const text = middayReminderText({
-      foodLogged,
-      priorFoodLogDays,
-      protein: snapshot?.protein ?? 0,
-      targetProtein: snapshot?.targetProtein ?? 0,
-      isTrainingDay,
-      sessionStatus,
-      gymTemplateName,
-      localHour: clock.hour,
-    });
-    if (!text) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const claimed = await claimMiddayReminderDay(
-      candidate.userId,
-      reminderDate,
-    );
-    if (!claimed) {
-      result.skipped += 1;
-      continue;
-    }
-
-    const env = getServerEnv();
-    const sent = await sendDiaryMessage(candidate.telegramId, text, env);
-    if (sent === "sent") {
-      result.sent += 1;
-      await trackEvent(candidate.userId, "reminder_sent", { kind: "midday" });
-      continue;
-    }
-
-    if (sent === "blocked") {
-      await disableReminders(candidate.userId);
-      result.blocked += 1;
-      await trackEvent(candidate.userId, "reminder_blocked", {
-        kind: "midday",
-      });
-      continue;
-    }
-
-    await revertMiddayReminderDay(
-      candidate.userId,
-      reminderDate,
-      candidate.middayRemindedOn,
-    );
-    result.failed += 1;
+  const result = emptyRunResult();
+  const distinct = await listDistinctReminderTimezones();
+  const dueTimezones = middayDueTimezoneKeys(distinct, now);
+  if (dueTimezones.length === 0) {
+    return result;
   }
 
+  const candidates = await listReminderCandidates(dueTimezones);
+  const parts: ReminderRunResult[] = [];
+  await mapWithConcurrency(
+    candidates,
+    REMINDER_CONCURRENCY,
+    async (candidate) => {
+      parts.push(await processMiddayCandidate(candidate, now));
+    },
+  );
+  for (const part of parts) {
+    mergeRunResult(result, part);
+  }
+
+  return result;
+}
+
+async function processMiddayCandidate(
+  candidate: ReminderCandidate,
+  now: Date,
+): Promise<ReminderRunResult> {
+  const result = emptyRunResult();
+  const clock = localClock(now, candidate.timezone);
+  const reminderDate = middayReminderDateIfDue(clock);
+  if (!reminderDate) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const ageDays = onboardingAgeDays(
+    candidate.onboardedAt,
+    reminderDate,
+    candidate.timezone,
+  );
+  if (!inEarlyHabitWindow(ageDays)) {
+    result.skipped += 1;
+    return result;
+  }
+
+  if (candidate.middayRemindedOn === reminderDate) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const [foodLogged, isTrainingDay, session, snapshot, priorFoodLogDays] =
+    await Promise.all([
+      dateHasFoodRecord(candidate.userId, reminderDate),
+      dateIsTrainingDay(candidate.userId, reminderDate),
+      getSessionOnDate(candidate.userId, reminderDate),
+      dateShareSnapshot(candidate.userId, reminderDate),
+      datePriorFoodLogDays(candidate.userId, reminderDate),
+    ]);
+  const sessionStatus = session?.status ?? null;
+  let gymTemplateName: string | null = null;
+  if (sessionStatus === "planned" && session?.template_id) {
+    const names = await templateNamesById(candidate.userId, [
+      session.template_id,
+    ]);
+    gymTemplateName = names.get(session.template_id) ?? null;
+  }
+  if (
+    !gymTemplateName &&
+    isTrainingDay === true &&
+    sessionStatus === "planned"
+  ) {
+    gymTemplateName = await nextCircleName(candidate.userId);
+  }
+
+  const text = middayReminderText({
+    foodLogged,
+    priorFoodLogDays,
+    protein: snapshot?.protein ?? 0,
+    targetProtein: snapshot?.targetProtein ?? 0,
+    isTrainingDay,
+    sessionStatus,
+    gymTemplateName,
+    localHour: clock.hour,
+  });
+  if (!text) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const claimed = await claimMiddayReminderDay(candidate.userId, reminderDate);
+  if (!claimed) {
+    result.skipped += 1;
+    return result;
+  }
+
+  const env = getServerEnv();
+  const sent = await sendDiaryMessage(candidate.telegramId, text, env);
+  if (sent === "sent") {
+    result.sent += 1;
+    await trackEvent(candidate.userId, "reminder_sent", { kind: "midday" });
+    return result;
+  }
+
+  if (sent === "blocked") {
+    await disableReminders(candidate.userId);
+    result.blocked += 1;
+    await trackEvent(candidate.userId, "reminder_blocked", {
+      kind: "midday",
+    });
+    return result;
+  }
+
+  await revertMiddayReminderDay(
+    candidate.userId,
+    reminderDate,
+    candidate.middayRemindedOn,
+  );
+  result.failed += 1;
   return result;
 }
 
@@ -373,7 +417,47 @@ async function sendEvening(
   return sendDiaryMessage(chatId, text, env);
 }
 
-async function listReminderCandidates(): Promise<ReminderCandidate[]> {
+async function listDistinctReminderTimezones(): Promise<string[]> {
+  const supabase = createSupabaseServerClient();
+  const seen = new Set<string>();
+
+  for (let from = 0; ; from += CANDIDATE_PAGE) {
+    const page = await supabase
+      .from("user_settings")
+      .select("timezone")
+      .eq("reminders_enabled", true)
+      .not("onboarding_completed_at", "is", null)
+      .order("timezone", { ascending: true })
+      .range(from, from + CANDIDATE_PAGE - 1);
+
+    if (page.error) {
+      throw page.error;
+    }
+
+    const rows = page.data ?? [];
+    for (const row of rows) {
+      if (typeof row.timezone === "string" && row.timezone.trim()) {
+        seen.add(row.timezone);
+      } else {
+        seen.add("");
+      }
+    }
+
+    if (rows.length < CANDIDATE_PAGE) {
+      break;
+    }
+  }
+
+  return [...seen];
+}
+
+async function listReminderCandidates(
+  timezones: readonly string[],
+): Promise<ReminderCandidate[]> {
+  if (timezones.length === 0) {
+    return [];
+  }
+
   const supabase = createSupabaseServerClient();
   const candidates: ReminderCandidate[] = [];
 
@@ -385,6 +469,7 @@ async function listReminderCandidates(): Promise<ReminderCandidate[]> {
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
+      .in("timezone", [...timezones])
       .eq("users.is_active", true)
       .gt("users.telegram_id", 0)
       .order("user_id", { ascending: true })

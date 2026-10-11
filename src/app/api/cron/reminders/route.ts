@@ -24,6 +24,12 @@ async function runCron(request: Request): Promise<NextResponse> {
     return failRoute(error);
   }
 
+  if (!env.CRON_SECRET) {
+    console.error(
+      "CRON_SECRET is not set; /api/cron/reminders rejects all requests",
+    );
+  }
+
   if (!isCronAuthorized(request, env.CRON_SECRET)) {
     return jsonError("Unauthorized", 401);
   }
