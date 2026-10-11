@@ -72,11 +72,32 @@ assertEqual(form.sex, "male", "form sex");
 assertEqual(form.goal, "keep", "form goal");
 assertEqual(form.training_age, "year", "form training_age");
 
-const payload = toPayload(form);
+const payload = toPayload(form, 2026);
 assert(payload != null, "payload ok");
 assertEqual(payload?.sex, "male", "payload sex");
 assertEqual(payload?.goal, "keep", "payload goal");
 assertEqual(payload?.training_age, "year", "payload training_age");
+assertEqual(payload?.height_cm, null, "empty height stays empty");
+assertEqual(payload?.birth_year, null, "empty age stays empty");
+
+const aged = toFormState(
+  { ...settings, height_cm: 180, birth_year: 1990 },
+  2026,
+);
+assertEqual(aged.age, "36", "settings shows age");
+const agedPayload = toPayload(aged, 2026);
+assertEqual(agedPayload?.height_cm, 180, "height roundtrip");
+assertEqual(agedPayload?.birth_year, 1990, "age roundtrip");
+assertEqual(
+  toPayload({ ...aged, age: "3" }, 2026),
+  null,
+  "impossible age blocks save",
+);
+assertEqual(
+  toPayload({ ...aged, height_cm: "10" }, 2026),
+  null,
+  "impossible height blocks save",
+);
 
 const recounted = withRecountedProtein(form, 80);
 assert(recounted != null, "recount exists");

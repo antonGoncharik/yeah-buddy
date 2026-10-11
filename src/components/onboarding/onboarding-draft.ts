@@ -5,6 +5,11 @@ import {
 } from "@/components/onboarding/onboarding-weight-ruler";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import type { OnboardingSex } from "@/lib/nutrition";
+import {
+  defaultBodyHeightCm,
+  isPresetBodyHeightCm,
+  parseHeightInput,
+} from "@/lib/nutrition/body-profile";
 import { parseDecimal } from "@/lib/workout/numbers";
 
 export function weightAfterSexPick(
@@ -53,18 +58,33 @@ export function parseLiftKg(raw: string | null): number | null {
   return value;
 }
 
+export function heightAfterSexPick(
+  value: OnboardingSex,
+  current: string,
+): string {
+  if (current.trim() === "") {
+    return "";
+  }
+  const parsed = optionalHeightCm(current);
+  if (!parsed.ok || parsed.cm == null) {
+    return current;
+  }
+  const rounded = Math.round(parsed.cm);
+  if (!isPresetBodyHeightCm(rounded)) {
+    return current;
+  }
+  return String(defaultBodyHeightCm(value));
+}
+
 export function optionalHeightCm(raw: string): {
   ok: boolean;
   cm: number | null;
 } {
-  if (raw.trim() === "") {
-    return { ok: true, cm: null };
-  }
-  const cm = parseDecimal(raw);
-  if (cm == null || cm < 120 || cm > 230) {
+  const parsed = parseHeightInput(raw);
+  if (!parsed.ok) {
     return { ok: false, cm: null };
   }
-  return { ok: true, cm };
+  return { ok: true, cm: parsed.cm };
 }
 
 export function optionalBirthYear(raw: string): {

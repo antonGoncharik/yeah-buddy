@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OnboardingProgramShelf } from "@/components/onboarding/onboarding-circle-step";
 import {
   emptyLiftAnswers,
+  heightAfterSexPick,
   optionalBirthYear,
   optionalHeightCm,
   parseLiftKg,
@@ -100,6 +101,8 @@ type GoNextOptions = {
   skipRation?: boolean;
   skipLiftsStep?: boolean;
   skipProfileStep?: boolean;
+  heightCm?: string;
+  birthYear?: string;
 };
 
 export function useOnboardingScreen() {
@@ -119,6 +122,8 @@ export function useOnboardingScreen() {
   const [goalPace, setGoalPace] = useState<UserGoalPace | null>("normal");
   const [heightCm, setHeightCm] = useState("");
   const [birthYear, setBirthYear] = useState("");
+  const profileDraftRef = useRef({ heightCm: "", birthYear: "" });
+  profileDraftRef.current = { heightCm, birthYear };
   const [ration, setRation] = useState<RationId | null>(null);
   const [skipRation, setSkipRation] = useState(false);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
@@ -166,6 +171,12 @@ export function useOnboardingScreen() {
         setGoal(onboarding.settings.goal);
         setTrainingAge(onboarding.settings.training_age);
       }
+      if (onboarding.settings.height_cm != null) {
+        setHeightCm(String(onboarding.settings.height_cm));
+      }
+      if (onboarding.settings.birth_year != null) {
+        setBirthYear(String(onboarding.settings.birth_year));
+      }
       setStep(replay ? "sex" : "mode");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
@@ -180,11 +191,8 @@ export function useOnboardingScreen() {
   }, [load]);
 
   const weightKg = parseDecimal(weight);
-  const parsedHeight = parseDecimal(heightCm);
-  const birth = optionalBirthYear(birthYear);
-  const birthYearValid = birth.ok;
-  const heightValid = optionalHeightCm(heightCm).ok;
-  const parsedBirthYear = birth.year;
+  const parsedHeight = optionalHeightCm(heightCm).cm;
+  const parsedBirthYear = optionalBirthYear(birthYear).year;
   const macroPreview =
     sex && goal && weightValid(weightKg)
       ? suggestMacroGoals({
@@ -275,6 +283,12 @@ export function useOnboardingScreen() {
     const effectiveSkipRation = options?.skipRation ?? skipRation;
     const effectiveRation =
       options?.ration !== undefined ? options.ration : ration;
+    const effectiveHeight = options?.skipProfileStep
+      ? ""
+      : (options?.heightCm ?? heightCm);
+    const effectiveBirth = options?.skipProfileStep
+      ? ""
+      : (options?.birthYear ?? birthYear);
 
     const activeSteps = onboardingSteps({
       pendingKind,
@@ -290,8 +304,8 @@ export function useOnboardingScreen() {
       sex: effectiveSex,
       weight,
       activity: effectiveActivity,
-      heightOk: heightValid,
-      birthYearOk: birthYearValid,
+      heightOk: optionalHeightCm(effectiveHeight).ok,
+      birthYearOk: optionalBirthYear(effectiveBirth).ok,
       skipProfile: options?.skipProfileStep === true,
       goal: effectiveGoal,
       goalPace: effectiveGoalPace,
@@ -316,9 +330,22 @@ export function useOnboardingScreen() {
       setGymEnabled(options.gymEnabled);
     }
     if (options?.sex !== undefined) {
-      const sex = options.sex;
-      setSex(sex);
-      setWeight((current) => weightAfterSexPick(sex, current));
+      const nextSex = options.sex;
+      setSex(nextSex);
+      setWeight((current) => weightAfterSexPick(nextSex, current));
+      setHeightCm((current) => heightAfterSexPick(nextSex, current));
+    }
+    if (
+      options?.skipProfileStep ||
+      options?.heightCm !== undefined ||
+      options?.birthYear !== undefined
+    ) {
+      profileDraftRef.current = {
+        heightCm: effectiveHeight,
+        birthYear: effectiveBirth,
+      };
+      setHeightCm(effectiveHeight);
+      setBirthYear(effectiveBirth);
     }
     if (options?.goal !== undefined) {
       setGoal(options.goal);
@@ -340,10 +367,6 @@ export function useOnboardingScreen() {
     }
     if (options?.goalPace !== undefined) {
       setGoalPace(options.goalPace);
-    }
-    if (options?.skipProfileStep) {
-      setHeightCm("");
-      setBirthYear("");
     }
     if (options?.skipRation !== undefined) {
       setSkipRation(options.skipRation);
@@ -408,6 +431,9 @@ export function useOnboardingScreen() {
       return;
     }
 
+    const draft = profileDraftRef.current;
+    const draftHeight = optionalHeightCm(draft.heightCm);
+    const draftBirth = optionalBirthYear(draft.birthYear);
     try {
       const href = await submitOnboardingFinish({
         omitProtein,
@@ -417,8 +443,8 @@ export function useOnboardingScreen() {
         trainingAge: omitProtein ? null : trainingAge,
         activity: omitProtein ? null : activity,
         goalPace: omitProtein ? null : goalPace,
-        heightCm: omitProtein || !heightValid ? null : parsedHeight,
-        birthYear: omitProtein || !birthYearValid ? null : parsedBirthYear,
+        heightCm: omitProtein || !draftHeight.ok ? null : draftHeight.cm,
+        birthYear: omitProtein || !draftBirth.ok ? null : draftBirth.year,
         bodyWeight: omitProtein || !weightValid(weightKg) ? null : weightKg,
         anchors: {
           squat: parseLiftKg(lifts.squat),
@@ -526,10 +552,9 @@ export function useOnboardingScreen() {
     onGoalPacePick: (value: UserGoalPace) => {
       goNext({ goalPace: value });
     },
-    onHeightChange: setHeightCm,
-    onBirthYearChange: setBirthYear,
     skipProfile: () => goNext({ skipProfileStep: true }),
-    confirmProfile: () => goNext(),
+    confirmProfile: (nextHeight: string, nextBirth: string) =>
+      goNext({ heightCm: nextHeight, birthYear: nextBirth }),
     onTrainingAgePick: (value: UserTrainingAge) => {
       goNext({ trainingAge: value });
     },

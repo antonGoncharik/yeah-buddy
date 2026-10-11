@@ -96,8 +96,6 @@ export function OnboardingScreen() {
     onTrainingAgePick,
     onActivityPick,
     onGoalPacePick,
-    onHeightChange,
-    onBirthYearChange,
     skipProfile,
     confirmProfile,
     onLiftChange,
@@ -266,13 +264,13 @@ export function OnboardingScreen() {
 
         {step === "profile" ? (
           <OnboardingBodyProfileStep
+            sex={sex}
             heightCm={heightCm}
             birthYear={birthYear}
             saving={saving}
-            onHeightChange={onHeightChange}
-            onBirthYearChange={onBirthYearChange}
-            onContinue={() => void confirmProfile()}
-            onSkip={() => skipProfile()}
+            message={error}
+            onConfirm={confirmProfile}
+            onSkip={skipProfile}
           />
         ) : null}
 
@@ -488,6 +486,9 @@ function subtitleForStep(
   }
   if (step === "weight") {
     return "Свайпни линейку. Потом можно менять в дневнике.";
+  }
+  if (step === "profile") {
+    return "Свайпни колёса — калории будут точнее. Можно не указывать.";
   }
   if (step === "goal") {
     return "От этого зависят калории и белок.";

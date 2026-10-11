@@ -1,15 +1,27 @@
 "use client";
 
+import { useState } from "react";
+
 import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
+import { ValueWheel } from "@/components/onboarding/value-wheel";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
+import {
+  ageYearsLabel,
+  birthYearFromAge,
+  bodyAgeOptions,
+  bodyHeightOptions,
+  profileAgeYears,
+  profileHeightCm,
+} from "@/lib/nutrition/body-profile";
 import {
   ONBOARDING_ACTIVITY_OPTIONS,
   ONBOARDING_PACE_OPTIONS,
   paceHint,
 } from "@/lib/nutrition/profile-energy";
-import type { OnboardingGoal } from "@/lib/nutrition/suggest-protein";
+import type {
+  OnboardingGoal,
+  OnboardingSex,
+} from "@/lib/nutrition/suggest-protein";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserActivityLevel, UserGoalPace } from "@/lib/types";
 
@@ -46,57 +58,63 @@ export function OnboardingActivityStep({
 }
 
 export function OnboardingBodyProfileStep({
+  sex,
   heightCm,
   birthYear,
-  onHeightChange,
-  onBirthYearChange,
   saving,
-  onContinue,
+  message,
+  onConfirm,
   onSkip,
 }: {
+  sex: OnboardingSex | null;
   heightCm: string;
   birthYear: string;
-  onHeightChange: (value: string) => void;
-  onBirthYearChange: (value: string) => void;
   saving?: boolean;
-  onContinue: () => void;
+  message?: string | null;
+  onConfirm: (heightCm: string, birthYear: string) => void;
   onSkip: () => void;
 }) {
+  const nowYear = new Date().getFullYear();
+  const [height, setHeight] = useState(() => profileHeightCm(heightCm, sex));
+  const [age, setAge] = useState(() => profileAgeYears(birthYear, nowYear));
+  const heights = bodyHeightOptions();
+  const ages = bodyAgeOptions(nowYear);
+
+  function confirm() {
+    const year = birthYearFromAge(age, nowYear);
+    if (year == null) {
+      return;
+    }
+    onConfirm(String(height), String(year));
+  }
+
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-base text-muted-foreground">
-        Рост и возраст точнее посчитают калории. Можно пропустить — возьмём вес
-        и активность.
-      </p>
-      <div className="flex flex-col gap-2">
-        <Label className="text-base">Рост, см</Label>
-        <input
-          type="text"
-          inputMode="decimal"
-          className="field-control h-12 rounded-xl border border-input/70 bg-input-bg px-3 text-base"
-          value={heightCm}
-          placeholder="175"
-          onChange={(event) =>
-            onHeightChange(sanitizeDecimalDraft(event.target.value))
-          }
+    <div className="flex flex-1 flex-col justify-center gap-5">
+      <div className="grid grid-cols-2 gap-3">
+        <ValueWheel
+          label="Рост"
+          caption="см"
+          values={heights}
+          value={height}
+          onChange={setHeight}
+          ariaLabel="Рост в сантиметрах"
+        />
+        <ValueWheel
+          label="Возраст"
+          caption={ageYearsLabel}
+          values={ages}
+          value={age}
+          onChange={setAge}
+          ariaLabel="Возраст"
         />
       </div>
+      {message ? (
+        <p className="text-center text-base leading-snug text-destructive">
+          {message}
+        </p>
+      ) : null}
       <div className="flex flex-col gap-2">
-        <Label className="text-base">Год рождения</Label>
-        <input
-          type="text"
-          inputMode="numeric"
-          className="field-control h-12 rounded-xl border border-input/70 bg-input-bg px-3 text-base"
-          value={birthYear}
-          placeholder="1990"
-          maxLength={4}
-          onChange={(event) =>
-            onBirthYearChange(event.target.value.replace(/\D/g, "").slice(0, 4))
-          }
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <OnboardingPrimaryAction saving={saving} onClick={onContinue} />
+        <OnboardingPrimaryAction saving={saving} onClick={confirm} />
         <Button
           type="button"
           variant="ghost"
@@ -104,7 +122,7 @@ export function OnboardingBodyProfileStep({
           disabled={saving}
           onClick={onSkip}
         >
-          Пропустить
+          Не указывать
         </Button>
       </div>
     </div>

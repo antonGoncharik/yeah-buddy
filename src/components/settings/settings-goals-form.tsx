@@ -131,6 +131,9 @@ export function SettingsGoalsForm({
             </Button>
           ))}
         </div>
+        <p className="text-sm text-muted-foreground">
+          Рост и возраст уточняют калории. Если пусто — считаем по весу.
+        </p>
         <label className="flex flex-col gap-1.5">
           <span className="text-sm text-muted-foreground">Рост, см</span>
           <input
@@ -142,15 +145,15 @@ export function SettingsGoalsForm({
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm text-muted-foreground">Год рождения</span>
+          <span className="text-sm text-muted-foreground">Возраст</span>
           <input
             className="field-control h-12 rounded-xl border border-input/70 bg-input-bg px-3 text-base"
             inputMode="numeric"
-            maxLength={4}
-            value={form.birth_year}
+            maxLength={3}
+            value={form.age}
             placeholder="не обязательно"
             onChange={(event) =>
-              updateField("birth_year", event.target.value.replace(/\D/g, ""))
+              updateField("age", event.target.value.replace(/\D/g, ""))
             }
           />
         </label>

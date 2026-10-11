@@ -4,6 +4,11 @@ import {
   type OnboardingSex,
   suggestMacroGoals,
 } from "@/lib/nutrition";
+import {
+  ageInputFromBirthYear,
+  parseAgeInput,
+  parseHeightInput,
+} from "@/lib/nutrition/body-profile";
 import { readSettingsPayload } from "@/lib/settings/map";
 import type {
   UserActivityLevel,
@@ -27,7 +32,7 @@ export interface SettingsFormState {
   activity_level: UserActivityLevel | null;
   goal_pace: UserGoalPace | null;
   height_cm: string;
-  birth_year: string;
+  age: string;
   reminder_hour: number;
   gym_enabled: boolean;
 }
@@ -45,7 +50,10 @@ export type MacroFieldKey = Exclude<
   | "gym_enabled"
 >;
 
-export function toFormState(settings: UserSettings): SettingsFormState {
+export function toFormState(
+  settings: UserSettings,
+  nowYear = new Date().getFullYear(),
+): SettingsFormState {
   return {
     rest_protein: String(settings.rest_protein),
     rest_fat: String(settings.rest_fat),
@@ -61,13 +69,16 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     activity_level: settings.activity_level,
     goal_pace: settings.goal_pace,
     height_cm: settings.height_cm != null ? String(settings.height_cm) : "",
-    birth_year: settings.birth_year != null ? String(settings.birth_year) : "",
+    age: ageInputFromBirthYear(settings.birth_year, nowYear),
     reminder_hour: settings.reminder_hour,
     gym_enabled: settings.gym_enabled,
   };
 }
 
-export function toPayload(form: SettingsFormState) {
+export function toPayload(
+  form: SettingsFormState,
+  nowYear = new Date().getFullYear(),
+) {
   const rest_protein = parseMacro(form.rest_protein);
   const rest_fat = parseMacro(form.rest_fat);
   const rest_carbs = parseMacro(form.rest_carbs);
@@ -86,6 +97,12 @@ export function toPayload(form: SettingsFormState) {
     return null;
   }
 
+  const height = parseHeightInput(form.height_cm);
+  const birth = parseAgeInput(form.age, nowYear);
+  if (!height.ok || !birth.ok) {
+    return null;
+  }
+
   return {
     rest_protein,
     rest_fat,
@@ -98,33 +115,9 @@ export function toPayload(form: SettingsFormState) {
     training_age: form.training_age,
     activity_level: form.activity_level,
     goal_pace: form.goal_pace,
-    height_cm: parseOptionalHeight(form.height_cm),
-    birth_year: parseOptionalBirthYear(form.birth_year),
+    height_cm: height.cm,
+    birth_year: birth.year,
   };
-}
-
-function parseOptionalHeight(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (trimmed === "") {
-    return null;
-  }
-  const value = Number(trimmed.replace(",", "."));
-  if (!Number.isFinite(value) || value < 120 || value > 230) {
-    return null;
-  }
-  return value;
-}
-
-function parseOptionalBirthYear(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (trimmed === "") {
-    return null;
-  }
-  const value = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(value) || value < 1940 || value > 2015) {
-    return null;
-  }
-  return value;
 }
 
 export function parseMacro(raw: string): number | null {
@@ -164,18 +157,21 @@ export function kcalFromFields(
 export function withRecountedProtein(
   form: SettingsFormState,
   weightKg: number,
+  nowYear = new Date().getFullYear(),
 ): SettingsFormState | null {
   if (form.sex == null || form.goal == null) {
     return null;
   }
 
+  const height = parseHeightInput(form.height_cm);
+  const birth = parseAgeInput(form.age, nowYear);
   const goals = suggestMacroGoals({
     sex: form.sex,
     weightKg,
     goal: form.goal,
     activity_level: form.activity_level,
-    height_cm: parseOptionalHeight(form.height_cm),
-    birth_year: parseOptionalBirthYear(form.birth_year),
+    height_cm: height.ok ? height.cm : null,
+    birth_year: birth.ok ? birth.year : null,
     goal_pace: form.goal === "keep" ? null : form.goal_pace,
   });
   if (goals == null) {

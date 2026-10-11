@@ -9,4 +9,4 @@ export const RATION_REQUIRED = "Выбери шаблон или «Настро�
 export const ACTIVITY_REQUIRED = "Выбери активность.";
 export const PACE_REQUIRED = "Выбери темп.";
 export const PROFILE_HEIGHT_INVALID = "Рост от 120 до 230 см.";
-export const PROFILE_BIRTH_INVALID = "Год рождения от 1940 до 2015.";
+export const PROFILE_BIRTH_INVALID = "Возраст не подходит для расчёта.";

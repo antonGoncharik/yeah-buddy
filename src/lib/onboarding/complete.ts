@@ -11,6 +11,7 @@ import {
   macroGoalsFromProtein,
   suggestMacroGoals,
 } from "@/lib/nutrition";
+import { explicitOrStored } from "@/lib/nutrition/body-profile";
 import { syncTrainingCarbsToProgram } from "@/lib/nutrition/training-day";
 import { scaledTemplateGrams } from "@/lib/onboarding/setup";
 import type { OnboardingState } from "@/lib/onboarding/types";
@@ -209,8 +210,8 @@ function goalsForOnboarding(
       goal,
       protein,
       activity_level: input.activity_level ?? current.activity_level,
-      height_cm: input.height_cm ?? current.height_cm,
-      birth_year: input.birth_year ?? current.birth_year,
+      height_cm: explicitOrStored(input.height_cm, current.height_cm),
+      birth_year: explicitOrStored(input.birth_year, current.birth_year),
       goal_pace: input.goal_pace ?? current.goal_pace,
     });
     if (suggested != null) {

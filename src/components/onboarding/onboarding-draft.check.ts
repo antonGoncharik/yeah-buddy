@@ -1,5 +1,6 @@
 import {
   emptyLiftAnswers,
+  heightAfterSexPick,
   optionalBirthYear,
   optionalHeightCm,
   parseLiftKg,
@@ -39,6 +40,14 @@ assertEqual(
   "preset weight follows sex",
 );
 assertEqual(weightAfterSexPick("male", "72.5"), "72.5", "custom weight stays");
+
+assertEqual(heightAfterSexPick("female", ""), "", "empty height stays empty");
+assertEqual(
+  heightAfterSexPick("female", "175"),
+  "165",
+  "preset height follows sex",
+);
+assertEqual(heightAfterSexPick("male", "182"), "182", "custom height stays");
 
 assertEqual(parseLiftKg(null), null, "missing lift");
 assertEqual(parseLiftKg("  "), null, "blank lift");
