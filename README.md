@@ -60,6 +60,8 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
 | `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
 | `SENTRY_DSN` | no | Server errors, Gemini failures, and reminder cron stats (project `yeah-buddy`). Not exposed to the browser — do not use `NEXT_PUBLIC_` on Vercel |
+| `SENTRY_AUTH_TOKEN` | no for local dev | Vercel **Production** (and Preview if you want maps there): upload source maps and register releases on `npm run build`. Create at [sentry.io/settings/auth-tokens](https://sentry.io/settings/auth-tokens/) with `project:releases` and `org:read` |
+| `SENTRY_ORG` / `SENTRY_PROJECT` | no | Override defaults `antgoncharikgmailcom` / `yeah-buddy` if needed |
 | `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
 | `GEMINI_API_KEY` | no | text review «Как прошло». Up to four comma-separated keys, each from its own Google project (one project shares one Gemini quota). **Three** reviews per user per day. A limited key is skipped for the next call. Without a key the screen still shows numbers |
 | `GEMINI_PLATE_API_KEY` | no | plate photo, same pool of up to four keys from separate projects. **Three** photos per user per day. Without a key the camera link is hidden, food still logs by hand |
