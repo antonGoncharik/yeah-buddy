@@ -201,9 +201,11 @@ export function useSessionScreen() {
   const subtitle = session
     ? [
         formatSessionDate(session.session_date),
-        detail?.phase
-          ? phaseLabel(detail.phase.phase_type, detail.phase.name)
-          : null,
+        phaseCircle
+          ? phaseLabel(phaseCircle.phase_type, phaseCircle.phase_name)
+          : detail?.phase
+            ? phaseLabel(detail.phase.phase_type, detail.phase.name)
+            : null,
       ]
         .filter(Boolean)
         .join(" · ")

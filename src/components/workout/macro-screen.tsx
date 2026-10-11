@@ -15,6 +15,7 @@ import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { useMacroScreen } from "@/components/workout/use-macro-screen";
 import { cn } from "@/lib/utils";
 import { cycleSequenceLabel } from "@/lib/workout/hints";
+import { macroAdvanceButtonLabel } from "@/lib/workout/macro-advance-copy";
 import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
 
 export function MacroScreen() {
@@ -27,7 +28,9 @@ export function MacroScreen() {
     transitionDate,
     setTransitionDate,
     pendingTitle,
+    pendingTimelinePhase,
     advancing,
+    advanceStep,
     justClosed,
     load,
     changeDraft,
@@ -116,6 +119,7 @@ export function MacroScreen() {
                 phase: state.phase,
               }}
               titleOverride={pendingTitle}
+              pendingTimelinePhase={pendingTimelinePhase}
             />
 
             <MacroPhaseMaxes
@@ -153,9 +157,15 @@ export function MacroScreen() {
                 disabled={advancing}
                 onClick={() => void completeWeek()}
               >
-                {state.phase_circle?.last_in_cycle
-                  ? "Закрыть цикл"
-                  : `Завершить: ${phaseLabel(state.phase.phase_type, state.phase.name)}`}
+                {macroAdvanceButtonLabel({
+                  advancing,
+                  step: advanceStep,
+                  lastInCycle: state.phase_circle?.last_in_cycle === true,
+                  phaseTitle: phaseLabel(
+                    state.phase.phase_type,
+                    state.phase.name,
+                  ),
+                })}
               </Button>
             </StickyActions>
           </>

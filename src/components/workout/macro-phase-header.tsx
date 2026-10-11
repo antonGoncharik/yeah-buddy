@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { firstPhaseLine } from "@/lib/flavor";
-import type { CurrentMacroState } from "@/lib/types";
+import type { CurrentMacroState, PhaseType } from "@/lib/types";
 import {
   cycleTimeline,
   phaseEndHint,
@@ -17,22 +17,29 @@ import { phaseLabel } from "@/lib/workout/labels";
 export function MacroPhaseHeader({
   state,
   titleOverride = null,
+  pendingTimelinePhase = null,
 }: {
   state: CurrentMacroState & {
     macro: NonNullable<CurrentMacroState["macro"]>;
     phase: NonNullable<CurrentMacroState["phase"]>;
   };
   titleOverride?: string | null;
+  pendingTimelinePhase?: { phase_type: PhaseType; name: string } | null;
 }) {
-  const holdHint = state.phase_circle
-    ? phaseHoldHint(state.phase_circle)
-    : null;
-  const endHint = state.phase_circle ? phaseEndHint(state.phase_circle) : null;
-  const phaseLine = firstPhaseLine(state.phase_circle);
+  const pending = titleOverride != null;
+  const holdHint =
+    !pending && state.phase_circle ? phaseHoldHint(state.phase_circle) : null;
+  const endHint =
+    !pending && state.phase_circle ? phaseEndHint(state.phase_circle) : null;
+  const phaseLine =
+    !pending && state.phase_circle ? firstPhaseLine(state.phase_circle) : null;
+  const timelineType =
+    pendingTimelinePhase?.phase_type ?? state.phase.phase_type;
+  const timelineName = pendingTimelinePhase?.name ?? state.phase.name;
   const steps = cycleTimeline(
     state.planned_cycle,
-    state.phase.phase_type,
-    state.phase.name,
+    timelineType,
+    timelineName,
   );
 
   return (

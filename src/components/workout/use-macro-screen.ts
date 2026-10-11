@@ -6,11 +6,17 @@ import { useCallback, useEffect, useState } from "react";
 import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
+import type {
+  CurrentMacroState,
+  PhaseType,
+  TransitionPreview,
+} from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
 import { forwardDraft, maxFollowsWeek } from "@/lib/workout/macro-forward";
+import { phaseLabel } from "@/lib/workout/labels";
 import { parseTransitionPreview } from "@/lib/workout/map-rows";
+import type { MacroAdvanceStep } from "@/lib/workout/macro-advance-copy";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function useMacroScreen() {
@@ -25,6 +31,7 @@ export function useMacroScreen() {
   );
   const [pendingTitle, setPendingTitle] = useState<string | null>(null);
   const [advancing, setAdvancing] = useState(false);
+  const [advanceStep, setAdvanceStep] = useState<MacroAdvanceStep | null>(null);
   const [justClosed, setJustClosed] = useState(false);
 
   const applyState = useCallback((next: CurrentMacroState) => {
@@ -112,6 +119,7 @@ export function useMacroScreen() {
     }
 
     setAdvancing(true);
+    setAdvanceStep(null);
     setError(null);
     let ready = preview;
     if (!ready) {
@@ -120,6 +128,7 @@ export function useMacroScreen() {
         setPreview(ready);
       } catch (caught) {
         setAdvancing(false);
+        setAdvanceStep(null);
         haptic("error");
         setError(caught instanceof Error ? caught.message : LOAD_FAILED);
         return;
@@ -133,6 +142,7 @@ export function useMacroScreen() {
     );
     if (!sent || !ready) {
       setAdvancing(false);
+      setAdvanceStep(null);
       haptic("warn");
       setError("Проверь максимум на раз.");
       return;
@@ -150,13 +160,16 @@ export function useMacroScreen() {
     haptic("success");
 
     try {
+      setAdvanceStep("maxes");
       await saveDirtyMaxes(state, previous.drafts);
+      setAdvanceStep("transition");
       const closingMacro = ready.new_macro;
       await postJson("/api/macros/transition", {
         end_date: transitionDate,
         maxes: sent.maxes,
       });
       setJustClosed(closingMacro);
+      setAdvanceStep("reload");
       const data = await mutateJson("/api/macros");
       const next = readState(data);
       if (!next) {
@@ -172,8 +185,20 @@ export function useMacroScreen() {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setAdvancing(false);
+      setAdvanceStep(null);
     }
   }
+
+  const pendingTimelinePhase: {
+    phase_type: PhaseType;
+    name: string;
+  } | null =
+    pendingTitle != null && preview?.to_phase
+      ? {
+          phase_type: preview.to_phase,
+          name: preview.to_name?.trim() || phaseLabel(preview.to_phase),
+        }
+      : null;
 
   return {
     state,
@@ -184,7 +209,9 @@ export function useMacroScreen() {
     transitionDate,
     setTransitionDate,
     pendingTitle,
+    pendingTimelinePhase,
     advancing,
+    advanceStep,
     justClosed,
     load,
     changeDraft,
