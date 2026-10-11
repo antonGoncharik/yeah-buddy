@@ -395,8 +395,9 @@ export function useOnboardingScreen() {
       setGymEnabled(options.gymEnabled);
     }
     if (options?.sex !== undefined) {
-      setSex(options.sex);
-      setWeight((current) => weightAfterSexPick(options.sex!, current));
+      const sex = options.sex;
+      setSex(sex);
+      setWeight((current) => weightAfterSexPick(sex, current));
     }
     if (options?.goal !== undefined) {
       setGoal(options.goal);

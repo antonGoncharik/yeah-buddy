@@ -265,7 +265,7 @@ async function openPreparedShare(
 
 async function sendPreparedMessage(
   id: string,
-  payload: PhotoSharePayload,
+  _payload: PhotoSharePayload,
   timeoutMs = 12_000,
 ): Promise<"shared" | "cancelled" | "failed"> {
   try {

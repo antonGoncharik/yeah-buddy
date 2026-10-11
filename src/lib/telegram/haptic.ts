@@ -268,7 +268,7 @@ function whenTelegramWebAppActive(play: () => void): void {
   const webApp = (window as TelegramHapticHost).Telegram?.WebApp as
     | TelegramActiveHost
     | undefined;
-  if (!webApp || webApp.isActive !== false) {
+  if (webApp?.isActive !== false) {
     play();
     return;
   }
