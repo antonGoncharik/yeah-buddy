@@ -41,6 +41,7 @@ export interface UserSettings {
   /** Workouts tab, day-type switch, gym reminders and AI gym review. */
   gym_enabled: boolean;
   height_cm: number | null;
+  birth_year: number | null;
   activity_level: UserActivityLevel | null;
   goal_pace: UserGoalPace | null;
   reminder_hour: number;

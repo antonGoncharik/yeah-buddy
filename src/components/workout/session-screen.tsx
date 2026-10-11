@@ -183,6 +183,7 @@ export function SessionScreen() {
                 onRaise={() => raiseMaxes()}
                 easeWeek={easeWeek}
                 onEase={() => easeWeekNow()}
+                sessionExercises={detail.exercises}
               />
             ) : null}
 

@@ -157,6 +157,9 @@ export function OnboardingMacrosSummary({
   sex,
   weight,
   goal,
+  activity = null,
+  heightCm = "",
+  birthYear = "",
   foodOnly = false,
   saving = false,
   isLast = false,
@@ -165,15 +168,29 @@ export function OnboardingMacrosSummary({
   sex: OnboardingSex;
   weight: string;
   goal: OnboardingGoal;
+  activity?: import("@/lib/types").UserActivityLevel | null;
+  heightCm?: string;
+  birthYear?: string;
   foodOnly?: boolean;
   saving?: boolean;
   isLast?: boolean;
   onContinue?: () => void;
 }) {
   const weightKg = parseDecimal(weight);
+  const height = parseDecimal(heightCm);
+  const year = Number.parseInt(birthYear, 10);
   const preview =
     weightKg != null
-      ? suggestMacroGoals({ sex, weightKg, goal, protein: null })
+      ? suggestMacroGoals({
+          sex,
+          weightKg,
+          goal,
+          protein: null,
+          activity_level: activity,
+          height_cm: height,
+          birth_year:
+            birthYear.trim() !== "" && Number.isFinite(year) ? year : null,
+        })
       : null;
 
   if (preview == null) {
@@ -193,6 +210,10 @@ export function OnboardingMacrosSummary({
           {foodOnly
             ? `${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. Свой БЖУ можно поменять в Настройках → «Цели на день».`
             : `Без зала — ${formatKcal(preview.rest.kcal)} ккал, жир ${preview.rest.fat} г, углеводы ${preview.rest.carbs} г. В день тренировки — ${formatKcal(preview.training.kcal)} ккал, углеводов ${preview.training.carbs} г. Свой БЖУ всегда можно изменить в Настройках → «Цели на день».`}
+        </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Через 2 недели регулярных взвешиваний и еды калории подстроятся под
+          тебя автоматически.
         </p>
       </div>
       {onContinue ? (

@@ -45,6 +45,7 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     ),
     gym_enabled: parseGymEnabled(row.gym_enabled),
     height_cm: parseStoredHeight(row.height_cm),
+    birth_year: parseStoredBirthYear(row.birth_year),
     activity_level: parseStoredActivity(row.activity_level),
     goal_pace: parseStoredGoalPace(row.goal_pace),
     reminder_hour: parseReminderHour(row.reminder_hour),
@@ -59,6 +60,14 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
 function parseStoredHeight(value: unknown): number | null {
   const n = toNumber(value);
   return n > 0 ? n : null;
+}
+
+function parseStoredBirthYear(value: unknown): number | null {
+  const year = toNumber(value);
+  if (year < 1940 || year > 2015) {
+    return null;
+  }
+  return Math.round(year);
 }
 
 function parseStoredActivity(value: unknown): UserActivityLevel | null {

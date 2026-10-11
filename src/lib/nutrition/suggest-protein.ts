@@ -1,5 +1,23 @@
 import { calcKcalFromMacros, type Macros } from "@/lib/nutrition/macros";
-import type { UserGoal, UserSex } from "@/lib/types";
+import {
+  activityScale,
+  mifflinRestKcal,
+  minGoalKcal,
+  referenceBodyWeightKg,
+} from "@/lib/nutrition/profile-energy";
+import type {
+  UserActivityLevel,
+  UserGoal,
+  UserGoalPace,
+  UserSex,
+} from "@/lib/types";
+
+export type MacroProfileInput = {
+  activity_level?: UserActivityLevel | null;
+  height_cm?: number | null;
+  birth_year?: number | null;
+  goal_pace?: UserGoalPace | null;
+};
 
 export type OnboardingSex = UserSex;
 export type OnboardingGoal = UserGoal;
@@ -80,13 +98,18 @@ export function suggestProteinGrams(input: {
   sex: OnboardingSex;
   weightKg: number;
   goal: OnboardingGoal;
+  height_cm?: number | null;
 }): number | null {
   if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
     return null;
   }
 
-  const raw =
-    input.weightKg * PROTEIN_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  const baseKg = referenceBodyWeightKg({
+    sex: input.sex,
+    weightKg: input.weightKg,
+    height_cm: input.height_cm,
+  });
+  const raw = baseKg * PROTEIN_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
   return clampProtein(roundToFive(raw));
 }
 
@@ -95,12 +118,14 @@ export function suggestProteinGramsForProfile(input: {
   sex: OnboardingSex | null;
   weightKg: number;
   goal: OnboardingGoal;
+  height_cm?: number | null;
 }): number | null {
   if (input.sex != null) {
     return suggestProteinGrams({
       sex: input.sex,
       weightKg: input.weightKg,
       goal: input.goal,
+      height_cm: input.height_cm,
     });
   }
   if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
@@ -114,12 +139,18 @@ export function suggestFatGrams(input: {
   sex: OnboardingSex;
   weightKg: number;
   goal: OnboardingGoal;
+  height_cm?: number | null;
 }): number | null {
   if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
     return null;
   }
 
-  const raw = input.weightKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
+  const baseKg = referenceBodyWeightKg({
+    sex: input.sex,
+    weightKg: input.weightKg,
+    height_cm: input.height_cm,
+  });
+  const raw = baseKg * FAT_G_PER_KG[input.goal] * LEAN_SHARE[input.sex];
   return clampFat(roundToFive(raw));
 }
 
@@ -146,11 +177,32 @@ export function suggestRestKcal(input: {
   sex: OnboardingSex;
   weightKg: number;
   goal: OnboardingGoal;
+  activity_level?: UserActivityLevel | null;
+  height_cm?: number | null;
+  birth_year?: number | null;
 }): number | null {
   if (!(input.weightKg >= 30 && input.weightKg <= 250)) {
     return null;
   }
-  return Math.round(input.weightKg * KCAL_PER_KG[input.sex][input.goal]);
+  const activity = input.activity_level ?? null;
+  if (activity != null && input.height_cm != null && input.birth_year != null) {
+    const mifflin = mifflinRestKcal({
+      sex: input.sex,
+      weightKg: input.weightKg,
+      height_cm: input.height_cm,
+      birth_year: input.birth_year,
+      activity,
+    });
+    if (mifflin != null) {
+      return Math.max(minGoalKcal(input.sex), mifflin);
+    }
+  }
+  const scaled = Math.round(
+    input.weightKg *
+      KCAL_PER_KG[input.sex][input.goal] *
+      activityScale(activity),
+  );
+  return Math.max(minGoalKcal(input.sex), scaled);
 }
 
 /**
@@ -163,6 +215,9 @@ export function suggestMacroGoals(input: {
   weightKg: number;
   goal: OnboardingGoal;
   protein?: number | null;
+  activity_level?: UserActivityLevel | null;
+  height_cm?: number | null;
+  birth_year?: number | null;
 }): { protein: number; rest: Macros; training: Macros } | null {
   const suggested = suggestProteinGrams(input);
   const fat = suggestFatGrams(input);

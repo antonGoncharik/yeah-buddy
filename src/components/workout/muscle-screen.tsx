@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { MuscleWeekProgressShare } from "@/components/share/muscle-week-progress-share";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
@@ -353,6 +354,10 @@ export function MuscleScreen() {
               </p>
             )}
           </>
+        ) : null}
+
+        {snapshot && snapshot.completed_sessions > 0 ? (
+          <MuscleWeekProgressShare />
         ) : null}
       </div>
     </div>

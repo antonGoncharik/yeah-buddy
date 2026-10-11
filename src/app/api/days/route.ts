@@ -233,6 +233,7 @@ export async function GET(request: Request): Promise<NextResponse> {
           days: energyDaysPayload,
           goal: settings?.goal ?? null,
           sex: settings?.sex ?? null,
+          goal_pace: settings?.goal_pace ?? null,
           restProtein:
             settings?.rest_protein ?? DEFAULT_REST_MACRO_GOALS.protein,
           restFat: settings?.rest_fat ?? DEFAULT_REST_MACRO_GOALS.fat,

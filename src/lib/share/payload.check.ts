@@ -92,6 +92,7 @@ const settings: UserSettings = {
   gym_enabled: true,
   energy_goal_dismissed_kcal: null,
   height_cm: null,
+  birth_year: null,
   activity_level: null,
   goal_pace: null,
   reminder_hour: 21,

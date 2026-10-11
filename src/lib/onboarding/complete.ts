@@ -47,6 +47,10 @@ export const onboardingCompleteSchema = z.object({
   sex: z.enum(["male", "female"]).nullable().optional(),
   goal: z.enum(["lose", "keep", "gain"]).nullable().optional(),
   training_age: z.enum(["beginner", "year", "years"]).nullable().optional(),
+  activity_level: z.enum(["low", "moderate", "high"]).nullable().optional(),
+  goal_pace: z.enum(["slow", "normal", "fast"]).nullable().optional(),
+  height_cm: z.number().finite().min(120).max(230).nullable().optional(),
+  birth_year: z.number().int().min(1940).max(2015).nullable().optional(),
   body_weight: z.number().finite().min(30).max(250).optional(),
   anchors: z
     .object({
@@ -113,6 +117,12 @@ export async function completeOnboarding(
     ...(input.training_age !== undefined
       ? { training_age: input.training_age }
       : {}),
+    ...(input.activity_level !== undefined
+      ? { activity_level: input.activity_level }
+      : {}),
+    ...(input.goal_pace !== undefined ? { goal_pace: input.goal_pace } : {}),
+    ...(input.height_cm !== undefined ? { height_cm: input.height_cm } : {}),
+    ...(input.birth_year !== undefined ? { birth_year: input.birth_year } : {}),
   };
 
   if (input.protein != null) {
@@ -196,6 +206,9 @@ function goalsForOnboarding(
       weightKg,
       goal,
       protein,
+      activity_level: input.activity_level ?? current.activity_level,
+      height_cm: input.height_cm ?? current.height_cm,
+      birth_year: input.birth_year ?? current.birth_year,
     });
     if (suggested != null) {
       return { rest: suggested.rest, training: suggested.training };

@@ -8,12 +8,13 @@ import { formatKcalPlain } from "@/lib/ai/format";
 import { formatSignedBodyWeight } from "@/lib/day/body-weight";
 import { calcKcalFromMacros, type Macros } from "@/lib/nutrition/macros";
 import { pluralDays } from "@/lib/nutrition/metric-copy";
+import { minGoalKcal, weeklyBodyRate } from "@/lib/nutrition/profile-energy";
 import {
   macroGoalsForTargetKcal,
   suggestFatGramsForProfile,
   TRAINING_EXTRA_CARBS_G,
 } from "@/lib/nutrition/suggest-protein";
-import type { UserGoal, UserSex } from "@/lib/types";
+import type { UserGoal, UserGoalPace, UserSex } from "@/lib/types";
 
 /** Weigh-ins this far apart before a goal offer. Two weeks, not one noisy week. */
 export const ENERGY_GOAL_MIN_SPAN_DAYS = 14;
@@ -26,17 +27,6 @@ export const ENERGY_GOAL_GAP_KCAL = 100;
 
 /** Before this we do not nudge about expenditure on Today. */
 export const ENERGY_GOAL_HINT_MIN_ACCOUNT_DAYS = 7;
-
-/**
- * Share of body weight to move in a week. A cut is about half a percent,
- * a gain about a quarter — floored and capped so a light or heavy person
- * does not get a silly rate.
- */
-const WEEKLY_RATE: Record<UserGoal, number> = {
-  lose: -0.005,
-  keep: 0,
-  gain: 0.0025,
-};
 
 const WEEKLY_KG_CAP: Record<UserGoal, { min: number; max: number }> = {
   lose: { min: 0.25, max: 0.7 },
@@ -59,7 +49,7 @@ const MAX_GOAL_SHIFT_KCAL_PER_WEEK = 175;
 /** Under this the scale did not really move. */
 const STEADY_KG = 0.15;
 
-const MIN_GOAL_KCAL = 1200;
+const MIN_GOAL_KCAL_FALLBACK = 1200;
 const MAX_GOAL_KCAL = 4500;
 const MAX_CARBS_G = 500;
 
@@ -85,6 +75,7 @@ export function energyGoalOffer(input: {
   days: EnergyDay[];
   goal: UserGoal | null;
   sex: UserSex | null;
+  goal_pace?: UserGoalPace | null;
   restProtein: number;
   restFat: number;
   restCarbs: number;
@@ -117,7 +108,8 @@ export function energyGoalOffer(input: {
     input.restCarbs,
   );
   const ideal = clampGoalKcal(
-    energy.kcal + goalShiftKcal(input.goal, energy.endKg),
+    energy.kcal + goalShiftKcal(input.goal, energy.endKg, input.goal_pace),
+    input.sex,
   );
   const maxShift = MAX_GOAL_SHIFT_KCAL_PER_WEEK * (energy.span / 7);
   const boundedIdeal = clampToward(currentKcal, ideal, maxShift);
@@ -128,6 +120,7 @@ export function energyGoalOffer(input: {
         (OFFER_FULL_COVERAGE - OFFER_MIN_COVERAGE);
   const target = clampGoalKcal(
     currentKcal + (boundedIdeal - currentKcal) * trust,
+    input.sex,
   );
   const rest = macroGoalsForTargetKcal({
     targetKcal: target,
@@ -297,8 +290,12 @@ export function energyGoalLine(offer: EnergyGoalOffer): string {
   return `${scale} Расход около ${burn}. Держать около ${goal}.`;
 }
 
-function goalShiftKcal(goal: UserGoal, weightKg: number): number {
-  const weekly = WEEKLY_RATE[goal];
+function goalShiftKcal(
+  goal: UserGoal,
+  weightKg: number,
+  pace: UserGoalPace | null | undefined,
+): number {
+  const weekly = weeklyBodyRate(goal, pace ?? null);
   if (weekly === 0 || !(weightKg > 0)) {
     return 0;
   }
@@ -334,9 +331,10 @@ function lowerFat(
   return floor;
 }
 
-function clampGoalKcal(value: number): number {
-  if (value < MIN_GOAL_KCAL) {
-    return MIN_GOAL_KCAL;
+function clampGoalKcal(value: number, sex: UserSex | null): number {
+  const floor = sex != null ? minGoalKcal(sex) : MIN_GOAL_KCAL_FALLBACK;
+  if (value < floor) {
+    return floor;
   }
   if (value > MAX_GOAL_KCAL) {
     return MAX_GOAL_KCAL;

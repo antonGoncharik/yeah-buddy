@@ -18,6 +18,11 @@ import {
 } from "@/components/onboarding/onboarding-food-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
 import { OnboardingModeStep } from "@/components/onboarding/onboarding-mode-step";
+import {
+  OnboardingActivityStep,
+  OnboardingBodyProfileStep,
+  OnboardingGoalPaceStep,
+} from "@/components/onboarding/onboarding-profile-step";
 import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
   OnboardingStepDots,
@@ -31,8 +36,12 @@ import {
   onboardingStepNeedsNext,
 } from "@/components/onboarding/onboarding-steps";
 import {
+  ACTIVITY_REQUIRED,
   GOAL_REQUIRED,
   MODE_REQUIRED,
+  PACE_REQUIRED,
+  PROFILE_BIRTH_INVALID,
+  PROFILE_HEIGHT_INVALID,
   RATION_REQUIRED,
   SEX_REQUIRED,
   TRAINING_AGE_REQUIRED,
@@ -66,6 +75,10 @@ export function OnboardingScreen() {
     weight,
     goal,
     trainingAge,
+    activity,
+    goalPace,
+    heightCm,
+    birthYear,
     ration,
     gymEnabled,
     foodOnly,
@@ -84,6 +97,12 @@ export function OnboardingScreen() {
     onWeightChange,
     onGoalPick,
     onTrainingAgePick,
+    onActivityPick,
+    onGoalPacePick,
+    onHeightChange,
+    onBirthYearChange,
+    skipProfile,
+    confirmProfile,
     onLiftChange,
     onRationPick,
     guidePageIndex,
@@ -234,10 +253,51 @@ export function OnboardingScreen() {
           />
         ) : null}
 
+        {step === "activity" ? (
+          <OnboardingThumbZone>
+            <OnboardingActivityStep
+              activity={activity}
+              onPick={onActivityPick}
+            />
+            {error === ACTIVITY_REQUIRED ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
+
+        {step === "profile" ? (
+          <OnboardingBodyProfileStep
+            heightCm={heightCm}
+            birthYear={birthYear}
+            saving={saving}
+            onHeightChange={onHeightChange}
+            onBirthYearChange={onBirthYearChange}
+            onContinue={() => void confirmProfile()}
+            onSkip={() => skipProfile()}
+          />
+        ) : null}
+
         {step === "goal" ? (
           <OnboardingThumbZone>
             <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
             {showPersonError("goal") ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
+
+        {step === "pace" && goal != null ? (
+          <OnboardingThumbZone>
+            <OnboardingGoalPaceStep
+              goal={goal}
+              pace={goalPace}
+              onPick={onGoalPacePick}
+            />
+            {error === PACE_REQUIRED ? (
               <p className="mt-2 text-center text-base leading-snug text-destructive">
                 {error}
               </p>
@@ -264,6 +324,9 @@ export function OnboardingScreen() {
             sex={sex}
             weight={weight}
             goal={goal}
+            activity={activity}
+            heightCm={heightCm}
+            birthYear={birthYear}
             foodOnly={foodOnly}
             saving={saving}
             isLast={isLast}
@@ -369,8 +432,17 @@ function titleForStep(
   if (step === "weight") {
     return "Вес";
   }
+  if (step === "activity") {
+    return "Активность";
+  }
+  if (step === "profile") {
+    return "Рост и возраст";
+  }
   if (step === "goal") {
     return "Цель";
+  }
+  if (step === "pace") {
+    return "Темп";
   }
   if (step === "training_age") {
     return "Стаж в зале";

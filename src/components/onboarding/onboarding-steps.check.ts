@@ -22,8 +22,8 @@ const empty = {
   gymEnabled: true,
 };
 
-const personGym = "sex,weight,goal,training_age,macros";
-const personFood = "sex,weight,goal,macros";
+const personGym = "sex,weight,activity,profile,goal,pace,training_age,macros";
+const personFood = "sex,weight,activity,profile,goal,pace,macros";
 
 assertEqual(
   onboardingPersonSteps(true).join(),
@@ -96,7 +96,9 @@ for (const step of onboardingPersonSteps(true)) {
 
 assertEqual(onboardingStepAutoAdvance("mode"), true, "mode advances on pick");
 assertEqual(onboardingStepAutoAdvance("sex"), true, "sex advances on pick");
+assertEqual(onboardingStepAutoAdvance("activity"), true, "activity advances");
 assertEqual(onboardingStepAutoAdvance("goal"), true, "goal advances on pick");
+assertEqual(onboardingStepAutoAdvance("pace"), true, "pace advances on pick");
 assertEqual(
   onboardingStepAutoAdvance("training_age"),
   true,
@@ -111,6 +113,11 @@ assertEqual(
   onboardingStepInlineContinue("weight"),
   true,
   "weight continues inline",
+);
+assertEqual(
+  onboardingStepInlineContinue("profile"),
+  true,
+  "profile continues inline",
 );
 assertEqual(
   onboardingStepInlineContinue("macros"),

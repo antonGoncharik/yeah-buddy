@@ -129,6 +129,7 @@ function offerFrom(
     })),
     goal: settings.goal,
     sex: settings.sex,
+    goal_pace: settings.goal_pace,
     restProtein: settings.rest_protein,
     restFat: settings.rest_fat,
     restCarbs: settings.rest_carbs,

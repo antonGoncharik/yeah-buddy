@@ -2,6 +2,7 @@ export const CLIENT_PRODUCT_EVENTS = [
   "onboarding_step_view",
   "onboarding_step_complete",
   "energy_offer_shown",
+  "muscles_view",
 ] as const;
 
 export type ClientProductEvent = (typeof CLIENT_PRODUCT_EVENTS)[number];

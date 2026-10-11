@@ -52,6 +52,7 @@ const row = {
   granted_programs: [],
   gym_enabled: true,
   height_cm: null,
+  birth_year: null,
   activity_level: null,
   goal_pace: null,
   reminder_hour: 21,

@@ -6,8 +6,10 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { ShareQr } from "@/components/share/share-qr";
 import { useProgramDetailScreen } from "@/components/share/use-program-detail-screen";
 import { Button } from "@/components/ui/button";
+import { ProgramMusclePreview } from "@/components/workout/program-muscle-preview";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
 import { cn } from "@/lib/utils";
+import { isProgramPresetId } from "@/lib/workout/program-presets";
 
 export function ProgramDetailScreen({ id }: { id: string }) {
   const {
@@ -65,6 +67,10 @@ export function ProgramDetailScreen({ id }: { id: string }) {
               <p className="animate-rise px-1 text-sm text-muted-foreground">
                 Недели: {program.weeks.join(" → ")}
               </p>
+            ) : null}
+
+            {isProgramPresetId(id) ? (
+              <ProgramMusclePreview presetId={id} />
             ) : null}
 
             <div className="animate-rise flex flex-col gap-2">

@@ -12,7 +12,11 @@ import {
 } from "@/lib/share/pending";
 import type { PublicProgramId } from "@/lib/share/program-public";
 import { isPackToken } from "@/lib/share/token";
-import type { UserTrainingAge } from "@/lib/types";
+import type {
+  UserActivityLevel,
+  UserGoalPace,
+  UserTrainingAge,
+} from "@/lib/types";
 
 export async function loadPendingPackKind(): Promise<SharePackKind | null> {
   const token = peekPendingPackToken();
@@ -34,6 +38,10 @@ export async function submitOnboardingFinish({
   sex,
   goal,
   trainingAge,
+  activity,
+  goalPace,
+  heightCm,
+  birthYear,
   bodyWeight,
   anchors,
   pendingKind,
@@ -48,6 +56,10 @@ export async function submitOnboardingFinish({
   sex: "male" | "female" | null;
   goal: "lose" | "keep" | "gain" | null;
   trainingAge: UserTrainingAge | null;
+  activity: UserActivityLevel | null;
+  goalPace: UserGoalPace | null;
+  heightCm: number | null;
+  birthYear: number | null;
   bodyWeight: number | null;
   anchors: {
     squat: number | null;
@@ -70,6 +82,10 @@ export async function submitOnboardingFinish({
           sex,
           goal,
           training_age: trainingAge,
+          activity_level: activity,
+          goal_pace: goalPace,
+          height_cm: heightCm,
+          birth_year: birthYear,
           body_weight: bodyWeight,
           anchors,
           ...(replay || ration == null ? {} : { ration }),

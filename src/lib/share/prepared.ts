@@ -25,6 +25,13 @@ import {
   sanitizeJoyLift,
 } from "@/lib/share/joy";
 import {
+  decodeMuscleWeekCard,
+  encodeMuscleWeekCard,
+  MUSCLE_WEEK_CARD_BUTTON,
+  muscleWeekCardCaption,
+  muscleWeekCardPhotoUrl,
+} from "@/lib/share/muscle-week-card";
+import {
   featuredProgramPreset,
   matchFeaturedPrograms,
   programChatMessage,
@@ -287,6 +294,37 @@ export function sundayInlineResults(input: {
       caption: sundayCardCaption(card),
       reply_markup: {
         inline_keyboard: [[{ text: BOT_INSTALL_DIARY, url: input.installUrl }]],
+      },
+    },
+  ];
+}
+
+export function muscleWeekInlineResults(input: {
+  query: string;
+  photoOrigin: string;
+  installUrl: string;
+  secret: string;
+}): InlineQueryResultPhoto[] {
+  const card = decodeMuscleWeekCard(input.query, input.secret);
+  if (!card) {
+    return [];
+  }
+  const query = encodeMuscleWeekCard(card, input.secret);
+  const photo = muscleWeekCardPhotoUrl(input.photoOrigin, query);
+  return [
+    {
+      type: "photo",
+      id: `muscle-week-${card.to}`,
+      photo_url: photo,
+      thumbnail_url: photo,
+      photo_width: 1080,
+      photo_height: 1350,
+      title: MUSCLE_WEEK_CARD_BUTTON,
+      caption: muscleWeekCardCaption(card),
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: MUSCLE_WEEK_CARD_BUTTON, url: input.installUrl }],
+        ],
       },
     },
   ];

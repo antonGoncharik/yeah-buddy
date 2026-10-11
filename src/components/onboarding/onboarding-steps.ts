@@ -5,7 +5,10 @@ export type OnboardingStep =
   | "guide"
   | "sex"
   | "weight"
+  | "activity"
+  | "profile"
   | "goal"
+  | "pace"
   | "training_age"
   | "macros"
   | "ration"
@@ -17,7 +20,10 @@ const ONBOARDING_STEP_IDS = [
   "guide",
   "sex",
   "weight",
+  "activity",
+  "profile",
   "goal",
+  "pace",
   "training_age",
   "macros",
   "ration",
@@ -32,7 +38,10 @@ export function isOnboardingStep(value: string): value is OnboardingStep {
 const PERSON_STEP_IDS = [
   "sex",
   "weight",
+  "activity",
+  "profile",
   "goal",
+  "pace",
   "training_age",
   "macros",
 ] as const satisfies readonly OnboardingStep[];
@@ -45,9 +54,16 @@ export function isOnboardingPersonStep(
   return (PERSON_STEP_IDS as readonly string[]).includes(step);
 }
 
-/** Пол, вес, цель, при зале — стаж, затем сводка по БЖУ. */
+/** Пол, вес, активность, опционально рост/возраст, цель и темп, при зале — стаж, сводка БЖУ. */
 export function onboardingPersonSteps(gymEnabled: boolean): OnboardingStep[] {
-  const steps: OnboardingStep[] = ["sex", "weight", "goal"];
+  const steps: OnboardingStep[] = [
+    "sex",
+    "weight",
+    "activity",
+    "profile",
+    "goal",
+    "pace",
+  ];
   if (gymEnabled) {
     steps.push("training_age");
   }
@@ -67,7 +83,9 @@ export function onboardingStepAutoAdvance(step: OnboardingStep): boolean {
   return (
     step === "mode" ||
     step === "sex" ||
+    step === "activity" ||
     step === "goal" ||
+    step === "pace" ||
     step === "training_age" ||
     step === "ration"
   );
@@ -75,7 +93,12 @@ export function onboardingStepAutoAdvance(step: OnboardingStep): boolean {
 
 /** Continue control sits in the scroll area, next to the field or summary. */
 export function onboardingStepInlineContinue(step: OnboardingStep): boolean {
-  return step === "weight" || step === "macros" || step === "lifts";
+  return (
+    step === "weight" ||
+    step === "profile" ||
+    step === "macros" ||
+    step === "lifts"
+  );
 }
 
 /** Fixed footer «Дальше» — only when the step has no inline continue. */

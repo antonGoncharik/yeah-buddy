@@ -1,5 +1,6 @@
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
+import { ProgramMusclePreview } from "@/components/workout/program-muscle-preview";
 import { APP_NAME } from "@/lib/brand";
 import {
   PROGRAM_PAGE_BACK,
@@ -59,6 +60,8 @@ export function PublicProgramScreen({
             <p className="text-sm leading-relaxed">{day.exercises}</p>
           </section>
         ))}
+
+        <ProgramMusclePreview presetId={preset.id} />
         {program.weeks ? (
           <p className="px-1 text-sm text-muted-foreground">
             Недели: {program.weeks.join(" → ")}

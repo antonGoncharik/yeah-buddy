@@ -12,6 +12,7 @@ import { JoyShareButton } from "@/components/share/joy-share-button";
 import { Button } from "@/components/ui/button";
 import { CircleOpenedNote } from "@/components/workout/circle-opened-note";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
+import { SessionMuscleMini } from "@/components/workout/session-muscle-mini";
 import {
   comebackLine,
   firstPhaseLine,
@@ -30,7 +31,9 @@ import type {
   PhaseCircleProgress,
   SessionFeel,
   SessionMaxRaiseOffer,
+  UserSex,
 } from "@/lib/types";
+import type { SessionExerciseDetail } from "@/lib/types/workout-session";
 import type { SessionBeat } from "@/lib/workout/beats";
 import type { EaseWeekKind } from "@/lib/workout/ease-week";
 import { easeWeekMessage } from "@/lib/workout/ease-week";
@@ -57,6 +60,8 @@ export function SessionCompletedPanel({
   onRaise,
   easeWeek = null,
   onEase,
+  sessionExercises = [],
+  figureSex = null,
 }: {
   abovePlan: boolean;
   nextName: string | null;
@@ -79,6 +84,8 @@ export function SessionCompletedPanel({
   onRaise: () => Promise<boolean>;
   easeWeek?: EaseWeekKind | null;
   onEase?: () => Promise<boolean>;
+  sessionExercises?: SessionExerciseDetail[];
+  figureSex?: UserSex | null;
 }) {
   const canRaise = raiseOffers.length > 0;
   const milestone = sessionMilestoneLine(completedSessions);
@@ -214,12 +221,7 @@ export function SessionCompletedPanel({
         <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       </div>
       {joy ? <JoyShareButton moment={joy} lift={shareLift} /> : null}
-      <Link
-        href="/workouts/muscles"
-        className="text-center text-sm font-medium text-primary"
-      >
-        Карта мышц за период
-      </Link>
+      <SessionMuscleMini exercises={sessionExercises} figureSex={figureSex} />
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}

@@ -5,7 +5,12 @@ import {
   suggestMacroGoals,
 } from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings/map";
-import type { UserSettings, UserTrainingAge } from "@/lib/types";
+import type {
+  UserActivityLevel,
+  UserGoalPace,
+  UserSettings,
+  UserTrainingAge,
+} from "@/lib/types";
 
 export interface SettingsFormState {
   rest_protein: string;
@@ -19,6 +24,11 @@ export interface SettingsFormState {
   sex: OnboardingSex | null;
   goal: OnboardingGoal | null;
   training_age: UserTrainingAge | null;
+  activity_level: UserActivityLevel | null;
+  goal_pace: UserGoalPace | null;
+  height_cm: string;
+  birth_year: string;
+  reminder_hour: number;
   gym_enabled: boolean;
 }
 
@@ -40,6 +50,11 @@ export function toFormState(settings: UserSettings): SettingsFormState {
     sex: settings.sex,
     goal: settings.goal,
     training_age: settings.training_age,
+    activity_level: settings.activity_level,
+    goal_pace: settings.goal_pace,
+    height_cm: settings.height_cm != null ? String(settings.height_cm) : "",
+    birth_year: settings.birth_year != null ? String(settings.birth_year) : "",
+    reminder_hour: settings.reminder_hour,
     gym_enabled: settings.gym_enabled,
   };
 }
@@ -73,7 +88,35 @@ export function toPayload(form: SettingsFormState) {
     sex: form.sex,
     goal: form.goal,
     training_age: form.training_age,
+    activity_level: form.activity_level,
+    goal_pace: form.goal_pace,
+    height_cm: parseOptionalHeight(form.height_cm),
+    birth_year: parseOptionalBirthYear(form.birth_year),
   };
+}
+
+function parseOptionalHeight(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return null;
+  }
+  const value = Number(trimmed.replace(",", "."));
+  if (!Number.isFinite(value) || value < 120 || value > 230) {
+    return null;
+  }
+  return value;
+}
+
+function parseOptionalBirthYear(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return null;
+  }
+  const value = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(value) || value < 1940 || value > 2015) {
+    return null;
+  }
+  return value;
 }
 
 export function parseMacro(raw: string): number | null {
@@ -122,6 +165,9 @@ export function withRecountedProtein(
     sex: form.sex,
     weightKg,
     goal: form.goal,
+    activity_level: form.activity_level,
+    height_cm: parseOptionalHeight(form.height_cm),
+    birth_year: parseOptionalBirthYear(form.birth_year),
   });
   if (goals == null) {
     return null;

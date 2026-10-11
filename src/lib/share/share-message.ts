@@ -91,6 +91,11 @@ export async function prepareWeekShare(): Promise<WeekSharePayload | null> {
   return readPhotoSharePayload(data);
 }
 
+export async function prepareMuscleWeekShare(): Promise<WeekSharePayload | null> {
+  const data = await postJson("/api/share/muscle-week", {});
+  return readPhotoSharePayload(data);
+}
+
 export async function prepareBarbellShare(
   facts: BarbellShareFacts,
 ): Promise<BarbellSharePayload | null> {
@@ -164,6 +169,29 @@ export async function shareWeekToStory(
 ): Promise<"opened" | "unavailable"> {
   const { WEEK_CARD_BUTTON } = await import("@/lib/share/week-card");
   return sharePayloadToStory(payload, WEEK_CARD_BUTTON);
+}
+
+export async function shareMuscleWeekToChat(
+  cached?: WeekSharePayload | null,
+): Promise<"shared" | "cancelled" | "failed"> {
+  const payload = cached ?? (await prepareMuscleWeekShare());
+  if (!payload) {
+    return "failed";
+  }
+  const sent = await openPreparedShare(payload);
+  if (sent === "shared") {
+    haptic("success");
+  }
+  return sent;
+}
+
+export async function shareMuscleWeekToStory(
+  payload: WeekSharePayload,
+): Promise<"opened" | "unavailable"> {
+  const { MUSCLE_WEEK_CARD_BUTTON } = await import(
+    "@/lib/share/muscle-week-card"
+  );
+  return sharePayloadToStory(payload, MUSCLE_WEEK_CARD_BUTTON);
 }
 
 export async function shareJoyToChat(

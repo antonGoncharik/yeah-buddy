@@ -86,6 +86,7 @@ export function SettingsScreen({
     setReminders,
     setGymEnabled,
     setTimezone,
+    setReminderHour,
   } = useSettingsScreen();
   const [now, setNow] = useState<Date | null>(null);
 
@@ -337,6 +338,26 @@ export function SettingsScreen({
             >
               Как на телефоне
             </Button>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm text-muted-foreground">
+                Вечернее напоминание
+              </span>
+              <select
+                className="field-control h-12 w-full appearance-none rounded-xl border border-input/70 bg-input-bg px-3 text-base"
+                value={String(form.reminder_hour)}
+                onChange={(event) =>
+                  void setReminderHour(Number.parseInt(event.target.value, 10))
+                }
+              >
+                {Array.from({ length: 7 }, (_, index) => 17 + index).map(
+                  (hour) => (
+                    <option key={hour} value={hour}>
+                      {hour}:00
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
             <Segmented
               value={form.reminders_enabled ? "on" : "off"}
               options={[

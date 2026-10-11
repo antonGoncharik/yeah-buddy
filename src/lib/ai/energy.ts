@@ -40,6 +40,18 @@ export type EnergyDay = {
   body_weight: number | null;
 };
 
+/** Day counts toward intake only when food is meaningfully logged. */
+export function dayCountsAsFoodLogged(day: EnergyDay): boolean {
+  if (day.fact_kcal <= 0) {
+    return false;
+  }
+  const floor = Math.max(
+    800,
+    0.5 * (day.target_kcal > 0 ? day.target_kcal : 0),
+  );
+  return day.fact_kcal >= floor;
+}
+
 type WeighIn = { date: string; body_weight: number };
 
 /** Trend behind the burn. `endKg` is the late half of the scale, not one salty morning. */
@@ -82,7 +94,9 @@ export function expenditureTrend(days: EnergyDay[]): ExpenditureTrend | null {
 
   const logged = days.filter(
     (item) =>
-      item.date >= trend.from && item.date <= trend.to && item.fact_kcal > 0,
+      item.date >= trend.from &&
+      item.date <= trend.to &&
+      dayCountsAsFoodLogged(item),
   );
   const windowDays = inclusiveDayCount(trend.from, trend.to);
   if (
@@ -133,7 +147,7 @@ export function recentFoodLogOk(
       break;
     }
     const row = days.find((item) => item.date === date);
-    if (row != null && row.fact_kcal > 0) {
+    if (row != null && dayCountsAsFoodLogged(row)) {
       logged += 1;
     }
   }

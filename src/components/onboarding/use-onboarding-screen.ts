@@ -34,7 +34,7 @@ import type { WizardScreenEntry } from "@/lib/navigation/wizard-history";
 import {
   type OnboardingGoal,
   type OnboardingSex,
-  suggestProteinGrams,
+  suggestMacroGoals,
 } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
@@ -43,7 +43,11 @@ import type { SharePackKind } from "@/lib/share/payload";
 import { peekPendingProgramId } from "@/lib/share/pending";
 import type { PublicProgramId } from "@/lib/share/program-public";
 import { haptic } from "@/lib/telegram/haptic";
-import type { UserTrainingAge } from "@/lib/types";
+import type {
+  UserActivityLevel,
+  UserGoalPace,
+  UserTrainingAge,
+} from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
 import {
@@ -61,6 +65,10 @@ export const GOAL_REQUIRED = "Выбери цель.";
 export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
 export const MODE_REQUIRED = "Выбери, что тебе нужно.";
 export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
+export const ACTIVITY_REQUIRED = "Выбери активность.";
+export const PACE_REQUIRED = "Выбери темп.";
+export const PROFILE_HEIGHT_INVALID = "Рост от 120 до 230 см.";
+export const PROFILE_BIRTH_INVALID = "Год рождения от 1940 до 2015.";
 
 const ONBOARDING_WIZARD_FLOW = "onboarding";
 
@@ -70,9 +78,12 @@ type GoNextOptions = {
   sex?: OnboardingSex;
   goal?: OnboardingGoal;
   trainingAge?: UserTrainingAge;
+  activity?: UserActivityLevel;
+  goalPace?: UserGoalPace | null;
   ration?: RationId | null;
   skipRation?: boolean;
   skipLiftsStep?: boolean;
+  skipProfileStep?: boolean;
 };
 
 function onboardingWizardSub(
@@ -161,6 +172,10 @@ export function useOnboardingScreen() {
   const [weight, setWeight] = useState("");
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
+  const [activity, setActivity] = useState<UserActivityLevel | null>(null);
+  const [goalPace, setGoalPace] = useState<UserGoalPace | null>("normal");
+  const [heightCm, setHeightCm] = useState("");
+  const [birthYear, setBirthYear] = useState("");
   const [ration, setRation] = useState<RationId | null>(null);
   const [skipRation, setSkipRation] = useState(false);
   const [lifts, setLifts] = useState<LiftAnswers>(emptyLiftAnswers);
@@ -217,11 +232,30 @@ export function useOnboardingScreen() {
   }, [load]);
 
   const weightKg = parseDecimal(weight);
-  const suggested =
+  const parsedHeight = parseDecimal(heightCm);
+  const parsedBirthYear = Number.parseInt(birthYear, 10);
+  const birthYearValid =
+    birthYear.trim() === "" ||
+    (Number.isFinite(parsedBirthYear) &&
+      parsedBirthYear >= 1940 &&
+      parsedBirthYear <= 2015);
+  const heightValid =
+    heightCm.trim() === "" ||
+    (parsedHeight != null && parsedHeight >= 120 && parsedHeight <= 230);
+  const macroPreview =
     sex && goal && weightValid(weightKg)
-      ? suggestProteinGrams({ sex, weightKg, goal })
+      ? suggestMacroGoals({
+          sex,
+          weightKg,
+          goal,
+          activity_level: activity,
+          height_cm: parsedHeight,
+          birth_year:
+            birthYearValid && birthYear.trim() !== "" ? parsedBirthYear : null,
+        })
       : null;
-  const proteinValue = suggested != null ? Math.round(suggested) : null;
+  const proteinValue =
+    macroPreview != null ? Math.round(macroPreview.protein) : null;
 
   const steps = useMemo(
     () =>
@@ -291,6 +325,8 @@ export function useOnboardingScreen() {
     const effectiveSex = options?.sex ?? sex;
     const effectiveGoal = options?.goal ?? goal;
     const effectiveTrainingAge = options?.trainingAge ?? trainingAge;
+    const effectiveActivity = options?.activity ?? activity;
+    const effectiveGoalPace = options?.goalPace ?? goalPace;
     const effectiveSkipRation = options?.skipRation ?? skipRation;
     const effectiveRation =
       options?.ration !== undefined ? options.ration : ration;
@@ -341,10 +377,46 @@ export function useOnboardingScreen() {
       setError(null);
     }
 
+    if (step === "activity") {
+      if (effectiveActivity == null) {
+        haptic("warn");
+        setError(ACTIVITY_REQUIRED);
+        return;
+      }
+      setError(null);
+    }
+
+    if (step === "profile" && !options?.skipProfileStep) {
+      if (!heightValid) {
+        haptic("warn");
+        setError(PROFILE_HEIGHT_INVALID);
+        return;
+      }
+      if (!birthYearValid) {
+        haptic("warn");
+        setError(PROFILE_BIRTH_INVALID);
+        return;
+      }
+      setError(null);
+    }
+
     if (step === "goal") {
       if (effectiveGoal == null) {
         haptic("warn");
         setError(GOAL_REQUIRED);
+        return;
+      }
+      setError(null);
+    }
+
+    if (step === "pace") {
+      if (
+        effectiveGoal != null &&
+        effectiveGoal !== "keep" &&
+        effectiveGoalPace == null
+      ) {
+        haptic("warn");
+        setError(PACE_REQUIRED);
         return;
       }
       setError(null);
@@ -405,6 +477,16 @@ export function useOnboardingScreen() {
     if (options?.trainingAge !== undefined) {
       setTrainingAge(options.trainingAge);
     }
+    if (options?.activity !== undefined) {
+      setActivity(options.activity);
+    }
+    if (options?.goalPace !== undefined) {
+      setGoalPace(options.goalPace);
+    }
+    if (options?.skipProfileStep) {
+      setHeightCm("");
+      setBirthYear("");
+    }
     if (options?.skipRation !== undefined) {
       setSkipRation(options.skipRation);
     }
@@ -412,7 +494,10 @@ export function useOnboardingScreen() {
       setRation(options.ration);
     }
 
-    const following = activeSteps[activeIndex + 1];
+    let following = activeSteps[activeIndex + 1];
+    if (following === "pace" && effectiveGoal === "keep") {
+      following = activeSteps[activeIndex + 2];
+    }
     if (following) {
       if (circleOverride) {
         setCircle(circleOverride);
@@ -462,6 +547,20 @@ export function useOnboardingScreen() {
         setStep("goal");
         return;
       }
+      if (activity == null) {
+        haptic("warn");
+        setSaving(false);
+        setError(ACTIVITY_REQUIRED);
+        setStep("activity");
+        return;
+      }
+      if (goal != null && goal !== "keep" && goalPace == null) {
+        haptic("warn");
+        setSaving(false);
+        setError(PACE_REQUIRED);
+        setStep("pace");
+        return;
+      }
       if (gymEnabled && trainingAge == null) {
         haptic("warn");
         setSaving(false);
@@ -493,6 +592,16 @@ export function useOnboardingScreen() {
         sex: omitProtein ? null : sex,
         goal: omitProtein ? null : goal,
         trainingAge: omitProtein ? null : trainingAge,
+        activity: omitProtein ? null : activity,
+        goalPace: omitProtein ? null : goalPace,
+        heightCm:
+          omitProtein || !heightValid || heightCm.trim() === ""
+            ? null
+            : parsedHeight,
+        birthYear:
+          omitProtein || !birthYearValid || birthYear.trim() === ""
+            ? null
+            : parsedBirthYear,
         bodyWeight: omitProtein || !weightValid(weightKg) ? null : weightKg,
         anchors: {
           squat: parseLiftKg(lifts.squat),
@@ -551,6 +660,10 @@ export function useOnboardingScreen() {
     weight,
     goal,
     trainingAge,
+    activity,
+    goalPace,
+    heightCm,
+    birthYear,
     ration,
     gymEnabled,
     foodOnly: gymEnabled === false,
@@ -580,8 +693,21 @@ export function useOnboardingScreen() {
       setWeight(value);
     },
     onGoalPick: (value: OnboardingGoal) => {
-      goNext({ goal: value });
+      goNext({
+        goal: value,
+        goalPace: value === "keep" ? null : (goalPace ?? "normal"),
+      });
     },
+    onActivityPick: (value: UserActivityLevel) => {
+      goNext({ activity: value });
+    },
+    onGoalPacePick: (value: UserGoalPace) => {
+      goNext({ goalPace: value });
+    },
+    onHeightChange: setHeightCm,
+    onBirthYearChange: setBirthYear,
+    skipProfile: () => goNext({ skipProfileStep: true }),
+    confirmProfile: () => goNext(),
     onTrainingAgePick: (value: UserTrainingAge) => {
       goNext({ trainingAge: value });
     },

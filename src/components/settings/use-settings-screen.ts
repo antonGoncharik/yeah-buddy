@@ -232,6 +232,34 @@ export function useSettingsScreen() {
     }
   }
 
+  async function setReminderHour(hour: number) {
+    if (!form || form.reminder_hour === hour) {
+      return;
+    }
+
+    const previous = form.reminder_hour;
+    setForm({ ...form, reminder_hour: hour });
+    setError(null);
+
+    try {
+      const data = await patchJson("/api/settings", { reminder_hour: hour });
+      const settings = readSettings(data);
+      if (settings) {
+        setForm((current) =>
+          current
+            ? { ...current, reminder_hour: settings.reminder_hour }
+            : current,
+        );
+        writeJson("/api/settings", data);
+      }
+    } catch (caught) {
+      setForm((current) =>
+        current ? { ...current, reminder_hour: previous } : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
   async function setTimezone(timezone: string) {
     if (!form || form.timezone === timezone) {
       return;
@@ -279,5 +307,6 @@ export function useSettingsScreen() {
     setReminders,
     setGymEnabled,
     setTimezone,
+    setReminderHour,
   };
 }

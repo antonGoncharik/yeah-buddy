@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { trackClientEvent } from "@/lib/analytics/client";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type {
@@ -38,6 +39,9 @@ export function useMuscleScreen() {
             return false;
           }
           setSnapshot(next);
+          void trackClientEvent("muscles_view", {
+            horizon_days: next.horizon_days,
+          });
           return true;
         },
         () => done(true),
