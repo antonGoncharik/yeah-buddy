@@ -1,20 +1,16 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { mealCopyFailures } from "@/lib/api/meal-copy-errors";
 import {
   failRoute,
-  jsonError,
   jsonOk,
   parseJsonSchema,
   whenError,
-  whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   copyMealFromDate,
   isIsoDate,
-  MealConflictError,
-  PastDayLockedError,
   SourceDayMissingError,
   SourceMealEmptyError,
   YesterdayMealEmptyError,
@@ -30,44 +26,35 @@ const bodySchema = z.object({
   replace: z.boolean().optional(),
 });
 
-export async function POST(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const POST = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { mealId } = await context.params;
 
-  const { mealId } = await context.params;
-
-  const parsed = await parseJsonSchema(request, bodySchema, (data) =>
-    isIsoDate(data.sourceDate),
-  );
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const day = await copyMealFromDate(
-      auth.session.userId,
-      mealId,
-      parsed.data.sourceDate,
-      parsed.data.replace ?? false,
+    const parsed = await parseJsonSchema(request, bodySchema, (data) =>
+      isIsoDate(data.sourceDate),
     );
-    return jsonOk({ day });
-  } catch (error) {
-    return failRoute(error, [
-      whenError(PastDayLockedError, 409),
-      whenError(YesterdayMissingError, 404),
-      whenError(SourceDayMissingError, 404),
-      whenError(YesterdayMealEmptyError, 404),
-      whenError(SourceMealEmptyError, 404),
-      whenMessage("Meal not found", 404, "Приём пищи не найден."),
-      (err) =>
-        err instanceof MealConflictError
-          ? jsonError(err.message, 409, { code: err.code })
-          : null,
-    ]);
-  }
-}
+    if (!parsed.ok) {
+      return parsed.response;
+    }
+
+    try {
+      const day = await copyMealFromDate(
+        session.userId,
+        mealId,
+        parsed.data.sourceDate,
+        parsed.data.replace ?? false,
+      );
+      return jsonOk({ day });
+    } catch (error) {
+      return failRoute(
+        error,
+        mealCopyFailures([
+          whenError(YesterdayMissingError, 404),
+          whenError(SourceDayMissingError, 404),
+          whenError(YesterdayMealEmptyError, 404),
+          whenError(SourceMealEmptyError, 404),
+        ]),
+      );
+    }
+  },
+);

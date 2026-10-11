@@ -1,8 +1,7 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { trackEvent } from "@/lib/analytics/track";
 import { jsonError, jsonOk, parseJsonSchema } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { getServerEnv } from "@/lib/env";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
@@ -37,12 +36,7 @@ const joyShareRequestSchema = z.object({
     .optional(),
 });
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, joyShareRequestSchema);
   if (!parsed.ok) {
     return parsed.response;
@@ -66,7 +60,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const prepared = await createBot(env).api.savePreparedInlineMessage(
-      auth.session.telegramId,
+      session.telegramId,
       joyInlinePhotoResult({
         id: `joy-${moment.kind}`,
         line,
@@ -80,8 +74,8 @@ export async function POST(request: Request): Promise<NextResponse> {
         allow_channel_chats: true,
       },
     );
-    await recordFunnelEvent(auth.session.userId, "share");
-    await trackEvent(auth.session.userId, "share_send", {
+    await recordFunnelEvent(session.userId, "share");
+    await trackEvent(session.userId, "share_send", {
       channel: "prepared",
     });
     return jsonOk({
@@ -95,4 +89,4 @@ export async function POST(request: Request): Promise<NextResponse> {
     console.error(error);
     return jsonError(SHARE_FAILED, 400);
   }
-}
+});

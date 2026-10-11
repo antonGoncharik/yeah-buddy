@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { reviewCtaReady } from "@/lib/ai/coverage";
 import {
@@ -8,7 +7,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { calendarDateInTimeZone, shiftIsoDate } from "@/lib/day/dates";
 import { dayHasFood as historyDayHasFood } from "@/lib/day/week";
 import {
@@ -70,19 +69,14 @@ const createSchema = z.object({
   dayType: z.enum(["rest", "training"]),
 });
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const date = new URL(request.url).searchParams.get("date") ?? "";
   if (!isIsoDate(date)) {
     return jsonError(CHECK_FIELDS, 400);
   }
 
   try {
-    const settings = await getUserSettings(auth.session.userId);
+    const settings = await getUserSettings(session.userId);
     const timeZone = settings?.timezone ?? DEFAULT_TIMEZONE;
     const today = calendarDateInTimeZone(timeZone);
     const ageDays = onboardingAgeDays(
@@ -113,35 +107,35 @@ export async function GET(request: Request): Promise<NextResponse> {
       gymWeekCount,
       energyDays,
     ] = await Promise.all([
-      getDayByDate(auth.session.userId, date),
-      yesterdayCopyHint(auth.session.userId, date),
-      getLastBodyWeight(auth.session.userId, date),
-      getLastWaist(auth.session.userId, date),
-      listCopyDays(auth.session.userId, date),
-      listNamedMealHints(auth.session.userId),
-      getActiveMealTemplate(auth.session.userId, "rest"),
-      getActiveMealTemplate(auth.session.userId, "training"),
+      getDayByDate(session.userId, date),
+      yesterdayCopyHint(session.userId, date),
+      getLastBodyWeight(session.userId, date),
+      getLastWaist(session.userId, date),
+      listCopyDays(session.userId, date),
+      listNamedMealHints(session.userId),
+      getActiveMealTemplate(session.userId, "rest"),
+      getActiveMealTemplate(session.userId, "training"),
       listBodyWeightsInRange(
-        auth.session.userId,
+        session.userId,
         shiftIsoDate(date, 1 - STEADY_WEIGHT_DAYS),
         date,
       ),
-      listDaysInRange(auth.session.userId, streakStart, date),
+      listDaysInRange(session.userId, streakStart, date),
       viewingToday
-        ? countCompletedSessions(auth.session.userId, {
+        ? countCompletedSessions(session.userId, {
             start: streakStart,
             end: today,
           })
         : Promise.resolve(0),
       needWeekGym
-        ? countCompletedSessions(auth.session.userId, {
+        ? countCompletedSessions(session.userId, {
             start: weekStart,
             end: today,
           })
         : Promise.resolve(0),
       viewingToday
         ? listDaysInRange(
-            auth.session.userId,
+            session.userId,
             shiftIsoDate(today, 1 - ENERGY_GOAL_LOOKBACK_DAYS),
             today,
           )
@@ -267,14 +261,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(
     request,
     createSchema,
@@ -285,13 +274,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const today = await getUserCalendarToday(auth.session.userId);
+    const today = await getUserCalendarToday(session.userId);
     const date =
       parsed.data.date && isIsoDate(parsed.data.date)
         ? parsed.data.date
         : today;
     const day = await createDayFromTemplate(
-      auth.session.userId,
+      session.userId,
       date,
       parsed.data.dayType,
     );
@@ -305,4 +294,4 @@ export async function POST(request: Request): Promise<NextResponse> {
           : null,
     ]);
   }
-}
+});

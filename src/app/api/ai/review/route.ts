@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import {
@@ -13,7 +12,7 @@ import {
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { CHECK_FIELDS } from "@/lib/messages";
 
 export const runtime = "nodejs";
@@ -24,12 +23,7 @@ const bodySchema = z.object({
   days: z.union([z.literal(14), z.literal(30), z.literal(90)]),
 });
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const days = parseReviewRange(
     new URL(request.url).searchParams.get("days") ?? "14",
   );
@@ -38,30 +32,25 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const snapshot = await getReviewSnapshot(auth.session.userId, days);
+    const snapshot = await getReviewSnapshot(session.userId, days);
     return jsonOk(snapshot);
   } catch (error) {
     return failRoute(error);
   }
-}
+});
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const snapshot = await createReview(auth.session.userId, parsed.data.days);
-    await trackAiRequest(auth.session.userId, "review", true);
+    const snapshot = await createReview(session.userId, parsed.data.days);
+    await trackAiRequest(session.userId, "review", true);
     return jsonOk(snapshot);
   } catch (error) {
-    await trackAiRequest(auth.session.userId, "review", false);
+    await trackAiRequest(session.userId, "review", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError
@@ -73,4 +62,4 @@ export async function POST(request: Request): Promise<NextResponse> {
           : null,
     ]);
   }
-}
+});

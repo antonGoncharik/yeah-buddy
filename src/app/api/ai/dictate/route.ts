@@ -1,23 +1,17 @@
-import type { NextResponse } from "next/server";
 import { analyzeDictate } from "@/lib/ai/dictate";
 import { readDictateAudioPart } from "@/lib/ai/dictate-audio";
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { trackAiRequest } from "@/lib/analytics/ai";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { listFoods } from "@/lib/food/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const audio = await readDictateAudioPart(request);
   if (!audio.ok) {
     return jsonError(audio.error, 400);
@@ -25,21 +19,16 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const [all, recent] = await Promise.all([
-      listFoods(auth.session.userId, "all"),
-      listFoods(auth.session.userId, "recent"),
+      listFoods(session.userId, "all"),
+      listFoods(session.userId, "recent"),
     ]);
     const allRefs = all.map(toPlateFoodRef);
     const catalog = rankPlateCatalog(all, recent).map(toPlateFoodRef);
-    const draft = await analyzeDictate(
-      auth.session.userId,
-      catalog,
-      audio,
-      allRefs,
-    );
-    await trackAiRequest(auth.session.userId, "dictate", true);
+    const draft = await analyzeDictate(session.userId, catalog, audio, allRefs);
+    await trackAiRequest(session.userId, "dictate", true);
     return jsonOk(draft);
   } catch (error) {
-    await trackAiRequest(auth.session.userId, "dictate", false);
+    await trackAiRequest(session.userId, "dictate", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError
@@ -51,4 +40,4 @@ export async function POST(request: Request): Promise<NextResponse> {
           : null,
     ]);
   }
-}
+});

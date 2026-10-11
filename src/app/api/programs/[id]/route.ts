@@ -1,7 +1,5 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, whenError } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   FeaturedProgramNotFoundError,
   loadFeaturedProgramDetail,
@@ -11,21 +9,15 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
-
-  try {
-    const program = await loadFeaturedProgramDetail(auth.session.userId, id);
-    return jsonOk({ program });
-  } catch (error) {
-    return failRoute(error, [whenError(FeaturedProgramNotFoundError, 404)]);
-  }
-}
+    try {
+      const program = await loadFeaturedProgramDetail(session.userId, id);
+      return jsonOk({ program });
+    } catch (error) {
+      return failRoute(error, [whenError(FeaturedProgramNotFoundError, 404)]);
+    }
+  },
+);

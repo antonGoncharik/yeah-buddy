@@ -1,31 +1,23 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, whenError, whenMessage } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { fillMealRemaining, PastDayLockedError } from "@/lib/days";
 
 type RouteContext = {
   params: Promise<{ mealId: string }>;
 };
 
-export async function POST(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const POST = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { mealId } = await context.params;
 
-  const { mealId } = await context.params;
-
-  try {
-    const day = await fillMealRemaining(auth.session.userId, mealId);
-    return jsonOk({ day });
-  } catch (error) {
-    return failRoute(error, [
-      whenError(PastDayLockedError, 409),
-      whenMessage("Meal not found", 404, "Приём пищи не найден."),
-    ]);
-  }
-}
+    try {
+      const day = await fillMealRemaining(session.userId, mealId);
+      return jsonOk({ day });
+    } catch (error) {
+      return failRoute(error, [
+        whenError(PastDayLockedError, 409),
+        whenMessage("Meal not found", 404, "Приём пищи не найден."),
+      ]);
+    }
+  },
+);

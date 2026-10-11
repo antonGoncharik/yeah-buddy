@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { trackEvent } from "@/lib/analytics/track";
 import {
@@ -7,7 +6,7 @@ import {
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   applyEnergyGoal,
   dismissEnergyGoal,
@@ -18,12 +17,7 @@ const bodySchema = z.object({
   dismissedKcal: z.number().int().min(0).max(20_000).optional(),
 });
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;
@@ -32,16 +26,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const result =
       parsed.data.action === "apply"
-        ? await applyEnergyGoal(auth.session.userId)
-        : await dismissEnergyGoal(
-            auth.session.userId,
-            parsed.data.dismissedKcal,
-          );
+        ? await applyEnergyGoal(session.userId)
+        : await dismissEnergyGoal(session.userId, parsed.data.dismissedKcal);
     if (!result) {
       return jsonError("Настройки не нашлись.", 404);
     }
     await trackEvent(
-      auth.session.userId,
+      session.userId,
       parsed.data.action === "apply"
         ? "energy_offer_applied"
         : "energy_offer_dismissed",
@@ -50,4 +41,4 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});

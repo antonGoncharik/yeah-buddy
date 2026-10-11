@@ -1,12 +1,10 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   deleteTemplateItem,
   FoodNotFoundError,
@@ -21,85 +19,67 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const item = await getTemplateItem(session.userId, id);
+      if (!item) {
+        return jsonError(NOT_FOUND, 404);
+      }
 
-  try {
-    const item = await getTemplateItem(auth.session.userId, id);
-    if (!item) {
-      return jsonError(NOT_FOUND, 404);
+      return jsonOk({ item });
+    } catch (error) {
+      return failRoute(error, [
+        (err) =>
+          err instanceof FoodNotFoundError ? jsonError(NOT_FOUND, 404) : null,
+      ]);
+    }
+  },
+);
+
+export const PATCH = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    const parsed = await parseJsonSchema(request, templateItemGramsSchema);
+    if (!parsed.ok) {
+      return parsed.response;
     }
 
-    return jsonOk({ item });
-  } catch (error) {
-    return failRoute(error, [
-      (err) =>
-        err instanceof FoodNotFoundError ? jsonError(NOT_FOUND, 404) : null,
-    ]);
-  }
-}
-
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  const parsed = await parseJsonSchema(request, templateItemGramsSchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const item = await updateTemplateItemGrams(
-      auth.session.userId,
-      id,
-      parsed.data.grams,
-    );
-    return jsonOk({ item });
-  } catch (error) {
-    return failRoute(error, [
-      (err) =>
-        err instanceof MealTemplateItemNotFoundError ||
-        err instanceof FoodNotFoundError
-          ? jsonError(NOT_FOUND, 404)
-          : null,
-    ]);
-  }
-}
-
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  try {
-    const deleted = await deleteTemplateItem(auth.session.userId, id);
-    if (!deleted) {
-      return jsonError(NOT_FOUND, 404);
+    try {
+      const item = await updateTemplateItemGrams(
+        session.userId,
+        id,
+        parsed.data.grams,
+      );
+      return jsonOk({ item });
+    } catch (error) {
+      return failRoute(error, [
+        (err) =>
+          err instanceof MealTemplateItemNotFoundError ||
+          err instanceof FoodNotFoundError
+            ? jsonError(NOT_FOUND, 404)
+            : null,
+      ]);
     }
+  },
+);
 
-    return jsonOk({ ok: true });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+export const DELETE = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    try {
+      const deleted = await deleteTemplateItem(session.userId, id);
+      if (!deleted) {
+        return jsonError(NOT_FOUND, 404);
+      }
+
+      return jsonOk({ ok: true });
+    } catch (error) {
+      return failRoute(error);
+    }
+  },
+);

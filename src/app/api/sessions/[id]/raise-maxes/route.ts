@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
@@ -7,7 +5,7 @@ import {
   whenError,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { StartingMaxLockedError } from "@/lib/workout/exercise-schema";
 import { applySessionMaxRaises } from "@/lib/workout/session-raise-store";
 
@@ -15,28 +13,22 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function POST(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const POST = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const detail = await applySessionMaxRaises(session.userId, id);
+      if (!detail) {
+        return jsonError("Тренировка не найдена.", 404);
+      }
 
-  try {
-    const detail = await applySessionMaxRaises(auth.session.userId, id);
-    if (!detail) {
-      return jsonError("Тренировка не найдена.", 404);
+      return jsonOk(detail);
+    } catch (error) {
+      return failRoute(error, [
+        whenError(StartingMaxLockedError, 409),
+        whenMessage("Сначала закончи тренировку.", 400),
+      ]);
     }
-
-    return jsonOk(detail);
-  } catch (error) {
-    return failRoute(error, [
-      whenError(StartingMaxLockedError, 409),
-      whenMessage("Сначала закончи тренировку.", 400),
-    ]);
-  }
-}
+  },
+);

@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -8,7 +7,7 @@ import {
   whenError,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { lumpMealItemSchema } from "@/lib/day/lump";
 import { addLumpMealItem, addMealItem, PastDayLockedError } from "@/lib/days";
 
@@ -24,38 +23,32 @@ const bodySchema = z.union([
   }),
 ]);
 
-export async function POST(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const POST = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { mealId } = await context.params;
 
-  const { mealId } = await context.params;
+    const parsed = await parseJsonSchema(request, bodySchema);
+    if (!parsed.ok) {
+      return parsed.response;
+    }
 
-  const parsed = await parseJsonSchema(request, bodySchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const item =
-      "foodId" in parsed.data
-        ? await addMealItem(
-            auth.session.userId,
-            mealId,
-            parsed.data.foodId,
-            parsed.data.grams,
-          )
-        : await addLumpMealItem(auth.session.userId, mealId, parsed.data);
-    return jsonOk({ item });
-  } catch (error) {
-    return failRoute(error, [
-      whenError(PastDayLockedError, 409),
-      whenMessage("Meal not found", 404, "Приём пищи не найден."),
-      whenMessage("Food not found", 404, "Продукт не найден."),
-    ]);
-  }
-}
+    try {
+      const item =
+        "foodId" in parsed.data
+          ? await addMealItem(
+              session.userId,
+              mealId,
+              parsed.data.foodId,
+              parsed.data.grams,
+            )
+          : await addLumpMealItem(session.userId, mealId, parsed.data);
+      return jsonOk({ item });
+    } catch (error) {
+      return failRoute(error, [
+        whenError(PastDayLockedError, 409),
+        whenMessage("Meal not found", 404, "Приём пищи не найден."),
+        whenMessage("Food not found", 404, "Продукт не найден."),
+      ]);
+    }
+  },
+);

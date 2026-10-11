@@ -1,7 +1,5 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   createExercise,
   exerciseCreateSchema,
@@ -9,12 +7,7 @@ import {
 } from "@/lib/workout/exercises";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const filterParam = new URL(request.url).searchParams.get("filter");
   const filter =
     filterParam === "archived" || filterParam === "all"
@@ -22,30 +15,25 @@ export async function GET(request: Request): Promise<NextResponse> {
       : "active";
 
   try {
-    await ensureWorkoutSettings(auth.session.userId);
-    const exercises = await listExercises(auth.session.userId, filter);
+    await ensureWorkoutSettings(session.userId);
+    const exercises = await listExercises(session.userId, filter);
     return jsonOk({ exercises });
   } catch (error) {
     return failRoute(error);
   }
-}
+});
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, exerciseCreateSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    await ensureWorkoutSettings(auth.session.userId);
-    const exercise = await createExercise(auth.session.userId, parsed.data);
+    await ensureWorkoutSettings(session.userId);
+    const exercise = await createExercise(session.userId, parsed.data);
     return jsonOk({ exercise });
   } catch (error) {
     return failRoute(error);
   }
-}
+});

@@ -1,18 +1,8 @@
-import type { NextResponse } from "next/server";
 import { exportUserAccount } from "@/lib/account/export";
-import { failRoute, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { jsonOk } from "@/lib/api/respond";
+import { sessionRoute } from "@/lib/api/session-route";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  try {
-    const dump = await exportUserAccount(auth.session.userId);
-    return jsonOk({ export: dump });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+export const GET = sessionRoute(async (session) => {
+  const dump = await exportUserAccount(session.userId);
+  return jsonOk({ export: dump });
+});

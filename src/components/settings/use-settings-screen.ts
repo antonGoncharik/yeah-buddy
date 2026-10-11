@@ -11,6 +11,7 @@ import {
   toPayload,
   withRecountedProtein,
 } from "@/components/settings/settings-form-state";
+import { patchSettingsField } from "@/components/settings/settings-optimistic-patch";
 import { cachedGet, mutateJson, patchJson, writeJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { readDay, readLastBodyWeight } from "@/lib/day/today-payload";
@@ -201,113 +202,55 @@ export function useSettingsScreen() {
   }
 
   async function setReminders(enabled: boolean) {
-    if (!form || form.reminders_enabled === enabled) {
+    if (!form) {
       return;
     }
-
-    const previous = form.reminders_enabled;
-    setForm({ ...form, reminders_enabled: enabled });
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/settings", {
-        reminders_enabled: enabled,
-      });
-      const settings = readSettings(data);
-      if (settings) {
-        setForm((current) =>
-          current
-            ? { ...current, reminders_enabled: settings.reminders_enabled }
-            : current,
-        );
-        writeJson("/api/settings", data);
-      }
-    } catch (caught) {
-      setForm((current) =>
-        current ? { ...current, reminders_enabled: previous } : current,
-      );
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    }
+    await patchSettingsField({
+      form,
+      key: "reminders_enabled",
+      value: enabled,
+      setForm,
+      setError,
+    });
   }
 
   async function setGymEnabled(enabled: boolean) {
-    if (!form || form.gym_enabled === enabled) {
+    if (!form) {
       return;
     }
-
-    const previous = form.gym_enabled;
-    setForm({ ...form, gym_enabled: enabled });
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/settings", { gym_enabled: enabled });
-      const settings = readSettings(data);
-      if (settings) {
-        setForm((current) =>
-          current ? { ...current, gym_enabled: settings.gym_enabled } : current,
-        );
-        writeJson("/api/settings", data);
-      }
-    } catch (caught) {
-      setForm((current) =>
-        current ? { ...current, gym_enabled: previous } : current,
-      );
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    }
+    await patchSettingsField({
+      form,
+      key: "gym_enabled",
+      value: enabled,
+      setForm,
+      setError,
+    });
   }
 
   async function setReminderHour(hour: number) {
-    if (!form || form.reminder_hour === hour) {
+    if (!form) {
       return;
     }
-
-    const previous = form.reminder_hour;
-    setForm({ ...form, reminder_hour: hour });
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/settings", { reminder_hour: hour });
-      const settings = readSettings(data);
-      if (settings) {
-        setForm((current) =>
-          current
-            ? { ...current, reminder_hour: settings.reminder_hour }
-            : current,
-        );
-        writeJson("/api/settings", data);
-      }
-    } catch (caught) {
-      setForm((current) =>
-        current ? { ...current, reminder_hour: previous } : current,
-      );
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    }
+    await patchSettingsField({
+      form,
+      key: "reminder_hour",
+      value: hour,
+      setForm,
+      setError,
+    });
   }
 
   async function setTimezone(timezone: string) {
-    if (!form || form.timezone === timezone) {
+    if (!form) {
       return;
     }
-
-    const previous = form.timezone;
-    setForm({ ...form, timezone });
-    setError(null);
-
-    try {
-      const data = await patchJson("/api/settings", { timezone });
-      const settings = readSettings(data);
-      if (settings) {
-        setForm((current) =>
-          current ? { ...current, timezone: settings.timezone } : current,
-        );
-        writeJson("/api/settings", data);
-      }
-    } catch (caught) {
-      setForm((current) =>
-        current ? { ...current, timezone: previous } : current,
-      );
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    }
+    await patchSettingsField({
+      form,
+      key: "timezone",
+      value: timezone,
+      setForm,
+      setError,
+    });
   }
 
   return {

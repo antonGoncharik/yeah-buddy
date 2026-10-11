@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -9,7 +8,7 @@ import {
   whenError,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { lumpMealItemSchema } from "@/lib/day/lump";
 import {
   deleteMealItem,
@@ -36,91 +35,73 @@ const patchSchema = z.union([
   }),
 ]);
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const item = await getMealItem(session.userId, id);
+      if (!item) {
+        return jsonError(NOT_FOUND, 404);
+      }
 
-  try {
-    const item = await getMealItem(auth.session.userId, id);
-    if (!item) {
-      return jsonError(NOT_FOUND, 404);
+      const date = await getDateForMeal(session.userId, item.meal_id);
+      const today = await getUserCalendarToday(session.userId);
+      const day =
+        date == null ? null : await getDayByDate(session.userId, date);
+
+      return jsonOk({
+        item,
+        date,
+        today,
+        writable:
+          date != null && isDayWritable(date, today, writeStateFromDay(day)),
+      });
+    } catch (error) {
+      return failRoute(error);
+    }
+  },
+);
+
+export const PATCH = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    const parsed = await parseJsonSchema(request, patchSchema);
+    if (!parsed.ok) {
+      return parsed.response;
     }
 
-    const date = await getDateForMeal(auth.session.userId, item.meal_id);
-    const today = await getUserCalendarToday(auth.session.userId);
-    const day =
-      date == null ? null : await getDayByDate(auth.session.userId, date);
-
-    return jsonOk({
-      item,
-      date,
-      today,
-      writable:
-        date != null && isDayWritable(date, today, writeStateFromDay(day)),
-    });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  const parsed = await parseJsonSchema(request, patchSchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const item =
-      "grams" in parsed.data
-        ? await updateMealItemGrams(auth.session.userId, id, parsed.data.grams)
-        : await updateLumpMealItem(auth.session.userId, id, parsed.data);
-    return jsonOk({ item });
-  } catch (error) {
-    return failRoute(error, [
-      whenError(PastDayLockedError, 409),
-      whenMessage("Meal item not found", 404, NOT_FOUND),
-      whenMessage("Not a lump item", 400, "Это продукт, не строка."),
-      whenMessage("Not a catalog item", 400, "Это строка, не продукт."),
-    ]);
-  }
-}
-
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  try {
-    const deleted = await deleteMealItem(auth.session.userId, id);
-    if (!deleted) {
-      return jsonError(NOT_FOUND, 404);
+    try {
+      const item =
+        "grams" in parsed.data
+          ? await updateMealItemGrams(session.userId, id, parsed.data.grams)
+          : await updateLumpMealItem(session.userId, id, parsed.data);
+      return jsonOk({ item });
+    } catch (error) {
+      return failRoute(error, [
+        whenError(PastDayLockedError, 409),
+        whenMessage("Meal item not found", 404, NOT_FOUND),
+        whenMessage("Not a lump item", 400, "Это продукт, не строка."),
+        whenMessage("Not a catalog item", 400, "Это строка, не продукт."),
+      ]);
     }
+  },
+);
 
-    return jsonOk({ ok: true });
-  } catch (error) {
-    return failRoute(error, [whenError(PastDayLockedError, 409)]);
-  }
-}
+export const DELETE = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    try {
+      const deleted = await deleteMealItem(session.userId, id);
+      if (!deleted) {
+        return jsonError(NOT_FOUND, 404);
+      }
+
+      return jsonOk({ ok: true });
+    } catch (error) {
+      return failRoute(error, [whenError(PastDayLockedError, 409)]);
+    }
+  },
+);

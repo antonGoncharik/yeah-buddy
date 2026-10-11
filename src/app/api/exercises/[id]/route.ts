@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 
 import { failRoute, jsonError, jsonOk, whenError } from "@/lib/api/respond";
+import { sessionRoute } from "@/lib/api/session-route";
 import { requireSession } from "@/lib/auth/require-session";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
@@ -17,28 +18,22 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const exercise = await getExercise(session.userId, id);
+      if (!exercise) {
+        return jsonError("Упражнение не найдено.", 404);
+      }
 
-  try {
-    const exercise = await getExercise(auth.session.userId, id);
-    if (!exercise) {
-      return jsonError("Упражнение не найдено.", 404);
+      return jsonOk({ exercise });
+    } catch (error) {
+      return failRoute(error);
     }
-
-    return jsonOk({ exercise });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+  },
+);
 
 export async function PATCH(
   request: Request,

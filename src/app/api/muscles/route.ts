@@ -1,24 +1,17 @@
-import type { NextRequest, NextResponse } from "next/server";
-
 import { failRoute, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   getMuscleSnapshot,
   parseMuscleHorizonDays,
 } from "@/lib/workout/muscle-load";
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const days = parseMuscleHorizonDays(request.nextUrl.searchParams.get("days"));
 
   try {
-    const snapshot = await getMuscleSnapshot(auth.session.userId, days);
+    const snapshot = await getMuscleSnapshot(session.userId, days);
     return jsonOk(snapshot);
   } catch (error) {
     return failRoute(error);
   }
-}
+});

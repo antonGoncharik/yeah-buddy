@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
@@ -7,7 +5,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { getSessionDetail } from "@/lib/workout/session-work";
 import {
   cancelSession,
@@ -20,76 +18,59 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const detail = await getSessionDetail(session.userId, id);
+      if (!detail) {
+        return jsonError("Тренировка не найдена.", 404);
+      }
 
-  try {
-    const detail = await getSessionDetail(auth.session.userId, id);
-    if (!detail) {
-      return jsonError("Тренировка не найдена.", 404);
+      return jsonOk(detail);
+    } catch (error) {
+      return failRoute(error);
+    }
+  },
+);
+
+export const PATCH = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    const parsed = await parseJsonSchema(request, patchSessionSchema);
+    if (!parsed.ok) {
+      return parsed.response;
     }
 
-    return jsonOk(detail);
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+    const userId = session.userId;
+    try {
+      const session = await patchSession(userId, id, parsed.data);
+      if (!session) {
+        return jsonError("Тренировка не найдена.", 404);
+      }
 
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  const parsed = await parseJsonSchema(request, patchSessionSchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const session = await patchSession(auth.session.userId, id, parsed.data);
-    if (!session) {
-      return jsonError("Тренировка не найдена.", 404);
+      return jsonOk({ session });
+    } catch (error) {
+      return failRoute(error);
     }
+  },
+);
 
-    return jsonOk({ session });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+export const DELETE = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-export async function DELETE(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+    try {
+      const deleted = await cancelSession(session.userId, id);
+      if (!deleted) {
+        return jsonError("Тренировка не найдена.", 404);
+      }
 
-  const { id } = await context.params;
-
-  try {
-    const deleted = await cancelSession(auth.session.userId, id);
-    if (!deleted) {
-      return jsonError("Тренировка не найдена.", 404);
+      return jsonOk({ ok: true });
+    } catch (error) {
+      return failRoute(error, [whenError(SessionLockedError, 409)]);
     }
-
-    return jsonOk({ ok: true });
-  } catch (error) {
-    return failRoute(error, [whenError(SessionLockedError, 409)]);
-  }
-}
+  },
+);

@@ -1,8 +1,6 @@
-import type { NextResponse } from "next/server";
-
 import { trackEvent } from "@/lib/analytics/track";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { getServerEnv } from "@/lib/env";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -16,15 +14,10 @@ import { loadMuscleWeekCard } from "@/lib/share/muscle-week-card-load";
 import { joyPhotoOrigin, muscleWeekInlineResults } from "@/lib/share/prepared";
 import { createBot, getAppShareUrl } from "@/lib/telegram/bot";
 
-export async function POST(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session) => {
   let card: Awaited<ReturnType<typeof loadMuscleWeekCard>>;
   try {
-    card = await loadMuscleWeekCard(auth.session.userId);
+    card = await loadMuscleWeekCard(session.userId);
   } catch (error) {
     return failRoute(error);
   }
@@ -55,7 +48,7 @@ export async function POST(): Promise<NextResponse> {
   let id: string | null = null;
   try {
     const prepared = await createBot(env).api.savePreparedInlineMessage(
-      auth.session.telegramId,
+      session.telegramId,
       result,
       {
         allow_user_chats: true,
@@ -68,8 +61,8 @@ export async function POST(): Promise<NextResponse> {
     console.error(error);
   }
 
-  await recordFunnelEvent(auth.session.userId, "share");
-  await trackEvent(auth.session.userId, "share_send", {
+  await recordFunnelEvent(session.userId, "share");
+  await trackEvent(session.userId, "share_send", {
     channel: "muscle_week",
   });
   const photoUrl = muscleWeekCardPhotoUrl(photoOrigin, query);
@@ -81,4 +74,4 @@ export async function POST(): Promise<NextResponse> {
     caption,
     install_url: installUrl,
   });
-}
+});

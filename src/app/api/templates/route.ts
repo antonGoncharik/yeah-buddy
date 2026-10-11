@@ -1,7 +1,5 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import {
   createTemplate,
@@ -11,55 +9,36 @@ import {
   templateWriteSchema,
 } from "@/lib/workout/templates";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  await ensureWorkoutSettings(session.userId);
+  const templates = await listTemplates(session.userId);
+  return jsonOk({ templates });
+});
 
-  try {
-    await ensureWorkoutSettings(auth.session.userId);
-    const templates = await listTemplates(auth.session.userId);
-    return jsonOk({ templates });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, templateWriteSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const template = await createTemplate(auth.session.userId, parsed.data);
+    const template = await createTemplate(session.userId, parsed.data);
     return jsonOk({ template });
   } catch (error) {
     return failRoute(error);
   }
-}
+});
 
-export async function PATCH(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const PATCH = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, rotationPatchSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const templates = await saveRotation(auth.session.userId, parsed.data);
+    const templates = await saveRotation(session.userId, parsed.data);
     return jsonOk({ templates });
   } catch (error) {
     return failRoute(error);
   }
-}
+});

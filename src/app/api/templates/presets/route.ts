@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -8,7 +7,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
 import { isProgramPresetId } from "@/lib/workout/program-presets";
@@ -22,12 +21,7 @@ const bodySchema = z.object({
   fromStart: z.boolean().optional(),
 });
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema, (data) =>
     isProgramPresetId(data.preset),
   );
@@ -41,14 +35,14 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const templates = await applyProgramPreset(
-      auth.session.userId,
+      session.userId,
       parsed.data.preset,
     );
     if (parsed.data.fromStart) {
-      await recordFunnelEvent(auth.session.userId, "program_start");
+      await recordFunnelEvent(session.userId, "program_start");
     }
     return jsonOk({ templates });
   } catch (error) {
     return failRoute(error, [whenError(ProgramNotOfferedError, 403)]);
   }
-}
+});

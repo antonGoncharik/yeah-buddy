@@ -1,15 +1,8 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { searchCatalogExercises } from "@/lib/workout/exercise-catalog-store";
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (_session, request) => {
   const query = new URL(request.url).searchParams.get("q") ?? "";
 
   try {
@@ -18,4 +11,4 @@ export async function GET(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});

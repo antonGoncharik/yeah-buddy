@@ -4,30 +4,42 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { OnboardingProgramShelf } from "@/components/onboarding/onboarding-circle-step";
 import {
+  emptyLiftAnswers,
+  optionalBirthYear,
+  optionalHeightCm,
+  parseLiftKg,
+  weightAfterSexPick,
+  weightValid,
+} from "@/components/onboarding/onboarding-draft";
+import {
   loadPendingPackKind,
   submitOnboardingFinish,
 } from "@/components/onboarding/onboarding-finish";
-import {
-  LIFTS_DRAFT_INVALID,
-  LIFTS_NEED_INPUT_OR_SKIP,
-  type LiftAnswers,
-  type LiftKey,
-  liftAnswersDraftInvalid,
-  liftAnswersHaveInput,
+import type {
+  LiftAnswers,
+  LiftKey,
 } from "@/components/onboarding/onboarding-lifts-step";
+import {
+  WEIGHT_INVALID,
+  WEIGHT_REQUIRED,
+} from "@/components/onboarding/onboarding-messages";
+import {
+  onboardingAdvanceBlock,
+  onboardingFinishBlock,
+} from "@/components/onboarding/onboarding-step-ready";
 import {
   isOnboardingStep,
   type OnboardingStep,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import {
-  isOnboardingPresetWeightKg,
-  onboardingDefaultWeightKg,
-} from "@/components/onboarding/onboarding-weight-ruler";
+  onboardingWizardSub,
+  parseGuidePageIndex,
+  parseProgramShelf,
+} from "@/components/onboarding/onboarding-wizard-sub";
 import { trackClientEvent } from "@/lib/analytics/client";
 import { mutateJson } from "@/lib/api-cache";
 import type { RationId } from "@/lib/food/ration";
-import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import { LOAD_FAILED } from "@/lib/messages";
 import { useWizardScreenHistory } from "@/lib/navigation/use-wizard-screen-history";
 import type { WizardScreenEntry } from "@/lib/navigation/wizard-history";
@@ -55,20 +67,21 @@ import {
   RECOMMENDED_PROGRAM_PRESET_ID,
 } from "@/lib/workout/program-presets";
 
+export {
+  ACTIVITY_REQUIRED,
+  GOAL_REQUIRED,
+  MODE_REQUIRED,
+  PACE_REQUIRED,
+  PROFILE_BIRTH_INVALID,
+  PROFILE_HEIGHT_INVALID,
+  PROTEIN_INVALID,
+  RATION_REQUIRED,
+  SEX_REQUIRED,
+  TRAINING_AGE_REQUIRED,
+  WEIGHT_INVALID,
+  WEIGHT_REQUIRED,
+} from "@/components/onboarding/onboarding-messages";
 export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
-
-export const PROTEIN_INVALID = "Введи белок от 1 до 400 граммов.";
-export const WEIGHT_REQUIRED = "Введи вес.";
-export const WEIGHT_INVALID = "Вес от 30 до 250 кг.";
-export const SEX_REQUIRED = "Выбери, кто ты.";
-export const GOAL_REQUIRED = "Выбери цель.";
-export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
-export const MODE_REQUIRED = "Выбери, что тебе нужно.";
-export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
-export const ACTIVITY_REQUIRED = "Выбери активность.";
-export const PACE_REQUIRED = "Выбери темп.";
-export const PROFILE_HEIGHT_INVALID = "Рост от 120 до 230 см.";
-export const PROFILE_BIRTH_INVALID = "Год рождения от 1940 до 2015.";
 
 const ONBOARDING_WIZARD_FLOW = "onboarding";
 
@@ -85,79 +98,6 @@ type GoNextOptions = {
   skipLiftsStep?: boolean;
   skipProfileStep?: boolean;
 };
-
-function onboardingWizardSub(
-  step: OnboardingStep,
-  guidePageIndex: number,
-  programShelf: OnboardingProgramShelf | null,
-): string | null {
-  if (step === "guide") {
-    return `g:${guidePageIndex}`;
-  }
-  if (step === "circle" && programShelf != null) {
-    return `shelf:${programShelf}`;
-  }
-  return null;
-}
-
-function parseGuidePageIndex(sub: string | null): number {
-  if (sub == null || !sub.startsWith("g:")) {
-    return 0;
-  }
-  const page = Number.parseInt(sub.slice(2), 10);
-  return Number.isFinite(page) && page >= 0 ? page : 0;
-}
-
-function parseProgramShelf(sub: string | null): OnboardingProgramShelf | null {
-  if (sub == null || !sub.startsWith("shelf:")) {
-    return null;
-  }
-  const shelf = sub.slice(6);
-  return shelf === "home" || shelf === "all" ? shelf : null;
-}
-
-function weightAfterSexPick(value: OnboardingSex, current: string): string {
-  const nextDefault = String(onboardingDefaultWeightKg(value));
-  if (current.trim() === "") {
-    return nextDefault;
-  }
-  const kg = parseDecimal(current);
-  if (kg == null) {
-    return nextDefault;
-  }
-  const rounded = Math.round(kg);
-  if (isOnboardingPresetWeightKg(rounded)) {
-    return nextDefault;
-  }
-  return current;
-}
-
-function proteinValid(value: number | null): value is number {
-  return value != null && value > 0 && value <= 400;
-}
-
-function weightValid(value: number | null): value is number {
-  return value != null && value >= 30 && value <= 250;
-}
-
-function weightDraftOk(raw: string): boolean {
-  return decimalDraftLooksValid(raw) && weightValid(parseDecimal(raw));
-}
-
-function emptyLiftAnswers(): LiftAnswers {
-  return { squat: "", bench: "", deadlift: "" };
-}
-
-function parseLiftKg(raw: string | null): number | null {
-  if (raw == null || raw.trim() === "") {
-    return null;
-  }
-  const value = parseDecimal(raw);
-  if (value == null || !(value > 0) || value > 500) {
-    return null;
-  }
-  return value;
-}
 
 export function useOnboardingScreen() {
   const router = useRouter();
@@ -233,15 +173,10 @@ export function useOnboardingScreen() {
 
   const weightKg = parseDecimal(weight);
   const parsedHeight = parseDecimal(heightCm);
-  const parsedBirthYear = Number.parseInt(birthYear, 10);
-  const birthYearValid =
-    birthYear.trim() === "" ||
-    (Number.isFinite(parsedBirthYear) &&
-      parsedBirthYear >= 1940 &&
-      parsedBirthYear <= 2015);
-  const heightValid =
-    heightCm.trim() === "" ||
-    (parsedHeight != null && parsedHeight >= 120 && parsedHeight <= 230);
+  const birth = optionalBirthYear(birthYear);
+  const birthYearValid = birth.ok;
+  const heightValid = optionalHeightCm(heightCm).ok;
+  const parsedBirthYear = birth.year;
   const macroPreview =
     sex && goal && weightValid(weightKg)
       ? suggestMacroGoals({
@@ -250,8 +185,7 @@ export function useOnboardingScreen() {
           goal,
           activity_level: activity,
           height_cm: parsedHeight,
-          birth_year:
-            birthYearValid && birthYear.trim() !== "" ? parsedBirthYear : null,
+          birth_year: parsedBirthYear,
         })
       : null;
   const proteinValue =
@@ -341,129 +275,33 @@ export function useOnboardingScreen() {
     });
     const activeIndex = Math.max(0, activeSteps.indexOf(step));
 
-    if (step === "mode") {
-      if (effectiveGym == null) {
-        haptic("warn");
-        setError(MODE_REQUIRED);
-        return;
+    const blocked = onboardingAdvanceBlock({
+      step,
+      gymEnabled: effectiveGym,
+      sex: effectiveSex,
+      weight,
+      activity: effectiveActivity,
+      heightOk: heightValid,
+      birthYearOk: birthYearValid,
+      skipProfile: options?.skipProfileStep === true,
+      goal: effectiveGoal,
+      goalPace: effectiveGoalPace,
+      trainingAge: effectiveTrainingAge,
+      proteinValue,
+      skipRation: effectiveSkipRation,
+      ration: effectiveRation,
+      skipLifts: options?.skipLiftsStep === true,
+      lifts,
+    });
+    if (blocked) {
+      haptic("warn");
+      setError(blocked.message);
+      if (blocked.step) {
+        setStep(blocked.step);
       }
-      setError(null);
+      return;
     }
-
-    if (step === "sex") {
-      if (effectiveSex == null) {
-        haptic("warn");
-        setError(SEX_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "weight") {
-      if (effectiveSex == null) {
-        haptic("warn");
-        setError(SEX_REQUIRED);
-        setStep("sex");
-        return;
-      }
-      if (weight.trim() === "") {
-        haptic("warn");
-        setError(WEIGHT_REQUIRED);
-        return;
-      }
-      if (!weightDraftOk(weight)) {
-        haptic("warn");
-        setError(WEIGHT_INVALID);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "activity") {
-      if (effectiveActivity == null) {
-        haptic("warn");
-        setError(ACTIVITY_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "profile" && !options?.skipProfileStep) {
-      if (!heightValid) {
-        haptic("warn");
-        setError(PROFILE_HEIGHT_INVALID);
-        return;
-      }
-      if (!birthYearValid) {
-        haptic("warn");
-        setError(PROFILE_BIRTH_INVALID);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "goal") {
-      if (effectiveGoal == null) {
-        haptic("warn");
-        setError(GOAL_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "pace") {
-      if (
-        effectiveGoal != null &&
-        effectiveGoal !== "keep" &&
-        effectiveGoalPace == null
-      ) {
-        haptic("warn");
-        setError(PACE_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "training_age") {
-      if (effectiveTrainingAge == null) {
-        haptic("warn");
-        setError(TRAINING_AGE_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "macros") {
-      if (!proteinValid(proteinValue)) {
-        haptic("warn");
-        setError(PROTEIN_INVALID);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "ration") {
-      if (!effectiveSkipRation && effectiveRation == null) {
-        haptic("warn");
-        setError(RATION_REQUIRED);
-        return;
-      }
-      setError(null);
-    }
-
-    if (step === "lifts" && !options?.skipLiftsStep) {
-      if (!liftAnswersHaveInput(lifts)) {
-        haptic("warn");
-        setError(LIFTS_NEED_INPUT_OR_SKIP);
-        return;
-      }
-      if (liftAnswersDraftInvalid(lifts)) {
-        haptic("warn");
-        setError(LIFTS_DRAFT_INVALID);
-        return;
-      }
-      setError(null);
-    }
+    setError(null);
 
     if (options?.gymEnabled !== undefined) {
       setGymEnabled(options.gymEnabled);
@@ -527,63 +365,24 @@ export function useOnboardingScreen() {
       setCircle(circleOverride);
     }
     const omitProtein = pendingKind === "meals";
-    if (!omitProtein) {
-      if (sex == null) {
-        haptic("warn");
-        setSaving(false);
-        setError(SEX_REQUIRED);
-        setStep("sex");
-        return;
-      }
-      if (!weightDraftOk(weight)) {
-        haptic("warn");
-        setSaving(false);
-        setError(weight.trim() === "" ? WEIGHT_REQUIRED : WEIGHT_INVALID);
-        setStep("weight");
-        return;
-      }
-      if (goal == null) {
-        haptic("warn");
-        setSaving(false);
-        setError(GOAL_REQUIRED);
-        setStep("goal");
-        return;
-      }
-      if (activity == null) {
-        haptic("warn");
-        setSaving(false);
-        setError(ACTIVITY_REQUIRED);
-        setStep("activity");
-        return;
-      }
-      if (goal != null && goal !== "keep" && goalPace == null) {
-        haptic("warn");
-        setSaving(false);
-        setError(PACE_REQUIRED);
-        setStep("pace");
-        return;
-      }
-      if (gymEnabled && trainingAge == null) {
-        haptic("warn");
-        setSaving(false);
-        setError(TRAINING_AGE_REQUIRED);
-        setStep("training_age");
-        return;
-      }
-      if (!proteinValid(proteinValue)) {
-        haptic("warn");
-        setSaving(false);
-        setError(PROTEIN_INVALID);
-        setStep("macros");
-        return;
-      }
-    }
-
-    if (gymEnabled == null) {
+    const blocked = onboardingFinishBlock({
+      omitProtein,
+      sex,
+      weight,
+      goal,
+      activity,
+      goalPace,
+      gymEnabled,
+      trainingAge,
+      proteinValue,
+    });
+    if (blocked) {
       haptic("warn");
       setSaving(false);
-      setError(MODE_REQUIRED);
-      setStep("mode");
+      setError(blocked.message);
+      if (blocked.step) {
+        setStep(blocked.step);
+      }
       return;
     }
 
@@ -596,14 +395,8 @@ export function useOnboardingScreen() {
         trainingAge: omitProtein ? null : trainingAge,
         activity: omitProtein ? null : activity,
         goalPace: omitProtein ? null : goalPace,
-        heightCm:
-          omitProtein || !heightValid || heightCm.trim() === ""
-            ? null
-            : parsedHeight,
-        birthYear:
-          omitProtein || !birthYearValid || birthYear.trim() === ""
-            ? null
-            : parsedBirthYear,
+        heightCm: omitProtein || !heightValid ? null : parsedHeight,
+        birthYear: omitProtein || !birthYearValid ? null : parsedBirthYear,
         bodyWeight: omitProtein || !weightValid(weightKg) ? null : weightKg,
         anchors: {
           squat: parseLiftKg(lifts.squat),

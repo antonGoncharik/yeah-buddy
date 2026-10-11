@@ -1,0 +1,12 @@
+export const PROTEIN_INVALID = "Введи белок от 1 до 400 граммов.";
+export const WEIGHT_REQUIRED = "Введи вес.";
+export const WEIGHT_INVALID = "Вес от 30 до 250 кг.";
+export const SEX_REQUIRED = "Выбери, кто ты.";
+export const GOAL_REQUIRED = "Выбери цель.";
+export const TRAINING_AGE_REQUIRED = "Выбери стаж.";
+export const MODE_REQUIRED = "Выбери, что тебе нужно.";
+export const RATION_REQUIRED = "Выбери шаблон или «Настрою сам».";
+export const ACTIVITY_REQUIRED = "Выбери активность.";
+export const PACE_REQUIRED = "Выбери темп.";
+export const PROFILE_HEIGHT_INVALID = "Рост от 120 до 230 см.";
+export const PROFILE_BIRTH_INVALID = "Год рождения от 1940 до 2015.";

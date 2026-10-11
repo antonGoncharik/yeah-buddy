@@ -1,7 +1,5 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, parseJsonSchema } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 import {
   ensureWorkoutSettings,
@@ -9,43 +7,26 @@ import {
   workoutSettingsPatchSchema,
 } from "@/lib/workout/settings";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  const settings = await ensureWorkoutSettings(session.userId);
+  return jsonOk({
+    settings: {
+      max_increase_percent: settings.max_increase_percent,
+      formulas: settings.formulas,
+    },
+  });
+});
 
-  try {
-    const settings = await ensureWorkoutSettings(auth.session.userId);
-    return jsonOk({
-      settings: {
-        max_increase_percent: settings.max_increase_percent,
-        formulas: settings.formulas,
-      },
-    });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function PATCH(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const PATCH = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, workoutSettingsPatchSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const settings = await saveWorkoutSettings(
-      auth.session.userId,
-      parsed.data,
-    );
+    const settings = await saveWorkoutSettings(session.userId, parsed.data);
     // Today's planned (not started) workout follows the new scheme right away.
-    await rebuildTodaysPlannedSession(auth.session.userId);
+    await rebuildTodaysPlannedSession(session.userId);
     return jsonOk({
       settings: {
         max_increase_percent: settings.max_increase_percent,
@@ -55,4 +36,4 @@ export async function PATCH(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});

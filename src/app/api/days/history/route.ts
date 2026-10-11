@@ -1,22 +1,15 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, readHistoryQuery } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { listDayHistory } from "@/lib/days";
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const query = readHistoryQuery(request);
   if (!query.ok) {
     return query.response;
   }
 
   try {
-    const page = await listDayHistory(auth.session.userId, {
+    const page = await listDayHistory(session.userId, {
       before: query.before,
       limit: query.limit,
     });
@@ -24,4 +17,4 @@ export async function GET(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});

@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
@@ -7,7 +5,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { OrderMismatchError } from "@/lib/order";
 import {
   reorderSessionExercises,
@@ -18,33 +16,30 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-  const parsed = await parseJsonSchema(request, reorderSessionExercisesSchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const detail = await reorderSessionExercises(
-      auth.session.userId,
-      id,
-      parsed.data.exerciseIds,
+export const PATCH = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { id } = await context.params;
+    const parsed = await parseJsonSchema(
+      request,
+      reorderSessionExercisesSchema,
     );
-    if (!detail) {
-      return jsonError("Тренировка не найдена.", 404);
+    if (!parsed.ok) {
+      return parsed.response;
     }
 
-    return jsonOk(detail);
-  } catch (error) {
-    return failRoute(error, [whenError(OrderMismatchError, 400)]);
-  }
-}
+    try {
+      const detail = await reorderSessionExercises(
+        session.userId,
+        id,
+        parsed.data.exerciseIds,
+      );
+      if (!detail) {
+        return jsonError("Тренировка не найдена.", 404);
+      }
+
+      return jsonOk(detail);
+    } catch (error) {
+      return failRoute(error, [whenError(OrderMismatchError, 400)]);
+    }
+  },
+);

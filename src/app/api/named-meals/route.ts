@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonOk,
@@ -7,7 +5,7 @@ import {
   whenError,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { PastDayLockedError } from "@/lib/days";
 import { namedMealSaveSchema } from "@/lib/named-meal/schema";
 import {
@@ -17,26 +15,12 @@ import {
   saveNamedMealFromMeal,
 } from "@/lib/named-meal/store";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  const namedMeals = await listNamedMealHints(session.userId);
+  return jsonOk({ namedMeals });
+});
 
-  try {
-    const namedMeals = await listNamedMealHints(auth.session.userId);
-    return jsonOk({ namedMeals });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, namedMealSaveSchema);
   if (!parsed.ok) {
     return parsed.response;
@@ -44,7 +28,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const namedMeal = await saveNamedMealFromMeal(
-      auth.session.userId,
+      session.userId,
       parsed.data.mealId,
       parsed.data.name,
     );
@@ -57,4 +41,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenMessage("Meal not found", 404, "Приём пищи не найден."),
     ]);
   }
-}
+});

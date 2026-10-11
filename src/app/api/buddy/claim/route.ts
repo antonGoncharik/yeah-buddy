@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { trackEvent } from "@/lib/analytics/track";
 import {
@@ -7,7 +6,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   BuddyNotFoundError,
   BuddyOwnError,
@@ -20,12 +19,7 @@ const bodySchema = z.object({
   token: z.string().trim().min(1).max(80),
 });
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(
     request,
     bodySchema,
@@ -43,8 +37,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const grant = await claimBuddyGrant(auth.session.userId, token);
-    await trackEvent(auth.session.userId, "buddy_claim");
+    const grant = await claimBuddyGrant(session.userId, token);
+    await trackEvent(session.userId, "buddy_claim");
     return jsonOk(grant);
   } catch (error) {
     return failRoute(error, [
@@ -53,4 +47,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenError(BuddyTakenError, 409),
     ]);
   }
-}
+});

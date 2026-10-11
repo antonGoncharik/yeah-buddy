@@ -1,7 +1,5 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonError, jsonOk, whenError } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { parseBarcodeEan } from "@/lib/food/catalog-map";
 import {
   CatalogFoodNotFoundError,
@@ -15,24 +13,18 @@ type RouteContext = {
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (_session, _request, context: RouteContext) => {
+    const { ean } = await context.params;
+    if (!parseBarcodeEan(ean)) {
+      return jsonError(CHECK_FIELDS, 400);
+    }
 
-  const { ean } = await context.params;
-  if (!parseBarcodeEan(ean)) {
-    return jsonError(CHECK_FIELDS, 400);
-  }
-
-  try {
-    const food = await lookupCatalogBarcode(ean);
-    return jsonOk({ food });
-  } catch (error) {
-    return failRoute(error, [whenError(CatalogFoodNotFoundError, 404)]);
-  }
-}
+    try {
+      const food = await lookupCatalogBarcode(ean);
+      return jsonOk({ food });
+    } catch (error) {
+      return failRoute(error, [whenError(CatalogFoodNotFoundError, 404)]);
+    }
+  },
+);

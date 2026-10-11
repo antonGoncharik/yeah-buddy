@@ -1,12 +1,10 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { WORKOUT_NOT_FOUND } from "@/lib/messages";
 import {
   getTemplate,
@@ -18,53 +16,41 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { id } = await context.params;
 
-  const { id } = await context.params;
+    try {
+      const template = await getTemplate(session.userId, id);
+      if (!template) {
+        return jsonError(WORKOUT_NOT_FOUND, 404);
+      }
 
-  try {
-    const template = await getTemplate(auth.session.userId, id);
-    if (!template) {
-      return jsonError(WORKOUT_NOT_FOUND, 404);
+      return jsonOk({ template });
+    } catch (error) {
+      return failRoute(error);
+    }
+  },
+);
+
+export const PATCH = sessionRoute(
+  async (session, request, context: RouteContext) => {
+    const { id } = await context.params;
+
+    const parsed = await parseJsonSchema(request, templateWriteSchema);
+    if (!parsed.ok) {
+      return parsed.response;
     }
 
-    return jsonOk({ template });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+    try {
+      const template = await updateTemplate(session.userId, id, parsed.data);
+      if (!template) {
+        return jsonError(WORKOUT_NOT_FOUND, 404);
+      }
 
-export async function PATCH(
-  request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  const { id } = await context.params;
-
-  const parsed = await parseJsonSchema(request, templateWriteSchema);
-  if (!parsed.ok) {
-    return parsed.response;
-  }
-
-  try {
-    const template = await updateTemplate(auth.session.userId, id, parsed.data);
-    if (!template) {
-      return jsonError(WORKOUT_NOT_FOUND, 404);
+      return jsonOk({ template });
+    } catch (error) {
+      return failRoute(error);
     }
-
-    return jsonOk({ template });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
+  },
+);

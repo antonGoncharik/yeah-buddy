@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -8,7 +7,7 @@ import {
   parseJsonSchema,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { DONATE_MAX, DONATE_MIN } from "@/lib/donate/amount";
 import { createDonateInvoiceLink } from "@/lib/donate/invoice";
 import { getServerEnv } from "@/lib/env";
@@ -23,32 +22,18 @@ function authorPaysSelf(telegramId: number): boolean {
   return isInboxAuthor(telegramId, getServerEnv().INBOX_CHAT_ID);
 }
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  return jsonOk({ open: !authorPaysSelf(session.telegramId) });
+});
 
-  try {
-    return jsonOk({ open: !authorPaysSelf(auth.session.telegramId) });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    if (authorPaysSelf(auth.session.telegramId)) {
+    if (authorPaysSelf(session.telegramId)) {
       return jsonError(DONATE_REJECT, 403);
     }
 
@@ -57,4 +42,4 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error, [whenMessage(CHECK_FIELDS, 400)]);
   }
-}
+});

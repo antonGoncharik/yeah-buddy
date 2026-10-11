@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
@@ -11,7 +10,7 @@ import {
   jsonOk,
   parseJsonSchema,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { listFoods } from "@/lib/food/store";
 import { AI_TEXT_MEAL_EMPTY } from "@/lib/messages";
 
@@ -23,12 +22,7 @@ const bodySchema = z.object({
   text: z.string(),
 });
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;
@@ -40,21 +34,21 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const [all, recent] = await Promise.all([
-      listFoods(auth.session.userId, "all"),
-      listFoods(auth.session.userId, "recent"),
+      listFoods(session.userId, "all"),
+      listFoods(session.userId, "recent"),
     ]);
     const allRefs = all.map(toPlateFoodRef);
     const catalog = rankPlateCatalog(all, recent).map(toPlateFoodRef);
     const draft = await analyzeTextMeal(
-      auth.session.userId,
+      session.userId,
       catalog,
       parsed.data.text,
       allRefs,
     );
-    await trackAiRequest(auth.session.userId, "text", true);
+    await trackAiRequest(session.userId, "text", true);
     return jsonOk(draft);
   } catch (error) {
-    await trackAiRequest(auth.session.userId, "text", false);
+    await trackAiRequest(session.userId, "text", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError
@@ -66,4 +60,4 @@ export async function POST(request: Request): Promise<NextResponse> {
           : null,
     ]);
   }
-}
+});

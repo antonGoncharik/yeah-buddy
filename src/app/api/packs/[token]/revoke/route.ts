@@ -1,28 +1,20 @@
-import type { NextResponse } from "next/server";
-
 import { failRoute, jsonOk, whenError } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { PackNotFoundError, revokePack } from "@/lib/share/packs";
 
 type RouteContext = {
   params: Promise<{ token: string }>;
 };
 
-export async function POST(
-  _request: Request,
-  context: RouteContext,
-): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const POST = sessionRoute(
+  async (session, _request, context: RouteContext) => {
+    const { token } = await context.params;
 
-  const { token } = await context.params;
-
-  try {
-    await revokePack(auth.session.userId, token);
-    return jsonOk({ ok: true });
-  } catch (error) {
-    return failRoute(error, [whenError(PackNotFoundError, 404)]);
-  }
-}
+    try {
+      await revokePack(session.userId, token);
+      return jsonOk({ ok: true });
+    } catch (error) {
+      return failRoute(error, [whenError(PackNotFoundError, 404)]);
+    }
+  },
+);

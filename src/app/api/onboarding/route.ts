@@ -1,12 +1,10 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonOk,
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   completeOnboarding,
   getOnboardingState,
@@ -14,38 +12,21 @@ import {
 } from "@/lib/onboarding";
 import { ProgramNotOfferedError } from "@/lib/workout/templates";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  const onboarding = await getOnboardingState(session.userId);
+  return jsonOk({ onboarding });
+});
 
-  try {
-    const onboarding = await getOnboardingState(auth.session.userId);
-    return jsonOk({ onboarding });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, onboardingCompleteSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const onboarding = await completeOnboarding(
-      auth.session.userId,
-      parsed.data,
-    );
+    const onboarding = await completeOnboarding(session.userId, parsed.data);
     return jsonOk({ onboarding });
   } catch (error) {
     return failRoute(error, [whenError(ProgramNotOfferedError, 403)]);
   }
-}
+});

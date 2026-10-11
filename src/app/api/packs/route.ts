@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import { z } from "zod";
 import { trackEvent } from "@/lib/analytics/track";
 import {
@@ -8,7 +7,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { CHECK_FIELDS } from "@/lib/messages";
 import {
@@ -37,26 +36,12 @@ function isPublishBody(data: z.infer<typeof bodySchema>): boolean {
   return Boolean(data.mealId) !== Boolean(data.namedMealId);
 }
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  const packs = await listOwnedPacks(session.userId);
+  return jsonOk({ packs });
+});
 
-  try {
-    const packs = await listOwnedPacks(auth.session.userId);
-    return jsonOk({ packs });
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, bodySchema, isPublishBody);
   if (!parsed.ok) {
     return parsed.response;
@@ -70,7 +55,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const pack =
       parsed.data.kind === "meal"
         ? await publishMealPack(
-            auth.session.userId,
+            session.userId,
             {
               mealId: parsed.data.mealId,
               namedMealId: parsed.data.namedMealId,
@@ -78,12 +63,12 @@ export async function POST(request: Request): Promise<NextResponse> {
             parsed.data.title,
           )
         : await publishLivePack(
-            auth.session.userId,
+            session.userId,
             parsed.data.kind,
             parsed.data.title,
           );
-    await recordFunnelEvent(auth.session.userId, "share");
-    await trackEvent(auth.session.userId, "share_publish", {
+    await recordFunnelEvent(session.userId, "share");
+    await trackEvent(session.userId, "share_publish", {
       kind: parsed.data.kind,
     });
     return jsonOk({ pack });
@@ -93,4 +78,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenError(PackLimitError, 400),
     ]);
   }
-}
+});

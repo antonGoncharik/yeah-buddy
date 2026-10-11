@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonError,
@@ -7,7 +5,7 @@ import {
   parseJsonSchema,
   whenError,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { isIsoDate } from "@/lib/day/dates";
 import { CHECK_DATE } from "@/lib/messages";
 import { resolveEaseWeek } from "@/lib/workout/ease-week-store";
@@ -20,12 +18,7 @@ import {
 } from "@/lib/workout/sessions";
 import { TemplateNotFoundError } from "@/lib/workout/templates";
 
-export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const GET = sessionRoute(async (session, request) => {
   const date = new URL(request.url).searchParams.get("date");
   if (!date || !isIsoDate(date)) {
     return jsonError(CHECK_DATE, 400);
@@ -33,8 +26,8 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const [today, ease] = await Promise.all([
-      getTodayWorkoutState(auth.session.userId, date),
-      resolveEaseWeek(auth.session.userId),
+      getTodayWorkoutState(session.userId, date),
+      resolveEaseWeek(session.userId),
     ]);
     return jsonOk({
       ...today,
@@ -44,21 +37,17 @@ export async function GET(request: Request): Promise<NextResponse> {
   } catch (error) {
     return failRoute(error);
   }
-}
+});
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, createSessionSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
+  const userId = session.userId;
   try {
-    const session = await createSession(auth.session.userId, parsed.data);
+    const session = await createSession(userId, parsed.data);
     return jsonOk({ session });
   } catch (error) {
     return failRoute(error, [
@@ -67,4 +56,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenError(TemplateNotFoundError, 409),
     ]);
   }
-}
+});

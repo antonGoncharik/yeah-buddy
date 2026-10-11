@@ -1,5 +1,3 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonOk,
@@ -7,7 +5,7 @@ import {
   whenError,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { NEED_ALL_WORKING_WEIGHTS } from "@/lib/messages";
 import {
   CycleEmptyError,
@@ -18,33 +16,19 @@ import {
   NoExercisesError,
 } from "@/lib/workout/macros";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
+export const GET = sessionRoute(async (session) => {
+  const state = await getCurrentMacroState(session.userId);
+  return jsonOk(state);
+});
 
-  try {
-    const state = await getCurrentMacroState(auth.session.userId);
-    return jsonOk(state);
-  } catch (error) {
-    return failRoute(error);
-  }
-}
-
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, createMacroSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const state = await createFirstMacro(auth.session.userId, parsed.data);
+    const state = await createFirstMacro(session.userId, parsed.data);
     return jsonOk(state);
   } catch (error) {
     return failRoute(error, [
@@ -54,4 +38,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenMessage(NEED_ALL_WORKING_WEIGHTS, 400),
     ]);
   }
-}
+});

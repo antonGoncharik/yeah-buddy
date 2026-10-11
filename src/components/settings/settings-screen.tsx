@@ -1,20 +1,15 @@
 "use client";
 
-import { ChevronDown, ChevronRight, Moon, Sun } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
-  BarbellDoodle,
   BookDoodle,
-  CoachDoodle,
-  FriendsDoodle,
-  LinkDoodle,
   MacroDoodle,
   MealDayDoodle,
   ProductDoodle,
-  QrDoodle,
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
@@ -23,39 +18,20 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
+import { SettingsAccessSection } from "@/components/settings/settings-access-section";
 import { SettingsAccount } from "@/components/settings/settings-account";
+import { SettingsAppearanceSection } from "@/components/settings/settings-appearance-section";
 import { SettingsAuthor } from "@/components/settings/settings-author";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
-import { SettingsHomeScreenRow } from "@/components/settings/settings-home-screen-row";
-import { SettingsHomeScreenTip } from "@/components/settings/settings-home-screen-tip";
+import { SettingsGymModeSection } from "@/components/settings/settings-gym-mode-section";
 import { SettingsInbox } from "@/components/settings/settings-inbox";
+import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
-import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
-import { DARK_THEME_LABEL } from "@/lib/flavor";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
-import {
-  EARLY_HABIT_REMINDER_NOTE,
-  MEAL_CHAT_INBOX_NOTE,
-} from "@/lib/messages";
+import { MEAL_CHAT_INBOX_NOTE } from "@/lib/messages";
 import { formatKcal } from "@/lib/nutrition";
-import {
-  BARBELL_GAME_HINT,
-  BARBELL_GAME_HREF,
-  BARBELL_GAME_TITLE,
-} from "@/lib/share/barbell-daily";
-import {
-  BOT_INVITE_HINT,
-  BOT_INVITE_LABEL,
-  INVITE_HREF,
-} from "@/lib/share/invite";
-import {
-  timezoneCaption,
-  timezoneChoiceLabel,
-  timezoneChoicesFor,
-} from "@/lib/telegram/timezone-label";
 import { cn } from "@/lib/utils";
-import { MEAL_TEMPLATES_LABEL, PACKS_LABEL } from "@/lib/workout/labels";
+import { MEAL_TEMPLATES_LABEL } from "@/lib/workout/labels";
 
 export function SettingsScreen({
   mealChatHint = false,
@@ -198,182 +174,33 @@ export function SettingsScreen({
         </section>
 
         {!loading && form ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-            <h2 className="text-xl font-semibold">Тренировки</h2>
-            <p className="text-sm text-muted-foreground">
-              Вкладка «Тренировки», переключатель дня и разборы. Программы и
-              история останутся, если включишь снова.
-            </p>
-            <Segmented
-              value={form.gym_enabled ? "on" : "off"}
-              options={[
-                { id: "off", label: "Только еда" },
-                { id: "on", label: "Еда и зал" },
-              ]}
-              onChange={(id) => void setGymEnabled(id === "on")}
-            />
-          </section>
+          <SettingsGymModeSection
+            gymEnabled={form.gym_enabled}
+            onChange={(enabled) => void setGymEnabled(enabled)}
+          />
         ) : null}
 
-        <section className="flex flex-col gap-2">
-          <SectionHeading title="Доступ" />
-          <SettingsHomeScreenTip />
-          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow
-              href="/settings/coach"
-              title="Тренер"
-              hint="Смотрит дневник в реальном времени"
-              icon={<CoachDoodle />}
-            />
-            <NavRow
-              href="/settings/buddy"
-              title="Пара"
-              hint="Друг видит только экран сегодня: еда, белок, зал"
-              icon={<FriendsDoodle />}
-            />
-            <NavRow
-              href="/settings/packs"
-              title={PACKS_LABEL}
-              hint="Поделись едой на день, приёмом или программой"
-              icon={<LinkDoodle />}
-            />
-            {form?.gym_enabled ? (
-              <NavRow
-                href={BARBELL_GAME_HREF}
-                title={BARBELL_GAME_TITLE}
-                hint={BARBELL_GAME_HINT}
-                icon={<BarbellDoodle />}
-              />
-            ) : null}
-            <NavRow
-              href={INVITE_HREF}
-              title={BOT_INVITE_LABEL}
-              hint={BOT_INVITE_HINT}
-              icon={<QrDoodle />}
-            />
-            <SettingsHomeScreenRow />
-          </div>
-        </section>
+        <SettingsAccessSection gymEnabled={form?.gym_enabled === true} />
 
-        <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-          <h2 className="text-xl font-semibold">Вид</h2>
-          <Segmented
-            value={theme}
-            options={[
-              {
-                id: "light",
-                label: "Светлая",
-                icon: <Sun className="size-4" aria-hidden />,
-              },
-              {
-                id: "dark",
-                label: DARK_THEME_LABEL,
-                icon: <Moon className="size-4" aria-hidden />,
-              },
-            ]}
-            onChange={setTheme}
-          />
-          <Segmented
-            value={density}
-            options={[
-              { id: "compact", label: "Компактный" },
-              { id: "expanded", label: "Расширенный" },
-            ]}
-            onChange={setDensity}
-          />
-          <p className="text-sm leading-snug text-muted-foreground">
-            Компактный ужимает день и тренировки. Расширенный показывает БЖУ у
-            каждого продукта.
-          </p>
-          <Segmented
-            value={order}
-            options={[
-              { id: "meals", label: "Сначала еда" },
-              { id: "numbers", label: "Сначала цифры" },
-            ]}
-            onChange={setOrder}
-          />
-          <p className="text-sm leading-snug text-muted-foreground">
-            Еда оставляет приёмы под итогом, разбор БЖУ внизу. Цифры поднимают
-            белок, калории и полоски над приёмами.
-          </p>
-        </section>
+        <SettingsAppearanceSection
+          theme={theme}
+          setTheme={setTheme}
+          density={density}
+          setDensity={setDensity}
+          order={order}
+          setOrder={setOrder}
+        />
 
         {!loading && form ? (
-          <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-            <h2 className="text-xl font-semibold">Напоминания</h2>
-            <p className="text-sm text-muted-foreground">
-              {EARLY_HABIT_REMINDER_NOTE}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {now
-                ? timezoneCaption(form.timezone, now)
-                : timezoneChoiceLabel(form.timezone)}
-            </p>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm text-muted-foreground">Пояс</span>
-              <span className="relative block">
-                <select
-                  className="field-control h-12 w-full appearance-none rounded-xl border border-input/70 bg-input-bg bg-none py-0 pl-3 pr-8 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  value={form.timezone}
-                  onChange={(event) => void setTimezone(event.target.value)}
-                >
-                  {timezoneChoicesFor(form.timezone).map((choice) => (
-                    <option key={choice.id} value={choice.id}>
-                      {choice.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronRight
-                  className="pointer-events-none absolute top-1/2 right-1 size-5 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden
-                />
-              </span>
-            </label>
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-12 text-base"
-              onClick={() =>
-                void setTimezone(
-                  Intl.DateTimeFormat().resolvedOptions().timeZone,
-                )
-              }
-            >
-              Как на телефоне
-            </Button>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-sm text-muted-foreground">
-                Вечернее напоминание
-              </span>
-              <select
-                className="field-control h-12 w-full appearance-none rounded-xl border border-input/70 bg-input-bg px-3 text-base"
-                value={String(form.reminder_hour)}
-                onChange={(event) =>
-                  void setReminderHour(Number.parseInt(event.target.value, 10))
-                }
-              >
-                {Array.from({ length: 7 }, (_, index) => 17 + index).map(
-                  (hour) => (
-                    <option key={hour} value={hour}>
-                      {hour}:00
-                    </option>
-                  ),
-                )}
-              </select>
-            </label>
-            <Segmented
-              value={form.reminders_enabled ? "on" : "off"}
-              options={[
-                { id: "on", label: "Вкл" },
-                { id: "off", label: "Выкл" },
-              ]}
-              onChange={(id) => void setReminders(id === "on")}
-            />
-            {error && !showGoals ? (
-              <p className="text-base leading-snug text-destructive">{error}</p>
-            ) : null}
-          </section>
+          <SettingsRemindersSection
+            form={form}
+            now={now}
+            error={error}
+            showGoals={showGoals}
+            onTimezone={(timezone) => void setTimezone(timezone)}
+            onReminderHour={(hour) => void setReminderHour(hour)}
+            onReminders={(enabled) => void setReminders(enabled)}
+          />
         ) : null}
 
         {!loading && form ? (

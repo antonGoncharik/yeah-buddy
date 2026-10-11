@@ -7,21 +7,29 @@ import {
   ShareBars,
   StatGrid,
 } from "@/components/ai/review-blocks";
-import { NutritionTrendSvg } from "@/components/day/nutrition-trend-svg";
+import {
+  AverageBlock,
+  HalfCompare,
+} from "@/components/ai/review-food-averages";
+import {
+  averageSummary,
+  averageValue,
+  foodSummary,
+  foodValue,
+  historyDays,
+  signedAmount,
+} from "@/components/ai/review-food-copy";
+import { MacroChart } from "@/components/ai/review-food-macro-chart";
 import { formatG, formatKcalPlain } from "@/lib/ai/format";
 import {
   worstKcalDays,
   worstProteinDays,
 } from "@/lib/ai/signal-nutrition-window";
-import type { ReviewAverages, ReviewBrief, ReviewDayRow } from "@/lib/ai/types";
-import { chartLayout, chartSeries, chartY } from "@/lib/chart-shape";
-import { chartInsight, chartMean } from "@/lib/chart-stats";
+import type { ReviewBrief } from "@/lib/ai/types";
 import { formatProteinPerKg } from "@/lib/day/body-weight";
 import { formatIsoDate } from "@/lib/day/format";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition/day-labels";
 import { formatKcal } from "@/lib/nutrition/macros";
-import { pluralDays } from "@/lib/nutrition-stats";
-import type { DayHistoryRow } from "@/lib/types";
 
 export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   const days = [...brief.nutrition.days].sort((left, right) =>
@@ -189,98 +197,6 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   );
 }
 
-const MACRO_CHART = {
-  kcal: {
-    label: "Ккал",
-    color: "var(--primary)",
-    target: "kcal_target",
-    format: (value: number) => `${formatKcal(value)} ккал`,
-  },
-  protein: {
-    label: "Белок",
-    color: "var(--macro-protein)",
-    target: "protein_target",
-    format: (value: number) => `${formatG(value)} г`,
-  },
-  fat: {
-    label: "Жир",
-    color: "var(--macro-fat)",
-    target: "fat_target",
-    format: (value: number) => `${formatG(value)} г`,
-  },
-  carbs: {
-    label: "Углеводы",
-    color: "var(--macro-carbs)",
-    target: "carbs_target",
-    format: (value: number) => `${formatG(value)} г`,
-  },
-} as const;
-
-function MacroChart({
-  days,
-  metric,
-}: {
-  days: ReviewDayRow[];
-  metric: keyof typeof MACRO_CHART;
-}) {
-  if (days.length < 2) {
-    return null;
-  }
-
-  const spec = MACRO_CHART[metric];
-  const facts = days.map((day) => day[metric]);
-  const targets = days.map((day) => day[spec.target]);
-  const hasTarget = targets.some((value) => value > 0);
-  const layout = chartLayout(
-    hasTarget ? [...facts, ...targets] : facts,
-    days.length,
-    320,
-    176,
-    16,
-  );
-  const factSeries = layout ? chartSeries(facts, layout) : null;
-  const targetSeries =
-    layout && hasTarget ? chartSeries(targets, layout) : null;
-  const last = days[days.length - 1];
-  if (!layout || !factSeries || !last) {
-    return null;
-  }
-
-  const mean = chartMean(facts);
-  const targetMean = hasTarget ? chartMean(targets) : null;
-  const format = spec.format;
-  const label = spec.label;
-  const color = spec.color;
-
-  return (
-    <div className="flex flex-col gap-2">
-      <BlockTitle color={color}>{label} по дням</BlockTitle>
-      <NutritionTrendSvg
-        layout={layout}
-        factSeries={factSeries}
-        targetSeries={targetSeries ?? undefined}
-        color={color}
-        label={label}
-        fillId={`review-${metric}`}
-        maxLabel={format(Math.max(...facts))}
-        minLabel={format(Math.min(...facts))}
-        lastDate={last.date}
-        guideY={
-          mean != null && layout.dataMax !== layout.dataMin
-            ? chartY(mean, layout)
-            : undefined
-        }
-        endValue={format(facts[facts.length - 1] ?? 0)}
-        insight={chartInsight([
-          mean != null ? `среднее ${format(mean)}` : null,
-          targetMean != null ? `цель ${format(targetMean)}` : null,
-        ])}
-        plotClassName="h-36"
-      />
-    </div>
-  );
-}
-
 function MissList({
   title,
   rows,
@@ -306,215 +222,4 @@ function MissList({
       </ul>
     </div>
   );
-}
-
-function AverageBlock({
-  label,
-  stats,
-}: {
-  label: string;
-  stats: ReviewAverages;
-}) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
-      <p className="text-sm font-medium">
-        {label}
-        <span className="ml-2 font-normal text-muted-foreground">
-          {stats.count} {pluralDays(stats.count)}
-        </span>
-      </p>
-      <MacroMeter
-        label="Ккал"
-        fact={stats.fact.kcal}
-        target={stats.target.kcal}
-        barClass="bg-primary"
-        format={(value) => formatKcal(value)}
-      />
-      <MacroMeter
-        label="Белок"
-        fact={stats.fact.protein}
-        target={stats.target.protein}
-        barClass="bg-[var(--macro-protein)]"
-        format={(value) => `${formatG(value)} г`}
-      />
-      <MacroMeter
-        label="Жир"
-        fact={stats.fact.fat}
-        target={stats.target.fat}
-        barClass="bg-[var(--macro-fat)]"
-        format={(value) => `${formatG(value)} г`}
-      />
-      <MacroMeter
-        label="Углеводы"
-        fact={stats.fact.carbs}
-        target={stats.target.carbs}
-        barClass="bg-[var(--macro-carbs)]"
-        format={(value) => `${formatG(value)} г`}
-      />
-    </div>
-  );
-}
-
-function MacroMeter({
-  label,
-  fact,
-  target,
-  barClass,
-  format,
-}: {
-  label: string;
-  fact: number;
-  target: number;
-  barClass: string;
-  format: (value: number) => string;
-}) {
-  const value =
-    target > 0 ? `${format(fact)} / ${format(target)}` : format(fact);
-
-  return (
-    <MeterLine
-      label={label}
-      value={value}
-      ratio={target > 0 ? fact / target : null}
-      barClass={barClass}
-    />
-  );
-}
-
-function HalfCompare({
-  halves,
-}: {
-  halves: { first: ReviewAverages; second: ReviewAverages };
-}) {
-  const rows = [
-    {
-      label: "Ккал",
-      first: formatKcal(halves.first.fact.kcal),
-      second: formatKcal(halves.second.fact.kcal),
-    },
-    {
-      label: "Белок",
-      first: `${formatG(halves.first.fact.protein)} г`,
-      second: `${formatG(halves.second.fact.protein)} г`,
-    },
-    {
-      label: "Жир",
-      first: `${formatG(halves.first.fact.fat)} г`,
-      second: `${formatG(halves.second.fact.fat)} г`,
-    },
-    {
-      label: "Углеводы",
-      first: `${formatG(halves.first.fact.carbs)} г`,
-      second: `${formatG(halves.second.fact.carbs)} г`,
-    },
-  ];
-
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-muted/40 px-3.5 py-3.5">
-      <BlockTitle>Две половины</BlockTitle>
-      <div className="grid grid-cols-[minmax(0,1.2fr)_1fr_1fr] gap-x-3 gap-y-2.5 text-sm">
-        <span />
-        <span className="text-muted-foreground">Первая</span>
-        <span className="text-muted-foreground">Вторая</span>
-        {rows.map((row) => (
-          <HalfRow key={row.label} row={row} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HalfRow({
-  row,
-}: {
-  row: { label: string; first: string; second: string };
-}) {
-  return (
-    <>
-      <span>{row.label}</span>
-      <span className="tabular-nums">{row.first}</span>
-      <span className="font-medium tabular-nums">{row.second}</span>
-    </>
-  );
-}
-
-function signedAmount(
-  delta: number,
-  format: (value: number) => string,
-): string {
-  const text = format(Math.abs(delta));
-  if (delta > 0) {
-    return `+${text}`;
-  }
-  if (delta < 0) {
-    return `−${text}`;
-  }
-  return text;
-}
-
-function foodValue(brief: ReviewBrief): string | null {
-  if (brief.nutrition.protein_total > 0) {
-    return `${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`;
-  }
-  if (brief.nutrition.kcal_total > 0) {
-    return `${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
-  }
-  return null;
-}
-
-function foodSummary(brief: ReviewBrief): string | null {
-  const hasProtein = brief.nutrition.protein_total > 0;
-  const hasKcal = brief.nutrition.kcal_total > 0;
-  if (hasProtein && hasKcal) {
-    return `белок · ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
-  }
-  if (hasProtein) {
-    return "белок";
-  }
-  if (hasKcal) {
-    return "ккал";
-  }
-  return null;
-}
-
-function averageValue(brief: ReviewBrief): string | null {
-  if (brief.nutrition.training) {
-    return formatKcal(brief.nutrition.training.fact.kcal);
-  }
-  if (brief.nutrition.rest) {
-    return formatKcal(brief.nutrition.rest.fact.kcal);
-  }
-  return null;
-}
-
-function averageSummary(brief: ReviewBrief): string | null {
-  if (brief.nutrition.training && brief.nutrition.rest) {
-    return `зал · отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`;
-  }
-  if (brief.nutrition.training) {
-    return "зал";
-  }
-  if (brief.nutrition.rest) {
-    return "отдых";
-  }
-  const top = brief.nutrition.foods[0];
-  return top ? top.name : null;
-}
-
-function historyDays(days: ReviewDayRow[]): DayHistoryRow[] {
-  return days.map((day) => ({
-    date: day.date,
-    is_training_day: day.training,
-    target_protein: day.protein_target,
-    target_fat: day.fat_target,
-    target_carbs: day.carbs_target,
-    target_kcal: day.kcal_target,
-    body_weight: day.weight,
-    waist_cm: day.waist,
-    caught_up: false,
-    fact_protein: day.protein,
-    fact_fat: day.fat,
-    fact_carbs: day.carbs,
-    fact_kcal: day.kcal,
-  }));
 }

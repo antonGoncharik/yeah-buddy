@@ -1,24 +1,17 @@
-import type { NextResponse } from "next/server";
-
 import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { analyzePlate } from "@/lib/ai/plate";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { readPlateImagePart } from "@/lib/ai/plate-image";
 import { trackAiRequest } from "@/lib/analytics/ai";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import { listFoods } from "@/lib/food/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const image = await readPlateImagePart(request);
   if (!image.ok) {
     return jsonError(image.error, 400);
@@ -26,21 +19,16 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const [all, recent] = await Promise.all([
-      listFoods(auth.session.userId, "all"),
-      listFoods(auth.session.userId, "recent"),
+      listFoods(session.userId, "all"),
+      listFoods(session.userId, "recent"),
     ]);
     const allRefs = all.map(toPlateFoodRef);
     const catalog = rankPlateCatalog(all, recent).map(toPlateFoodRef);
-    const draft = await analyzePlate(
-      auth.session.userId,
-      catalog,
-      image,
-      allRefs,
-    );
-    await trackAiRequest(auth.session.userId, "plate", true);
+    const draft = await analyzePlate(session.userId, catalog, image, allRefs);
+    await trackAiRequest(session.userId, "plate", true);
     return jsonOk(draft);
   } catch (error) {
-    await trackAiRequest(auth.session.userId, "plate", false);
+    await trackAiRequest(session.userId, "plate", false);
     return failRoute(error, [
       (err) =>
         err instanceof ReviewError
@@ -52,4 +40,4 @@ export async function POST(request: Request): Promise<NextResponse> {
           : null,
     ]);
   }
-}
+});

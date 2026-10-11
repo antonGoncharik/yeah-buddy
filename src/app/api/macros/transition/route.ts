@@ -1,12 +1,10 @@
-import type { NextResponse } from "next/server";
-
 import {
   failRoute,
   jsonOk,
   parseJsonSchema,
   whenMessage,
 } from "@/lib/api/respond";
-import { requireSession } from "@/lib/auth/require-session";
+import { sessionRoute } from "@/lib/api/session-route";
 import {
   confirmTransition,
   confirmTransitionSchema,
@@ -14,34 +12,23 @@ import {
 } from "@/lib/workout/macros";
 import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
 
-export async function GET(): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
-  try {
-    const preview = await previewTransition(auth.session.userId);
+export const GET = sessionRoute(
+  async (session) => {
+    const preview = await previewTransition(session.userId);
     return jsonOk({ preview });
-  } catch (error) {
-    return failRoute(error, [whenMessage("Нет текущего этапа.", 409)]);
-  }
-}
+  },
+  [whenMessage("Нет текущего этапа.", 409)],
+);
 
-export async function POST(request: Request): Promise<NextResponse> {
-  const auth = await requireSession();
-  if ("response" in auth) {
-    return auth.response;
-  }
-
+export const POST = sessionRoute(async (session, request) => {
   const parsed = await parseJsonSchema(request, confirmTransitionSchema);
   if (!parsed.ok) {
     return parsed.response;
   }
 
   try {
-    const state = await confirmTransition(auth.session.userId, parsed.data);
-    await rebuildTodaysPlannedSession(auth.session.userId);
+    const state = await confirmTransition(session.userId, parsed.data);
+    await rebuildTodaysPlannedSession(session.userId);
     return jsonOk(state);
   } catch (error) {
     return failRoute(error, [
@@ -51,4 +38,4 @@ export async function POST(request: Request): Promise<NextResponse> {
       whenMessage("Сначала упражнения.", 409),
     ]);
   }
-}
+});
