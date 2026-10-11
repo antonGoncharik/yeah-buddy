@@ -101,28 +101,18 @@ export function onboardingSteps({
   replay: boolean;
   gymEnabled: boolean;
 }): OnboardingStep[] {
-  const forceGym =
-    gymEnabled ||
-    pendingKind === "workouts" ||
-    pendingProgram ||
-    pendingKind === "meal";
+  const forceGym = gymEnabled || pendingKind === "workouts" || pendingProgram;
 
   const person = onboardingPersonSteps(forceGym);
 
   if (replay) {
-    if (forceGym) {
-      return [...person, "lifts"];
-    }
     return [...person];
   }
 
-  const next: OnboardingStep[] = ["mode", "guide"];
+  const next: OnboardingStep[] = ["mode"];
 
   if (pendingKind !== "meals") {
     next.push(...person, "ration");
-    if (forceGym) {
-      next.push("lifts");
-    }
   }
 
   if (forceGym && pendingKind !== "workouts" && !pendingProgram) {

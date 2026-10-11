@@ -38,17 +38,17 @@ assertEqual(
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,guide,${personGym},ration,lifts,circle`,
+  `mode,${personGym},ration,circle`,
   "first run with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, gymEnabled: false }).join(),
-  `mode,guide,${personFood},ration`,
-  "food-only skips lifts and program",
+  `mode,${personFood},ration`,
+  "food-only skips program",
 );
 assertEqual(
   onboardingSteps({ ...empty, replay: true }).join(),
-  `${personGym},lifts`,
+  personGym,
   "protein replay with gym",
 );
 assertEqual(
@@ -58,28 +58,33 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `mode,guide,${personGym},ration,lifts`,
+  `mode,${personGym},ration`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `mode,guide,${personGym},ration,lifts`,
+  `mode,${personGym},ration`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: true }).join(),
-  "mode,guide,circle",
+  "mode,circle",
   "meal pack with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: false }).join(),
-  "mode,guide",
-  "meal pack food-only is mode then intro",
+  "mode",
+  "meal pack food-only is mode only",
+);
+assertEqual(
+  onboardingSteps({ ...empty, pendingKind: "meal", gymEnabled: false }).join(),
+  `mode,${personFood},ration`,
+  "one meal pack does not force gym steps",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,guide,${personGym},ration,lifts,circle`,
-  "one meal pack still asks protein, ration, lifts and program",
+  `mode,${personGym},ration,circle`,
+  "one meal pack with gym uses profile and program",
 );
 
 for (const step of onboardingPersonSteps(true)) {
@@ -129,9 +134,9 @@ assertEqual(
 assertEqual(onboardingStepNeedsNext("lifts"), false, "lifts skips sticky");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(
-  onboardingSteps({ ...empty, replay: true }).includes("sex"),
-  true,
-  "replay still walks person steps before lifts",
+  onboardingSteps({ ...empty, replay: true }).includes("lifts"),
+  false,
+  "replay skips anchor lifts",
 );
 assertEqual(isOnboardingPersonStep("weight"), true, "weight is person");
 assertEqual(isOnboardingPersonStep("ration"), false, "ration is not person");
