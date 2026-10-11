@@ -167,6 +167,10 @@ function readBoard(row: Record<string, unknown>): CoachBoard | null {
     expires_at: row.expires_at,
     today: row.today,
     weight: readWeight(row.weight),
+    muscle_insight:
+      typeof row.muscle_insight === "string" && row.muscle_insight.trim() !== ""
+        ? row.muscle_insight.trim()
+        : null,
     days,
   };
 }

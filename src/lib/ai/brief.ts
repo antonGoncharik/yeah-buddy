@@ -5,6 +5,7 @@ import {
   sessionNotes,
   weakTemplates,
 } from "@/lib/ai/compact-gym";
+import { compactMuscleSignals } from "@/lib/ai/compact-muscles";
 import {
   compactDay,
   compactWaist,
@@ -88,6 +89,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
   const rateHalves = sessionRateHalves(gymDates, source.from, source.to);
   const gapDays = gymGapDays(source.from, source.to, gymDates);
   const gap = gapDays >= GYM_GAP_DAYS ? gapDays : null;
+  const muscleLines = compactMuscleSignals(source.muscles);
   const signals = buildSignals({
     days,
     from: source.from,
@@ -130,6 +132,7 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       progress.avg_relative_percent == null
         ? null
         : round1(progress.avg_relative_percent),
+    muscleLines,
   });
 
   return {

@@ -86,6 +86,11 @@ export function CoachBoardScreen({ grantId }: { grantId: string }) {
             <p className="text-lg font-medium">
               {weightLine(board) ?? "Веса ещё нет"}
             </p>
+            {board.muscle_insight ? (
+              <p className="text-sm text-muted-foreground">
+                {board.muscle_insight}
+              </p>
+            ) : null}
             <div className="card-surface divide-y divide-border/70 px-5">
               {board.days.map((day) => (
                 <DayBlock

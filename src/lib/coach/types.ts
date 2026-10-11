@@ -46,6 +46,7 @@ export interface CoachBoard {
   expires_at: string;
   today: string;
   weight: CoachWeight | null;
+  muscle_insight: string | null;
   days: CoachDay[];
 }
 

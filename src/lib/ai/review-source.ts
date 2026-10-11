@@ -3,6 +3,7 @@ import type { FoodShare } from "@/lib/days";
 import type {
   CurrentMacroState,
   DayHistoryRow,
+  MuscleSnapshot,
   RecentWorkoutSession,
   StrengthProgress,
   UserGoal,
@@ -26,4 +27,5 @@ export type ReviewSource = {
   sex?: UserSex | null;
   goal?: UserGoal | null;
   trainingAge?: UserTrainingAge | null;
+  muscles?: MuscleSnapshot | null;
 };

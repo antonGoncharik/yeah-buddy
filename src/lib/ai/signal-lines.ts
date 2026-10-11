@@ -46,11 +46,13 @@ export function buildSignals(input: {
   categories?: Array<{ name: string; percent: number }>;
   avgPercent?: number | null;
   avgRelativePercent?: number | null;
+  muscleLines?: string[];
 }): string[] {
   return [
     ...nutritionSignalLines(input),
     ...gymSignalLines(input),
     ...maxesSignalLines(input),
+    ...(input.muscleLines ?? []),
   ];
 }
 

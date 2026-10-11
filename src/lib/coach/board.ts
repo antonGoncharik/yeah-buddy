@@ -10,6 +10,7 @@ import { loadOwnerName } from "@/lib/share/pack-load";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MealType, SessionStatus } from "@/lib/types";
 import { mapWorkoutSession } from "@/lib/workout/map-session";
+import { getMuscleSnapshot } from "@/lib/workout/muscle-load";
 import { loadWorkBySession } from "@/lib/workout/session-log-load";
 import { templateNamesById } from "@/lib/workout/session-names";
 
@@ -39,11 +40,12 @@ export async function loadCoachBoard(
   const today = await getUserCalendarToday(athleteId);
   const { start, end } = weekWindow(today);
 
-  const [foodDays, sessions, weight, name] = await Promise.all([
+  const [foodDays, sessions, weight, name, muscles] = await Promise.all([
     listFoodDays(athleteId, start, end),
     listSessions(athleteId, start, end),
     latestWeight(athleteId, today),
     loadOwnerName(athleteId),
+    getMuscleSnapshot(athleteId, 14).catch(() => null),
   ]);
 
   const picked = pickSessions(sessions);
@@ -111,6 +113,7 @@ export async function loadCoachBoard(
     expires_at: grant.expires_at,
     today,
     weight,
+    muscle_insight: muscles?.insights[0] ?? null,
     days,
   };
 }

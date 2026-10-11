@@ -214,6 +214,12 @@ export function SessionCompletedPanel({
         <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       </div>
       {joy ? <JoyShareButton moment={joy} lift={shareLift} /> : null}
+      <Link
+        href="/workouts/muscles"
+        className="text-center text-sm font-medium text-primary"
+      >
+        Карта мышц за период
+      </Link>
       {canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}
