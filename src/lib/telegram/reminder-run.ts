@@ -27,6 +27,7 @@ import {
   isoWeekdaySun0,
   localClock,
   middayReminderDateIfDue,
+  normalizeReminderHour,
   reminderDateIfDue,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
@@ -83,6 +84,7 @@ interface ReminderCandidate {
   userId: string;
   telegramId: number;
   timezone: string;
+  reminderHour: number;
   remindedOn: string | null;
   middayRemindedOn: string | null;
   onboardedAt: string | null;
@@ -134,7 +136,7 @@ async function processEveningCandidate(
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const clock = localClock(now, candidate.timezone);
-  const reminderDate = reminderDateIfDue(clock);
+  const reminderDate = reminderDateIfDue(clock, candidate.reminderHour);
   if (!reminderDate) {
     result.skipped += 1;
     return result;
@@ -262,7 +264,7 @@ async function processMiddayCandidate(
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const clock = localClock(now, candidate.timezone);
-  const reminderDate = middayReminderDateIfDue(clock);
+  const reminderDate = middayReminderDateIfDue(clock, candidate.reminderHour);
   if (!reminderDate) {
     result.skipped += 1;
     return result;
@@ -465,7 +467,7 @@ async function listReminderCandidates(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminded_on, midday_reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -523,6 +525,7 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
     timezone: resolveTimeZone(
       typeof row.timezone === "string" ? row.timezone : null,
     ),
+    reminderHour: normalizeReminderHour(Number(row.reminder_hour)),
     remindedOn: toDateOnly(row.reminded_on),
     middayRemindedOn: toDateOnly(row.midday_reminded_on),
     onboardedAt:

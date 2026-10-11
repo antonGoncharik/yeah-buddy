@@ -43,23 +43,38 @@ export function localClock(
 }
 
 /** Local calendar date to remind for, or null if 21:00 has not arrived. */
-export function reminderDateIfDue(clock: {
-  date: string;
-  hour: number;
-}): string | null {
-  if (clock.hour < REMINDER_HOUR) {
+export function reminderDateIfDue(
+  clock: {
+    date: string;
+    hour: number;
+  },
+  eveningHour: number = REMINDER_HOUR,
+): string | null {
+  const hour = normalizeReminderHour(eveningHour);
+  if (clock.hour < hour) {
     return null;
   }
 
   return clock.date;
 }
 
+export function normalizeReminderHour(value: number): number {
+  if (value >= 17 && value <= 23) {
+    return value;
+  }
+  return REMINDER_HOUR;
+}
+
 /** Local calendar date for a midday nudge, or null outside the midday window. */
-export function middayReminderDateIfDue(clock: {
-  date: string;
-  hour: number;
-}): string | null {
-  if (clock.hour < MIDDAY_REMINDER_HOUR || clock.hour >= REMINDER_HOUR) {
+export function middayReminderDateIfDue(
+  clock: {
+    date: string;
+    hour: number;
+  },
+  eveningHour: number = REMINDER_HOUR,
+): string | null {
+  const end = normalizeReminderHour(eveningHour);
+  if (clock.hour < MIDDAY_REMINDER_HOUR || clock.hour >= end) {
     return null;
   }
   return clock.date;

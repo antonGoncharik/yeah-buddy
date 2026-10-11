@@ -14,14 +14,15 @@ import {
 } from "@/lib/days";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
 import { getUserSettings } from "@/lib/settings";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { RecentWorkoutSession } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macros";
+import { getMuscleSnapshot } from "@/lib/workout/muscle-load";
 import { getStrengthProgress } from "@/lib/workout/progress";
 import { listSessionHistory } from "@/lib/workout/sessions";
 
 const COOLDOWN_MS = 20_000;
 const SESSION_WORK_LIMIT = 8;
-const lastWrite = new Map<string, number>();
 
 export function parseReviewRange(value: unknown): ReviewRange | null {
   if (typeof value === "string" && value.trim() !== "") {
@@ -64,13 +65,12 @@ export async function createReview(
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 
-  const now = Date.now();
-  const previousWrite = lastWrite.get(userId) ?? 0;
-  if (now - previousWrite < COOLDOWN_MS) {
+  const resolvedToday = today ?? (await getUserCalendarToday(userId));
+  const settings = await getUserSettings(userId);
+  const cooldownUntil = settings?.review_cooldown_until;
+  if (cooldownUntil != null && Date.parse(cooldownUntil) > Date.now()) {
     throw new ReviewError("BUSY", "Подожди немного и нажми ещё раз.");
   }
-
-  const resolvedToday = today ?? (await getUserCalendarToday(userId));
   const [brief, stored] = await Promise.all([
     loadReviewBrief(userId, range, resolvedToday),
     listStoredReviews(userId, range),
@@ -80,7 +80,6 @@ export async function createReview(
   }
 
   const slot = await takeAiSlot(userId, "review");
-  lastWrite.set(userId, now);
 
   const previous = stored[0] ?? null;
   let review: StoredReview;
@@ -92,8 +91,8 @@ export async function createReview(
       { from: brief.from, to: brief.to },
       text,
     );
+    await setReviewCooldown(userId);
   } catch (error) {
-    lastWrite.delete(userId);
     await refundAiSlot(userId, "review");
     throw error;
   }
@@ -105,6 +104,18 @@ export async function createReview(
     review,
     previous,
   };
+}
+
+async function setReviewCooldown(userId: string): Promise<void> {
+  const until = new Date(Date.now() + COOLDOWN_MS).toISOString();
+  const supabase = createSupabaseServerClient();
+  const updated = await supabase
+    .from("user_settings")
+    .update({ review_cooldown_until: until })
+    .eq("user_id", userId);
+  if (updated.error) {
+    throw updated.error;
+  }
 }
 
 async function loadReviewBrief(
@@ -122,6 +133,7 @@ async function loadReviewBrief(
     seedWeight,
     seedWaist,
     settings,
+    muscles,
   ] = await Promise.all([
     listDaysInRange(userId, start, end),
     listFoodSharesInRange(userId, start, end),
@@ -131,6 +143,7 @@ async function loadReviewBrief(
     getLastBodyWeight(userId, start),
     getLastWaist(userId, start),
     getUserSettings(userId),
+    getMuscleSnapshot(userId, range >= 30 ? 30 : range),
   ]);
 
   return buildReviewBrief({
@@ -149,6 +162,7 @@ async function loadReviewBrief(
     sex: settings?.sex ?? null,
     goal: settings?.goal ?? null,
     trainingAge: settings?.training_age ?? null,
+    muscles,
   });
 }
 
