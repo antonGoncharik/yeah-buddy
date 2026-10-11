@@ -216,7 +216,10 @@ export function ScreenLoading({
             );
           })}
         </div>
-        <p aria-hidden className="animate-fade text-base">
+        <p
+          aria-hidden
+          className="animate-fade max-w-sm px-4 text-center text-base text-balance"
+        >
           {beatLine ?? line}
         </p>
       </div>
