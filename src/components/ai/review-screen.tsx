@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { ReviewFactsCard } from "@/components/ai/review-facts-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
@@ -28,14 +27,14 @@ import { readSettingsPayload } from "@/lib/settings/map";
 import { REVIEW_LABEL } from "@/lib/workout/labels";
 
 export function ReviewScreen() {
-  const router = useRouter();
+  const [gymEnabled, setGymEnabled] = useState(true);
 
   useEffect(() => {
     const settings = readSettingsPayload(peekJson("/api/settings"));
-    if (settings && !settings.gym_enabled) {
-      router.replace("/today");
+    if (settings) {
+      setGymEnabled(settings.gym_enabled);
     }
-  }, [router]);
+  }, []);
 
   const {
     backHref,
@@ -77,6 +76,7 @@ export function ReviewScreen() {
           <>
             <ReviewFactsCard
               brief={brief}
+              showGym={gymEnabled}
               afterOverview={
                 <>
                   {review ? (
@@ -145,18 +145,22 @@ export function ReviewScreen() {
                 hint="БЖУ и вес по дням"
                 icon={<MealDayDoodle />}
               />
-              <NavRow
-                href="/workouts/history"
-                title="История тренировок"
-                hint="Какие были занятия"
-                icon={<DumbbellDoodle />}
-              />
-              <NavRow
-                href="/workouts/progress"
-                title="Рабочие веса"
-                hint="Как менялись за 90 дней"
-                icon={<BarbellDoodle />}
-              />
+              {gymEnabled ? (
+                <NavRow
+                  href="/workouts/history"
+                  title="История тренировок"
+                  hint="Какие были занятия"
+                  icon={<DumbbellDoodle />}
+                />
+              ) : null}
+              {gymEnabled ? (
+                <NavRow
+                  href="/workouts/progress"
+                  title="Рабочие веса"
+                  hint="Как менялись за 90 дней"
+                  icon={<BarbellDoodle />}
+                />
+              ) : null}
             </section>
           </>
         ) : null}

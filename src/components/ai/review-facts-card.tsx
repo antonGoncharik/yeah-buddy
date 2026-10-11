@@ -21,23 +21,31 @@ import { pluralWorkouts } from "@/lib/workout/history-stats";
 export function ReviewFactsCard({
   brief,
   afterOverview,
+  showGym = true,
 }: {
   brief: ReviewBrief;
   afterOverview?: ReactNode;
+  showGym?: boolean;
 }) {
   return (
     <>
-      <ReviewOverview brief={brief} />
+      <ReviewOverview brief={brief} showGym={showGym} />
       {afterOverview}
       <ReviewFoodCard brief={brief} />
       <ReviewBodyCard brief={brief} />
-      <ReviewGymCard brief={brief} />
-      <ReviewLiftsCard brief={brief} />
+      {showGym ? <ReviewGymCard brief={brief} /> : null}
+      {showGym ? <ReviewLiftsCard brief={brief} /> : null}
     </>
   );
 }
 
-function ReviewOverview({ brief }: { brief: ReviewBrief }) {
+function ReviewOverview({
+  brief,
+  showGym,
+}: {
+  brief: ReviewBrief;
+  showGym: boolean;
+}) {
   const weight = weightStat(brief);
   const waist = waistStat(brief);
   const logged = brief.nutrition.logged;
@@ -72,16 +80,22 @@ function ReviewOverview({ brief }: { brief: ReviewBrief }) {
             detail: foodDetail || null,
             quiet: logged === 0,
           },
-          {
-            label: "Зал",
-            value:
-              brief.gym.completed > 0 ? String(brief.gym.completed) : "нет",
-            detail:
-              brief.gym.completed > 0
-                ? pluralWorkouts(brief.gym.completed)
-                : null,
-            quiet: brief.gym.completed === 0,
-          },
+          ...(showGym
+            ? [
+                {
+                  label: "Зал",
+                  value:
+                    brief.gym.completed > 0
+                      ? String(brief.gym.completed)
+                      : "нет",
+                  detail:
+                    brief.gym.completed > 0
+                      ? pluralWorkouts(brief.gym.completed)
+                      : null,
+                  quiet: brief.gym.completed === 0,
+                },
+              ]
+            : []),
           weight ?? { label: "Вес", value: "" },
           waist ?? { label: "Талия", value: "" },
         ]}
