@@ -12,10 +12,39 @@ export const VOLUME_BAND_LABELS: Record<VolumeBand, string> = {
   4: "Много",
 };
 
-/** Weighted work sets per calendar week (7 days from period start). */
-export function setsPerWeek(weightedSets: number, horizonDays: number): number {
-  const weeks = Math.max(horizonDays / 7, 1);
+/**
+ * Weighted work sets per week.
+ * `effectiveDays` shortens the divisor for a new lifter (at least 7, never
+ * longer than the selected horizon) so the first week is not diluted.
+ */
+export function setsPerWeek(
+  weightedSets: number,
+  horizonDays: number,
+  effectiveDays?: number,
+): number {
+  const days =
+    effectiveDays != null && effectiveDays > 0
+      ? Math.min(horizonDays, Math.max(7, effectiveDays))
+      : horizonDays;
+  const weeks = Math.max(days / 7, 1);
   return Math.round((weightedSets / weeks) * 10) / 10;
+}
+
+export function effectiveVolumeDays(
+  horizonDays: number,
+  firstSessionDate: string | null,
+  today: string,
+): number {
+  if (firstSessionDate == null) {
+    return horizonDays;
+  }
+  const start = Date.parse(`${firstSessionDate}T12:00:00Z`);
+  const end = Date.parse(`${today}T12:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return horizonDays;
+  }
+  const span = Math.round((end - start) / 86_400_000) + 1;
+  return Math.min(horizonDays, Math.max(7, span));
 }
 
 export function volumeBandFromWeeklySets(

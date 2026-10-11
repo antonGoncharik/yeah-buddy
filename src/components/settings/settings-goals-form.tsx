@@ -14,8 +14,16 @@ import {
   type OnboardingGoal,
   type OnboardingSex,
 } from "@/lib/nutrition";
+import {
+  ONBOARDING_ACTIVITY_OPTIONS,
+  ONBOARDING_PACE_OPTIONS,
+} from "@/lib/nutrition/profile-energy";
 import { haptic } from "@/lib/telegram/haptic";
-import type { UserTrainingAge } from "@/lib/types";
+import type {
+  UserActivityLevel,
+  UserGoalPace,
+  UserTrainingAge,
+} from "@/lib/types";
 import { TRAINING_AGE_OPTIONS } from "@/lib/workout/estimate-maxes";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -32,6 +40,8 @@ export function SettingsGoalsForm({
   updateSex,
   updateGoal,
   updateTrainingAge,
+  updateActivity,
+  updateGoalPace,
   onRecount,
   showTrainingGoals = true,
 }: {
@@ -47,6 +57,8 @@ export function SettingsGoalsForm({
   updateSex: (value: OnboardingSex) => void;
   updateGoal: (value: OnboardingGoal) => void;
   updateTrainingAge: (value: UserTrainingAge) => void;
+  updateActivity: (value: UserActivityLevel) => void;
+  updateGoalPace: (value: UserGoalPace | null) => void;
   onRecount: () => void;
   showTrainingGoals?: boolean;
 }) {
@@ -83,6 +95,65 @@ export function SettingsGoalsForm({
           onPick={updateGoal}
           size="compact"
         />
+        {form.goal != null && form.goal !== "keep" ? (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-muted-foreground">Темп</p>
+            <div className="grid grid-cols-3 gap-2">
+              {ONBOARDING_PACE_OPTIONS.map((option) => (
+                <Button
+                  key={option.id}
+                  type="button"
+                  variant={form.goal_pace === option.id ? "default" : "outline"}
+                  className="h-11 text-sm"
+                  onClick={() => updateGoalPace(option.id)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Активность
+          </p>
+          {ONBOARDING_ACTIVITY_OPTIONS.map((option) => (
+            <Button
+              key={option.id}
+              type="button"
+              variant={
+                form.activity_level === option.id ? "default" : "outline"
+              }
+              className="h-11 justify-start text-sm"
+              onClick={() => updateActivity(option.id)}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm text-muted-foreground">Рост, см</span>
+          <input
+            className="field-control h-12 rounded-xl border border-input/70 bg-input-bg px-3 text-base"
+            inputMode="decimal"
+            value={form.height_cm}
+            placeholder="не обязательно"
+            onChange={(event) => updateField("height_cm", event.target.value)}
+          />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm text-muted-foreground">Год рождения</span>
+          <input
+            className="field-control h-12 rounded-xl border border-input/70 bg-input-bg px-3 text-base"
+            inputMode="numeric"
+            maxLength={4}
+            value={form.birth_year}
+            placeholder="не обязательно"
+            onChange={(event) =>
+              updateField("birth_year", event.target.value.replace(/\D/g, ""))
+            }
+          />
+        </label>
         {showTrainingGoals ? (
           <>
             <p className="text-sm font-medium text-muted-foreground">Стаж</p>

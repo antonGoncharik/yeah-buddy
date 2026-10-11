@@ -21,6 +21,10 @@ const macroSettingsSchema = z.object({
   sex: sex.optional(),
   goal: goal.optional(),
   training_age: trainingAge.optional(),
+  activity_level: activityLevel.optional(),
+  goal_pace: goalPace.optional(),
+  height_cm: z.number().finite().min(120).max(230).nullable().optional(),
+  birth_year: z.number().int().min(1940).max(2015).nullable().optional(),
   energy_goal_dismissed_kcal: dismissedKcal.optional(),
 });
 

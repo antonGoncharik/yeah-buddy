@@ -16,7 +16,11 @@ import { calendarToday } from "@/lib/day/dates";
 import { readDay, readLastBodyWeight } from "@/lib/day/today-payload";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import type { OnboardingGoal, OnboardingSex } from "@/lib/nutrition";
-import type { UserTrainingAge } from "@/lib/types";
+import type {
+  UserActivityLevel,
+  UserGoalPace,
+  UserTrainingAge,
+} from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 
 export function useSettingsScreen() {
@@ -149,7 +153,11 @@ export function useSettingsScreen() {
       if (!current) {
         return current;
       }
-      const next = { ...current, goal: value };
+      const next = {
+        ...current,
+        goal: value,
+        goal_pace: value === "keep" ? null : (current.goal_pace ?? "normal"),
+      };
       if (bodyWeight == null) {
         return next;
       }
@@ -162,6 +170,22 @@ export function useSettingsScreen() {
     setError(null);
     setForm((current) =>
       current ? { ...current, training_age: value } : current,
+    );
+  }
+
+  function updateActivity(value: UserActivityLevel) {
+    setSaved(false);
+    setError(null);
+    setForm((current) =>
+      current ? { ...current, activity_level: value } : current,
+    );
+  }
+
+  function updateGoalPace(value: UserGoalPace | null) {
+    setSaved(false);
+    setError(null);
+    setForm((current) =>
+      current ? { ...current, goal_pace: value } : current,
     );
   }
 
@@ -303,6 +327,8 @@ export function useSettingsScreen() {
     updateSex,
     updateGoal,
     updateTrainingAge,
+    updateActivity,
+    updateGoalPace,
     onRecount,
     setReminders,
     setGymEnabled,

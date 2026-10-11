@@ -82,6 +82,8 @@ export function SettingsScreen({
     updateSex,
     updateGoal,
     updateTrainingAge,
+    updateActivity,
+    updateGoalPace,
     onRecount,
     setReminders,
     setGymEnabled,
@@ -173,6 +175,8 @@ export function SettingsScreen({
               updateSex={updateSex}
               updateGoal={updateGoal}
               updateTrainingAge={updateTrainingAge}
+              updateActivity={updateActivity}
+              updateGoalPace={updateGoalPace}
               onRecount={onRecount}
               showTrainingGoals={form.gym_enabled}
             />

@@ -28,7 +28,6 @@ export function programMusclePreview(
   if (trainingDays.length === 0) {
     return [];
   }
-  const weeks = Math.max(1, preset.cycle?.length ?? 1);
   const loads = new Map<MuscleId, number>();
 
   for (const day of trainingDays) {
@@ -59,7 +58,7 @@ export function programMusclePreview(
     }
   }
 
-  const perWeek = (total: number) => Math.round((total / weeks) * 10) / 10;
+  const perWeek = (total: number) => Math.round(total * 10) / 10;
 
   const rows: ProgramMusclePreviewRow[] = [];
   for (const [id, sets] of loads) {

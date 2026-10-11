@@ -257,16 +257,18 @@ export function useOnboardingScreen() {
   const proteinValue =
     macroPreview != null ? Math.round(macroPreview.protein) : null;
 
-  const steps = useMemo(
-    () =>
-      onboardingSteps({
-        pendingKind,
-        pendingProgram: pendingProgramId != null,
-        replay,
-        gymEnabled: gymEnabled === true,
-      }),
-    [gymEnabled, pendingKind, pendingProgramId, replay],
-  );
+  const steps = useMemo(() => {
+    const listed = onboardingSteps({
+      pendingKind,
+      pendingProgram: pendingProgramId != null,
+      replay,
+      gymEnabled: gymEnabled === true,
+    });
+    if (goal === "keep") {
+      return listed.filter((id) => id !== "pace");
+    }
+    return listed;
+  }, [goal, gymEnabled, pendingKind, pendingProgramId, replay]);
 
   useEffect(() => {
     if (!steps.includes(step)) {

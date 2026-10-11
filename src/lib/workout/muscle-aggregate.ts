@@ -17,6 +17,7 @@ import {
   MUSCLE_VIEW,
 } from "@/lib/workout/muscle-taxonomy";
 import {
+  effectiveVolumeDays,
   setsPerWeek,
   volumeBandFromWeeklySets,
   weekCount,
@@ -105,11 +106,13 @@ export function buildMuscleSnapshot(
           continue;
         }
         for (const muscleId of Object.keys(weights) as MuscleId[]) {
-          missedCount[muscleId] += 1;
           musclesHit.add(muscleId);
         }
       }
       if (musclesHit.size > 0) {
+        for (const muscleId of musclesHit) {
+          missedCount[muscleId] += 1;
+        }
         missedEvents.push({
           date: session.session_date,
           template_name: session.template_name,
@@ -165,9 +168,15 @@ export function buildMuscleSnapshot(
     }
   }
 
+  const volumeDays = effectiveVolumeDays(
+    input.horizon_days,
+    earliestCompletedDate(input.sessions),
+    input.today,
+  );
+
   const muscles: MuscleCell[] = MUSCLE_IDS.map((id) => {
     const sets = Math.round(weightedSets[id] * 10) / 10;
-    const perWeek = setsPerWeek(sets, input.horizon_days);
+    const perWeek = setsPerWeek(sets, input.horizon_days, volumeDays);
     const band = volumeBandFromWeeklySets(perWeek, id);
     const last = lastTrained.get(id) ?? null;
     const daysSince = daysBetween(last, input.today);
@@ -319,6 +328,21 @@ function initWeeklyBuckets(weeks: number): Record<MuscleId, number[]> {
     out[id] = Array.from({ length: weeks }, () => 0);
   }
   return out;
+}
+
+function earliestCompletedDate(
+  sessions: MuscleAggregateInput["sessions"],
+): string | null {
+  let first: string | null = null;
+  for (const session of sessions) {
+    if (session.status !== "completed") {
+      continue;
+    }
+    if (first == null || session.session_date < first) {
+      first = session.session_date;
+    }
+  }
+  return first;
 }
 
 export function parseMuscleHorizonDays(value: string | null): number {

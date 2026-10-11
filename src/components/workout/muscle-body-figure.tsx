@@ -115,7 +115,10 @@ export function MuscleBodyFigure({
                 d={d}
                 fill={fill}
                 stroke={muscleHeatRing(cell, selected)}
-                strokeWidth={selected ? 3 : 1.2}
+                strokeWidth={selected ? 3 : cell?.in_next_session ? 2 : 1.2}
+                strokeDasharray={
+                  cell?.in_next_session && !selected ? "4 3" : undefined
+                }
                 vectorEffect="non-scaling-stroke"
                 className={cn(
                   "transition-[fill,stroke-width] duration-200",
