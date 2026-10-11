@@ -150,7 +150,9 @@ export function SessionScreen() {
               />
             ) : null}
 
-            {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-base leading-snug text-destructive">{error}</p>
+            ) : null}
 
             {session.status === "completed" && !correcting ? (
               <SessionCompletedPanel

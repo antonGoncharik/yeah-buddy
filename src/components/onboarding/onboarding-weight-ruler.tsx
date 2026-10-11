@@ -158,7 +158,7 @@ export function OnboardingWeightRuler({
     observer.observe(el);
     setContainerWidth(el.clientWidth);
     return () => observer.disconnect();
-  }, [sex]);
+  }, []);
 
   useEffect(() => {
     if (weight.trim() === "") {

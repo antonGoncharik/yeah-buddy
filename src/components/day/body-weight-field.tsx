@@ -138,9 +138,7 @@ export function BodyWeightField({
           {unit}
         </span>
       </div>
-      {invalid ? (
-        <p className={FIELD_ERROR_CLASS}>{invalidHint}</p>
-      ) : null}
+      {invalid ? <p className={FIELD_ERROR_CLASS}>{invalidHint}</p> : null}
     </div>
   );
 }

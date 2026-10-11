@@ -47,7 +47,9 @@ export function OnboardingStepShell({
             {progressLabel || stepDots ? (
               <div className="flex items-center justify-between gap-2">
                 {progressLabel ? (
-                  <p className="text-sm text-muted-foreground">{progressLabel}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {progressLabel}
+                  </p>
                 ) : (
                   <span className="min-w-0 flex-1" />
                 )}

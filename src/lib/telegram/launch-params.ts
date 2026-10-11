@@ -39,10 +39,7 @@ export function storedLaunchParamsIndicateAppWebView(
   if (initData.includes("start_param=")) {
     return true;
   }
-  if (
-    initData.includes("chat_type=") ||
-    initData.includes("chat_instance=")
-  ) {
+  if (initData.includes("chat_type=") || initData.includes("chat_instance=")) {
     return true;
   }
   const fullscreen = scrubbed.tgWebAppFullscreen;

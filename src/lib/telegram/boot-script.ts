@@ -1,7 +1,10 @@
 import { TELEGRAM_FULLSCREEN_STORAGE_KEY } from "@/lib/telegram/fullscreen-storage";
 import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 
-export { scrubTelegramLaunchParams, storedLaunchParamsIndicateAppWebView } from "@/lib/telegram/launch-params";
+export {
+  scrubTelegramLaunchParams,
+  storedLaunchParamsIndicateAppWebView,
+} from "@/lib/telegram/launch-params";
 
 export const TELEGRAM_INIT_STORAGE_KEY = "__telegram__initParams";
 export const TELEGRAM_INIT_LOCAL_STORAGE_KEY = "__telegram__initParams_local";
@@ -66,4 +69,3 @@ export function telegramInitParamsFromHash(
   }
   return params;
 }
-

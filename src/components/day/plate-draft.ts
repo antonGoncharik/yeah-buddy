@@ -1,10 +1,10 @@
 import { parseNonneg } from "@/components/foods/food-form-state";
 import { parseRemaining } from "@/lib/ai/parse-review";
+import { roundPlateGrams } from "@/lib/ai/plate-match";
 import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { PLATE_GRAMS_MAX, type PlateDraftItem } from "@/lib/ai/plate-types";
 import { ApiError } from "@/lib/api-cache";
 import { LUMP_PORTION_G, macrosFromLump } from "@/lib/day/lump";
-import { roundPlateGrams } from "@/lib/ai/plate-match";
 import {
   type FoodYield,
   formatYieldGrams,
@@ -81,8 +81,7 @@ export function rowNativeGrams(item: PlateRow): number | null {
 
 export function toPlateRow(item: PlateDraftItem): PlateRow {
   if (item.kind === "lump") {
-    const grams =
-      item.grams > 0 ? roundPlateGrams(item.grams) : LUMP_PORTION_G;
+    const grams = item.grams > 0 ? roundPlateGrams(item.grams) : LUMP_PORTION_G;
     return {
       ...item,
       grams,

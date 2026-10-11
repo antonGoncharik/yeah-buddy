@@ -2,13 +2,12 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
+import { EXIT_TO_CHATS_HINT } from "@/lib/messages";
 import {
   bindTelegramBackSwipeGuard,
   EXIT_ARM_MS,
   isExactTabRoot,
 } from "@/lib/telegram/back-swipe-guard";
-import { EXIT_TO_CHATS_HINT } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function TelegramBackSwipeGuard() {

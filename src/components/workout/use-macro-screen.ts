@@ -13,10 +13,10 @@ import type {
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
-import { forwardDraft, maxFollowsWeek } from "@/lib/workout/macro-forward";
 import { phaseLabel } from "@/lib/workout/labels";
-import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import type { MacroAdvanceStep } from "@/lib/workout/macro-advance-copy";
+import { forwardDraft, maxFollowsWeek } from "@/lib/workout/macro-forward";
+import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function useMacroScreen() {

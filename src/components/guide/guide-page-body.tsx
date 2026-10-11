@@ -45,9 +45,7 @@ export function GuidePageBody({
         className,
       )}
     >
-      {compact || !showDoodle ? null : (
-        <GuideDoodleIcon kind={page.doodle} />
-      )}
+      {compact || !showDoodle ? null : <GuideDoodleIcon kind={page.doodle} />}
       {omitLead ? null : (
         <p
           className={cn(

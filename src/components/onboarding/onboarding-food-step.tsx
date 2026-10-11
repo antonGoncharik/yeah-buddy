@@ -1,7 +1,7 @@
 "use client";
 
-import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import { GoalOptionButtons } from "@/components/nutrition/goal-option-buttons";
+import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import { OnboardingWeightRuler } from "@/components/onboarding/onboarding-weight-ruler";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -99,10 +99,7 @@ export function OnboardingWeightStep({
       ) : null}
       {onContinue ? (
         <div className="mt-2">
-          <OnboardingPrimaryAction
-            saving={saving}
-            onClick={onContinue}
-          />
+          <OnboardingPrimaryAction saving={saving} onClick={onContinue} />
         </div>
       ) : null}
     </div>

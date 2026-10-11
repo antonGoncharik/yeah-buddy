@@ -16,8 +16,8 @@ import {
   OnboardingWeightStep,
   profileStepSubtitle,
 } from "@/components/onboarding/onboarding-food-step";
-import { OnboardingModeStep } from "@/components/onboarding/onboarding-mode-step";
 import { OnboardingLiftsStep } from "@/components/onboarding/onboarding-lifts-step";
+import { OnboardingModeStep } from "@/components/onboarding/onboarding-mode-step";
 import { OnboardingRationStep } from "@/components/onboarding/onboarding-ration-step";
 import {
   OnboardingStepDots,
@@ -25,18 +25,18 @@ import {
   OnboardingThumbZone,
 } from "@/components/onboarding/onboarding-shell";
 import {
-  type OnboardingStep,
   isOnboardingPersonStep,
+  type OnboardingStep,
   onboardingSetupSteps,
   onboardingStepNeedsNext,
 } from "@/components/onboarding/onboarding-steps";
 import {
   GOAL_REQUIRED,
+  MODE_REQUIRED,
+  RATION_REQUIRED,
   SEX_REQUIRED,
   TRAINING_AGE_REQUIRED,
   useOnboardingScreen,
-  MODE_REQUIRED,
-  RATION_REQUIRED,
   WEIGHT_INVALID,
   WEIGHT_REQUIRED,
 } from "@/components/onboarding/use-onboarding-screen";
@@ -209,23 +209,18 @@ export function OnboardingScreen() {
           ) : null
         }
       >
-      {step === "sex" ? (
-        <OnboardingThumbZone>
-          <OnboardingSexStep
-            sex={sex}
-            showLabel={false}
-            onPick={onSexPick}
-          />
-          {showPersonError("sex") ? (
-            <p className="mt-2 text-center text-base leading-snug text-destructive">
-              {error}
-            </p>
-          ) : null}
-        </OnboardingThumbZone>
-      ) : null}
+        {step === "sex" ? (
+          <OnboardingThumbZone>
+            <OnboardingSexStep sex={sex} showLabel={false} onPick={onSexPick} />
+            {showPersonError("sex") ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
 
-      {step === "weight" && sex != null ? (
-        <>
+        {step === "weight" && sex != null ? (
           <OnboardingWeightStep
             sex={sex}
             weight={weight}
@@ -236,112 +231,107 @@ export function OnboardingScreen() {
             onContinue={() => void goNext()}
             onChange={onWeightChange}
           />
-        </>
-      ) : null}
+        ) : null}
 
-      {step === "goal" ? (
-        <OnboardingThumbZone>
-          <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
-          {showPersonError("goal") ? (
-            <p className="mt-2 text-center text-base leading-snug text-destructive">
-              {error}
-            </p>
-          ) : null}
-        </OnboardingThumbZone>
-      ) : null}
+        {step === "goal" ? (
+          <OnboardingThumbZone>
+            <OnboardingGoalStep goal={goal} onPick={onGoalPick} />
+            {showPersonError("goal") ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
 
-      {step === "training_age" ? (
-        <OnboardingThumbZone>
-          <OnboardingTrainingAgeStep
-            trainingAge={trainingAge}
-            onPick={onTrainingAgePick}
-          />
-          {showPersonError("training_age") ? (
-            <p className="mt-2 text-center text-base leading-snug text-destructive">
-              {error}
-            </p>
-          ) : null}
-        </OnboardingThumbZone>
-      ) : null}
+        {step === "training_age" ? (
+          <OnboardingThumbZone>
+            <OnboardingTrainingAgeStep
+              trainingAge={trainingAge}
+              onPick={onTrainingAgePick}
+            />
+            {showPersonError("training_age") ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
 
-      {step === "macros" && sex != null && goal != null ? (
-        <OnboardingMacrosSummary
-          sex={sex}
-          weight={weight}
-          goal={goal}
-          foodOnly={foodOnly}
-          saving={saving}
-          isLast={isLast}
-          onContinue={() => void goNext()}
-        />
-      ) : null}
-
-      {step === "ration" ? (
-        <OnboardingThumbZone>
-          <OnboardingRationStep
-            ration={ration}
-            selfSetup={rationSelfSetup}
-            invalid={error === RATION_REQUIRED}
+        {step === "macros" && sex != null && goal != null ? (
+          <OnboardingMacrosSummary
             sex={sex}
             weight={weight}
             goal={goal}
-            onPickSelfSetup={pickSelfRation}
-            onPick={onRationPick}
-          />
-          {error === RATION_REQUIRED ? (
-            <p className="mt-2 text-center text-base leading-snug text-destructive">
-              {error}
-            </p>
-          ) : null}
-        </OnboardingThumbZone>
-      ) : null}
-
-      {step === "lifts" ? (
-        <OnboardingLiftsStep
-          answers={lifts}
-          saving={saving}
-          isLast={isLast}
-          onChange={onLiftChange}
-          onConfirm={() => void confirmLifts()}
-          onSkip={() => skipLifts()}
-        />
-      ) : null}
-
-      {step === "circle" ? (
-        <CircleStepLayout thumb={!pickingProgram}>
-          <OnboardingCircleStep
-            value={circle}
-            fromMealPack={pendingKind === "meals"}
-            picking={pickingProgram}
-            shelf={programShelf}
+            foodOnly={foodOnly}
             saving={saving}
-            sex={sex}
-            onChange={setCircle}
-            onBeginner={() =>
-              void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
-            }
-            onHome={() => {
-              setProgramShelf("home");
-              if (sex === "female" && !isProgramPresetId(circle)) {
-                setCircle("home_glutes");
-              }
-            }}
-            onPickYourself={() => setProgramShelf("all")}
+            isLast={isLast}
+            onContinue={() => void goNext()}
           />
-        </CircleStepLayout>
-      ) : null}
+        ) : null}
 
-      {error &&
-      !isOnboardingPersonStep(step) &&
-      step !== "ration" ? (
-        <p className="mt-2 text-center text-base leading-snug text-destructive">
-          {error}
-        </p>
-      ) : null}
+        {step === "ration" ? (
+          <OnboardingThumbZone>
+            <OnboardingRationStep
+              ration={ration}
+              selfSetup={rationSelfSetup}
+              invalid={error === RATION_REQUIRED}
+              sex={sex}
+              weight={weight}
+              goal={goal}
+              onPickSelfSetup={pickSelfRation}
+              onPick={onRationPick}
+            />
+            {error === RATION_REQUIRED ? (
+              <p className="mt-2 text-center text-base leading-snug text-destructive">
+                {error}
+              </p>
+            ) : null}
+          </OnboardingThumbZone>
+        ) : null}
+
+        {step === "lifts" ? (
+          <OnboardingLiftsStep
+            answers={lifts}
+            saving={saving}
+            isLast={isLast}
+            onChange={onLiftChange}
+            onConfirm={() => void confirmLifts()}
+            onSkip={() => skipLifts()}
+          />
+        ) : null}
+
+        {step === "circle" ? (
+          <CircleStepLayout thumb={!pickingProgram}>
+            <OnboardingCircleStep
+              value={circle}
+              fromMealPack={pendingKind === "meals"}
+              picking={pickingProgram}
+              shelf={programShelf}
+              saving={saving}
+              sex={sex}
+              onChange={setCircle}
+              onBeginner={() =>
+                void goNext({ circleOverride: RECOMMENDED_PROGRAM_PRESET_ID })
+              }
+              onHome={() => {
+                setProgramShelf("home");
+                if (sex === "female" && !isProgramPresetId(circle)) {
+                  setCircle("home_glutes");
+                }
+              }}
+              onPickYourself={() => setProgramShelf("all")}
+            />
+          </CircleStepLayout>
+        ) : null}
+
+        {error && !isOnboardingPersonStep(step) && step !== "ration" ? (
+          <p className="mt-2 text-center text-base leading-snug text-destructive">
+            {error}
+          </p>
+        ) : null}
       </OnboardingStepShell>
-      {saving ? (
-        <ScreenLoading cover title="Сохраняем настройки…" />
-      ) : null}
+      {saving ? <ScreenLoading cover title="Сохраняем настройки…" /> : null}
     </>
   );
 }

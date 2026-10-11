@@ -1,7 +1,4 @@
-import {
-  decideBackPop,
-  isExactTabRoot,
-} from "@/lib/telegram/back-swipe-guard";
+import { decideBackPop, isExactTabRoot } from "@/lib/telegram/back-swipe-guard";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);

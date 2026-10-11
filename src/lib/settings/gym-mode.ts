@@ -1,6 +1,5 @@
 import type { DayWithMeals } from "@/lib/day/map";
-import type { UserSettings } from "@/lib/types";
-import type { DayType } from "@/lib/types";
+import type { DayType, UserSettings } from "@/lib/types";
 
 /** When false, the person uses food diary only; gym data stays in the DB. */
 export function parseGymEnabled(value: unknown): boolean {

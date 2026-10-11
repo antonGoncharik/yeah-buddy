@@ -1,8 +1,4 @@
 import {
-  isTelegramAppWebViewLaunch,
-  isTelegramKeyboardWebAppLaunch,
-} from "@/lib/telegram/launch-context";
-import {
   HAPTIC_EVENT,
   hapticCommand,
   hapticEventData,
@@ -12,6 +8,10 @@ import {
   TIMER_DONE_HAPTICS,
   TIMER_DONE_VIBRATE,
 } from "@/lib/telegram/haptic";
+import {
+  isTelegramAppWebViewLaunch,
+  isTelegramKeyboardWebAppLaunch,
+} from "@/lib/telegram/launch-context";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   const left = JSON.stringify(actual);

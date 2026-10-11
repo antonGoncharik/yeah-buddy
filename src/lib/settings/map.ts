@@ -3,6 +3,7 @@ import {
   isOnboardingSex,
 } from "@/lib/nutrition/suggest-protein";
 import { isRecord, toNumber } from "@/lib/read";
+import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import { resolveTimeZone } from "@/lib/telegram/reminder-clock";
 import type {
   UserGoal,
@@ -10,7 +11,6 @@ import type {
   UserSex,
   UserTrainingAge,
 } from "@/lib/types";
-import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import { isTrainingAge } from "@/lib/workout/estimate-maxes";
 import { parseGrantedPrograms } from "@/lib/workout/program-presets";
 

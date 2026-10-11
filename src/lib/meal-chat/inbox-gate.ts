@@ -11,10 +11,7 @@ export function mealChatBlockedByInbox(input: {
     return false;
   }
 
-  if (
-    input.inboxAdminId != null &&
-    input.chatId === input.inboxAdminId
-  ) {
+  if (input.inboxAdminId != null && input.chatId === input.inboxAdminId) {
     return true;
   }
 

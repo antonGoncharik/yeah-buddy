@@ -3,7 +3,12 @@
 import { Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { type ComponentType, type MouseEvent, useEffect, useState } from "react";
+import {
+  type ComponentType,
+  type MouseEvent,
+  useEffect,
+  useState,
+} from "react";
 import {
   Doodle,
   DUMBBELL_VIEWBOX,
@@ -30,7 +35,12 @@ const BASE_ITEMS: Array<{
   gymOnly?: boolean;
 }> = [
   { href: "/today", label: "Сегодня", icon: MealDayDoodle },
-  { href: "/workouts", label: "Тренировки", icon: DumbbellNavIcon, gymOnly: true },
+  {
+    href: "/workouts",
+    label: "Тренировки",
+    icon: DumbbellNavIcon,
+    gymOnly: true,
+  },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];
 
@@ -41,6 +51,7 @@ export function BottomNav() {
   const activeHref = navActiveHref(pathname, from, gymEnabled);
   const [wiggleHref, setWiggleHref] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-read settings cache after navigation
   useEffect(() => {
     const settings = readSettingsPayload(peekJson("/api/settings"));
     if (settings) {

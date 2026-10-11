@@ -1,10 +1,9 @@
 export {
   GUIDE_HINT,
   GUIDE_HREF,
-  GUIDE_INTRO_PAGES,
   GUIDE_INTRO_PAGE_FOOD,
   GUIDE_INTRO_PAGE_GYM,
-  onboardingIntroPages,
+  GUIDE_INTRO_PAGES,
   GUIDE_LABEL,
   GUIDE_PAGES,
   GUIDE_TIPS,
@@ -13,6 +12,7 @@ export {
   guidePageById,
   guidePageText,
   guideTipById,
+  onboardingIntroPages,
 } from "@/lib/guide/copy";
 export {
   dismissGuideTip,

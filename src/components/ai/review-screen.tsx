@@ -16,13 +16,13 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { peekJson } from "@/lib/api-cache";
 import { DIARY_RANGE_OPTIONS } from "@/lib/diary-range";
 import {
   AI_REVIEW_EMPTY,
   AI_REVIEW_NO_KEY,
   AI_REVIEW_QUOTA,
 } from "@/lib/messages";
-import { peekJson } from "@/lib/api-cache";
 import { readSettingsPayload } from "@/lib/settings/map";
 import { REVIEW_LABEL } from "@/lib/workout/labels";
 
@@ -94,7 +94,9 @@ export function ReviewScreen() {
                     />
                   ) : null}
                   {error ? (
-                    <p className="text-base leading-snug text-destructive">{error}</p>
+                    <p className="text-base leading-snug text-destructive">
+                      {error}
+                    </p>
                   ) : null}
                   {empty ? (
                     <p className="text-base text-muted-foreground">

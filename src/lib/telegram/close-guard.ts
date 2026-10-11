@@ -22,9 +22,7 @@ function supportsApi(
 
 /** Fewer accidental minimize/close gestures from the sheet body. */
 export function applyTelegramCloseGuard(webApp: TelegramCloseGuardHost): void {
-  if (
-    supportsApi(webApp, VERTICAL_SWIPES_API, "disableVerticalSwipes")
-  ) {
+  if (supportsApi(webApp, VERTICAL_SWIPES_API, "disableVerticalSwipes")) {
     try {
       webApp.disableVerticalSwipes?.();
     } catch {

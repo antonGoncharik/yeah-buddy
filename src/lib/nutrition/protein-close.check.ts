@@ -72,7 +72,11 @@ const chicken = food({
   recentRank: 2,
 });
 
-assertEqual(proteinCloseOffers(budget(5), [cottage]), [], "almost closed stays quiet");
+assertEqual(
+  proteinCloseOffers(budget(5), [cottage]),
+  [],
+  "almost closed stays quiet",
+);
 assertEqual(proteinCloseOffers(budget(0), [cottage]), [], "closed stays quiet");
 assertEqual(
   proteinCloseOffers(budget(40), [
@@ -181,6 +185,10 @@ const leanClose = proteinCloseOffers(
   budget(40, { remainingFat: 15, remainingCarbs: 80, remainingKcal: 250 }),
   [chicken],
 );
-assertEqual(leanClose[0]?.grams, 160, "lean protein still closes when fat is tight");
+assertEqual(
+  leanClose[0]?.grams,
+  160,
+  "lean protein still closes when fat is tight",
+);
 
 console.log("protein close ok");

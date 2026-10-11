@@ -123,7 +123,9 @@ export function NewMacroScreen() {
               </>
             )}
 
-            {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-base leading-snug text-destructive">{error}</p>
+            ) : null}
 
             {cycle.length > 0 ? (
               <StickyActions>

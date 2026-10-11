@@ -1,12 +1,12 @@
 import { requireBuddyBoardGrant } from "@/lib/buddy/store";
 import type { BuddyGymState, BuddyTodayBoard } from "@/lib/buddy/types";
-import { sumMeals } from "@/lib/nutrition";
-import { proteinClosed } from "@/lib/flavor";
 import { getDayByDate } from "@/lib/day/store";
 import { getUserCalendarToday } from "@/lib/day/writable";
+import { proteinClosed } from "@/lib/flavor";
+import { sumMeals } from "@/lib/nutrition";
 import { loadOwnerName } from "@/lib/share/pack-load";
-import { getSessionOnDate } from "@/lib/workout/sessions";
 import { nextCircleName } from "@/lib/telegram/reminder-facts";
+import { getSessionOnDate } from "@/lib/workout/sessions";
 
 export async function loadBuddyBoard(
   viewerId: string,
@@ -25,7 +25,7 @@ export async function loadBuddyBoard(
 
   const fact = day != null ? sumMeals(day.meals) : null;
   const foodLogged =
-    day != null && day.meals.some((meal) => meal.items.length > 0);
+    day?.meals.some((meal) => meal.items.length > 0) ?? false;
   const proteinOk =
     day != null &&
     fact != null &&

@@ -61,9 +61,8 @@ export function OnboardingRationStep({
           Шаблон всегда можно изменить в Настройках → «Еда на день».
         </p>
       )}
-      <div
-        className="flex flex-col gap-2"
-        role="group"
+      <fieldset
+        className="flex min-w-0 flex-col gap-2 border-0 p-0 m-0"
         aria-label="Еда на день"
         aria-invalid={invalid || undefined}
       >
@@ -103,7 +102,7 @@ export function OnboardingRationStep({
           goals={{ rest: suggested.rest, training: suggested.training }}
           onPick={onPick}
         />
-      </div>
+      </fieldset>
     </div>
   );
 }

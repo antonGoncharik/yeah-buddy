@@ -97,10 +97,7 @@ export function BarbellDailyGame({
           Пар — {challenge.parMoves}{" "}
           {challenge.parMoves === 1 ? "блин" : "блина"}
           {status === "hit" && optimal ? (
-            <>
-              {" "}
-              · на сторону {formatSidePlateStack(optimal)}
-            </>
+            <> · на сторону {formatSidePlateStack(optimal)}</>
           ) : null}
         </p>
       </div>

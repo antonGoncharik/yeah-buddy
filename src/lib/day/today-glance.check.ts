@@ -1,7 +1,4 @@
-import {
-  buildTodayDayGlance,
-  todayGlancePhase,
-} from "@/lib/day/today-glance";
+import { buildTodayDayGlance, todayGlancePhase } from "@/lib/day/today-glance";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {

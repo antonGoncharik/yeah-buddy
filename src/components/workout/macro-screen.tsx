@@ -15,8 +15,8 @@ import { MacroRecapCard } from "@/components/workout/macro-recap-card";
 import { useMacroScreen } from "@/components/workout/use-macro-screen";
 import { cn } from "@/lib/utils";
 import { cycleSequenceLabel } from "@/lib/workout/hints";
-import { macroAdvanceButtonLabel } from "@/lib/workout/macro-advance-copy";
 import { CYCLE_LABEL, phaseLabel } from "@/lib/workout/labels";
+import { macroAdvanceButtonLabel } from "@/lib/workout/macro-advance-copy";
 
 export function MacroScreen() {
   const {
@@ -148,7 +148,9 @@ export function MacroScreen() {
               </button>
             )}
 
-            {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-base leading-snug text-destructive">{error}</p>
+            ) : null}
 
             <StickyActions>
               <Button

@@ -249,9 +249,7 @@ export function catalogFoodSearchScore(
   let total = 0;
   for (const token of tokens) {
     const inName = scoreCatalogTokenInText(token, name);
-    const inBrand = brand
-      ? scoreCatalogTokenInText(token, brand) * 0.35
-      : 0;
+    const inBrand = brand ? scoreCatalogTokenInText(token, brand) * 0.35 : 0;
     const tokenScore = Math.max(inName, inBrand);
     if (tokenScore <= 0) {
       return 0;
@@ -326,7 +324,7 @@ function compareCatalogFoodRows<
 
 function scoreCatalogTokenInText(token: string, text: string): number {
   const folded = foldCatalogSearch(text.trim().toLowerCase());
-  if (!folded || !folded.includes(token)) {
+  if (!folded?.includes(token)) {
     return 0;
   }
 

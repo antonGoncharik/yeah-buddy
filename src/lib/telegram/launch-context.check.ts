@@ -59,11 +59,7 @@ delete fakeWindow.Telegram!.WebView!.initParams!.tgWebAppStartParam;
 fakeWindow.Telegram!.WebApp!.initDataUnsafe = {
   chat_type: "sender",
 };
-assertEqual(
-  isTelegramAppWebViewLaunch(),
-  true,
-  "direct link chat_type",
-);
+assertEqual(isTelegramAppWebViewLaunch(), true, "direct link chat_type");
 
 fakeWindow.Telegram!.WebApp!.initDataUnsafe = {};
 fakeWindow.Telegram!.WebApp!.initData =

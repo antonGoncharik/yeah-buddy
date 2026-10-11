@@ -97,7 +97,11 @@ assertEqual(
   true,
   "training age advances on pick",
 );
-assertEqual(onboardingStepAutoAdvance("ration"), true, "ration advances on pick");
+assertEqual(
+  onboardingStepAutoAdvance("ration"),
+  true,
+  "ration advances on pick",
+);
 assertEqual(
   onboardingStepInlineContinue("weight"),
   true,
@@ -117,7 +121,11 @@ assertEqual(
   false,
   "replay keeps the current menu",
 );
-assertEqual(onboardingStepInlineContinue("lifts"), true, "lifts continues inline");
+assertEqual(
+  onboardingStepInlineContinue("lifts"),
+  true,
+  "lifts continues inline",
+);
 assertEqual(onboardingStepNeedsNext("lifts"), false, "lifts skips sticky");
 assertEqual(onboardingStepNeedsNext("circle"), true, "circle needs Готово");
 assertEqual(

@@ -33,7 +33,11 @@ Object.defineProperty(globalThis, "navigator", {
 
 const botKeyboard = getTelegramLaunchProfile();
 assertEqual(botKeyboard.kind, "bot-keyboard", "bot keyboard kind");
-assertEqual(botKeyboard.bindFullscreen, true, "bot binds fullscreen on android");
+assertEqual(
+  botKeyboard.bindFullscreen,
+  true,
+  "bot binds fullscreen on android",
+);
 assertEqual(botKeyboard.expandOnly, false, "bot is not expand-only");
 assertEqual(botKeyboard.shareUsesBotChatFlow, true, "bot uses prepared share");
 

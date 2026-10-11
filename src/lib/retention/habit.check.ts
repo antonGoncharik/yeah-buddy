@@ -40,11 +40,7 @@ const days = [
 assertEqual(priorFoodLogDays(days, "2026-10-06"), 2, "two prior food days");
 assertEqual(liveFoodLogStreak(true, 2), 3, "today logged extends");
 assertEqual(liveFoodLogStreak(false, 2), 2, "today empty keeps yesterday");
-assertEqual(
-  foodLogStreakAtRisk(false, 2),
-  true,
-  "at risk when empty today",
-);
+assertEqual(foodLogStreakAtRisk(false, 2), true, "at risk when empty today");
 assertEqual(
   earlyHabitFoodMilestone(3),
   "Три дня с едой в дневнике — привычка цепляется.",

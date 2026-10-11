@@ -9,11 +9,7 @@ import {
 } from "@/lib/nutrition/energy-goal";
 import { cn } from "@/lib/utils";
 
-export function EnergyGoalHintCard({
-  line,
-}: {
-  line: string;
-}) {
+export function EnergyGoalHintCard({ line }: { line: string }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
 
@@ -24,7 +20,12 @@ export function EnergyGoalHintCard({
         compact ? "px-4 py-3" : "px-5 py-4",
       )}
     >
-      <p className={cn("leading-snug text-muted-foreground", compact ? "text-sm" : "text-base")}>
+      <p
+        className={cn(
+          "leading-snug text-muted-foreground",
+          compact ? "text-sm" : "text-base",
+        )}
+      >
         {line}
       </p>
     </section>
@@ -64,7 +65,9 @@ export function EnergyGoalCard({
         <p className="text-sm font-medium text-muted-foreground">
           Цель по дневнику
         </p>
-        <p className={cn("mt-1 leading-snug", compact ? "text-sm" : "text-base")}>
+        <p
+          className={cn("mt-1 leading-snug", compact ? "text-sm" : "text-base")}
+        >
           {energyGoalLine(offer)}
         </p>
         {shift ? (

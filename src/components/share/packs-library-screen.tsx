@@ -153,7 +153,9 @@ export function PacksLibraryScreen() {
               ))}
             </div>
             {shareError ? (
-              <p className="text-base leading-snug text-destructive">{shareError}</p>
+              <p className="text-base leading-snug text-destructive">
+                {shareError}
+              </p>
             ) : null}
           </section>
         ) : null}

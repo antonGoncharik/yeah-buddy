@@ -6,7 +6,9 @@ export type WizardScreenEntry = {
   sub: string | null;
 };
 
-export function readWizardScreenEntry(state: unknown): WizardScreenEntry | null {
+export function readWizardScreenEntry(
+  state: unknown,
+): WizardScreenEntry | null {
   if (state == null || typeof state !== "object") {
     return null;
   }
@@ -19,11 +21,7 @@ export function readWizardScreenEntry(state: unknown): WizardScreenEntry | null 
     return null;
   }
   const sub =
-    value.sub == null
-      ? null
-      : typeof value.sub === "string"
-        ? value.sub
-        : null;
+    value.sub == null ? null : typeof value.sub === "string" ? value.sub : null;
   return { flow: value.flow, step: value.step, sub };
 }
 
@@ -43,7 +41,10 @@ export function pushWizardScreenEntry(entry: WizardScreenEntry): boolean {
     return false;
   }
   try {
-    window.history.pushState(writeWizardScreenEntry(window.history.state, entry), "");
+    window.history.pushState(
+      writeWizardScreenEntry(window.history.state, entry),
+      "",
+    );
     return true;
   } catch {
     return false;

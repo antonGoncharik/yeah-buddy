@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { mealActionButtonClass } from "@/components/day/meal-action-bar";
 import { persistPlateRows } from "@/components/day/persist-plate-rows";
@@ -39,6 +39,11 @@ export function TodayTextMealForm({
   const [working, setWorking] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const quotaLine = textMealRemainingLine(remaining);
   const disabled = busy || working || remaining === 0;
@@ -100,10 +105,7 @@ export function TodayTextMealForm({
           ? compact
             ? "gap-1.5"
             : "gap-2"
-          : cn(
-              "card-surface px-4",
-              compact ? "gap-1.5 py-2" : "gap-2 py-3",
-            ),
+          : cn("card-surface px-4", compact ? "gap-1.5 py-2" : "gap-2 py-3"),
       )}
     >
       <textarea
@@ -113,9 +115,9 @@ export function TodayTextMealForm({
           setError(null);
         }}
         placeholder="овсянка 80 г, яйца 2 шт"
+        ref={inputRef}
         rows={compact ? 2 : 3}
         disabled={disabled}
-        autoFocus
         className={cn(
           "w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-foreground",
           compact ? "text-sm" : "text-base",
@@ -131,7 +133,9 @@ export function TodayTextMealForm({
         <p className="text-xs text-muted-foreground">{quotaLine}</p>
       ) : null}
       <MealChatHint className="text-xs" />
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
       <Button
         type="button"
         className={cn("w-full", mealActionButtonClass)}

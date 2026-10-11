@@ -98,10 +98,7 @@ export function buildEarlyHabitSnapshot(input: {
   );
   return {
     foodLogStreak,
-    foodAtRisk: foodLogStreakAtRisk(
-      input.todayHasFood,
-      input.priorFoodLogDays,
-    ),
+    foodAtRisk: foodLogStreakAtRisk(input.todayHasFood, input.priorFoodLogDays),
     proteinHits,
     proteinLine: earlyProteinLine(
       input.todayProteinClosed,

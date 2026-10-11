@@ -569,7 +569,8 @@ html[data-keyboard="open"] .app-bottom-nav {
   );
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 -12px 28px -14px color-mix(in oklch, var(--foreground) 14%, transparent);
+  box-shadow: 0 -12px 28px -14px
+    color-mix(in oklch, var(--foreground) 14%, transparent);
 }
 
 html[data-keyboard="open"] .app-sticky-actions {
@@ -936,7 +937,9 @@ html[data-density="compact"] [data-diary-compact-scope] .text-xl {
   line-height: 1.625rem;
 }
 
-html[data-density="compact"] [data-diary-compact-scope] :where(button, a, [data-slot="button"]).text-lg {
+html[data-density="compact"]
+  [data-diary-compact-scope]
+  :where(button, a, [data-slot="button"]).text-lg {
   font-size: 1rem;
   line-height: 1.5rem;
 }

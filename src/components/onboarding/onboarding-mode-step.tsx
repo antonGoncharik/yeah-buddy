@@ -1,6 +1,11 @@
 "use client";
 
-import { CookieMark, Doodle, DUMBBELL_VIEWBOX, DumbbellMark } from "@/components/layout/doodles";
+import {
+  CookieMark,
+  Doodle,
+  DUMBBELL_VIEWBOX,
+  DumbbellMark,
+} from "@/components/layout/doodles";
 import { Button } from "@/components/ui/button";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
@@ -17,9 +22,8 @@ export function OnboardingModeStep({
   const unselected = gymEnabled == null;
 
   return (
-    <div
-      className="flex flex-col gap-3"
-      role="group"
+    <fieldset
+      className="flex min-w-0 flex-col gap-3 border-0 p-0 m-0"
       aria-label="Что ведём"
       aria-invalid={invalid || undefined}
     >
@@ -83,6 +87,6 @@ export function OnboardingModeStep({
           Еда, программа в зале, веса и разборы.
         </span>
       </Button>
-    </div>
+    </fieldset>
   );
 }

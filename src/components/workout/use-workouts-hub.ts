@@ -23,7 +23,10 @@ import {
   readMacro,
   readTemplates,
 } from "@/lib/workout/hub-payload";
-import { recomputeHubQueue, writeHubQueuePreview } from "@/lib/workout/hub-queue";
+import {
+  recomputeHubQueue,
+  writeHubQueuePreview,
+} from "@/lib/workout/hub-queue";
 import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
 
 function applyHubState(

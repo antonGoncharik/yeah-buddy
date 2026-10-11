@@ -184,7 +184,9 @@ export function JoyShareButton({
           {writeKg ? SHARE_HIDE_KG : SHARE_WRITE_KG}
         </button>
       ) : null}
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
     </div>
   );
 }

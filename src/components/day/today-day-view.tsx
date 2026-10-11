@@ -36,7 +36,11 @@ import {
   waistGapLine,
   weightGapLine,
 } from "@/lib/flavor";
-import { calcKcalFromMacros, hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
+import {
+  calcKcalFromMacros,
+  hiddenMealSlotsNote,
+  sumMealItems,
+} from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import { emptyStartCopy } from "@/lib/retention";
 import {
@@ -201,8 +205,8 @@ export function TodayDayView({
   const trainingGap = gymEnabled
     ? trainingDayGapLine({
         training: effectiveTraining,
-    fact,
-    rest: { protein: goals.restProtein, carbs: goals.restCarbs },
+        fact,
+        rest: { protein: goals.restProtein, carbs: goals.restCarbs },
         day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
       })
     : null;
@@ -335,11 +339,7 @@ export function TodayDayView({
     ) : null;
   const quickFoods =
     !viewOnly && quickLogMealId ? (
-      <TodayQuickFoods
-        date={date}
-        mealId={quickLogMealId}
-        busy={busy}
-      />
+      <TodayQuickFoods date={date} mealId={quickLogMealId} busy={busy} />
     ) : null;
 
   const foodBlock = (

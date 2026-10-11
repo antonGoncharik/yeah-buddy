@@ -185,7 +185,9 @@ export function SettingsAuthor() {
           </Button>
         </span>
         {starsInvalid ? (
-          <p className="text-base leading-snug text-destructive">{DONATE_STARS_INVALID}</p>
+          <p className="text-base leading-snug text-destructive">
+            {DONATE_STARS_INVALID}
+          </p>
         ) : (
           <p className="text-xs text-muted-foreground">
             От {DONATE_MIN} до {DONATE_MAX.toLocaleString("ru-RU")}.

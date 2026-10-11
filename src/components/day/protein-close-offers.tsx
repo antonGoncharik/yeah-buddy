@@ -121,9 +121,7 @@ export function ProteinCloseOffers({
           variant="secondary"
           className={cn(
             "block h-auto w-full min-w-0 px-3 text-left font-medium leading-snug whitespace-normal",
-            compact
-              ? "min-h-10 py-2 text-sm"
-              : "min-h-12 py-3 text-base",
+            compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-3 text-base",
           )}
           disabled={busy || addingId != null}
           onClick={() => void add(offer.foodId, offer.grams)}

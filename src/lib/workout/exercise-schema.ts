@@ -53,9 +53,7 @@ export class StartingMaxLockedError extends Error {
   }
 }
 
-const catalogExerciseId = z
-  .union([z.string().uuid(), z.null()])
-  .optional();
+const catalogExerciseId = z.union([z.string().uuid(), z.null()]).optional();
 
 export const exerciseUpdateSchema = z.object({
   name: z.string().trim().min(1, "Название обязательно."),

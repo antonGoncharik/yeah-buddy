@@ -86,7 +86,9 @@ export function FoodForm({
 
       <FoodYieldFields form={form} onChange={patch} />
 
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
 
       {food ? (
         <Button

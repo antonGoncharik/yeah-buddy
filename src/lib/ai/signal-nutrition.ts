@@ -18,7 +18,11 @@ import {
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
 import type { FoodShare } from "@/lib/days";
-import { KCAL_HIT_RATIO, MACRO_HIT_RATIO, macroInGoal } from "@/lib/nutrition-stats";
+import {
+  KCAL_HIT_RATIO,
+  MACRO_HIT_RATIO,
+  macroInGoal,
+} from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
 const HALF_KCAL_RATIO = 0.08;

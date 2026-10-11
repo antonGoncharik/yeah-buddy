@@ -4,10 +4,10 @@ import { Flame } from "lucide-react";
 
 import { MarkBadge } from "@/components/layout/mark-badge";
 import {
+  type EarlyHabitSnapshot,
   earlyHabitFoodMilestone,
   earlyHabitLead,
   foodStreakLabel,
-  type EarlyHabitSnapshot,
 } from "@/lib/retention/habit";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,12 @@ export function EarlyHabitCard({
           <p className="text-sm font-medium text-muted-foreground">
             День {snapshot.dayOfHabit} из 14
           </p>
-          <p className={cn("font-semibold tracking-tight", compact ? "text-base" : "text-lg")}>
+          <p
+            className={cn(
+              "font-semibold tracking-tight",
+              compact ? "text-base" : "text-lg",
+            )}
+          >
             Привычка
           </p>
           <p className="mt-1 text-sm leading-snug text-muted-foreground">
@@ -57,7 +62,9 @@ export function EarlyHabitCard({
         {snapshot.proteinLine ? (
           <li>
             <span className="font-medium text-foreground">Белок · </span>
-            <span className="text-muted-foreground">{snapshot.proteinLine}</span>
+            <span className="text-muted-foreground">
+              {snapshot.proteinLine}
+            </span>
           </li>
         ) : null}
         {showGymLine ? (

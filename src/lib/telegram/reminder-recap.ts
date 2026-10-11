@@ -1,6 +1,9 @@
 import { reviewScoreboardSignals } from "@/lib/ai/signal-lines";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
-import { macroGoalToleranceGrams, macroInGoal } from "@/lib/nutrition/macro-hit";
+import {
+  macroGoalToleranceGrams,
+  macroInGoal,
+} from "@/lib/nutrition/macro-hit";
 import { type DayShareGym, dayShareGymLine } from "@/lib/share/day";
 
 const RECAP_LINES = 5;

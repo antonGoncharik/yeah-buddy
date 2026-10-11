@@ -22,10 +22,7 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
-import {
-  formatSetLine,
-  setUsesSeconds,
-} from "@/lib/workout/session-format";
+import { formatSetLine, setUsesSeconds } from "@/lib/workout/session-format";
 
 const HOLD_STEP_SECONDS = 5;
 const RESERVE_CHOICES = [0, 1, 2, 3] as const;

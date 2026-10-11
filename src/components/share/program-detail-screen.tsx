@@ -89,7 +89,9 @@ export function ProgramDetailScreen({ id }: { id: string }) {
                 </p>
               ) : null}
               {error ? (
-                <p className="text-base leading-snug text-destructive">{error}</p>
+                <p className="text-base leading-snug text-destructive">
+                  {error}
+                </p>
               ) : null}
             </div>
           </>

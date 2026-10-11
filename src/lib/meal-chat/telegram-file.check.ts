@@ -7,11 +7,7 @@ assert.equal(
   "audio/ogg",
   "declared ogg",
 );
-assert.equal(
-  audioMimeFromTelegram("voice/file.oga"),
-  "audio/ogg",
-  "oga path",
-);
+assert.equal(audioMimeFromTelegram("voice/file.oga"), "audio/ogg", "oga path");
 assert.equal(
   audioMimeFromTelegram("voice/file.bin", "audio/mpeg"),
   "audio/mp3",

@@ -4,8 +4,8 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import {
-  habitBridgeLead,
   type HabitBridgeSnapshot,
+  habitBridgeLead,
 } from "@/lib/retention/habit-bridge";
 import { cn } from "@/lib/utils";
 
@@ -33,10 +33,17 @@ export function HabitBridgeCard({
         <p className="text-sm font-medium text-muted-foreground">
           Вторая половина месяца
         </p>
-        <p className={cn("font-semibold tracking-tight", compact ? "text-base" : "text-lg")}>
+        <p
+          className={cn(
+            "font-semibold tracking-tight",
+            compact ? "text-base" : "text-lg",
+          )}
+        >
           Неделя в цифрах
         </p>
-        <p className="mt-1 text-sm leading-snug text-muted-foreground">{lead}</p>
+        <p className="mt-1 text-sm leading-snug text-muted-foreground">
+          {lead}
+        </p>
       </div>
 
       <ul className="text-sm leading-snug text-muted-foreground">
@@ -59,14 +66,20 @@ export function HabitBridgeCard({
       <div className="flex flex-col gap-2 sm:flex-row">
         <Link
           href="/today/week"
-          className={cn(buttonVariants({ variant: "secondary" }), "h-12 flex-1 text-base")}
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "h-12 flex-1 text-base",
+          )}
         >
           Неделя
         </Link>
         {showReviewLink && snapshot.reviewReady ? (
           <Link
             href="/progress"
-            className={cn(buttonVariants({ variant: "default" }), "h-12 flex-1 text-base")}
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "h-12 flex-1 text-base",
+            )}
           >
             Как прошло
           </Link>

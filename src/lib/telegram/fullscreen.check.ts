@@ -124,7 +124,10 @@ function bindHost(host: TelegramFullscreenHost, timers: Array<() => void>) {
   for (const run of timers.slice(1)) {
     run?.();
   }
-  assert(!calls.includes("exit"), "ALREADY_FULLSCREEN does not exit fullscreen");
+  assert(
+    !calls.includes("exit"),
+    "ALREADY_FULLSCREEN does not exit fullscreen",
+  );
   assert(calls.length === 1, "ALREADY_FULLSCREEN stops further retries");
 }
 

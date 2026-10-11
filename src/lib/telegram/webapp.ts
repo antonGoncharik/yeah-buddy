@@ -4,10 +4,10 @@ import {
   telegramInitParamsFromHash,
   telegramLaunchHashFromParams,
 } from "@/lib/telegram/boot-script";
-import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 import { applyTelegramCloseGuard } from "@/lib/telegram/close-guard";
 import { clearHapticApiCache } from "@/lib/telegram/haptic";
 import { telegramLaunchParamsFromLocation } from "@/lib/telegram/launch-hash";
+import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 
 export const TELEGRAM_INIT_PARAMS_STORAGE_KEY = "__telegram__initParams";
 export { TELEGRAM_INIT_LOCAL_STORAGE_KEY };
@@ -227,7 +227,9 @@ type TelegramLifecycleHost = TelegramWebAppHost & {
   onEvent?: (event: string, callback: () => void) => void;
 };
 
-function primeTelegramWebAppHost(webApp: TelegramWebAppHost): TelegramWebAppHost {
+function primeTelegramWebAppHost(
+  webApp: TelegramWebAppHost,
+): TelegramWebAppHost {
   const host = webApp as TelegramLifecycleHost;
   const warm = () => {
     try {
@@ -266,7 +268,11 @@ async function waitForTelegramWebAppHost(): Promise<TelegramWebAppHost> {
 
   const webApp = (window as TelegramWindow).Telegram?.WebApp;
   if (webApp) {
-    if (!webApp.initData?.trim() && launchDataAvailable() && recoverTelegramInitOnce()) {
+    if (
+      !webApp.initData?.trim() &&
+      launchDataAvailable() &&
+      recoverTelegramInitOnce()
+    ) {
       throw new Error("telegram init reload");
     }
     return webApp;
@@ -283,7 +289,10 @@ export async function loadTelegramWebApp(): Promise<TelegramWebAppHost> {
       .then((webApp) => primeTelegramWebAppHost(webApp))
       .catch((error) => {
         webAppLoad = undefined;
-        if (error instanceof Error && error.message === "telegram init reload") {
+        if (
+          error instanceof Error &&
+          error.message === "telegram init reload"
+        ) {
           throw error;
         }
         const fallback = (window as TelegramWindow).Telegram?.WebApp;

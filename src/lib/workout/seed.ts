@@ -37,7 +37,9 @@ export async function ensureStarterExercises(
         weight_step: exercise.weight_step,
         formula_preset: exercise.formula_preset,
         slot: exercise.slot,
-        ...(catalogExerciseId ? { catalog_exercise_id: catalogExerciseId } : {}),
+        ...(catalogExerciseId
+          ? { catalog_exercise_id: catalogExerciseId }
+          : {}),
       });
     }
 

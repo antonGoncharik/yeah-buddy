@@ -7,8 +7,8 @@ import {
   TELEGRAM_INIT_STORAGE_KEY,
   telegramInitParamsFromHash,
 } from "@/lib/telegram/boot-script";
-import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 import { TELEGRAM_FULLSCREEN_STORAGE_KEY } from "@/lib/telegram/fullscreen-storage";
+import { scrubTelegramLaunchParams } from "@/lib/telegram/launch-params";
 import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {

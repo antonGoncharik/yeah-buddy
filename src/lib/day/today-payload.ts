@@ -8,7 +8,6 @@ import {
   isOnboardingGoal,
 } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
-import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import {
   isRecord,
   mapRecordList,
@@ -17,6 +16,7 @@ import {
 } from "@/lib/read";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
+import { parseGymEnabled } from "@/lib/settings/gym-mode";
 import type {
   CopyDayHint,
   MealType,

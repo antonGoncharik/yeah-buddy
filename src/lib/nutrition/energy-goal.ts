@@ -270,10 +270,7 @@ export function energyGoalHint(
 
   const windowDays = energy.span + 1;
   const coverage = windowDays > 0 ? energy.logged / windowDays : 0;
-  if (
-    coverage < OFFER_MIN_COVERAGE ||
-    energy.logged < OFFER_MIN_LOGGED_DAYS
-  ) {
+  if (coverage < OFFER_MIN_COVERAGE || energy.logged < OFFER_MIN_LOGGED_DAYS) {
     return "Записывай еду чаще в эти дни — расход считается по тарелке и весу.";
   }
 

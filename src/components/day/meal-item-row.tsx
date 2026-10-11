@@ -2,16 +2,15 @@
 
 import { Camera, Mic, Plus } from "lucide-react";
 import Link from "next/link";
-
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { AlignedPair } from "@/components/ui/aligned-pair";
-import { buttonVariants } from "@/components/ui/button";
-import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
   mealActionFullButtonClass,
   mealActionIconSegmentClass,
   mealActionPrimarySegmentClass,
 } from "@/components/day/meal-action-bar";
+import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { AlignedPair } from "@/components/ui/aligned-pair";
+import { buttonVariants } from "@/components/ui/button";
+import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { lumpHref } from "@/lib/day/lump";
 import { formatGrams, formatKcal, formatMacro } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";

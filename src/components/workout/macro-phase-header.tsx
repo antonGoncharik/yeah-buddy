@@ -36,11 +36,7 @@ export function MacroPhaseHeader({
   const timelineType =
     pendingTimelinePhase?.phase_type ?? state.phase.phase_type;
   const timelineName = pendingTimelinePhase?.name ?? state.phase.name;
-  const steps = cycleTimeline(
-    state.planned_cycle,
-    timelineType,
-    timelineName,
-  );
+  const steps = cycleTimeline(state.planned_cycle, timelineType, timelineName);
 
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">

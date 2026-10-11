@@ -6,8 +6,8 @@ import { OutboxSync } from "@/components/layout/outbox-sync";
 import { ResetWindowScroll } from "@/components/layout/reset-window-scroll";
 import { TelegramBackSwipeGuard } from "@/components/layout/telegram-back-swipe-guard";
 import { TelegramGate } from "@/components/layout/telegram-gate";
-import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
 import { MealDraftCatcher } from "@/components/meal-chat/meal-draft-catcher";
+import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
 import { PackCatcher } from "@/components/share/pack-catcher";
 
 export const metadata: Metadata = {

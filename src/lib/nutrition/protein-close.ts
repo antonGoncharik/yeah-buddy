@@ -94,7 +94,13 @@ function offerFor(
 
   const remaining = budget.remainingProtein;
   const perGram = food.proteinPer100 / 100;
-  const grams = chooseGrams(food, food.portionGrams, perGram, remaining, budget);
+  const grams = chooseGrams(
+    food,
+    food.portionGrams,
+    perGram,
+    remaining,
+    budget,
+  );
   if (grams == null) {
     return null;
   }
@@ -164,10 +170,7 @@ function chooseGrams(
 }
 
 function maxGramsWithinBudget(
-  food: Pick<
-    ProteinCloseCandidate,
-    "fatPer100" | "carbsPer100" | "kcalPer100"
-  >,
+  food: Pick<ProteinCloseCandidate, "fatPer100" | "carbsPer100" | "kcalPer100">,
   budget: MacroBudget,
 ): number {
   const caps = [

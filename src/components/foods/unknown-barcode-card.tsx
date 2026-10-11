@@ -115,7 +115,9 @@ export function UnknownBarcodeCard({
           }
         }}
       />
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
       <Button type="submit" className="h-12 text-base" disabled={saving}>
         {saving ? "Запоминаю…" : "Запомнить"}
       </Button>

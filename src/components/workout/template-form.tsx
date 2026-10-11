@@ -76,7 +76,9 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
             onPlanChange={setSlotPlan}
           />
 
-          {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+          {error ? (
+            <p className="text-base leading-snug text-destructive">{error}</p>
+          ) : null}
 
           <StickyActions>
             <Button type="submit" className="h-14 text-lg" disabled={saving}>

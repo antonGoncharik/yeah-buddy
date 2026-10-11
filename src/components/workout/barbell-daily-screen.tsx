@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { BarbellDailyGame } from "@/components/workout/barbell-daily-game";
 import { calendarToday } from "@/lib/day/dates";
 import {
+  BARBELL_DAILY_RULES,
   type BarbellDailyChallenge,
   barbellDailyGrade,
   barbellDailyGradeLine,
-  BARBELL_DAILY_RULES,
   dailyChallenge,
   formatSidePlateStack,
   optimalSidePlates,
@@ -180,4 +180,3 @@ function plateWord(count: number): string {
   }
   return "блинов";
 }
-

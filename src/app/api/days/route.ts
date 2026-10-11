@@ -59,8 +59,8 @@ import {
   buildHabitBridgeSnapshot,
   inHabitBridgeWindow,
 } from "@/lib/retention/habit-bridge";
-import { gymFeaturesEnabled } from "@/lib/settings/gym-mode";
 import { getUserSettings } from "@/lib/settings";
+import { gymFeaturesEnabled } from "@/lib/settings/gym-mode";
 import { DEFAULT_TIMEZONE } from "@/lib/telegram/reminder-clock";
 import type { DayHistoryRow } from "@/lib/types";
 import { countCompletedSessions } from "@/lib/workout/sessions";
@@ -159,7 +159,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const priorFood = priorFoodLogDays(recentDays, date);
     const dayFact = day != null ? sumMeals(day.meals) : null;
     const todayHasFood =
-      day != null && day.meals.some((meal) => meal.items.length > 0);
+      day?.meals.some((meal) => meal.items.length > 0) ?? false;
     const todayProteinClosed =
       day != null &&
       dayFact != null &&
@@ -243,9 +243,7 @@ export async function GET(request: Request): Promise<NextResponse> {
             settings?.training_fat ?? DEFAULT_TRAINING_MACRO_GOALS.fat,
           dismissedKcal: settings?.energy_goal_dismissed_kcal ?? null,
         };
-        const energyPlan = viewingToday
-          ? energyGoalOffer(energyInputs)
-          : null;
+        const energyPlan = viewingToday ? energyGoalOffer(energyInputs) : null;
         return {
           energyGoal: energyGoalPayload(energyPlan),
           energyGoalHint:

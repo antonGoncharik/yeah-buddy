@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 import { GuidePageBody } from "@/components/guide/guide-page-body";
-import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import {
   OnboardingStepShell,
   OnboardingThumbZone,
 } from "@/components/onboarding/onboarding-shell";
+import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
 import { Button } from "@/components/ui/button";
 import { GUIDE_LABEL, onboardingIntroPages } from "@/lib/guide";
 import type { GuidePage } from "@/lib/guide/types";

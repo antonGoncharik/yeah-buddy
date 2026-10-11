@@ -60,4 +60,8 @@ const broken = mapCatalogExerciseDetail({
   instruction_steps: {},
 });
 
-assertEqual(broken.gif_url, "", "missing paths yield empty url not undefined string");
+assertEqual(
+  broken.gif_url,
+  "",
+  "missing paths yield empty url not undefined string",
+);

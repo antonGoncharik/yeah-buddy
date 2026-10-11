@@ -119,10 +119,7 @@ export function TodayScreen({
 
   return (
     <div
-      className={cn(
-        "flex w-full flex-col px-4",
-        compact ? "gap-2" : "gap-3",
-      )}
+      className={cn("flex w-full flex-col px-4", compact ? "gap-2" : "gap-3")}
     >
       <div className="today-chrome">
         <div className="today-chrome-head">
@@ -157,9 +154,7 @@ export function TodayScreen({
               />
             }
           />
-          {contentReady && shownDay ? (
-            <TodayDiaryLinks />
-          ) : null}
+          {contentReady && shownDay ? <TodayDiaryLinks /> : null}
         </div>
         {contentReady && shownDay ? (
           <TodayDayHeader

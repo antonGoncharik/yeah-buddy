@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { OnboardingProgramShelf } from "@/components/onboarding/onboarding-circle-step";
 import {
   loadPendingPackKind,
   submitOnboardingFinish,
@@ -14,18 +15,21 @@ import {
   liftAnswersDraftInvalid,
   liftAnswersHaveInput,
 } from "@/components/onboarding/onboarding-lifts-step";
-import type { OnboardingProgramShelf } from "@/components/onboarding/onboarding-circle-step";
 import {
-  type OnboardingStep,
   isOnboardingStep,
+  type OnboardingStep,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
-import type { WizardScreenEntry } from "@/lib/navigation/wizard-history";
-import { useWizardScreenHistory } from "@/lib/navigation/use-wizard-screen-history";
+import {
+  isOnboardingPresetWeightKg,
+  onboardingDefaultWeightKg,
+} from "@/components/onboarding/onboarding-weight-ruler";
 import { mutateJson } from "@/lib/api-cache";
 import type { RationId } from "@/lib/food/ration";
 import { decimalDraftLooksValid } from "@/lib/form/numeric-draft";
 import { LOAD_FAILED } from "@/lib/messages";
+import { useWizardScreenHistory } from "@/lib/navigation/use-wizard-screen-history";
+import type { WizardScreenEntry } from "@/lib/navigation/wizard-history";
 import {
   type OnboardingGoal,
   type OnboardingSex,
@@ -33,8 +37,6 @@ import {
 } from "@/lib/nutrition";
 import type { OnboardingCircle, OnboardingState } from "@/lib/onboarding";
 import { parseOnboardingState } from "@/lib/onboarding/map";
-import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
-import { isProgramPresetId } from "@/lib/workout/program-presets";
 import { defaultOnboardingCircle } from "@/lib/onboarding/setup";
 import type { SharePackKind } from "@/lib/share/payload";
 import { peekPendingProgramId } from "@/lib/share/pending";
@@ -42,11 +44,11 @@ import type { PublicProgramId } from "@/lib/share/program-public";
 import { haptic } from "@/lib/telegram/haptic";
 import type { UserTrainingAge } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
+import { markProgramEditableHintPending } from "@/lib/workout/program-editable-hint";
 import {
-  isOnboardingPresetWeightKg,
-  onboardingDefaultWeightKg,
-} from "@/components/onboarding/onboarding-weight-ruler";
-import { RECOMMENDED_PROGRAM_PRESET_ID } from "@/lib/workout/program-presets";
+  isProgramPresetId,
+  RECOMMENDED_PROGRAM_PRESET_ID,
+} from "@/lib/workout/program-presets";
 
 export type { OnboardingStep } from "@/components/onboarding/onboarding-steps";
 
@@ -190,8 +192,7 @@ export function useOnboardingScreen() {
       setPendingKind(incoming);
       setPendingProgramId(incomingProgram);
       setState(onboarding);
-      const gymFromLink =
-        incomingProgram != null || incoming === "workouts";
+      const gymFromLink = incomingProgram != null || incoming === "workouts";
       setGymEnabled(gymFromLink ? true : null);
       setCircle(
         incomingProgram ?? defaultOnboardingCircle(onboarding.circle, replay),

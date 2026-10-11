@@ -7,9 +7,9 @@ import {
   assertUserDayWritable,
   getUserCalendarToday,
 } from "@/lib/day/writable";
+import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { getUserSettings } from "@/lib/settings";
 import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
-import { getActiveMealTemplate } from "@/lib/meal-templates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, MealType } from "@/lib/types";
 

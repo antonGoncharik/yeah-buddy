@@ -13,9 +13,7 @@ function readNativeTelegramLaunchParams(): Record<string, string> {
   if (typeof window === "undefined") {
     return {};
   }
-  return (
-    (window as TelegramInitWindow).Telegram?.WebView?.initParams ?? {}
-  );
+  return (window as TelegramInitWindow).Telegram?.WebView?.initParams ?? {};
 }
 
 function launchInitParam(
@@ -71,8 +69,8 @@ export function telegramPlatform(): string {
   if (typeof window === "undefined") {
     return "unknown";
   }
-  const fromInit = (window as TelegramInitWindow).Telegram?.WebView
-    ?.initParams?.tgWebAppPlatform;
+  const fromInit = (window as TelegramInitWindow).Telegram?.WebView?.initParams
+    ?.tgWebAppPlatform;
   if (fromInit) {
     return fromInit.toLowerCase();
   }

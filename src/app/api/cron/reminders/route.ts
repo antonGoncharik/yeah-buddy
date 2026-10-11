@@ -2,10 +2,7 @@ import type { NextResponse } from "next/server";
 
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { getServerEnv } from "@/lib/env";
-import {
-  isCronAuthorized,
-  runRemindersCron,
-} from "@/lib/telegram/reminders";
+import { isCronAuthorized, runRemindersCron } from "@/lib/telegram/reminders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

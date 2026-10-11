@@ -116,7 +116,9 @@ export function PlateDraftPanel({
         </div>
       ) : null}
 
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
     </>
   );
 }

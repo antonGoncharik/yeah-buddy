@@ -80,7 +80,9 @@ export function CatalogFoodSection({
           Каталог
         </h3>
       ) : null}
-      {error ? <p className="px-1 text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="px-1 text-base leading-snug text-destructive">{error}</p>
+      ) : null}
       {showCatalog && catalog.loading && !hasHits ? (
         <p className="px-1 text-sm text-muted-foreground">Ищем…</p>
       ) : null}

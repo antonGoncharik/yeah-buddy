@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { mutateJson } from "@/lib/api-cache";
 import { readBuddyBoard } from "@/lib/buddy/parse";
 import type { BuddyTodayBoard } from "@/lib/buddy/types";
 import { formatIsoDate } from "@/lib/day/format";
-import { mutateJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 

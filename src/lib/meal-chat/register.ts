@@ -5,16 +5,13 @@ import { ReviewError } from "@/lib/ai/errors";
 import { readGeminiKeys } from "@/lib/ai/gemini";
 import { analyzePlate } from "@/lib/ai/plate";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
+import { PLATE_IMAGE_MAX_BYTES } from "@/lib/ai/plate-image";
 import { analyzeTextMeal } from "@/lib/ai/text-meal";
 import { normalizeMealLogText } from "@/lib/ai/text-meal-input";
-import { PLATE_IMAGE_MAX_BYTES } from "@/lib/ai/plate-image";
 import { deleteMealItem } from "@/lib/day/meal-items";
 import { getServerEnv } from "@/lib/env";
 import { listFoods } from "@/lib/food/store";
-import {
-  messageHasRelayMedia,
-  readInboxChatId,
-} from "@/lib/inbox/letter";
+import { messageHasRelayMedia, readInboxChatId } from "@/lib/inbox/letter";
 import { readInboxThread } from "@/lib/inbox/store";
 import {
   replyAfterDirectMealLog,
@@ -30,10 +27,7 @@ import {
 } from "@/lib/meal-chat/handled";
 import { mealChatBlockedByInbox } from "@/lib/meal-chat/inbox-gate";
 import { mealDraftStartPayload } from "@/lib/meal-chat/start";
-import {
-  consumeMealChatUndo,
-  saveMealChatDraft,
-} from "@/lib/meal-chat/store";
+import { consumeMealChatUndo, saveMealChatDraft } from "@/lib/meal-chat/store";
 import { resolveMealChatTarget } from "@/lib/meal-chat/target";
 import {
   audioMimeFromTelegram,
@@ -285,12 +279,7 @@ async function handleVoice(
 
   try {
     const { allRefs, catalog } = await loadFoodCatalog(user.userId);
-    const draft = await analyzeDictate(
-      user.userId,
-      catalog,
-      audio,
-      allRefs,
-    );
+    const draft = await analyzeDictate(user.userId, catalog, audio, allRefs);
 
     if (draft.items.length === 0) {
       await ctx.reply(AI_DICTATE_EMPTY);

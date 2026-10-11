@@ -26,8 +26,7 @@ export function barbellShareCaption(facts: BarbellShareFacts): string {
     facts.parMoves != null
       ? ` ${barbellDailyGradeEmoji(barbellDailyGrade(facts.moves, facts.parMoves))}`
       : "";
-  const parLine =
-    facts.parMoves != null ? `\nПар ${facts.parMoves}` : "";
+  const parLine = facts.parMoves != null ? `\nПар ${facts.parMoves}` : "";
   return [
     `Собрал ${target} кг за ${moves} ${plateWord(facts.moves)}${grade}${parLine}`,
     "Задача дня · Yeah Buddy",

@@ -1,16 +1,16 @@
 import {
-  catalogCopyPortion,
-  catalogDefaultPortion,
   CATALOG_SOURCE_CALORIZATOR,
+  catalogCopyPortion,
+  catalogDedupeFingerprint,
+  catalogDefaultPortion,
+  catalogFoodSearchScore,
   catalogSearchLead,
   catalogSearchNeedle,
   catalogSearchTokens,
-  catalogFoodSearchScore,
   filterCatalogHits,
   foodMatchesQuery,
   ownsBarcode,
   parseBarcodeEan,
-  catalogDedupeFingerprint,
   parseCatalogDumpRow,
   parseCatalogFoodPayload,
 } from "@/lib/food/catalog-map";
@@ -258,7 +258,11 @@ const dairyRank = filterCatalogHits(
   ],
   ["сырок"],
 );
-assertEqual(dairyRank[0]?.name, "Сырок творожный ванильный", "word beats prefix");
+assertEqual(
+  dairyRank[0]?.name,
+  "Сырок творожный ванильный",
+  "word beats prefix",
+);
 
 const eggRank = filterCatalogHits(
   [

@@ -53,9 +53,7 @@ export function audioMimeFromTelegram(
   path: string,
   declaredMime?: string,
 ): string | null {
-  const fromDeclared = declaredMime
-    ? dictateAudioMime(declaredMime)
-    : null;
+  const fromDeclared = declaredMime ? dictateAudioMime(declaredMime) : null;
   if (fromDeclared) {
     return fromDeclared;
   }

@@ -1,7 +1,7 @@
 import {
+  MIDDAY_PROTEIN_AFTERNOON_HOUR,
   middayDayCompleteEnough,
   middayReminderText,
-  MIDDAY_PROTEIN_AFTERNOON_HOUR,
 } from "@/lib/telegram/reminder-midday";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -28,11 +28,7 @@ assertEqual(
   true,
   "rest day with food and protein closed",
 );
-assertEqual(
-  middayReminderText(base),
-  null,
-  "complete day skips",
-);
+assertEqual(middayReminderText(base), null, "complete day skips");
 assertEqual(
   middayReminderText({
     ...base,

@@ -10,8 +10,8 @@ import {
   foodStreakLabel,
   liveFoodLogStreak,
 } from "@/lib/retention/habit";
-import type { SessionStatus } from "@/lib/types";
 import { gymDoneForReminder } from "@/lib/telegram/reminder-text";
+import type { SessionStatus } from "@/lib/types";
 
 /** Minimum protein gap (g) before a midday nudge. */
 export const MIDDAY_PROTEIN_GAP_GRAMS = 15;

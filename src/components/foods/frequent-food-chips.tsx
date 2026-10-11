@@ -41,7 +41,9 @@ export function FrequentFoodChips({
           <button
             key={food.id}
             type="button"
-            disabled={busy || pending || (addingId != null && addingId !== food.id)}
+            disabled={
+              busy || pending || (addingId != null && addingId !== food.id)
+            }
             onClick={() => onPick(food)}
             className={cn(
               "shrink-0 rounded-full border border-border bg-card px-3 font-medium text-foreground shadow-sm transition-colors",

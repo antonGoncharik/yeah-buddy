@@ -3,14 +3,13 @@ import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Exercise, ExerciseWithMax } from "@/lib/types";
 import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
+import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
+import { getCatalogExercise } from "@/lib/workout/exercise-catalog-store";
 import type {
   ExerciseCreateInput,
   ExerciseUpdateInput,
 } from "@/lib/workout/exercise-schema";
-import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
-import { getCatalogExercise } from "@/lib/workout/exercise-catalog-store";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
-import { catalogUuidForStarterName } from "@/lib/workout/starter-catalog-link";
 import {
   attachMaxes,
   copyMaxToCurrentPhase,
@@ -21,6 +20,7 @@ import {
 } from "@/lib/workout/global-maxes";
 import { defaultUnitForWorkoutType } from "@/lib/workout/labels";
 import { mapExercise } from "@/lib/workout/map-rows";
+import { catalogUuidForStarterName } from "@/lib/workout/starter-catalog-link";
 
 export async function listExercises(
   userId: string,
@@ -109,7 +109,10 @@ export async function ensureNamedExercise(
   }
 
   const supabase = createSupabaseServerClient();
-  const catalogExerciseId = await catalogUuidForStarterName(supabase, input.name);
+  const catalogExerciseId = await catalogUuidForStarterName(
+    supabase,
+    input.name,
+  );
   const inserted = await supabase
     .from("exercises")
     .insert({
@@ -151,7 +154,10 @@ export async function createExercise(
   input: ExerciseCreateInput,
 ): Promise<ExerciseWithMax> {
   const supabase = createSupabaseServerClient();
-  const catalogExerciseId = await catalogUuidForStarterName(supabase, input.name);
+  const catalogExerciseId = await catalogUuidForStarterName(
+    supabase,
+    input.name,
+  );
   const inserted = await supabase
     .from("exercises")
     .insert({

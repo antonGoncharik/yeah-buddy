@@ -3,8 +3,8 @@
 import { ProgramPresetCatalog } from "@/components/workout/program-preset-list";
 import type { OnboardingCircle } from "@/lib/onboarding";
 import { haptic } from "@/lib/telegram/haptic";
-import { cn } from "@/lib/utils";
 import type { UserSex } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import {
   homeProgramPresetIds,
   isProgramPresetId,
@@ -107,7 +107,8 @@ export function OnboardingCircleStep({
         </p>
       ) : null}
       <p className="text-sm leading-relaxed text-muted-foreground">
-        После установки программу можно править — очередь пойдёт по твоей версии.
+        После установки программу можно править — очередь пойдёт по твоей
+        версии.
       </p>
       <ProgramPresetCatalog
         disabled={saving}

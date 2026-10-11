@@ -42,11 +42,9 @@ assert(
 assert(GUIDE_PAGES.length >= 6, "reference covers the whole diary");
 assert(GUIDE_TIPS.length === 4, "today, day type, body, and workouts tips");
 
-const ids = [
-  GUIDE_INTRO_PAGE_FOOD,
-  GUIDE_INTRO_PAGE_GYM,
-  ...GUIDE_PAGES,
-].map((page) => page.id);
+const ids = [GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM, ...GUIDE_PAGES].map(
+  (page) => page.id,
+);
 assertEqual(new Set(ids).size, ids.length, "page ids unique");
 
 for (const page of [GUIDE_INTRO_PAGE_FOOD, GUIDE_INTRO_PAGE_GYM]) {

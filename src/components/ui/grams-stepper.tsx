@@ -34,7 +34,12 @@ export function GramsStepperInput({
 
   return (
     <div className="flex items-center gap-2">
-      <GramStep label="Меньше" large={large} small={small} onClick={() => step(-1)}>
+      <GramStep
+        label="Меньше"
+        large={large}
+        small={small}
+        onClick={() => step(-1)}
+      >
         <Minus className={large ? "size-5" : small ? "size-3.5" : "size-4"} />
       </GramStep>
       <Input
@@ -47,15 +52,16 @@ export function GramsStepperInput({
         onKeyDown={handleNumericEnter}
         className={cn(
           "min-w-0 flex-1 px-2 text-center font-semibold tabular-nums",
-          large
-            ? "h-14 text-2xl"
-            : small
-              ? "h-10 text-base"
-              : "h-12 text-base",
+          large ? "h-14 text-2xl" : small ? "h-10 text-base" : "h-12 text-base",
           inputClassName,
         )}
       />
-      <GramStep label="Больше" large={large} small={small} onClick={() => step(1)}>
+      <GramStep
+        label="Больше"
+        large={large}
+        small={small}
+        onClick={() => step(1)}
+      >
         <Plus className={large ? "size-5" : small ? "size-3.5" : "size-4"} />
       </GramStep>
     </div>

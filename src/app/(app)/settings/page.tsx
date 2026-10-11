@@ -7,9 +7,7 @@ import {
 
 export default function SettingsPage() {
   const mealChatHint = Boolean(
-    getGeminiPlateApiKey() ||
-      getGeminiDictateApiKey() ||
-      getGeminiTextApiKey(),
+    getGeminiPlateApiKey() || getGeminiDictateApiKey() || getGeminiTextApiKey(),
   );
 
   return <SettingsScreen mealChatHint={mealChatHint} />;

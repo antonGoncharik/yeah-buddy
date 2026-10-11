@@ -27,9 +27,9 @@ import {
   visibleTodayDate,
   writeStateFromDay,
 } from "@/lib/day/dates";
-import { effectiveTrainingDay } from "@/lib/settings/gym-mode";
 import { gymLoopFromTodayState } from "@/lib/day/loop";
 import { isRecord } from "@/lib/read";
+import { effectiveTrainingDay } from "@/lib/settings/gym-mode";
 import { appendPreservedTelegramLaunchHash } from "@/lib/telegram/launch-hash";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
 

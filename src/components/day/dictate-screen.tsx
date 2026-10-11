@@ -100,7 +100,9 @@ export function DictateScreen({
               }
               onClick={() => void dictate.save()}
             >
-              {dictate.view.status === "saving" ? "Сохранение…" : "Сохранить всё"}
+              {dictate.view.status === "saving"
+                ? "Сохранение…"
+                : "Сохранить всё"}
             </Button>
           ) : null}
 

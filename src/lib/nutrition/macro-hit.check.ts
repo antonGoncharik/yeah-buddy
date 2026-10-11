@@ -1,7 +1,7 @@
 import {
+  MACRO_HIT_RATIO,
   macroGoalToleranceGrams,
   macroInGoal,
-  MACRO_HIT_RATIO,
 } from "@/lib/nutrition/macro-hit";
 
 function assert(condition: boolean, message: string): void {

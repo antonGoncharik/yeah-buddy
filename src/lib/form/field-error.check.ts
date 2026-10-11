@@ -6,10 +6,7 @@ function assert(condition: boolean, message: string): void {
   }
 }
 
-assert(
-  FIELD_ERROR_CLASS.includes("text-base"),
-  "field errors use base size",
-);
+assert(FIELD_ERROR_CLASS.includes("text-base"), "field errors use base size");
 assert(
   fieldErrorClassName("mt-2", true).includes("text-center"),
   "centered field errors",

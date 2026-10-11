@@ -13,8 +13,8 @@ import {
   type Macros,
   MEAL_DISPLAY_ORDER,
 } from "@/lib/nutrition";
-import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { getUserSettings } from "@/lib/settings";
+import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayType, MealTemplateDetail, MealType } from "@/lib/types";
 

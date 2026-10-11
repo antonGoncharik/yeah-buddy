@@ -2,8 +2,8 @@ import {
   pushWizardScreenEntry,
   readWizardScreenEntry,
   replaceWizardScreenEntry,
-  writeWizardScreenEntry,
   WIZARD_SCREEN_KEY,
+  writeWizardScreenEntry,
 } from "@/lib/navigation/wizard-history";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -17,11 +17,7 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 const entry = { flow: "onboarding", step: "sex", sub: null };
 const merged = writeWizardScreenEntry({ ybExitAnchor: true }, entry);
 assertEqual(merged.ybExitAnchor, true, "keeps prior history fields");
-assertEqual(
-  readWizardScreenEntry(merged)?.step,
-  "sex",
-  "round-trips step",
-);
+assertEqual(readWizardScreenEntry(merged)?.step, "sex", "round-trips step");
 
 assertEqual(
   readWizardScreenEntry({ [WIZARD_SCREEN_KEY]: { flow: "x", step: "y" } })?.sub,
@@ -45,7 +41,11 @@ if (typeof window !== "undefined") {
     "sex",
     "replace in window",
   );
-  assertEqual(pushWizardScreenEntry({ ...entry, step: "weight" }), true, "push works");
+  assertEqual(
+    pushWizardScreenEntry({ ...entry, step: "weight" }),
+    true,
+    "push works",
+  );
   assertEqual(
     readWizardScreenEntry(window.history.state)?.step,
     "weight",

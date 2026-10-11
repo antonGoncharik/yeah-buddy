@@ -12,7 +12,11 @@ export function recomputeHubQueue<T extends { id: string }>(
   nextTemplate: T | null;
   followingTemplate: T | null;
 } {
-  const nextTemplate = pickNextTemplate(active, skipTemplateIds, lastTemplateId);
+  const nextTemplate = pickNextTemplate(
+    active,
+    skipTemplateIds,
+    lastTemplateId,
+  );
   const followingRaw =
     nextTemplate && active.length > 1
       ? templateAfter(active, nextTemplate.id)

@@ -315,7 +315,8 @@ export const MEAL_CHAT_UNDO_DONE = "Убрал из дневника.";
 export const MEAL_CHAT_UNDO_EXPIRED = "Уже нельзя отменить.";
 export const MEAL_CHAT_LOCKED =
   "Сегодня в дневнике только просмотр. Открой приложение и выбери день.";
-export const MEAL_CHAT_PHOTO_EMPTY = "Не разобрал. Напиши текстом или в дневнике.";
+export const MEAL_CHAT_PHOTO_EMPTY =
+  "Не разобрал. Напиши текстом или в дневнике.";
 export const MEAL_CHAT_PHOTO_FAILED = "Фото не разобралось. Попробуй ещё раз.";
 export const MEAL_CHAT_TEXT_FAILED =
   "Не записалось. Открой дневник и добавь вручную.";

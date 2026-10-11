@@ -125,7 +125,9 @@ export function BarbellDailyShare({ facts }: { facts: BarbellShareFacts }) {
           {BARBELL_SHARE_STORY}
         </Button>
       </div>
-      {error ? <p className="text-base leading-snug text-destructive">{error}</p> : null}
+      {error ? (
+        <p className="text-base leading-snug text-destructive">{error}</p>
+      ) : null}
     </div>
   );
 }

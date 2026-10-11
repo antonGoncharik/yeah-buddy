@@ -266,7 +266,10 @@ function quotaMessage(kind: AiKind): string {
   return AI_REVIEW_QUOTA;
 }
 
-function isMissingUsageRpc(error: { code?: string; message?: string }): boolean {
+function isMissingUsageRpc(error: {
+  code?: string;
+  message?: string;
+}): boolean {
   return (
     error.code === "PGRST202" ||
     (typeof error.message === "string" &&

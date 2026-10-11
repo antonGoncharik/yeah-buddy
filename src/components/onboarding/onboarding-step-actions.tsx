@@ -15,8 +15,7 @@ export function OnboardingPrimaryAction({
   label?: string;
   onClick: () => void;
 }) {
-  const text =
-    saving ? "Секунду…" : (label ?? (isLast ? "Готово" : "Дальше"));
+  const text = saving ? "Секунду…" : (label ?? (isLast ? "Готово" : "Дальше"));
 
   return (
     <Button

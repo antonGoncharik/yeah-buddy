@@ -10,9 +10,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/today">) {
   const date = typeof params.date === "string" ? params.date : undefined;
   const readOnly = params.view === "history";
   const fromSettings = params.from === "settings";
-  const aiCapture = Boolean(
-    getGeminiPlateApiKey() || getGeminiDictateApiKey(),
-  );
+  const aiCapture = Boolean(getGeminiPlateApiKey() || getGeminiDictateApiKey());
   const aiText = Boolean(getGeminiTextApiKey());
 
   return (

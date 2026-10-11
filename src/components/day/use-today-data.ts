@@ -312,10 +312,9 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
     gymEnabled: cached != null ? readGymEnabled(cached) : gymEnabled,
     setEnergyGoal,
     setGoals,
-    workoutState:
-      (cached != null ? readGymEnabled(cached) : gymEnabled)
-        ? (cachedSession ?? workoutState)
-        : null,
+    workoutState: (cached != null ? readGymEnabled(cached) : gymEnabled)
+      ? (cachedSession ?? workoutState)
+      : null,
     loadError: cached != null ? false : loadError,
     loading,
     contentReady,
