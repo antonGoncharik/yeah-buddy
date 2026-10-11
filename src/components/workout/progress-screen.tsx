@@ -4,7 +4,12 @@ import Link from "next/link";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
-import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import {
+  BarbellDoodle,
+  ChartDoodle,
+  DumbbellDoodle,
+  MealDayDoodle,
+} from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -21,7 +26,11 @@ import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
 import { formatIsoDate } from "@/lib/day/format";
 import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { EXERCISE_CATEGORY_LABELS } from "@/lib/workout/labels";
+import {
+  EXERCISE_CATEGORY_LABELS,
+  REVIEW_LABEL,
+  STRENGTH_LABEL,
+} from "@/lib/workout/labels";
 import {
   formatSignedPercent,
   formatTonnage,
@@ -66,7 +75,7 @@ export function ProgressScreen() {
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
-        title="Рабочие веса"
+        title={STRENGTH_LABEL}
         subtitle="Сильнее ли стал"
         backHref="/workouts"
       />
@@ -167,6 +176,18 @@ export function ProgressScreen() {
 
             <ReviewCta from="workouts" />
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+              <NavRow
+                href="/settings/review"
+                title={REVIEW_LABEL}
+                hint="За 14, 30 или 90 дней"
+                icon={<ChartDoodle />}
+              />
+              <NavRow
+                href="/today/history"
+                title="История еды"
+                hint="БЖУ и вес по дням"
+                icon={<MealDayDoodle />}
+              />
               <NavRow
                 href="/workouts/muscles"
                 title="Мышцы"

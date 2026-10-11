@@ -24,7 +24,7 @@ import {
   AI_REVIEW_QUOTA,
 } from "@/lib/messages";
 import { readSettingsPayload } from "@/lib/settings/map";
-import { REVIEW_LABEL } from "@/lib/workout/labels";
+import { REVIEW_LABEL, STRENGTH_LABEL } from "@/lib/workout/labels";
 
 export function ReviewScreen() {
   const [gymEnabled, setGymEnabled] = useState(true);
@@ -158,7 +158,7 @@ export function ReviewScreen() {
               {gymEnabled ? (
                 <NavRow
                   href="/workouts/progress"
-                  title="Рабочие веса"
+                  title={STRENGTH_LABEL}
                   hint="Как менялись за 90 дней"
                   icon={<BarbellDoodle />}
                 />

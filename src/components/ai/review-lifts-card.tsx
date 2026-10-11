@@ -8,6 +8,7 @@ import {
 import { formatPct } from "@/lib/ai/format";
 import type { ReviewBrief, ReviewMaxRow } from "@/lib/ai/types";
 import { cn } from "@/lib/utils";
+import { STRENGTH_LABEL } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
 const RELATIVE_GAP = 2;
@@ -49,7 +50,7 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
 
   return (
     <ReviewSection
-      title="Рабочие веса"
+      title={STRENGTH_LABEL}
       hint={maxes.since === "first_work" ? "С первой записи" : undefined}
       summary={liftsSummary(brief)}
       value={liftsValue(brief)}

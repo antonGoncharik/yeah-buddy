@@ -31,6 +31,7 @@ import {
   exerciseShortLabel,
   QUEUE_LABEL,
   REVIEW_LABEL,
+  STRENGTH_LABEL,
 } from "@/lib/workout/labels";
 
 export function WorkoutsHubNavSections({
@@ -229,7 +230,7 @@ export function WorkoutsHubNavSections({
         />
         <NavRow
           href="/workouts/progress"
-          title="Рабочие веса"
+          title={STRENGTH_LABEL}
           hint="За 90 дней и с первой записи"
           icon={<BarbellDoodle />}
         />

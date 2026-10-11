@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
-import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
+import {
+  BarbellDoodle,
+  ChartDoodle,
+  DumbbellDoodle,
+  MealDayDoodle,
+} from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
@@ -30,6 +35,7 @@ import {
   windowGymSessions,
 } from "@/lib/workout/history-stats";
 import { parseRecentSession } from "@/lib/workout/hub-payload";
+import { REVIEW_LABEL, STRENGTH_LABEL } from "@/lib/workout/labels";
 
 type RangeId = "14" | "30" | "90";
 
@@ -170,8 +176,20 @@ export function WorkoutHistoryScreen() {
             <ReviewCta from="gym" />
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
               <NavRow
+                href="/settings/review"
+                title={REVIEW_LABEL}
+                hint="За 14, 30 или 90 дней"
+                icon={<ChartDoodle />}
+              />
+              <NavRow
+                href="/today/history?from=settings"
+                title="История еды"
+                hint="БЖУ и вес по дням"
+                icon={<MealDayDoodle />}
+              />
+              <NavRow
                 href="/workouts/progress"
-                title="Рабочие веса"
+                title={STRENGTH_LABEL}
                 hint="Как менялись за 90 дней"
                 icon={<BarbellDoodle />}
               />

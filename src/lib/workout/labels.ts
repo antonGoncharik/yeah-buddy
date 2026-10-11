@@ -28,6 +28,7 @@ export const QUEUE_LABEL = "Программа";
 export const FORMULAS_LABEL = "План подходов";
 export const CYCLE_LABEL = "Недели";
 export const REVIEW_LABEL = "Как прошло";
+export const STRENGTH_LABEL = "Сила";
 export const MEAL_TEMPLATES_LABEL = "Еда на день";
 export const PACKS_LABEL = "Для друзей";
 
