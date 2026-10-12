@@ -7,6 +7,7 @@ export function OnboardingPrimaryAction({
   isLast = false,
   disabled = false,
   label,
+  savingLabel = "Секунду…",
   variant = "default",
   onClick,
 }: {
@@ -14,10 +15,13 @@ export function OnboardingPrimaryAction({
   isLast?: boolean;
   disabled?: boolean;
   label?: string;
+  savingLabel?: string;
   variant?: "default" | "outline";
   onClick: () => void;
 }) {
-  const text = saving ? "Секунду…" : (label ?? (isLast ? "Готово" : "Дальше"));
+  const text = saving
+    ? savingLabel
+    : (label ?? (isLast ? "Готово" : "Дальше"));
 
   return (
     <Button

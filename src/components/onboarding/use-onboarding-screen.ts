@@ -487,6 +487,9 @@ export function useOnboardingScreen() {
   }
 
   function finishDiary() {
+    setSaving(true);
+    setError(null);
+    haptic("tick");
     void finish(undefined, true);
   }
 

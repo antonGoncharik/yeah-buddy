@@ -247,6 +247,7 @@ export function OnboardingMacrosSummary({
         <OnboardingPrimaryAction
           saving={saving}
           label="К дневнику"
+          savingLabel="Открываю дневник…"
           onClick={onEnterDiary}
         />
       ) : null}
