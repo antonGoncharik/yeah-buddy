@@ -166,19 +166,16 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       begin();
     }
 
-    const dayOk = await cachedGet(
-      dayUrl,
-      (data) => applyDayPayload(requestedDate, data),
-      showCached,
-    ).then(
-      () => true,
-      () => false,
-    );
-
-    const gymOn = readGymEnabled(peekJson(dayUrl));
-    let sessionOk: boolean;
-    if (gymOn) {
-      sessionOk = await cachedGet(
+    const [dayOk, sessionLoaded] = await Promise.all([
+      cachedGet(
+        dayUrl,
+        (data) => applyDayPayload(requestedDate, data),
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
+      cachedGet(
         sessionUrl,
         (data) => {
           if (!stillCurrent()) {
@@ -191,17 +188,19 @@ export function useTodayData(date: string, onLoadStart?: () => void) {
       ).then(
         () => true,
         () => false,
-      );
-    } else {
-      setWorkoutState(null);
-      sessionOk = true;
-    }
-
-    const results = [dayOk, sessionOk];
+      ),
+    ]);
 
     if (!stillCurrent()) {
       return;
     }
+
+    const gymOn = readGymEnabled(peekJson(dayUrl));
+    if (!gymOn) {
+      setWorkoutState(null);
+    }
+    const sessionOk = gymOn ? sessionLoaded : true;
+    const results = [dayOk, sessionOk];
 
     if (!results.some((ok) => ok)) {
       setLoadError(true);

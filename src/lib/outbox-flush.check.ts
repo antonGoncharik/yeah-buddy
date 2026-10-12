@@ -1,5 +1,6 @@
 import { ApiError } from "@/lib/api-cache";
 import type { OutboxOp } from "@/lib/outbox";
+import { splitSessionCreateDependents } from "@/lib/outbox-flush";
 import {
   classifyOutboxFlushError,
   MAX_OUTBOX_RETRY_ATTEMPTS,
@@ -73,5 +74,48 @@ assert(
 );
 
 assert(MAX_OUTBOX_RETRY_ATTEMPTS >= 5, "retry budget");
+
+const failedSession: OutboxOp = {
+  id: "create",
+  at: 1,
+  method: "POST",
+  url: "/api/sessions",
+  body: { session_date: "2026-10-12", template_id: "t" },
+  cacheUrls: ["/api/sessions/temp:session:abc"],
+  clientIds: ["temp:session:abc"],
+};
+const complete: OutboxOp = {
+  id: "done",
+  at: 2,
+  method: "POST",
+  url: "/api/sessions/temp:session:abc/complete",
+  body: { sets: [{ id: "temp:set:1", actual_weight: 80 }] },
+  cacheUrls: ["/api/sessions/temp:session:abc"],
+  clientIds: ["temp:session:abc"],
+};
+const meal: OutboxOp = {
+  id: "meal",
+  at: 3,
+  method: "POST",
+  url: "/api/meals/m1/items",
+  body: { name: "рис" },
+  cacheUrls: ["/api/days?date=2026-10-12"],
+};
+const split = splitSessionCreateDependents([complete, meal], failedSession);
+assert(
+  split.drop.length === 1 && split.drop[0]?.id === "done",
+  "dead session create drops its temp-id follow-ups",
+);
+assert(
+  split.keep.length === 1 && split.keep[0]?.id === "meal",
+  "unrelated ops stay queued",
+);
+const dayCreate: OutboxOp = {
+  ...failedSession,
+  url: "/api/days",
+  clientIds: ["temp:day:1"],
+};
+const daySplit = splitSessionCreateDependents([complete], dayCreate);
+assert(daySplit.drop.length === 0, "day create does not drop session ops");
 
 console.log("outbox flush ok");

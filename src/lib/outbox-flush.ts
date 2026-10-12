@@ -7,6 +7,7 @@ import {
 } from "@/lib/day/cache";
 import {
   dayCreateClientIds,
+  isTempId,
   mergeCreatedDay,
   withReplacedItems,
   zipClientIds,
@@ -16,6 +17,7 @@ import { readMealItemPayload, readMealItemsPayload } from "@/lib/meal/parse";
 import {
   listOutbox,
   type OutboxOp,
+  outboxReferencesId,
   replaceOutbox,
   rewriteOutboxClientId,
   rewriteOutboxClientIds,
@@ -99,8 +101,8 @@ async function flushOnce(): Promise<void> {
         appendDeadOutbox(op, meta);
         reportOutboxSyncFailed(op, meta.status);
         retryByOpId.delete(op.id);
-        replaceOutbox(ops.slice(1));
-        ops = listOutbox();
+        ops = parkFailedSessionDependents(ops.slice(1), op);
+        replaceOutbox(ops);
         continue;
       }
 
@@ -110,8 +112,8 @@ async function flushOnce(): Promise<void> {
         appendDeadOutbox(op, meta);
         reportOutboxSyncFailed(op, meta.status);
         retryByOpId.delete(op.id);
-        replaceOutbox(ops.slice(1));
-        ops = listOutbox();
+        ops = parkFailedSessionDependents(ops.slice(1), op);
+        replaceOutbox(ops);
         continue;
       }
 
@@ -330,6 +332,50 @@ function isDayCreate(op: OutboxOp): boolean {
 
 function isSessionCreate(op: OutboxOp): boolean {
   return op.method === "POST" && op.url === "/api/sessions";
+}
+
+export function sessionCreateTempId(op: OutboxOp): string | null {
+  if (!isSessionCreate(op)) {
+    return null;
+  }
+  const clientId = op.clientIds?.[0];
+  return clientId && isTempId(clientId) ? clientId : null;
+}
+
+export function splitSessionCreateDependents(
+  rest: OutboxOp[],
+  failed: OutboxOp,
+): { keep: OutboxOp[]; drop: OutboxOp[] } {
+  const tempIdValue = sessionCreateTempId(failed);
+  if (!tempIdValue) {
+    return { keep: rest, drop: [] };
+  }
+  const keep: OutboxOp[] = [];
+  const drop: OutboxOp[] = [];
+  for (const op of rest) {
+    if (outboxReferencesId(op, tempIdValue)) {
+      drop.push(op);
+    } else {
+      keep.push(op);
+    }
+  }
+  return { keep, drop };
+}
+
+function parkFailedSessionDependents(
+  rest: OutboxOp[],
+  failed: OutboxOp,
+): OutboxOp[] {
+  const split = splitSessionCreateDependents(rest, failed);
+  for (const op of split.drop) {
+    appendDeadOutbox(op, {
+      status: null,
+      message: "Тренировка не создалась.",
+    });
+    reportOutboxSyncFailed(op, null);
+    retryByOpId.delete(op.id);
+  }
+  return split.keep;
 }
 
 function dateFromCreateDay(op: OutboxOp): string | null {

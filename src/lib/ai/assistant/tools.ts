@@ -22,6 +22,20 @@ export type AssistantToolBundle = {
   foods: Array<{ name: string; protein_per_100: number }>;
 };
 
+export function assistantFoodSearchQuery(question: string): string | null {
+  if (!/продукт|еда|белок|ужин|завтрак|обед/i.test(question)) {
+    return null;
+  }
+  const tokens = question
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((part) => part.length >= 3)
+    .slice(0, 3);
+  const query = tokens.join(" ");
+  return query.length > 0 ? query : null;
+}
+
 export async function gatherAssistantTools(
   userId: string,
   question: string,
@@ -48,23 +62,15 @@ export async function gatherAssistantTools(
     .map((row) => ({ id: row.id, sets_per_week: row.sets_per_week }));
 
   const foods: AssistantToolBundle["foods"] = [];
-  if (/продукт|еда|белок|ужин|завтрак|обед/i.test(question)) {
-    const tokens = question
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s]/gu, " ")
-      .split(/\s+/)
-      .filter((part) => part.length >= 3)
-      .slice(0, 3);
-    const query = tokens.join(" ");
-    if (query) {
-      const rows = await listFoods(userId, "all", { search: query, limit: 80 });
-      const ranked = filterAndSortFoodsBySearch(rows, query).slice(0, 5);
-      for (const food of ranked) {
-        foods.push({
-          name: food.name,
-          protein_per_100: food.protein_per_100,
-        });
-      }
+  const query = assistantFoodSearchQuery(question);
+  if (query) {
+    const rows = await listFoods(userId, "all", { search: query, limit: 80 });
+    const ranked = filterAndSortFoodsBySearch(rows, query).slice(0, 5);
+    for (const food of ranked) {
+      foods.push({
+        name: food.name,
+        protein_per_100: food.protein_per_100,
+      });
     }
   }
 

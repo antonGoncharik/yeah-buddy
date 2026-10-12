@@ -150,6 +150,19 @@ export function applyEnqueue(
   return [...ops, op];
 }
 
+export function outboxReferencesId(op: OutboxOp, id: string): boolean {
+  if (!id) {
+    return false;
+  }
+  if (op.url.includes(id) || op.cacheUrls.some((url) => url.includes(id))) {
+    return true;
+  }
+  if (op.clientIds?.includes(id)) {
+    return true;
+  }
+  return valueReferencesId(op.body, id);
+}
+
 export function rewriteOutboxClientId(
   ops: OutboxOp[],
   from: string,
@@ -244,6 +257,19 @@ function mergeBodies(base: unknown, patch: unknown): unknown {
     return { ...base, ...patch };
   }
   return patch ?? base;
+}
+
+function valueReferencesId(value: unknown, id: string): boolean {
+  if (typeof value === "string") {
+    return value === id;
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => valueReferencesId(item, id));
+  }
+  if (isRecord(value)) {
+    return Object.values(value).some((item) => valueReferencesId(item, id));
+  }
+  return false;
 }
 
 function rewriteBodyIds(value: unknown, from: string, to: string): unknown {
