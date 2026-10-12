@@ -1,5 +1,6 @@
 import type { WorkoutSet } from "@/lib/types";
 import {
+  formatLastTimeWorkLine,
   formatPreviousWorkLine,
   previousWorkFromSets,
   shouldHoldWeights,
@@ -152,5 +153,19 @@ assertEqual(
 );
 
 assertEqual(shouldHoldWeights([null, "miss"]), false, "null feel breaks hold");
+
+assertEqual(
+  formatLastTimeWorkLine({
+    weight: 72.5,
+    reps: 5,
+    seconds: null,
+    rir: null,
+    feel: null,
+    same_phase: true,
+    hold: false,
+  }),
+  "в прошлый раз 72.5×5",
+  "last time line",
+);
 
 console.log("session memory ok");

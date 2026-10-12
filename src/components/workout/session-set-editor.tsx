@@ -187,7 +187,7 @@ export function SessionSetEditor({
                   onAdvance();
                 }}
               >
-                {hasNextSet ? "Следующий подход" : "Готово"}
+                {hasNextSet ? "Следующий подход" : "Свернуть"}
               </Button>
             ) : null}
           </div>

@@ -189,6 +189,21 @@ function draftAmount(raw: string, format: (value: number) => string): string {
   return format(value);
 }
 
+export function sessionHasSetEdits(
+  detail: SessionDetail,
+  drafts: Record<string, SetDraft>,
+): boolean {
+  for (const item of detail.exercises) {
+    for (const set of item.sets) {
+      const draft = drafts[set.id];
+      if (draft && draftChanged(set, draft)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function completeSetOverrides(
   detail: SessionDetail,
   drafts: Record<string, SetDraft>,

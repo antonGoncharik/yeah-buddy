@@ -85,6 +85,13 @@ export function shouldHoldWeights(feels: Array<SessionFeel | null>): boolean {
   return lastTwo.length >= 2 && lastTwo.every((feel) => feel === "miss");
 }
 
+export function formatLastTimeWorkLine(
+  previous: SessionPreviousWork,
+): string | null {
+  const setPart = formatPreviousSet(previous);
+  return setPart ? `в прошлый раз ${setPart}` : null;
+}
+
 function formatPreviousSet(previous: SessionPreviousWork): string | null {
   if (previous.weight == null || previous.weight <= 0) {
     return null;

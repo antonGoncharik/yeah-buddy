@@ -15,6 +15,8 @@ import {
   writeLastRestSeconds,
   writeStoredRestState,
 } from "@/lib/workout/rest-timer";
+import { notifyRestTimerDone } from "@/lib/workout/rest-timer-done";
+import { acquireScreenWakeLock } from "@/lib/workout/screen-wake-lock";
 
 export function useRestTimer(sessionId: string | null, enabled: boolean) {
   const [left, setLeft] = useState<number | null>(null);
@@ -67,7 +69,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       const next = nextRestLeft(current, delta);
       persist(Date.now() + next * 1000, id);
       if (next === 0 && current > 0) {
-        playTimerStepHaptic(0);
+        notifyRestTimerDone();
       }
       return next;
     });
@@ -119,7 +121,11 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
         if (next === prev) {
           return prev;
         }
-        playTimerStepHaptic(next);
+        if (next === 0 && prev > 0) {
+          notifyRestTimerDone();
+        } else {
+          playTimerStepHaptic(next);
+        }
         if (next === 0 && sessionId) {
           writeStoredRestState(sessionId, {
             endsAt,
@@ -141,6 +147,34 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       window.removeEventListener("focus", sync);
     };
   }, [running, sessionId]);
+
+  useEffect(() => {
+    if (!running) {
+      return;
+    }
+
+    let active: { release: () => Promise<void> } | null = null;
+
+    async function hold() {
+      active?.release().catch(() => {});
+      active = await acquireScreenWakeLock();
+    }
+
+    void hold();
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") {
+        void hold();
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      void active?.release();
+      active = null;
+    };
+  }, [running]);
 
   return {
     left,

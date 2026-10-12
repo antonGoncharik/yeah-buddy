@@ -19,6 +19,7 @@ export function SessionSetButtons({
   openIds = [],
   onPick,
   renderAfter,
+  memoryLine,
 }: {
   sets: WorkoutSet[];
   drafts?: Record<string, SetDraft>;
@@ -30,6 +31,8 @@ export function SessionSetButtons({
   onPick: (ids: string[]) => void;
   /** Rendered right under a set, e.g. the editor for the tapped one. */
   renderAfter?: (set: WorkoutSet) => ReactNode;
+  /** Shown under each work set label, e.g. last session result. */
+  memoryLine?: string | null;
 }) {
   const labels = sets.map((set) =>
     formatVisibleSetLine(set, drafts?.[set.id], { showActual }),
@@ -111,6 +114,11 @@ export function SessionSetButtons({
                 {line}
               </button>
             )}
+            {tone === "work" && memoryLine && !open ? (
+              <p className="pl-7 text-xs leading-snug text-muted-foreground">
+                {memoryLine}
+              </p>
+            ) : null}
             {open ? renderAfter?.(set) : null}
           </li>
         );

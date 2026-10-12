@@ -25,7 +25,7 @@ import {
   workSetsNeedRest,
 } from "@/lib/workout/rest-timer";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
-import { formatPreviousWorkLine } from "@/lib/workout/session-memory";
+import { formatLastTimeWorkLine } from "@/lib/workout/session-memory";
 import { liveSetRecord, liveWorkWeight } from "@/lib/workout/set-record";
 import { SLOT_INTENSITY_LABELS } from "@/lib/workout/slot-plan";
 
@@ -73,8 +73,8 @@ export function SessionExerciseRow({
   const work = item.sets.filter((set) => set.set_type === "work");
   const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
   const leadSet = openSets[0] ?? null;
-  const previousLine = item.previous
-    ? formatPreviousWorkLine(item.previous)
+  const lastTimeLine = item.previous
+    ? formatLastTimeWorkLine(item.previous)
     : null;
   const lastWork = work.at(-1) ?? null;
   const timedWork = work.some(
@@ -203,7 +203,7 @@ export function SessionExerciseRow({
           <div className="flex w-full flex-col items-start gap-1">
             <button
               type="button"
-              className="text-left text-sm leading-snug text-muted-foreground"
+              className="min-h-11 py-2 text-left text-sm leading-snug text-muted-foreground"
               onClick={onToggleWarmup}
             >
               {warmupOpen
@@ -226,11 +226,6 @@ export function SessionExerciseRow({
         ) : null}
         {work.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1.5">
-            {previousLine && focused ? (
-              <p className="text-xs leading-snug text-muted-foreground">
-                {previousLine}
-              </p>
-            ) : null}
             {loadHint && focused ? (
               <p className="text-xs leading-snug text-muted-foreground">
                 {loadHint}
@@ -245,6 +240,7 @@ export function SessionExerciseRow({
               openIds={openSetIds}
               onPick={onOpenSets}
               renderAfter={renderEditor}
+              memoryLine={lastTimeLine}
             />
             {onStartRest && !restActive && workSetsNeedRest(work) ? (
               <button

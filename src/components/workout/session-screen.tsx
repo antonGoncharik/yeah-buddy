@@ -1,11 +1,13 @@
 "use client";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
+import { sessionHasSetEdits } from "@/components/workout/session-drafts";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
@@ -21,6 +23,7 @@ import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 
 export function SessionScreen() {
+  const confirm = useConfirm();
   const {
     loading,
     error,
@@ -209,7 +212,7 @@ export function SessionScreen() {
       </div>
 
       {showStickyComplete && detail ? (
-        <StickyActions>
+        <StickyActions className="[&>div]:gap-4">
           {rest.left != null ? (
             <div data-keyboard-secondary>
               <RestBar
@@ -235,11 +238,27 @@ export function SessionScreen() {
           ) : null}
           <Button
             type="button"
-            className="h-14 w-full text-lg"
+            className="mt-2 h-14 w-full text-lg"
             disabled={busy || detail.exercises.length === 0}
             onClick={() => {
-              rest.stop();
-              void complete();
+              void (async () => {
+                rest.stop();
+                if (
+                  detail.session.status === "planned" &&
+                  (sessionHasSetEdits(detail, drafts) ||
+                    note.trim() !== (detail.session.note ?? "").trim())
+                ) {
+                  const ok = await confirm({
+                    message: "Закрыть тренировку?",
+                    confirmLabel: "Готово",
+                    cancelLabel: "Ещё правлю",
+                  });
+                  if (!ok) {
+                    return;
+                  }
+                }
+                await complete();
+              })();
             }}
           >
             {busy

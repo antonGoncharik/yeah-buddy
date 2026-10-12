@@ -5,6 +5,7 @@ import {
   draftFromSet,
   draftMatchesPlan,
   formatVisibleSetLine,
+  sessionHasSetEdits,
   stepDraftValue,
   visibleSetRirLabel,
 } from "@/components/workout/session-drafts";
@@ -127,6 +128,12 @@ assertEqual(
   draftChanged(set, { ...untouched, weight: "82.5" }),
   true,
   "weight edit is dirty",
+);
+assertEqual(sessionHasSetEdits(detail, {}), false, "no drafts");
+assertEqual(
+  sessionHasSetEdits(detail, { "set-1": { ...untouched, reps: "4" } }),
+  true,
+  "draft edits detected",
 );
 assertEqual(
   completeSetOverrides(detail, { "set-1": untouched }),

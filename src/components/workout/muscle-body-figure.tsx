@@ -181,7 +181,8 @@ export function MuscleBodyFigure({
           <Button
             type="button"
             variant="outline"
-            size="icon-sm"
+            size="icon-lg"
+            className="size-11"
             aria-label="Мельче"
             disabled={zoom.atMin}
             onClick={zoom.zoomOut}
@@ -191,7 +192,8 @@ export function MuscleBodyFigure({
           <Button
             type="button"
             variant="outline"
-            size="icon-sm"
+            size="icon-lg"
+            className="size-11"
             aria-label="Крупнее"
             disabled={zoom.atMax}
             onClick={zoom.zoomIn}
