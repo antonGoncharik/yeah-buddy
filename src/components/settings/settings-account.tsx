@@ -95,6 +95,17 @@ export function SettingsAccount() {
       </Button>
       <Button
         type="button"
+        variant="secondary"
+        className="h-12 text-base"
+        disabled={busy != null}
+        onClick={() => {
+          window.location.assign("/api/sessions/export");
+        }}
+      >
+        Тренировки CSV
+      </Button>
+      <Button
+        type="button"
         variant="destructive"
         className="h-12 text-base"
         disabled={busy != null}

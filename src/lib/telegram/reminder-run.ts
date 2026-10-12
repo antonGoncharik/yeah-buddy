@@ -53,13 +53,17 @@ import {
   reminderSendPaused,
   resetReminderFailCount,
 } from "@/lib/telegram/reminder-fail-count";
-import { recordReminderSent } from "@/lib/telegram/reminder-log";
+import { inQuietHours, recordReminderSent } from "@/lib/telegram/reminder-log";
 import { middayReminderText } from "@/lib/telegram/reminder-midday";
 import {
   composeEveningMessage,
   reminderDayCard,
   weekRecapText,
 } from "@/lib/telegram/reminder-recap";
+import {
+  runScheduledNotices,
+  type ScheduledNoticeResult,
+} from "@/lib/telegram/reminder-schedule";
 import {
   gymClosedForReminder,
   gymDoneForReminder,
@@ -105,11 +109,16 @@ interface ReminderCandidate {
   middayRemindedOn: string | null;
   onboardedAt: string | null;
   reminderFailCount: number;
+  quietFrom: number | null;
+  quietTo: number | null;
+  weeklyDigestEnabled: boolean;
+  monthlyReportEnabled: boolean;
 }
 
 export interface RemindersCronResult {
   evening: ReminderRunResult;
   midday: ReminderRunResult;
+  notices: ScheduledNoticeResult;
 }
 
 export type ReminderCronShard = {
@@ -124,6 +133,9 @@ export async function runRemindersCron(
   return {
     evening: await runEveningReminders(now, shard),
     midday: await runMiddayReminders(now, shard),
+    notices: shard
+      ? { sent: 0, skipped: 0, failed: 0 }
+      : await runScheduledNotices(now),
   };
 }
 
@@ -145,7 +157,11 @@ export async function runRemindersCronAll(
   explicitShard?: ReminderCronShard,
 ): Promise<RemindersCronResult> {
   if (explicitShard) {
-    return runRemindersCron(now, explicitShard);
+    const part = await runRemindersCron(now, explicitShard);
+    if (explicitShard.index === 0) {
+      part.notices = await runScheduledNotices(now);
+    }
+    return part;
   }
   const total = reminderShardTotalFromEnv();
   if (total <= 1) {
@@ -154,12 +170,14 @@ export async function runRemindersCronAll(
   const merged: RemindersCronResult = {
     evening: emptyRunResult(),
     midday: emptyRunResult(),
+    notices: { sent: 0, skipped: 0, failed: 0 },
   };
   for (let index = 0; index < total; index += 1) {
     const part = await runRemindersCron(now, { index, total });
     mergeRunResult(merged.evening, part.evening);
     mergeRunResult(merged.midday, part.midday);
   }
+  merged.notices = await runScheduledNotices(now);
   return merged;
 }
 
@@ -243,6 +261,10 @@ async function processEveningCandidate(
     return result;
   }
   const clock = localClock(now, candidate.timezone);
+  if (inQuietHours(clock.hour, candidate.quietFrom, candidate.quietTo)) {
+    result.skipped += 1;
+    return result;
+  }
   const reminderDate = eveningReminderDateForCandidate(
     clock,
     candidate.remindedOn,
@@ -402,6 +424,10 @@ async function processMiddayCandidate(
     return result;
   }
   const clock = localClock(now, candidate.timezone);
+  if (inQuietHours(clock.hour, candidate.quietFrom, candidate.quietTo)) {
+    result.skipped += 1;
+    return result;
+  }
   const reminderDate = middayReminderDateIfDue(clock, candidate.reminderHour);
   if (!reminderDate) {
     result.skipped += 1;
@@ -617,7 +643,7 @@ async function listReminderCandidates(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, reminder_fail_count, onboarding_completed_at, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, reminder_fail_count, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -683,7 +709,19 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
         ? row.onboarding_completed_at
         : null,
     reminderFailCount: Math.max(0, Number(row.reminder_fail_count) || 0),
+    quietFrom: quietHour(row.quiet_from),
+    quietTo: quietHour(row.quiet_to),
+    weeklyDigestEnabled: row.weekly_digest_enabled !== false,
+    monthlyReportEnabled: row.monthly_report_enabled !== false,
   };
+}
+
+function quietHour(value: unknown): number | null {
+  const hour = Number(value);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    return null;
+  }
+  return hour;
 }
 
 function toDateOnly(value: unknown): string | null {

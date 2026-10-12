@@ -221,6 +221,15 @@ export async function completeSessionAsPlanned(
     await maybeAutoEndPhase(userId);
     await recordFunnelEvent(userId, "first_session");
     await trackEvent(userId, "workout_completed");
+    const completed = await getSessionDetail(userId, sessionId);
+    if (completed) {
+      try {
+        const { notifySessionPr } = await import("@/lib/telegram/pr-push");
+        await notifySessionPr(userId, completed, session.session_date);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 
   const afterSets = await getSessionDetail(userId, sessionId);

@@ -28,7 +28,10 @@ export function useMuscleScreen() {
   const load = useCallback(async () => {
     begin();
     setError(null);
-    const path = `/api/muscles?days=${horizon}`;
+    const path =
+      horizon === "7"
+        ? `/api/muscles?days=${horizon}&week=calendar`
+        : `/api/muscles?days=${horizon}`;
 
     try {
       await cachedGet(

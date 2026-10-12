@@ -35,6 +35,11 @@ export interface SettingsFormState {
   age: string;
   reminder_hour: number;
   gym_enabled: boolean;
+  weekly_digest_enabled: boolean;
+  monthly_report_enabled: boolean;
+  pr_push_enabled: boolean;
+  quiet_from: number | null;
+  quiet_to: number | null;
 }
 
 export type MacroFieldKey = Exclude<
@@ -48,6 +53,11 @@ export type MacroFieldKey = Exclude<
   | "goal_pace"
   | "reminder_hour"
   | "gym_enabled"
+  | "weekly_digest_enabled"
+  | "monthly_report_enabled"
+  | "pr_push_enabled"
+  | "quiet_from"
+  | "quiet_to"
 >;
 
 export function toFormState(
@@ -72,6 +82,11 @@ export function toFormState(
     age: ageInputFromBirthYear(settings.birth_year, nowYear),
     reminder_hour: settings.reminder_hour,
     gym_enabled: settings.gym_enabled,
+    weekly_digest_enabled: settings.weekly_digest_enabled,
+    monthly_report_enabled: settings.monthly_report_enabled,
+    pr_push_enabled: settings.pr_push_enabled,
+    quiet_from: settings.quiet_from,
+    quiet_to: settings.quiet_to,
   };
 }
 

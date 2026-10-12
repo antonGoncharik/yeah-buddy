@@ -3,6 +3,7 @@ import { getUserCalendarToday } from "@/lib/day/writable";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MuscleSnapshot } from "@/lib/types";
+import { calendarWeekStart } from "@/lib/workout/calendar-week";
 import {
   buildMuscleSnapshot,
   type ExerciseMuscleMeta,
@@ -18,9 +19,13 @@ export { parseMuscleHorizonDays };
 export async function getMuscleSnapshot(
   userId: string,
   horizonDays: number,
+  options?: { calendarWeek?: boolean },
 ): Promise<MuscleSnapshot> {
   const until = await getUserCalendarToday(userId);
-  const since = shiftIsoDate(until, 1 - horizonDays);
+  const since =
+    options?.calendarWeek && horizonDays === 7
+      ? calendarWeekStart(until)
+      : shiftIsoDate(until, 1 - horizonDays);
   const settings = await getUserSettings(userId);
 
   const supabase = createSupabaseServerClient();

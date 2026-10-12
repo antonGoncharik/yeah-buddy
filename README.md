@@ -70,7 +70,7 @@ Variables (see `.env.example` and `src/lib/env.ts`):
 | `GEMINI_DICTATE_API_KEY` | no | spoken food «Голосом», same pool of up to four keys from separate projects. **Three** logs per user per day. Without a key the button is hidden, food still logs by hand |
 | `GEMINI_TEXT_API_KEY` | no | text meal on Today, same pool of up to four keys from separate projects. **Three** parses per user per day. Without a key the text block is hidden |
 
-Migrations: `supabase/migrations/0001_init.sql` … `0057_birth_year.sql` — apply in order in the SQL Editor or with the Supabase CLI. Notable later files:
+Migrations: `supabase/migrations/0001_init.sql` … `0066_reminder_log.sql` — apply in order in the SQL Editor or with the Supabase CLI. Notable later files:
 
 | File | Purpose |
 |---|---|
@@ -96,6 +96,10 @@ Migrations: `supabase/migrations/0001_init.sql` … `0057_birth_year.sql` — ap
 | `0055` | `global_maxes.source` — `estimate`, `manual`, or `session` |
 | `0056` | `height_cm`, `activity_level`, `goal_pace`, `reminder_hour` (17–23, default 21), `review_cooldown_until` |
 | `0057` | `birth_year` |
+| `0058`–`0063` | analytics, reminder cron index, packs, evening facts RPC, reminder fail count |
+| `0064` | catalog trigram search |
+| `0065` | AI assistant quota kind |
+| `0066` | `reminder_log` and notification preference columns |
 
 Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there.
 

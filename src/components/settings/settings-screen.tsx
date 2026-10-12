@@ -65,6 +65,8 @@ export function SettingsScreen({
     setGymEnabled,
     setTimezone,
     setReminderHour,
+    setNoticeFlag,
+    setQuietHours,
   } = useSettingsScreen();
   const [now, setNow] = useState<Date | null>(null);
 
@@ -200,6 +202,16 @@ export function SettingsScreen({
             onTimezone={(timezone) => void setTimezone(timezone)}
             onReminderHour={(hour) => void setReminderHour(hour)}
             onReminders={(enabled) => void setReminders(enabled)}
+            onWeeklyDigest={(enabled) =>
+              void setNoticeFlag("weekly_digest_enabled", enabled)
+            }
+            onMonthlyReport={(enabled) =>
+              void setNoticeFlag("monthly_report_enabled", enabled)
+            }
+            onPrPush={(enabled) =>
+              void setNoticeFlag("pr_push_enabled", enabled)
+            }
+            onQuietHours={(from, to) => void setQuietHours(from, to)}
           />
         ) : null}
 

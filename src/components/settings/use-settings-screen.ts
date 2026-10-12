@@ -227,6 +227,57 @@ export function useSettingsScreen() {
     });
   }
 
+  async function setNoticeFlag(
+    key: "weekly_digest_enabled" | "monthly_report_enabled" | "pr_push_enabled",
+    enabled: boolean,
+  ) {
+    if (!form) {
+      return;
+    }
+    await patchSettingsField({
+      form,
+      key,
+      value: enabled,
+      setForm,
+      setError,
+    });
+  }
+
+  async function setQuietHours(from: number | null, to: number | null) {
+    if (!form) {
+      return;
+    }
+    const previous = { from: form.quiet_from, to: form.quiet_to };
+    setForm({ ...form, quiet_from: from, quiet_to: to });
+    setError(null);
+    try {
+      const data = await patchJson("/api/settings", {
+        quiet_from: from,
+        quiet_to: to,
+      });
+      const settings = readSettings(data);
+      if (settings) {
+        setForm((current) =>
+          current
+            ? {
+                ...current,
+                quiet_from: settings.quiet_from,
+                quiet_to: settings.quiet_to,
+              }
+            : current,
+        );
+        writeJson("/api/settings", data);
+      }
+    } catch (caught) {
+      setForm((current) =>
+        current
+          ? { ...current, quiet_from: previous.from, quiet_to: previous.to }
+          : current,
+      );
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    }
+  }
+
   async function setReminderHour(hour: number) {
     if (!form) {
       return;
@@ -277,5 +328,7 @@ export function useSettingsScreen() {
     setGymEnabled,
     setTimezone,
     setReminderHour,
+    setNoticeFlag,
+    setQuietHours,
   };
 }

@@ -31,7 +31,10 @@ import {
   programChatMessage,
   programStartPayload,
 } from "@/lib/share/program-start";
-import { registerBotCommands } from "@/lib/telegram/bot-commands";
+import {
+  registerAssistantChat,
+  registerBotCommands,
+} from "@/lib/telegram/bot-commands";
 import { syncBotMenuCommands } from "@/lib/telegram/bot-menu";
 import {
   resolveAppShareUrl,
@@ -210,6 +213,7 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   registerDonatePayments(instance);
   registerBotCommands(instance, env);
   registerMealChat(instance);
+  registerAssistantChat(instance);
   registerInbox(instance);
   void syncBotMenuCommands(instance.api);
 

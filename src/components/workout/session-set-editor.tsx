@@ -22,6 +22,7 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
+import { platesLine } from "@/lib/workout/plates";
 import { formatSetLine, setUsesSeconds } from "@/lib/workout/session-format";
 
 const HOLD_STEP_SECONDS = 5;
@@ -98,6 +99,11 @@ export function SessionSetEditor({
             onChange={(value) => onDraft({ weight: value })}
             onStep={(direction) => step("weight", direction)}
           />
+          {platesLine(parseDecimal(draft.weight) ?? 0) ? (
+            <p className="text-xs text-muted-foreground">
+              {platesLine(parseDecimal(draft.weight) ?? 0)}
+            </p>
+          ) : null}
           {timed ? (
             <Stepper
               label="Удержание, сек"

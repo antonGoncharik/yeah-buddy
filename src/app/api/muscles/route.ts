@@ -9,7 +9,9 @@ export const GET = sessionRoute(async (session, request) => {
   const days = parseMuscleHorizonDays(request.nextUrl.searchParams.get("days"));
 
   try {
-    const snapshot = await getMuscleSnapshot(session.userId, days);
+    const snapshot = await getMuscleSnapshot(session.userId, days, {
+      calendarWeek: request.nextUrl.searchParams.get("week") === "calendar",
+    });
     return jsonOk(snapshot);
   } catch (error) {
     return failRoute(error);

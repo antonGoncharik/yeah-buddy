@@ -11,7 +11,10 @@ type PatchableKey =
   | "reminders_enabled"
   | "gym_enabled"
   | "reminder_hour"
-  | "timezone";
+  | "timezone"
+  | "weekly_digest_enabled"
+  | "monthly_report_enabled"
+  | "pr_push_enabled";
 
 export async function patchSettingsField<K extends PatchableKey>(input: {
   form: SettingsFormState;

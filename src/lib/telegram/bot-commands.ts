@@ -1,5 +1,6 @@
 import type { Bot, Context } from "grammy";
 import { InlineKeyboard } from "grammy";
+import { runAssistant } from "@/lib/ai/assistant/run";
 import { formatBodyWeight, parseBodyWeight } from "@/lib/day/body-weight";
 import { setBodyWeight } from "@/lib/day/body-weight-store";
 import { createDayFromTemplate } from "@/lib/day/create";
@@ -86,6 +87,37 @@ export function registerBotCommands(bot: Bot, env: ServerEnv): void {
         return;
       }
       console.error(error);
+    }
+  });
+}
+
+export function registerAssistantChat(bot: Bot): void {
+  bot.on("message:text", async (ctx, next) => {
+    const text = ctx.message.text.trim();
+    const asking = text.endsWith("?") || /^спроси\b/i.test(text);
+    if (
+      !asking ||
+      text.startsWith("/") ||
+      !ctx.from ||
+      ctx.chat?.type !== "private"
+    ) {
+      await next();
+      return;
+    }
+    const user = await findMealChatUser(ctx.from.id);
+    if (!user) {
+      await next();
+      return;
+    }
+    try {
+      const result = await runAssistant(
+        user.userId,
+        text.replace(/^спроси\s*/i, ""),
+      );
+      await ctx.reply(result.answer);
+    } catch (error) {
+      console.error(error);
+      await ctx.reply("Не получилось ответить. Открой «Спросить» в дневнике.");
     }
   });
 }
