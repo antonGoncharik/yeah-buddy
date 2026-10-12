@@ -1,28 +1,17 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
 import { ReviewError } from "@/lib/ai/errors";
 import { readGeminiKeys, writeReview } from "@/lib/ai/gemini";
+import { loadReviewSource } from "@/lib/ai/load-review-source";
 import { getAiQuota, refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
-import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
+import { isReviewRange, type ReviewRange } from "@/lib/ai/range";
 import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
 import type { ReviewSnapshot, StoredReview } from "@/lib/ai/types";
-import {
-  getLastBodyWeight,
-  getLastWaist,
-  getUserCalendarToday,
-  listDaysInRange,
-  listFoodSharesInRange,
-} from "@/lib/days";
+import { getUserCalendarToday } from "@/lib/days";
 import { AI_REVIEW_EMPTY, AI_REVIEW_NO_KEY } from "@/lib/messages";
 import { getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { RecentWorkoutSession } from "@/lib/types";
-import { getCurrentMacroState } from "@/lib/workout/macros";
-import { getMuscleSnapshot } from "@/lib/workout/muscle-load";
-import { getStrengthProgress } from "@/lib/workout/progress";
-import { listSessionHistory } from "@/lib/workout/sessions";
 
 const COOLDOWN_MS = 20_000;
-const SESSION_WORK_LIMIT = 8;
 
 export function parseReviewRange(value: unknown): ReviewRange | null {
   if (typeof value === "string" && value.trim() !== "") {
@@ -122,71 +111,6 @@ async function loadReviewBrief(
   range: ReviewRange,
   today: string,
 ) {
-  const { start, end } = reviewWindow(today, range);
-  const [
-    days,
-    foods,
-    sessions,
-    macro,
-    progress,
-    seedWeight,
-    seedWaist,
-    settings,
-    muscles,
-  ] = await Promise.all([
-    listDaysInRange(userId, start, end),
-    listFoodSharesInRange(userId, start, end),
-    loadReviewSessions(userId, start, end),
-    getCurrentMacroState(userId),
-    getStrengthProgress(userId),
-    getLastBodyWeight(userId, start),
-    getLastWaist(userId, start),
-    getUserSettings(userId),
-    getMuscleSnapshot(userId, range >= 30 ? 30 : range),
-  ]);
-
-  return buildReviewBrief({
-    range,
-    from: start,
-    to: end,
-    days,
-    sessions,
-    foods: foods.all,
-    foodsRest: foods.rest,
-    foodsTraining: foods.training,
-    macro,
-    progress,
-    seedWeight: seedWeight?.weight ?? null,
-    seedWaist: seedWaist?.cm ?? null,
-    sex: settings?.sex ?? null,
-    goal: settings?.goal ?? null,
-    trainingAge: settings?.training_age ?? null,
-    muscles,
-  });
-}
-
-async function loadReviewSessions(userId: string, start: string, end: string) {
-  const items: RecentWorkoutSession[] = [];
-  let before: string | undefined;
-  for (let page = 0; page < 3; page += 1) {
-    const result = await listSessionHistory(userId, {
-      since: start,
-      until: end,
-      before,
-      limit: 120,
-      statuses: ["completed", "skipped"],
-      summaryLimit: SESSION_WORK_LIMIT,
-      richWork: true,
-    });
-    items.push(...result.items);
-    if (!result.next_before) {
-      break;
-    }
-    before = result.next_before;
-  }
-
-  return items.filter(
-    (item) =>
-      item.session.session_date >= start && item.session.session_date <= end,
-  );
+  const source = await loadReviewSource(userId, range, today);
+  return buildReviewBrief(source);
 }

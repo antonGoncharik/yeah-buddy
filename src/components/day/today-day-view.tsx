@@ -17,6 +17,7 @@ import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
+import { TodaySignalInsight } from "@/components/day/today-signal-insight";
 import { useTodayMuscleNutritionHint } from "@/components/day/use-today-muscle-nutrition-hint";
 import {
   showYesterdayCatchUpHint,
@@ -444,6 +445,7 @@ export function TodayDayView({
       weekShare ||
       reviewBlock) ? (
       <TodayExtrasSection>
+        <TodaySignalInsight />
         {energyGoalBlock}
         {energyHintBlock}
         {muscleNutritionBlock}
