@@ -1,31 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
-import { cookies } from "next/headers";
-import { ConfirmProvider } from "@/components/layout/confirm-provider";
-import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
-import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { TodayOrderProvider } from "@/components/layout/today-order-provider";
-import { UndoToastProvider } from "@/components/layout/undo-toast-provider";
+
 import {
   APP_DESCRIPTION,
   APP_NAME,
   APP_SHORT_NAME,
   APP_TITLE,
 } from "@/lib/brand";
-import { DIARY_DENSITY_COOKIE, parseDiaryDensity } from "@/lib/diary-density";
 import { siteOriginUrl } from "@/lib/site-url";
 import {
   TELEGRAM_BOOT_SCRIPT,
   TELEGRAM_BOOT_STYLE,
 } from "@/lib/telegram/boot-script";
-import {
-  DARK_THEME_COLOR,
-  LIGHT_THEME_COLOR,
-  parseTheme,
-  THEME_COOKIE,
-} from "@/lib/theme";
-import { parseTodayOrder, TODAY_ORDER_COOKIE } from "@/lib/today-order";
+import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 import "./globals.css";
@@ -94,55 +81,26 @@ export const metadata: Metadata = {
   },
 };
 
-export async function generateViewport(): Promise<Viewport> {
-  const cookieStore = await cookies();
-  const theme = parseTheme(cookieStore.get(THEME_COOKIE)?.value);
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "overlays-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: LIGHT_THEME_COLOR },
+    { media: "(prefers-color-scheme: dark)", color: DARK_THEME_COLOR },
+  ],
+};
 
-  return {
-    width: "device-width",
-    initialScale: 1,
-    viewportFit: "cover",
-    interactiveWidget: "overlays-content",
-    themeColor: theme === "dark" ? DARK_THEME_COLOR : LIGHT_THEME_COLOR,
-  };
-}
-
-export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const cookieStore = await cookies();
-  const theme = parseTheme(cookieStore.get(THEME_COOKIE)?.value);
-  const density = parseDiaryDensity(
-    cookieStore.get(DIARY_DENSITY_COOKIE)?.value,
-  );
-  const todayOrder = parseTodayOrder(
-    cookieStore.get(TODAY_ORDER_COOKIE)?.value,
-  );
-
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="ru"
-      data-density={density}
-      className={cn("font-sans", manrope.variable, theme === "dark" && "dark")}
-      style={{ colorScheme: theme }}
-    >
+    <html lang="ru" className={cn("font-sans", manrope.variable)}>
       <head>
         <style>{TELEGRAM_BOOT_STYLE}</style>
         <script>{TELEGRAM_BOOT_SCRIPT}</script>
       </head>
       <body className="app-viewport-min bg-background text-foreground antialiased">
-        <ThemeProvider initialTheme={theme}>
-          <DiaryDensityProvider initialDensity={density}>
-            <TodayOrderProvider initialOrder={todayOrder}>
-              <ConfirmProvider>
-                <UndoToastProvider>
-                  <DayMoodProvider>
-                    <DayBackdrop />
-                    <div className="relative z-10 min-w-0">{children}</div>
-                  </DayMoodProvider>
-                </UndoToastProvider>
-              </ConfirmProvider>
-            </TodayOrderProvider>
-          </DiaryDensityProvider>
-        </ThemeProvider>
+        <div className="relative z-10 min-w-0">{children}</div>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { coachStartPayload } from "@/lib/coach/start";
 import { mealDraftStartPayload } from "@/lib/meal-chat/start";
 import { programStartPayload } from "@/lib/share/program-start";
 import { createPackToken } from "@/lib/share/token";
+import { landingStartPayload } from "@/lib/telegram/landing-start";
 
 function assert(condition: boolean, label: string): void {
   if (!condition) {
@@ -29,6 +30,9 @@ assert(program?.kind === "program", "program");
 
 const plainPack = classifyStartAttribution(pack);
 assert(plainPack?.kind === "pack", "pack token");
+
+const landing = classifyStartAttribution(landingStartPayload("hero"));
+assert(landing?.kind === "landing", "landing");
 
 assert(classifyStartAttribution("") == null, "empty");
 

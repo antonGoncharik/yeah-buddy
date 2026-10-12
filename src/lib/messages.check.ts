@@ -17,7 +17,6 @@ import {
   OPEN_VIA_BOT_NOTE,
   OPEN_VIA_BOT_POINTS,
   OPEN_VIA_BOT_POINTS_TITLE,
-  OPEN_VIA_BOT_PREVIEW,
   OPEN_VIA_BOT_QR_CAPTION,
   OPEN_VIA_BOT_STEPS,
   OPEN_VIA_BOT_STEPS_TITLE,
@@ -108,26 +107,21 @@ assertEqual(
 assertEqual(STARTER_CATALOG_NOTE, "", "starter catalog explains itself");
 assertEqual(
   OPEN_VIA_BOT_LEAD,
-  "Запиши еду текстом, голосом или фото — бот посчитает КБЖУ. В зале открой тренировку: подходы и вес уже посчитаны.",
+  "Фото, голос или текст — КБЖУ посчитано. В зале программа сама подскажет вес и подходы.",
   "outside Telegram lead",
 );
 assertEqual(OPEN_VIA_BOT_EYEBROW, "Yeah Buddy · в Telegram", "landing eyebrow");
 assertEqual(
   OPEN_VIA_BOT_HERO,
-  "Ешь как обычно. Тренируйся по плану.",
+  "Еда и зал в одном дневнике — прямо в Telegram",
   "landing hero",
-);
-assertEqual(
-  OPEN_VIA_BOT_PREVIEW.workoutValue,
-  "72,5 кг × 5",
-  "landing product preview",
 );
 assertEqual(
   OPEN_VIA_BOT_FAQ_TITLE,
   "Если остались вопросы",
   "landing faq title",
 );
-assertEqual(OPEN_VIA_BOT_FAQ.length, 4, "landing faq count");
+assertEqual(OPEN_VIA_BOT_FAQ.length, 6, "landing faq count");
 assertEqual(OPEN_VIA_BOT_CTA, "Открыть в Telegram", "outside Telegram cta");
 assertEqual(
   OPEN_VIA_BOT_QR_CAPTION,

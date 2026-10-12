@@ -22,6 +22,7 @@ export const SERVER_PRODUCT_EVENTS = [
   "energy_offer_applied",
   "energy_offer_dismissed",
   "ai_request",
+  "landing_cta_click",
 ] as const;
 
 export type ServerProductEvent = (typeof SERVER_PRODUCT_EVENTS)[number];

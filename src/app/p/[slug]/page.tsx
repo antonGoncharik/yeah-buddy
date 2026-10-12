@@ -3,14 +3,19 @@ import { notFound } from "next/navigation";
 
 import { PublicProgramScreen } from "@/components/share/public-program-screen";
 import { APP_NAME } from "@/lib/brand";
+import { getServerEnv } from "@/lib/env";
 import {
   publicProgramCards,
   publicProgramIdFromSlug,
   publicProgramPath,
 } from "@/lib/share/program-public";
-import { getProgramShareUrl } from "@/lib/telegram/bot";
+import { programStartPayload } from "@/lib/share/program-start";
+import {
+  landingCtaPath,
+  publicBotChatUrl,
+} from "@/lib/telegram/public-bot-url";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export function generateStaticParams(): Array<{ slug: string }> {
   return publicProgramCards().map((card) => ({ slug: card.slug }));
@@ -61,21 +66,19 @@ export default async function PublicProgramPage({
     notFound();
   }
 
-  const openUrl = await programBotUrl(id);
+  const openUrl = landingCtaPath(`program_${id}`);
+  let qrUrl: string | null = null;
+  try {
+    qrUrl = publicBotChatUrl(getServerEnv(), programStartPayload(id));
+  } catch {
+    qrUrl = null;
+  }
 
   return (
     <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
       <div className="my-auto w-full max-w-md py-8">
-        <PublicProgramScreen id={id} openUrl={openUrl} />
+        <PublicProgramScreen id={id} openUrl={openUrl} qrUrl={qrUrl} />
       </div>
     </main>
   );
-}
-
-async function programBotUrl(id: Parameters<typeof getProgramShareUrl>[0]) {
-  try {
-    return await getProgramShareUrl(id);
-  } catch {
-    return null;
-  }
 }

@@ -5,7 +5,9 @@ import {
   DumbbellDoodle,
   MealDayDoodle,
 } from "@/components/layout/doodles";
+import { LandingPhoneScreenshots } from "@/components/layout/landing-phone-screenshots";
 import { MarkBadge } from "@/components/layout/mark-badge";
+import { PublicSiteFooter } from "@/components/layout/public-site-footer";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -13,6 +15,9 @@ import {
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
   OPEN_VIA_BOT_FAQ_TITLE,
+  OPEN_VIA_BOT_FEATURES,
+  OPEN_VIA_BOT_FEATURES_LEAD,
+  OPEN_VIA_BOT_FEATURES_TITLE,
   OPEN_VIA_BOT_FINAL_LEAD,
   OPEN_VIA_BOT_FINAL_TITLE,
   OPEN_VIA_BOT_HERO,
@@ -20,12 +25,14 @@ import {
   OPEN_VIA_BOT_NOTE,
   OPEN_VIA_BOT_POINTS,
   OPEN_VIA_BOT_POINTS_TITLE,
-  OPEN_VIA_BOT_PREVIEW,
+  OPEN_VIA_BOT_PRICING_BODY,
+  OPEN_VIA_BOT_PRICING_TITLE,
   OPEN_VIA_BOT_QR_CAPTION,
   OPEN_VIA_BOT_STEPS,
   OPEN_VIA_BOT_STEPS_TITLE,
   PROGRAM_SHELF_LEAD,
   PROGRAM_SHELF_TITLE,
+  PUBLIC_PROGRAMS_ALL_LINK,
 } from "@/lib/messages";
 import { landingProgramCards } from "@/lib/share/program-public";
 import { isTelegramMeUrl } from "@/lib/telegram/share-url";
@@ -78,73 +85,15 @@ function OpenInTelegramCta({
   );
 }
 
-function DayPreview() {
-  return (
-    <div className="relative mx-auto w-full max-w-sm">
-      <div
-        aria-hidden
-        className="absolute -inset-5 -z-10 rounded-[2.5rem] bg-primary/10 blur-2xl"
-      />
-      <div className="card-surface overflow-hidden rounded-[2rem]">
-        <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
-              {OPEN_VIA_BOT_PREVIEW.eyebrow}
-            </p>
-            <p className="mt-1 text-lg font-semibold">Дневник</p>
-          </div>
-          <span className="flex size-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-            YB
-          </span>
-        </div>
-
-        <div className="space-y-3 p-4">
-          <div className="rounded-2xl bg-muted/65 p-4">
-            <div className="flex items-start gap-3">
-              <MarkBadge className="size-10 rounded-xl bg-background">
-                <MealDayDoodle />
-              </MarkBadge>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  {OPEN_VIA_BOT_PREVIEW.mealTitle}
-                </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {OPEN_VIA_BOT_PREVIEW.mealBody}
-                </p>
-                <p className="mt-3 text-sm font-semibold text-primary">
-                  {OPEN_VIA_BOT_PREVIEW.mealValue}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-primary p-4 text-primary-foreground">
-            <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/12">
-                <BarbellDoodle />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">
-                  {OPEN_VIA_BOT_PREVIEW.workoutTitle}
-                </p>
-                <p className="mt-0.5 text-sm text-primary-foreground/70">
-                  {OPEN_VIA_BOT_PREVIEW.workoutBody}
-                </p>
-                <p className="mt-3 text-xl font-semibold">
-                  {OPEN_VIA_BOT_PREVIEW.workoutValue}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
-  const showQr = openUrl != null && isTelegramMeUrl(openUrl);
-  const programs = landingProgramCards().slice(0, 3);
+export function OutsideTelegramScreen({
+  openUrl,
+  qrUrl = null,
+}: {
+  openUrl: string | null;
+  qrUrl?: string | null;
+}) {
+  const showQr = qrUrl != null && isTelegramMeUrl(qrUrl);
+  const programs = landingProgramCards().slice(0, 6);
 
   return (
     <div className="animate-rise flex w-full flex-col gap-16 md:gap-24">
@@ -170,7 +119,7 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
             {OPEN_VIA_BOT_NOTE}
           </p>
         </div>
-        <DayPreview />
+        <LandingPhoneScreenshots />
       </header>
 
       <LandingSection title={OPEN_VIA_BOT_POINTS_TITLE}>
@@ -184,6 +133,22 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
               <h3 className="mt-5 text-lg font-semibold">{point.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {point.body}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </LandingSection>
+
+      <LandingSection
+        title={OPEN_VIA_BOT_FEATURES_TITLE}
+        lead={OPEN_VIA_BOT_FEATURES_LEAD}
+      >
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {OPEN_VIA_BOT_FEATURES.map((item) => (
+            <li key={item.title} className="card-surface p-5 text-left">
+              <h3 className="font-semibold">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {item.body}
               </p>
             </li>
           ))}
@@ -240,6 +205,18 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
             </li>
           ))}
         </ul>
+        <a
+          href="/p"
+          className="mt-4 inline-flex text-sm font-semibold text-primary"
+        >
+          {PUBLIC_PROGRAMS_ALL_LINK} <span aria-hidden>→</span>
+        </a>
+      </LandingSection>
+
+      <LandingSection title={OPEN_VIA_BOT_PRICING_TITLE}>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {OPEN_VIA_BOT_PRICING_BODY}
+        </p>
       </LandingSection>
 
       <LandingSection title={OPEN_VIA_BOT_FAQ_TITLE}>
@@ -281,9 +258,13 @@ export function OutsideTelegramScreen({ openUrl }: { openUrl: string | null }) {
         ) : null}
       </section>
 
-      {showQr && openUrl ? (
-        <ShareQr url={openUrl} caption={OPEN_VIA_BOT_QR_CAPTION} compact />
+      {showQr && qrUrl ? (
+        <div className="hidden md:block">
+          <ShareQr url={qrUrl} caption={OPEN_VIA_BOT_QR_CAPTION} compact />
+        </div>
       ) : null}
+
+      <PublicSiteFooter />
     </div>
   );
 }

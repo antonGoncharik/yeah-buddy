@@ -1,3 +1,4 @@
+import { PublicSiteFooter } from "@/components/layout/public-site-footer";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgramMusclePreview } from "@/components/workout/program-muscle-preview";
@@ -19,16 +20,18 @@ import { cn } from "@/lib/utils";
 export function PublicProgramScreen({
   id,
   openUrl,
+  qrUrl = null,
 }: {
   id: PublicProgramId;
   openUrl: string | null;
+  qrUrl?: string | null;
 }) {
   const preset = featuredProgramPreset(id);
   const program = featuredProgramView(preset, {
     share_url: openUrl,
     applied: false,
   });
-  const showQr = openUrl != null && isTelegramMeUrl(openUrl);
+  const showQr = qrUrl != null && isTelegramMeUrl(qrUrl);
 
   return (
     <div className="animate-rise flex w-full flex-col items-center gap-6">
@@ -78,9 +81,11 @@ export function PublicProgramScreen({
         </a>
       ) : null}
 
-      {showQr && openUrl ? (
-        <ShareQr url={openUrl} caption={PROGRAM_QR_CAPTION} compact />
+      {showQr && qrUrl ? (
+        <ShareQr url={qrUrl} caption={PROGRAM_QR_CAPTION} compact />
       ) : null}
+
+      <PublicSiteFooter />
     </div>
   );
 }

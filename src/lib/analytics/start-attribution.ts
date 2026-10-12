@@ -4,6 +4,7 @@ import { parseMealDraftStartPayload } from "@/lib/meal-chat/start";
 import { parseBarbellStartPayload } from "@/lib/share/barbell-start";
 import { parseProgramStartPayload } from "@/lib/share/program-start";
 import { isPackToken } from "@/lib/share/token";
+import { parseLandingStartPayload } from "@/lib/telegram/landing-start";
 
 export const FIRST_START_KINDS = [
   "program",
@@ -12,6 +13,7 @@ export const FIRST_START_KINDS = [
   "buddy",
   "barbell",
   "meal",
+  "landing",
 ] as const;
 
 export type FirstStartKind = (typeof FIRST_START_KINDS)[number];
@@ -22,6 +24,11 @@ export function classifyStartAttribution(
   const value = raw.trim();
   if (!value) {
     return null;
+  }
+
+  const landing = parseLandingStartPayload(value);
+  if (landing) {
+    return { kind: "landing", ref: landing.ref };
   }
 
   const coach = parseCoachStartPayload(value);
