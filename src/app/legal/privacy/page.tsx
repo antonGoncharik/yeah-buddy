@@ -3,7 +3,11 @@ import Link from "next/link";
 
 import { PublicSiteFooter } from "@/components/layout/public-site-footer";
 import { APP_NAME } from "@/lib/brand";
-import { PROGRAM_PAGE_BACK, PUBLIC_FOOTER_PRIVACY } from "@/lib/messages";
+import {
+  PROGRAM_PAGE_BACK,
+  PUBLIC_FOOTER_CONTACT,
+  PUBLIC_FOOTER_PRIVACY,
+} from "@/lib/messages";
 
 export const revalidate = 86400;
 
@@ -57,7 +61,7 @@ export default function PrivacyPage() {
         <h2>Контакт</h2>
         <p>
           Вопросы по данным — через бота{" "}
-          <a href="https://t.me/yeahbuddy_bot">@yeahbuddy_bot</a> (тема
+          <a href={PUBLIC_FOOTER_CONTACT.href}>@YeahBuddyAppBot</a> (тема
           «Написать» в приложении).
         </p>
         <div className="not-prose mt-10">

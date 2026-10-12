@@ -52,7 +52,7 @@ export const PUBLIC_FOOTER_PRIVACY = "Политика конфиденциал�
 export const PUBLIC_FOOTER_TERMS = "Условия использования";
 export const PUBLIC_FOOTER_CONTACT = {
   label: "Написать в Telegram",
-  href: "https://t.me/yeahbuddy_bot",
+  href: "https://t.me/YeahBuddyAppBot",
 } as const;
 export const PUBLIC_PROGRAMS_INDEX_TITLE = "Готовые программы";
 export const PUBLIC_PROGRAMS_INDEX_LEAD =
