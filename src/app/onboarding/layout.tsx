@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppProviders } from "@/components/layout/app-providers";
+import { TelegramBoot } from "@/components/layout/telegram-boot";
 import { TelegramGate } from "@/components/layout/telegram-gate";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default async function OnboardingLayout({
 }) {
   return (
     <AppProviders>
+      <TelegramBoot />
       <TelegramGate>
         <div
           className="app-safe-pad mx-auto flex h-[var(--app-viewport-height)] w-full max-w-lg flex-col"

@@ -8,6 +8,7 @@ import {
   PUBLIC_PROGRAMS_INDEX_LEAD,
   PUBLIC_PROGRAMS_INDEX_TITLE,
 } from "@/lib/messages";
+import { breadcrumbJsonLd } from "@/lib/seo/breadcrumb-json-ld";
 import { publicProgramCards } from "@/lib/share/program-public";
 
 export const revalidate = 86400;
@@ -25,9 +26,14 @@ export const metadata: Metadata = {
 
 export default function PublicProgramsIndexPage() {
   const programs = publicProgramCards();
+  const jsonLd = breadcrumbJsonLd([
+    { name: "Главная", path: "/" },
+    { name: PUBLIC_PROGRAMS_INDEX_TITLE, path: "/p" },
+  ]);
 
   return (
     <main className="app-viewport-min flex flex-col items-center overflow-y-auto px-6 pt-[var(--app-safe-top)] pb-[var(--app-safe-bottom)]">
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       <div className="my-auto w-full max-w-3xl py-10 sm:py-14">
         <div className="animate-rise flex flex-col gap-8">
           <Link

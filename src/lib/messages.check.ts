@@ -6,6 +6,11 @@ import {
   CATCH_UP_YESTERDAY_HINT,
   EMPTY_START_ADD,
   EMPTY_START_REPEAT,
+  OPEN_VIA_BOT_COMPARE,
+  OPEN_VIA_BOT_COMPARE_HERE,
+  OPEN_VIA_BOT_COMPARE_NOTE,
+  OPEN_VIA_BOT_COMPARE_TITLE,
+  OPEN_VIA_BOT_COMPARE_USUAL,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
@@ -152,12 +157,29 @@ assertEqual(
 );
 assertEqual(
   OPEN_VIA_BOT_NOTE,
-  "Бесплатно · без регистрации · открывается в Telegram",
+  "Бесплатно · без регистрации · еда и зал в одном боте",
   "outside Telegram note",
 );
 assertEqual(
+  OPEN_VIA_BOT_COMPARE_TITLE,
+  "Один дневник вместо двух приложений",
+  "landing compare title",
+);
+assertEqual(OPEN_VIA_BOT_COMPARE_USUAL, "Обычно", "landing compare usual");
+assertEqual(OPEN_VIA_BOT_COMPARE_HERE, "Здесь", "landing compare here");
+assertEqual(
+  OPEN_VIA_BOT_COMPARE.map((row) => `${row.usual} / ${row.here}`).join("\n"),
+  "Дневник калорий и отдельное приложение для зала / Еда и тренировки в одном боте\nЧат только про калории / Еда, зал, программы и карта мышц",
+  "landing compare rows",
+);
+assertEqual(
+  OPEN_VIA_BOT_COMPARE_NOTE,
+  "У NOMS и BioTrakk больше бесплатных разборов еды. Здесь фото — до четырёх в день, голос и текст — до трёх. Зато рядом зал, офлайн и адаптивная цель.",
+  "landing compare limit",
+);
+assertEqual(
   `${OPEN_VIA_BOT_FINAL_TITLE}: ${OPEN_VIA_BOT_FINAL_LEAD}`,
-  "Можно просто попробовать сегодня: Открой бота. Короткая настройка цели — и сразу дневник. Рацион и программу можно добрать следом.",
+  "Можно просто попробовать сегодня: Открой бота. Настройка обычно занимает 7–9 шагов, программу зала можно не выбирать.",
   "landing final call to action",
 );
 assertEqual(

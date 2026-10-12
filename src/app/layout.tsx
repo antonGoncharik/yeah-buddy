@@ -9,8 +9,8 @@ import {
 } from "@/lib/brand";
 import { siteOriginUrl } from "@/lib/site-url";
 import {
-  TELEGRAM_BOOT_SCRIPT,
   TELEGRAM_BOOT_STYLE,
+  TELEGRAM_LANDING_ENTRY_SCRIPT,
 } from "@/lib/telegram/boot-script";
 import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -97,7 +97,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="ru" className={cn("font-sans", manrope.variable)}>
       <head>
         <style>{TELEGRAM_BOOT_STYLE}</style>
-        <script>{TELEGRAM_BOOT_SCRIPT}</script>
+        <script>{TELEGRAM_LANDING_ENTRY_SCRIPT}</script>
       </head>
       <body className="app-viewport-min bg-background text-foreground antialiased">
         <div className="relative z-10 min-w-0">{children}</div>

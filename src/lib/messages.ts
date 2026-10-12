@@ -61,15 +61,6 @@ export const PUBLIC_PROGRAMS_ALL_LINK = "Все программы";
 export const TODAY_MY_FOODS_LINK = "Мои продукты";
 export const OFFLINE_CAPTURE_HINT =
   "Нет сети. Запись сохранится на телефоне, разбор фото и голоса заработают, когда интернет вернётся.";
-export const OPEN_VIA_BOT_PREVIEW = {
-  eyebrow: "Сегодня · день зала",
-  mealTitle: "Обед по фото",
-  mealBody: "Рис, курица и овощи",
-  mealValue: "640 ккал · 46 г белка",
-  workoutTitle: "Жим лёжа · 5×5",
-  workoutBody: "Следующий подход",
-  workoutValue: "72,5 кг × 5",
-} as const;
 export const OPEN_VIA_BOT_FAQ_TITLE = "Если остались вопросы";
 export const OPEN_VIA_BOT_FAQ = [
   {
@@ -136,10 +127,25 @@ export const OPEN_VIA_BOT_STEPS = [
   },
 ] as const;
 export const OPEN_VIA_BOT_NOTE =
-  "Бесплатно · без регистрации · открывается в Telegram";
+  "Бесплатно · без регистрации · еда и зал в одном боте";
+export const OPEN_VIA_BOT_COMPARE_TITLE = "Один дневник вместо двух приложений";
+export const OPEN_VIA_BOT_COMPARE_USUAL = "Обычно";
+export const OPEN_VIA_BOT_COMPARE_HERE = "Здесь";
+export const OPEN_VIA_BOT_COMPARE = [
+  {
+    usual: "Дневник калорий и отдельное приложение для зала",
+    here: "Еда и тренировки в одном боте",
+  },
+  {
+    usual: "Чат только про калории",
+    here: "Еда, зал, программы и карта мышц",
+  },
+] as const;
+export const OPEN_VIA_BOT_COMPARE_NOTE =
+  "У NOMS и BioTrakk больше бесплатных разборов еды. Здесь фото — до четырёх в день, голос и текст — до трёх. Зато рядом зал, офлайн и адаптивная цель.";
 export const OPEN_VIA_BOT_FINAL_TITLE = "Можно просто попробовать сегодня";
 export const OPEN_VIA_BOT_FINAL_LEAD =
-  "Открой бота. Короткая настройка цели — и сразу дневник. Рацион и программу можно добрать следом.";
+  "Открой бота. Настройка обычно занимает 7–9 шагов, программу зала можно не выбирать.";
 export const PROGRAM_SHELF_TITLE = "Не знаешь, с чего начать?";
 export const PROGRAM_SHELF_LEAD =
   "Возьми готовую программу. Есть зал, дом и варианты без оборудования.";

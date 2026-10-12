@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { OutboxSync } from "@/components/layout/outbox-sync";
 import { ResetWindowScroll } from "@/components/layout/reset-window-scroll";
 import { TelegramBackSwipeGuard } from "@/components/layout/telegram-back-swipe-guard";
+import { TelegramBoot } from "@/components/layout/telegram-boot";
 import { TelegramGate } from "@/components/layout/telegram-gate";
 import { MealDraftCatcher } from "@/components/meal-chat/meal-draft-catcher";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
@@ -26,6 +27,7 @@ export default async function AppLayout({
 }) {
   return (
     <AppProviders>
+      <TelegramBoot />
       <TelegramGate>
         <OnboardingGate>
           <div

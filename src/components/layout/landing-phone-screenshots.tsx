@@ -2,19 +2,19 @@ import Image from "next/image";
 
 const SHOTS = [
   {
-    src: "/screenshots/today.png",
+    src: "/screenshots/today.webp",
     alt: "Экран «Сегодня» с приёмами пищи и итогом дня",
     label: "Дневник",
   },
   {
-    src: "/screenshots/workouts.png",
+    src: "/screenshots/workouts.webp",
     alt: "Тренировка с подходами и рабочими весами",
     label: "Зал",
   },
   {
-    src: "/screenshots/settings.png",
-    alt: "Настройки целей и напоминаний",
-    label: "Цели",
+    src: "/screenshots/muscles.webp",
+    alt: "Карта мышц: объём за неделю по зонам тела",
+    label: "Мышцы",
   },
 ] as const;
 
@@ -34,11 +34,12 @@ export function LandingPhoneScreenshots() {
             alt={primary.alt}
             width={390}
             height={844}
+            sizes="(max-width: 768px) 100vw, 390px"
             priority
             className="h-auto w-full"
           />
         </div>
-        <ul className="mt-3 grid grid-cols-3 gap-2">
+        <ul className="mt-3 grid grid-cols-2 gap-2">
           {rest.map((shot) => (
             <li key={shot.src} className="text-center">
               <div className="overflow-hidden rounded-xl border border-border/70">
@@ -47,6 +48,7 @@ export function LandingPhoneScreenshots() {
                   alt={shot.alt}
                   width={120}
                   height={260}
+                  sizes="120px"
                   className="h-auto w-full"
                 />
               </div>

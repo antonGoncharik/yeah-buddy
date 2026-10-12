@@ -11,6 +11,11 @@ import { PublicSiteFooter } from "@/components/layout/public-site-footer";
 import { ShareQr } from "@/components/share/share-qr";
 import { buttonVariants } from "@/components/ui/button";
 import {
+  OPEN_VIA_BOT_COMPARE,
+  OPEN_VIA_BOT_COMPARE_HERE,
+  OPEN_VIA_BOT_COMPARE_NOTE,
+  OPEN_VIA_BOT_COMPARE_TITLE,
+  OPEN_VIA_BOT_COMPARE_USUAL,
   OPEN_VIA_BOT_CTA,
   OPEN_VIA_BOT_EYEBROW,
   OPEN_VIA_BOT_FAQ,
@@ -137,6 +142,33 @@ export function OutsideTelegramScreen({
             </li>
           ))}
         </ul>
+      </LandingSection>
+
+      <LandingSection title={OPEN_VIA_BOT_COMPARE_TITLE}>
+        <div className="overflow-hidden rounded-2xl border border-border">
+          <div className="grid grid-cols-2 bg-muted/60 text-xs font-semibold tracking-wide">
+            <p className="px-4 py-3 text-muted-foreground">
+              {OPEN_VIA_BOT_COMPARE_USUAL}
+            </p>
+            <p className="px-4 py-3 text-primary">
+              {OPEN_VIA_BOT_COMPARE_HERE}
+            </p>
+          </div>
+          <ul>
+            {OPEN_VIA_BOT_COMPARE.map((row) => (
+              <li
+                key={row.usual}
+                className="grid grid-cols-2 border-t border-border text-sm leading-relaxed"
+              >
+                <p className="px-4 py-3 text-muted-foreground">{row.usual}</p>
+                <p className="px-4 py-3">{row.here}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="px-1 text-sm leading-relaxed text-muted-foreground">
+          {OPEN_VIA_BOT_COMPARE_NOTE}
+        </p>
       </LandingSection>
 
       <LandingSection

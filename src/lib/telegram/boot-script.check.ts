@@ -5,6 +5,7 @@ import {
   TELEGRAM_BOOT_SCRIPT,
   TELEGRAM_BOOT_STYLE,
   TELEGRAM_INIT_STORAGE_KEY,
+  TELEGRAM_LANDING_ENTRY_SCRIPT,
   telegramInitParamsFromHash,
 } from "@/lib/telegram/boot-script";
 import { TELEGRAM_FULLSCREEN_STORAGE_KEY } from "@/lib/telegram/fullscreen-storage";
@@ -140,6 +141,20 @@ assertEqual(
     TELEGRAM_BOOT_STYLE.includes(DARK_THEME_COLOR),
   true,
   "boot style keeps the theme background",
+);
+assertEqual(
+  TELEGRAM_LANDING_ENTRY_SCRIPT.includes('location.pathname==="/"') &&
+    TELEGRAM_LANDING_ENTRY_SCRIPT.includes('location.replace("/today"') &&
+    TELEGRAM_LANDING_ENTRY_SCRIPT.includes("tgWebApp") &&
+    TELEGRAM_LANDING_ENTRY_SCRIPT.includes(TELEGRAM_BOOT_HIDE_CLASS),
+  true,
+  "landing entry hides and opens the diary",
+);
+assertEqual(
+  TELEGRAM_LANDING_ENTRY_SCRIPT.includes("telegram-web-app.js") ||
+    TELEGRAM_LANDING_ENTRY_SCRIPT.includes("web_app_request_fullscreen"),
+  false,
+  "landing entry does not boot the Telegram SDK",
 );
 
 const launchHash =
