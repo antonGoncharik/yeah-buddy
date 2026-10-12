@@ -62,10 +62,13 @@ export function ScreenLoading({
   title,
   splash = false,
   cover = false,
+  plain = false,
 }: {
   title?: string;
   splash?: boolean;
   cover?: boolean;
+  /** Без шутливых фраз — для обычной подгрузки экранов. */
+  plain?: boolean;
 }) {
   const boot = useBootSplash();
   const flavor = loadingFlavor({ splash, title });
@@ -83,7 +86,7 @@ export function ScreenLoading({
   }, [boot, splash]);
 
   useEffect(() => {
-    if (beatLine) {
+    if (beatLine || plain) {
       return;
     }
     setLine(
@@ -91,7 +94,7 @@ export function ScreenLoading({
         ? (nightLoadingLine(Date.now()) ?? loadingLine(flavor, Date.now()))
         : loadingLine(flavor, Date.now()),
     );
-  }, [beatLine, flavor]);
+  }, [beatLine, flavor, plain]);
 
   useEffect(() => {
     return () => {
@@ -217,10 +220,10 @@ export function ScreenLoading({
           })}
         </div>
         <p
-          aria-hidden
+          aria-hidden={plain}
           className="animate-fade max-w-sm px-4 text-center text-base text-balance"
         >
-          {beatLine ?? line}
+          {plain ? (title ?? "Загрузка…") : (beatLine ?? line)}
         </p>
       </div>
     </div>

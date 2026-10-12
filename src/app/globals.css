@@ -943,3 +943,20 @@ html[data-density="compact"]
   font-size: 1rem;
   line-height: 1.5rem;
 }
+
+/* Основные тап-цели в дневнике — не меньше 44 px (UX-03). */
+[data-diary-compact-scope]
+[data-slot="button"]:not([class*="h-6"]):not([class*="size-6"]) {
+  min-height: 2.75rem;
+}
+
+[data-diary-compact-scope] [data-slot="button"][class*="size-8"],
+[data-diary-compact-scope] [data-slot="button"][class*="size-7"] {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+[data-onboarding-ui]
+  [data-slot="button"]:not([class*="h-6"]):not([class*="size-6"]) {
+  min-height: 2.75rem;
+}

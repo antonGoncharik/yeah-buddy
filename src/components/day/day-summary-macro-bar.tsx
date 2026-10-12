@@ -52,6 +52,9 @@ export function MacroBar({
         barClass={barClass}
         overflow={overflow}
         size={compact ? "sm" : "md"}
+        valueNow={fact}
+        valueMax={plan > 0 ? plan : 1}
+        valueText={`${formatAmount(fact)} из ${formatAmount(plan)} ${label}`}
       />
     </div>
   );

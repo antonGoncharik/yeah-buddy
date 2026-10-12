@@ -58,6 +58,9 @@ export const PUBLIC_PROGRAMS_INDEX_TITLE = "Готовые программы";
 export const PUBLIC_PROGRAMS_INDEX_LEAD =
   "Зал, дом, гантели и турник — выбери схему и поставь в дневник одной кнопкой.";
 export const PUBLIC_PROGRAMS_ALL_LINK = "Все программы";
+export const TODAY_MY_FOODS_LINK = "Мои продукты";
+export const OFFLINE_CAPTURE_HINT =
+  "Нет сети. Запись сохранится на телефоне, разбор фото и голоса заработают, когда интернет вернётся.";
 export const OPEN_VIA_BOT_PREVIEW = {
   eyebrow: "Сегодня · день зала",
   mealTitle: "Обед по фото",

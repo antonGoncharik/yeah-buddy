@@ -138,12 +138,17 @@ export function onboardingSteps({
     next.push(...person, "ration");
   }
 
-  if (forceGym && pendingKind !== "workouts" && !pendingProgram) {
-    if (pendingKind !== "meals") {
-      next.push("lifts");
-    }
-    next.push("circle");
-  }
-
   return next;
+}
+
+export function onboardingStepProgressLabel(
+  steps: OnboardingStep[],
+  step: OnboardingStep,
+): string | null {
+  const setup = onboardingSetupSteps(steps);
+  const index = setup.indexOf(step);
+  if (index < 0) {
+    return null;
+  }
+  return `Шаг ${index + 1} из ${setup.length}`;
 }

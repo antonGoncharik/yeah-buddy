@@ -6,6 +6,7 @@ import { PlateFoodPicker } from "@/components/day/plate-food-picker";
 import { PlateLiveCamera } from "@/components/day/plate-live-camera";
 import { PlateStatusCopy } from "@/components/day/plate-status";
 import { usePlateScreen } from "@/components/day/use-plate-screen";
+import { OfflineCaptureHint } from "@/components/layout/offline-capture-hint";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function PlateScreen({
   return (
     <>
       {plate.workingTitle ? (
-        <ScreenLoading title={plate.workingTitle} cover />
+        <ScreenLoading title={plate.workingTitle} cover plain />
       ) : null}
 
       {plate.liveCamera ? (
@@ -67,6 +68,7 @@ export function PlateScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 px-4 pb-40">
+        <OfflineCaptureHint />
         {plate.previewUrl ? (
           // biome-ignore lint/performance/noImgElement: local object URL, not a remote asset
           <img

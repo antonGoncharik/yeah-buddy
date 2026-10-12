@@ -15,6 +15,7 @@ import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
+import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
 import {
@@ -365,13 +366,35 @@ export function TodayDayView({
       />
     ) : null;
   const quickFoods =
-    !viewOnly && quickLogMealId ? (
+    dayHasItems && !viewOnly && quickLogMealId ? (
       <TodayQuickFoods date={date} mealId={quickLogMealId} busy={busy} />
     ) : null;
 
+  const energyGoalBlock =
+    date === today && !viewOnly && energyGoal ? (
+      <EnergyGoalCard
+        offer={energyGoal}
+        currentRestKcal={calcKcalFromMacros(
+          shownDay.target_protein,
+          shownDay.target_fat,
+          shownDay.target_carbs,
+        )}
+        busy={energyGoalBusy}
+        onApply={onApplyEnergyGoal}
+        onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
+      />
+    ) : null;
+  const energyHintBlock =
+    date === today && !viewOnly && !energyGoal && energyGoalHint ? (
+      <EnergyGoalHintCard line={energyGoalHint} />
+    ) : null;
+  const reviewBlock =
+    viewOnly || !reviewOffer.show ? null : (
+      <ReviewCta from="today" onOpen={reviewOffer.open} />
+    );
+
   const foodBlock = (
     <>
-      {quickFoods}
       {mealsBlock}
       {mealTail}
       {showSaveTemplate ? (
@@ -392,11 +415,27 @@ export function TodayDayView({
         compact ? "gap-1.5" : "gap-3",
       )}
     >
-      {numbersFirst ? null : proteinCloseBlock}
       {daySummary}
-      {numbersFirst ? proteinCloseBlock : null}
     </div>
   ) : null;
+
+  const todayExtras =
+    dayHasItems &&
+    (energyGoalBlock ||
+      energyHintBlock ||
+      quickFoods ||
+      proteinCloseBlock ||
+      weekShare ||
+      reviewBlock) ? (
+      <TodayExtrasSection>
+        {energyGoalBlock}
+        {energyHintBlock}
+        {quickFoods}
+        {proteinCloseBlock}
+        {weekShare}
+        {reviewBlock}
+      </TodayExtrasSection>
+    ) : null;
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-1.5" : "gap-4")}>
@@ -425,7 +464,7 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {date === today && !viewOnly && energyGoal ? (
+      {!dayHasItems && date === today && !viewOnly && energyGoal ? (
         <div className="animate-rise">
           <EnergyGoalCard
             offer={energyGoal}
@@ -441,7 +480,11 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {date === today && !viewOnly && !energyGoal && energyGoalHint ? (
+      {!dayHasItems &&
+      date === today &&
+      !viewOnly &&
+      !energyGoal &&
+      energyGoalHint ? (
         <div className="animate-rise">
           <EnergyGoalHintCard line={energyGoalHint} />
         </div>
@@ -465,11 +508,10 @@ export function TodayDayView({
       {numbersFirst ? scoreBlock : foodBlock}
       {numbersFirst ? foodBlock : scoreBlock}
 
-      {weekShare}
+      {todayExtras}
 
-      {viewOnly || !reviewOffer.show ? null : (
-        <ReviewCta from="today" onOpen={reviewOffer.open} />
-      )}
+      {!dayHasItems ? weekShare : null}
+      {!dayHasItems ? reviewBlock : null}
     </div>
   );
 }

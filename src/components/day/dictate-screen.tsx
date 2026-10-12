@@ -6,6 +6,7 @@ import { DictateStatusCopy } from "@/components/day/dictate-status";
 import { PlateDraftPanel } from "@/components/day/plate-draft-panel";
 import { PlateFoodPicker } from "@/components/day/plate-food-picker";
 import { useDictateScreen } from "@/components/day/use-dictate-screen";
+import { OfflineCaptureHint } from "@/components/layout/offline-capture-hint";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function DictateScreen({
   return (
     <>
       {dictate.workingTitle ? (
-        <ScreenLoading title={dictate.workingTitle} cover />
+        <ScreenLoading title={dictate.workingTitle} cover plain />
       ) : null}
 
       {dictate.picker ? (
@@ -61,6 +62,7 @@ export function DictateScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 px-4 pb-40">
+        <OfflineCaptureHint />
         <DictateStatusCopy
           idle={dictate.view.status === "idle"}
           unavailable={dictate.unavailable}

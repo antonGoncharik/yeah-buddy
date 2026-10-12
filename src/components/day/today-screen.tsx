@@ -17,7 +17,8 @@ import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError } from "@/components/layout/screen-status";
+import { TodayLoadingSkeleton } from "@/components/layout/today-loading-skeleton";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
@@ -192,10 +193,11 @@ export function TodayScreen({
         !compact &&
         guideTip.tip &&
         !dayTypeTip.tip &&
+        !dayHasItems &&
         !(earlyHabit && isToday && !dayHasItems) ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
-        {showLoading ? <ScreenLoading /> : null}
+        {showLoading ? <TodayLoadingSkeleton /> : null}
 
         {contentReady && loadError ? (
           <ScreenError message={LOAD_FAILED} onRetry={() => void load()} />

@@ -38,7 +38,7 @@ assertEqual(
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,${personGym},ration,lifts,circle`,
+  `mode,${personGym},ration`,
   "first run with gym",
 );
 assertEqual(
@@ -68,7 +68,7 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meals", gymEnabled: true }).join(),
-  "mode,circle",
+  "mode",
   "meal pack with gym",
 );
 assertEqual(
@@ -83,8 +83,8 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,${personGym},ration,lifts,circle`,
-  "one meal pack with gym uses profile and program",
+  `mode,${personGym},ration`,
+  "one meal pack with gym uses profile only",
 );
 
 for (const step of onboardingPersonSteps(true)) {
