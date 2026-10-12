@@ -34,8 +34,10 @@ const MAX_OFFERS = 3;
 export function proteinCloseOffers(
   budget: MacroBudget,
   foods: readonly ProteinCloseCandidate[],
+  options?: { minProteinGap?: number },
 ): ProteinCloseOffer[] {
-  if (!(budget.remainingProtein >= MIN_GAP)) {
+  const minGap = options?.minProteinGap ?? MIN_GAP;
+  if (!(budget.remainingProtein >= minGap)) {
     return [];
   }
 

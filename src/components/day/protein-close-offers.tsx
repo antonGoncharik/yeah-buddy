@@ -11,6 +11,7 @@ import { readCachedDay } from "@/lib/day/cache";
 import { parseFoodList } from "@/lib/food/map";
 import { quickAddGrams } from "@/lib/food/quick-add";
 import { formatGrams } from "@/lib/nutrition";
+import { macroGapProteinOffers } from "@/lib/nutrition/macro-gap-hint";
 import {
   type ProteinCloseCandidate,
   proteinCloseOffers,
@@ -27,6 +28,7 @@ export function ProteinCloseOffers({
   remainingCarbs,
   remainingKcal,
   busy,
+  macroGap = false,
 }: {
   date: string;
   mealId: string | null;
@@ -35,6 +37,7 @@ export function ProteinCloseOffers({
   remainingCarbs: number;
   remainingKcal: number;
   busy: boolean;
+  macroGap?: boolean;
 }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
@@ -67,15 +70,16 @@ export function ProteinCloseOffers({
     return null;
   }
 
-  const offers = proteinCloseOffers(
-    {
-      remainingProtein,
-      remainingFat,
-      remainingCarbs,
-      remainingKcal,
-    },
-    candidates(lists.recent, lists.favorites),
-  );
+  const budget = {
+    remainingProtein,
+    remainingFat,
+    remainingCarbs,
+    remainingKcal,
+  };
+  const pool = candidates(lists.recent, lists.favorites);
+  const offers = macroGap
+    ? macroGapProteinOffers(budget, pool)
+    : proteinCloseOffers(budget, pool);
   if (offers.length === 0) {
     return null;
   }
@@ -112,7 +116,7 @@ export function ProteinCloseOffers({
           compact ? "text-xs" : "text-sm",
         )}
       >
-        Добить белок
+        {macroGap ? "Чем закрыть белок" : "Добить белок"}
       </p>
       {offers.map((offer) => (
         <Button

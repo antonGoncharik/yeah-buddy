@@ -148,10 +148,15 @@ export function composeEveningMessage(
   nag: string | null,
   recap: string | null,
   dayCard: string,
+  macroGapLine?: string | null,
 ): string {
+  const card =
+    macroGapLine && macroGapLine.trim() !== ""
+      ? `${dayCard}\n${macroGapLine}`
+      : dayCard;
   const text = composeReminderMessage(nag, recap);
   if (text) {
-    return `${text}\n\n${dayCard}`;
+    return `${text}\n\n${card}`;
   }
-  return dayCard;
+  return card;
 }

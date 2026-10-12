@@ -10,6 +10,7 @@ import {
   EnergyGoalHintCard,
 } from "@/components/day/energy-goal-card";
 import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
+import { MacroGapHint } from "@/components/day/macro-gap-hint";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
@@ -44,6 +45,7 @@ import {
   sumMealItems,
 } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
+import { MACRO_GAP_PROTEIN_MIN } from "@/lib/nutrition/macro-gap-hint";
 import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
@@ -367,15 +369,27 @@ export function TodayDayView({
   const numbersFirst = order === "numbers" && dayHasItems;
   const proteinCloseBlock =
     dayHasItems && !viewOnly ? (
-      <ProteinCloseOffers
-        date={date}
-        mealId={closeMeal?.id ?? null}
-        remainingProtein={shownDay.target_protein - fact.protein}
-        remainingFat={shownDay.target_fat - fact.fat}
-        remainingCarbs={shownDay.target_carbs - fact.carbs}
-        remainingKcal={shownDay.target_kcal - fact.kcal}
-        busy={busy}
-      />
+      remainingProtein > MACRO_GAP_PROTEIN_MIN ? (
+        <MacroGapHint
+          date={date}
+          mealId={closeMeal?.id ?? null}
+          remainingProtein={remainingProtein}
+          remainingFat={shownDay.target_fat - fact.fat}
+          remainingCarbs={shownDay.target_carbs - fact.carbs}
+          remainingKcal={shownDay.target_kcal - fact.kcal}
+          busy={busy}
+        />
+      ) : (
+        <ProteinCloseOffers
+          date={date}
+          mealId={closeMeal?.id ?? null}
+          remainingProtein={remainingProtein}
+          remainingFat={shownDay.target_fat - fact.fat}
+          remainingCarbs={shownDay.target_carbs - fact.carbs}
+          remainingKcal={shownDay.target_kcal - fact.kcal}
+          busy={busy}
+        />
+      )
     ) : null;
   const quickFoods =
     dayHasItems && !viewOnly && quickLogMealId ? (

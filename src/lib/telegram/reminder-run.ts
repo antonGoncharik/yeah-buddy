@@ -2,6 +2,7 @@ import { getReviewSnapshot } from "@/lib/ai/review";
 import { trackEvent } from "@/lib/analytics/track";
 import { mapWithConcurrency } from "@/lib/async/map-with-concurrency";
 import { getServerEnv } from "@/lib/env";
+import { eveningMacroGapLine } from "@/lib/nutrition/macro-gap-hint";
 import { isRecord } from "@/lib/read";
 import {
   inEarlyHabitWindow,
@@ -292,6 +293,10 @@ async function processEveningCandidate(
     isTrainingDay,
   });
   const gymName = await completedGymName(candidate.userId, session);
+  const macroGap = eveningMacroGapLine({
+    protein: facts.protein,
+    targetProtein: snapshot?.targetProtein ?? 0,
+  });
   const text = composeEveningMessage(
     nag,
     recap,
@@ -308,6 +313,7 @@ async function processEveningCandidate(
       gymName,
       nextName: facts.gym === "none" ? null : nextTemplateName,
     }),
+    macroGap,
   );
   if (!text) {
     result.skipped += 1;
