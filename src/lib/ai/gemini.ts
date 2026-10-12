@@ -58,6 +58,7 @@ const MINUTE_COOLDOWN_MS = 60_000;
 const DEFAULT_COOLDOWN_MS = 15 * 60_000;
 const MAX_COOLDOWN_MS = 86_400_000;
 
+// Per-process cooldown after 429; on serverless each instance has its own map, so rotation is uneven.
 const cooledUntil = new Map<string, number>();
 
 export function readGeminiKeys(
@@ -257,6 +258,45 @@ export type GeminiUserPart =
   | { text: string }
   | { inlineData: { mimeType: string; data: string } };
 
+function geminiFailureTags(
+  payload: unknown,
+  purpose: GeminiPurpose | undefined,
+): Record<string, string> {
+  const summary = summarizeGeminiFailure(payload);
+  const tags: Record<string, string> = {
+    subsystem: "gemini",
+  };
+  if (purpose) {
+    tags.purpose = purpose;
+  }
+  if (summary && typeof summary === "object") {
+    const record = summary as {
+      finishReason?: unknown;
+      usage?: unknown;
+    };
+    if (record.finishReason != null) {
+      tags.finishReason = String(record.finishReason);
+    }
+    if (record.usage != null && typeof record.usage === "object") {
+      const usage = record.usage as {
+        promptTokenCount?: unknown;
+        candidatesTokenCount?: unknown;
+        totalTokenCount?: unknown;
+      };
+      if (usage.promptTokenCount != null) {
+        tags.promptTokens = String(usage.promptTokenCount);
+      }
+      if (usage.candidatesTokenCount != null) {
+        tags.candidateTokens = String(usage.candidatesTokenCount);
+      }
+      if (usage.totalTokenCount != null) {
+        tags.totalTokens = String(usage.totalTokenCount);
+      }
+    }
+  }
+  return tags;
+}
+
 export async function generateGeminiJson({
   keys,
   system,
@@ -269,6 +309,7 @@ export async function generateGeminiJson({
   limitMessage,
   model: modelOverride,
   thinkingLevel,
+  purpose,
 }: {
   keys: string[];
   system: string;
@@ -281,6 +322,7 @@ export async function generateGeminiJson({
   limitMessage?: string;
   model?: string;
   thinkingLevel?: "minimal" | "low" | "medium" | "high";
+  purpose?: GeminiPurpose;
 }): Promise<unknown> {
   if (keys.length === 0) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
@@ -354,13 +396,22 @@ export async function generateGeminiJson({
 
     const text = readCandidateText(payload);
     if (!text) {
-      console.error("gemini empty candidate", summarizeGeminiFailure(payload));
+      const failure = summarizeGeminiFailure(payload);
+      console.error("gemini empty candidate", failure);
+      captureServerError(new Error("gemini empty candidate"), {
+        ...geminiFailureTags(payload, purpose),
+        reason: "empty_candidate",
+      });
       throw new ReviewError("GEMINI", failedMessage);
     }
 
     try {
       return readJson(text);
     } catch {
+      captureServerError(new Error("gemini invalid json"), {
+        ...geminiFailureTags(payload, purpose),
+        reason: "invalid_json",
+      });
       throw new ReviewError("GEMINI", failedMessage);
     }
   }
@@ -386,16 +437,22 @@ export async function writeReview(
     ],
     schema: RESPONSE_SCHEMA,
     temperature: 0.75,
-    timeoutMs: 75_000,
+    timeoutMs: 55_000,
     maxOutputTokens: 24_576,
     failedMessage: AI_REVIEW_FAILED,
     limitMessage: AI_REVIEW_LIMIT,
     model: GEMINI_MODEL,
     thinkingLevel: "medium",
+    purpose: "review",
   });
 
   const parsed = reviewTextSchema.safeParse(payload);
   if (!parsed.success) {
+    captureServerError(new Error("gemini review schema"), {
+      subsystem: "gemini",
+      purpose: "review",
+      reason: "zod",
+    });
     throw new ReviewError("GEMINI", AI_REVIEW_FAILED);
   }
 

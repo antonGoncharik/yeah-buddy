@@ -1,10 +1,5 @@
 import { ReviewError } from "@/lib/ai/errors";
-import {
-  getGeminiDictateApiKey,
-  getGeminiPlateApiKey,
-  getGeminiReviewApiKey,
-  getGeminiTextApiKey,
-} from "@/lib/ai/gemini";
+import { readGeminiKeys } from "@/lib/ai/gemini";
 import {
   type AiKind,
   dailyLimit,
@@ -17,6 +12,7 @@ import {
   AI_REVIEW_QUOTA,
   AI_TEXT_MEAL_QUOTA,
 } from "@/lib/messages";
+import { captureServerError } from "@/lib/monitoring/sentry";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type { AiKind } from "@/lib/ai/quota-copy";
@@ -30,16 +26,7 @@ export interface AiQuota {
 type UsageClient = ReturnType<typeof createSupabaseServerClient>;
 
 export function hasAiKey(kind: AiKind): boolean {
-  if (kind === "plate") {
-    return getGeminiPlateApiKey() != null;
-  }
-  if (kind === "dictate") {
-    return getGeminiDictateApiKey() != null;
-  }
-  if (kind === "text") {
-    return getGeminiTextApiKey() != null;
-  }
-  return getGeminiReviewApiKey() != null;
+  return readGeminiKeys(kind).length > 0;
 }
 
 export async function getAiQuota(
@@ -147,6 +134,17 @@ async function refundAiSlotLegacy(
   }
 }
 
+function untrackedQuotaFallback(): "exhausted" | "untracked" {
+  const env = process.env.VERCEL_ENV ?? process.env.NODE_ENV;
+  if (env === "production") {
+    captureServerError(new Error("ai_usage quota unavailable in production"), {
+      subsystem: "ai_quota",
+    });
+    return "exhausted";
+  }
+  return "untracked";
+}
+
 async function consumeAiUsageLegacy(
   userId: string,
   kind: AiKind,
@@ -156,7 +154,7 @@ async function consumeAiUsageLegacy(
 ): Promise<{ remaining: number | null } | "exhausted" | "untracked"> {
   const used = await peekAiUsage(userId, kind, usedOn, supabase);
   if (used == null) {
-    return "untracked";
+    return untrackedQuotaFallback();
   }
   if (used >= limit) {
     return "exhausted";
@@ -172,7 +170,7 @@ async function consumeAiUsageLegacy(
     });
     if (inserted.error) {
       if (isMissingUsageTable(inserted.error)) {
-        return "untracked";
+        return untrackedQuotaFallback();
       }
       if (inserted.error.code !== "23505") {
         throw inserted.error;
@@ -190,7 +188,7 @@ async function consumeAiUsageLegacy(
     .eq("used_on", usedOn);
   if (updated.error) {
     if (isMissingUsageTable(updated.error)) {
-      return "untracked";
+      return untrackedQuotaFallback();
     }
     throw updated.error;
   }
@@ -206,7 +204,7 @@ async function bumpAfterConflict(
 ): Promise<{ remaining: number | null } | "exhausted" | "untracked"> {
   const latest = await peekAiUsage(userId, kind, usedOn, supabase);
   if (latest == null) {
-    return "untracked";
+    return untrackedQuotaFallback();
   }
   if (latest >= limit) {
     return "exhausted";
@@ -221,7 +219,7 @@ async function bumpAfterConflict(
     .eq("used_on", usedOn);
   if (updated.error) {
     if (isMissingUsageTable(updated.error)) {
-      return "untracked";
+      return untrackedQuotaFallback();
     }
     throw updated.error;
   }

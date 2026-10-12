@@ -4,6 +4,7 @@ import {
   MEAL_LOG_CATALOG_LEGEND,
   MEAL_LOG_SYSTEM_PROMPT,
 } from "@/lib/ai/meal-log-prompt";
+import { requireMealParseItems } from "@/lib/ai/meal-parse-guard";
 import { PLATE_RESPONSE_SCHEMA } from "@/lib/ai/plate";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
 import { takeReadyPlateItems } from "@/lib/ai/plate-match";
@@ -54,17 +55,12 @@ export async function analyzeDictate(
       failedMessage: AI_DICTATE_FAILED,
       limitMessage: AI_DICTATE_LIMIT,
       thinkingLevel: "minimal",
+      purpose: "dictate",
     });
 
     const raw = parsePlateModelItems(payload);
-    if (!raw) {
-      throw new ReviewError("GEMINI", AI_DICTATE_FAILED);
-    }
-
-    const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
-    if (!items) {
-      throw new ReviewError("GEMINI", AI_DICTATE_FAILED);
-    }
+    const matched = takeReadyPlateItems(raw ?? [], catalogFoods, allFoods);
+    const items = requireMealParseItems(raw, matched ?? [], AI_DICTATE_FAILED);
 
     lastWrite.set(userId, Date.now());
     return { items, remaining: slot.remaining };

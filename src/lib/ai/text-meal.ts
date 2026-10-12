@@ -4,6 +4,7 @@ import {
   MEAL_LOG_CATALOG_LEGEND,
   MEAL_LOG_SYSTEM_PROMPT,
 } from "@/lib/ai/meal-log-prompt";
+import { requireMealParseItems } from "@/lib/ai/meal-parse-guard";
 import { PLATE_RESPONSE_SCHEMA } from "@/lib/ai/plate";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
 import { takeReadyPlateItems } from "@/lib/ai/plate-match";
@@ -11,6 +12,7 @@ import { parsePlateModelItems } from "@/lib/ai/plate-parse";
 import type { PlateDraft, PlateFoodRef } from "@/lib/ai/plate-types";
 import { refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
 import { normalizeMealLogText } from "@/lib/ai/text-meal-input";
+import { wrapUserInput } from "@/lib/ai/user-input";
 import {
   AI_TEXT_MEAL_FAILED,
   AI_TEXT_MEAL_LIMIT,
@@ -51,7 +53,7 @@ export async function analyzeTextMeal(
       keys,
       system: MEAL_LOG_SYSTEM_PROMPT,
       parts: [
-        { text: normalized },
+        { text: wrapUserInput(normalized) },
         { text: MEAL_LOG_CATALOG_LEGEND },
         { text: JSON.stringify({ catalog }) },
       ],
@@ -61,17 +63,16 @@ export async function analyzeTextMeal(
       failedMessage: AI_TEXT_MEAL_FAILED,
       limitMessage: AI_TEXT_MEAL_LIMIT,
       thinkingLevel: "minimal",
+      purpose: "text",
     });
 
     const raw = parsePlateModelItems(payload);
-    if (!raw) {
-      throw new ReviewError("GEMINI", AI_TEXT_MEAL_FAILED);
-    }
-
-    const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
-    if (!items) {
-      throw new ReviewError("GEMINI", AI_TEXT_MEAL_FAILED);
-    }
+    const matched = takeReadyPlateItems(raw ?? [], catalogFoods, allFoods);
+    const items = requireMealParseItems(
+      raw,
+      matched ?? [],
+      AI_TEXT_MEAL_FAILED,
+    );
 
     lastWrite.set(userId, Date.now());
     return { items, remaining: slot.remaining };

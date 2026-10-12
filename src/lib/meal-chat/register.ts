@@ -39,6 +39,7 @@ import { findMealChatUser } from "@/lib/meal-chat/user";
 import {
   AI_DICTATE_AUDIO_FAILED,
   AI_DICTATE_EMPTY,
+  AI_TEXT_MEAL_EMPTY,
   MEAL_CHAT_DRAFT_BUTTON,
   MEAL_CHAT_LOCKED,
   MEAL_CHAT_PHOTO_EMPTY,
@@ -309,7 +310,7 @@ async function handleText(
     const draft = await analyzeTextMeal(user.userId, catalog, text, allRefs);
 
     if (draft.items.length === 0) {
-      await ctx.reply(MEAL_CHAT_PHOTO_EMPTY);
+      await ctx.reply(AI_TEXT_MEAL_EMPTY);
       return;
     }
 

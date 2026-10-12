@@ -1,5 +1,6 @@
 import { ReviewError } from "@/lib/ai/errors";
 import { generateGeminiJson, readGeminiKeys } from "@/lib/ai/gemini";
+import { requireMealParseItems } from "@/lib/ai/meal-parse-guard";
 import { compactPlateCatalog } from "@/lib/ai/plate-catalog";
 import { takeReadyPlateItems } from "@/lib/ai/plate-match";
 import { parsePlateModelItems } from "@/lib/ai/plate-parse";
@@ -106,17 +107,12 @@ export async function analyzePlate(
       failedMessage: AI_PLATE_FAILED,
       limitMessage: AI_PLATE_LIMIT,
       thinkingLevel: "minimal",
+      purpose: "plate",
     });
 
     const raw = parsePlateModelItems(payload);
-    if (!raw) {
-      throw new ReviewError("GEMINI", AI_PLATE_FAILED);
-    }
-
-    const items = takeReadyPlateItems(raw, catalogFoods, allFoods);
-    if (!items) {
-      throw new ReviewError("GEMINI", AI_PLATE_FAILED);
-    }
+    const matched = takeReadyPlateItems(raw ?? [], catalogFoods, allFoods);
+    const items = requireMealParseItems(raw, matched ?? [], AI_PLATE_FAILED);
 
     lastWrite.set(userId, Date.now());
     return { items, remaining: slot.remaining };

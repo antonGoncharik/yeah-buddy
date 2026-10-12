@@ -1,3 +1,5 @@
+import { USER_INPUT_SYSTEM_RULE } from "@/lib/ai/user-input";
+
 export const MEAL_LOG_CATALOG_LEGEND =
   "catalog: i индекс, n имя, s состояние (raw сырое, dry сухое, cooked готовое, as_is как есть, liquid жидкость), p/f/c белок/жир/углеводы на 100 г, y [сырое или сухое, готовое].";
 
@@ -18,4 +20,6 @@ export const MEAL_LOG_SYSTEM_PROMPT = `Ты получаешь описание 
 
 Когда пусто
 - items: [] если еды не назвал и не написал. Назвал — не оставляй пустым: match=false и порция.
-- Не больше 8 позиций.`;
+- Не больше 8 позиций.
+
+${USER_INPUT_SYSTEM_RULE}`;

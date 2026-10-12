@@ -1,5 +1,6 @@
 import { round1 } from "@/lib/ai/format";
 import type { ReviewMaxRow, ReviewSessionRow } from "@/lib/ai/types";
+import { sanitizeUserNote, wrapUserInput } from "@/lib/ai/user-input";
 import type {
   ExerciseProgress,
   RecentWorkoutSession,
@@ -52,15 +53,16 @@ export function sessionNotes(
 ): Array<{ date: string; name: string; note: string }> {
   return sessions
     .flatMap((item) => {
-      const note = item.note?.trim();
+      const note = sanitizeUserNote(item.note ?? "");
       if (!note) {
         return [];
       }
+      const clipped = note.length > 140 ? `${note.slice(0, 137)}…` : note;
       return [
         {
           date: item.date,
           name: item.name,
-          note: note.length > 140 ? `${note.slice(0, 137)}…` : note,
+          note: wrapUserInput(clipped),
         },
       ];
     })

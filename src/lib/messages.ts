@@ -266,6 +266,8 @@ export const AI_DICTATE_LIMIT = "Пока не разбирается. Запи�
 export const AI_DICTATE_MIC = "Микрофон не открылся. Запиши руками.";
 export const AI_DICTATE_SILENT = "Не слышно. Скажи ещё раз.";
 export const AI_DICTATE_HEAVY = "Запись слишком длинная.";
+export const AI_MEAL_PARSE_EMPTY_REFUND =
+  "Ничего не нашёл. Попытка не потрачена.";
 export const AI_TEXT_MEAL_FAILED = "Не получилось разобрать.";
 export const AI_TEXT_MEAL_EMPTY =
   "Напиши, что съел и сколько — например: овсянка 80 г, яйца 2 шт.";

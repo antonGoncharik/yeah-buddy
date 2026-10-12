@@ -1,6 +1,6 @@
 import { buildReviewBrief } from "@/lib/ai/brief";
 import { ReviewError } from "@/lib/ai/errors";
-import { getGeminiReviewApiKey, writeReview } from "@/lib/ai/gemini";
+import { readGeminiKeys, writeReview } from "@/lib/ai/gemini";
 import { getAiQuota, refundAiSlot, takeAiSlot } from "@/lib/ai/quota";
 import { isReviewRange, type ReviewRange, reviewWindow } from "@/lib/ai/range";
 import { listStoredReviews, saveStoredReview } from "@/lib/ai/review-store";
@@ -60,8 +60,7 @@ export async function createReview(
   range: ReviewRange,
   today?: string,
 ): Promise<ReviewSnapshot> {
-  const key = getGeminiReviewApiKey();
-  if (!key) {
+  if (readGeminiKeys("review").length === 0) {
     throw new ReviewError("NO_KEY", AI_REVIEW_NO_KEY);
   }
 

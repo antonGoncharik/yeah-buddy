@@ -91,7 +91,7 @@ const byIndex = resolvePlateItems(
   [
     raw({
       catalog_i: 0,
-      name: "каша",
+      name: "овсянка сухая",
       grams: 62,
       protein_per_100: 99,
       fat_per_100: 99,
@@ -183,8 +183,8 @@ assertEqual(dropped.length, 0, "drop without macros");
 
 const merged = resolvePlateItems(
   [
-    raw({ catalog_i: 1, name: "творог", grams: 100 }),
-    raw({ catalog_i: 1, name: "ещё творог", grams: 50 }),
+    raw({ catalog_i: 1, name: "творог 5%", grams: 100 }),
+    raw({ catalog_i: 1, name: "творог 5%", grams: 50 }),
   ],
   catalogFoods,
 );
@@ -284,7 +284,7 @@ const rankedCatalog = [allFoods[1], allFoods[0]].filter(
   (item): item is PlateFoodRef => item != null,
 );
 const byRank = resolvePlateItems(
-  [raw({ catalog_i: 0, name: "каша", grams: 40 })],
+  [raw({ catalog_i: 0, name: "овсянка", grams: 40 })],
   rankedCatalog,
   allFoods,
 );
@@ -371,6 +371,23 @@ const potato = food("potato-boiled", "Картофель варёный", {
   carbs_per_100: 16,
   kcal_per_100: 72,
 });
+const wrongIndexName = resolvePlateItems(
+  [
+    raw({
+      catalog_i: 0,
+      match: true,
+      name: "молоко 2.5%",
+      grams: 200,
+      protein: 6,
+      fat: 5,
+      carbs: 9,
+    }),
+  ],
+  catalogFoods,
+);
+assertEqual(wrongIndexName.length, 1, "wrong index still yields item");
+assertEqual(wrongIndexName[0]?.kind, "lump", "wrong index name becomes lump");
+
 const friesRejectedRaw = [
   raw({
     catalog_i: 0,

@@ -109,12 +109,39 @@ function matchCatalogFood(
 
 const DISTINCT_FORM = ["фри", "пюре", "жарен", "гриль", "вок"];
 
+export function catalogNamesAlign(
+  modelName: string,
+  catalogName: string,
+): boolean {
+  if (!modelName || !catalogName) {
+    return false;
+  }
+  if (modelName === catalogName) {
+    return true;
+  }
+  const stemModel = foodNameStem(modelName);
+  const stemCatalog = foodNameStem(catalogName);
+  if (stemModel && stemModel === stemCatalog) {
+    return true;
+  }
+  const minLen = 4;
+  if (modelName.length >= minLen && catalogName.length >= minLen) {
+    if (modelName.includes(catalogName) || catalogName.includes(modelName)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function trustedCatalogFood(
   row: PlateModelItem,
   food: PlateFoodRef,
 ): PlateFoodRef | null {
   const model = normalizeFoodName(row.name);
   const catalogName = normalizeFoodName(food.name);
+  if (!catalogNamesAlign(model, catalogName)) {
+    return null;
+  }
   const conflicts = DISTINCT_FORM.some(
     (token) => model.includes(token) && !catalogName.includes(token),
   );
