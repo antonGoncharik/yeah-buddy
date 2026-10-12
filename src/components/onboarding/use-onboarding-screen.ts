@@ -516,7 +516,7 @@ export function useOnboardingScreen() {
     birthYear,
     ration,
     gymEnabled,
-    foodOnly: gymEnabled === false,
+    foodOnly: gymEnabled !== true,
     lifts,
     circle,
     setCircle,

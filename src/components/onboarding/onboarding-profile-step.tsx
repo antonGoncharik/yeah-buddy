@@ -3,13 +3,14 @@
 import { useState } from "react";
 
 import { OnboardingPrimaryAction } from "@/components/onboarding/onboarding-step-actions";
-import { ValueWheel } from "@/components/onboarding/value-wheel";
+import { TickRuler } from "@/components/onboarding/tick-ruler";
 import { Button } from "@/components/ui/button";
 import {
   ageYearsLabel,
+  BODY_HEIGHT_MAX_CM,
+  BODY_HEIGHT_MIN_CM,
   birthYearFromAge,
-  bodyAgeOptions,
-  bodyHeightOptions,
+  profileAgeBounds,
   profileAgeYears,
   profileHeightCm,
 } from "@/lib/nutrition/body-profile";
@@ -77,8 +78,7 @@ export function OnboardingBodyProfileStep({
   const nowYear = new Date().getFullYear();
   const [height, setHeight] = useState(() => profileHeightCm(heightCm, sex));
   const [age, setAge] = useState(() => profileAgeYears(birthYear, nowYear));
-  const heights = bodyHeightOptions();
-  const ages = bodyAgeOptions(nowYear);
+  const ages = profileAgeBounds(nowYear);
 
   function confirm() {
     const year = birthYearFromAge(age, nowYear);
@@ -89,31 +89,35 @@ export function OnboardingBodyProfileStep({
   }
 
   return (
-    <div className="flex flex-1 flex-col justify-center gap-5">
-      <div className="grid grid-cols-2 gap-3">
-        <ValueWheel
+    <div className="flex flex-1 flex-col">
+      <div className="flex flex-col gap-4">
+        <TickRuler
+          compact
           label="Рост"
-          caption="см"
-          values={heights}
+          min={BODY_HEIGHT_MIN_CM}
+          max={BODY_HEIGHT_MAX_CM}
           value={height}
-          onChange={setHeight}
+          unit="см"
           ariaLabel="Рост в сантиметрах"
+          onChange={setHeight}
         />
-        <ValueWheel
+        <TickRuler
+          compact
           label="Возраст"
-          caption={ageYearsLabel}
-          values={ages}
+          min={ages.min}
+          max={ages.max}
           value={age}
-          onChange={setAge}
+          unit={ageYearsLabel}
           ariaLabel="Возраст"
+          onChange={setAge}
         />
       </div>
-      {message ? (
-        <p className="text-center text-base leading-snug text-destructive">
-          {message}
-        </p>
-      ) : null}
-      <div className="flex flex-col gap-2">
+      <div className="mt-auto flex flex-col gap-2 pt-4">
+        {message ? (
+          <p className="text-center text-base leading-snug text-destructive">
+            {message}
+          </p>
+        ) : null}
         <OnboardingPrimaryAction saving={saving} onClick={confirm} />
         <Button
           type="button"

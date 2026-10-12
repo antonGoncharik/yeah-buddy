@@ -14,7 +14,6 @@ import {
   parseHeightInput,
   profileAgeYears,
   profileHeightCm,
-  readWheelValue,
 } from "@/lib/nutrition/body-profile";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
@@ -71,11 +70,6 @@ assertEqual(parseAgeInput("3", year), { ok: false }, "age 3 rejected");
 assertEqual(parseHeightInput(""), { ok: true, cm: null }, "blank height");
 assertEqual(parseHeightInput("180"), { ok: true, cm: 180 }, "height 180");
 assertEqual(parseHeightInput("119"), { ok: false }, "short height rejected");
-
-assertEqual(readWheelValue(0, 44, 120, 111), 120, "wheel at rest");
-assertEqual(readWheelValue(44, 44, 120, 111), 121, "one row down");
-assertEqual(readWheelValue(66, 44, 120, 111), 122, "rounds to nearest row");
-assertEqual(readWheelValue(9999, 44, 120, 3), 122, "wheel clamps to last row");
 
 assertEqual(explicitOrStored(undefined, 180), 180, "omitted stat stays");
 assertEqual(explicitOrStored(null, 180), null, "skipped stat clears");

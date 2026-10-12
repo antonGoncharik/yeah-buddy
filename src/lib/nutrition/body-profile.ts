@@ -30,10 +30,6 @@ export function profileAgeBounds(nowYear: number): {
   return { min, max };
 }
 
-export function bodyHeightOptions(): number[] {
-  return inclusiveRange(BODY_HEIGHT_MIN_CM, BODY_HEIGHT_MAX_CM);
-}
-
 export function bodyAgeOptions(nowYear: number): number[] {
   const { min, max } = profileAgeBounds(nowYear);
   return inclusiveRange(min, max);
@@ -133,20 +129,6 @@ export function profileAgeYears(rawYear: string, nowYear: number): number {
     return fallback;
   }
   return Math.min(max, Math.max(min, age));
-}
-
-export function readWheelValue(
-  scrollTop: number,
-  itemPx: number,
-  min: number,
-  count: number,
-): number {
-  if (count <= 0 || itemPx <= 0) {
-    return min;
-  }
-  const index = Math.round(scrollTop / itemPx);
-  const clamped = Math.min(Math.max(index, 0), count - 1);
-  return min + clamped;
 }
 
 /** null clears a saved stat. undefined keeps what is already stored. */

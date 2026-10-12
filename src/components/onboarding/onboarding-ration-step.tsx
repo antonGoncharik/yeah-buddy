@@ -63,7 +63,7 @@ export function OnboardingRationStep({
         className="animate-rise text-base text-muted-foreground"
         style={{ animationDelay: "40ms" }}
       >
-        Вернись назад и заполни блок «Про тебя» — без него рацион не подогнать.
+        Вернись назад и укажи пол, вес и цель — без них рацион не подогнать.
       </p>
     );
   }
