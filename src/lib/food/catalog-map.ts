@@ -1,3 +1,7 @@
+import {
+  catalogTokenSearchForms,
+  cyrillicTextToLatinRough,
+} from "@/lib/food/catalog-translit";
 import { reconcileKcalWithMacros } from "@/lib/nutrition";
 import {
   isRecord,
@@ -222,7 +226,7 @@ export function foodMatchesQuery(
   const haystack = catalogHaystack(name, brand);
   const tokens = catalogSearchTokens(query);
   if (tokens) {
-    return tokens.every((token) => haystack.includes(token));
+    return tokens.every((token) => haystackHasToken(haystack, token));
   }
 
   const needle = foldCatalogSearch(query.trim().toLowerCase());
@@ -273,7 +277,7 @@ export function filterCatalogHits<
   return rows
     .filter((row) => {
       const haystack = catalogHaystack(row.name, row.brand);
-      return tokens.every((token) => haystack.includes(token));
+      return tokens.every((token) => haystackHasToken(haystack, token));
     })
     .sort((a, b) => compareCatalogFoodRows(a, b, tokens))
     .slice(0, CATALOG_SEARCH_LIMIT);
@@ -296,7 +300,7 @@ export function filterAndSortFoodsBySearch<
   if (tokens) {
     const haystackMatch = (row: T) => {
       const haystack = catalogHaystack(row.name, row.brand);
-      return tokens.every((token) => haystack.includes(token));
+      return tokens.every((token) => haystackHasToken(haystack, token));
     };
     return rows
       .filter(haystackMatch)
@@ -379,7 +383,21 @@ function catalogMatchWords(text: string): string[] {
 }
 
 function catalogHaystack(name: string, brand: string | null): string {
-  return foldCatalogSearch(`${name} ${brand ?? ""}`.toLowerCase());
+  const base = foldCatalogSearch(`${name} ${brand ?? ""}`.toLowerCase());
+  const latin = cyrillicTextToLatinRough(`${name} ${brand ?? ""}`);
+  if (latin.length >= CATALOG_SEARCH_MIN && !base.includes(latin)) {
+    return `${base} ${latin}`;
+  }
+  return base;
+}
+
+function haystackHasToken(haystack: string, token: string): boolean {
+  for (const form of catalogTokenSearchForms(token)) {
+    if (haystack.includes(form)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function catalogDedupeText(raw: string): string {

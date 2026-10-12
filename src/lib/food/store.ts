@@ -1,3 +1,4 @@
+import { filterAndSortFoodsBySearch } from "@/lib/food/catalog-map";
 import {
   type FavoriteOfferHit,
   favoriteOfferWindowStart,
@@ -46,21 +47,19 @@ export async function listFoods(
   }
 
   const needle = options?.search?.trim().slice(0, 80) ?? "";
-  if (needle !== "") {
-    const safe = needle.replace(/[%_,]/g, " ").trim();
-    if (safe !== "") {
-      query = query.ilike("name", `%${safe}%`);
-    }
-  }
 
   const result = await query;
   if (result.error) {
     throw result.error;
   }
 
-  return (result.data ?? []).map((row) =>
+  const rows = (result.data ?? []).map((row) =>
     mapFood(row as Record<string, unknown>),
   );
+  if (needle === "") {
+    return rows;
+  }
+  return filterAndSortFoodsBySearch(rows, needle);
 }
 
 export async function foodsAreStarterOnly(userId: string): Promise<boolean> {

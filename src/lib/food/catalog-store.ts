@@ -76,9 +76,23 @@ export async function searchCatalogFoods(
     .filter((id): id is string => typeof id === "string");
 
   const lead = catalogSearchLead(tokens);
-  const pattern = `%${lead}%`;
   const fetchLimit =
     tokens.length > 1 ? CATALOG_SEARCH_FETCH : CATALOG_SEARCH_LIMIT;
+
+  const rpc = await supabase.rpc("search_catalog_foods", {
+    p_query: lead,
+    p_exclude_ids: ownedIds,
+    p_limit: fetchLimit,
+  });
+
+  if (!rpc.error && rpc.data) {
+    return filterCatalogHits(
+      (rpc.data as Record<string, unknown>[]).map((row) => mapCatalogFood(row)),
+      tokens,
+    );
+  }
+
+  const pattern = `%${lead}%`;
   let request = supabase
     .from("catalog_foods")
     .select(CATALOG_FOOD_COLUMNS)
