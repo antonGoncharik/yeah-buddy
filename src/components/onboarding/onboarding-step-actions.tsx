@@ -19,9 +19,7 @@ export function OnboardingPrimaryAction({
   variant?: "default" | "outline";
   onClick: () => void;
 }) {
-  const text = saving
-    ? savingLabel
-    : (label ?? (isLast ? "Готово" : "Дальше"));
+  const text = saving ? savingLabel : (label ?? (isLast ? "Готово" : "Дальше"));
 
   return (
     <Button
