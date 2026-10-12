@@ -1,8 +1,11 @@
 import { getServerEnv } from "@/lib/env";
-import { getUserSettings } from "@/lib/settings";
+import { disableReminders, getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
-import { reminderLogClaim } from "@/lib/telegram/reminder-log";
+import {
+  reminderLogClaim,
+  reminderLogRelease,
+} from "@/lib/telegram/reminder-log";
 import type { SessionDetail } from "@/lib/types";
 import { e1rmFromWorkSet } from "@/lib/workout/e1rm";
 
@@ -68,15 +71,30 @@ export async function notifySessionPr(
   if (!claimed) {
     return;
   }
-  const supabase = createSupabaseServerClient();
-  const user = await supabase
-    .from("users")
-    .select("telegram_id")
-    .eq("id", userId)
-    .maybeSingle();
-  const telegramId = Number(user.data?.telegram_id);
-  if (!Number.isFinite(telegramId) || telegramId <= 0) {
-    return;
+  let delivered = false;
+  try {
+    const supabase = createSupabaseServerClient();
+    const user = await supabase
+      .from("users")
+      .select("telegram_id")
+      .eq("id", userId)
+      .maybeSingle();
+    const telegramId = Number(user.data?.telegram_id);
+    if (!Number.isFinite(telegramId) || telegramId <= 0) {
+      return;
+    }
+    const sent = await sendDiaryMessage(telegramId, line, getServerEnv());
+    if (sent === "blocked") {
+      await disableReminders(userId);
+    }
+    delivered = sent === "sent";
+  } finally {
+    if (!delivered) {
+      try {
+        await reminderLogRelease(userId, "pr", date);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
-  await sendDiaryMessage(telegramId, line, getServerEnv());
 }

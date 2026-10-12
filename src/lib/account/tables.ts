@@ -27,6 +27,8 @@ export const ACCOUNT_USER_ID_TABLES = [
   "product_events",
   "ai_usage",
   "donations",
+  "pack_applications",
+  "reminder_log",
 ] as const;
 
 export type AccountUserIdTable = (typeof ACCOUNT_USER_ID_TABLES)[number];

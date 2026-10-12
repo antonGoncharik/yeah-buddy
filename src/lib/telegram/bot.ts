@@ -36,6 +36,7 @@ import {
   registerBotCommands,
 } from "@/lib/telegram/bot-commands";
 import { syncBotMenuCommands } from "@/lib/telegram/bot-menu";
+import { isPermanentChatBlock } from "@/lib/telegram/chat-block";
 import {
   resolveAppShareUrl,
   resolveBarbellPlayUrl,
@@ -377,17 +378,10 @@ function diarySendError(error: unknown): DiarySendResult {
 }
 
 function isBlockedChat(error: GrammyError): boolean {
-  if (error.error_code === 403) {
-    return true;
-  }
-  if (error.error_code !== 400) {
-    return false;
-  }
-  const description = error.description.toLowerCase();
-  return (
-    description.includes("chat not found") ||
-    description.includes("user is deactivated")
-  );
+  return isPermanentChatBlock({
+    error_code: error.error_code,
+    description: error.description,
+  });
 }
 
 async function getBotUsername(

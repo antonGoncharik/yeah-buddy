@@ -19,7 +19,11 @@ export function macroGapProteinOffers(
 export function eveningMacroGapLine(input: {
   protein: number;
   targetProtein: number;
+  foodLogged?: boolean;
 }): string | null {
+  if (input.foodLogged === false) {
+    return null;
+  }
   const gap = input.targetProtein - input.protein;
   if (!(gap > MACRO_GAP_PROTEIN_MIN)) {
     return null;

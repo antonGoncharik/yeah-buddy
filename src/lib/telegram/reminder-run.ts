@@ -324,6 +324,7 @@ async function processEveningCandidate(
   const macroGap = eveningMacroGapLine({
     protein: facts.protein,
     targetProtein: snapshot?.targetProtein ?? 0,
+    foodLogged,
   });
   const text = composeEveningMessage(
     nag,
@@ -371,6 +372,11 @@ async function processEveningCandidate(
   }
 
   if (sent === "blocked") {
+    await revertReminderDay(
+      candidate.userId,
+      reminderDate,
+      candidate.remindedOn,
+    );
     await disableReminders(candidate.userId);
     result.blocked += 1;
     await trackEvent(candidate.userId, "reminder_blocked", {
@@ -505,6 +511,11 @@ async function processMiddayCandidate(
   }
 
   if (sent === "blocked") {
+    await revertMiddayReminderDay(
+      candidate.userId,
+      reminderDate,
+      candidate.middayRemindedOn,
+    );
     await disableReminders(candidate.userId);
     result.blocked += 1;
     await trackEvent(candidate.userId, "reminder_blocked", {

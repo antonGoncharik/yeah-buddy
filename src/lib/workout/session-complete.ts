@@ -82,6 +82,29 @@ export async function patchWorkoutSet(
     logged: true,
   };
 
+  const sessionExercise = await supabase
+    .from("session_exercises")
+    .select("session_id")
+    .eq("id", current.session_exercise_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (sessionExercise.error) {
+    throw sessionExercise.error;
+  }
+  if (!sessionExercise.data) {
+    return null;
+  }
+
+  const sessionId = String(sessionExercise.data.session_id);
+  const session = await getSession(userId, sessionId);
+  if (!session) {
+    return null;
+  }
+  if (sessionBlocksSetPatch(session.status)) {
+    throw new SessionLockedError();
+  }
+
   if (next.is_completed) {
     next.actual_weight = next.actual_weight ?? current.planned_weight;
     next.actual_reps = next.actual_reps ?? current.planned_reps;
@@ -102,26 +125,6 @@ export async function patchWorkoutSet(
 
   if (updated.error || !updated.data) {
     throw updated.error ?? new Error("Set update failed");
-  }
-
-  const sessionExercise = await supabase
-    .from("session_exercises")
-    .select("*")
-    .eq("id", current.session_exercise_id)
-    .eq("user_id", userId)
-    .single();
-
-  if (sessionExercise.error || !sessionExercise.data) {
-    throw sessionExercise.error ?? new Error("Session exercise lookup failed");
-  }
-
-  const sessionId = String(sessionExercise.data.session_id);
-  const session = await getSession(userId, sessionId);
-  if (!session) {
-    return null;
-  }
-  if (sessionBlocksSetPatch(session.status)) {
-    throw new SessionLockedError();
   }
 
   return withSessionRaiseOffers(

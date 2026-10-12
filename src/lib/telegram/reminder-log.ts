@@ -34,6 +34,23 @@ export async function reminderLogClaim(
   throw inserted.error;
 }
 
+export async function reminderLogRelease(
+  userId: string,
+  kind: ReminderLogKind,
+  date: string,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const deleted = await supabase
+    .from("reminder_log")
+    .delete()
+    .eq("user_id", userId)
+    .eq("kind", kind)
+    .eq("date", date);
+  if (deleted.error && !isMissingReminderLog(deleted.error)) {
+    throw deleted.error;
+  }
+}
+
 export async function recordReminderSent(
   userId: string,
   kind: ReminderLogKind,

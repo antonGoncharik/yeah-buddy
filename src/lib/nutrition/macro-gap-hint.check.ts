@@ -21,6 +21,22 @@ assert(
   }) == null,
   "small gap",
 );
+assert(
+  eveningMacroGapLine({
+    protein: 0,
+    targetProtein: 160,
+    foodLogged: false,
+  }) == null,
+  "empty day does not nag about remaining protein",
+);
+assert(
+  eveningMacroGapLine({
+    protein: 0,
+    targetProtein: 160,
+    foodLogged: true,
+  }) != null,
+  "logged day with a large gap still nags",
+);
 
 const offers = macroGapProteinOffers(
   {
