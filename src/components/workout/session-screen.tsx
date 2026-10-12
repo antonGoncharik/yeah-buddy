@@ -64,8 +64,12 @@ export function SessionScreen() {
   } = useSessionScreen();
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
-  const loadTarget = restLoadTargetKg(detail?.exercises ?? [], rest.exerciseId);
-  const restExerciseId = detail ? restExerciseFor(detail, openSetIds) : null;
+  const focusExerciseId =
+    rest.exerciseId ?? (detail ? restExerciseFor(detail, openSetIds) : null);
+  const loadTarget = restLoadTargetKg(
+    detail?.exercises ?? [],
+    rest.exerciseId ?? focusExerciseId,
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -119,6 +123,8 @@ export function SessionScreen() {
               onReorder={
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }
+              onStartRest={canRest ? (id) => rest.start(id) : undefined}
+              lastRestSeconds={(id) => rest.lastSeconds(id)}
             />
 
             {session.status === "planned" && detail.missing_maxes.length > 0 ? (
@@ -217,14 +223,14 @@ export function SessionScreen() {
               />
             </div>
           ) : null}
-          {canRest && rest.left == null && restExerciseId ? (
+          {canRest && rest.left == null && focusExerciseId ? (
             <Button
               type="button"
               variant="secondary"
               className="h-12 w-full text-base"
-              onClick={() => rest.start(restExerciseId)}
+              onClick={() => rest.start(focusExerciseId)}
             >
-              Отдых {formatRestClock(rest.lastSeconds(restExerciseId))}
+              Отдых {formatRestClock(rest.lastSeconds(focusExerciseId))}
             </Button>
           ) : null}
           <Button

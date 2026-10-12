@@ -73,7 +73,12 @@ export function useSessionScreen() {
   }, []);
 
   const applyDetail = useCallback((incoming: SessionDetail) => {
-    const next = preferLiveCompleted(detailRef.current, incoming);
+    const previous = detailRef.current;
+    const next = preferLiveCompleted(previous, incoming);
+    const sessionChanged =
+      !previous ||
+      previous.session.id !== next.session.id ||
+      previous.session.status !== next.session.status;
     setDetail(next);
     const stored =
       next.session.status === "planned"
@@ -81,7 +86,9 @@ export function useSessionScreen() {
         : null;
     setDrafts(overlaySessionDrafts(draftsFromDetail(next), stored?.drafts));
     setNote(stored ? stored.note : (next.session.note ?? ""));
-    setOpenSetIds([]);
+    if (sessionChanged) {
+      setOpenSetIds([]);
+    }
   }, []);
 
   const load = useCallback(async () => {
