@@ -62,9 +62,9 @@ export function DayBackdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
-      <div className="absolute inset-x-0 top-0 z-[1] h-[min(42vh,16.5rem)] bg-gradient-to-b from-background from-55% via-background/88 to-transparent" />
+      <div className="absolute inset-x-0 top-0 z-[1] h-[calc(var(--app-safe-top)+6.75rem)] bg-[linear-gradient(to_bottom,var(--background)_calc(var(--app-safe-top)+3rem),transparent)]" />
       <div
         className={cn(
           "absolute inset-0 transition-opacity duration-700 ease-[var(--ease-out-soft)] motion-reduce:transition-none",

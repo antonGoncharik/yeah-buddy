@@ -129,12 +129,6 @@ export function MuscleBodyFigure({
           role="img"
           aria-label={view === "front" ? "Схема спереди" : "Схема сзади"}
         >
-          <rect
-            width="100%"
-            height="100%"
-            fill="color-mix(in oklch, var(--muted) 35%, transparent)"
-            rx="24"
-          />
           {slugs.map((slug) => {
             const dList = pathMap[slug];
             if (!dList?.length) {
