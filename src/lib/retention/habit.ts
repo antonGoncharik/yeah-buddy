@@ -1,6 +1,7 @@
 import { shiftIsoDate } from "@/lib/day/dates";
 import { dayHasFood } from "@/lib/day/week";
 import { liveProteinHits, proteinWeekLine } from "@/lib/flavor";
+import { pluralDays } from "@/lib/i18n/plural";
 import type { DayHistoryRow } from "@/lib/types";
 
 /** First two weeks after onboarding — habit loop in the app and bot. */
@@ -68,7 +69,7 @@ export function earlyProteinLine(
     return milestone;
   }
   if (hits >= 3) {
-    return `Белок ${hits} ${daysWord(hits)} подряд — до четвёртого осталось чуть-чуть.`;
+    return `Белок ${hits} ${pluralDays(hits)} подряд — до четвёртого осталось чуть-чуть.`;
   }
   if (hits === 2) {
     return "Белок два дня подряд.";
@@ -77,7 +78,7 @@ export function earlyProteinLine(
     return "Белок закрыт сегодня — завтра можно второй день подряд.";
   }
   if (priorHits >= 1 && !todayClosed) {
-    return `Белок ${priorHits} ${daysWord(priorHits)} подряд — сегодня ещё можно продлить.`;
+    return `Белок ${priorHits} ${pluralDays(priorHits)} подряд — сегодня ещё можно продлить.`;
   }
   return null;
 }
@@ -134,22 +135,10 @@ export function earlyHabitLead(snapshot: EarlyHabitSnapshot): string {
   return "Вторая неделя — закрепи ритм, пока он свежий.";
 }
 
-function daysWord(count: number): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return "день";
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return "дня";
-  }
-  return "дней";
-}
-
 export function foodStreakLabel(streak: number, atRisk: boolean): string {
   if (streak <= 0) {
     return "Запиши еду — с этого начинается серия.";
   }
-  const base = `${streak} ${daysWord(streak)} с едой в дневнике`;
+  const base = `${streak} ${pluralDays(streak)} с едой в дневнике`;
   return atRisk ? `${base}. Сегодня ещё пусто — не оборви.` : base;
 }

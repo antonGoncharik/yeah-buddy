@@ -1,3 +1,4 @@
+import { claimPackApplication } from "./pack-apply-idempotency";
 import { applyMealPack } from "./pack-apply-meal";
 import { applyMealsPack } from "./pack-apply-meals";
 import { applyWorkoutsPack } from "./pack-apply-workouts";
@@ -32,6 +33,11 @@ export async function applyPack(
   const pack = await loadOwnedOrPublic(token);
   if (!pack) {
     throw new PackNotFoundError();
+  }
+
+  const claim = await claimPackApplication(userId, pack.token);
+  if (claim === "already") {
+    return getPackDetail(userId, pack.token);
   }
 
   if (pack.kind === "meals") {

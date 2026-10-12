@@ -10,17 +10,17 @@ import {
 } from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
-import { joyPhotoOrigin } from "@/lib/share/prepared";
+import { renderShareCardJpeg } from "@/lib/share/share-card-jpeg";
+import type { SundayCard } from "@/lib/share/sunday-card";
 import {
   encodeSundayCard,
   sundayCardCaption,
   sundayCardFromBrief,
 } from "@/lib/share/sunday-card";
-import { weekCardPhotoUrl } from "@/lib/share/week-card";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   type DiarySendResult,
-  sendDiaryCard,
+  sendDiaryCardJpeg,
   sendDiaryMessage,
 } from "@/lib/telegram/bot";
 import {
@@ -31,6 +31,10 @@ import {
   normalizeReminderHour,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
+import {
+  type EveningReminderFacts,
+  loadEveningReminderFactsBatch,
+} from "@/lib/telegram/reminder-evening-batch";
 import {
   dateHasFoodRecord,
   dateIsTrainingDay,
@@ -95,17 +99,38 @@ export interface RemindersCronResult {
   midday: ReminderRunResult;
 }
 
+export type ReminderCronShard = {
+  index: number;
+  total: number;
+};
+
 export async function runRemindersCron(
   now = new Date(),
+  shard?: ReminderCronShard,
 ): Promise<RemindersCronResult> {
   return {
-    evening: await runEveningReminders(now),
-    midday: await runMiddayReminders(now),
+    evening: await runEveningReminders(now, shard),
+    midday: await runMiddayReminders(now, shard),
   };
+}
+
+function candidateInShard(userId: string, shard?: ReminderCronShard): boolean {
+  if (!shard || shard.total <= 1) {
+    return true;
+  }
+  if (shard.index < 0 || shard.index >= shard.total) {
+    return false;
+  }
+  let hash = 0;
+  for (let i = 0; i < userId.length; i += 1) {
+    hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
+  }
+  return hash % shard.total === shard.index;
 }
 
 export async function runEveningReminders(
   now = new Date(),
+  shard?: ReminderCronShard,
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const distinct = await listDistinctReminderTimezones();
@@ -114,13 +139,41 @@ export async function runEveningReminders(
     return result;
   }
 
-  const candidates = await listReminderCandidates(dueTimezones);
+  const candidates = (await listReminderCandidates(dueTimezones)).filter(
+    (candidate) => candidateInShard(candidate.userId, shard),
+  );
+
+  const batchInputs: Array<{ userId: string; date: string }> = [];
+  for (const candidate of candidates) {
+    const clock = localClock(now, candidate.timezone);
+    const reminderDate = eveningReminderDateForCandidate(
+      clock,
+      candidate.remindedOn,
+      candidate.reminderHour,
+    );
+    if (!reminderDate || candidate.remindedOn === reminderDate) {
+      continue;
+    }
+    batchInputs.push({ userId: candidate.userId, date: reminderDate });
+  }
+  const factsMap = await loadEveningReminderFactsBatch(batchInputs);
+
   const parts: ReminderRunResult[] = [];
   await mapWithConcurrency(
     candidates,
     REMINDER_CONCURRENCY,
     async (candidate) => {
-      parts.push(await processEveningCandidate(candidate, now));
+      const clock = localClock(now, candidate.timezone);
+      const reminderDate = eveningReminderDateForCandidate(
+        clock,
+        candidate.remindedOn,
+        candidate.reminderHour,
+      );
+      const preloaded =
+        reminderDate != null
+          ? factsMap.get(`${candidate.userId}:${reminderDate}`)
+          : undefined;
+      parts.push(await processEveningCandidate(candidate, now, preloaded));
     },
   );
   for (const part of parts) {
@@ -133,6 +186,7 @@ export async function runEveningReminders(
 async function processEveningCandidate(
   candidate: ReminderCandidate,
   now: Date,
+  preloaded?: EveningReminderFacts,
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const clock = localClock(now, candidate.timezone);
@@ -151,13 +205,21 @@ async function processEveningCandidate(
   }
 
   const [foodLogged, isTrainingDay, session, nextTemplateName, snapshot] =
-    await Promise.all([
-      dateHasFoodRecord(candidate.userId, reminderDate),
-      dateIsTrainingDay(candidate.userId, reminderDate),
-      getSessionOnDate(candidate.userId, reminderDate),
-      nextCircleName(candidate.userId),
-      dateShareSnapshot(candidate.userId, reminderDate),
-    ]);
+    preloaded
+      ? [
+          preloaded.foodLogged,
+          preloaded.isTrainingDay,
+          preloaded.session,
+          preloaded.nextTemplateName,
+          preloaded.snapshot,
+        ]
+      : await Promise.all([
+          dateHasFoodRecord(candidate.userId, reminderDate),
+          dateIsTrainingDay(candidate.userId, reminderDate),
+          getSessionOnDate(candidate.userId, reminderDate),
+          nextCircleName(candidate.userId),
+          dateShareSnapshot(candidate.userId, reminderDate),
+        ]);
   const sessionStatus = session?.status ?? null;
   const nag = reminderText({
     foodLogged,
@@ -238,6 +300,7 @@ async function processEveningCandidate(
 
 export async function runMiddayReminders(
   now = new Date(),
+  shard?: ReminderCronShard,
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const distinct = await listDistinctReminderTimezones();
@@ -246,7 +309,9 @@ export async function runMiddayReminders(
     return result;
   }
 
-  const candidates = await listReminderCandidates(dueTimezones);
+  const candidates = (await listReminderCandidates(dueTimezones)).filter(
+    (candidate) => candidateInShard(candidate.userId, shard),
+  );
   const parts: ReminderRunResult[] = [];
   await mapWithConcurrency(
     candidates,
@@ -375,15 +440,19 @@ async function completedGymName(
 async function sundayPack(
   userId: string,
   reminderDate: string,
-): Promise<{ recap: string | null; query: string | null }> {
+): Promise<{
+  recap: string | null;
+  query: string | null;
+  card: SundayCard | null;
+}> {
   if (isoWeekdaySun0(reminderDate) !== 0) {
-    return { recap: null, query: null };
+    return { recap: null, query: null, card: null };
   }
 
   try {
     const snapshot = await getReviewSnapshot(userId, 14, reminderDate);
     if (snapshot.brief.coverage === "empty") {
-      return { recap: null, query: null };
+      return { recap: null, query: null, card: null };
     }
     const card = sundayCardFromBrief(snapshot.brief);
     return {
@@ -393,10 +462,11 @@ async function sundayPack(
       query: card
         ? encodeSundayCard(card, getServerEnv().SESSION_SECRET)
         : null,
+      card,
     };
   } catch (error) {
     console.error(error);
-    return { recap: null, query: null };
+    return { recap: null, query: null, card: null };
   }
 }
 
@@ -406,19 +476,15 @@ async function sendEvening(
   query: string | null,
   env: ReturnType<typeof getServerEnv>,
 ): Promise<DiarySendResult> {
-  const origin =
-    joyPhotoOrigin(env.NEXT_PUBLIC_APP_URL) ??
-    joyPhotoOrigin(env.TELEGRAM_MINI_APP_URL);
-  if (query && origin) {
-    return sendDiaryCard(
-      chatId,
-      {
-        photoUrl: weekCardPhotoUrl(origin, query),
-        caption: text,
-        inlineQuery: query,
-      },
-      env,
-    );
+  if (query) {
+    const jpeg = await renderShareCardJpeg(query, env.SESSION_SECRET);
+    if (jpeg) {
+      return sendDiaryCardJpeg(
+        chatId,
+        { jpeg, caption: text, inlineQuery: query },
+        env,
+      );
+    }
   }
   return sendDiaryMessage(chatId, text, env);
 }

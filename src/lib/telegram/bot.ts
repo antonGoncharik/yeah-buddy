@@ -281,6 +281,30 @@ export async function sendDiaryCard(
   }
 }
 
+export async function sendDiaryCardJpeg(
+  chatId: number,
+  input: { jpeg: Buffer; caption: string; inlineQuery: string },
+  env: ServerEnv = getServerEnv(),
+): Promise<DiarySendResult> {
+  const miniAppUrl = getMiniAppUrl(env);
+  const caption =
+    input.caption.length <= 1024
+      ? input.caption
+      : `${input.caption.slice(0, 1023)}…`;
+  const photo = new InputFile(input.jpeg, "card.jpg");
+  try {
+    await withTelegramRetry(() =>
+      createBot(env).api.sendPhoto(chatId, photo, {
+        caption,
+        ...replyMarkup(miniAppUrl, input.inlineQuery),
+      }),
+    );
+    return "sent";
+  } catch (error) {
+    return diarySendError(error);
+  }
+}
+
 export async function sendDiaryPhoto(
   chatId: number,
   input: {

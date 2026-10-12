@@ -6,7 +6,11 @@ import {
   captureServerError,
   reportRemindersCronResult,
 } from "@/lib/monitoring/sentry";
-import { isCronAuthorized, runRemindersCron } from "@/lib/telegram/reminders";
+import {
+  isCronAuthorized,
+  parseReminderCronShard,
+  runRemindersCron,
+} from "@/lib/telegram/reminders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,7 +43,8 @@ async function runCron(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const result = await runRemindersCron();
+    const shard = parseReminderCronShard(request);
+    const result = await runRemindersCron(new Date(), shard);
     reportRemindersCronResult(result);
     return jsonOk(result);
   } catch (error) {
