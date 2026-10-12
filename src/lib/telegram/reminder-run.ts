@@ -11,6 +11,11 @@ import {
 } from "@/lib/retention";
 import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
+import {
+  encodeMuscleWeekCard,
+  muscleWeekCardCaption,
+} from "@/lib/share/muscle-week-card";
+import { loadMuscleWeekCard } from "@/lib/share/muscle-week-card-load";
 import { renderShareCardJpeg } from "@/lib/share/share-card-jpeg";
 import type { SundayCard } from "@/lib/share/sunday-card";
 import {
@@ -514,14 +519,22 @@ async function sundayPack(
     if (snapshot.brief.coverage === "empty") {
       return { recap: null, query: null, card: null };
     }
+    const secret = getServerEnv().SESSION_SECRET;
+    const muscleWeek = await loadMuscleWeekCard(userId);
+    if (muscleWeek) {
+      const recap = `${muscleWeekCardCaption(muscleWeek)}\n${weekRecapText(snapshot.brief.signals)}`;
+      return {
+        recap,
+        query: encodeMuscleWeekCard(muscleWeek, secret),
+        card: null,
+      };
+    }
     const card = sundayCardFromBrief(snapshot.brief);
     return {
       recap: card
         ? sundayCardCaption(card)
         : weekRecapText(snapshot.brief.signals),
-      query: card
-        ? encodeSundayCard(card, getServerEnv().SESSION_SECRET)
-        : null,
+      query: card ? encodeSundayCard(card, secret) : null,
       card,
     };
   } catch (error) {
