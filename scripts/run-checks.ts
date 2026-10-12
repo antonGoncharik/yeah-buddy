@@ -23,7 +23,11 @@ async function main() {
   }
 
   for (const file of files) {
-    await import(pathToFileURL(join(process.cwd(), file)).href);
+    const mod = await import(pathToFileURL(join(process.cwd(), file)).href);
+    const pending = mod.default;
+    if (pending instanceof Promise) {
+      await pending;
+    }
   }
 }
 

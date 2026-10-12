@@ -8,6 +8,7 @@ const serverEnvSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   TELEGRAM_MINI_APP_URL: z.string().optional(),
+  TELEGRAM_BOT_USERNAME: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   INBOX_CHAT_ID: z.string().optional(),
 });
@@ -29,6 +30,7 @@ export function getServerEnv(): ServerEnv {
     SESSION_SECRET: process.env.SESSION_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || undefined,
     TELEGRAM_MINI_APP_URL: process.env.TELEGRAM_MINI_APP_URL || undefined,
+    TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || undefined,
     CRON_SECRET: process.env.CRON_SECRET || undefined,
     INBOX_CHAT_ID: process.env.INBOX_CHAT_ID || undefined,
   });

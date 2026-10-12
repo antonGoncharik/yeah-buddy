@@ -172,6 +172,17 @@ export const EXIT_TO_CHATS_HINT = "Ещё раз «назад» — выйти �
 export const NAMED_MEAL_EMPTY = "Сначала добавь продукты.";
 export const NAMED_MEAL_LIMIT = "Слишком много сохранённых приёмов.";
 export const BOT_OPEN_DIARY = "Открыть дневник";
+export const BOT_OPEN_SETTINGS = "Открыть настройки";
+export const BOT_OPEN_WEEK = "Открыть неделю";
+export const BOT_HELP =
+  "Команды: /today — дневник, /weight 82.5 — вес, /week — неделя, /settings — настройки, /donate — звёзды. Еду можно писать текстом или голосом.";
+export const BOT_WEIGHT_USAGE = "Напиши вес: /weight 82.5";
+export const BOT_WEIGHT_RECORDED = (kg: string) =>
+  `Записал ${kg} кг на сегодня.`;
+export const BOT_WEIGHT_WRITE_LOCKED =
+  "Сегодня в дневнике только просмотр. Открой приложение и выбери день.";
+export const INBOX_MEAL_CHAT_HOLD =
+  "Сначала отправь письмо или нажми «Другое» в меню «Написать».";
 export const BOT_PACK_START = "Start";
 export const BOT_PROGRAM_START = "Поставить";
 export const COACH_SHARE_TEXT =

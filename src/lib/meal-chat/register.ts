@@ -40,6 +40,7 @@ import {
   AI_DICTATE_AUDIO_FAILED,
   AI_DICTATE_EMPTY,
   AI_TEXT_MEAL_EMPTY,
+  INBOX_MEAL_CHAT_HOLD,
   MEAL_CHAT_DRAFT_BUTTON,
   MEAL_CHAT_LOCKED,
   MEAL_CHAT_PHOTO_EMPTY,
@@ -100,6 +101,7 @@ async function onMealChatMessage(ctx: Context): Promise<void> {
         inboxTopic: thread.topic,
       })
     ) {
+      await ctx.reply(INBOX_MEAL_CHAT_HOLD);
       return;
     }
   }

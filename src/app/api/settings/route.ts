@@ -15,6 +15,7 @@ import {
   saveUserSettings,
   settingsInputSchema,
 } from "@/lib/settings";
+import { resetReminderDayMarks } from "@/lib/telegram/reminder-marks";
 
 function goalFromPatch(
   data: Record<string, unknown>,
@@ -67,7 +68,17 @@ export const PATCH = sessionRoute(async (session, request) => {
       });
     }
 
+    const before = await getUserSettings(session.userId);
+    const patchReminders =
+      "reminders_enabled" in parsed.data
+        ? parsed.data.reminders_enabled
+        : undefined;
+    const enablingReminders =
+      patchReminders === true && before?.reminders_enabled === false;
     const settings = await saveUserSettings(session.userId, parsed.data);
+    if (enablingReminders) {
+      await resetReminderDayMarks(session.userId);
+    }
     return jsonOk({ settings });
   } catch (error) {
     return failRoute(error, [whenError(UnsafeGoalError, 400)]);

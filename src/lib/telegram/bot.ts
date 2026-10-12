@@ -31,6 +31,8 @@ import {
   programChatMessage,
   programStartPayload,
 } from "@/lib/share/program-start";
+import { registerBotCommands } from "@/lib/telegram/bot-commands";
+import { syncBotMenuCommands } from "@/lib/telegram/bot-menu";
 import {
   resolveAppShareUrl,
   resolveBarbellPlayUrl,
@@ -43,9 +45,11 @@ import {
   withStartApp,
 } from "@/lib/telegram/share-url";
 import { replyStartSticker, trexStickerFileId } from "@/lib/telegram/sticker";
+import { withTelegramRetry } from "@/lib/telegram/telegram-retry";
 
 let bot: Bot | null = null;
 let botUsername: string | null | undefined;
+let botUsernameRetryAfter = 0;
 
 export function getMiniAppUrl(env: ServerEnv = getServerEnv()): string | null {
   const candidate = env.TELEGRAM_MINI_APP_URL || env.NEXT_PUBLIC_APP_URL;
@@ -203,8 +207,10 @@ export function createBot(env: ServerEnv = getServerEnv()): Bot {
   });
 
   registerDonatePayments(instance);
+  registerBotCommands(instance, env);
   registerMealChat(instance);
   registerInbox(instance);
+  void syncBotMenuCommands(instance.api);
 
   instance.on("inline_query", async (ctx) => {
     const env = getServerEnv();
@@ -243,7 +249,9 @@ export async function sendDiaryMessage(
 ): Promise<DiarySendResult> {
   const miniAppUrl = getMiniAppUrl(env);
   try {
-    await createBot(env).api.sendMessage(chatId, text, replyMarkup(miniAppUrl));
+    await withTelegramRetry(() =>
+      createBot(env).api.sendMessage(chatId, text, replyMarkup(miniAppUrl)),
+    );
     return "sent";
   } catch (error) {
     return diarySendError(error);
@@ -261,10 +269,12 @@ export async function sendDiaryCard(
       ? input.caption
       : `${input.caption.slice(0, 1023)}…`;
   try {
-    await createBot(env).api.sendPhoto(chatId, input.photoUrl, {
-      caption,
-      ...replyMarkup(miniAppUrl, input.inlineQuery),
-    });
+    await withTelegramRetry(() =>
+      createBot(env).api.sendPhoto(chatId, input.photoUrl, {
+        caption,
+        ...replyMarkup(miniAppUrl, input.inlineQuery),
+      }),
+    );
     return "sent";
   } catch (error) {
     return diarySendError(error);
@@ -282,10 +292,12 @@ export async function sendDiaryPhoto(
 ): Promise<DiarySendResult> {
   const miniAppUrl = getMiniAppUrl(env);
   try {
-    await createBot(env).api.sendPhoto(chatId, shareDoodleFile(input.doodle), {
-      caption: input.caption,
-      ...replyMarkup(miniAppUrl, input.inlineQuery),
-    });
+    await withTelegramRetry(() =>
+      createBot(env).api.sendPhoto(chatId, shareDoodleFile(input.doodle), {
+        caption: input.caption,
+        ...replyMarkup(miniAppUrl, input.inlineQuery),
+      }),
+    );
     return "sent";
   } catch (error) {
     return diarySendError(error);
@@ -341,17 +353,29 @@ function isBlockedChat(error: GrammyError): boolean {
   );
 }
 
-async function getBotUsername(): Promise<string | null> {
-  if (botUsername !== undefined) {
+async function getBotUsername(
+  env: ServerEnv = getServerEnv(),
+): Promise<string | null> {
+  const fromEnv = env.TELEGRAM_BOT_USERNAME?.trim().replace(/^@/, "");
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (typeof botUsername === "string" && botUsername.length > 0) {
     return botUsername;
   }
 
-  try {
-    const me = await createBot().api.getMe();
-    botUsername = me.username ?? null;
-  } catch {
-    botUsername = null;
+  if (botUsername === null && Date.now() < botUsernameRetryAfter) {
+    return null;
   }
 
-  return botUsername;
+  try {
+    const me = await createBot(env).api.getMe();
+    botUsername = me.username ?? null;
+    return botUsername;
+  } catch {
+    botUsername = null;
+    botUsernameRetryAfter = Date.now() + 60_000;
+    return null;
+  }
 }
