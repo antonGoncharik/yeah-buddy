@@ -49,6 +49,11 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     activity_level: parseStoredActivity(row.activity_level),
     goal_pace: parseStoredGoalPace(row.goal_pace),
     reminder_hour: parseReminderHour(row.reminder_hour),
+    weekly_digest_enabled: row.weekly_digest_enabled !== false,
+    monthly_report_enabled: row.monthly_report_enabled !== false,
+    pr_push_enabled: row.pr_push_enabled !== false,
+    quiet_from: parseQuietHour(row.quiet_from),
+    quiet_to: parseQuietHour(row.quiet_to),
     review_cooldown_until:
       typeof row.review_cooldown_until === "string"
         ? row.review_cooldown_until
@@ -129,6 +134,14 @@ export function parseDismissedKcal(value: unknown): number | null {
   }
 
   return parsed;
+}
+
+function parseQuietHour(value: unknown): number | null {
+  const hour = toNumber(value);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    return null;
+  }
+  return hour;
 }
 
 export function parseStoredTrainingYears(value: unknown): number | null {

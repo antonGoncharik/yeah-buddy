@@ -96,6 +96,11 @@ const settings: UserSettings = {
   activity_level: null,
   goal_pace: null,
   reminder_hour: 21,
+  weekly_digest_enabled: true,
+  monthly_report_enabled: true,
+  pr_push_enabled: true,
+  quiet_from: null,
+  quiet_to: null,
   review_cooldown_until: null,
   updated_at: "2026-01-01",
 };

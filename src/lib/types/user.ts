@@ -45,6 +45,11 @@ export interface UserSettings {
   activity_level: UserActivityLevel | null;
   goal_pace: UserGoalPace | null;
   reminder_hour: number;
+  weekly_digest_enabled: boolean;
+  monthly_report_enabled: boolean;
+  pr_push_enabled: boolean;
+  quiet_from: number | null;
+  quiet_to: number | null;
   review_cooldown_until: string | null;
   updated_at: string;
 }

@@ -53,6 +53,7 @@ import {
   reminderSendPaused,
   resetReminderFailCount,
 } from "@/lib/telegram/reminder-fail-count";
+import { recordReminderSent } from "@/lib/telegram/reminder-log";
 import { middayReminderText } from "@/lib/telegram/reminder-midday";
 import {
   composeEveningMessage,
@@ -336,6 +337,11 @@ async function processEveningCandidate(
   if (sent === "sent") {
     result.sent += 1;
     await resetReminderFailCount(candidate.userId);
+    await recordReminderSent(
+      candidate.userId,
+      sunday.query ? "sunday" : "evening",
+      reminderDate,
+    );
     await trackEvent(candidate.userId, "reminder_sent", {
       kind: sunday.query ? "sunday" : "evening",
     });
@@ -467,6 +473,7 @@ async function processMiddayCandidate(
   if (sent === "sent") {
     result.sent += 1;
     await resetReminderFailCount(candidate.userId);
+    await recordReminderSent(candidate.userId, "midday", reminderDate);
     await trackEvent(candidate.userId, "reminder_sent", { kind: "midday" });
     return result;
   }
