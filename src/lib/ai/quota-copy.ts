@@ -4,12 +4,13 @@ import {
   AI_TEXT_MEAL_QUOTA,
 } from "@/lib/messages";
 
-export type AiKind = "plate" | "review" | "dictate" | "text";
+export type AiKind = "plate" | "review" | "dictate" | "text" | "assistant";
 
 export const PLATE_DAILY_LIMIT = 3;
 export const REVIEW_DAILY_LIMIT = 3;
 export const DICTATE_DAILY_LIMIT = 3;
 export const TEXT_MEAL_DAILY_LIMIT = 3;
+export const ASSISTANT_DAILY_LIMIT = 5;
 
 export function dailyLimit(kind: AiKind): number {
   if (kind === "plate") {
@@ -20,6 +21,9 @@ export function dailyLimit(kind: AiKind): number {
   }
   if (kind === "text") {
     return TEXT_MEAL_DAILY_LIMIT;
+  }
+  if (kind === "assistant") {
+    return ASSISTANT_DAILY_LIMIT;
   }
   return REVIEW_DAILY_LIMIT;
 }

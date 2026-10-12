@@ -144,6 +144,12 @@ export function ReviewScreen() {
 
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
               <NavRow
+                href="/progress/ask"
+                title="Спросить"
+                hint="Вопрос по дневнику и залу"
+                icon={<MealDayDoodle />}
+              />
+              <NavRow
                 href="/today/history"
                 title="История еды"
                 hint="БЖУ и вес по дням"

@@ -53,7 +53,12 @@ const RESPONSE_SCHEMA = {
 
 const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
-export type GeminiPurpose = "plate" | "review" | "dictate" | "text";
+export type GeminiPurpose =
+  | "plate"
+  | "review"
+  | "dictate"
+  | "text"
+  | "assistant";
 const MINUTE_COOLDOWN_MS = 60_000;
 const DEFAULT_COOLDOWN_MS = 15 * 60_000;
 const MAX_COOLDOWN_MS = 86_400_000;

@@ -261,6 +261,9 @@ function quotaMessage(kind: AiKind): string {
   if (kind === "text") {
     return AI_TEXT_MEAL_QUOTA;
   }
+  if (kind === "assistant") {
+    return "Лимит вопросов ассистенту на сегодня.";
+  }
   return AI_REVIEW_QUOTA;
 }
 
