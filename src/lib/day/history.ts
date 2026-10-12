@@ -3,7 +3,7 @@ import { mapDayHistoryRow } from "@/lib/day/map";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DayHistoryRow } from "@/lib/types";
 
-const DAY_HISTORY_SELECT = `
+export const DAY_HISTORY_SELECT = `
   date,
   is_training_day,
   target_protein,

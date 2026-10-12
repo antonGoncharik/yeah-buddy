@@ -1,3 +1,5 @@
+import { DAY_HISTORY_SELECT } from "@/lib/day/history";
+import { mapDayHistoryRow } from "@/lib/day/map";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { nextCircleName } from "@/lib/telegram/reminder-facts";
 import type { WorkoutSession } from "@/lib/types";
@@ -39,9 +41,7 @@ export async function loadEveningReminderFactsBatch(
   const [daysResult, foodResult, sessionsResult] = await Promise.all([
     supabase
       .from("days")
-      .select(
-        "user_id, date, is_training_day, fact_protein, fact_fat, fact_carbs, fact_kcal, target_protein, target_fat, target_carbs, target_kcal",
-      )
+      .select(`user_id, ${DAY_HISTORY_SELECT}`)
       .in("user_id", userIds)
       .in("date", dates),
     supabase
@@ -91,23 +91,24 @@ export async function loadEveningReminderFactsBatch(
     if (!userId || !date) {
       continue;
     }
+    const mapped = mapDayHistoryRow(row as Record<string, unknown>);
     const key = factKey(userId, date);
     dayByKey.set(key, {
       isTrainingDay:
-        row.is_training_day === true
+        mapped.is_training_day === true
           ? true
-          : row.is_training_day === false
+          : mapped.is_training_day === false
             ? false
             : null,
       snapshot: {
-        protein: Number(row.fact_protein) || 0,
-        fat: Number(row.fact_fat) || 0,
-        carbs: Number(row.fact_carbs) || 0,
-        kcal: Number(row.fact_kcal) || 0,
-        targetProtein: Number(row.target_protein) || 0,
-        targetFat: Number(row.target_fat) || 0,
-        targetCarbs: Number(row.target_carbs) || 0,
-        targetKcal: Number(row.target_kcal) || 0,
+        protein: mapped.fact_protein,
+        fat: mapped.fact_fat,
+        carbs: mapped.fact_carbs,
+        kcal: mapped.fact_kcal,
+        targetProtein: mapped.target_protein,
+        targetFat: mapped.target_fat,
+        targetCarbs: mapped.target_carbs,
+        targetKcal: mapped.target_kcal,
       },
     });
   }

@@ -39,11 +39,12 @@ as $$
     'fact_protein',
     coalesce(
       (
-        select d.fact_protein
+        select sum(mi.protein)
         from public.days d
+        join public.meals m on m.day_id = d.id
+        join public.meal_items mi on mi.meal_id = m.id
         where d.user_id = p_user_id
           and d.date = p_date
-        limit 1
       ),
       0
     ),
