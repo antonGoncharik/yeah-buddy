@@ -115,6 +115,40 @@ function xAt(index: number, layout: ChartLayout): number {
   return layout.pad + (layout.innerW / (layout.count - 1)) * index;
 }
 
+/** Dashed segment from an anchor index through forecast values (FEAT-05). */
+export function chartForecastOverlay(
+  layout: ChartLayout,
+  anchorIndex: number,
+  valuesFromAnchor: number[],
+): ChartSeries | null {
+  if (valuesFromAnchor.length < 2 || anchorIndex < 0) {
+    return null;
+  }
+  const totalCount = anchorIndex + valuesFromAnchor.length;
+  const extendedLayout: ChartLayout = { ...layout, count: totalCount };
+  const dots = valuesFromAnchor.map((value, offset) => ({
+    x: xAt(anchorIndex + offset, extendedLayout),
+    y: chartY(value, layout),
+  }));
+  return {
+    line: linePath(dots),
+    area: "",
+    dots,
+  };
+}
+
+export function chartLayoutForValues(
+  actual: number[],
+  extra: number[],
+  width: number,
+  height: number,
+  pad: number,
+): ChartLayout | null {
+  const scale = [...actual, ...extra];
+  const count = actual.length + Math.max(0, extra.length - 1);
+  return chartLayout(scale, Math.max(2, count), width, height, pad);
+}
+
 export function chartY(value: number, layout: ChartLayout): number {
   const span = layout.max - layout.min;
   if (span === 0) {

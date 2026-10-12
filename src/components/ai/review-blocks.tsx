@@ -7,7 +7,13 @@ import { FoldChevron } from "@/components/ui/fold-chevron";
 import { MeterBar } from "@/components/ui/meter-bar";
 import { StatGrid } from "@/components/ui/stat-grid";
 import { formatG } from "@/lib/ai/format";
-import { chartShape, chartY } from "@/lib/chart-shape";
+import {
+  chartForecastOverlay,
+  chartLayoutForValues,
+  chartSeries,
+  chartShape,
+  chartY,
+} from "@/lib/chart-shape";
 import { chartInsight, chartMean, chartSpan } from "@/lib/chart-stats";
 import { formatIsoDate } from "@/lib/day/format";
 import type { FoodShare } from "@/lib/days";
@@ -169,6 +175,8 @@ export function ReviewSeriesChart({
   label,
   unit,
   formatValue,
+  forecastExtension,
+  forecastInsight,
 }: {
   points: Array<{ date: string; value: number }>;
   color: string;
@@ -176,13 +184,33 @@ export function ReviewSeriesChart({
   label: string;
   unit: string;
   formatValue: (value: number) => string;
+  forecastExtension?: number[] | null;
+  forecastInsight?: string | null;
 }) {
   if (points.length < 2) {
     return null;
   }
 
   const values = points.map((point) => point.value);
-  const shape = chartShape(values, 320, 176, 16);
+  const extension =
+    forecastExtension && forecastExtension.length > 1
+      ? forecastExtension.slice(1)
+      : [];
+  const layout =
+    extension.length > 0
+      ? chartLayoutForValues(values, extension, 320, 176, 16)
+      : null;
+  const shape =
+    layout != null
+      ? (() => {
+          const series = chartSeries(values, layout);
+          return series ? { ...layout, ...series } : null;
+        })()
+      : chartShape(values, 320, 176, 16);
+  const overlay =
+    layout != null && forecastExtension && forecastExtension.length > 1
+      ? chartForecastOverlay(layout, values.length - 1, forecastExtension)
+      : null;
   const last = points[points.length - 1];
   if (!shape || !last) {
     return null;
@@ -201,11 +229,13 @@ export function ReviewSeriesChart({
             ? `${withUnit(span.first)} → ${withUnit(span.last)}`
             : null,
           mean != null ? `среднее ${withUnit(mean)}` : null,
+          forecastInsight,
         ])}
       </ChartInsight>
       <TrendPlot
         layout={shape}
         series={shape}
+        overlay={overlay ?? undefined}
         color={color}
         fillId={fillId}
         ariaLabel={label}

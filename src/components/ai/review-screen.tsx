@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ReviewFactsCard } from "@/components/ai/review-facts-card";
 import { ReviewTextCard } from "@/components/ai/review-text-card";
 import { useReviewScreen } from "@/components/ai/use-review-screen";
+import { WeeklyCheckCard } from "@/components/ai/weekly-check-card";
 import { AppHeader } from "@/components/layout/app-header";
 import {
   BarbellDoodle,
@@ -74,6 +75,7 @@ export function ReviewScreen() {
 
         {!loading && brief ? (
           <>
+            <WeeklyCheckCard brief={brief} />
             <ReviewFactsCard
               brief={brief}
               showGym={gymEnabled}

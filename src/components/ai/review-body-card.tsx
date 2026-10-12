@@ -7,14 +7,21 @@ import {
 } from "@/components/ai/review-blocks";
 import { WEIGHT_DELTA_KG } from "@/lib/ai/signal-nutrition";
 import type { ReviewBrief } from "@/lib/ai/types";
+import { peekJson } from "@/lib/api-cache";
 import {
   formatBodyWeight,
   formatSignedBodyWeight,
 } from "@/lib/day/body-weight";
+import {
+  goalForecastExtension,
+  goalForecastLine,
+} from "@/lib/nutrition/goal-forecast";
 import { formatKcal } from "@/lib/nutrition/macros";
 import { pluralDays } from "@/lib/nutrition-stats";
+import { readSettingsPayload } from "@/lib/settings/map";
 
 export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
+  const settings = readSettingsPayload(peekJson("/api/settings"));
   const weightPoints = measurePoints(brief.nutrition.days, "weight");
   const waistPoints = measurePoints(brief.nutrition.days, "waist");
   const energy = brief.nutrition.energy;
@@ -36,6 +43,26 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
           label="Вес"
           unit="кг"
           formatValue={formatBodyWeight}
+          forecastExtension={
+            settings?.goal && settings.goal !== "keep"
+              ? goalForecastExtension(
+                  weightPoints[weightPoints.length - 1]?.value ?? 0,
+                  settings.goal,
+                  settings.goal_pace,
+                )
+              : null
+          }
+          forecastInsight={
+            settings?.goal &&
+            settings.goal !== "keep" &&
+            brief.nutrition.weight.end != null
+              ? goalForecastLine({
+                  weightKg: brief.nutrition.weight.end,
+                  goal: settings.goal,
+                  pace: settings.goal_pace,
+                })
+              : null
+          }
         />
       ) : null}
       {waistPoints.length >= 2 ? (
