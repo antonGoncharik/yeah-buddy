@@ -42,6 +42,8 @@ export const settingsInputSchema = z.union([
   z.object({ weekly_digest_enabled: z.boolean() }),
   z.object({ monthly_report_enabled: z.boolean() }),
   z.object({ pr_push_enabled: z.boolean() }),
+  z.object({ weigh_in_enabled: z.boolean() }),
+  z.object({ streak_reminder_enabled: z.boolean() }),
   z.object({
     quiet_from: z.number().int().min(0).max(23).nullable(),
     quiet_to: z.number().int().min(0).max(23).nullable(),

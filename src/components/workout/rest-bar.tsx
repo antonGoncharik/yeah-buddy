@@ -13,6 +13,7 @@ export function RestBar({
   onSubtract,
   onStop,
   onRestart,
+  away = false,
 }: {
   left: number;
   targetKg: number;
@@ -21,12 +22,13 @@ export function RestBar({
   onSubtract: () => void;
   onStop: () => void;
   onRestart: () => void;
+  away?: boolean;
 }) {
   if (left === 0) {
     return (
       <div className="flex animate-recap-glow items-center gap-2 rounded-xl bg-background px-3 py-2">
         <p className="min-w-0 flex-1 text-lg font-semibold">
-          {REST_DONE_LABEL}
+          {away ? "Отдых закончился" : REST_DONE_LABEL}
         </p>
         <Button
           type="button"

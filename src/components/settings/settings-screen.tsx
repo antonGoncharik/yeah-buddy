@@ -211,6 +211,12 @@ export function SettingsScreen({
             onPrPush={(enabled) =>
               void setNoticeFlag("pr_push_enabled", enabled)
             }
+            onWeighIn={(enabled) =>
+              void setNoticeFlag("weigh_in_enabled", enabled)
+            }
+            onStreak={(enabled) =>
+              void setNoticeFlag("streak_reminder_enabled", enabled)
+            }
             onQuietHours={(from, to) => void setQuietHours(from, to)}
           />
         ) : null}

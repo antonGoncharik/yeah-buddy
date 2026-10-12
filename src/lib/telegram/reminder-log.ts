@@ -11,6 +11,45 @@ export type ReminderLogKind =
   | "monthly_report"
   | "pr";
 
+export const REMINDER_EXTRA_DAILY_CAP = 2;
+
+const REMINDER_EXTRA_KINDS = [
+  "weekly_digest",
+  "weigh_in",
+  "gym",
+  "streak",
+  "monthly_report",
+  "pr",
+] as const satisfies readonly ReminderLogKind[];
+
+export function isReminderExtraKind(kind: ReminderLogKind): boolean {
+  return (REMINDER_EXTRA_KINDS as readonly string[]).includes(kind);
+}
+
+export function reminderExtraBlocked(sent: number): boolean {
+  return sent >= REMINDER_EXTRA_DAILY_CAP;
+}
+
+export async function reminderExtraSentCount(
+  userId: string,
+  date: string,
+): Promise<number> {
+  const supabase = createSupabaseServerClient();
+  const result = await supabase
+    .from("reminder_log")
+    .select("kind", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("date", date)
+    .in("kind", [...REMINDER_EXTRA_KINDS]);
+  if (result.error) {
+    if (isMissingReminderLog(result.error)) {
+      return 0;
+    }
+    throw result.error;
+  }
+  return result.count ?? 0;
+}
+
 export async function reminderLogClaim(
   userId: string,
   kind: ReminderLogKind,

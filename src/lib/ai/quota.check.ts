@@ -146,7 +146,7 @@ assertEqual(
   "unknown limit waits fifteen minutes",
 );
 
-assertEqual(dailyLimit("plate"), 3, "three photos");
+assertEqual(dailyLimit("plate"), 4, "four photos");
 assertEqual(dailyLimit("review"), 3, "three reviews");
 assertEqual(dailyLimit("dictate"), 3, "three spoken logs");
 assertEqual(dailyLimit("text"), 3, "three text meal logs");

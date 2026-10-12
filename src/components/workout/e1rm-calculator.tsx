@@ -22,9 +22,10 @@ export function E1rmCalculator() {
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <div>
-        <h2 className="text-xl font-semibold">Калькулятор 1ПМ</h2>
+        <h2 className="text-xl font-semibold">Оценка максимума</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Оценка одноповторного максимума по рабочему подходу (e1RM).
+          По весу и повторам рабочего подхода — сколько вышло бы на одно
+          повторение.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">

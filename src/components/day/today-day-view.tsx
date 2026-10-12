@@ -18,7 +18,6 @@ import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
-import { TodaySignalInsight } from "@/components/day/today-signal-insight";
 import { useTodayMuscleNutritionHint } from "@/components/day/use-today-muscle-nutrition-hint";
 import {
   showYesterdayCatchUpHint,
@@ -45,7 +44,10 @@ import {
   sumMealItems,
 } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
-import { MACRO_GAP_PROTEIN_MIN } from "@/lib/nutrition/macro-gap-hint";
+import {
+  MACRO_GAP_PROTEIN_MIN,
+  todayStatusLine,
+} from "@/lib/nutrition/macro-gap-hint";
 import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
@@ -449,6 +451,14 @@ export function TodayDayView({
     <p className="text-sm text-muted-foreground">{muscleNutritionHint}</p>
   ) : null;
 
+  const todayLine =
+    date === today && dayHasItems
+      ? todayStatusLine({
+          protein: fact.protein,
+          targetProtein: shownDay.target_protein,
+        })
+      : null;
+
   const todayExtras =
     dayHasItems &&
     (energyGoalBlock ||
@@ -459,7 +469,6 @@ export function TodayDayView({
       weekShare ||
       reviewBlock) ? (
       <TodayExtrasSection>
-        <TodaySignalInsight />
         {energyGoalBlock}
         {energyHintBlock}
         {muscleNutritionBlock}
@@ -540,6 +549,12 @@ export function TodayDayView({
 
       {numbersFirst ? scoreBlock : foodBlock}
       {numbersFirst ? foodBlock : scoreBlock}
+
+      {todayLine ? (
+        <p className="text-sm leading-snug text-muted-foreground">
+          {todayLine}
+        </p>
+      ) : null}
 
       {todayExtras}
 

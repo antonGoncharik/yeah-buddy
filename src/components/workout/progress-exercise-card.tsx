@@ -55,7 +55,7 @@ export function ProgressExerciseCard({
   const lastSeconds = series.at(-1)?.seconds ?? null;
   const metricOptions = [
     { id: "weight" as const, label: "Вес" },
-    ...(e1rmOk ? [{ id: "e1rm" as const, label: "e1ПМ" }] : []),
+    ...(e1rmOk ? [{ id: "e1rm" as const, label: "Оценка" }] : []),
     ...(tonnageOk ? [{ id: "tonnage" as const, label: "Тоннаж" }] : []),
     ...(secondsOk ? [{ id: "seconds" as const, label: "Время" }] : []),
     ...(relativeOk ? [{ id: "relative" as const, label: "К телу" }] : []),

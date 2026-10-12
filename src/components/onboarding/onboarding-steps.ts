@@ -135,10 +135,23 @@ export function onboardingSteps({
   const next: OnboardingStep[] = ["mode"];
 
   if (pendingKind !== "meals") {
-    next.push(...person, "ration");
+    next.push(...person);
   }
 
   return next;
+}
+
+export function onboardingMissingStepFallback(
+  steps: readonly OnboardingStep[],
+  current: string,
+): OnboardingStep {
+  if (current === "ration") {
+    return steps[steps.length - 1] ?? "macros";
+  }
+  if (steps.includes("circle")) {
+    return "circle";
+  }
+  return steps[0] ?? "mode";
 }
 
 export function onboardingStepProgressLabel(

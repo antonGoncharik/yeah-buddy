@@ -38,6 +38,8 @@ export interface SettingsFormState {
   weekly_digest_enabled: boolean;
   monthly_report_enabled: boolean;
   pr_push_enabled: boolean;
+  weigh_in_enabled: boolean;
+  streak_reminder_enabled: boolean;
   quiet_from: number | null;
   quiet_to: number | null;
 }
@@ -56,6 +58,8 @@ export type MacroFieldKey = Exclude<
   | "weekly_digest_enabled"
   | "monthly_report_enabled"
   | "pr_push_enabled"
+  | "weigh_in_enabled"
+  | "streak_reminder_enabled"
   | "quiet_from"
   | "quiet_to"
 >;
@@ -85,6 +89,8 @@ export function toFormState(
     weekly_digest_enabled: settings.weekly_digest_enabled,
     monthly_report_enabled: settings.monthly_report_enabled,
     pr_push_enabled: settings.pr_push_enabled,
+    weigh_in_enabled: settings.weigh_in_enabled,
+    streak_reminder_enabled: settings.streak_reminder_enabled,
     quiet_from: settings.quiet_from,
     quiet_to: settings.quiet_to,
   };

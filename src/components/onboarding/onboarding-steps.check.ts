@@ -1,5 +1,6 @@
 import {
   isOnboardingPersonStep,
+  onboardingMissingStepFallback,
   onboardingPersonSteps,
   onboardingStepAutoAdvance,
   onboardingStepInlineContinue,
@@ -38,12 +39,12 @@ assertEqual(
 
 assertEqual(
   onboardingSteps(empty).join(),
-  `mode,${personGym},ration`,
+  `mode,${personGym}`,
   "first run with gym",
 );
 assertEqual(
   onboardingSteps({ ...empty, gymEnabled: false }).join(),
-  `mode,${personFood},ration`,
+  `mode,${personFood}`,
   "food-only skips program",
 );
 assertEqual(
@@ -58,12 +59,12 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "workouts" }).join(),
-  `mode,${personGym},ration`,
+  `mode,${personGym}`,
   "workout pack skips program after the intro",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingProgram: true }).join(),
-  `mode,${personGym},ration`,
+  `mode,${personGym}`,
   "bot program skips the picker after the intro",
 );
 assertEqual(
@@ -78,12 +79,12 @@ assertEqual(
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal", gymEnabled: false }).join(),
-  `mode,${personFood},ration`,
+  `mode,${personFood}`,
   "one meal pack does not force gym steps",
 );
 assertEqual(
   onboardingSteps({ ...empty, pendingKind: "meal" }).join(),
-  `mode,${personGym},ration`,
+  `mode,${personGym}`,
   "one meal pack with gym uses profile only",
 );
 
@@ -147,5 +148,13 @@ assertEqual(
 );
 assertEqual(isOnboardingPersonStep("weight"), true, "weight is person");
 assertEqual(isOnboardingPersonStep("ration"), false, "ration is not person");
+assertEqual(
+  onboardingMissingStepFallback(
+    onboardingSteps({ ...empty, gymEnabled: false }),
+    "ration",
+  ),
+  "macros",
+  "saved ration step finishes at the macros summary",
+);
 
 console.log("onboarding steps ok");

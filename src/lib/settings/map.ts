@@ -52,6 +52,8 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
     weekly_digest_enabled: row.weekly_digest_enabled !== false,
     monthly_report_enabled: row.monthly_report_enabled !== false,
     pr_push_enabled: row.pr_push_enabled !== false,
+    weigh_in_enabled: row.weigh_in_enabled !== false,
+    streak_reminder_enabled: row.streak_reminder_enabled !== false,
     quiet_from: parseQuietHour(row.quiet_from),
     quiet_to: parseQuietHour(row.quiet_to),
     review_cooldown_until:

@@ -2,6 +2,7 @@ import {
   eveningMacroGapLine,
   MACRO_GAP_PROTEIN_MIN,
   macroGapProteinOffers,
+  todayStatusLine,
 } from "@/lib/nutrition/macro-gap-hint";
 
 function assert(condition: boolean, label: string): void {
@@ -36,6 +37,15 @@ assert(
     foodLogged: true,
   }) != null,
   "logged day with a large gap still nags",
+);
+assert(
+  todayStatusLine({ protein: 100, targetProtein: 160 }) ===
+    "Сегодня осталось около 60 г белка.",
+  "today line is the gap, not a 14-day summary",
+);
+assert(
+  todayStatusLine({ protein: 150, targetProtein: 160 }) == null,
+  "small today gap stays quiet",
 );
 
 const offers = macroGapProteinOffers(

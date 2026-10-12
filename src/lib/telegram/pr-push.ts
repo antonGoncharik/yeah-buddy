@@ -3,6 +3,8 @@ import { disableReminders, getUserSettings } from "@/lib/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendDiaryMessage } from "@/lib/telegram/bot";
 import {
+  reminderExtraBlocked,
+  reminderExtraSentCount,
   reminderLogClaim,
   reminderLogRelease,
 } from "@/lib/telegram/reminder-log";
@@ -65,6 +67,10 @@ export async function notifySessionPr(
   }
   const settings = await getUserSettings(userId);
   if (!settings?.reminders_enabled || settings.pr_push_enabled === false) {
+    return;
+  }
+  const sentExtras = await reminderExtraSentCount(userId, date);
+  if (reminderExtraBlocked(sentExtras)) {
     return;
   }
   const claimed = await reminderLogClaim(userId, "pr", date);

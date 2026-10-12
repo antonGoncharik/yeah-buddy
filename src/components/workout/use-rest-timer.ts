@@ -22,6 +22,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
   const [left, setLeft] = useState<number | null>(null);
   const [exerciseId, setExerciseId] = useState<string | null>(null);
   const [round, setRound] = useState(0);
+  const [finishedAway, setFinishedAway] = useState(false);
   const endsAtRef = useRef<number | null>(null);
   const exerciseRef = useRef<string | null>(null);
   const running = left != null && left > 0;
@@ -48,6 +49,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
     }
     const id = nextExerciseId || exerciseRef.current;
     haptic("tap");
+    setFinishedAway(false);
     const seconds = id ? readLastRestSeconds(id) : WORK_REST_SECONDS;
     persist(Date.now() + seconds * 1000, id);
     setLeft(seconds);
@@ -70,6 +72,9 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       persist(Date.now() + next * 1000, id);
       if (next === 0 && current > 0) {
         notifyRestTimerDone();
+        if (document.visibilityState === "hidden") {
+          setFinishedAway(true);
+        }
       }
       return next;
     });
@@ -78,6 +83,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
   function stop() {
     persist(null, exerciseRef.current);
     setLeft(null);
+    setFinishedAway(false);
   }
 
   function lastSeconds(id: string): number {
@@ -90,6 +96,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       exerciseRef.current = null;
       setExerciseId(null);
       setLeft(null);
+      setFinishedAway(false);
       if (sessionId && !enabled) {
         clearStoredRest(sessionId);
       }
@@ -103,7 +110,11 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
     endsAtRef.current = stored.endsAt;
     exerciseRef.current = stored.exerciseId;
     setExerciseId(stored.exerciseId);
-    setLeft(restLeftAt(stored.endsAt, Date.now()));
+    const restored = restLeftAt(stored.endsAt, Date.now());
+    setLeft(restored);
+    if (restored === 0) {
+      setFinishedAway(true);
+    }
   }, [enabled, sessionId]);
 
   useEffect(() => {
@@ -123,6 +134,9 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
         }
         if (next === 0 && prev > 0) {
           notifyRestTimerDone();
+          if (document.visibilityState === "hidden") {
+            setFinishedAway(true);
+          }
         } else {
           playTimerStepHaptic(next);
         }
@@ -178,6 +192,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
 
   return {
     left,
+    finishedAway,
     exerciseId,
     round,
     lastSeconds,

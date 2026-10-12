@@ -99,6 +99,8 @@ const settings: UserSettings = {
   weekly_digest_enabled: true,
   monthly_report_enabled: true,
   pr_push_enabled: true,
+  weigh_in_enabled: true,
+  streak_reminder_enabled: true,
   quiet_from: null,
   quiet_to: null,
   review_cooldown_until: null,

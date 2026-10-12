@@ -48,6 +48,8 @@ export interface UserSettings {
   weekly_digest_enabled: boolean;
   monthly_report_enabled: boolean;
   pr_push_enabled: boolean;
+  weigh_in_enabled: boolean;
+  streak_reminder_enabled: boolean;
   quiet_from: number | null;
   quiet_to: number | null;
   review_cooldown_until: string | null;

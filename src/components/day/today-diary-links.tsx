@@ -22,6 +22,18 @@ export function TodayDiaryLinks({ className }: { className?: string }) {
         {TODAY_MY_FOODS_LINK}
       </Link>
       <Link
+        href="/progress/ask"
+        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        Спросить
+      </Link>
+      <Link
+        href="/settings/meals"
+        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        Меню на день
+      </Link>
+      <Link
         href="/today/week"
         className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >

@@ -21,7 +21,10 @@ import {
 } from "@/lib/telegram/reminder-facts";
 import {
   inQuietHours,
+  isReminderExtraKind,
   type ReminderLogKind,
+  reminderExtraBlocked,
+  reminderExtraSentCount,
   reminderLogClaim,
   reminderLogRelease,
 } from "@/lib/telegram/reminder-log";
@@ -45,7 +48,7 @@ export async function runScheduledNotices(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, reminders_enabled, users!inner(telegram_id, is_active)",
+        "user_id, timezone, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, weigh_in_enabled, streak_reminder_enabled, reminders_enabled, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -80,6 +83,8 @@ async function deliverScheduledNotice(
     quiet_to: unknown;
     weekly_digest_enabled: unknown;
     monthly_report_enabled: unknown;
+    weigh_in_enabled: unknown;
+    streak_reminder_enabled: unknown;
     users: unknown;
   },
   now: Date,
@@ -155,7 +160,7 @@ async function deliverScheduledNotice(
     );
   }
 
-  if (clock.hour === 8) {
+  if (row.weigh_in_enabled !== false && clock.hour === 8) {
     const missing = await missingWeightStreak(userId, clock.date);
     if (missing >= 2) {
       await sendNotice(
@@ -170,7 +175,12 @@ async function deliverScheduledNotice(
   }
 
   const age = onboardingAgeDays(onboarded, clock.date, timezone);
-  if (clock.hour === 20 && age != null && age >= 14) {
+  if (
+    row.streak_reminder_enabled !== false &&
+    clock.hour === 20 &&
+    age != null &&
+    age >= 14
+  ) {
     const streak = await datePriorFoodLogDays(userId, clock.date);
     const logged = await dateHasFoodRecord(userId, clock.date);
     if (!logged && streak >= 7) {
@@ -194,6 +204,13 @@ async function sendNotice(
   date: string,
   textOf: () => Promise<string | null>,
 ): Promise<void> {
+  if (isReminderExtraKind(kind)) {
+    const sentExtras = await reminderExtraSentCount(userId, date);
+    if (reminderExtraBlocked(sentExtras)) {
+      result.skipped += 1;
+      return;
+    }
+  }
   const claimed = await reminderLogClaim(userId, kind, date);
   if (!claimed) {
     result.skipped += 1;

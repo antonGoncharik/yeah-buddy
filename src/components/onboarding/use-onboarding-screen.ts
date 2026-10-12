@@ -31,6 +31,7 @@ import {
 import {
   isOnboardingStep,
   type OnboardingStep,
+  onboardingMissingStepFallback,
   onboardingSteps,
 } from "@/components/onboarding/onboarding-steps";
 import {
@@ -223,7 +224,7 @@ export function useOnboardingScreen() {
 
   useEffect(() => {
     if (!steps.includes(step)) {
-      setStep(steps.includes("circle") ? "circle" : (steps[0] ?? "sex"));
+      setStep(onboardingMissingStepFallback(steps, step));
     }
   }, [step, steps]);
 
@@ -244,7 +245,7 @@ export function useOnboardingScreen() {
       const nextStep =
         parsed != null && steps.includes(parsed)
           ? parsed
-          : (steps[0] ?? "mode");
+          : onboardingMissingStepFallback(steps, entry.step);
       setGuidePageIndex(parseGuidePageIndex(entry.sub));
       setProgramShelf(parseProgramShelf(entry.sub));
       setStep(nextStep);

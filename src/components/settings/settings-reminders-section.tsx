@@ -23,6 +23,8 @@ export function SettingsRemindersSection({
   onWeeklyDigest,
   onMonthlyReport,
   onPrPush,
+  onWeighIn,
+  onStreak,
   onQuietHours,
 }: {
   form: SettingsFormState;
@@ -35,6 +37,8 @@ export function SettingsRemindersSection({
   onWeeklyDigest: (enabled: boolean) => void;
   onMonthlyReport: (enabled: boolean) => void;
   onPrPush: (enabled: boolean) => void;
+  onWeighIn: (enabled: boolean) => void;
+  onStreak: (enabled: boolean) => void;
   onQuietHours: (from: number | null, to: number | null) => void;
 }) {
   return (
@@ -118,21 +122,52 @@ export function SettingsRemindersSection({
       />
       <NoticeToggle
         label="Рекорды в чат"
-        hint="После тренировки, если e1RM выше прошлого"
+        hint="После тренировки, если подход сильнее прошлого"
         on={form.pr_push_enabled}
         onChange={onPrPush}
       />
+      <NoticeToggle
+        label="Взвешивание"
+        hint="8:00, если два дня без веса"
+        on={form.weigh_in_enabled}
+        onChange={onWeighIn}
+      />
+      <NoticeToggle
+        label="Серия"
+        hint="20:00, если неделю записывал и сегодня пусто"
+        on={form.streak_reminder_enabled}
+        onChange={onStreak}
+      />
       <div className="flex flex-col gap-1.5">
         <span className="text-sm text-muted-foreground">Тихие часы</span>
+        <p className="text-sm text-muted-foreground">
+          В этом промежутке не пишем. Если «до» раньше «с», тишина идёт через
+          полночь.
+        </p>
         <span className="grid grid-cols-2 gap-2">
-          <HourSelect
-            value={form.quiet_from}
-            onChange={(hour) => onQuietHours(hour, form.quiet_to)}
-          />
-          <HourSelect
-            value={form.quiet_to}
-            onChange={(hour) => onQuietHours(form.quiet_from, hour)}
-          />
+          <span className="flex flex-col gap-1.5">
+            <label
+              htmlFor="quiet-from"
+              className="text-sm text-muted-foreground"
+            >
+              С
+            </label>
+            <HourSelect
+              id="quiet-from"
+              value={form.quiet_from}
+              onChange={(hour) => onQuietHours(hour, form.quiet_to)}
+            />
+          </span>
+          <span className="flex flex-col gap-1.5">
+            <label htmlFor="quiet-to" className="text-sm text-muted-foreground">
+              До
+            </label>
+            <HourSelect
+              id="quiet-to"
+              value={form.quiet_to}
+              onChange={(hour) => onQuietHours(form.quiet_from, hour)}
+            />
+          </span>
         </span>
       </div>
       {error && !showGoals ? (
@@ -159,14 +194,16 @@ function NoticeToggle({
         <p className="text-base font-medium">{label}</p>
         <p className="text-sm text-muted-foreground">{hint}</p>
       </div>
-      <Segmented
-        value={on ? "on" : "off"}
-        options={[
-          { id: "on", label: "Вкл" },
-          { id: "off", label: "Выкл" },
-        ]}
-        onChange={(id) => onChange(id === "on")}
-      />
+      <div className="w-40 shrink-0">
+        <Segmented
+          value={on ? "on" : "off"}
+          options={[
+            { id: "on", label: "Вкл" },
+            { id: "off", label: "Выкл" },
+          ]}
+          onChange={(id) => onChange(id === "on")}
+        />
+      </div>
     </div>
   );
 }
@@ -199,14 +236,17 @@ const QUIET_HOURS = [
 ] as const;
 
 function HourSelect({
+  id,
   value,
   onChange,
 }: {
+  id: string;
   value: number | null;
   onChange: (hour: number | null) => void;
 }) {
   return (
     <select
+      id={id}
       className="field-control h-12 w-full appearance-none rounded-xl border border-input/70 bg-input-bg px-3 text-base"
       value={value == null ? "" : String(value)}
       onChange={(event) => {

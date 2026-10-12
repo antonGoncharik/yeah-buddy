@@ -228,7 +228,12 @@ export function useSettingsScreen() {
   }
 
   async function setNoticeFlag(
-    key: "weekly_digest_enabled" | "monthly_report_enabled" | "pr_push_enabled",
+    key:
+      | "weekly_digest_enabled"
+      | "monthly_report_enabled"
+      | "pr_push_enabled"
+      | "weigh_in_enabled"
+      | "streak_reminder_enabled",
     enabled: boolean,
   ) {
     if (!form) {

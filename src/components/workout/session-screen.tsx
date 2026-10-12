@@ -7,7 +7,6 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
-import { sessionHasSetEdits } from "@/components/workout/session-drafts";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
@@ -216,6 +215,7 @@ export function SessionScreen() {
           {rest.left != null ? (
             <div data-keyboard-secondary>
               <RestBar
+                away={rest.finishedAway}
                 left={rest.left}
                 targetKg={loadTarget}
                 round={rest.round}
@@ -243,11 +243,7 @@ export function SessionScreen() {
             onClick={() => {
               void (async () => {
                 rest.stop();
-                if (
-                  detail.session.status === "planned" &&
-                  (sessionHasSetEdits(detail, drafts) ||
-                    note.trim() !== (detail.session.note ?? "").trim())
-                ) {
+                if (detail.session.status === "planned") {
                   const ok = await confirm({
                     message: "Закрыть тренировку?",
                     confirmLabel: "Готово",

@@ -8,6 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ApiError, postJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 
+const ASSISTANT_EXAMPLES = [
+  "Сколько белка осталось на сегодня?",
+  "Какая следующая тренировка?",
+  "Что из моих продуктов добавить на ужин?",
+] as const;
+
 export function AssistantScreen() {
   const [message, setMessage] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -56,6 +62,19 @@ export function AssistantScreen() {
           Вопросы про сегодняшние калории, следующую тренировку и продукты —
           ответ только по твоему дневнику.
         </p>
+        <div className="flex flex-col gap-2">
+          {ASSISTANT_EXAMPLES.map((example) => (
+            <Button
+              key={example}
+              type="button"
+              variant="secondary"
+              className="h-auto min-h-11 w-full justify-start whitespace-normal px-3 py-2 text-left text-base"
+              onClick={() => setMessage(example)}
+            >
+              {example}
+            </Button>
+          ))}
+        </div>
         <Textarea
           value={message}
           onChange={(event) => setMessage(event.target.value)}
