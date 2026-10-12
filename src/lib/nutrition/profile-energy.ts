@@ -90,7 +90,10 @@ export function mifflinRestKcal(input: {
   activity: UserActivityLevel;
   nowYear?: number;
 }): number | null {
-  const age = ageFromBirthYear(input.birth_year, input.nowYear ?? 2026);
+  const age = ageFromBirthYear(
+    input.birth_year,
+    input.nowYear ?? new Date().getFullYear(),
+  );
   if (age == null || input.weightKg < 30 || input.height_cm < 120) {
     return null;
   }

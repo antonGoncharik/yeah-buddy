@@ -165,4 +165,26 @@ const customFloor = macroGoalsForTargetKcal({
 });
 assertEqual(customFloor.protein, 200, "energy update never lowers protein");
 
+const heavyWithHeight = macroGoalsForTargetKcal({
+  targetKcal: 1800,
+  weightKg: 120,
+  height_cm: 170,
+  goal: "lose",
+  sex: "female",
+  currentProtein: 150,
+  currentFat: 60,
+});
+const heavyNoHeight = macroGoalsForTargetKcal({
+  targetKcal: 1800,
+  weightKg: 120,
+  goal: "lose",
+  sex: "female",
+  currentProtein: 150,
+  currentFat: 60,
+});
+assert(
+  heavyWithHeight.protein < heavyNoHeight.protein,
+  "height caps protein via reference weight",
+);
+
 console.log("suggest protein ok");

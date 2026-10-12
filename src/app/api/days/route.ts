@@ -239,6 +239,7 @@ export const GET = sessionRoute(async (session, request) => {
           trainingCarbs:
             settings?.training_carbs ?? DEFAULT_TRAINING_MACRO_GOALS.carbs,
           dismissedKcal: settings?.energy_goal_dismissed_kcal ?? null,
+          height_cm: settings?.height_cm ?? null,
         };
         const energyPlan = viewingToday ? energyGoalOffer(energyInputs) : null;
         return {

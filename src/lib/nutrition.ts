@@ -14,6 +14,7 @@ export {
   formatMacro,
   type Macros,
   macroGoalsFromProtein,
+  reconcileKcalWithMacros,
   roundMacros,
   sumMealItems,
   sumMeals,

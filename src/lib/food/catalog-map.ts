@@ -1,4 +1,4 @@
-import { calcKcalFromMacros } from "@/lib/nutrition";
+import { reconcileKcalWithMacros } from "@/lib/nutrition";
 import {
   isRecord,
   mapRecordList,
@@ -112,8 +112,12 @@ export function mapCatalogFood(row: Record<string, unknown>): CatalogFood {
     protein_per_100: protein,
     fat_per_100: fat,
     carbs_per_100: carbs,
-    kcal_per_100:
-      toNumber(row.kcal_per_100) || calcKcalFromMacros(protein, fat, carbs),
+    kcal_per_100: reconcileKcalWithMacros(
+      protein,
+      fat,
+      carbs,
+      toNumber(row.kcal_per_100),
+    ),
   };
 }
 

@@ -6,6 +6,7 @@ import {
   writeStateFromHistory,
 } from "@/lib/day/dates";
 import { parseDayHistoryPayload } from "@/lib/day/map";
+import { dayCountsAsFoodLogged } from "@/lib/nutrition/food-logged-day";
 import { isRecord, toNullableString } from "@/lib/read";
 import type { DayHistoryRow, SessionStatus, WorkoutKind } from "@/lib/types";
 
@@ -55,12 +56,10 @@ export function dayHasFood(day: DayHistoryRow | null): boolean {
     return false;
   }
 
-  return (
-    day.fact_protein > 0 ||
-    day.fact_fat > 0 ||
-    day.fact_carbs > 0 ||
-    day.fact_kcal > 0
-  );
+  return dayCountsAsFoodLogged({
+    fact_kcal: day.fact_kcal,
+    target_kcal: day.target_kcal,
+  });
 }
 
 export function weekHasEntries(slots: WeekSlot[]): boolean {

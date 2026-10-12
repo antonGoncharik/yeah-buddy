@@ -3,13 +3,31 @@ import {
   jsonError,
   jsonOk,
   parseJsonSchema,
+  whenError,
 } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
+import {
+  assertGoalSettingsAllowed,
+  UnsafeGoalError,
+} from "@/lib/nutrition/goal-safety";
 import {
   getUserSettings,
   saveUserSettings,
   settingsInputSchema,
 } from "@/lib/settings";
+
+function goalFromPatch(
+  data: Record<string, unknown>,
+): "lose" | "keep" | "gain" | null | undefined {
+  if (!("goal" in data)) {
+    return undefined;
+  }
+  const goal = data.goal;
+  if (goal === "lose" || goal === "keep" || goal === "gain" || goal === null) {
+    return goal;
+  }
+  return undefined;
+}
 
 export const GET = sessionRoute(async (session) => {
   const settings = await getUserSettings(session.userId);
@@ -27,9 +45,31 @@ export const PATCH = sessionRoute(async (session, request) => {
   }
 
   try {
+    const patch = parsed.data as Record<string, unknown>;
+    const nextGoal = goalFromPatch(patch);
+    if (nextGoal === "lose") {
+      const current = await getUserSettings(session.userId);
+      assertGoalSettingsAllowed({
+        goal: "lose",
+        height_cm:
+          (typeof patch.height_cm === "number" || patch.height_cm === null
+            ? patch.height_cm
+            : null) ??
+          current?.height_cm ??
+          null,
+        body_weight_kg: null,
+        birth_year:
+          (typeof patch.birth_year === "number" || patch.birth_year === null
+            ? patch.birth_year
+            : null) ??
+          current?.birth_year ??
+          null,
+      });
+    }
+
     const settings = await saveUserSettings(session.userId, parsed.data);
     return jsonOk({ settings });
   } catch (error) {
-    return failRoute(error);
+    return failRoute(error, [whenError(UnsafeGoalError, 400)]);
   }
 });

@@ -24,17 +24,19 @@ assertEqual(inEarlyHabitWindow(null), false, "unknown");
 const days = [
   {
     date: "2026-10-04",
-    fact_protein: 10,
-    fact_fat: 0,
-    fact_carbs: 0,
-    fact_kcal: 100,
+    fact_protein: 120,
+    fact_fat: 60,
+    fact_carbs: 180,
+    fact_kcal: 1200,
+    target_kcal: 2000,
   },
   {
     date: "2026-10-05",
-    fact_protein: 10,
-    fact_fat: 0,
-    fact_carbs: 0,
-    fact_kcal: 100,
+    fact_protein: 120,
+    fact_fat: 60,
+    fact_carbs: 180,
+    fact_kcal: 1200,
+    target_kcal: 2000,
   },
 ];
 assertEqual(priorFoodLogDays(days, "2026-10-06"), 2, "two prior food days");

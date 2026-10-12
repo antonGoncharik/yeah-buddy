@@ -301,6 +301,7 @@ export function macroGoalsForTargetKcal(input: {
   weightKg: number;
   goal: OnboardingGoal;
   sex: OnboardingSex | null;
+  height_cm?: number | null;
   currentProtein: number;
   currentFat: number;
   /** Stop trimming fat once kcal is within this band of the target. */
@@ -311,6 +312,7 @@ export function macroGoalsForTargetKcal(input: {
     sex: input.sex,
     weightKg: input.weightKg,
     goal: input.goal,
+    height_cm: input.height_cm,
   });
   const protein = Math.max(
     input.currentProtein,

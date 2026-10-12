@@ -2,6 +2,7 @@ import { formatKcalPlain } from "@/lib/ai/format";
 import type { ReviewEnergy } from "@/lib/ai/types";
 import { formatSignedBodyWeight, roundBodyWeight } from "@/lib/day/body-weight";
 import { inclusiveDayCount, shiftIsoDate } from "@/lib/day/dates";
+import { dayCountsAsFoodLogged } from "@/lib/nutrition/food-logged-day";
 import { pluralDays } from "@/lib/nutrition/metric-copy";
 
 /**
@@ -40,17 +41,7 @@ export type EnergyDay = {
   body_weight: number | null;
 };
 
-/** Day counts toward intake only when food is meaningfully logged. */
-export function dayCountsAsFoodLogged(day: EnergyDay): boolean {
-  if (day.fact_kcal <= 0) {
-    return false;
-  }
-  const floor = Math.max(
-    800,
-    0.5 * (day.target_kcal > 0 ? day.target_kcal : 0),
-  );
-  return day.fact_kcal >= floor;
-}
+export { dayCountsAsFoodLogged };
 
 type WeighIn = { date: string; body_weight: number };
 

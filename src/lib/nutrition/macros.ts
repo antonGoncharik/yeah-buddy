@@ -69,6 +69,27 @@ export function calcKcalFromMacros(
   return protein * 4 + fat * 9 + carbs * 4;
 }
 
+const KCAL_MACRO_MISMATCH_RATIO = 0.15;
+
+/** Prefer 4/4/9 kcal when label kcal disagrees with macros by more than 15%. */
+export function reconcileKcalWithMacros(
+  protein: number,
+  fat: number,
+  carbs: number,
+  kcal: number,
+): number {
+  const fromMacros = calcKcalFromMacros(protein, fat, carbs);
+  if (fromMacros <= 0) {
+    return kcal > 0 ? kcal : 0;
+  }
+  const reported = kcal > 0 ? kcal : fromMacros;
+  const gap = Math.abs(reported - fromMacros) / fromMacros;
+  if (gap > KCAL_MACRO_MISMATCH_RATIO) {
+    return fromMacros;
+  }
+  return reported;
+}
+
 export function calcMacrosFromPer100(per100: Macros, grams: number): Macros {
   return {
     protein: (per100.protein * grams) / 100,

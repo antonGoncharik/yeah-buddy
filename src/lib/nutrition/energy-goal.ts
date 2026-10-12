@@ -77,6 +77,7 @@ export function energyGoalOffer(input: {
   goal: UserGoal | null;
   sex: UserSex | null;
   goal_pace?: UserGoalPace | null;
+  height_cm?: number | null;
   restProtein: number;
   restFat: number;
   restCarbs: number;
@@ -130,6 +131,7 @@ export function energyGoalOffer(input: {
     weightKg: energy.endKg,
     goal: input.goal,
     sex: input.sex,
+    height_cm: input.height_cm,
     currentProtein: input.restProtein,
     currentFat: input.restFat,
     kcalGap: ENERGY_GOAL_GAP_KCAL,
