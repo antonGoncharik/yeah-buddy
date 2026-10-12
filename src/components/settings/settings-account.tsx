@@ -2,17 +2,23 @@
 
 import { useState } from "react";
 
-import { useConfirm } from "@/components/layout/confirm-provider";
+import { useConfirm, usePrompt } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { downloadJsonFile } from "@/lib/account/download";
 import { accountExportFilename } from "@/lib/account/export-shape";
 import { clearDiaryCache, deleteJson, mutateJson } from "@/lib/api-cache";
-import { ACCOUNT_DELETE_CONFIRM, LOAD_FAILED } from "@/lib/messages";
+import {
+  ACCOUNT_DELETE_CONFIRM,
+  ACCOUNT_DELETE_TYPE_PROMPT,
+  ACCOUNT_EXPORT_DONE,
+  LOAD_FAILED,
+} from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function SettingsAccount() {
   const confirm = useConfirm();
+  const prompt = usePrompt();
   const [busy, setBusy] = useState<"export" | "delete" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [exported, setExported] = useState(false);
@@ -45,6 +51,16 @@ export function SettingsAccount() {
       destructive: true,
     });
     if (!ok) {
+      return;
+    }
+
+    const typed = await prompt({
+      message: ACCOUNT_DELETE_TYPE_PROMPT,
+      confirmLabel: "Удалить навсегда",
+      cancelLabel: "Отмена",
+      placeholder: "УДАЛИТЬ",
+    });
+    if (typed?.trim().toUpperCase() !== "УДАЛИТЬ") {
       return;
     }
 
@@ -86,6 +102,9 @@ export function SettingsAccount() {
       >
         {busy === "delete" ? "Удаляю…" : "Удалить дневник"}
       </Button>
+      {exported ? (
+        <p className="text-sm text-muted-foreground">{ACCOUNT_EXPORT_DONE}</p>
+      ) : null}
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}

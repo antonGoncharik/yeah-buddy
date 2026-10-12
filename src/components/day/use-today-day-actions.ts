@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
+import { useUndoToast } from "@/components/layout/undo-toast-provider";
 import { ApiError, mutateJson, patchJson, peekJson } from "@/lib/api-cache";
 import {
   daysUrl,
@@ -13,6 +14,7 @@ import {
   writeDayResponse,
 } from "@/lib/day/cache";
 import type { DayWithMeals } from "@/lib/day/map";
+import { mealItemRestoreBody } from "@/lib/day/meal-item-restore";
 import {
   dayCreateClientIds,
   isTempId,
@@ -24,7 +26,12 @@ import {
 } from "@/lib/day/optimistic";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
-import { LOAD_FAILED, switchDayTypeMessage } from "@/lib/messages";
+import {
+  LOAD_FAILED,
+  MEAL_UNDO_ACTION,
+  mealRemovedUndoMessage,
+  switchDayTypeMessage,
+} from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealItem } from "@/lib/types";
@@ -39,6 +46,7 @@ export function useTodayDayActions({
   day: DayWithMeals | null;
 }) {
   const confirm = useConfirm();
+  const showUndo = useUndoToast();
 
   const createDay = useCallback(
     async (dayType: DayType) => {
@@ -198,6 +206,10 @@ export function useTodayDayActions({
       return;
     }
 
+    const snapshot = item;
+    const restoreBody = mealItemRestoreBody(snapshot);
+    const mealId = snapshot.meal_id;
+
     haptic("commit");
     await withDayOptimistic(date, withRemovedItem(day, item.id), async () => {
       await queueMutate({
@@ -209,6 +221,25 @@ export function useTodayDayActions({
       });
       return "keep";
     });
+
+    if (restoreBody) {
+      showUndo({
+        message: mealRemovedUndoMessage(snapshot.name_snapshot),
+        actionLabel: MEAL_UNDO_ACTION,
+        onUndo: async () => {
+          if (viewOnly || !day) {
+            return;
+          }
+          haptic("tap");
+          await queueMutate({
+            method: "POST",
+            url: `/api/meals/${mealId}/items`,
+            body: restoreBody,
+            cacheUrls: [daysUrl(date)],
+          });
+        },
+      });
+    }
   }
 
   return { createDay, switchType, saveBodyWeight, saveWaist, deleteItem };

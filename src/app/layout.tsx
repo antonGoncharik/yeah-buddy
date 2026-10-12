@@ -6,6 +6,7 @@ import { DayBackdrop, DayMoodProvider } from "@/components/layout/day-mood";
 import { DiaryDensityProvider } from "@/components/layout/diary-density-provider";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { TodayOrderProvider } from "@/components/layout/today-order-provider";
+import { UndoToastProvider } from "@/components/layout/undo-toast-provider";
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -132,10 +133,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <DiaryDensityProvider initialDensity={density}>
             <TodayOrderProvider initialOrder={todayOrder}>
               <ConfirmProvider>
-                <DayMoodProvider>
-                  <DayBackdrop />
-                  <div className="relative z-10 min-w-0">{children}</div>
-                </DayMoodProvider>
+                <UndoToastProvider>
+                  <DayMoodProvider>
+                    <DayBackdrop />
+                    <div className="relative z-10 min-w-0">{children}</div>
+                  </DayMoodProvider>
+                </UndoToastProvider>
               </ConfirmProvider>
             </TodayOrderProvider>
           </DiaryDensityProvider>

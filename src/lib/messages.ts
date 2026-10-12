@@ -285,6 +285,17 @@ export const PACK_EMPTY_MEALS = "Сначала собери еду на ден�
 export const PACK_EMPTY_WORKOUTS = "Сначала поставь тренировки в программу.";
 export const ACCOUNT_DELETE_CONFIRM =
   "Удалить дневник навсегда? Еда, зал и ссылки для друзей пропадут. Это нельзя отменить.";
+export const ACCOUNT_DELETE_TYPE_PROMPT =
+  "Введи УДАЛИТЬ заглавными буквами, чтобы подтвердить.";
+export const ACCOUNT_EXPORT_DONE = "JSON сохранён на устройстве.";
+export const MEAL_UNDO_ACTION = "Вернуть";
+export function mealRemovedUndoMessage(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed === "") {
+    return "Убрал из приёма.";
+  }
+  return `Убрал «${trimmed}».`;
+}
 export const DONATE_THANKS = "Спасибо";
 export const DONATE_REJECT = "Этот счёт не принять.";
 export const DONATE_HINT = "Звёзды Telegram. Уходят автору на протеин💪";
