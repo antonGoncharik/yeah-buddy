@@ -1,4 +1,6 @@
-import type { Options } from "@sentry/core";
+import type { ErrorEvent, Options } from "@sentry/core";
+
+import { scrubSentryEvent } from "@/lib/monitoring/sentry-scrub";
 
 export function sentryEnvironment(): string {
   return process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development";
@@ -17,5 +19,8 @@ export function baseSentryInitOptions(dsn: string | undefined): Options {
     environment: sentryEnvironment(),
     release: sentryRelease(),
     tracesSampleRate: sentryEnvironment() === "production" ? 0.05 : 0,
+    beforeSend(event: ErrorEvent) {
+      return scrubSentryEvent(event);
+    },
   };
 }

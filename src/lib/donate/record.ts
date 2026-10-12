@@ -1,3 +1,4 @@
+import { captureServerError } from "@/lib/monitoring/sentry";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function recordDonation(input: {
@@ -25,6 +26,19 @@ export async function recordDonation(input: {
   } catch (error) {
     console.error("donation insert failed", error);
   }
+}
+
+export async function recordDonationOrphan(input: {
+  telegramId: number;
+  stars: number;
+  telegramPaymentChargeId: string;
+}): Promise<void> {
+  captureServerError(new Error("donation without user"), {
+    subsystem: "donate",
+    telegramId: String(input.telegramId),
+    stars: String(input.stars),
+    chargeId: input.telegramPaymentChargeId,
+  });
 }
 
 export async function findUserIdByTelegramId(

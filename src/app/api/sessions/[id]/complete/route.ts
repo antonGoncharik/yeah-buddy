@@ -1,8 +1,8 @@
 import type { NextResponse } from "next/server";
 
-import { jsonError, jsonOk } from "@/lib/api/respond";
+import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { requireSession } from "@/lib/auth/require-session";
-import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
+import { CHECK_FIELDS } from "@/lib/messages";
 import {
   completeSessionAsPlanned,
   completeSessionSchema,
@@ -47,8 +47,6 @@ export async function POST(
 
     return jsonOk(detail);
   } catch (error) {
-    console.error(error);
-    const message = error instanceof Error ? error.message : LOAD_FAILED;
-    return jsonError(message, 400);
+    return failRoute(error);
   }
 }

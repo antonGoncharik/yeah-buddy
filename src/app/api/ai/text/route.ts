@@ -4,6 +4,7 @@ import { ReviewError, reviewStatus } from "@/lib/ai/errors";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { analyzeTextMeal, normalizeMealLogText } from "@/lib/ai/text-meal";
 import { trackAiRequest } from "@/lib/analytics/ai";
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import {
   failRoute,
   jsonError,
@@ -23,6 +24,11 @@ const bodySchema = z.object({
 });
 
 export const POST = sessionRoute(async (session, request) => {
+  const limited = rateLimitUser(session.userId, "ai", 5, 60_000);
+  if (limited) {
+    return limited;
+  }
+
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;

@@ -1,12 +1,14 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { format, parseISO } from "date-fns";
-
 import { parseBodyWeight } from "@/lib/day/body-weight";
 import { isIsoDate } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { dayHasFood, type WeekSlot, weekWindow } from "@/lib/day/week";
 import { macroInGoal } from "@/lib/nutrition/macro-hit";
+import {
+  shareCardExpired,
+  shareCardExpiresAt,
+} from "@/lib/share/share-card-exp";
 import type { ExerciseCategory } from "@/lib/types";
 
 export const WEEK_PROGRESS_TITLE = "Поделиться прогрессом";
@@ -151,6 +153,7 @@ export function encodeWeekCard(card: WeekCard, secret: string): string {
       return `${formatShareNumber(row.fact)}~${formatShareNumber(row.target)}`;
     }).join(","),
     String(card.gymDays),
+    String(shareCardExpiresAt()),
   ].join("|");
   return `${body}|${sign(body, secret)}`;
 }
@@ -162,14 +165,21 @@ export function decodeWeekCard(query: string, secret: string): WeekCard | null {
   }
 
   const parts = trimmed.split("|");
-  if (parts.length !== 8 || parts[0] !== "wk") {
+  if ((parts.length !== 8 && parts.length !== 9) || parts[0] !== "wk") {
     return null;
   }
 
-  const body = parts.slice(0, 7).join("|");
-  const signature = parts[7] ?? "";
+  const hasExp = parts.length === 9;
+  const body = parts.slice(0, hasExp ? 8 : 7).join("|");
+  const signature = parts[hasExp ? 8 : 7] ?? "";
   if (!signatureOk(sign(body, secret), signature)) {
     return null;
+  }
+  if (hasExp) {
+    const exp = Number(parts[7]);
+    if (shareCardExpired(exp)) {
+      return null;
+    }
   }
 
   const from = expandDate(parts[1] ?? "");

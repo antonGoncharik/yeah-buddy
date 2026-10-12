@@ -3,6 +3,7 @@ import { analyzePlate } from "@/lib/ai/plate";
 import { rankPlateCatalog, toPlateFoodRef } from "@/lib/ai/plate-catalog";
 import { readPlateImagePart } from "@/lib/ai/plate-image";
 import { trackAiRequest } from "@/lib/analytics/ai";
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
 import { listFoods } from "@/lib/food/store";
@@ -12,6 +13,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export const POST = sessionRoute(async (session, request) => {
+  const limited = rateLimitUser(session.userId, "ai", 5, 60_000);
+  if (limited) {
+    return limited;
+  }
+
   const image = await readPlateImagePart(request);
   if (!image.ok) {
     return jsonError(image.error, 400);

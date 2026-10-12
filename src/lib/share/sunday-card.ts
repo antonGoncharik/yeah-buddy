@@ -1,9 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { format, parseISO } from "date-fns";
-
 import { isIsoDate } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
+import {
+  shareCardExpired,
+  shareCardExpiresAt,
+} from "@/lib/share/share-card-exp";
 import { pluralWorkouts } from "@/lib/workout/history-stats";
 
 export const SUNDAY_CARD_HEADING = "14 дней";
@@ -100,6 +102,7 @@ export function encodeSundayCard(card: SundayCard, secret: string): string {
     String(card.proteinHit),
     String(card.proteinDays),
     String(card.gymSessions),
+    String(shareCardExpiresAt()),
   ].join("|");
   return `${body}|${sign(body, secret)}`;
 }
@@ -113,13 +116,20 @@ export function decodeSundayCard(
     return null;
   }
   const parts = trimmed.split("|");
-  if (parts.length !== 7 || parts[0] !== "su") {
+  if ((parts.length !== 7 && parts.length !== 8) || parts[0] !== "su") {
     return null;
   }
-  const body = parts.slice(0, 6).join("|");
-  const signature = parts[6] ?? "";
+  const hasExp = parts.length === 8;
+  const body = parts.slice(0, hasExp ? 7 : 6).join("|");
+  const signature = parts[hasExp ? 7 : 6] ?? "";
   if (!signatureOk(sign(body, secret), signature)) {
     return null;
+  }
+  if (hasExp) {
+    const exp = Number(parts[6]);
+    if (shareCardExpired(exp)) {
+      return null;
+    }
   }
   const from = expandDate(parts[1] ?? "");
   const to = expandDate(parts[2] ?? "");

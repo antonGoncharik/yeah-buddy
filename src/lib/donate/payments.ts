@@ -1,8 +1,13 @@
 import type { Bot } from "grammy";
 
 import { donateCheckoutOk, parseDonatePayload } from "@/lib/donate/amount";
-import { findUserIdByTelegramId, recordDonation } from "@/lib/donate/record";
+import {
+  findUserIdByTelegramId,
+  recordDonation,
+  recordDonationOrphan,
+} from "@/lib/donate/record";
 import { DONATE_REJECT, DONATE_THANKS } from "@/lib/messages";
+import { captureServerError } from "@/lib/monitoring/sentry";
 
 export function registerDonatePayments(bot: Bot): void {
   bot.on("pre_checkout_query", async (ctx) => {
@@ -17,6 +22,14 @@ export function registerDonatePayments(bot: Bot): void {
       return;
     }
     await ctx.answerPreCheckoutQuery(true);
+  });
+
+  bot.on("message:refunded_payment", async (ctx) => {
+    const refund = ctx.message.refunded_payment;
+    captureServerError(new Error("telegram refunded_payment"), {
+      subsystem: "donate",
+      chargeId: refund.telegram_payment_charge_id,
+    });
   });
 
   bot.on("message:successful_payment", async (ctx) => {
@@ -38,6 +51,12 @@ export function registerDonatePayments(bot: Bot): void {
       if (userId) {
         await recordDonation({
           userId,
+          stars,
+          telegramPaymentChargeId: payment.telegram_payment_charge_id,
+        });
+      } else {
+        await recordDonationOrphan({
+          telegramId,
           stars,
           telegramPaymentChargeId: payment.telegram_payment_charge_id,
         });

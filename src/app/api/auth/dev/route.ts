@@ -7,8 +7,18 @@ import { ensureInitialData } from "@/lib/seed";
 
 const DEV_TELEGRAM_ID = -1;
 
-export async function POST(): Promise<NextResponse> {
+function devAuthAllowed(): boolean {
+  if (process.env.VERCEL_ENV === "production") {
+    return false;
+  }
   if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+  return process.env.ALLOW_DEV_AUTH === "1";
+}
+
+export async function POST(): Promise<NextResponse> {
+  if (!devAuthAllowed()) {
     return jsonError("Not found", 404);
   }
 

@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { previousIsoDate } from "@/lib/day/dates";
 import { saveUserTimezone } from "@/lib/settings";
 
@@ -120,7 +122,15 @@ export function isCronAuthorized(
     return false;
   }
 
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const header = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+  if (header.length !== expected.length) {
+    return false;
+  }
+  return timingSafeEqual(
+    Buffer.from(header, "utf8"),
+    Buffer.from(expected, "utf8"),
+  );
 }
 
 export async function rememberUserTimezone(

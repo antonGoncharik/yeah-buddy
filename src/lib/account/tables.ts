@@ -21,6 +21,12 @@ export const ACCOUNT_USER_ID_TABLES = [
   "session_exercises",
   "workout_sets",
   "review_snapshots",
+  "meal_chat_drafts",
+  "meal_chat_undo",
+  "funnel_events",
+  "product_events",
+  "ai_usage",
+  "donations",
 ] as const;
 
 export type AccountUserIdTable = (typeof ACCOUNT_USER_ID_TABLES)[number];

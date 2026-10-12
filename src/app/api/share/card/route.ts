@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server";
 
+import { rateLimitIp } from "@/lib/api/rate-limit";
 import { getServerEnv } from "@/lib/env";
 import {
   decodeMuscleWeekCard,
   muscleWeekCardSvg,
 } from "@/lib/share/muscle-week-card";
 import { decodeSundayCard, sundayCardSvg } from "@/lib/share/sunday-card";
-import { decodeWeekCard } from "@/lib/share/week-card";
+import { decodeWeekCard, WEEK_CARD_QUERY_LIMIT } from "@/lib/share/week-card";
 import {
   renderShareSvgJpeg,
   renderWeekCardJpeg,
 } from "@/lib/share/week-card-image";
 
 export async function GET(request: Request): Promise<NextResponse> {
+  const limited = rateLimitIp(request, "share_card", 10, 60_000);
+  if (limited) {
+    return limited;
+  }
+
   const query = new URL(request.url).searchParams.get("q");
-  if (!query) {
+  if (!query || query.length > WEEK_CARD_QUERY_LIMIT) {
     return new NextResponse(null, { status: 404 });
   }
 

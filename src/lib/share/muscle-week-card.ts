@@ -1,6 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { isIsoDate } from "@/lib/day/dates";
+import {
+  shareCardExpired,
+  shareCardExpiresAt,
+} from "@/lib/share/share-card-exp";
 import type { MuscleSnapshot } from "@/lib/types";
 import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 
@@ -69,6 +72,7 @@ export function encodeMuscleWeekCard(
     card.rows
       .map((row) => `${row.label}:${formatShareNumber(row.sets_per_week)}`)
       .join("|"),
+    String(shareCardExpiresAt()),
   ].join(".");
   const sig = sign(body, secret);
   return `${body}.${sig}`;
@@ -91,6 +95,13 @@ export function decodeMuscleWeekCard(
   const parts = body.split(".");
   if (parts[0] !== "mw" || parts.length < 5) {
     return null;
+  }
+  const hasExp = parts.length >= 6;
+  if (hasExp) {
+    const exp = Number(parts[parts.length - 1]);
+    if (shareCardExpired(exp)) {
+      return null;
+    }
   }
   const from = expandCompactDate(parts[1]);
   const to = expandCompactDate(parts[2]);

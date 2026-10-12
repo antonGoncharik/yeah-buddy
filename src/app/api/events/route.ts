@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CLIENT_PRODUCT_EVENTS } from "@/lib/analytics/events";
 import { trackEvent } from "@/lib/analytics/track";
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import { jsonOk, parseJsonSchema } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
 
@@ -10,6 +11,11 @@ const bodySchema = z.object({
 });
 
 export const POST = sessionRoute(async (session, request) => {
+  const limited = rateLimitUser(session.userId, "events", 60, 60_000);
+  if (limited) {
+    return limited;
+  }
+
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;

@@ -9,6 +9,8 @@ export interface AccountExport {
     created_at: string;
   };
   tables: Record<string, unknown[]>;
+  /** Данные, которые намеренно не входят в выгрузку. */
+  omitted?: string[];
 }
 
 export function accountExportFilename(exportedAt: string): string {

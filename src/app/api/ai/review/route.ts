@@ -6,6 +6,7 @@ import {
   parseReviewRange,
 } from "@/lib/ai/review";
 import { trackAiRequest } from "@/lib/analytics/ai";
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import {
   failRoute,
   jsonError,
@@ -40,6 +41,11 @@ export const GET = sessionRoute(async (session, request) => {
 });
 
 export const POST = sessionRoute(async (session, request) => {
+  const limited = rateLimitUser(session.userId, "ai", 5, 60_000);
+  if (limited) {
+    return limited;
+  }
+
   const parsed = await parseJsonSchema(request, bodySchema);
   if (!parsed.ok) {
     return parsed.response;

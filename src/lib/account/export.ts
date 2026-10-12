@@ -35,6 +35,8 @@ export async function exportUserAccount(
     "owner_user_id",
     userId,
   );
+  tables.coach_grants = await listUserGrants(supabase, "coach_grants", userId);
+  tables.buddy_grants = await listUserGrants(supabase, "buddy_grants", userId);
 
   return {
     v: 1,
@@ -47,7 +49,36 @@ export async function exportUserAccount(
       created_at: String(row.created_at ?? ""),
     },
     tables,
+    omitted: [
+      "inbox_threads и связанные черновики писем — по telegram_id, не по user_id",
+    ],
   };
+}
+
+async function listUserGrants(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+  table: "coach_grants" | "buddy_grants",
+  userId: string,
+): Promise<unknown[]> {
+  const roleColumn =
+    table === "coach_grants" ? "coach_user_id" : "buddy_user_id";
+  const [asAthlete, asRole] = await Promise.all([
+    listEq(supabase, table, "athlete_user_id", userId),
+    listEq(supabase, table, roleColumn, userId),
+  ]);
+  const seen = new Set<string>();
+  const merged: unknown[] = [];
+  for (const row of [...asAthlete, ...asRole]) {
+    if (!isRecord(row) || typeof row.id !== "string") {
+      continue;
+    }
+    if (seen.has(row.id)) {
+      continue;
+    }
+    seen.add(row.id);
+    merged.push(row);
+  }
+  return merged;
 }
 
 async function listEq(

@@ -1,3 +1,4 @@
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import { failRoute, jsonError, jsonOk, whenError } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
 import { parseBarcodeEan } from "@/lib/food/catalog-map";
@@ -14,7 +15,12 @@ type RouteContext = {
 export const dynamic = "force-dynamic";
 
 export const GET = sessionRoute(
-  async (_session, _request, context: RouteContext) => {
+  async (session, _request, context: RouteContext) => {
+    const limited = rateLimitUser(session.userId, "barcode", 30, 60_000);
+    if (limited) {
+      return limited;
+    }
+
     const { ean } = await context.params;
     if (!parseBarcodeEan(ean)) {
       return jsonError(CHECK_FIELDS, 400);

@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { z } from "zod";
 
-const INIT_DATA_MAX_AGE_SECONDS = 60 * 60 * 24;
+const INIT_DATA_MAX_AGE_SECONDS = 5 * 60;
 
 const telegramUserSchema = z.object({
   id: z.number().int().positive(),
