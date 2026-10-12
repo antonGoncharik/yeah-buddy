@@ -158,4 +158,5 @@ select
   count(distinct user_id) filter (
     where event in ('muscles_view', 'muscle_map_opened')
       and created_at >= now() - interval '30 days'
-  )::int as muscle_map_users_30d;
+  )::int as muscle_map_users_30d
+from public.product_events;
