@@ -18,7 +18,8 @@ assert(isProductEvent("onboarding_step_view"), "onboarding client");
 assert(!isProductEvent("telegram_id"), "no telegram event name");
 assert(isClientProductEvent("energy_offer_shown"), "energy client");
 assert(!isClientProductEvent("pack_apply"), "pack server only");
-assert(CLIENT_PRODUCT_EVENTS.length === 4, "four client events");
+assert(CLIENT_PRODUCT_EVENTS.length === 5, "five client events");
+assert(isClientProductEvent("sync_failed"), "sync_failed client");
 
 const safe = sanitizeProductProps({
   method: "plate",

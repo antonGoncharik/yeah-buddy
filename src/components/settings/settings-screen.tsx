@@ -25,6 +25,7 @@ import { SettingsContactSection } from "@/components/settings/settings-contact-s
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { SettingsGymModeSection } from "@/components/settings/settings-gym-mode-section";
 import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
+import { SettingsSyncFailures } from "@/components/settings/settings-sync-failures";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { MEAL_CHAT_INBOX_NOTE } from "@/lib/messages";
@@ -205,6 +206,7 @@ export function SettingsScreen({
         {!loading && form ? (
           <section className="flex flex-col gap-2">
             <SectionHeading title="Данные и приватность" />
+            <SettingsSyncFailures />
             <SettingsAccount />
           </section>
         ) : null}

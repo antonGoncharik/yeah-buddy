@@ -1,5 +1,6 @@
 import { LOAD_FAILED, readApiError } from "@/lib/messages";
 import { clearOutbox, hasPendingCache } from "@/lib/outbox";
+import { clearDeadOutbox, PROTECTED_STORAGE_KEYS } from "@/lib/outbox-dead";
 import { isRecord } from "@/lib/read";
 import { clearSessionDrafts } from "@/lib/workout/session-draft-store";
 
@@ -89,13 +90,10 @@ export function forgetJson(url: string): void {
 export function writeJson(url: string, data: unknown): void {
   writeStamp.set(url, ++clock);
   if (typeof localStorage !== "undefined") {
-    try {
-      const raw = JSON.stringify({ at: Date.now(), data } satisfies CacheEntry);
-      if (raw.length <= MAX_CHARS) {
-        localStorage.setItem(`${PREFIX}${url}`, raw);
-      }
-    } catch {
-      // quota, private mode, or disabled storage
+    const key = `${PREFIX}${url}`;
+    const raw = JSON.stringify({ at: Date.now(), data } satisfies CacheEntry);
+    if (raw.length <= MAX_CHARS) {
+      persistCacheEntry(key, raw);
     }
   }
   for (const listener of cacheListeners) {
@@ -107,6 +105,7 @@ export function clearDiaryCache(): void {
   writeStamp.clear();
   inflight.clear();
   clearOutbox();
+  clearDeadOutbox();
   clearSessionDrafts();
   if (typeof localStorage === "undefined") {
     return;
@@ -191,6 +190,85 @@ export async function fetchJson(url: string): Promise<unknown> {
   }
   writeJson(url, data);
   return data;
+}
+
+function persistCacheEntry(key: string, raw: string): void {
+  try {
+    localStorage.setItem(key, raw);
+    return;
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      return;
+    }
+  }
+
+  while (evictOldestCacheEntry()) {
+    try {
+      localStorage.setItem(key, raw);
+      return;
+    } catch (error) {
+      if (!isQuotaExceededError(error)) {
+        return;
+      }
+    }
+  }
+}
+
+function isQuotaExceededError(error: unknown): boolean {
+  if (!isRecord(error) && !(error instanceof DOMException)) {
+    return false;
+  }
+  if (error instanceof DOMException && error.name === "QuotaExceededError") {
+    return true;
+  }
+  return (
+    isRecord(error) &&
+    (error.name === "QuotaExceededError" || error.code === 22)
+  );
+}
+
+function evictOldestCacheEntry(): boolean {
+  if (typeof localStorage === "undefined") {
+    return false;
+  }
+
+  let oldestKey: string | null = null;
+  let oldestAt = Number.POSITIVE_INFINITY;
+
+  try {
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key?.startsWith(PREFIX) || PROTECTED_STORAGE_KEYS.has(key)) {
+        continue;
+      }
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        continue;
+      }
+      let at = Number.POSITIVE_INFINITY;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (isRecord(parsed) && typeof parsed.at === "number") {
+          at = parsed.at;
+        }
+      } catch {
+        at = 0;
+      }
+      if (at < oldestAt) {
+        oldestAt = at;
+        oldestKey = key;
+      }
+    }
+    if (!oldestKey) {
+      return false;
+    }
+    localStorage.removeItem(oldestKey);
+    const url = oldestKey.slice(PREFIX.length);
+    writeStamp.delete(url);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function cachedGet(

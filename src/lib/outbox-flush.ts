@@ -1,4 +1,3 @@
-import { reportActionError } from "@/lib/action-error";
 import { ApiError, mutateJson, peekJson, writeJson } from "@/lib/api-cache";
 import {
   daysUrl,
@@ -14,8 +13,6 @@ import {
 } from "@/lib/day/optimistic";
 import { readDay } from "@/lib/day/today-payload";
 import { readMealItemPayload, readMealItemsPayload } from "@/lib/meal/parse";
-import { LOAD_FAILED } from "@/lib/messages";
-import { isNetworkError } from "@/lib/offline";
 import {
   listOutbox,
   type OutboxOp,
@@ -23,6 +20,14 @@ import {
   rewriteOutboxClientId,
   rewriteOutboxClientIds,
 } from "@/lib/outbox";
+import { appendDeadOutbox } from "@/lib/outbox-dead";
+import {
+  classifyOutboxFlushError,
+  MAX_OUTBOX_RETRY_ATTEMPTS,
+  outboxBackoffMs,
+  readFlushErrorMeta,
+} from "@/lib/outbox-flush-policy";
+import { reportOutboxSyncFailed } from "@/lib/outbox-sync-report";
 import { isRecord } from "@/lib/read";
 import type { MealItem } from "@/lib/types";
 import { readTodaySession } from "@/lib/workout/hub-payload";
@@ -36,6 +41,24 @@ import {
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 let flushPromise: Promise<void> | null = null;
+
+interface RetryState {
+  attempts: number;
+  nextAt: number;
+}
+
+const retryByOpId = new Map<string, RetryState>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleFlush(delayMs: number): void {
+  if (flushTimer != null) {
+    return;
+  }
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    void flushOutbox();
+  }, delayMs);
+}
 
 export async function flushOutbox(): Promise<void> {
   if (flushPromise) {
@@ -56,18 +79,48 @@ async function flushOnce(): Promise<void> {
       return;
     }
 
+    const retry = retryByOpId.get(op.id);
+    if (retry && Date.now() < retry.nextAt) {
+      return;
+    }
+
     try {
       const data = await sendOp(op);
+      retryByOpId.delete(op.id);
       ops = applyFlushResult(ops.slice(1), op, data);
       replaceOutbox(ops);
     } catch (error) {
-      if (
-        isNetworkError(error) ||
-        (error instanceof ApiError && error.status === 401)
-      ) {
+      const kind = classifyOutboxFlushError(error);
+      if (kind === "auth") {
         return;
       }
-      reportActionError(error instanceof Error ? error.message : LOAD_FAILED);
+      if (kind === "terminal") {
+        const meta = readFlushErrorMeta(error);
+        appendDeadOutbox(op, meta);
+        reportOutboxSyncFailed(op, meta.status);
+        retryByOpId.delete(op.id);
+        replaceOutbox(ops.slice(1));
+        ops = listOutbox();
+        continue;
+      }
+
+      const attempts = (retry?.attempts ?? 0) + 1;
+      if (attempts >= MAX_OUTBOX_RETRY_ATTEMPTS) {
+        const meta = readFlushErrorMeta(error);
+        appendDeadOutbox(op, meta);
+        reportOutboxSyncFailed(op, meta.status);
+        retryByOpId.delete(op.id);
+        replaceOutbox(ops.slice(1));
+        ops = listOutbox();
+        continue;
+      }
+
+      const delayMs = outboxBackoffMs(attempts);
+      retryByOpId.set(op.id, {
+        attempts,
+        nextAt: Date.now() + delayMs,
+      });
+      scheduleFlush(delayMs);
       return;
     }
   }

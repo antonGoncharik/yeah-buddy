@@ -13,6 +13,7 @@ import { APP_NAME } from "@/lib/brand";
 import { ensureCacheOwner, readUserIdFromAuthBody } from "@/lib/cache-owner";
 import { LOAD_FAILED } from "@/lib/messages";
 import { hasLocalDiary } from "@/lib/offline";
+import { flushOutbox } from "@/lib/outbox-flush";
 import { readInvitePayload } from "@/lib/share/invite";
 import { rememberIncomingStart } from "@/lib/share/pending";
 import { startPayloadFromLocation } from "@/lib/share/start-param";
@@ -118,6 +119,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         if (userId) {
           ensureCacheOwner(userId);
         }
+        void flushOutbox();
 
         clearTelegramInitReloadFlag();
         setState("ready");
@@ -141,6 +143,7 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         if (userId) {
           ensureCacheOwner(userId);
         }
+        void flushOutbox();
         setState("ready");
         return;
       }
