@@ -26,11 +26,11 @@ export function proposeMaxFromWorkSets(input: {
     if (set.set_type !== "work") {
       continue;
     }
-    if (set.planned_weight == null || set.planned_weight <= 0) {
+    const plannedWeight = set.planned_weight ?? set.actual_weight;
+    if (plannedWeight == null || plannedWeight <= 0) {
       continue;
     }
-    const plannedWeight = set.planned_weight;
-    const actualWeight = set.actual_weight ?? set.planned_weight;
+    const actualWeight = set.actual_weight ?? plannedWeight;
     const plannedE1 = estimateE1rm(
       plannedWeight,
       set.planned_reps,

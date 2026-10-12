@@ -1,12 +1,18 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import type { ExerciseWithMax, WorkoutTemplateDetail } from "@/lib/types";
+import type {
+  ExerciseWithMax,
+  MuscleId,
+  WorkoutTemplateDetail,
+} from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { readExercises, readTemplates } from "@/lib/workout/hub-payload";
+import { MUSCLE_IDS, MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 
 export interface ExerciseGroups {
   /** Active exercises that appear in a queued workout. */
@@ -17,7 +23,17 @@ export interface ExerciseGroups {
   idle: ExerciseWithMax[];
 }
 
+function parseMuscleFilter(value: string | null): MuscleId | null {
+  if (!value || value.trim() === "") {
+    return null;
+  }
+  const id = value.trim() as MuscleId;
+  return MUSCLE_IDS.includes(id) ? id : null;
+}
+
 export function useExercisesScreen() {
+  const searchParams = useSearchParams();
+  const muscleFilter = parseMuscleFilter(searchParams.get("muscle"));
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const { loading, begin, done } = useFirstLoad();
@@ -29,9 +45,14 @@ export function useExercisesScreen() {
     setError(null);
     const showCached = () => done(true);
 
+    const exercisesPath =
+      muscleFilter != null
+        ? `/api/exercises?filter=all&muscle=${encodeURIComponent(muscleFilter)}`
+        : "/api/exercises?filter=all";
+
     const [exercisesOk] = await Promise.all([
       cachedGet(
-        "/api/exercises?filter=all",
+        exercisesPath,
         (data) => {
           setExercises(readExercises(data));
           return true;
@@ -61,11 +82,14 @@ export function useExercisesScreen() {
     }
 
     done(true);
-  }, [begin, done]);
+  }, [begin, done, muscleFilter]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const muscleFilterLabel =
+    muscleFilter != null ? MUSCLE_LABELS[muscleFilter] : null;
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -116,5 +140,7 @@ export function useExercisesScreen() {
     setQuery,
     filtered,
     groups,
+    muscleFilter,
+    muscleFilterLabel,
   };
 }

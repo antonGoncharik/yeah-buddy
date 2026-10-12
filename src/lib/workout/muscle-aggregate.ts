@@ -183,7 +183,8 @@ export function buildMuscleSnapshot(
 
   const muscles: MuscleCell[] = MUSCLE_IDS.map((id) => {
     const sets = Math.round(weightedSets[id] * 10) / 10;
-    const perWeek = setsPerWeek(sets, input.horizon_days, volumeDays);
+    const directTotal = Math.round(directSets[id] * 10) / 10;
+    const perWeek = setsPerWeek(directTotal, input.horizon_days, volumeDays);
     const band = volumeBandFromWeeklySets(perWeek, id);
     const last = lastTrained.get(id) ?? null;
     const daysSince = daysBetween(last, input.today);
@@ -222,7 +223,7 @@ export function buildMuscleSnapshot(
     }
   }
 
-  const balance = buildMuscleBalance(muscles);
+  const balance = buildMuscleBalance(muscles, input.horizon_days, volumeDays);
   const insights = buildMuscleInsights({
     muscles,
     missed: missedEvents,

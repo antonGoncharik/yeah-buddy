@@ -11,6 +11,7 @@ export {
   ensureNamedExercise,
   getExercise,
   listExercises,
+  listExercisesForMuscle,
   updateExercise,
 } from "@/lib/workout/exercise-store";
 export { correctStartingMax, raiseGlobalMax } from "@/lib/workout/global-maxes";

@@ -1,7 +1,7 @@
 import { getUserCalendarToday } from "@/lib/day/writable";
 import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Exercise, ExerciseWithMax } from "@/lib/types";
+import type { Exercise, ExerciseWithMax, MuscleId } from "@/lib/types";
 import { exerciseNameKey } from "@/lib/workout/dedupe-exercises";
 import { CatalogExerciseNotFoundError } from "@/lib/workout/exercise-catalog-errors";
 import { getCatalogExercise } from "@/lib/workout/exercise-catalog-store";
@@ -20,6 +20,8 @@ import {
 } from "@/lib/workout/global-maxes";
 import { defaultUnitForWorkoutType } from "@/lib/workout/labels";
 import { mapExercise } from "@/lib/workout/map-rows";
+import { loadExerciseMuscleMeta } from "@/lib/workout/muscle-load";
+import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
 import { catalogUuidForStarterName } from "@/lib/workout/starter-catalog-link";
 
 export async function listExercises(
@@ -54,6 +56,31 @@ export async function listExercises(
   ]);
 
   return exercises.map((exercise) => attachMaxes(exercise, maxes, tracks));
+}
+
+const MUSCLE_FILTER_MIN_WEIGHT = 0.25;
+
+export async function listExercisesForMuscle(
+  userId: string,
+  muscleId: MuscleId,
+  filter: "active" | "archived" | "all" = "active",
+): Promise<ExerciseWithMax[]> {
+  const exercises = await listExercises(userId, filter);
+  if (exercises.length === 0) {
+    return [];
+  }
+  const metaById = await loadExerciseMuscleMeta(
+    userId,
+    exercises.map((exercise) => exercise.id),
+  );
+  return exercises.filter((exercise) => {
+    const meta = metaById.get(exercise.id);
+    if (!meta) {
+      return false;
+    }
+    const weights = resolveExerciseMuscleWeights(meta);
+    return (weights[muscleId] ?? 0) >= MUSCLE_FILTER_MIN_WEIGHT;
+  });
 }
 
 export async function getExercise(

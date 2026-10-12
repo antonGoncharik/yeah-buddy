@@ -7,6 +7,7 @@ import {
   muscleCellHint,
   muscleHeatFill,
   muscleHeatRing,
+  muscleVolumeBarStyle,
 } from "@/lib/workout/muscle-heat-style";
 
 export function MuscleHeatGrid({
@@ -74,7 +75,7 @@ export function MuscleHeatGrid({
                     className="block h-full rounded-full transition-[width] duration-300"
                     style={{
                       width: `${barWidth}%`,
-                      background: muscleHeatFill(cell, displayMode),
+                      ...muscleVolumeBarStyle(cell, displayMode),
                     }}
                   />
                 </span>

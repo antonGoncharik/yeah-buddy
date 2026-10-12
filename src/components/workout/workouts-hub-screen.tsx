@@ -43,6 +43,7 @@ export function WorkoutsHubScreen() {
     unskipLast,
     skipNext,
     pickTemplate,
+    muscleRecoveryHint,
   } = useWorkoutsHub();
   const guideTip = useGuideTip("workouts");
   const editableHint = useProgramEditableHint();
@@ -83,6 +84,12 @@ export function WorkoutsHubScreen() {
             followingTemplate={followingTemplate}
             sessionAction={sessionAction}
           />
+        ) : null}
+
+        {!loading && !error && muscleRecoveryHint ? (
+          <p className="animate-rise px-1 text-sm text-muted-foreground">
+            {muscleRecoveryHint}
+          </p>
         ) : null}
 
         {!loading && !error ? (

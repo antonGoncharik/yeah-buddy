@@ -150,7 +150,7 @@ async function currentPhaseId(userId: string): Promise<string | null> {
   return typeof result.data?.id === "string" ? result.data.id : null;
 }
 
-async function loadExerciseMuscleMeta(
+export async function loadExerciseMuscleMeta(
   userId: string,
   exerciseIds: string[],
 ): Promise<Map<string, ExerciseMuscleMeta>> {

@@ -28,6 +28,8 @@ import {
   writeHubQueuePreview,
 } from "@/lib/workout/hub-queue";
 import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
+import { muscleHubRecoveryHint } from "@/lib/workout/muscle-insights";
+import { parseMuscleSnapshot } from "@/lib/workout/parse-muscles";
 
 function applyHubState(
   hub: ReturnType<typeof readHubSessionState>,
@@ -86,6 +88,9 @@ export function useWorkoutsHub() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [skipping, setSkipping] = useState(false);
+  const [muscleRecoveryHint, setMuscleRecoveryHint] = useState<string | null>(
+    null,
+  );
 
   const activeTemplates = useMemo(
     () => templates.filter((template) => template.is_active),
@@ -215,6 +220,20 @@ export function useWorkoutsHub() {
         () => true,
         () => false,
       ),
+      cachedGet(
+        "/api/muscles?days=14",
+        (data) => {
+          const snapshot = parseMuscleSnapshot(data);
+          setMuscleRecoveryHint(
+            snapshot ? muscleHubRecoveryHint(snapshot.muscles) : null,
+          );
+          return true;
+        },
+        showCached,
+      ).then(
+        () => true,
+        () => false,
+      ),
     ]);
 
     const [, templatesOk, , sessionOk] = results;
@@ -293,6 +312,7 @@ export function useWorkoutsHub() {
     unskipLast,
     skipNext,
     pickTemplate,
+    muscleRecoveryHint,
   };
 }
 

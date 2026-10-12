@@ -16,15 +16,28 @@ import { EXERCISES_EMPTY } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
 export function ExercisesScreen() {
-  const { exercises, loading, error, load, query, setQuery, filtered, groups } =
-    useExercisesScreen();
+  const {
+    exercises,
+    loading,
+    error,
+    load,
+    query,
+    setQuery,
+    filtered,
+    groups,
+    muscleFilterLabel,
+  } = useExercisesScreen();
   const searching = query.trim() !== "";
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Упражнения"
-        subtitle="Что делаешь и рабочие веса"
+        subtitle={
+          muscleFilterLabel
+            ? `Зона: ${muscleFilterLabel}`
+            : "Что делаешь и рабочие веса"
+        }
         backHref="/workouts"
       />
 

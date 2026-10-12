@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
@@ -18,6 +17,7 @@ import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
+import { useTodayMuscleNutritionHint } from "@/components/day/use-today-muscle-nutrition-hint";
 import {
   showYesterdayCatchUpHint,
   YesterdayCatchUpHint,
@@ -188,6 +188,17 @@ export function TodayDayView({
     effectiveTraining,
   );
   const reviewOffer = useReviewOffer(reviewReady);
+  const remainingProtein = shownDay.target_protein - fact.protein;
+  const muscleNutritionHint = useTodayMuscleNutritionHint({
+    enabled:
+      gymEnabled &&
+      effectiveTraining &&
+      date === today &&
+      dayHasItems &&
+      shownDay.is_training_day &&
+      !viewOnly,
+    remainingProtein,
+  });
   const yesterdayCatchUp = showYesterdayCatchUpHint({
     isToday: date === today,
     yesterdayExists,
@@ -419,10 +430,15 @@ export function TodayDayView({
     </div>
   ) : null;
 
+  const muscleNutritionBlock = muscleNutritionHint ? (
+    <p className="text-sm text-muted-foreground">{muscleNutritionHint}</p>
+  ) : null;
+
   const todayExtras =
     dayHasItems &&
     (energyGoalBlock ||
       energyHintBlock ||
+      muscleNutritionBlock ||
       quickFoods ||
       proteinCloseBlock ||
       weekShare ||
@@ -430,6 +446,7 @@ export function TodayDayView({
       <TodayExtrasSection>
         {energyGoalBlock}
         {energyHintBlock}
+        {muscleNutritionBlock}
         {quickFoods}
         {proteinCloseBlock}
         {weekShare}

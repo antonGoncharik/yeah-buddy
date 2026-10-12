@@ -22,7 +22,12 @@ import {
   BODY_SLUGS_BY_VIEW,
   slugSelectMuscle,
 } from "@/lib/workout/muscle-body-slugs";
-import { muscleHeatRing, slugHeatFill } from "@/lib/workout/muscle-heat-style";
+import {
+  muscleCellHint,
+  muscleHeatRing,
+  slugHeatFill,
+} from "@/lib/workout/muscle-heat-style";
+import { MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 
 function pathsForView(
   view: MuscleBodyView,
@@ -142,15 +147,27 @@ export function MuscleBodyFigure({
             if (!muscleId) {
               return null;
             }
+            const label = cell?.label ?? MUSCLE_LABELS[muscleId];
+            const hint = cell ? muscleCellHint(cell) : "Нет данных за период";
             return (
-              // biome-ignore lint/a11y/noStaticElementInteractions: svg region
+              // biome-ignore lint/a11y/useSemanticElements: SVG muscle zones are hit targets, not native buttons
               <g
                 key={slug}
-                className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                className="cursor-pointer outline-none focus-visible:opacity-90"
+                aria-label={`${label}. ${hint}`}
                 onClick={() => {
                   if (zoom.ignoreClick()) {
                     return;
                   }
+                  onSelect(muscleId);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") {
+                    return;
+                  }
+                  event.preventDefault();
                   onSelect(muscleId);
                 }}
               >

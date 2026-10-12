@@ -1,3 +1,4 @@
+/** Epley uses at most 12 effective reps (reps + RIR); above that the estimate stays conservative. */
 const MAX_EFFECTIVE_REPS = 12;
 
 export function effectiveReps(

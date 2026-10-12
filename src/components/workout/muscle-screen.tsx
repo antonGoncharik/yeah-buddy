@@ -18,12 +18,13 @@ import {
   useMuscleScreen,
 } from "@/components/workout/use-muscle-screen";
 import { formatIsoDate } from "@/lib/day/format";
-import type { MuscleId, VolumeBand } from "@/lib/types";
+import type { MuscleCell, MuscleId, VolumeBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   muscleBandLabel,
   muscleCellHint,
-  muscleHeatFill,
+  muscleVolumeLegendSuffix,
+  muscleVolumeSwatchStyle,
 } from "@/lib/workout/muscle-heat-style";
 import { setsShortOfGrowthZone } from "@/lib/workout/muscle-insights";
 import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
@@ -82,7 +83,7 @@ export function MuscleScreen() {
       const touch = event.changedTouches[0];
       const dx = touch.clientX - start.x;
       const dy = touch.clientY - start.y;
-      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy)) {
+      if (Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.2) {
         return;
       }
       setView(dx > 0 ? "front" : "back");
@@ -157,11 +158,7 @@ export function MuscleScreen() {
               </ul>
             ) : null}
 
-            <div
-              className="card-surface flex flex-col gap-3 px-4 py-4"
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
-            >
+            <div className="card-surface flex flex-col gap-3 px-4 py-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">
                   {formatIsoDate(snapshot.since, "d MMM")} —{" "}
@@ -208,7 +205,11 @@ export function MuscleScreen() {
                 </div>
               </div>
 
-              <div className="sm:hidden">
+              <div
+                className="sm:hidden"
+                onTouchStart={onTouchStart}
+                onTouchEnd={onTouchEnd}
+              >
                 <MuscleBodyFigure
                   view={view}
                   muscles={snapshot.muscles}
@@ -264,30 +265,11 @@ export function MuscleScreen() {
                   >
                     <span
                       className="inline-block size-2.5 rounded-full"
-                      style={{
-                        background: muscleHeatFill(
-                          {
-                            id: "chest",
-                            label: "",
-                            view: "front",
-                            sets: item.band > 0 ? 1 : 0,
-                            sets_per_week: item.band * 5,
-                            volume_band: item.band,
-                            last_trained: null,
-                            days_since: null,
-                            in_next_session: false,
-                            missed_sessions: 0,
-                            weekly_sets: [],
-                            direct_sets: 0,
-                            assist_sets: 0,
-                            recovery_percent: null,
-                          },
-                          "volume",
-                        ),
-                      }}
+                      style={muscleVolumeSwatchStyle(item.band, "volume")}
                       aria-hidden
                     />
                     {item.label}
+                    {muscleVolumeLegendSuffix(item.band)}
                   </li>
                 ))}
               </ul>
@@ -314,10 +296,11 @@ export function MuscleScreen() {
                 </p>
                 {setsShortOfGrowthZone(selected) != null ? (
                   <p className="text-sm text-muted-foreground">
-                    До зоны роста ещё ~{setsShortOfGrowthZone(selected)} взвеш.
+                    До зоны роста ещё ~{setsShortOfGrowthZone(selected)} прямых
                     подх./нед.
                   </p>
                 ) : null}
+                <MuscleSelectedActions cell={selected} />
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   {selected.direct_sets > 0 || selected.assist_sets > 0 ? (
                     <>
@@ -385,11 +368,14 @@ export function MuscleScreen() {
                     {selectedHits.map((hit) => (
                       <li
                         key={hit.exercise_id}
-                        className="flex items-baseline justify-between gap-3 py-2"
+                        className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:justify-between"
                       >
-                        <span className="min-w-0 truncate font-medium">
+                        <Link
+                          href={`/workouts/exercises/${hit.exercise_id}`}
+                          className="min-w-0 truncate font-medium text-primary underline-offset-4 hover:underline"
+                        >
                           {hit.name}
-                        </span>
+                        </Link>
                         <span className="shrink-0 text-muted-foreground tabular-nums">
                           {formatSets(hit.sets)} подх. ·{" "}
                           {formatIsoDate(hit.last_date, "d MMM")}
@@ -418,6 +404,31 @@ export function MuscleScreen() {
           <MuscleWeekProgressShare />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function MuscleSelectedActions({ cell }: { cell: MuscleCell }) {
+  const gap = setsShortOfGrowthZone(cell);
+  return (
+    <div className="flex flex-col gap-2">
+      {cell.in_next_session ? (
+        <Link href="/workouts" className={cn(buttonVariants(), "h-11 w-full")}>
+          В следующей тренировке
+        </Link>
+      ) : null}
+      {gap != null && gap > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Добавь 2–3 подхода на {cell.label.toLowerCase()}, если хочешь закрыть
+          недобор.
+        </p>
+      ) : null}
+      <Link
+        href={`/workouts/exercises?muscle=${cell.id}`}
+        className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
+      >
+        Упражнения на эту зону
+      </Link>
     </div>
   );
 }

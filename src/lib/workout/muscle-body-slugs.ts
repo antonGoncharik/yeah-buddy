@@ -101,6 +101,26 @@ export function slugSelectMuscle(
   slug: string,
   byId: Map<MuscleId, MuscleCell>,
 ): MuscleId | null {
+  if (slug === "upper-back") {
+    const upper = byId.get("upper_back");
+    const lats = byId.get("lats");
+    if (upper?.in_next_session && !lats?.in_next_session) {
+      return "upper_back";
+    }
+    if (lats?.in_next_session && !upper?.in_next_session) {
+      return "lats";
+    }
+    const upperDirect = upper?.direct_sets ?? 0;
+    const latsDirect = lats?.direct_sets ?? 0;
+    if (latsDirect > upperDirect) {
+      return "lats";
+    }
+    if (upperDirect > latsDirect) {
+      return "upper_back";
+    }
+    return "upper_back";
+  }
+
   const ids = SLUG_TO_MUSCLES[slug] ?? [];
   let pick: MuscleCell | null = null;
   for (const id of ids) {

@@ -15,6 +15,62 @@ const VOLUME_FILL: Record<VolumeBand, string> = {
   4: "color-mix(in oklch, var(--primary) 88%, var(--muted))",
 };
 
+/** Stripes on mid/high bands so volume is readable without hue alone. */
+const VOLUME_PATTERN: Partial<Record<VolumeBand, string>> = {
+  2: "repeating-linear-gradient(135deg, color-mix(in oklch, var(--foreground) 14%, transparent) 0 1px, transparent 1px 5px)",
+  3: "repeating-linear-gradient(90deg, color-mix(in oklch, var(--foreground) 16%, transparent) 0 1px, transparent 1px 4px)",
+  4: "repeating-linear-gradient(45deg, color-mix(in oklch, var(--foreground) 18%, transparent) 0 1px, transparent 1px 3px)",
+};
+
+const VOLUME_LEGEND_NOTE: Partial<Record<VolumeBand, string>> = {
+  2: " · полоски",
+  3: " · штрихи",
+  4: " · сетка",
+};
+
+export function muscleVolumeSwatchStyle(
+  band: VolumeBand,
+  mode: MuscleDisplayMode = "volume",
+): { background: string; backgroundImage?: string } {
+  const background = muscleHeatFill(
+    {
+      id: "chest",
+      label: "",
+      view: "front",
+      sets: band > 0 ? 1 : 0,
+      sets_per_week: band * 5,
+      volume_band: band,
+      last_trained: null,
+      days_since: null,
+      in_next_session: false,
+      missed_sessions: 0,
+      weekly_sets: [],
+      direct_sets: 0,
+      assist_sets: 0,
+      recovery_percent: null,
+    },
+    mode,
+  );
+  const backgroundImage = mode === "volume" ? VOLUME_PATTERN[band] : undefined;
+  return backgroundImage ? { background, backgroundImage } : { background };
+}
+
+export function muscleVolumeLegendSuffix(band: VolumeBand): string {
+  return VOLUME_LEGEND_NOTE[band] ?? "";
+}
+
+export function muscleVolumeBarStyle(
+  cell: MuscleCell,
+  mode: MuscleDisplayMode,
+): { background: string; backgroundImage?: string } {
+  const background = muscleHeatFill(cell, mode);
+  if (mode !== "volume" || cell.volume_band < 2) {
+    return { background };
+  }
+  const backgroundImage = VOLUME_PATTERN[cell.volume_band];
+  return backgroundImage ? { background, backgroundImage } : { background };
+}
+
 export function muscleHeatFill(
   cell: MuscleCell | undefined,
   mode: MuscleDisplayMode,
@@ -80,5 +136,5 @@ export function muscleCellHint(cell: MuscleCell): string {
   if (cell.volume_band === 0) {
     return "За период почти не было нагрузки";
   }
-  return `~${cell.sets_per_week} взвеш. подх./нед · ${muscleBandLabel(cell.volume_band)}`;
+  return `~${cell.sets_per_week} прямых подх./нед · ${muscleBandLabel(cell.volume_band)}`;
 }
