@@ -16,9 +16,11 @@ export type {
   RemindersCronResult,
 } from "./reminder-run";
 export {
+  reminderShardTotalFromEnv,
   runEveningReminders,
   runMiddayReminders,
   runRemindersCron,
+  runRemindersCronAll,
 } from "./reminder-run";
 
 export function parseReminderCronShard(

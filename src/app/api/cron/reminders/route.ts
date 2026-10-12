@@ -9,7 +9,7 @@ import {
 import {
   isCronAuthorized,
   parseReminderCronShard,
-  runRemindersCron,
+  runRemindersCronAll,
 } from "@/lib/telegram/reminders";
 
 export const runtime = "nodejs";
@@ -44,7 +44,7 @@ async function runCron(request: Request): Promise<NextResponse> {
 
   try {
     const shard = parseReminderCronShard(request);
-    const result = await runRemindersCron(new Date(), shard);
+    const result = await runRemindersCronAll(new Date(), shard);
     reportRemindersCronResult(result);
     return jsonOk(result);
   } catch (error) {

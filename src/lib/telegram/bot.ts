@@ -46,6 +46,7 @@ import {
 } from "@/lib/telegram/share-url";
 import { replyStartSticker, trexStickerFileId } from "@/lib/telegram/sticker";
 import { withTelegramRetry } from "@/lib/telegram/telegram-retry";
+import { withTelegramSendSlot } from "@/lib/telegram/telegram-send-gate";
 
 let bot: Bot | null = null;
 let botUsername: string | null | undefined;
@@ -249,8 +250,10 @@ export async function sendDiaryMessage(
 ): Promise<DiarySendResult> {
   const miniAppUrl = getMiniAppUrl(env);
   try {
-    await withTelegramRetry(() =>
-      createBot(env).api.sendMessage(chatId, text, replyMarkup(miniAppUrl)),
+    await withTelegramSendSlot(() =>
+      withTelegramRetry(() =>
+        createBot(env).api.sendMessage(chatId, text, replyMarkup(miniAppUrl)),
+      ),
     );
     return "sent";
   } catch (error) {
@@ -269,11 +272,13 @@ export async function sendDiaryCard(
       ? input.caption
       : `${input.caption.slice(0, 1023)}…`;
   try {
-    await withTelegramRetry(() =>
-      createBot(env).api.sendPhoto(chatId, input.photoUrl, {
-        caption,
-        ...replyMarkup(miniAppUrl, input.inlineQuery),
-      }),
+    await withTelegramSendSlot(() =>
+      withTelegramRetry(() =>
+        createBot(env).api.sendPhoto(chatId, input.photoUrl, {
+          caption,
+          ...replyMarkup(miniAppUrl, input.inlineQuery),
+        }),
+      ),
     );
     return "sent";
   } catch (error) {
@@ -293,11 +298,13 @@ export async function sendDiaryCardJpeg(
       : `${input.caption.slice(0, 1023)}…`;
   const photo = new InputFile(input.jpeg, "card.jpg");
   try {
-    await withTelegramRetry(() =>
-      createBot(env).api.sendPhoto(chatId, photo, {
-        caption,
-        ...replyMarkup(miniAppUrl, input.inlineQuery),
-      }),
+    await withTelegramSendSlot(() =>
+      withTelegramRetry(() =>
+        createBot(env).api.sendPhoto(chatId, photo, {
+          caption,
+          ...replyMarkup(miniAppUrl, input.inlineQuery),
+        }),
+      ),
     );
     return "sent";
   } catch (error) {
@@ -316,11 +323,13 @@ export async function sendDiaryPhoto(
 ): Promise<DiarySendResult> {
   const miniAppUrl = getMiniAppUrl(env);
   try {
-    await withTelegramRetry(() =>
-      createBot(env).api.sendPhoto(chatId, shareDoodleFile(input.doodle), {
-        caption: input.caption,
-        ...replyMarkup(miniAppUrl, input.inlineQuery),
-      }),
+    await withTelegramSendSlot(() =>
+      withTelegramRetry(() =>
+        createBot(env).api.sendPhoto(chatId, shareDoodleFile(input.doodle), {
+          caption: input.caption,
+          ...replyMarkup(miniAppUrl, input.inlineQuery),
+        }),
+      ),
     );
     return "sent";
   } catch (error) {

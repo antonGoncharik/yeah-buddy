@@ -42,6 +42,11 @@ import {
   dateShareSnapshot,
   nextCircleName,
 } from "@/lib/telegram/reminder-facts";
+import {
+  recordReminderSendFailure,
+  reminderSendPaused,
+  resetReminderFailCount,
+} from "@/lib/telegram/reminder-fail-count";
 import { middayReminderText } from "@/lib/telegram/reminder-midday";
 import {
   composeEveningMessage,
@@ -92,6 +97,7 @@ interface ReminderCandidate {
   remindedOn: string | null;
   middayRemindedOn: string | null;
   onboardedAt: string | null;
+  reminderFailCount: number;
 }
 
 export interface RemindersCronResult {
@@ -112,6 +118,42 @@ export async function runRemindersCron(
     evening: await runEveningReminders(now, shard),
     midday: await runMiddayReminders(now, shard),
   };
+}
+
+export function reminderShardTotalFromEnv(): number {
+  const raw = process.env.REMINDER_SHARD_TOTAL?.trim();
+  if (!raw) {
+    return 1;
+  }
+  const total = Number(raw);
+  if (!Number.isInteger(total) || total < 1 || total > 8) {
+    return 1;
+  }
+  return total;
+}
+
+/** Runs all env-configured shards in one cron invocation when no ?shard= is set. */
+export async function runRemindersCronAll(
+  now = new Date(),
+  explicitShard?: ReminderCronShard,
+): Promise<RemindersCronResult> {
+  if (explicitShard) {
+    return runRemindersCron(now, explicitShard);
+  }
+  const total = reminderShardTotalFromEnv();
+  if (total <= 1) {
+    return runRemindersCron(now);
+  }
+  const merged: RemindersCronResult = {
+    evening: emptyRunResult(),
+    midday: emptyRunResult(),
+  };
+  for (let index = 0; index < total; index += 1) {
+    const part = await runRemindersCron(now, { index, total });
+    mergeRunResult(merged.evening, part.evening);
+    mergeRunResult(merged.midday, part.midday);
+  }
+  return merged;
 }
 
 function candidateInShard(userId: string, shard?: ReminderCronShard): boolean {
@@ -189,6 +231,10 @@ async function processEveningCandidate(
   preloaded?: EveningReminderFacts,
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
+  if (reminderSendPaused(candidate.reminderFailCount)) {
+    result.skipped += 1;
+    return result;
+  }
   const clock = localClock(now, candidate.timezone);
   const reminderDate = eveningReminderDateForCandidate(
     clock,
@@ -278,6 +324,7 @@ async function processEveningCandidate(
   const sent = await sendEvening(candidate.telegramId, text, sunday.query, env);
   if (sent === "sent") {
     result.sent += 1;
+    await resetReminderFailCount(candidate.userId);
     await trackEvent(candidate.userId, "reminder_sent", {
       kind: sunday.query ? "sunday" : "evening",
     });
@@ -294,6 +341,7 @@ async function processEveningCandidate(
   }
 
   await revertReminderDay(candidate.userId, reminderDate, candidate.remindedOn);
+  await recordReminderSendFailure(candidate.userId);
   result.failed += 1;
   return result;
 }
@@ -332,6 +380,10 @@ async function processMiddayCandidate(
   now: Date,
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
+  if (reminderSendPaused(candidate.reminderFailCount)) {
+    result.skipped += 1;
+    return result;
+  }
   const clock = localClock(now, candidate.timezone);
   const reminderDate = middayReminderDateIfDue(clock, candidate.reminderHour);
   if (!reminderDate) {
@@ -403,6 +455,7 @@ async function processMiddayCandidate(
   const sent = await sendDiaryMessage(candidate.telegramId, text, env);
   if (sent === "sent") {
     result.sent += 1;
+    await resetReminderFailCount(candidate.userId);
     await trackEvent(candidate.userId, "reminder_sent", { kind: "midday" });
     return result;
   }
@@ -421,6 +474,7 @@ async function processMiddayCandidate(
     reminderDate,
     candidate.middayRemindedOn,
   );
+  await recordReminderSendFailure(candidate.userId);
   result.failed += 1;
   return result;
 }
@@ -537,7 +591,7 @@ async function listReminderCandidates(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, onboarding_completed_at, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, reminder_fail_count, onboarding_completed_at, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -602,6 +656,7 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
       typeof row.onboarding_completed_at === "string"
         ? row.onboarding_completed_at
         : null,
+    reminderFailCount: Math.max(0, Number(row.reminder_fail_count) || 0),
   };
 }
 

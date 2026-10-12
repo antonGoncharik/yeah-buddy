@@ -23,7 +23,8 @@ Yeah Buddy is a Telegram Mini App (Next.js App Router) with a cookie session and
 ## Reminders (server)
 
 - Vercel cron hits `/api/cron/reminders` hourly with `Authorization: Bearer CRON_SECRET`.
-- Optional sharding: `?shard=0&shards=4` splits candidates by `user_id` hash for long runs.
+- Optional sharding: `?shard=0&shards=4` splits candidates by `user_id` hash, or set `REMINDER_SHARD_TOTAL=4` to run all shards in one cron invocation.
+- Telegram sends go through a process-wide concurrency gate (5) and `withTelegramRetry` (429 + 5xx once). `reminder_fail_count` on `user_settings` pauses after 5 consecutive failures.
 - Candidates: `user_settings` with `reminders_enabled`, `onboarding_completed_at` set, active Telegram user.
 - Evening facts for a timezone batch-load day food, macros, and sessions before per-user send (`reminder-evening-batch.ts`); SQL helper `reminder_evening_facts` mirrors a subset for dashboards.
 - Sunday photo cards render JPEG in-process (`renderShareCardJpeg`) instead of Telegram fetching `/api/share/card`.

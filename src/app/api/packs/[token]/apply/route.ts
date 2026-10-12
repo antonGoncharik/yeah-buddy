@@ -1,4 +1,5 @@
 import { trackEvent } from "@/lib/analytics/track";
+import { rateLimitUser } from "@/lib/api/rate-limit";
 import { failRoute, jsonOk, whenError } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
 import {
@@ -18,6 +19,11 @@ type RouteContext = {
 
 export const POST = sessionRoute(
   async (session, _request, context: RouteContext) => {
+    const limited = rateLimitUser(session.userId, "pack_apply", 10, 60_000);
+    if (limited) {
+      return limited;
+    }
+
     const { token } = await context.params;
 
     try {

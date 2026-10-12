@@ -10,7 +10,7 @@ import { listFoods } from "@/lib/food/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 export const POST = sessionRoute(async (session, request) => {
   const limited = rateLimitUser(session.userId, "ai", 5, 60_000);

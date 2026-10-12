@@ -17,7 +17,7 @@ import { AI_TEXT_MEAL_EMPTY } from "@/lib/messages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 const bodySchema = z.object({
   text: z.string(),
