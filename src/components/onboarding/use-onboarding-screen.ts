@@ -119,7 +119,7 @@ export function useOnboardingScreen() {
   const [goal, setGoal] = useState<OnboardingGoal | null>(null);
   const [trainingAge, setTrainingAge] = useState<UserTrainingAge | null>(null);
   const [activity, setActivity] = useState<UserActivityLevel | null>(null);
-  const [goalPace, setGoalPace] = useState<UserGoalPace | null>("normal");
+  const [goalPace, setGoalPace] = useState<UserGoalPace | null>(null);
   const [heightCm, setHeightCm] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const profileDraftRef = useRef({ heightCm: "", birthYear: "" });
@@ -546,7 +546,7 @@ export function useOnboardingScreen() {
     onGoalPick: (value: OnboardingGoal) => {
       goNext({
         goal: value,
-        goalPace: value === "keep" ? null : (goalPace ?? "normal"),
+        goalPace: value === "keep" ? null : goalPace,
       });
     },
     onActivityPick: (value: UserActivityLevel) => {
