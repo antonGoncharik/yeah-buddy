@@ -163,8 +163,11 @@ assertEqual(
   null,
   "wrong secret",
 );
+// Expiry sits inside the MAC, so the last character changes every second.
+// Replacing it with "a" leaves the query untouched when the signature already ends in "a".
+const flipped = query.endsWith("a") ? "b" : "a";
 assertEqual(
-  decodeWeekCard(`${query.slice(0, -1)}a`, SECRET),
+  decodeWeekCard(`${query.slice(0, -1)}${flipped}`, SECRET),
   null,
   "tampered query",
 );
