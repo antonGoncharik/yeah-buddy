@@ -7,6 +7,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { E1rmCalculator } from "@/components/workout/e1rm-calculator";
 import { cycleHint, warmupsHint } from "@/components/workout/formula-form";
 import { FormulaIncreaseField } from "@/components/workout/formula-increase-field";
 import { FormulaWorkCard } from "@/components/workout/formula-work-card";
@@ -54,6 +55,7 @@ export function FormulasScreen() {
       />
 
       <div className="flex flex-col gap-4 px-4 pb-24">
+        <E1rmCalculator />
         {loading ? <ScreenLoading /> : null}
 
         {!loading && error && !formulas ? (
