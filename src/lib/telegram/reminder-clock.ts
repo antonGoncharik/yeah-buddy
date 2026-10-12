@@ -1,3 +1,4 @@
+import { previousIsoDate } from "@/lib/day/dates";
 import { saveUserTimezone } from "@/lib/settings";
 
 export const DEFAULT_TIMEZONE = "Europe/Moscow";
@@ -43,6 +44,32 @@ export function localClock(
 }
 
 /** Local calendar date to remind for, or null if 21:00 has not arrived. */
+/** Evening summary date: today after the chosen hour, or yesterday during 00:00–02:59 catch-up. */
+export function eveningReminderDateForCandidate(
+  clock: {
+    date: string;
+    hour: number;
+  },
+  remindedOn: string | null,
+  eveningHour: number = REMINDER_HOUR,
+): string | null {
+  const dueToday = reminderDateIfDue(clock, eveningHour);
+  if (dueToday) {
+    return dueToday;
+  }
+  if (clock.hour >= 3) {
+    return null;
+  }
+  const yesterday = previousIsoDate(clock.date);
+  if (remindedOn === yesterday) {
+    return null;
+  }
+  if (remindedOn != null && remindedOn >= yesterday) {
+    return null;
+  }
+  return yesterday;
+}
+
 export function reminderDateIfDue(
   clock: {
     date: string;

@@ -1,9 +1,11 @@
 import {
   localClock,
-  middayReminderDateIfDue,
-  reminderDateIfDue,
+  MIDDAY_REMINDER_HOUR,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
+
+const EVENING_PREFILTER_HOUR = 17;
+const MIDDAY_PREFILTER_END_HOUR = 23;
 
 /** Raw timezone strings from user_settings that are in the evening reminder window. */
 export function eveningDueTimezoneKeys(
@@ -12,7 +14,7 @@ export function eveningDueTimezoneKeys(
 ): string[] {
   return distinctTimezones.filter((raw) => {
     const clock = localClock(now, resolveTimeZone(raw));
-    return reminderDateIfDue(clock) != null;
+    return clock.hour >= EVENING_PREFILTER_HOUR;
   });
 }
 
@@ -23,6 +25,9 @@ export function middayDueTimezoneKeys(
 ): string[] {
   return distinctTimezones.filter((raw) => {
     const clock = localClock(now, resolveTimeZone(raw));
-    return middayReminderDateIfDue(clock) != null;
+    return (
+      clock.hour >= MIDDAY_REMINDER_HOUR &&
+      clock.hour <= MIDDAY_PREFILTER_END_HOUR
+    );
   });
 }

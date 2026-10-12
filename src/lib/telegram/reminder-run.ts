@@ -24,11 +24,11 @@ import {
   sendDiaryMessage,
 } from "@/lib/telegram/bot";
 import {
+  eveningReminderDateForCandidate,
   isoWeekdaySun0,
   localClock,
   middayReminderDateIfDue,
   normalizeReminderHour,
-  reminderDateIfDue,
   resolveTimeZone,
 } from "@/lib/telegram/reminder-clock";
 import {
@@ -136,7 +136,11 @@ async function processEveningCandidate(
 ): Promise<ReminderRunResult> {
   const result = emptyRunResult();
   const clock = localClock(now, candidate.timezone);
-  const reminderDate = reminderDateIfDue(clock, candidate.reminderHour);
+  const reminderDate = eveningReminderDateForCandidate(
+    clock,
+    candidate.remindedOn,
+    candidate.reminderHour,
+  );
   if (!reminderDate) {
     result.skipped += 1;
     return result;
