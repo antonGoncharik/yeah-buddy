@@ -10,6 +10,7 @@ import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button } from "@/components/ui/button";
 import { APP_NAME } from "@/lib/brand";
+import { ensureCacheOwner, readUserIdFromAuthBody } from "@/lib/cache-owner";
 import { LOAD_FAILED } from "@/lib/messages";
 import { hasLocalDiary } from "@/lib/offline";
 import { readInvitePayload } from "@/lib/share/invite";
@@ -112,6 +113,12 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
           throw new Error("auth failed");
         }
 
+        const authBody: unknown = await response.json().catch(() => null);
+        const userId = readUserIdFromAuthBody(authBody);
+        if (userId) {
+          ensureCacheOwner(userId);
+        }
+
         clearTelegramInitReloadFlag();
         setState("ready");
         return;
@@ -129,6 +136,11 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         return;
       }
       if (devResponse.ok) {
+        const authBody: unknown = await devResponse.json().catch(() => null);
+        const userId = readUserIdFromAuthBody(authBody);
+        if (userId) {
+          ensureCacheOwner(userId);
+        }
         setState("ready");
         return;
       }

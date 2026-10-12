@@ -25,7 +25,7 @@ export async function POST(): Promise<NextResponse> {
       telegramId: user.telegram_id,
     });
 
-    return jsonOk({ user, dev: true });
+    return jsonOk({ ok: true, userId: user.id, user, dev: true });
   } catch (error) {
     return failRoute(error);
   }
