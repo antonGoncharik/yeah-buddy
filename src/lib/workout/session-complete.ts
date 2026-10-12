@@ -1,12 +1,13 @@
 import { trackEvent } from "@/lib/analytics/track";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { SessionDetail } from "@/lib/types";
+import type { SessionDetail, WorkoutSession } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { refreshEstimateMaxesFromSession } from "@/lib/workout/estimate-max-refresh";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
 import { getSessionDetail } from "@/lib/workout/session-detail";
+import { SessionLockedError } from "@/lib/workout/session-errors";
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import type {
   CompleteSessionInput,
@@ -19,6 +20,25 @@ import {
   ensureWorkoutSettings,
 } from "@/lib/workout/settings";
 import { applyTrackProgressOnComplete } from "@/lib/workout/track-progress-apply";
+
+export function sessionBlocksSetPatch(
+  status: WorkoutSession["status"],
+): boolean {
+  return status === "completed";
+}
+
+export function shouldReturnCompletedSessionAsIs(
+  status: WorkoutSession["status"],
+  input: CompleteSessionInput,
+): boolean {
+  if (status !== "completed") {
+    return false;
+  }
+  const hasSetOverrides = (input.sets?.length ?? 0) > 0;
+  return (
+    !hasSetOverrides && input.note === undefined && input.feel === undefined
+  );
+}
 
 export async function patchWorkoutSet(
   userId: string,
@@ -100,6 +120,9 @@ export async function patchWorkoutSet(
   if (!session) {
     return null;
   }
+  if (sessionBlocksSetPatch(session.status)) {
+    throw new SessionLockedError();
+  }
 
   return withSessionRaiseOffers(
     userId,
@@ -115,6 +138,14 @@ export async function completeSessionAsPlanned(
   const session = await getSession(userId, sessionId);
   if (!session) {
     return null;
+  }
+
+  if (shouldReturnCompletedSessionAsIs(session.status, input)) {
+    const existing = await loadSessionDetail(userId, session);
+    if (!existing) {
+      return null;
+    }
+    return withSessionRaiseOffers(userId, existing);
   }
 
   const detail = await getSessionDetail(userId, sessionId);

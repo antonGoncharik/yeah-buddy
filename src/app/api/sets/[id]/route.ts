@@ -3,9 +3,11 @@ import {
   jsonError,
   jsonOk,
   parseJsonSchema,
+  whenError,
   whenMessage,
 } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
+import { SessionLockedError } from "@/lib/workout/session-errors";
 import { patchSetSchema, patchWorkoutSet } from "@/lib/workout/session-work";
 
 type RouteContext = {
@@ -29,7 +31,10 @@ export const PATCH = sessionRoute(
 
       return jsonOk(detail);
     } catch (error) {
-      return failRoute(error, [whenMessage("Напиши фактический вес.", 400)]);
+      return failRoute(error, [
+        whenError(SessionLockedError, 409),
+        whenMessage("Напиши фактический вес.", 400),
+      ]);
     }
   },
 );
