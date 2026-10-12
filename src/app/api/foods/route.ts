@@ -11,14 +11,14 @@ import {
 import { foodInputSchema, parseFoodListFilter } from "@/lib/foods";
 
 export const GET = sessionRoute(async (session, request) => {
-  const filter = parseFoodListFilter(
-    new URL(request.url).searchParams.get("filter"),
-  );
+  const params = new URL(request.url).searchParams;
+  const filter = parseFoodListFilter(params.get("filter"));
+  const search = params.get("q");
 
   try {
     const today = await getUserCalendarToday(session.userId);
     const [foods, hits, starterOnly] = await Promise.all([
-      listFoods(session.userId, filter),
+      listFoods(session.userId, filter, { search }),
       listFavoriteOfferHits(session.userId, today),
       foodsAreStarterOnly(session.userId),
     ]);

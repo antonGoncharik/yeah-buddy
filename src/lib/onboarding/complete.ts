@@ -169,6 +169,13 @@ export async function completeOnboarding(
     }
   }
 
+  if (firstRun) {
+    await recordFunnelEvent(userId, "onboarding_done");
+  }
+  if (input.fromStart) {
+    await recordFunnelEvent(userId, "program_start");
+  }
+
   const supabase = createSupabaseServerClient();
   const stamped = await supabase
     .from("user_settings")
@@ -179,13 +186,6 @@ export async function completeOnboarding(
 
   if (stamped.error) {
     throw stamped.error;
-  }
-
-  if (firstRun) {
-    await recordFunnelEvent(userId, "onboarding_done");
-  }
-  if (input.fromStart) {
-    await recordFunnelEvent(userId, "program_start");
   }
 
   return getOnboardingState(userId);

@@ -10,23 +10,47 @@ import { UNIQUE_VIOLATION } from "@/lib/seed-missing";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Food } from "@/lib/types";
 
+export const FOOD_LIST_LIMIT = 500;
+
+const FOOD_SELECT_COLUMNS =
+  "id, user_id, name, brand, state, protein_per_100, fat_per_100, carbs_per_100, kcal_per_100, default_portion_g, default_portion_label, yield_from_g, yield_to_g, is_favorite, barcode, notes, created_at, updated_at";
+
+export type ListFoodsOptions = {
+  search?: string | null;
+  limit?: number;
+};
+
 export async function listFoods(
   userId: string,
   filter: FoodListFilter = "all",
+  options?: ListFoodsOptions,
 ): Promise<Food[]> {
   if (filter === "recent") {
     return listRecentFoods(userId);
   }
 
   const supabase = createSupabaseServerClient();
+  const limit = Math.min(
+    Math.max(1, Math.floor(options?.limit ?? FOOD_LIST_LIMIT)),
+    FOOD_LIST_LIMIT,
+  );
   let query = supabase
     .from("foods")
-    .select("*")
+    .select(FOOD_SELECT_COLUMNS)
     .eq("user_id", userId)
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(limit);
 
   if (filter === "favorites") {
     query = query.eq("is_favorite", true);
+  }
+
+  const needle = options?.search?.trim().slice(0, 80) ?? "";
+  if (needle !== "") {
+    const safe = needle.replace(/[%_,]/g, " ").trim();
+    if (safe !== "") {
+      query = query.ilike("name", `%${safe}%`);
+    }
   }
 
   const result = await query;
@@ -115,7 +139,7 @@ async function listRecentFoods(userId: string): Promise<Food[]> {
 
   const foods = await supabase
     .from("foods")
-    .select("*")
+    .select(FOOD_SELECT_COLUMNS)
     .eq("user_id", userId)
     .in("id", foodIds);
 

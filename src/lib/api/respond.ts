@@ -58,7 +58,9 @@ export function readHistoryQuery(
     return { ok: false, response: jsonError(CHECK_FIELDS, 400) };
   }
 
-  return { ok: true, before: before ?? undefined, limit };
+  const capped = Math.min(Math.floor(limit), 120);
+
+  return { ok: true, before: before ?? undefined, limit: capped };
 }
 
 export function failRoute(
