@@ -1,0 +1,46 @@
+import type { NextResponse } from "next/server";
+
+import { sendAuthorDigest } from "@/lib/analytics/author-digest";
+import { failRoute, jsonError, jsonOk } from "@/lib/api/respond";
+import { getServerEnv } from "@/lib/env";
+import { captureServerError } from "@/lib/monitoring/sentry";
+import { isCronAuthorized } from "@/lib/telegram/reminders";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+export async function GET(request: Request): Promise<NextResponse> {
+  return runCron(request);
+}
+
+export async function POST(request: Request): Promise<NextResponse> {
+  return runCron(request);
+}
+
+async function runCron(request: Request): Promise<NextResponse> {
+  let env: ReturnType<typeof getServerEnv>;
+  try {
+    env = getServerEnv();
+  } catch (error) {
+    return failRoute(error);
+  }
+
+  if (!env.CRON_SECRET) {
+    console.error(
+      "CRON_SECRET is not set; /api/cron/author-digest rejects all requests",
+    );
+  }
+
+  if (!isCronAuthorized(request, env.CRON_SECRET)) {
+    return jsonError("Unauthorized", 401);
+  }
+
+  try {
+    const result = await sendAuthorDigest(env);
+    return jsonOk(result);
+  } catch (error) {
+    captureServerError(error, { subsystem: "cron_author_digest" });
+    return failRoute(error);
+  }
+}

@@ -17,6 +17,7 @@ import {
   type MuscleHorizon,
   useMuscleScreen,
 } from "@/components/workout/use-muscle-screen";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { formatIsoDate } from "@/lib/day/format";
 import type { MuscleCell, MuscleId, VolumeBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,10 @@ export function MuscleScreen() {
       if (cell) {
         setView(cell.view);
       }
+      void trackClientEvent("muscle_map_action", {
+        action: "select",
+        muscle_id: id,
+      });
     },
     [setSelectedId, setView, snapshot],
   );

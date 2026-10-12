@@ -10,7 +10,7 @@ export async function trackLandingCtaClick(src: string): Promise<void> {
     const inserted = await supabase.from("product_events").insert({
       user_id: null,
       event: EVENT,
-      props: sanitizeProductProps({ src }),
+      props: sanitizeProductProps(EVENT, { src }),
     });
     if (!inserted.error) {
       return;

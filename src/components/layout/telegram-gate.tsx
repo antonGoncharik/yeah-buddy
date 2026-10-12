@@ -9,6 +9,7 @@ import { OutsideTelegramScreen } from "@/components/layout/outside-telegram-scre
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { TelegramViewport } from "@/components/layout/telegram-viewport";
 import { Button } from "@/components/ui/button";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { APP_NAME } from "@/lib/brand";
 import { ensureCacheOwner, readUserIdFromAuthBody } from "@/lib/cache-owner";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -118,6 +119,9 @@ function TelegramGateBody({ children }: { children: React.ReactNode }) {
         const userId = readUserIdFromAuthBody(authBody);
         if (userId) {
           ensureCacheOwner(userId);
+        }
+        if (webApp.initDataUnsafe?.start_param === "open") {
+          void trackClientEvent("reminder_opened", { via: "start_param" });
         }
         void flushOutbox();
 

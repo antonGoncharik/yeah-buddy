@@ -3,7 +3,10 @@ export const CLIENT_PRODUCT_EVENTS = [
   "onboarding_step_complete",
   "energy_offer_shown",
   "muscles_view",
+  "muscle_map_opened",
+  "muscle_map_action",
   "sync_failed",
+  "reminder_opened",
 ] as const;
 
 export type ClientProductEvent = (typeof CLIENT_PRODUCT_EVENTS)[number];
@@ -22,6 +25,8 @@ export const SERVER_PRODUCT_EVENTS = [
   "energy_offer_applied",
   "energy_offer_dismissed",
   "ai_request",
+  "ai_failed",
+  "ai_empty",
   "landing_cta_click",
 ] as const;
 

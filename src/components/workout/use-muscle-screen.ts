@@ -39,6 +39,9 @@ export function useMuscleScreen() {
             return false;
           }
           setSnapshot(next);
+          void trackClientEvent("muscle_map_opened", {
+            horizon_days: next.horizon_days,
+          });
           void trackClientEvent("muscles_view", {
             horizon_days: next.horizon_days,
           });

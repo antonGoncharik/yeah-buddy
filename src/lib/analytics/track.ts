@@ -12,7 +12,7 @@ export async function trackEvent(
     const inserted = await supabase.from("product_events").insert({
       user_id: userId,
       event,
-      props: sanitizeProductProps(props),
+      props: sanitizeProductProps(event, props),
     });
     if (!inserted.error) {
       return;

@@ -404,7 +404,7 @@ assertEqual(weekRecapText(["Смотри ужин."]), null, "no scoreboard skip
 const vercel = JSON.parse(
   readFileSync(join(process.cwd(), "vercel.json"), "utf8"),
 ) as { crons?: Array<{ path?: string; schedule?: string }> };
-assertEqual(vercel.crons?.length, 24, "hourly via 24 daily jobs");
+assertEqual(vercel.crons?.length, 25, "hourly reminders plus weekly digest");
 for (let hour = 0; hour < 24; hour += 1) {
   assertEqual(
     vercel.crons?.[hour]?.path,
@@ -417,5 +417,15 @@ for (let hour = 0; hour < 24; hour += 1) {
     `hour ${hour}`,
   );
 }
+assertEqual(
+  vercel.crons?.[24]?.path,
+  "/api/cron/author-digest",
+  "weekly author digest path",
+);
+assertEqual(
+  vercel.crons?.[24]?.schedule,
+  "0 9 * * 1",
+  "weekly author digest schedule",
+);
 
 console.log("telegram reminders ok");
