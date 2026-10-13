@@ -8,6 +8,7 @@ import {
   mapCatalogTarget,
   secondaryMuscleWeight,
 } from "@/lib/workout/muscle-catalog-map";
+import { nameMuscleOverride } from "@/lib/workout/muscle-name-overrides";
 import { starterMuscleOverride } from "@/lib/workout/muscle-starter-overrides";
 import { resolveExerciseMuscles } from "@/lib/workout/muscle-taxonomy";
 
@@ -26,6 +27,11 @@ export function resolveExerciseMuscleWeights(
   const fromCatalog = weightsFromCatalog(meta);
   if (fromCatalog && Object.keys(fromCatalog).length > 0) {
     return fromCatalog;
+  }
+
+  const named = nameMuscleOverride([meta.name_ru, meta.name, meta.name_en]);
+  if (named) {
+    return named;
   }
 
   return resolveExerciseMuscles({

@@ -11,6 +11,7 @@ export type MuscleId =
   | "front_delts"
   | "side_delts"
   | "rear_delts"
+  | "subscapularis"
   | "biceps"
   | "triceps"
   | "forearms"

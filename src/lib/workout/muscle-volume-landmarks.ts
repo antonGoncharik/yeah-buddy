@@ -23,6 +23,7 @@ const LANDMARKS: Record<MuscleId, MuscleVolumeLandmarks> = {
   front_delts: MEDIUM,
   side_delts: MEDIUM,
   rear_delts: SMALL,
+  subscapularis: SMALL,
   biceps: SMALL,
   triceps: MEDIUM,
   forearms: SMALL,

@@ -69,6 +69,8 @@ export function mapCatalogTarget(
       return "biceps";
     case "triceps":
       return "triceps";
+    case "subscapularis":
+      return "subscapularis";
     case "forearms":
       return "forearms";
     case "levator scapulae":
@@ -152,6 +154,8 @@ export function mapCatalogSecondary(
       return "biceps";
     case "triceps":
       return "triceps";
+    case "subscapularis":
+      return "subscapularis";
     case "forearms":
     case "wrist flexors":
     case "wrist extensors":
