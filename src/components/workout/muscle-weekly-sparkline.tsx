@@ -32,7 +32,7 @@ export function MuscleWeeklySparkline({
       viewBox={`0 0 ${w} ${h}`}
       className={cn("h-9 w-full max-w-[140px] text-primary", className)}
       role="img"
-      aria-label="Объём по неделям периода"
+      aria-label="Подходы по неделям"
     >
       <polyline
         fill="none"

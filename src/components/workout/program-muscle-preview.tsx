@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
+import { pluralSets } from "@/lib/i18n/plural";
 import {
   programMusclePreview,
   programMusclePreviewCells,
@@ -29,7 +30,8 @@ export function ProgramMusclePreview({
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <h2 className="text-lg font-semibold">Мышцы в неделю</h2>
       <p className="text-sm text-muted-foreground">
-        Прикидка по упражнениям программы — прямые подходы в неделю.
+        Подходы в неделю по упражнениям программы. На главную мышцу — целиком,
+        если она только помогает — часть.
       </p>
       <MuscleBodyFigure
         view="front"
@@ -44,7 +46,9 @@ export function ProgramMusclePreview({
         {top.map((row) => (
           <li key={row.id} className="flex justify-between gap-3">
             <span>{row.label}</span>
-            <span className="font-medium">~{row.sets_per_week} подх.</span>
+            <span className="font-medium">
+              ~{row.sets_per_week} {pluralSets(row.sets_per_week)}
+            </span>
           </li>
         ))}
       </ul>

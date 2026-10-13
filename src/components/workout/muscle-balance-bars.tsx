@@ -16,7 +16,7 @@ export function MuscleBalanceBars({ pairs }: { pairs: MuscleBalancePair[] }) {
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <h2 className="text-sm font-medium text-muted-foreground">
-        Баланс, подх./нед
+        Баланс, подходы в неделю
       </h2>
       <ul className="flex flex-col gap-3">
         {visible.map((pair) => {

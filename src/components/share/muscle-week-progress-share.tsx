@@ -116,7 +116,7 @@ export function MuscleWeekProgressShare({
               tone === "solid" ? "opacity-80" : "text-muted-foreground",
             )}
           >
-            Поделись объёмом за 7 дней — без весов и калорий.
+            Поделись подходами за 7 дней — без весов и калорий.
           </span>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">

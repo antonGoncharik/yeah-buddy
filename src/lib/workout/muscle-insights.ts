@@ -1,3 +1,4 @@
+import { pluralSets } from "@/lib/i18n/plural";
 import type {
   MuscleBalancePair,
   MuscleCell,
@@ -190,7 +191,7 @@ export function catchUpLine(muscles: MuscleCell[]): string | null {
   if (gap == null) {
     return null;
   }
-  return `${short.label}: до зоны роста ещё ~${gap} прямых подх./нед.`;
+  return `${short.label}: ещё ~${gap} ${pluralSets(gap)} в неделю, чтобы хватало.`;
 }
 
 /** Lowest recovery among muscles in the next template — for the gym hub. */
@@ -213,7 +214,7 @@ export function muscleHubRecoveryHint(muscles: MuscleCell[]): string | null {
   if (pct == null) {
     return null;
   }
-  return `${weakest.label} ещё восстанавливается (~${pct}%) — можно сместить акцент на другие зоны.`;
+  return `${weakest.label} ещё восстанавливается (~${pct}%) — можно сделать упор на другие мышцы.`;
 }
 
 export function todayMuscleProteinHint(
@@ -231,7 +232,7 @@ export function todayMuscleProteinHint(
   if (!target?.gap) {
     return null;
   }
-  return `На ${target.item.label.toLowerCase()} не хватает ~${target.gap} прямых подх./нед — белка ещё ${Math.round(remainingProtein)} г, можно добрать после зала.`;
+  return `На ${target.item.label.toLowerCase()} ещё ~${target.gap} ${pluralSets(target.gap)} в неделю — белка ещё ${Math.round(remainingProtein)} г, можно добрать после зала.`;
 }
 
 function formatRatio(ratio: number): string {

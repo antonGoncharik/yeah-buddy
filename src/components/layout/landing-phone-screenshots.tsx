@@ -13,7 +13,7 @@ const SHOTS = [
   },
   {
     src: "/screenshots/muscles.webp",
-    alt: "Карта мышц: объём за неделю по зонам тела",
+    alt: "Карта мышц: подходы за неделю",
     label: "Мышцы",
   },
 ] as const;

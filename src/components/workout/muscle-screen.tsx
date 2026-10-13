@@ -19,6 +19,7 @@ import {
 } from "@/components/workout/use-muscle-screen";
 import { trackClientEvent } from "@/lib/analytics/client";
 import { formatIsoDate } from "@/lib/day/format";
+import { pluralSets } from "@/lib/i18n/plural";
 import type { MuscleCell, MuscleId, VolumeBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
@@ -60,6 +61,7 @@ export function MuscleScreen() {
     selected,
     selectedHits,
   } = useMuscleScreen();
+  const shortfall = selected ? setsShortOfGrowthZone(selected) : null;
 
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
@@ -111,7 +113,7 @@ export function MuscleScreen() {
     <div className="flex flex-col gap-4">
       <AppHeader
         title="Мышцы"
-        subtitle="Объём и восстановление по зонам"
+        subtitle="Подходы на каждую мышцу и как она восстановилась"
         backHref="/workouts"
       />
 
@@ -147,8 +149,8 @@ export function MuscleScreen() {
             <Segmented
               value={displayMode}
               options={[
-                { id: "volume", label: "Объём" },
-                { id: "recovery", label: "Восст." },
+                { id: "volume", label: "Подходы" },
+                { id: "recovery", label: "Восстановление" },
               ]}
               onChange={setDisplayMode}
             />
@@ -227,7 +229,7 @@ export function MuscleScreen() {
               </div>
 
               <p className="text-center text-xs text-muted-foreground">
-                Нажми на зону. Кнопки или щипок двумя пальцами — крупнее, потом
+                Нажми на мышцу. Кнопки или щипок двумя пальцами — крупнее, потом
                 можно двигать.
               </p>
               {snapshot.unmapped_exercise_count > 0 ? (
@@ -247,7 +249,7 @@ export function MuscleScreen() {
                   )}
                 >
                   <h2 className="px-1 text-sm font-medium text-muted-foreground">
-                    Зоны · {side === "front" ? "спереди" : "сзади"}
+                    {side === "front" ? "Спереди" : "Сзади"}
                   </h2>
                   <MuscleHeatGrid
                     muscles={snapshot.muscles.filter(
@@ -280,7 +282,7 @@ export function MuscleScreen() {
               </ul>
             ) : (
               <p className="px-1 text-xs text-muted-foreground">
-                Восстановление: выше % — зона готова к тяжёлой работе. Крупные
+                Восстановление: выше % — мышца готова к тяжёлой работе. Крупные
                 мышцы отходят дольше мелких.
               </p>
             )}
@@ -299,10 +301,10 @@ export function MuscleScreen() {
                 <p className="text-sm text-muted-foreground">
                   {muscleVolumeLandmarkLine(selected.id)}
                 </p>
-                {setsShortOfGrowthZone(selected) != null ? (
+                {shortfall != null ? (
                   <p className="text-sm text-muted-foreground">
-                    До зоны роста ещё ~{setsShortOfGrowthZone(selected)} прямых
-                    подх./нед.
+                    Ещё ~{shortfall} {pluralSets(shortfall)} в неделю, чтобы
+                    хватало.
                   </p>
                 ) : null}
                 <MuscleSelectedActions cell={selected} />
@@ -310,28 +312,23 @@ export function MuscleScreen() {
                   {selected.direct_sets > 0 || selected.assist_sets > 0 ? (
                     <>
                       <div>
-                        <dt className="text-muted-foreground">Прямые</dt>
+                        <dt className="text-muted-foreground">На эту мышцу</dt>
                         <dd className="font-medium tabular-nums">
                           {formatSets(selected.direct_sets)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-muted-foreground">Помощь</dt>
+                        <dt className="text-muted-foreground">Заодно</dt>
                         <dd className="font-medium tabular-nums">
                           {formatSets(selected.assist_sets)}
                         </dd>
                       </div>
+                      <div className="col-span-2 text-sm text-muted-foreground">
+                        На эту мышцу — где она главная. Заодно — где только
+                        помогает, как трицепс в жиме.
+                      </div>
                     </>
-                  ) : (
-                    <div>
-                      <dt className="text-muted-foreground">
-                        Взвешенные подходы
-                      </dt>
-                      <dd className="font-medium tabular-nums">
-                        {formatSets(selected.sets)}
-                      </dd>
-                    </div>
-                  )}
+                  ) : null}
                   <div>
                     <dt className="text-muted-foreground">В неделю</dt>
                     <dd className="font-medium tabular-nums">
@@ -360,7 +357,7 @@ export function MuscleScreen() {
                   {selected.missed_sessions > 0 ? (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">
-                        Пропущенных дней с зоной
+                        Пропущено тренировок
                       </dt>
                       <dd className="font-medium tabular-nums">
                         {selected.missed_sessions}
@@ -382,7 +379,7 @@ export function MuscleScreen() {
                           {hit.name}
                         </Link>
                         <span className="shrink-0 text-muted-foreground tabular-nums">
-                          {formatSets(hit.sets)} подх. ·{" "}
+                          {formatSets(hit.sets)} {pluralSets(hit.sets)} ·{" "}
                           {formatIsoDate(hit.last_date, "d MMM")}
                           {hit.tonnage > 0
                             ? ` · ${formatTonnage(hit.tonnage)}`
@@ -393,13 +390,13 @@ export function MuscleScreen() {
                   </ol>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Нет упражнений с взвешенными подходами за период.
+                    За этот период на эту мышцу упражнений не было.
                   </p>
                 )}
               </section>
             ) : (
               <p className="px-1 text-sm text-muted-foreground">
-                Выбери зону — покажем недельный график и упражнения.
+                Выбери мышцу — покажем график по неделям и упражнения.
               </p>
             )}
           </>
@@ -414,7 +411,6 @@ export function MuscleScreen() {
 }
 
 function MuscleSelectedActions({ cell }: { cell: MuscleCell }) {
-  const gap = setsShortOfGrowthZone(cell);
   return (
     <div className="flex flex-col gap-2">
       {cell.in_next_session ? (
@@ -422,17 +418,11 @@ function MuscleSelectedActions({ cell }: { cell: MuscleCell }) {
           В следующей тренировке
         </Link>
       ) : null}
-      {gap != null && gap > 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Добавь 2–3 подхода на {cell.label.toLowerCase()}, если хочешь закрыть
-          недобор.
-        </p>
-      ) : null}
       <Link
         href={`/workouts/exercises?muscle=${cell.id}`}
         className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
       >
-        Упражнения на эту зону
+        Упражнения на эту мышцу
       </Link>
     </div>
   );

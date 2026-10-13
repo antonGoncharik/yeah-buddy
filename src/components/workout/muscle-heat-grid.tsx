@@ -81,8 +81,7 @@ export function MuscleHeatGrid({
                 </span>
               ) : (
                 <span className="text-[11px] text-muted-foreground">
-                  {muscleBandLabel(cell.volume_band)} · ~{cell.sets_per_week}
-                  /нед
+                  {`${muscleBandLabel(cell.volume_band)} · ~${cell.sets_per_week} в неделю`}
                 </span>
               )}
             </button>

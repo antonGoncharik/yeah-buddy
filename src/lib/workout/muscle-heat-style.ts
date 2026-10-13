@@ -1,3 +1,4 @@
+import { pluralSets } from "@/lib/i18n/plural";
 import type {
   MuscleCell,
   MuscleDisplayMode,
@@ -131,10 +132,10 @@ export function muscleCellHint(cell: MuscleCell): string {
     return "В следующей тренировке";
   }
   if (cell.missed_sessions > 0 && cell.sets < 2) {
-    return "Был пропуск с этой зоной";
+    return "Был пропуск с этой мышцей";
   }
   if (cell.volume_band === 0) {
     return "За период почти не было нагрузки";
   }
-  return `~${cell.sets_per_week} прямых подх./нед · ${muscleBandLabel(cell.volume_band)}`;
+  return `~${cell.sets_per_week} ${pluralSets(cell.sets_per_week)} в неделю · ${muscleBandLabel(cell.volume_band)}`;
 }

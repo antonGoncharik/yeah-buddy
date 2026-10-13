@@ -7,8 +7,8 @@ import {
 export const VOLUME_BAND_LABELS: Record<VolumeBand, string> = {
   0: "Нет",
   1: "Мало",
-  2: "Ниже зоны",
-  3: "В зоне",
+  2: "Можно больше",
+  3: "Хватает",
   4: "Много",
 };
 

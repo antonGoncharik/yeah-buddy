@@ -13,7 +13,7 @@ export function compactMuscleSignals(
     .slice(0, 2);
   for (const item of low) {
     lines.push(
-      `Мышцы: ${item.label} мало объёма (~${item.sets_per_week} подх./нед).`,
+      `Мышцы: ${item.label} мало подходов (~${item.sets_per_week} в неделю).`,
     );
   }
   for (const line of snapshot.insights.slice(0, 2)) {
