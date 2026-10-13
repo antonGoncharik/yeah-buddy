@@ -9,8 +9,6 @@ import {
 } from "@/components/day/day-summary-kcal";
 import { MacroBar } from "@/components/day/day-summary-macro-bar";
 import { WeightBlock } from "@/components/day/day-summary-weight-block";
-import { GuideTipCard } from "@/components/guide/guide-tip-card";
-import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
@@ -99,7 +97,6 @@ export function DaySummary({
   const wasClosed = useRef(false);
   const cookie = useWiggle();
   const wiggleCookie = cookie.play;
-  const bodyTip = useGuideTip("body");
   const almost = flashClosed
     ? null
     : proteinAlmostLine(remainingProtein, fact.protein);
@@ -137,6 +134,9 @@ export function DaySummary({
     return () => window.clearTimeout(timer);
   }, [closed, wiggleCookie]);
 
+  const glance = compact
+    ? null
+    : (almost ?? trainingGap ?? foodStreakLine ?? weekLine ?? macros);
   const proteinNumber = loop
     ? flashClosed
       ? PROTEIN_CLOSED_LABEL
@@ -193,21 +193,8 @@ export function DaySummary({
                 </span>
               )}
             </p>
-            {!compact && almost ? (
-              <p className="mt-1 text-sm text-muted-foreground">{almost}</p>
-            ) : null}
-            {!compact && trainingGap ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {trainingGap}
-              </p>
-            ) : null}
-            {!compact && foodStreakLine ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {foodStreakLine}
-              </p>
-            ) : null}
-            {!compact && weekLine ? (
-              <p className="mt-1 text-base font-medium">{weekLine}</p>
+            {glance ? (
+              <p className="mt-1 text-sm text-muted-foreground">{glance}</p>
             ) : null}
             {loop ? null : (
               <div className="mt-1">
@@ -279,20 +266,7 @@ export function DaySummary({
           barClass="bg-[var(--macro-carbs)]"
           compact={compact}
         />
-        {loop ? null : (
-          <MacroBar
-            label="Калории"
-            fact={fact.kcal}
-            plan={day.target_kcal}
-            barClass="bg-primary/70"
-            compact={compact}
-            kind="kcal"
-          />
-        )}
       </div>
-      {!compact && macros ? (
-        <p className="text-sm text-muted-foreground">{macros}</p>
-      ) : null}
       {bodyMetrics ? (
         <div
           className={cn(
@@ -300,9 +274,6 @@ export function DaySummary({
             compact ? "gap-2 pt-3" : "gap-3 pt-4",
           )}
         >
-          {!compact && bodyTip.tip ? (
-            <GuideTipCard tip={bodyTip.tip} onDismiss={bodyTip.dismiss} />
-          ) : null}
           <WeightBlock
             bodyWeight={bodyWeight}
             lastBodyWeight={lastBodyWeight}

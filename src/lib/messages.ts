@@ -9,8 +9,6 @@ export const BOT_START = `Yeah buddy! 👟
 Light weight. Погнали 🔥`;
 export const MEAL_CHAT_HINT =
   "То же в личке бота: фото, строка текста или голосовое — без открытия дневника.";
-export const MEAL_CHAT_INBOX_NOTE =
-  "Написать админу — в «Написать» ниже: сначала выбери тему, потом текст или вложение.";
 export const OPEN_VIA_BOT_LEAD =
   "Фото, голос или текст — КБЖУ посчитано. В зале программа сама подскажет вес и подходы.";
 export const OPEN_VIA_BOT_EYEBROW = "Yeah Buddy · в Telegram";
@@ -58,7 +56,6 @@ export const PUBLIC_PROGRAMS_INDEX_TITLE = "Готовые программы";
 export const PUBLIC_PROGRAMS_INDEX_LEAD =
   "Зал, дом, гантели и турник — выбери схему и поставь в дневник одной кнопкой.";
 export const PUBLIC_PROGRAMS_ALL_LINK = "Все программы";
-export const TODAY_MY_FOODS_LINK = "Мои продукты";
 export const OFFLINE_CAPTURE_HINT =
   "Нет сети. Запись сохранится на телефоне, разбор фото и голоса заработают, когда интернет вернётся.";
 export const OPEN_VIA_BOT_FAQ_TITLE = "Если остались вопросы";
@@ -375,6 +372,7 @@ export const DONATE_REJECT = "Этот счёт не принять.";
 export const DONATE_HINT = "Звёзды Telegram. Уходят автору на протеин💪";
 export const DONATE_STARS_INVALID = "От 1 до 10 000 звёзд.";
 export const INBOX_SETTINGS_TITLE = "Написать";
+export const INBOX_OPEN_CHAT = "Открыть чат";
 export const INBOX_SETTINGS_HINT =
   "Что улучшить, пожаловаться или заказать программу питания и тренировок";
 export const INBOX_MENU = "О чём написать?";

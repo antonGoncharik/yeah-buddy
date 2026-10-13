@@ -10,7 +10,6 @@ import { FoodPicker } from "@/components/foods/food-picker";
 import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
 import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { buttonVariants } from "@/components/ui/button";
 import { reportActionError } from "@/lib/action-error";
 import { appendFoodHrefSegment } from "@/lib/food/paths";
@@ -128,7 +127,6 @@ export function AddMealItemScreen({
               dictateHref={dictateHref}
               textLog={textLog}
             />
-            {plateHref || dictateHref || textLog ? <MealChatHint /> : null}
           </div>
         }
         stickyActions={

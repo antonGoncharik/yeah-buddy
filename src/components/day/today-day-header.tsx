@@ -1,9 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { GuideTipCard } from "@/components/guide/guide-tip-card";
-import { useGuideTip } from "@/components/guide/use-guide-tip";
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import {
   CookieMark,
   Doodle,
@@ -41,9 +38,6 @@ export function TodayDayHeader({
   showDayTypeSwitch?: boolean;
 }) {
   const router = useRouter();
-  const { density } = useDiaryDensity();
-  const compact = density === "compact";
-  const dayTypeTip = useGuideTip("day-type");
 
   if (viewOnly) {
     const typeLabel = isTrainingDay
@@ -78,10 +72,7 @@ export function TodayDayHeader({
   }
 
   return (
-    <div className="animate-rise flex flex-col gap-2">
-      {!compact && dayTypeTip.tip ? (
-        <GuideTipCard tip={dayTypeTip.tip} onDismiss={dayTypeTip.dismiss} />
-      ) : null}
+    <div className="animate-rise">
       <Segmented
         value={isTrainingDay ? "training" : "rest"}
         disabled={busy}

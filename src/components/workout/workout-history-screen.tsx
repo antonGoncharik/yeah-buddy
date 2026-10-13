@@ -155,6 +155,19 @@ export function WorkoutHistoryScreen() {
           </div>
         ) : null}
 
+        {!loading && items.length > 0 ? (
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-12 text-base"
+            onClick={() => {
+              window.location.assign("/api/sessions/export");
+            }}
+          >
+            Скачать CSV
+          </Button>
+        ) : null}
+
         {needsMore ? (
           <Button
             type="button"

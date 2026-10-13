@@ -65,8 +65,6 @@ export function WorkoutsHubScreen() {
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        {!loading && !error ? <WorkoutsHubBarbellCard /> : null}
-
         {!loading && !error ? (
           <WorkoutsHubEmpty
             exercisesCount={exercises.length}
@@ -84,12 +82,6 @@ export function WorkoutsHubScreen() {
             followingTemplate={followingTemplate}
             sessionAction={sessionAction}
           />
-        ) : null}
-
-        {!loading && !error && muscleRecoveryHint ? (
-          <p className="animate-rise px-1 text-sm text-muted-foreground">
-            {muscleRecoveryHint}
-          </p>
         ) : null}
 
         {!loading && !error ? (
@@ -112,6 +104,12 @@ export function WorkoutsHubScreen() {
           />
         ) : null}
 
+        {!loading && !error && muscleRecoveryHint ? (
+          <p className="animate-rise px-1 text-sm text-muted-foreground">
+            {muscleRecoveryHint}
+          </p>
+        ) : null}
+
         {!loading && !error && exercises.length > 0 ? (
           <WorkoutsHubNavSections
             macro={macro}
@@ -128,6 +126,8 @@ export function WorkoutsHubScreen() {
         ) : null}
 
         {!loading && !error ? <WorkoutsHubRecent recent={recent} /> : null}
+
+        {!loading && !error ? <WorkoutsHubBarbellCard /> : null}
       </div>
     </div>
   );

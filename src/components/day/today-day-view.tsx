@@ -14,6 +14,7 @@ import { MacroGapHint } from "@/components/day/macro-gap-hint";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
@@ -459,21 +460,19 @@ export function TodayDayView({
         })
       : null;
 
-  const todayExtras =
-    dayHasItems &&
-    (energyGoalBlock ||
-      energyHintBlock ||
-      muscleNutritionBlock ||
-      quickFoods ||
-      proteinCloseBlock ||
-      weekShare ||
-      reviewBlock) ? (
-      <TodayExtrasSection>
+  const closeTheDay =
+    dayHasItems && !viewOnly ? (
+      <>
         {energyGoalBlock}
         {energyHintBlock}
         {muscleNutritionBlock}
         {quickFoods}
         {proteinCloseBlock}
+      </>
+    ) : null;
+  const todayExtras =
+    dayHasItems && (weekShare || reviewBlock) ? (
+      <TodayExtrasSection>
         {weekShare}
         {reviewBlock}
       </TodayExtrasSection>
@@ -547,8 +546,19 @@ export function TodayDayView({
 
       {!dayHasItems ? <div className="animate-rise">{daySummary}</div> : null}
 
-      {numbersFirst ? scoreBlock : foodBlock}
-      {numbersFirst ? foodBlock : scoreBlock}
+      {numbersFirst ? (
+        <>
+          {scoreBlock}
+          {foodBlock}
+          {closeTheDay}
+        </>
+      ) : (
+        <>
+          {foodBlock}
+          {closeTheDay}
+          {scoreBlock}
+        </>
+      )}
 
       {todayLine ? (
         <p className="text-sm leading-snug text-muted-foreground">
@@ -560,6 +570,8 @@ export function TodayDayView({
 
       {!dayHasItems ? weekShare : null}
       {!dayHasItems ? reviewBlock : null}
+
+      <TodayDiaryLinks />
     </div>
   );
 }

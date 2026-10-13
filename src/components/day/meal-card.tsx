@@ -226,14 +226,18 @@ export function MealCard({
               {repeatYesterdayMealLabel(mealType)}
             </Button>
           ) : null}
-          {showAdd || showCapture ? (
+          {showAdd || (showCapture && items.length === 0) ? (
             <MealLogActions
               addHref={showAdd ? addHref : undefined}
               addProminent={showAdd && items.length === 0 && !yesterdaySource}
-              plateHref={showCapture ? plateHref : undefined}
-              dictateHref={showCapture ? dictateHref : undefined}
+              plateHref={
+                showCapture && items.length === 0 ? plateHref : undefined
+              }
+              dictateHref={
+                showCapture && items.length === 0 ? dictateHref : undefined
+              }
               textLog={
-                showCapture && aiText && mealId && logDate
+                showCapture && items.length === 0 && aiText && mealId && logDate
                   ? {
                       date: logDate,
                       mealId,
@@ -243,7 +247,7 @@ export function MealCard({
               }
             />
           ) : null}
-          {showFill && onFillTemplate ? (
+          {showFill && onFillTemplate && items.length === 0 ? (
             <Button
               type="button"
               variant="outline"

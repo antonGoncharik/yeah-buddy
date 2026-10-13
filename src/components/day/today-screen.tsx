@@ -10,10 +10,7 @@ import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMark } from "@/components/day/today-day-mark";
 import { TodayDayView } from "@/components/day/today-day-view";
-import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { useTodayScreen } from "@/components/day/use-today-screen";
-import { GuideTipCard } from "@/components/guide/guide-tip-card";
-import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
@@ -107,8 +104,6 @@ export function TodayScreen({
   const { mood } = useDayMood();
   const { density } = useDiaryDensity();
   const compact = density === "compact";
-  const guideTip = useGuideTip("today");
-  const dayTypeTip = useGuideTip("day-type");
   const [pickerOpen, setPickerOpen] = useState(false);
   const titleDate = format(new Date(`${date}T00:00:00`), "d MMMM", {
     locale: ru,
@@ -155,7 +150,6 @@ export function TodayScreen({
               />
             }
           />
-          {contentReady && shownDay ? <TodayDiaryLinks /> : null}
         </div>
         {contentReady && shownDay ? (
           <TodayDayHeader
@@ -187,16 +181,6 @@ export function TodayScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 pb-4">
-        {contentReady &&
-        !loadError &&
-        !viewOnly &&
-        !compact &&
-        guideTip.tip &&
-        !dayTypeTip.tip &&
-        !dayHasItems &&
-        !(earlyHabit && isToday && !dayHasItems) ? (
-          <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
-        ) : null}
         {showLoading ? <TodayLoadingSkeleton /> : null}
 
         {contentReady && loadError ? (

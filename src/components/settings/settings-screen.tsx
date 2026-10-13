@@ -17,7 +17,6 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
-import { MealChatHint } from "@/components/meal-chat/meal-chat-hint";
 import { SettingsAccessSection } from "@/components/settings/settings-access-section";
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAppearanceSection } from "@/components/settings/settings-appearance-section";
@@ -28,16 +27,11 @@ import { SettingsRemindersSection } from "@/components/settings/settings-reminde
 import { SettingsSyncFailures } from "@/components/settings/settings-sync-failures";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
 import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
-import { MEAL_CHAT_INBOX_NOTE } from "@/lib/messages";
 import { formatKcal } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 import { MEAL_TEMPLATES_LABEL } from "@/lib/workout/labels";
 
-export function SettingsScreen({
-  mealChatHint = false,
-}: {
-  mealChatHint?: boolean;
-}) {
+export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
   const { density, setDensity } = useDiaryDensity();
   const { order, setOrder } = useTodayOrder();
@@ -182,8 +176,6 @@ export function SettingsScreen({
           />
         ) : null}
 
-        <SettingsAccessSection gymEnabled={form?.gym_enabled === true} />
-
         <SettingsAppearanceSection
           theme={theme}
           setTheme={setTheme}
@@ -221,21 +213,13 @@ export function SettingsScreen({
           />
         ) : null}
 
+        <SettingsAccessSection />
+
         {!loading && form ? (
           <section className="flex flex-col gap-2">
             <SectionHeading title="Данные и приватность" />
             <SettingsSyncFailures />
             <SettingsAccount />
-          </section>
-        ) : null}
-
-        {mealChatHint ? (
-          <section className="card-surface animate-rise flex flex-col gap-2 px-5 py-4">
-            <h2 className="text-xl font-semibold">Запись в чате</h2>
-            <MealChatHint />
-            <p className="text-sm leading-snug text-muted-foreground">
-              {MEAL_CHAT_INBOX_NOTE}
-            </p>
           </section>
         ) : null}
 

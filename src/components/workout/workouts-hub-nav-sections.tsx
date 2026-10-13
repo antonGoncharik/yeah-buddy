@@ -13,11 +13,6 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { CircleOpenedNote } from "@/components/workout/circle-opened-note";
 import { CycleTimeline } from "@/components/workout/cycle-timeline";
 import { reviewHref } from "@/lib/ai/review-nav";
-import {
-  BARBELL_GAME_HINT,
-  BARBELL_GAME_HREF,
-  BARBELL_GAME_TITLE,
-} from "@/lib/share/barbell-daily";
 import type {
   CurrentMacroState,
   PhaseCircleProgress,
@@ -216,12 +211,6 @@ export function WorkoutsHubNavSections({
       ) : null}
 
       <section className="card-surface divide-y divide-border/70 px-5 py-2">
-        <NavRow
-          href={BARBELL_GAME_HREF}
-          title={BARBELL_GAME_TITLE}
-          hint={BARBELL_GAME_HINT}
-          icon={<BarbellDoodle />}
-        />
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"

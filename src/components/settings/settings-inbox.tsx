@@ -7,6 +7,7 @@ import { mutateJson } from "@/lib/api-cache";
 import { readInboxOpenUrl } from "@/lib/inbox/open-url";
 import {
   INBOX_FAILED,
+  INBOX_OPEN_CHAT,
   INBOX_SETTINGS_HINT,
   INBOX_SETTINGS_TITLE,
 } from "@/lib/messages";
@@ -74,7 +75,7 @@ export function SettingsInbox() {
         disabled={busy}
         onClick={() => void onWrite()}
       >
-        {INBOX_SETTINGS_TITLE}
+        {INBOX_OPEN_CHAT}
       </Button>
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>

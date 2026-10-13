@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { nutritionHistoryHref } from "@/lib/day/dates";
-import { TODAY_MY_FOODS_LINK } from "@/lib/messages";
 import { cn } from "@/lib/utils";
 
 export function TodayDiaryLinks({ className }: { className?: string }) {
@@ -16,24 +15,6 @@ export function TodayDiaryLinks({ className }: { className?: string }) {
       aria-label="Дневник"
     >
       <Link
-        href="/foods"
-        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-      >
-        {TODAY_MY_FOODS_LINK}
-      </Link>
-      <Link
-        href="/progress/ask"
-        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-      >
-        Спросить
-      </Link>
-      <Link
-        href="/settings/meals"
-        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-      >
-        Меню на день
-      </Link>
-      <Link
         href="/today/week"
         className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
@@ -44,6 +25,12 @@ export function TodayDiaryLinks({ className }: { className?: string }) {
         className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
         История еды
+      </Link>
+      <Link
+        href="/progress/ask"
+        className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        Спросить
       </Link>
     </nav>
   );
