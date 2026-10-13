@@ -11,7 +11,7 @@ import {
 } from "@/lib/share/barbell-daily";
 import { barbellInlineResults, joyPhotoOrigin } from "@/lib/share/prepared";
 import { createBot, getAppShareUrl, getMiniAppUrl } from "@/lib/telegram/bot";
-import { dailyChallenge, minMovesForTarget } from "@/lib/workout/barbell-daily";
+import { dailyChallenge } from "@/lib/workout/barbell-daily";
 
 const barbellShareSchema = z.object({
   dayKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -31,8 +31,7 @@ export const POST = sessionRoute(async (session, request) => {
     return jsonError(CHECK_FIELDS, 400);
   }
 
-  const par = minMovesForTarget(targetKg);
-  if (par == null || moves < par) {
+  if (moves < challenge.parMoves) {
     return jsonError(CHECK_FIELDS, 400);
   }
 

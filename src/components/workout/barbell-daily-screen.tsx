@@ -5,20 +5,47 @@ import { useMemo, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { BarbellDailyShare } from "@/components/share/barbell-daily-share";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
+import { BarbellBalanceGame } from "@/components/workout/barbell-balance-game";
 import { BarbellDailyGame } from "@/components/workout/barbell-daily-game";
+import { BarbellPendulumGame } from "@/components/workout/barbell-pendulum-game";
 import { calendarToday } from "@/lib/day/dates";
+import { BALANCE_RULES, balanceDeal } from "@/lib/workout/barbell-balance";
 import {
   BARBELL_DAILY_RULES,
   type BarbellDailyChallenge,
   barbellDailyGrade,
   barbellDailyGradeLine,
   dailyChallenge,
+  formatMissingRack,
+  formatRack,
   formatSidePlateStack,
-  optimalSidePlates,
+  plateCountWord,
   streakDayWord,
 } from "@/lib/workout/barbell-daily";
 import { readBarbellDailyProgress } from "@/lib/workout/barbell-daily-storage";
+import { PENDULUM_RULES } from "@/lib/workout/barbell-pendulum";
 import { plateLabel } from "@/lib/workout/rest-load";
+
+type BarbellMode = "rack" | "balance" | "pendulum";
+
+const MODE_OPTIONS: Array<{ id: BarbellMode; label: string }> = [
+  { id: "rack", label: "Стойка" },
+  { id: "balance", label: "Ровно" },
+  { id: "pendulum", label: "Маятник" },
+];
+
+const MODE_SUBTITLE: Record<BarbellMode, string> = {
+  rack: "Задача дня",
+  balance: "Баланс",
+  pendulum: "Башня",
+};
+
+const MODE_RULES: Record<BarbellMode, string> = {
+  rack: BARBELL_DAILY_RULES,
+  balance: BALANCE_RULES,
+  pendulum: PENDULUM_RULES,
+};
 
 export function BarbellDailyScreen() {
   const dayKey = calendarToday();
@@ -26,6 +53,11 @@ export function BarbellDailyScreen() {
     () => dailyChallenge(dayKey),
     [dayKey],
   ) as BarbellDailyChallenge | null;
+  const pile = useMemo(
+    () => (challenge ? balanceDeal(challenge.parPlates, challenge.dayKey) : []),
+    [challenge],
+  );
+  const [mode, setMode] = useState<BarbellMode>("rack");
   const [progress, setProgress] = useState(() =>
     readBarbellDailyProgress(dayKey),
   );
@@ -35,10 +67,6 @@ export function BarbellDailyScreen() {
     streak: number;
     grade: ReturnType<typeof barbellDailyGrade>;
   } | null>(null);
-  const optimalStack = useMemo(
-    () => (challenge ? optimalSidePlates(challenge.targetKg) : null),
-    [challenge],
-  );
 
   if (!challenge) {
     return (
@@ -52,84 +80,118 @@ export function BarbellDailyScreen() {
   }
 
   const showShare = win != null || progress.completed;
+  const missing = formatMissingRack(challenge.rack);
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Собери штангу" subtitle="Задача дня" />
+      <AppHeader title="Собери штангу" subtitle={MODE_SUBTITLE[mode]} />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
+        <Segmented value={mode} options={MODE_OPTIONS} onChange={setMode} />
         <p className="text-sm leading-snug text-muted-foreground">
-          {BARBELL_DAILY_RULES}
+          {MODE_RULES[mode]}
         </p>
-        <section className="card-surface flex flex-col gap-3 px-5 py-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-sm font-medium text-muted-foreground">Цель</p>
-            <p className="text-2xl font-semibold tabular-nums tracking-tight">
-              {plateLabel(challenge.targetKg)} кг
-            </p>
-          </div>
-          {progress.streak > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Серия {progress.streak} {streakDayWord(progress.streak)}
-            </p>
-          ) : null}
-          {progress.bestMoves != null && progress.completed && win == null ? (
-            <p className="text-sm text-muted-foreground">
-              Сегодня уже собрал за {progress.bestMoves} — можно лучше или
-              поделиться.
-            </p>
-          ) : null}
-          <BarbellDailyGame
-            key={round}
-            challenge={challenge}
-            onWin={({ moves, streak, grade }) => {
-              setWin({ moves, streak, grade });
-              setProgress(readBarbellDailyProgress(dayKey));
-            }}
-          />
-          {showShare && optimalStack ? (
-            <ResultSummary
-              moves={win?.moves ?? progress.bestMoves ?? challenge.parMoves}
-              parMoves={challenge.parMoves}
-              grade={
-                win?.grade ??
-                barbellDailyGrade(
-                  progress.bestMoves ?? challenge.parMoves,
-                  challenge.parMoves,
-                )
-              }
-              optimalStack={optimalStack}
-            />
-          ) : null}
-          {progress.completed ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 text-base"
-              onClick={() => {
-                setWin(null);
-                setRound((value) => value + 1);
-              }}
-            >
-              Ещё раз
-            </Button>
-          ) : null}
-        </section>
 
-        {showShare ? (
+        <div className={mode === "rack" ? "flex flex-col gap-4" : "hidden"}>
           <section className="card-surface flex flex-col gap-3 px-5 py-4">
-            <p className="text-base font-medium">Кинуть друзьям</p>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-sm font-medium text-muted-foreground">Цель</p>
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
+                {plateLabel(challenge.targetKg)} кг
+              </p>
+            </div>
             <p className="text-sm leading-snug text-muted-foreground">
-              В чат или сторис — с кнопкой в дневник. Пусть тоже соберут штангу.
+              На стойке: {formatRack(challenge.rack)}
             </p>
-            <BarbellDailyShare
-              facts={{
-                dayKey: challenge.dayKey,
-                targetKg: challenge.targetKg,
-                moves: win?.moves ?? progress.bestMoves ?? challenge.parMoves,
-                parMoves: challenge.parMoves,
+            {missing ? (
+              <p className="text-sm text-muted-foreground">Нет {missing}</p>
+            ) : null}
+            {progress.streak > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Серия {progress.streak} {streakDayWord(progress.streak)}
+              </p>
+            ) : null}
+            {progress.bestMoves != null && progress.completed && win == null ? (
+              <p className="text-sm text-muted-foreground">
+                Сегодня уже собрал за {progress.bestMoves} — можно лучше или
+                поделиться.
+              </p>
+            ) : null}
+            <BarbellDailyGame
+              key={round}
+              challenge={challenge}
+              onWin={({ moves, streak, grade }) => {
+                setWin({ moves, streak, grade });
+                setProgress(readBarbellDailyProgress(dayKey));
               }}
             />
+            {showShare ? (
+              <ResultSummary
+                moves={win?.moves ?? progress.bestMoves ?? challenge.parMoves}
+                parMoves={challenge.parMoves}
+                grade={
+                  win?.grade ??
+                  barbellDailyGrade(
+                    progress.bestMoves ?? challenge.parMoves,
+                    challenge.parMoves,
+                  )
+                }
+                parPlates={challenge.parPlates}
+              />
+            ) : null}
+            {progress.completed ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 text-base"
+                onClick={() => {
+                  setWin(null);
+                  setRound((value) => value + 1);
+                }}
+              >
+                Ещё раз
+              </Button>
+            ) : null}
+          </section>
+
+          {showShare ? (
+            <section className="card-surface flex flex-col gap-3 px-5 py-4">
+              <p className="text-base font-medium">Кинуть друзьям</p>
+              <p className="text-sm leading-snug text-muted-foreground">
+                В чат или сторис — с кнопкой в дневник. Пусть тоже соберут
+                штангу.
+              </p>
+              <BarbellDailyShare
+                facts={{
+                  dayKey: challenge.dayKey,
+                  targetKg: challenge.targetKg,
+                  moves: win?.moves ?? progress.bestMoves ?? challenge.parMoves,
+                  parMoves: challenge.parMoves,
+                }}
+              />
+            </section>
+          ) : null}
+        </div>
+
+        {mode === "balance" ? (
+          <section className="card-surface flex flex-col gap-3 px-5 py-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-sm font-medium text-muted-foreground">Цель</p>
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">
+                {plateLabel(challenge.targetKg)} кг
+              </p>
+            </div>
+            <BarbellBalanceGame
+              key={challenge.dayKey}
+              targetKg={challenge.targetKg}
+              pile={pile}
+            />
+          </section>
+        ) : null}
+
+        {mode === "pendulum" ? (
+          <section className="card-surface flex flex-col gap-3 px-5 py-4">
+            <BarbellPendulumGame />
           </section>
         ) : null}
       </div>
@@ -141,12 +203,12 @@ function ResultSummary({
   moves,
   parMoves,
   grade,
-  optimalStack,
+  parPlates,
 }: {
   moves: number;
   parMoves: number;
   grade: ReturnType<typeof barbellDailyGrade>;
-  optimalStack: number[];
+  parPlates: number[];
 }) {
   const overPar = moves - parMoves;
   const detail =
@@ -160,23 +222,11 @@ function ResultSummary({
     <div className="rounded-xl bg-muted/50 px-4 py-3 text-sm">
       <p className="font-medium">{barbellDailyGradeLine(grade)}</p>
       <p className="mt-1 text-muted-foreground">
-        {moves} {plateWord(moves)} · {detail}
+        {moves} {plateCountWord(moves)} · {detail}
       </p>
       <p className="mt-1 text-muted-foreground">
-        Пар на сторону: {formatSidePlateStack(optimalStack)}
+        Пар на сторону: {formatSidePlateStack(parPlates)}
       </p>
     </div>
   );
-}
-
-function plateWord(count: number): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return "блин";
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return "блина";
-  }
-  return "блинов";
 }

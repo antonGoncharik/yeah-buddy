@@ -20,7 +20,8 @@ export function publicBarbellCard(): PublicBarbellCard {
     slug: PUBLIC_BARBELL_SLUG,
     path: PUBLIC_BARBELL_PATH,
     name: BARBELL_GAME_TITLE,
-    summary: "Одна головоломка в день: набери блины на гриф до нужного веса.",
+    summary:
+      "Одна головоломка в день: набери вес из блинов, которые сегодня на стойке.",
     hint: BARBELL_GAME_HINT,
   };
 }

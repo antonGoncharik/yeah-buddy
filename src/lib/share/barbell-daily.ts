@@ -8,7 +8,7 @@ import { plateLabel } from "@/lib/workout/rest-load";
 export const BARBELL_INLINE_PREFIX = "barbell";
 export const BARBELL_GAME_HREF = "/workouts/barbell";
 export const BARBELL_GAME_TITLE = "Собери штангу";
-export const BARBELL_GAME_HINT = "Задача дня · блины на гриф";
+export const BARBELL_GAME_HINT = "Задача дня · блины со стойки";
 export const BARBELL_SHARE_TO_CHAT = "В чат";
 export const BARBELL_SHARE_STORY = "Сторис";
 

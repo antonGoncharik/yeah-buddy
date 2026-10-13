@@ -10,9 +10,11 @@ import {
   barbellDailyGrade,
   barbellDailyGradeLine,
   barbellDailyPlayLine,
+  canTakePlate,
   formatSidePlateStack,
   movesHitTarget,
-  optimalSidePlates,
+  plateCountWord,
+  rackCount,
 } from "@/lib/workout/barbell-daily";
 import { recordBarbellDailyWin } from "@/lib/workout/barbell-daily-storage";
 import {
@@ -36,6 +38,7 @@ export function BarbellDailyGame({
   }) => void;
 }) {
   const [plates, setPlates] = useState<number[]>([]);
+  const [missed, setMissed] = useState(false);
   const targetKg = challenge.targetKg;
   const currentKg = loadedKg(plates);
   const status = loadStatus(currentKg, targetKg);
@@ -59,6 +62,7 @@ export function BarbellDailyGame({
       }
     }
     if (nextStatus === "over" && prev !== "over") {
+      setMissed(true);
       haptic("error");
     } else {
       haptic("tap");
@@ -66,11 +70,10 @@ export function BarbellDailyGame({
     setPlates(next);
   }
 
-  const optimal = optimalSidePlates(targetKg);
   const line =
     status === "hit"
       ? barbellDailyGradeLine(barbellDailyGrade(moves, challenge.parMoves))
-      : barbellDailyPlayLine(currentKg, targetKg);
+      : barbellDailyPlayLine(currentKg, targetKg, missed);
 
   return (
     <div
@@ -94,26 +97,44 @@ export function BarbellDailyGame({
           {line}
         </p>
         <p className="text-center text-xs text-muted-foreground">
-          Пар — {challenge.parMoves}{" "}
-          {challenge.parMoves === 1 ? "блин" : "блина"}
-          {status === "hit" && optimal ? (
-            <> · на сторону {formatSidePlateStack(optimal)}</>
+          Пар — {challenge.parMoves} {plateCountWord(challenge.parMoves)}
+          {status === "hit" ? (
+            <> · на сторону {formatSidePlateStack(challenge.parPlates)}</>
           ) : null}
         </p>
       </div>
       <div className="grid grid-cols-4 gap-1.5">
-        {SIDE_PLATES.map((plate) => (
-          <Button
-            key={plate}
-            type="button"
-            variant="outline"
-            className="h-11 px-1.5 text-base"
-            disabled={status === "hit"}
-            onClick={() => setNext(addSidePlate(plates, plate))}
-          >
-            {plateLabel(plate)}
-          </Button>
-        ))}
+        {SIDE_PLATES.map((plate) => {
+          const left = Math.max(
+            0,
+            rackCount(challenge.rack, plate) -
+              plates.filter((used) => used === plate).length,
+          );
+          return (
+            <Button
+              key={plate}
+              type="button"
+              variant="outline"
+              className="h-14 px-1.5 text-base"
+              disabled={
+                status === "hit" || !canTakePlate(challenge.rack, plates, plate)
+              }
+              onClick={() => {
+                if (!canTakePlate(challenge.rack, plates, plate)) {
+                  return;
+                }
+                setNext(addSidePlate(plates, plate));
+              }}
+            >
+              <span className="flex flex-col items-center leading-none">
+                <span>{plateLabel(plate)}</span>
+                <span className="mt-1 text-xs font-medium tabular-nums text-foreground/75">
+                  ×{left}
+                </span>
+              </span>
+            </Button>
+          );
+        })}
         <Button
           type="button"
           variant="ghost"
