@@ -19,11 +19,21 @@ export type AssistantToolBundle = {
   } | null;
   nextWorkout: string | null;
   muscles: Array<{ id: string; sets_per_week: number }>;
-  foods: Array<{ name: string; protein_per_100: number }>;
+  foods: Array<{
+    name: string;
+    protein_per_100: number;
+    fat_per_100: number;
+    carbs_per_100: number;
+    kcal_per_100: number;
+  }>;
 };
 
 export function assistantFoodSearchQuery(question: string): string | null {
-  if (!/продукт|еда|белок|ужин|завтрак|обед/i.test(question)) {
+  if (
+    !/продукт|еда|белк|ужин|завтрак|обед|перекус|калор|жир|углевод|съест|поест|грамм|блюд|рецепт/i.test(
+      question,
+    )
+  ) {
     return null;
   }
   const tokens = question
@@ -65,11 +75,14 @@ export async function gatherAssistantTools(
   const query = assistantFoodSearchQuery(question);
   if (query) {
     const rows = await listFoods(userId, "all", { search: query, limit: 80 });
-    const ranked = filterAndSortFoodsBySearch(rows, query).slice(0, 5);
+    const ranked = filterAndSortFoodsBySearch(rows, query).slice(0, 8);
     for (const food of ranked) {
       foods.push({
         name: food.name,
         protein_per_100: food.protein_per_100,
+        fat_per_100: food.fat_per_100,
+        carbs_per_100: food.carbs_per_100,
+        kcal_per_100: food.kcal_per_100,
       });
     }
   }

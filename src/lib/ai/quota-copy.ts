@@ -10,7 +10,7 @@ export const PLATE_DAILY_LIMIT = 4;
 export const REVIEW_DAILY_LIMIT = 4;
 export const DICTATE_DAILY_LIMIT = 4;
 export const TEXT_MEAL_DAILY_LIMIT = 4;
-export const ASSISTANT_DAILY_LIMIT = 4;
+export const ASSISTANT_DAILY_LIMIT = 30;
 
 export function dailyLimit(kind: AiKind): number {
   if (kind === "plate") {

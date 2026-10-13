@@ -150,7 +150,7 @@ assertEqual(dailyLimit("plate"), 4, "four photos");
 assertEqual(dailyLimit("review"), 4, "four reviews");
 assertEqual(dailyLimit("dictate"), 4, "four spoken logs");
 assertEqual(dailyLimit("text"), 4, "four text meal logs");
-assertEqual(dailyLimit("assistant"), 4, "four assistant turns");
+assertEqual(dailyLimit("assistant"), 30, "thirty assistant turns");
 
 assertEqual(remainingAfterUse(0, 5), 5, "full remaining");
 assertEqual(remainingAfterUse(5, 5), 0, "exhausted");

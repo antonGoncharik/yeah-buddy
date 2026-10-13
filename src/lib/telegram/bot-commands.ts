@@ -23,6 +23,7 @@ import {
 import { getUserSettings } from "@/lib/settings";
 import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { getMiniAppUrl } from "@/lib/telegram/bot";
+import { splitTelegramText } from "@/lib/telegram/reply-chunks";
 
 export function registerBotCommands(bot: Bot, env: ServerEnv): void {
   bot.command("today", async (ctx) => {
@@ -114,7 +115,9 @@ export function registerAssistantChat(bot: Bot): void {
         user.userId,
         text.replace(/^спроси\s*/i, ""),
       );
-      await ctx.reply(result.answer);
+      for (const chunk of splitTelegramText(result.answer)) {
+        await ctx.reply(chunk);
+      }
     } catch (error) {
       console.error(error);
       await ctx.reply("Не получилось ответить. Открой «Спросить» в дневнике.");

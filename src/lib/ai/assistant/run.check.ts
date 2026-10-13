@@ -27,6 +27,11 @@ export default (async () => {
     "что творога добавить",
     "food question keeps three tokens",
   );
+  assertEqual(
+    assistantFoodSearchQuery("Сколько калорий в твороге?"),
+    "сколько калорий твороге",
+    "calorie question searches foods",
+  );
 
   try {
     await runAssistant("user-1", "а");
