@@ -1,48 +1,58 @@
 # Yeah Buddy
 
-Telegram Mini App: food diary and gym log. One Next.js deploy on Vercel — Mini App UI (Russian, mobile), HTTP API, and the bot webhook.
+Telegram Mini App: a food diary and a gym log. One Next.js app — the diary, the HTTP API, and the bot.
 
-## What it does
+Bottom nav: **Today · Workouts · Settings**. Your food list lives in Settings.
 
-Bottom nav: **Today · Workouts · Settings**. Foods live under Settings, not as their own tab.
+## Food
 
-**Food**
+A day is rest or training. That switches calorie targets and which meals show up: a snack on a rest day, pre- and post-workout on a training day. Body weight is one number for the day. Waist is optional and is not copied from yesterday.
 
-- A day is rest or training. That switches macro targets and which meals show (snack on rest days; pre/post workout on training days). Body weight is one number on the day, next to leftover protein. Waist is optional on the day (not copied from yesterday); when it is logged, «Как прошло» can talk about it next to weight.
-- Pick a food, enter grams, get protein / fat / carbs / kcal. If the card has a usual portion and no raw/dry yield, a tap on Today puts that portion in the meal and returns. Otherwise the grams screen. A name that is not in your list can be a one-off row: protein / fat / carbs for the portion, not a catalog card. A plate photo lives on the add-food screen when `GEMINI_PLATE_API_KEY` is set: known foods get grams, unknown food becomes that same one-off row. Without that key the diary still logs by hand. **Three** plate photos per user per day; the remaining count is on the plate screen. Spoken food on that screen when `GEMINI_DICTATE_API_KEY` is set uses the same draft: say the foods and the grams, then confirm — **three** per day, separate from photos. Text on Today (`GEMINI_TEXT_API_KEY`) parses a line like «овсянка 80 г» — **three** per day; without the key the block is hidden.
-- Your own food list: CRUD, search, favorites, recents. After a food shows up two or three times, the add-food screen offers to favourite it once. A shop catalog can copy a card into that list. Search scans a barcode from the camera or takes 8–14 digits: the EAN is looked up in that catalog, then Open Food Facts, and the hit is cached. Name search stays on the local catalog.
-- **«Еда на день»** is a template in Settings — it does **not** silently fill every new calendar day. Creating a day only inserts empty meals (plus macro targets). If the template is your own menu, items can be written into the new day once; the built-in starter oatmeal template is skipped so the day stays empty. Onboarding can apply a **ration** (scaled grams into the template), but Today still starts empty until you log, copy yesterday, or tap **Подставить из шаблона**. In the **first 7 days** after onboarding, the first fill-from-template on an empty today asks once: «Подставить еду на день из шаблона?» — **Подставить** / **Сам заполню** (`meal_template_fill_prompt_dismissed` in settings).
-- Today opens as an empty rest day. Switch to training if you are going to the gym, or copy yesterday onto an empty day. On a filled meal, **Вот обед** sits on the card; extra copy actions stay behind «Ещё». An empty meal that yesterday already had shows one tap on the card — **Как вчера утром**, and the same for the other slots. Today plus the two previous calendar days stay fully writable in the user's timezone. Empty days up to seven days back can still be filled, marked «догонял»; already logged days in that extra window stay locked. If yesterday is still empty, Today says «Вчера пустой — можно догнать» — except in the first three days after onboarding (evening bot copy is plainer then).
-- **Retention on Today:** while today is still empty, the first 14 days show the **Привычка** card (food streak, protein, gyms this week) and days 15–30 show **Неделя привычки**. The empty-yesterday hint uses that same slot. Once food is logged those cards step aside: **Итог дня** sits with the meals — a time-of-day title, one line, and protein / kcal / gym. After two weeks of body weight and a dense food log, Today can add one line above that: how the scale moved, expenditure from that trend (recent food weighs more than older days; a one-day rebound is left out; at least three weigh-ins), and a rest-day goal for the aim. The weekly rate comes from **goal pace** in onboarding or Settings → goals: on a cut about 0.25% / 0.5% / 0.75% of body weight (`slow` / `normal` / `fast`), the burn itself to keep, and a smaller gain rate on a bulk. A day counts as logged only when food covers at least half the calorie target (and at least 800 kcal). A patchy log only moves part of the way, and under about three quarters of the days it does not move at all; the last seven days need at least five logged days, and the goal steps at most about 175 kcal per week toward the new target. The floor is 1500 kcal for men and 1200 for women. **Поставить** re-anchors protein to g/kg for the current weight and goal (same reference-weight rules as onboarding, never below what you already run), fills carbs to the new kcal, and lowers fat only when carbs are on the floor; today’s open day picks up the new targets. Nothing moves until that tap. **Оставить** stores `energy_goal_dismissed_kcal` and hides that number until the suggestion moves by about 100 kcal. An open or queued session is a full row with the workout name. Quick protein adds sit under that line. Macro bars, kcal, weight, and waist stay below the meals. Protein and gym are not repeated there. Settings → Вид → **Сначала цифры** lifts that card above the meals; the glance and protein adds stay on top. Empty days ignore the switch. A finished day collapses to «День в порядке.»
-- Older days on Today are view-only. Week and food history sit under the date; the date title still opens the calendar. After a calendar week in the diary, and seven logged days or four gyms, «Как прошло» appears once on Today; Sunday the bot already adds that 14-day scoreboard to the evening reminder. The day screen shows leftover recipe grams vs the template under the meals. Catch-up days keep the «догонял» mark in the week and history.
+Pick a food, enter grams, get protein, fat, carbs, and calories. A card with a usual portion goes straight into the meal. A name that is not in your list can be a one-off row for that portion. With a plate, voice, or text key the same screen can read a photo, a spoken list, or a line like «овсянка 80 г». Without those keys the diary is filled by hand. Each of those three is capped at three uses a day.
 
-**Gym**
+The list is yours: search, favorites, recents. A shop catalog can copy a card in. A barcode is looked up in that catalog, then Open Food Facts.
 
-- A queue of workout days (not a weekday calendar). Ready-made programs fill the queue; you can edit days after. Programs with weeks (tables, 5/3/1, two-week press) start those weeks with the days; after a full round the next week starts itself. A максимум на раз bump and the last week still wait for a tap.
-- «Пропустить» on the hub moves the queue without taking the date; you can put the skipped day back. «Не сегодня» inside a started session just removes that entry; the day stays next in the queue.
-- Optional weeks can also be picked later: ramp → volume → peak → deload, or a percent/kg wave. Starting weeks can omit максимум на раз — the session asks. Weights move when the week changes, not after a single session.
-- A session is a cheatsheet and a log: planned weights from the scheme (default 3×5), one «Готово». Untouched sets close as planned and stay labeled that way in history and on charts; edited sets are the real log. After «Готово», single-set API patches are rejected (409); use **Исправить** on the completed screen and save again — that re-sends `POST /complete` with set overrides. A bare repeat `POST /complete` with no body is idempotent. Warm-up percentages are of the top working weight and stay lighter than that weight. Working kg steps up only when the work sets meet the plan and the session was not marked «не пошло»; three holds in a row on the same weight lower it by about 10% (rounded to your bar step). Exercises without a working weight are listed in the session and get a plan as soon as you type the weight there. How it felt is asked after you finish. Edit the scheme in Settings.
-- A suggested максимум на раз looks at e1RM of the work sets against the plan, not the heaviest single number. Onboarding estimates are stored as `global_maxes.source = estimate` and can be replaced from that e1RM after a session you actually logged. Manual and session maxes stay put.
-- Progress (working weights, e1RM, and relative strength when body weight is logged), session history, exercise list.
-- **Мышцы** (`/workouts/muscles`): heat map by weekly volume and recovery %. The silhouette follows profile sex (female paths when sex is female). Volume bands use per-muscle landmarks. A new lifter’s weekly sets are divided by the days since the first completed session (at least 7, never longer than the chosen horizon). A skipped day counts once per muscle. The next session’s muscles are a dashed outline. After «Готово» the completed screen shows a mini figure of that session. The muscle screen can share a **карта недели** (top muscles, sets only — no body weight or kg) to chat or a story. Program pages (`/programs/<id>` and public `/p/*`) show a weekly muscle preview of the preset.
-- **Собери штангу** (`/workouts/barbell`): one plate-math puzzle per calendar day (60–140 kg), streak in `localStorage`. Rest between sets still uses the same loader for the real working weight. After a solve: **В чат** / **Сторис** with a T-rex card and **Поставить дневник**; `@bot` inline `barbell …` or queries like «собери штангу». Mini App deep link: `startapp=barbell`.
+**Еда на день** in Settings is a template. It does not fill every new calendar day. A new day starts with empty meals. You log, copy yesterday, or tap **Подставить из шаблона**.
 
-**Share**
+Today opens as an empty rest day. Switch to training, or copy yesterday onto an empty day. Today and the two days before it stay editable. Empty days a little further back can still be filled and are marked «догонял».
 
-- The 1st, 10th, 50th, and 100th session, «Сотня. Круглая.», or protein closed seven days in a row: **В чат** puts a short message in a chat the person picks — doodle, one line, **Поставить дневник**. Ordinary «Готово» and a closed protein day stay quiet. Mini App `shareMessage` / prepared inline, not `t.me/share/url`. Body weight, the plate, and максимум на раз stay off the message. Working kg is opt-in: **Написать кг**.
-- Meal templates and the gym queue share separately as snapshots, as a QR or a t.me bot link. A filled meal on Today has **Вот обед** on the card: the chat picker opens from the meal, four lines in chat, Start. A friend saves the pack and applies it later. Logged days and working weights stay private. **Бот другу** in Settings is a QR to the bot itself (no food or gym log), separate from those snapshots.
-- Settings → **Тренер**: the athlete shares a bot `start` link (`c_<token>`, 30 days, up to three live links at once). One coach claims each link; the board is read-only — the athlete’s current calendar week (meals, gym status, latest morning weight). It refreshes about every 30s while open. Renew or revoke from Settings. The coach never writes into the athlete’s diary.
-- Settings → **Пара**: accountability without numbers. The athlete shares `start=b_<token>` (same token shape as packs, `buddy_grants`, 30 days, up to three live links). One friend claims each link; the board shows **only today** — food logged yes/no, protein at goal yes/no, gym status — no body weight, waist, kcal, or максимум на раз. Read-only; refreshes about every 30s while open.
-- Listed ready programs have bot start links `p_<id>` (for example `p_full_body`, `p_home_glutes`, `p_home_floor`, `p_starting_strength`, `p_ppl`) and public pages on the site: `/p/full-body`, `/p/doma`, `/p/doma-3`, `/p/doma-turnik`, `/p/doma-verh-niz`, `/p/doma-ganteli`, `/p/doma-yagodicy`, `/p/5x5`, `/p/3x5`, `/p/2-silovyh`, `/p/verh-niz`, `/p/ppl`, `/p/spina-nogi-grud`. The same thirteen show in the Mini App at `/programs/<id>` and in onboarding (home shelf on the «Дома» step). **Featured** storefront (landing / bot empty inline) highlights four: full body, **home glutes**, 5×5, PPL. Onboarding: if sex is **female**, the home program shelf leads with **Дома · ягодицы** (`home_glutes`). `/start` with a program payload replies with the days and **Поставить**. `@bot` with an empty query lists all listed programs in inline search; a typed query narrows by name or alias (`5x5`, `верх низ`, `дома`, `турник`, `для девушек` → glutes, …). Apply puts the preset, not a personal snapshot. Other presets stay in the app only after `program:grant`. максимум на раз is still asked in the gym; the home programs plan from reps and do not need one.
-- **Собери штангу** has a public page `/p/barbell` (OG, QR, **Собрать в Telegram** with `startapp=barbell`) and a block on the landing under «Задача дня».
+While today is empty, the first weeks show a habit card: food streak, protein, gyms this week. Once food is logged, **Итог дня** sits with the meals. After about two weeks of weigh-ins and a dense log, Today can suggest a new calorie target from how the scale moved and the pace you chose. Nothing changes until you apply it.
 
-Screens first show the last successful API response from `localStorage` (`src/lib/api-cache.ts`), then refresh from the network. Opening a day, starting a workout from a template already on the phone, a one-off food row, ordinary grams, and finishing a session (`Готово`) stay on the phone if the network is down and sync when it comes back. Approaches typed in a session survive closing the Mini App. A plate photo still needs the network. New catalog foods and other writes that are not that gym/food gesture stay online. Offline writes need that day or template to have been loaded once while online.
+Older days are view-only. The week and food history sit under the date.
 
-## Stack
+## Gym
 
-Next.js App Router, TypeScript, Tailwind, shadcn/ui, grammY. Postgres in Supabase — server only, service role. Auth: Telegram `initData` → HTTP-only cookie (`session`, JWT, 7 days).
+Workouts are a queue, not a weekday calendar. Ready-made programs fill it; you can edit the days after. Programs that run in weeks advance on their own after a full round.
 
-## Setup
+**Пропустить** on the hub moves the queue without taking the date. **Не сегодня** inside a started session only drops that entry.
+
+A session is the plan and the log: weights from the scheme, one **Готово**. Sets you do not touch close as planned. Working weight steps up when the work sets meet the plan, and steps down after several holds on the same weight. How it felt is asked after you finish.
+
+Progress is working weight, estimated one-rep max, and relative strength when body weight is logged.
+
+**Мышцы** is a weekly volume and recovery map. The next session’s muscles are outlined. A finished session can share a week card: top muscles and sets, no body weight and no kilograms.
+
+**Собери штангу** is one plate-math puzzle a day, with a streak. The same loader is used for rest between real sets.
+
+## People
+
+Round session counts and a week of closed protein can go to a chat you pick: a short card and a link to the diary. Ordinary finishes stay quiet. Body weight, the plate, and one-rep maxes stay off the message. Working kilograms are opt-in.
+
+A meal on Today can be sent as **Вот обед**. Meal templates and the gym queue share as a snapshot — a QR or a bot link. A friend saves the pack and applies it later. Logged days and working weights stay private.
+
+**Тренер** is a read-only link to the athlete’s current week: meals, gym status, latest morning weight. **Пара** is the same idea without numbers: whether today has food, whether protein is at the goal, and whether the gym happened.
+
+Listed programs have a public page and a bot link that puts that preset in the queue. Featured on the landing: full body, home glutes, 5×5, and push / pull / legs.
+
+The bot can nudge once in the afternoon during the first two weeks, and once in the evening at the hour you set. Sunday’s evening message is a 14-day card. Both follow the same reminder toggle.
+
+## Outside the diary
+
+Opening the site outside Telegram shows a landing and the program pages. Inside Telegram the same address opens the diary. Settings can export the diary as JSON or delete the account.
+
+The diary works from the last successful response on the phone, then refreshes. Logging food, opening a day, and finishing a session can wait out a dropped network and sync when it returns. A plate photo still needs the network.
+
+## Run
 
 ```bash
 cp .env.example .env.local
@@ -50,108 +60,6 @@ npm install
 npm run dev
 ```
 
-Variables (see `.env.example` and `src/lib/env.ts`):
+Required keys are the Supabase URL and service role, the bot token, and a session secret. Optional keys (Gemini, Sentry, cron, inbox) are listed in `.env.example`. Apply `supabase/migrations/` in order. How auth, offline sync, and reminders fit together is in `docs/architecture.md`.
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `SUPABASE_URL` | yes | Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | yes | server key, never in the client |
-| `TELEGRAM_BOT_TOKEN` | yes | bot token, never in the client |
-| `SESSION_SECRET` | yes | session signing key, ≥ 32 characters |
-| `NEXT_PUBLIC_APP_URL` | no | public HTTPS app host; Mini App fallback and doodle/sticker files |
-| `TELEGRAM_MINI_APP_URL` | no | Mini App HTTPS URL (takes priority) |
-| `CRON_SECRET` | yes for cron | Vercel Cron sends `Authorization: Bearer CRON_SECRET` |
-| `SENTRY_DSN` | no | Server errors, Gemini failures, and reminder cron stats (project `yeah-buddy`). Not exposed to the browser — do not use `NEXT_PUBLIC_` on Vercel |
-| `SENTRY_AUTH_TOKEN` | no for local dev | Vercel **Production** (and Preview if you want maps there): upload source maps and register releases on `npm run build`. Create at [sentry.io/settings/auth-tokens](https://sentry.io/settings/auth-tokens/) with `project:releases` and `org:read` |
-| `SENTRY_ORG` / `SENTRY_PROJECT` | no | Override defaults `antgoncharikgmailcom` / `yeah-buddy` if needed |
-| `INBOX_CHAT_ID` | no | author's Telegram id. Settings → Написать delivers there. Reply to that message and the bot sends the answer back. Without it the button is hidden |
-| `GEMINI_API_KEY` | no | text review «Как прошло». Up to four comma-separated keys, each from its own Google project (one project shares one Gemini quota). **Three** reviews per user per day. A limited key is skipped for the next call. Without a key the screen still shows numbers |
-| `GEMINI_PLATE_API_KEY` | no | plate photo, same pool of up to four keys from separate projects. **Three** photos per user per day. Without a key the camera link is hidden, food still logs by hand |
-| `GEMINI_DICTATE_API_KEY` | no | spoken food «Голосом», same pool of up to four keys from separate projects. **Three** logs per user per day. Without a key the button is hidden, food still logs by hand |
-| `GEMINI_TEXT_API_KEY` | no | text meal on Today, same pool of up to four keys from separate projects. **Three** parses per user per day. Without a key the text block is hidden |
-
-Migrations: `supabase/migrations/0001_init.sql` … `0066_reminder_log.sql` — apply in order in the SQL Editor or with the Supabase CLI. Notable later files:
-
-| File | Purpose |
-|---|---|
-| `0034` | inbox for Написать |
-| `0035` | sex / goal / training age on settings |
-| `0038` | coach read-only grants (`coach_grants`, `c_<token>`) |
-| `0039` | separate AI quota kind for dictate |
-| `0040` | one-shot lighter week after three misses |
-| `0041` | `midday_reminded_on` — one midday bot nudge per day |
-| `0042` | buddy read-only grants (`buddy_grants`, `b_<token>`) |
-| `0043` | `meal_template_fill_prompt_dismissed` on settings |
-| `0044` | `energy_goal_dismissed_kcal` — «Поставить» after two weeks of weight and food. Dismiss hides that kcal until the suggestion moves |
-| `0045` | text meal AI quota |
-| `0046` | meal chat |
-| `0047` | `gym_enabled` — food-only vs gym onboarding |
-| `0048` | exercise catalog |
-| `0049` | `take_ai_slot` / `refund_ai_slot` — atomic AI daily quota |
-| `0050` | `product_events` — product analytics |
-| `0051` | `users.first_start_kind` / `first_start_ref` — start_param attribution |
-| `0052` | `donations` — Telegram Stars ledger |
-| `0053` | SQL views `analytics_*` for activation and onboarding |
-| `0054` | catalog exercise muscle targets |
-| `0055` | `global_maxes.source` — `estimate`, `manual`, or `session` |
-| `0056` | `height_cm`, `activity_level`, `goal_pace`, `reminder_hour` (17–23, default 21), `review_cooldown_until` |
-| `0057` | `birth_year` |
-| `0058`–`0063` | analytics, reminder cron index, packs, evening facts RPC, reminder fail count |
-| `0064` | catalog trigram search |
-| `0065` | AI assistant quota kind |
-| `0066` | `reminder_log` and notification preference columns |
-
-Bot: `/start` sends the T-rex sticker, then the diary text and an “Open diary” button when an **https** URL is set (`TELEGRAM_MINI_APP_URL` or `NEXT_PUBLIC_APP_URL`). Enable **inline mode** in @BotFather so «В чат» and `@bot` stickers work. `NEXT_PUBLIC_APP_URL` must be the public HTTPS app host — Telegram fetches `/share/*.jpg` and `/stickers/trex.webp` from there.
-
-**Midday (first 14 days after onboarding):** with reminders on, from local **13:00** until the evening reminder hour, at most **one** text per day (`midday_reminded_on`). Priority: open gym session → food streak at risk → empty food day → protein gap (from 15:00, ≥ 15 g left) → skip if the day is already “good enough” (food, protein closed, gym done or rest day). Same timezone and toggle as evening.
-
-**Evening:** at the hour in Settings → Напоминания (default **21:00** local, `user_settings.reminder_hour` 17–23; hourly cron, not to the minute) the bot sends **one** message: protein, kcal, whether the gym happened, plus a caption (empty food, a gym still in the queue, or «Yeah buddy»). The first three evenings after onboarding use plainer copy for empty food and the queued gym. A later hourly run still delivers that same evening if the chosen hour already passed. Closing after that hour does not send a second message. On Sunday the message is a photo of the 14-day card — protein days and gym sessions — with **В чат**. The caption on that photo is the same two facts, not the scale. The chat gets the picture and **Поставить дневник**. No body weight, максимум на раз, working kg, or waist. Not a broadcast. Toggle and timezone sit on the same screen (the note there explains midday + evening in the first two weeks).
-
-«Как прошло» waits `review_cooldown_until` on `user_settings` between writes (about 20 seconds), so a second tap on another serverless instance still gets «подожди».
-
-Cron: `GET /api/cron/reminders` once per UTC hour (`0 0-23 * * *` as 24 daily jobs so Vercel Hobby can deploy) with `CRON_SECRET`; response includes `{ evening, midday }` counts. Webhook: `POST /api/telegram/webhook`. On Bot API 8.0+ the Mini App requests fullscreen; in @BotFather enable fullscreen on the Main Mini App / Menu Button (or use `mode=fullscreen` on the t.me link) if the client still shows the header.
-
-```text
-https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<domain>/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>
-```
-
-Outside Telegram, `next dev` logs in via `POST /api/auth/dev` (404 in production). A new account gets starter foods and exercises without maxes. First visit with no history opens onboarding. With gym: mode → sex → weight → activity («Мало двигаюсь» / «Обычно» / «Много на ногах») → optional height and birth year (skip leaves the kcal/kg table) → goal → pace (hidden on «баланс») → training age → macro summary → ration → anchor lifts (squat / bench / deadlift, or skip) → program (default suggestion «Всё тело»; female users see the home shelf with glutes first). Food-only stops after the ration. A meal pack with gym on skips the person steps and opens the program. Replay (`?again=1`) is the person steps only.
-
-Macros: activity scales the start. Height plus birth year uses Mifflin–St Jeor × that activity factor; otherwise body weight × kcal/kg × (activity / 1.45). Protein and fat use a reference weight — BMI 27 when height is known, otherwise capped at 100 kg (men) or 85 kg (women) — so a heavy cut does not ask for an unrealistic protein target. The summary says calories retune after about two weeks of weigh-ins. The same fields are editable later under Settings → goals; the evening hour is under Напоминания.
-
-Anchor lifts you type are manual maxes. Empty ones are estimates (`source = estimate`) and can update from the session. The gym queue stays empty until onboarding or the queue screen applies a program. The guide tour lives on Today. A workout can start as soon as the day has at least one exercise with a set scheme; a missing максимум на раз is asked inside the session (`POST /api/sessions/:id/maxes`), and a missing working weight is typed there too.
-
-Scripts: `npm run dev` · `build` · `start` · `verify` (lint + `test` + `tsc`) · `lint` · `format` · `test` (`*.check.ts`) · `e2e` / `e2e:smoke` (Playwright; smoke needs `.env.local` with Supabase + session secrets and `E2E_SMOKE=1` — starts dev on port 3000, hits dev auth → food → optional session → outbox flush) · `catalog:import` · `user:delete` · `program:grant`. Vercel runs `verify` then `build` via `vercel.json` `buildCommand`.
-
-## Repo map
-
-```text
-src/app/(app)/     Mini App screens (today, workouts, settings, buddy, coach, programs)
-src/app/api/       HTTP API and bot webhook
-src/components/    day, foods, workout, settings, buddy, coach, layout, ui
-src/lib/           domain, auth, telegram, supabase, cache
-src/lib/buddy/     read-only buddy board and grants
-src/lib/coach/     read-only coach board and grants
-src/lib/retention/ early habit (14d), habit bridge (15–30d)
-src/lib/workout/   templates, sessions, macrocycles, formulas
-supabase/migrations/
-```
-
-## Limits
-
-- The diary logs your food list. A shop catalog copies a card into it. A barcode (camera or 8–14 digits) resolves in that catalog, then Open Food Facts (ODbL). A hit is cached in the shop. A miss stays out of the shop: name and macros go on your own food, with the code. A friend pack copies foods into your list.
-- The browser never talks to Supabase. `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN` stay on the server.
-- The diary UI is the Telegram Mini App: Russian, narrow screen. In production, opening the HTTPS app URL outside Telegram shows a landing on `/`: Yeah Buddy, rest day and gym day with different targets, the program sets the working weight, then the program shelf with **5×5**, **Дома**, and **Дома · ягодицы** first, **Задача дня** (link to `/p/barbell`), how to start, a QR, and a button to `https://t.me/<bot>`. Each program page repeats that split and offers **Поставить в Telegram**. Inside Telegram, `/` goes straight to the diary. `next dev` skips that landing and opens `/today`.
-- Settings → «Данные»: JSON export of the diary, or delete the account. Admin: `npm run user:delete -- <telegram-username>`. A hidden program shows up for one person after `npm run program:grant -- <telegram-username> <preset-id>` (`--revoke` takes it back). The general list does not need a grant. Apply `0033_program_grants.sql` before the first grant; coach sharing needs `0038_coach_grants.sql`; buddy sharing needs `0042_buddy_grants.sql`.
-
-**Share and deep links**
-
-- Meal templates and gym queue: snapshots (`share_packs`), QR + bot `start` link. Apply replaces templates (and food/gym settings), not logged days or working weights.
-- Coach: `start=c_<token>` (`coach_grants`).
-- Buddy (Пара): `start=b_<token>` (`buddy_grants`).
-- Programs: `start=p_<id>` for every listed preset (`full_body`, `home_floor`, `home_three`, `home_bar`, `home_split`, `home_db`, `home_glutes`, `five_by_five`, `starting_strength`, `strength`, `upper_lower`, `ppl`, `push_pull`, `three_day`) — no pack row — plus public `/p/*` and in-app `/programs/*`.
-- App invite: `https://t.me/<bot>` (friend presses Start in chat).
-
-The diary routes stay out of the search index; `/` and `/p/*` do not.
-
-Anonymous first-occurrence funnel (`funnel_events`, no food / weights / telegram_id): `onboarding_done`, `first_food`, `first_session`, `share`, `program_start`. `program_start` is a bot/program link apply, not an ordinary onboarding pick.
+`npm run dev` · `build` · `verify` (lint, tests, types) · `test` · `e2e`.
