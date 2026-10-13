@@ -1,5 +1,5 @@
-import { TodayLoadingSkeleton } from "@/components/layout/today-loading-skeleton";
+import { TodayRouteLoading } from "@/components/layout/today-loading-skeleton";
 
 export default function AppLoading() {
-  return <TodayLoadingSkeleton />;
+  return <TodayRouteLoading />;
 }

@@ -15,7 +15,10 @@ import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { ScreenError } from "@/components/layout/screen-status";
-import { TodayLoadingSkeleton } from "@/components/layout/today-loading-skeleton";
+import {
+  TodayDayTypeSkeleton,
+  TodayLoadingSkeleton,
+} from "@/components/layout/today-loading-skeleton";
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
@@ -164,6 +167,8 @@ export function TodayScreen({
             switchType={switchType}
             showDayTypeSwitch={gymEnabled}
           />
+        ) : showLoading && gymEnabled && !viewOnly ? (
+          <TodayDayTypeSkeleton />
         ) : null}
       </div>
       {pickerOpen ? (
@@ -181,7 +186,7 @@ export function TodayScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 pb-4">
-        {showLoading ? <TodayLoadingSkeleton /> : null}
+        {showLoading ? <TodayLoadingSkeleton gym={gymEnabled} /> : null}
 
         {contentReady && loadError ? (
           <ScreenError message={LOAD_FAILED} onRetry={() => void load()} />
