@@ -3,7 +3,7 @@
 import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
-import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError } from "@/components/layout/screen-status";
 import { ProgramEditableHintCard } from "@/components/workout/program-editable-hint-card";
 import { useProgramEditableHint } from "@/components/workout/use-program-editable-hint";
 import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
@@ -13,6 +13,7 @@ import { WorkoutsHubNavSections } from "@/components/workout/workouts-hub-nav-se
 import { WorkoutsHubQueueCta } from "@/components/workout/workouts-hub-queue-cta";
 import { WorkoutsHubRecent } from "@/components/workout/workouts-hub-recent";
 import { WorkoutsHubSessionCard } from "@/components/workout/workouts-hub-session-card";
+import { WorkoutsHubSkeleton } from "@/components/workout/workouts-hub-skeleton";
 import { previousIsoDate } from "@/lib/day/dates";
 
 export function WorkoutsHubScreen() {
@@ -59,7 +60,7 @@ export function WorkoutsHubScreen() {
         {!loading && !error && !editableHint.open && guideTip.tip ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
-        {loading ? <ScreenLoading /> : null}
+        {loading ? <WorkoutsHubSkeleton /> : null}
 
         {!loading && error ? (
           <ScreenError message={error} onRetry={() => void load()} />

@@ -9,15 +9,14 @@ import {
   mealActionPrimarySegmentClass,
 } from "@/components/day/meal-action-bar";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
+import { IconBone, TextBone } from "@/components/layout/skeleton";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { peekJson } from "@/lib/api-cache";
 import {
   DAY_TYPE_LABELS,
-  formatGrams,
   formatKcal,
   formatMacro,
   getMealLabel,
-  visibleMealTypes,
 } from "@/lib/nutrition";
 import { readSettingsPayload } from "@/lib/settings/map";
 import type { MealType } from "@/lib/types";
@@ -33,31 +32,60 @@ const MEAL_ICON_CLASS: Record<MealType, string> = {
 };
 
 const MACRO_ROWS = [
-  { label: "Белки", plan: 140 },
-  { label: "Жиры", plan: 70 },
-  { label: "Углеводы", plan: 200 },
+  { label: "Белки", fact: 110, plan: 110 },
+  { label: "Жиры", fact: 53.9, plan: 55 },
+  { label: "Углеводы", fact: 256.4, plan: 260 },
 ] as const;
 
-function TextBone({ text, className }: { text: string; className?: string }) {
-  return (
-    <span className={cn("relative inline-block max-w-full", className)}>
-      <span className="invisible">{text}</span>
-      <span className="absolute inset-x-0 top-[0.12em] bottom-[0.08em] animate-pulse rounded-[0.2em] bg-foreground/25" />
-    </span>
-  );
-}
+const REST_MEALS: Array<{
+  mealType: MealType;
+  kcal: string;
+  macros: string;
+  items: Array<{ name: string; grams: string; kcal: string }>;
+}> = [
+  {
+    mealType: "breakfast",
+    kcal: "752 ккал",
+    macros: "Б 35,1 · Ж 22,0 · У 97,3",
+    items: [
+      { name: "Овсянка сухая", grams: "155 г", kcal: "574" },
+      { name: "Яйца куриные", grams: "115 г", kcal: "178" },
+    ],
+  },
+  {
+    mealType: "lunch",
+    kcal: "733 ккал",
+    macros: "Б 45,1 · Ж 14,5 · У 105,3",
+    items: [
+      { name: "Рис сухой", grams: "135 г", kcal: "473" },
+      { name: "Куриное филе сырое", grams: "155 г", kcal: "171" },
+      { name: "Оливковое масло", grams: "10 г", kcal: "90" },
+    ],
+  },
+  {
+    mealType: "snack",
+    kcal: "78 ккал",
+    macros: "Б 0,0 · Ж 0,0 · У 21,0",
+    items: [{ name: "Яблоко", grams: "150 г", kcal: "78" }],
+  },
+  {
+    mealType: "dinner",
+    kcal: "408 ккал",
+    macros: "Б 29,8 · Ж 17,5 · У 32,8",
+    items: [
+      { name: "Творог 5%", grams: "155 г", kcal: "188" },
+      { name: "Банан", grams: "120 г", kcal: "115" },
+      { name: "Грецкий орех", grams: "15 г", kcal: "105" },
+    ],
+  },
+];
 
-function IconBone({ className }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-block shrink-0 animate-pulse rounded-md bg-foreground/25",
-        className,
-      )}
-    />
-  );
-}
+const FREQUENT_CHIPS = [
+  "Яйца куриные · 50 г = 1 шт",
+  "Оливковое масло · 10 мл",
+  "Яблоко · 150 г = 1 шт",
+  "Творог 5% · 150 г",
+] as const;
 
 export function TodayDayTypeSkeleton() {
   return (
@@ -79,10 +107,12 @@ export function TodayDayTypeSkeleton() {
 
 function MacroRowSkeleton({
   label,
+  fact,
   plan,
   compact,
 }: {
   label: string;
+  fact: number;
   plan: number;
   compact: boolean;
 }) {
@@ -96,7 +126,7 @@ function MacroRowSkeleton({
       >
         <TextBone text={label} className="font-medium" />
         <TextBone
-          text={`${formatMacro(0)} / ${formatMacro(plan)}`}
+          text={`${formatMacro(fact)} / ${formatMacro(plan)}`}
           className="tabular-nums"
         />
       </div>
@@ -122,10 +152,8 @@ function WeightFieldSkeleton({ label, unit }: { label: string; unit: string }) {
 }
 
 function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
-  const protein = gym
-    ? `осталось ${formatGrams(120)}\u00A0г`
-    : formatMacro(120);
-  const kcalPair = `${formatKcal(1800)} / ${formatKcal(2400)}`;
+  const protein = gym ? "закрыт" : formatMacro(120);
+  const kcalPair = `${formatKcal(4)} / ${formatKcal(1975)}`;
 
   return (
     <section
@@ -167,7 +195,7 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
                 <TextBone text="Зал" />
               </p>
               <p className="mt-1 text-xl font-semibold tracking-tight">
-                <TextBone text="План" />
+                <TextBone text="отдых" />
               </p>
             </div>
           ) : (
@@ -190,8 +218,12 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
             {(
               [
                 { value: kcalPair, label: "ккал", align: "" },
-                { value: formatKcal(0), label: "съел", align: "text-center" },
-                { value: "—", label: "г/кг", align: "text-right" },
+                {
+                  value: formatKcal(1971),
+                  label: "съел",
+                  align: "text-center",
+                },
+                { value: "1,8", label: "г/кг", align: "text-right" },
               ] as const
             ).map((cell) => (
               <p key={cell.label} className={cn("min-w-0", cell.align)}>
@@ -212,6 +244,7 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
           <MacroRowSkeleton
             key={row.label}
             label={row.label}
+            fact={row.fact}
             plan={row.plan}
             compact={compact}
           />
@@ -233,11 +266,44 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
   );
 }
 
+function MealItemSkeleton({
+  name,
+  grams,
+  kcal,
+}: {
+  name: string;
+  grams: string;
+  kcal: string;
+}) {
+  return (
+    <div className="flex w-full min-w-0 items-stretch gap-1">
+      <div className="min-w-0 flex-1 px-1 py-2">
+        <span className="flex w-full min-w-0 items-baseline justify-between gap-3">
+          <TextBone text={name} className="text-base font-medium" />
+          <span className="grid shrink-0 grid-cols-[4.75rem_3.5rem] items-baseline gap-x-1.5 tabular-nums">
+            <span className="min-w-0 text-right">
+              <TextBone text={grams} className="text-sm font-medium" />
+            </span>
+            <span className="min-w-0 text-right">
+              <TextBone text={kcal} className="text-base font-semibold" />
+            </span>
+          </span>
+        </span>
+      </div>
+      <div className="self-center" aria-hidden>
+        <span className="flex size-11 items-center justify-center">
+          <IconBone className="size-5" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function MealCardSkeleton({
-  mealType,
+  meal,
   compact,
 }: {
-  mealType: MealType;
+  meal: (typeof REST_MEALS)[number];
   compact: boolean;
 }) {
   return (
@@ -254,12 +320,12 @@ function MealCardSkeleton({
             compact ? "text-lg" : "text-xl",
           )}
         >
-          <IconBone className={MEAL_ICON_CLASS[mealType]} />
-          <TextBone text={getMealLabel(mealType)} />
+          <IconBone className={MEAL_ICON_CLASS[meal.mealType]} />
+          <TextBone text={getMealLabel(meal.mealType)} />
         </h2>
         <div className="flex shrink-0 items-center gap-1">
           <TextBone
-            text={`${formatKcal(165)} ккал`}
+            text={meal.kcal}
             className="text-base font-semibold tabular-nums"
           />
           <span
@@ -271,32 +337,14 @@ function MealCardSkeleton({
         </div>
       </div>
 
-      <div className="flex w-full min-w-0 items-stretch gap-1">
-        <div className="min-w-0 flex-1 px-1 py-2">
-          <span className="flex w-full min-w-0 items-baseline justify-between gap-3">
-            <TextBone text="Куриная грудка" className="text-base font-medium" />
-            <span className="grid shrink-0 grid-cols-[4.75rem_3.5rem] items-baseline gap-x-1.5 tabular-nums">
-              <span className="min-w-0 text-right">
-                <TextBone
-                  text={`${formatGrams(150)} г`}
-                  className="text-sm font-medium"
-                />
-              </span>
-              <span className="min-w-0 text-right">
-                <TextBone
-                  text={formatKcal(165)}
-                  className="text-base font-semibold"
-                />
-              </span>
-            </span>
-          </span>
-        </div>
-        <div className="self-center" aria-hidden>
-          <span className="flex size-11 items-center justify-center">
-            <IconBone className="size-5" />
-          </span>
-        </div>
-      </div>
+      {meal.items.map((item) => (
+        <MealItemSkeleton
+          key={item.name}
+          name={item.name}
+          grams={item.grams}
+          kcal={item.kcal}
+        />
+      ))}
 
       <p
         className={cn(
@@ -304,9 +352,7 @@ function MealCardSkeleton({
           compact ? "text-sm" : "text-lg font-semibold",
         )}
       >
-        <TextBone
-          text={`Б ${formatMacro(31)} · Ж ${formatMacro(3.6)} · У ${formatMacro(0)}`}
-        />
+        <TextBone text={meal.macros} />
       </p>
 
       <div className={mealActionBarClass}>
@@ -316,6 +362,42 @@ function MealCardSkeleton({
         </div>
       </div>
     </section>
+  );
+}
+
+function TodayTailSkeleton({ compact }: { compact: boolean }) {
+  return (
+    <>
+      <div className="flex h-10 items-center justify-center">
+        <TextBone text="Запомнить на дни без зала" className="text-sm" />
+      </div>
+      <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
+        <p className={cn("px-1 font-medium", compact ? "text-xs" : "text-sm")}>
+          <TextBone text="Частые" />
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {FREQUENT_CHIPS.map((chip) => (
+            <span
+              key={chip}
+              className={cn(
+                "shrink-0 rounded-full border border-border bg-card px-3 shadow-sm",
+                compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-2 text-base",
+              )}
+            >
+              <TextBone text={chip} className="font-medium" />
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="card-surface overflow-hidden rounded-2xl">
+        <div className="flex items-center justify-between gap-3 px-4 py-3.5 font-semibold">
+          <TextBone text="Ещё на сегодня" />
+          <span className="text-xl font-normal" aria-hidden>
+            <TextBone text="+" />
+          </span>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -336,14 +418,15 @@ export function TodayLoadingSkeleton({ gym = true }: { gym?: boolean }) {
   const { density } = useDiaryDensity();
   const { order } = useTodayOrder();
   const compact = density === "compact";
-  const meals = visibleMealTypes(false).map((mealType) => (
-    <MealCardSkeleton key={mealType} mealType={mealType} compact={compact} />
+  const meals = REST_MEALS.map((meal) => (
+    <MealCardSkeleton key={meal.mealType} meal={meal} compact={compact} />
   ));
   const summary = (
     <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-3")}>
       <SummarySkeleton compact={compact} gym={gym} />
     </div>
   );
+  const tail = <TodayTailSkeleton compact={compact} />;
 
   return (
     <div
@@ -356,10 +439,12 @@ export function TodayLoadingSkeleton({ gym = true }: { gym?: boolean }) {
         <>
           {summary}
           {meals}
+          {tail}
         </>
       ) : (
         <>
           {meals}
+          {tail}
           {summary}
         </>
       )}

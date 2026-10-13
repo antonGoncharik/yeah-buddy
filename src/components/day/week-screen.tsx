@@ -5,11 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useWeekScreen } from "@/components/day/use-week-screen";
 import { WeekDayRow } from "@/components/day/week-day-row";
+import { WeekLoadingSkeleton } from "@/components/day/week-loading-skeleton";
 import { AppHeader } from "@/components/layout/app-header";
 import { WeekDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { FlavorNote } from "@/components/layout/flavor-note";
-import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError } from "@/components/layout/screen-status";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import { weekHasEntries } from "@/lib/day/week";
 import { consecutiveProteinHits, proteinWeekLine } from "@/lib/flavor";
@@ -30,7 +31,7 @@ export function WeekScreen() {
       />
 
       <div className="flex flex-col gap-3 px-4 pb-4">
-        {loading ? <ScreenLoading /> : null}
+        {loading ? <WeekLoadingSkeleton /> : null}
 
         {!loading && error && week == null ? (
           <ScreenError message={error} onRetry={() => void load()} />

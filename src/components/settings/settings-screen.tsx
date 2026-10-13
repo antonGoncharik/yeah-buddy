@@ -13,7 +13,7 @@ import {
 } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { NavRow } from "@/components/layout/nav-row";
-import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
+import { ScreenError } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
@@ -23,6 +23,12 @@ import { SettingsAppearanceSection } from "@/components/settings/settings-appear
 import { SettingsContactSection } from "@/components/settings/settings-contact-section";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { SettingsGymModeSection } from "@/components/settings/settings-gym-mode-section";
+import {
+  SettingsGoalsSkeleton,
+  SettingsGymSkeleton,
+  SettingsPrivacySkeleton,
+  SettingsRemindersSkeleton,
+} from "@/components/settings/settings-loading-skeleton";
 import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
 import { SettingsSyncFailures } from "@/components/settings/settings-sync-failures";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
@@ -78,8 +84,6 @@ export function SettingsScreen() {
           showGoals && "pb-[var(--app-field-scroll-pad)]",
         )}
       >
-        {loading ? <ScreenLoading /> : null}
-
         {!loading && error && !form ? (
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
@@ -97,6 +101,7 @@ export function SettingsScreen() {
 
         <section className="flex flex-col gap-2">
           <SectionHeading title="Еда и цели" />
+          {loading ? <SettingsGoalsSkeleton /> : null}
           {!loading && form ? (
             <div className="card-surface animate-rise px-5 py-2">
               <button
@@ -169,6 +174,7 @@ export function SettingsScreen() {
           </div>
         </section>
 
+        {loading ? <SettingsGymSkeleton /> : null}
         {!loading && form ? (
           <SettingsGymModeSection
             gymEnabled={form.gym_enabled}
@@ -185,6 +191,7 @@ export function SettingsScreen() {
           setOrder={setOrder}
         />
 
+        {loading ? <SettingsRemindersSkeleton /> : null}
         {!loading && form ? (
           <SettingsRemindersSection
             form={form}
@@ -215,6 +222,7 @@ export function SettingsScreen() {
 
         <SettingsAccessSection />
 
+        {loading ? <SettingsPrivacySkeleton /> : null}
         {!loading && form ? (
           <section className="flex flex-col gap-2">
             <SectionHeading title="Данные и приватность" />
