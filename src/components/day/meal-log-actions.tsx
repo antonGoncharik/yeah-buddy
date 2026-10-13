@@ -108,12 +108,11 @@ export function MealLogActions({
           <Button
             type="button"
             variant="ghost"
-            size="icon-lg"
             aria-label="Текстом"
             aria-pressed={textOpen}
             className={cn(
               mealActionIconSegmentClass,
-              "rounded-none",
+              "rounded-none border-0",
               textOpen && "bg-background text-foreground shadow-inner",
             )}
             onClick={() => setTextOpen((open) => !open)}
