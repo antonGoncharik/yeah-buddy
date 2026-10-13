@@ -238,7 +238,7 @@ function NoticeSwitch({
         aria-checked={on}
         aria-label={label}
         className={cn(
-          "relative h-6 w-10 shrink-0 rounded-full transition-colors",
+          "relative h-6 w-10 shrink-0 appearance-none rounded-full border-0 p-0 transition-colors",
           on ? "bg-primary" : "bg-border",
         )}
         onClick={() => {
@@ -249,8 +249,8 @@ function NoticeSwitch({
         <span
           aria-hidden
           className={cn(
-            "absolute top-0.5 size-5 rounded-full bg-background shadow-sm transition-transform",
-            on ? "translate-x-4.5" : "translate-x-0.5",
+            "absolute top-0.5 left-0.5 size-5 rounded-full bg-background shadow-sm transition-transform",
+            on ? "translate-x-4" : "translate-x-0",
           )}
         />
       </button>
