@@ -23,6 +23,14 @@ jobs:
   smoke:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    env:
+      E2E_SMOKE: "1"
+      ALLOW_DEV_AUTH: "1"
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,8 +41,3 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run e2e:smoke
-        env:
-          E2E_SMOKE: "1"
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
