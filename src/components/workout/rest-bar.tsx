@@ -8,6 +8,7 @@ import { formatRestClock } from "@/lib/workout/rest-timer";
 export function RestBar({
   left,
   targetKg,
+  nextLine = null,
   round,
   onAdd,
   onSubtract,
@@ -17,6 +18,7 @@ export function RestBar({
 }: {
   left: number;
   targetKg: number;
+  nextLine?: string | null;
   round: number;
   onAdd: () => void;
   onSubtract: () => void;
@@ -80,6 +82,9 @@ export function RestBar({
           Стоп
         </Button>
       </div>
+      {nextLine ? (
+        <p className="text-sm leading-snug text-muted-foreground">{nextLine}</p>
+      ) : null}
       <RestLoadGame key={round} targetKg={targetKg} />
     </div>
   );

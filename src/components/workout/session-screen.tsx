@@ -28,6 +28,7 @@ import { heaviestWorkLift } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
+import { upcomingWorkLine } from "@/lib/workout/next-load";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 import {
@@ -83,6 +84,8 @@ export function SessionScreen() {
     markSet,
     addExercise,
     swapExercise,
+    easeSession,
+    shortenSession,
   } = useSessionScreen();
   const marking = useRef(new Set<string>());
   const [pairs, setPairs] = useState<Record<string, string>>({});
@@ -133,11 +136,45 @@ export function SessionScreen() {
         {!loading && session && detail ? (
           <>
             {session.status === "planned" ? (
-              <SessionSoreBanner
-                sessionId={session.id}
-                disabled={busy}
-                onEased={() => void load()}
-              />
+              <div className="flex flex-col gap-2">
+                <SessionSoreBanner
+                  sessionId={session.id}
+                  disabled={busy}
+                  onEase={easeSession}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 self-start"
+                  disabled={busy || detail.exercises.length === 0}
+                  onClick={() => {
+                    void (async () => {
+                      const ok = await confirm({
+                        message:
+                          "Оставить по два рабочих подхода и связать соседние упражнения?",
+                        confirmLabel: "Ужать",
+                        cancelLabel: "Оставить",
+                      });
+                      if (!ok) {
+                        return;
+                      }
+                      const nextPairs = await shortenSession();
+                      if (!nextPairs || nextPairs.length === 0 || !session.id) {
+                        return;
+                      }
+                      const stored = nextPairs.reduce(
+                        (current, [left, right]) =>
+                          pairWith(current, left, right),
+                        {} as Record<string, string>,
+                      );
+                      writeSessionPairs(session.id, stored);
+                      setPairs(stored);
+                    })();
+                  }}
+                >
+                  Мало времени
+                </Button>
+              </div>
             ) : null}
             <SessionExerciseList
               detail={detail}
@@ -315,6 +352,13 @@ export function SessionScreen() {
                 away={rest.finishedAway}
                 left={rest.left}
                 targetKg={loadTarget}
+                nextLine={upcomingWorkLine(
+                  detail.exercises.map((item) => ({
+                    name: item.exercise.short_name || item.exercise.name,
+                    sets: item.sets,
+                  })),
+                  openSetIds,
+                )}
                 round={rest.round}
                 onAdd={rest.add}
                 onSubtract={rest.subtract}
@@ -390,7 +434,7 @@ async function toggleSet({
     setId: string,
     patch: {
       is_completed: boolean;
-      actual_weight?: number;
+      actual_weight?: number | null;
       actual_reps?: number | null;
       actual_seconds?: number | null;
       actual_rir?: number | null;
@@ -451,7 +495,7 @@ async function logPlannedSets({
     setId: string,
     patch: {
       is_completed: boolean;
-      actual_weight?: number;
+      actual_weight?: number | null;
       actual_reps?: number | null;
       actual_seconds?: number | null;
       actual_rir?: number | null;

@@ -6,8 +6,12 @@ import { useEffect, useState } from "react";
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
+import { calendarToday } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
+import type { MuscleId } from "@/lib/types";
+import { activeSoreMarks, soreMuscles } from "@/lib/workout/sore";
+import { readStoredSoreMarks } from "@/lib/workout/sore-marks";
 
 interface SwapOption {
   exerciseId: string;
@@ -28,6 +32,7 @@ export function SessionSwapSheet({
 }) {
   const [open, setOpen] = useState(false);
   const [muscle, setMuscle] = useState<string | null>(null);
+  const [muscleId, setMuscleId] = useState<MuscleId | null>(null);
   const [options, setOptions] = useState<SwapOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +51,7 @@ export function SessionSwapSheet({
         if (!cancelled) {
           const parsed = readSwaps(data);
           setMuscle(parsed.muscle);
+          setMuscleId(parsed.muscleId);
           setOptions(parsed.options);
         }
         return true;
@@ -78,6 +84,11 @@ export function SessionSwapSheet({
     }
   }
 
+  const sore = soreMuscles(
+    activeSoreMarks(readStoredSoreMarks(), calendarToday()),
+  );
+  const muscleSore = muscleId != null && sore.includes(muscleId);
+
   return (
     <>
       <Button
@@ -105,6 +116,11 @@ export function SessionSwapSheet({
             </p>
           ) : null}
           {error ? <p className="text-base text-destructive">{error}</p> : null}
+          {muscleSore ? (
+            <p className="text-base leading-snug text-muted-foreground">
+              Эта мышца болит. Замена останется в той же зоне.
+            </p>
+          ) : null}
           {!loading && !error && options.length === 0 ? (
             <p className="text-base text-muted-foreground">
               На эту мышцу больше нечего подставить.
@@ -139,13 +155,18 @@ export function SessionSwapSheet({
 
 function readSwaps(data: unknown): {
   muscle: string | null;
+  muscleId: MuscleId | null;
   options: SwapOption[];
 } {
   if (typeof data !== "object" || data == null) {
-    return { muscle: null, options: [] };
+    return { muscle: null, muscleId: null, options: [] };
   }
   const muscle =
     "muscle" in data && typeof data.muscle === "string" ? data.muscle : null;
+  const muscleId =
+    "muscleId" in data && typeof data.muscleId === "string"
+      ? (data.muscleId as MuscleId)
+      : null;
   const raw =
     "options" in data && Array.isArray(data.options) ? data.options : [];
   const options = raw.flatMap((item) => {
@@ -162,5 +183,5 @@ function readSwaps(data: unknown): {
       "line" in item && typeof item.line === "string" ? item.line : null;
     return [{ exerciseId: item.exerciseId, name: item.name, line }];
   });
-  return { muscle, options };
+  return { muscle, muscleId, options };
 }

@@ -96,6 +96,9 @@ export function SessionExerciseList({
           );
           const index = detail.exercises.findIndex((row) => row.id === item.id);
           const nextExercise = detail.exercises[index + 1];
+          const partner = detail.exercises.find(
+            (row) => row.id === pairs?.[item.id],
+          );
           return (
             <SessionExerciseRow
               item={item}
@@ -165,6 +168,11 @@ export function SessionExerciseList({
                   : undefined
               }
               paired={pairs?.[item.id] === nextExercise?.id}
+              pairName={
+                partner
+                  ? partner.exercise.short_name || partner.exercise.name
+                  : null
+              }
               onPair={
                 session.status === "planned" && onPair && nextExercise
                   ? () => onPair(item.id, nextExercise.id)

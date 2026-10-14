@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { postJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { haptic } from "@/lib/telegram/haptic";
+import type { MuscleId } from "@/lib/types";
 import {
   activeSoreMarks,
   SORE_SPOTS,
@@ -15,17 +15,19 @@ import {
   soreMuscles,
   soreUntil,
 } from "@/lib/workout/sore";
-
-const STORAGE_KEY = "yeah-buddy-sore";
+import {
+  readStoredSoreMarks,
+  writeStoredSoreMarks,
+} from "@/lib/workout/sore-marks";
 
 export function SessionSoreBanner({
   sessionId,
   disabled,
-  onEased,
+  onEase,
 }: {
   sessionId: string;
   disabled: boolean;
-  onEased: () => void;
+  onEase: (muscles: MuscleId[]) => Promise<boolean>;
 }) {
   const [marks, setMarks] = useState<SoreMark[]>([]);
   const [open, setOpen] = useState(false);
@@ -35,12 +37,12 @@ export function SessionSoreBanner({
   const eased = active.some((mark) => mark.easedSessionIds.includes(sessionId));
 
   useEffect(() => {
-    setMarks(readMarks());
+    setMarks(readStoredSoreMarks());
   }, []);
 
   function save(next: SoreMark[]) {
     setMarks(next);
-    writeMarks(next);
+    writeStoredSoreMarks(next);
   }
 
   function toggle(id: SoreSpotId) {
@@ -63,18 +65,21 @@ export function SessionSoreBanner({
     }
     setBusy(true);
     try {
-      await postJson(`/api/sessions/${sessionId}/ease-sore`, { muscles });
+      const ok = await onEase(muscles);
+      if (!ok) {
+        return;
+      }
       save(
         marks.map((mark) =>
           mark.until >= today && !mark.easedSessionIds.includes(sessionId)
-            ? { ...mark, easedSessionIds: [...mark.easedSessionIds, sessionId] }
+            ? {
+                ...mark,
+                easedSessionIds: [...mark.easedSessionIds, sessionId],
+              }
             : mark,
         ),
       );
-      haptic("commit");
-      onEased();
-    } catch {
-      haptic("error");
+    } finally {
       setBusy(false);
     }
   }
@@ -125,42 +130,4 @@ export function SessionSoreBanner({
 
 function spotLabel(id: SoreSpotId): string {
   return SORE_SPOTS.find((spot) => spot.id === id)?.label ?? id;
-}
-
-function readMarks(): SoreMark[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.flatMap((item) => {
-      if (typeof item !== "object" || item == null) {
-        return [];
-      }
-      if (!("id" in item) || !("until" in item)) {
-        return [];
-      }
-      const spot = SORE_SPOTS.find((row) => row.id === item.id);
-      if (!spot || typeof item.until !== "string") {
-        return [];
-      }
-      const eased =
-        "easedSessionIds" in item && Array.isArray(item.easedSessionIds)
-          ? item.easedSessionIds.filter(
-              (id: unknown): id is string => typeof id === "string",
-            )
-          : [];
-      return [{ id: spot.id, until: item.until, easedSessionIds: eased }];
-    });
-  } catch {
-    return [];
-  }
-}
-
-function writeMarks(marks: SoreMark[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(marks));
 }

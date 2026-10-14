@@ -102,12 +102,7 @@ export function MealGramsSheet({
           onPick={(value) => void saveGrams(value)}
         />
       ) : null}
-      <GramChips
-        onPick={(value) => {
-          setGramsInput(formatYieldGrams(value));
-          setError(null);
-        }}
-      />
+      <GramChips onPick={(value) => void saveGrams(value)} />
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}

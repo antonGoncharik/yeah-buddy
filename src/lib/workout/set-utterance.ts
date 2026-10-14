@@ -44,6 +44,17 @@ export function parseSetUtterance(raw: string): ParsedSetUtterance | null {
     }
   }
 
+  const repsWord = text.match(/(\d+(?:[.,]\d+)?)\s*повтор/);
+  if (reps == null && repsWord) {
+    const spoken = numberAt(repsWord[1] ?? "");
+    if (spoken != null) {
+      reps = spoken;
+      if (weight === spoken) {
+        weight = null;
+      }
+    }
+  }
+
   if (
     seconds != null &&
     (seconds <= 0 || seconds > 600 || (reps != null && seconds === reps))

@@ -79,16 +79,20 @@ export function MealItemRow({
           className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-muted-foreground tabular-nums transition-colors hover:bg-muted/60"
           onClick={onEditGrams}
         >
-          {formatGrams(item.grams)} г
+          {item.lump
+            ? `${formatKcal(item.kcal)} ккал`
+            : `${formatGrams(item.grams)} г`}
         </button>
-        <span
-          className={cn(
-            "w-14 shrink-0 text-right font-semibold tabular-nums",
-            expanded ? "text-lg" : "text-base",
-          )}
-        >
-          {formatKcal(item.kcal)}
-        </span>
+        {item.lump ? null : (
+          <span
+            className={cn(
+              "w-14 shrink-0 text-right font-semibold tabular-nums",
+              expanded ? "text-lg" : "text-base",
+            )}
+          >
+            {formatKcal(item.kcal)}
+          </span>
+        )}
         {onDelete ? (
           <div className="self-center">
             <RemoveRowButton onClick={onDelete} />

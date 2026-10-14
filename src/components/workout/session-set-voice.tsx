@@ -15,11 +15,13 @@ import {
 export function SessionSetVoice({
   disabled,
   timed,
+  needsWeight = true,
   onApply,
   onCommit,
 }: {
   disabled: boolean;
   timed: boolean;
+  needsWeight?: boolean;
   onApply: (patch: UtterancePatch) => void;
   onCommit?: (patch: UtterancePatch) => void;
 }) {
@@ -36,7 +38,7 @@ export function SessionSetVoice({
     }
     const patch = draftPatch(parsed, timed);
     onApply(patch);
-    if (onCommit && utteranceReady(patch, timed)) {
+    if (onCommit && utteranceReady(patch, timed, needsWeight)) {
       onCommit(patch);
     }
     haptic("commit");
@@ -114,10 +116,16 @@ type UtterancePatch = {
   rir?: string;
 };
 
-function utteranceReady(patch: UtterancePatch, timed: boolean): boolean {
-  const weight = Number(patch.weight?.replace(",", "."));
-  if (!(weight > 0)) {
-    return false;
+function utteranceReady(
+  patch: UtterancePatch,
+  timed: boolean,
+  needsWeight: boolean,
+): boolean {
+  if (needsWeight) {
+    const weight = Number(patch.weight?.replace(",", "."));
+    if (!(weight > 0)) {
+      return false;
+    }
   }
   if (timed) {
     return Number(patch.seconds?.replace(",", ".")) > 0;

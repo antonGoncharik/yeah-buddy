@@ -189,6 +189,8 @@ export function useSessionScreen() {
     markSet,
     addExercise,
     swapExercise,
+    easeSession,
+    shortenSession,
     cancelToday,
   } = useSessionActions({
     detail,
@@ -302,5 +304,7 @@ export function useSessionScreen() {
     markSet,
     addExercise,
     swapExercise,
+    easeSession,
+    shortenSession,
   };
 }

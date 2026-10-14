@@ -54,6 +54,7 @@ export function SessionExerciseRow({
   onLogSet,
   onLogPlan,
   paired = false,
+  pairName = null,
   onPair,
   restSeconds,
   track = null,
@@ -80,6 +81,7 @@ export function SessionExerciseRow({
   onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
   onLogPlan?: () => void;
   paired?: boolean;
+  pairName?: string | null;
   onPair?: () => void;
   restSeconds?: number;
   priorPeak?: number | null;
@@ -122,7 +124,7 @@ export function SessionExerciseRow({
     priorOn,
   });
   const targetLine =
-    !recordLine && work.some((set) => !set.is_completed)
+    focused && !recordLine && work.some((set) => !set.is_completed)
       ? recordTargetLine(priorPeak)
       : null;
   const canLogPlan =
@@ -185,9 +187,10 @@ export function SessionExerciseRow({
 
   return (
     <div
-      className={
-        compact ? undefined : "border-b border-border/70 last:border-b-0"
-      }
+      className={cn(
+        compact ? undefined : "border-b border-border/70 last:border-b-0",
+        pairName && "border-l-2 border-primary/40",
+      )}
     >
       <div
         className={
@@ -239,12 +242,17 @@ export function SessionExerciseRow({
             {recordLine}
           </p>
         ) : null}
+        {pairName ? (
+          <p className="-mt-1 text-sm leading-snug text-muted-foreground">
+            В паре с {pairName}
+          </p>
+        ) : null}
         {targetLine ? (
           <p className="-mt-1 text-sm leading-snug text-muted-foreground">
             {targetLine}
           </p>
         ) : null}
-        {canLogPlan || onPair ? (
+        {focused && (canLogPlan || onPair) ? (
           <div className="flex flex-wrap gap-2">
             {canLogPlan ? (
               <button

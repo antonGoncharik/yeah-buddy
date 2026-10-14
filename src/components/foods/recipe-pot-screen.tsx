@@ -2,12 +2,17 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-
+import { addMealItemGrams } from "@/components/day/grams-save";
 import { FoodFormShell } from "@/components/foods/food-form-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cachedGet, postJson } from "@/lib/api-cache";
-import { calendarToday, isIsoDate, withDateQuery } from "@/lib/day/dates";
+import {
+  calendarToday,
+  isIsoDate,
+  todayHomeHref,
+  withDateQuery,
+} from "@/lib/day/dates";
 import {
   type RecipeLine,
   recipeCookedGrams,
@@ -113,7 +118,13 @@ export function RecipePotScreen() {
     setHits([]);
   }
 
-  async function save() {
+  const backHref = mealId
+    ? withDateQuery(`/today/meals/${mealId}/add`, date, calendarToday())
+    : dayType && mealType
+      ? `/settings/meals/${dayType}/${mealType}/add`
+      : "/foods";
+
+  async function save(logPortion: boolean) {
     const title = name.trim();
     if (title === "" || !per100 || saving) {
       haptic("warn");
@@ -134,6 +145,34 @@ export function RecipePotScreen() {
       });
       const food = readFoodPayload(data);
       haptic("commit");
+      if (logPortion && mealId && food && portion) {
+        try {
+          await addMealItemGrams({
+            date: date ?? calendarToday(),
+            mealId,
+            food,
+            grams: portion.grams,
+          });
+          router.replace(todayHomeHref(date, calendarToday()));
+          return;
+        } catch (caught) {
+          haptic("error");
+          setSaving(false);
+          setError(
+            caught instanceof Error
+              ? caught.message
+              : "Блюдо сохранилось, порция не записалась.",
+          );
+          router.push(
+            withDateQuery(
+              `/today/meals/${mealId}/add/${food.id}`,
+              date,
+              calendarToday(),
+            ),
+          );
+          return;
+        }
+      }
       const next = food
         ? mealId
           ? withDateQuery(
@@ -154,7 +193,7 @@ export function RecipePotScreen() {
   }
 
   return (
-    <FoodFormShell title="Своя кастрюля" backHref="/foods">
+    <FoodFormShell title="Своя кастрюля" backHref={backHref}>
       <div className="flex flex-col gap-4">
         <p className="text-base leading-relaxed text-muted-foreground">
           Сложи сырые продукты и вес готового блюда. Кастрюля станет одним
@@ -276,10 +315,21 @@ export function RecipePotScreen() {
           type="button"
           className="h-14 text-lg"
           disabled={saving}
-          onClick={() => void save()}
+          onClick={() => void save(false)}
         >
           {saving ? "Сохраняю…" : "Сохранить блюдо"}
         </Button>
+        {mealId && portion ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 text-base"
+            disabled={saving}
+            onClick={() => void save(true)}
+          >
+            {`Сохранить и записать ${portion.grams} г`}
+          </Button>
+        ) : null}
       </div>
     </FoodFormShell>
   );

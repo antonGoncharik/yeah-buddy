@@ -175,9 +175,7 @@ export function MealCard({
               href={itemHref ? itemHref(item) : undefined}
               onDelete={onDeleteItem ? () => onDeleteItem(item) : undefined}
               onEditGrams={
-                onEditItemGrams && !item.lump
-                  ? () => onEditItemGrams(item)
-                  : undefined
+                onEditItemGrams ? () => onEditItemGrams(item) : undefined
               }
             />
           )}
@@ -194,7 +192,7 @@ export function MealCard({
                 readOnly || !onDeleteItem ? undefined : () => onDeleteItem(item)
               }
               onEditGrams={
-                readOnly || !onEditItemGrams || item.lump
+                readOnly || !onEditItemGrams
                   ? undefined
                   : () => onEditItemGrams(item)
               }

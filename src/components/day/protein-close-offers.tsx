@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { foodsApiUrl } from "@/components/foods/food-favorite";
@@ -44,6 +44,7 @@ export function ProteinCloseOffers({
   const compact = density === "compact";
   const [lists, setLists] = useState(readFoodLists);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const addingRef = useRef(false);
 
   useEffect(() => {
     let gone = false;
@@ -90,22 +91,37 @@ export function ProteinCloseOffers({
     [...lists.favorites, ...lists.recent].map((food) => [food.id, food]),
   );
 
-  async function add(foodId: string, grams: number) {
-    if (!mealId || addingId) {
+  async function addPieces(
+    pieces: ReadonlyArray<{ foodId: string; grams: number }>,
+  ) {
+    if (!mealId || addingRef.current || pieces.length === 0) {
       return;
     }
-    const food = byId.get(foodId);
-    if (!food) {
-      return;
-    }
-    const before = loggedGrams(date, foodId);
-    setAddingId(foodId);
+    addingRef.current = true;
+    setAddingId(pieces[0]?.foodId ?? "combo");
+    let logged = 0;
     try {
-      await addMealItemGrams({ date, mealId, food, grams });
-      if (loggedGrams(date, foodId) > before) {
+      for (const piece of pieces) {
+        const food = byId.get(piece.foodId);
+        if (!food) {
+          continue;
+        }
+        const before = loggedGrams(date, piece.foodId);
+        await addMealItemGrams({
+          date,
+          mealId,
+          food,
+          grams: piece.grams,
+        });
+        if (loggedGrams(date, piece.foodId) > before) {
+          logged += 1;
+        }
+      }
+      if (logged > 0) {
         haptic("commit");
       }
     } finally {
+      addingRef.current = false;
       setAddingId(null);
     }
   }
@@ -129,13 +145,7 @@ export function ProteinCloseOffers({
             compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-3 text-base",
           )}
           disabled={busy || addingId != null}
-          onClick={() => {
-            void (async () => {
-              for (const piece of combo.pieces) {
-                await add(piece.foodId, piece.grams);
-              }
-            })();
-          }}
+          onClick={() => void addPieces(combo.pieces)}
         >
           {combo.pieces
             .map((piece) => `${piece.name} ${formatGrams(piece.grams)} г`)
@@ -153,7 +163,9 @@ export function ProteinCloseOffers({
             compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-3 text-base",
           )}
           disabled={busy || addingId != null}
-          onClick={() => void add(offer.foodId, offer.grams)}
+          onClick={() =>
+            void addPieces([{ foodId: offer.foodId, grams: offer.grams }])
+          }
         >
           {offer.name} · {formatGrams(offer.grams)} г
         </Button>

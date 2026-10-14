@@ -45,6 +45,40 @@ export function yesterdayMealChips(input: {
   return chips;
 }
 
+/** Foods already logged today in another meal, skipping this plate. */
+export function todayOtherMealChips(input: {
+  mealType: MealType;
+  today: readonly MemoryItem[];
+}): MemoryChip[] {
+  const here = new Set(
+    input.today.flatMap((item) =>
+      item.mealType === input.mealType && item.foodId ? [item.foodId] : [],
+    ),
+  );
+  const chips: MemoryChip[] = [];
+  for (const item of input.today) {
+    if (item.mealType === input.mealType || !item.foodId || !(item.grams > 0)) {
+      continue;
+    }
+    if (
+      here.has(item.foodId) ||
+      chips.some((chip) => chip.foodId === item.foodId)
+    ) {
+      continue;
+    }
+    chips.push({
+      foodId: item.foodId,
+      name: item.name,
+      grams: item.grams,
+      label: `Сегодня · ${item.name} · ${formatChipGrams(item.grams)} г`,
+    });
+    if (chips.length >= 4) {
+      break;
+    }
+  }
+  return chips;
+}
+
 function formatChipGrams(grams: number): string {
   const rounded = Math.round(grams * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);

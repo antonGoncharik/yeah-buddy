@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ExerciseWithMax, SessionDetail } from "@/lib/types";
+import type { ExerciseWithMax, MuscleId, SessionDetail } from "@/lib/types";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
 import { listExercisesForMuscle } from "@/lib/workout/exercises";
 import { loadExerciseMuscleMeta } from "@/lib/workout/muscle-load";
@@ -37,7 +37,11 @@ export async function listSessionSwaps(
   userId: string,
   sessionId: string,
   sessionExerciseId: string,
-): Promise<{ muscle: string | null; options: SessionSwapOption[] } | null> {
+): Promise<{
+  muscle: string | null;
+  muscleId: MuscleId | null;
+  options: SessionSwapOption[];
+} | null> {
   const ready = await readySwap(userId, sessionId, sessionExerciseId);
   if (!ready) {
     return null;
@@ -50,6 +54,7 @@ export async function listSessionSwaps(
   );
   return {
     muscle: ranked.muscle,
+    muscleId: ranked.muscleId,
     options: await previewSwaps(userId, ready.session, ranked.options),
   };
 }
@@ -239,7 +244,11 @@ async function rankedSwaps(
     ),
   );
   if (!muscleId) {
-    return { muscle: null, options: [] as ExerciseWithMax[] };
+    return {
+      muscle: null,
+      muscleId: null,
+      options: [] as ExerciseWithMax[],
+    };
   }
   const catalog = await listExercisesForMuscle(userId, muscleId);
   const current = detail.exercises.find(
@@ -247,6 +256,7 @@ async function rankedSwaps(
   );
   return {
     muscle: MUSCLE_LABELS[muscleId],
+    muscleId,
     options: rankSwapOptions({
       currentId: exerciseId,
       currentType: current?.exercise.workout_type ?? session.workout_type,

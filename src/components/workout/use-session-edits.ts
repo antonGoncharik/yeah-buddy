@@ -8,11 +8,12 @@ import { deleteJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
-import type { SessionDetail } from "@/lib/types";
+import type { MuscleId, SessionDetail } from "@/lib/types";
 import { withSetLogged } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
 import type { PatchSetInput } from "@/lib/workout/session-schema";
+import { readShortResult } from "@/lib/workout/session-short";
 
 export function useSessionEdits({
   detail,
@@ -270,6 +271,57 @@ export function useSessionEdits({
     }
   }
 
+  async function easeSession(muscles: MuscleId[]): Promise<boolean> {
+    if (detail?.session.status !== "planned" || muscles.length === 0) {
+      return false;
+    }
+    setError(null);
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/ease-sore`,
+        { muscles },
+      );
+      if (!applyPayload(data)) {
+        throw new Error(LOAD_FAILED);
+      }
+      haptic("commit");
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    }
+  }
+
+  async function shortenSession(): Promise<Array<[string, string]> | null> {
+    if (detail?.session.status !== "planned") {
+      return null;
+    }
+    setError(null);
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/shorten`,
+        {},
+      );
+      const result = readShortResult(data);
+      if (!applyPayload(data)) {
+        throw new Error(LOAD_FAILED);
+      }
+      if (result.dropped === 0 && result.pairs.length === 0) {
+        setError(
+          "Уже коротко: рабочих подходов не больше двух, соседние на одну мышцу.",
+        );
+        return null;
+      }
+      haptic("commit");
+      return result.pairs;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return null;
+    }
+  }
+
   async function addExercise(exerciseId: string): Promise<boolean> {
     if (detail?.session.status !== "planned") {
       return false;
@@ -326,6 +378,8 @@ export function useSessionEdits({
     markSet,
     addExercise,
     swapExercise,
+    easeSession,
+    shortenSession,
     cancelToday,
   };
 }

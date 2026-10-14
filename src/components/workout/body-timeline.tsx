@@ -218,6 +218,8 @@ export function BodyTimeline() {
             void shareCompareCard(
               thenPhoto.url,
               nowPhoto.url,
+              formatIsoDate(thenPhoto.date, "d MMM"),
+              formatIsoDate(nowPhoto.date, "d MMM"),
               caption ??
                 `${formatIsoDate(thenPhoto.date, "d MMM")} и ${formatIsoDate(nowPhoto.date, "d MMM")}`,
             )
@@ -240,10 +242,16 @@ export function BodyTimeline() {
           onClick={() => {
             void deleteBodyPhoto(nowPhoto.date).then(() => {
               URL.revokeObjectURL(nowPhoto.url);
-              setPhotos((current) =>
-                current.filter((photo) => photo.date !== nowPhoto.date),
+              const remaining = photos.filter(
+                (photo) => photo.date !== nowPhoto.date,
               );
-              setNowDate(null);
+              setPhotos(remaining);
+              setNowDate(remaining.at(-1)?.date ?? null);
+              setThenDate((current) =>
+                remaining.some((photo) => photo.date === current)
+                  ? current
+                  : (remaining[0]?.date ?? null),
+              );
             });
           }}
         >
@@ -289,6 +297,8 @@ function DatePick({
 async function shareCompareCard(
   thenUrl: string,
   nowUrl: string,
+  thenLabel: string,
+  nowLabel: string,
   caption: string,
 ) {
   const [before, after] = await Promise.all([
@@ -309,7 +319,13 @@ async function shareCompareCard(
   context.fillRect(0, 0, canvas.width, canvas.height);
   drawCover(context, before, 0, 0, photoWidth, photoHeight);
   drawCover(context, after, photoWidth, 0, photoWidth, photoHeight);
+  context.fillStyle = "rgba(0,0,0,0.45)";
+  context.fillRect(0, photoHeight - 72, photoWidth, 72);
+  context.fillRect(photoWidth, photoHeight - 72, photoWidth, 72);
   context.fillStyle = "#f5f5f5";
+  context.font = "32px sans-serif";
+  context.fillText(thenLabel, 28, photoHeight - 26);
+  context.fillText(nowLabel, photoWidth + 28, photoHeight - 26);
   context.font = "36px sans-serif";
   wrapText(context, caption, 48, photoHeight + 64, width - 96, 46);
   const blob = await new Promise<Blob | null>((resolve) => {
@@ -348,6 +364,10 @@ function drawCover(
   width: number,
   height: number,
 ) {
+  context.save();
+  context.beginPath();
+  context.rect(x, y, width, height);
+  context.clip();
   const scale = Math.max(width / image.width, height / image.height);
   const drawnWidth = image.width * scale;
   const drawnHeight = image.height * scale;
@@ -358,6 +378,7 @@ function drawCover(
     drawnWidth,
     drawnHeight,
   );
+  context.restore();
 }
 
 function wrapText(

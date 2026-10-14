@@ -218,5 +218,18 @@ assertEqual(
   null,
   "empty weight is not done yet",
 );
+assertEqual(
+  loggedSetPatch(
+    { ...set, planned_weight: null },
+    { weight: "", reps: "12", seconds: "", rir: "1" },
+  ),
+  {
+    actual_weight: null,
+    actual_reps: 12,
+    actual_seconds: null,
+    actual_rir: 1,
+  },
+  "bodyweight logs the reps without kilograms",
+);
 
 console.log("session drafts close kind ok");

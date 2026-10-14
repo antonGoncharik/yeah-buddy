@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { MealCard } from "@/components/day/meal-card";
 import { MealGramsSheet } from "@/components/day/meal-grams-sheet";
+import { MealLumpSheet } from "@/components/day/meal-lump-sheet";
 import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
@@ -70,6 +71,7 @@ export function TodayDayMeals({
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
   const [portion, setPortion] = useState<MealItem | null>(null);
+  const [lump, setLump] = useState<MealItem | null>(null);
 
   return (
     <>
@@ -175,9 +177,14 @@ export function TodayDayMeals({
               ? undefined
               : (item) => {
                   const row = meal.items.find((entry) => entry.id === item.id);
-                  if (row?.food_id) {
-                    setPortion(row);
+                  if (!row) {
+                    return;
                   }
+                  if (row.food_id) {
+                    setPortion(row);
+                    return;
+                  }
+                  setLump(row);
                 }
           }
         />
@@ -189,6 +196,9 @@ export function TodayDayMeals({
           itemHref={withDateQuery(`/today/items/${portion.id}`, date, today)}
           onClose={() => setPortion(null)}
         />
+      ) : null}
+      {lump ? (
+        <MealLumpSheet item={lump} date={date} onClose={() => setLump(null)} />
       ) : null}
     </>
   );

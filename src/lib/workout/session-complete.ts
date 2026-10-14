@@ -15,6 +15,7 @@ import type {
 } from "@/lib/workout/session-schema";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession, patchSession } from "@/lib/workout/sessions";
+import { completedSetWeight } from "@/lib/workout/set-log";
 import {
   clearSkipTemplateIds,
   ensureWorkoutSettings,
@@ -106,13 +107,16 @@ export async function patchWorkoutSet(
   }
 
   if (next.is_completed) {
-    next.actual_weight = next.actual_weight ?? current.planned_weight;
-    next.actual_reps = next.actual_reps ?? current.planned_reps;
-    next.actual_seconds = next.actual_seconds ?? current.planned_seconds;
-
-    if (next.actual_weight == null || next.actual_weight <= 0) {
+    const weight = completedSetWeight({
+      plannedWeight: current.planned_weight,
+      typedWeight: next.actual_weight,
+    });
+    if (weight === "missing") {
       throw new Error("Напиши фактический вес.");
     }
+    next.actual_weight = weight;
+    next.actual_reps = next.actual_reps ?? current.planned_reps;
+    next.actual_seconds = next.actual_seconds ?? current.planned_seconds;
   }
 
   const updated = await supabase

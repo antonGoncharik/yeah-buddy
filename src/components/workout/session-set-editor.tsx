@@ -95,6 +95,7 @@ export function SessionSetEditor({
         <SessionSetVoice
           disabled={disabled}
           timed={timed}
+          needsWeight={set.planned_weight != null && set.planned_weight > 0}
           onApply={onDraft}
           onCommit={
             onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined

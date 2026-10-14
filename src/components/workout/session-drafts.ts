@@ -12,6 +12,7 @@ import {
   setRirLabel,
   setUsesSeconds,
 } from "@/lib/workout/session-format";
+import { setNeedsLoggedWeight } from "@/lib/workout/set-log";
 
 export type SetDraft = {
   weight: string;
@@ -231,25 +232,34 @@ export function plannedLogPatch(set: WorkoutSet): {
   };
 }
 
-/** Numbers to store when a set is marked done. Null when the weight is still empty. */
+/** Numbers to store when a set is marked done. Null when a loaded set has no weight, or a bodyweight set has no reps yet. */
 export function loggedSetPatch(
   set: WorkoutSet,
   draft?: SetDraft,
 ): {
-  actual_weight: number;
+  actual_weight: number | null;
   actual_reps: number | null;
   actual_seconds: number | null;
   actual_rir: number | null;
 } | null {
   const source = draft ?? draftFromSet(set);
   const weight = parseDecimal(source.weight);
-  if (weight == null || weight <= 0) {
+  const timed = setUsesSeconds(set);
+  const needsWeight = setNeedsLoggedWeight(set.planned_weight);
+  if (needsWeight && (weight == null || weight <= 0)) {
     return null;
   }
+  if (!needsWeight && (weight == null || weight <= 0)) {
+    const reps = timed
+      ? parseDecimal(source.seconds)
+      : parseInteger(source.reps);
+    if (reps == null) {
+      return null;
+    }
+  }
 
-  const timed = setUsesSeconds(set);
   return {
-    actual_weight: weight,
+    actual_weight: weight != null && weight > 0 ? weight : null,
     actual_reps: timed ? null : parseInteger(source.reps),
     actual_seconds: timed ? parseDecimal(source.seconds) : null,
     actual_rir: set.set_type === "work" ? parseRir(source.rir) : null,

@@ -1,4 +1,7 @@
-import { yesterdayMealChips } from "@/lib/food/meal-memory";
+import {
+  todayOtherMealChips,
+  yesterdayMealChips,
+} from "@/lib/food/meal-memory";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -21,4 +24,16 @@ assertEqual(
   }).map((chip) => chip.label),
   ["Вчера · Яйца · 115 г"],
   "same meal, not already eaten, not another meal",
+);
+assertEqual(
+  todayOtherMealChips({
+    mealType: "dinner",
+    today: [
+      { foodId: "rice", name: "Рис", grams: 135, mealType: "lunch" },
+      { foodId: "rice", name: "Рис", grams: 100, mealType: "dinner" },
+      { foodId: "apple", name: "Яблоко", grams: 150, mealType: "snack" },
+    ],
+  }).map((chip) => chip.label),
+  ["Сегодня · Яблоко · 150 г"],
+  "other meals today, not what this plate already has",
 );
