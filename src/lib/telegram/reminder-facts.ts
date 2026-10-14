@@ -4,6 +4,7 @@ import {
   FOOD_LOG_STREAK_WINDOW,
   priorFoodLogDays,
 } from "@/lib/retention/habit";
+import { getUserSettings } from "@/lib/settings/store";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { templateAfter } from "@/lib/workout/templates";
 
@@ -54,9 +55,16 @@ export async function datePriorFoodLogDays(
   userId: string,
   date: string,
 ): Promise<number> {
-  const start = shiftIsoDate(date, -(FOOD_LOG_STREAK_WINDOW - 1));
-  const days = await listDaysInRange(userId, start, date);
-  return priorFoodLogDays(days, date);
+  const start = shiftIsoDate(date, -(FOOD_LOG_STREAK_WINDOW + 21));
+  const [days, settings] = await Promise.all([
+    listDaysInRange(userId, start, date),
+    getUserSettings(userId),
+  ]);
+  const pause =
+    settings?.pause_from && settings.pause_until
+      ? { from: settings.pause_from, until: settings.pause_until }
+      : null;
+  return priorFoodLogDays(days, date, pause);
 }
 
 export async function dateShareSnapshot(

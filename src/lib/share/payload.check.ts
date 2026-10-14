@@ -104,6 +104,10 @@ const settings: UserSettings = {
   quiet_from: null,
   quiet_to: null,
   review_cooldown_until: null,
+  pause_from: null,
+  pause_until: null,
+  pause_return_pending: false,
+  pause_lighten: false,
   updated_at: "2026-01-01",
 };
 

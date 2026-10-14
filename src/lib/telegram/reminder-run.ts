@@ -9,6 +9,7 @@ import {
   inRetentionTail,
   onboardingAgeDays,
 } from "@/lib/retention";
+import { pauseCovers } from "@/lib/retention/pause";
 import { disableReminders } from "@/lib/settings";
 import { dayShareFacts } from "@/lib/share/day";
 import {
@@ -113,6 +114,8 @@ interface ReminderCandidate {
   quietTo: number | null;
   weeklyDigestEnabled: boolean;
   monthlyReportEnabled: boolean;
+  pauseFrom: string | null;
+  pauseUntil: string | null;
 }
 
 export interface RemindersCronResult {
@@ -262,6 +265,10 @@ async function processEveningCandidate(
   }
   const clock = localClock(now, candidate.timezone);
   if (inQuietHours(clock.hour, candidate.quietFrom, candidate.quietTo)) {
+    result.skipped += 1;
+    return result;
+  }
+  if (pauseCovers(clock.date, candidate.pauseFrom, candidate.pauseUntil)) {
     result.skipped += 1;
     return result;
   }
@@ -431,6 +438,10 @@ async function processMiddayCandidate(
   }
   const clock = localClock(now, candidate.timezone);
   if (inQuietHours(clock.hour, candidate.quietFrom, candidate.quietTo)) {
+    result.skipped += 1;
+    return result;
+  }
+  if (pauseCovers(clock.date, candidate.pauseFrom, candidate.pauseUntil)) {
     result.skipped += 1;
     return result;
   }
@@ -654,7 +665,7 @@ async function listReminderCandidates(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, reminder_fail_count, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, users!inner(telegram_id, is_active)",
+        "user_id, timezone, reminder_hour, reminded_on, midday_reminded_on, reminder_fail_count, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, pause_from, pause_until, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -724,7 +735,15 @@ function mapCandidate(row: Record<string, unknown>): ReminderCandidate | null {
     quietTo: quietHour(row.quiet_to),
     weeklyDigestEnabled: row.weekly_digest_enabled !== false,
     monthlyReportEnabled: row.monthly_report_enabled !== false,
+    pauseFrom: isoDate(row.pause_from),
+    pauseUntil: isoDate(row.pause_until),
   };
+}
+
+function isoDate(value: unknown): string | null {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)
+    ? value.slice(0, 10)
+    : null;
 }
 
 function quietHour(value: unknown): number | null {

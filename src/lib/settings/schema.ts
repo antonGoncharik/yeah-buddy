@@ -45,6 +45,10 @@ export const settingsInputSchema = z.union([
   z.object({ weigh_in_enabled: z.boolean() }),
   z.object({ streak_reminder_enabled: z.boolean() }),
   z.object({
+    pause_days: z.union([z.literal(3), z.literal(7), z.literal(14), z.null()]),
+  }),
+  z.object({ pause_return: z.enum(["lighten", "keep"]) }),
+  z.object({
     quiet_from: z.number().int().min(0).max(23).nullable(),
     quiet_to: z.number().int().min(0).max(23).nullable(),
   }),

@@ -73,6 +73,7 @@ export function SessionScreen() {
     saveMissingTracks,
     markSet,
     addExercise,
+    swapExercise,
   } = useSessionScreen();
   const marking = useRef(new Set<string>());
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
@@ -128,6 +129,7 @@ export function SessionScreen() {
               setWarmupOpen={setWarmupOpen}
               setDrafts={setDrafts}
               onRemove={(id) => void removeExercise(id)}
+              onSwap={swapExercise}
               onReorder={
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }

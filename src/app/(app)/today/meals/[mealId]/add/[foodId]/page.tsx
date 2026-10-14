@@ -191,6 +191,7 @@ function AddMealItemGramsPage({
           defaultPortionLabel={food.default_portion_label}
           yieldPair={parseFoodYield(food)}
           foodState={food.state}
+          foodId={food.id}
           allowCooked
           backHref={backHref}
           doneHref={doneHref}

@@ -11,6 +11,7 @@ import {
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
 import { SessionSetEditor } from "@/components/workout/session-set-editor";
+import { SessionSwapSheet } from "@/components/workout/session-swap-sheet";
 import { haptic } from "@/lib/telegram/haptic";
 import type {
   SessionExerciseDetail,
@@ -41,6 +42,7 @@ export function SessionExerciseRow({
   onToggleWarmup,
   onDraft,
   onRemove,
+  onSwap,
   restActive,
   onStartRest,
   onToggleSet,
@@ -62,6 +64,7 @@ export function SessionExerciseRow({
   onToggleWarmup: () => void;
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
   onRemove?: () => void;
+  onSwap?: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
   restActive?: boolean;
   onStartRest?: () => void;
   onToggleSet?: (set: WorkoutSet) => void;
@@ -186,6 +189,14 @@ export function SessionExerciseRow({
             >
               {SLOT_INTENSITY_LABELS[item.intensity].toLowerCase()}
             </span>
+          ) : null}
+          {onSwap ? (
+            <SessionSwapSheet
+              sessionId={item.session_id}
+              sessionExerciseId={item.id}
+              disabled={disabled}
+              onSwap={onSwap}
+            />
           ) : null}
           {onRemove ? (
             <RemoveRowButton disabled={disabled} onClick={onRemove} />

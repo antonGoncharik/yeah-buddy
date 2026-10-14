@@ -53,5 +53,13 @@ export interface UserSettings {
   quiet_from: number | null;
   quiet_to: number | null;
   review_cooldown_until: string | null;
+  /** First day of a vacation or sick pause. Null when life is on. */
+  pause_from: string | null;
+  /** Last day the streak and evening pushes stay frozen. */
+  pause_until: string | null;
+  /** After the pause, offer one easier workout. */
+  pause_return_pending: boolean;
+  /** The next planned session should come in about ten percent lighter. */
+  pause_lighten: boolean;
   updated_at: string;
 }

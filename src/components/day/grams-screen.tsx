@@ -2,6 +2,7 @@
 
 import { GramChips } from "@/components/day/gram-chips";
 import { GramsYieldToggle } from "@/components/day/grams-yield-toggle";
+import { PortionHistoryChips } from "@/components/day/portion-history-chips";
 import { useGramsScreen } from "@/components/day/use-grams-screen";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export function GramsScreen({
   yieldPair = null,
   foodState,
   allowCooked = false,
+  foodId,
   save,
   backHref,
   doneHref,
@@ -48,6 +50,7 @@ export function GramsScreen({
   yieldPair?: FoodYield | null;
   foodState?: FoodState;
   allowCooked?: boolean;
+  foodId?: string;
   save?: (grams: number) => Promise<void>;
   backHref: string;
   doneHref: string;
@@ -87,6 +90,13 @@ export function GramsScreen({
           {formatMacro(carbs)} · {formatKcal(kcal)} ккал
         </p>
       </div>
+
+      {foodId && !readOnly ? (
+        <PortionHistoryChips
+          foodId={foodId}
+          onPick={(value) => void grams.saveGrams(value)}
+        />
+      ) : null}
 
       <div className="flex items-center gap-2">
         {readOnly ? (

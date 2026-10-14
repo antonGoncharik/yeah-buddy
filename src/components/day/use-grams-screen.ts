@@ -101,6 +101,17 @@ export function useGramsScreen({
     void pending;
   }
 
+  async function saveGrams(grams: number) {
+    if (readOnly || !save || !(grams > 0)) {
+      return;
+    }
+    setError(null);
+    haptic("commit");
+    const pending = save(grams);
+    router.push(doneHref);
+    void pending;
+  }
+
   return {
     gramsInput,
     setGramsInput: (value: string) => {
@@ -119,6 +130,7 @@ export function useGramsScreen({
     error,
     changeMode,
     onSave,
+    saveGrams,
     onCancel: () => router.push(readOnly ? doneHref : backHref),
   };
 }

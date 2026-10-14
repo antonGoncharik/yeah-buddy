@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { FoodForm } from "@/components/foods/food-form";
@@ -34,6 +35,12 @@ export function NewFoodScreen() {
 
   return (
     <FoodFormShell title="Новый продукт" backHref={backHref}>
+      <Link
+        href="/food/recipe"
+        className="text-base font-medium text-primary underline-offset-4 hover:underline"
+      >
+        Собрать из ингредиентов
+      </Link>
       <FoodForm afterCreateHref={afterCreateHref} />
     </FoodFormShell>
   );

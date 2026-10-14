@@ -16,6 +16,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { StatGrid } from "@/components/ui/stat-grid";
+import { BodyTimeline } from "@/components/workout/body-timeline";
 import { ProgressBodyWeightChart } from "@/components/workout/progress-body-weight-chart";
 import { ProgressExerciseCard } from "@/components/workout/progress-exercise-card";
 import {
@@ -290,6 +291,8 @@ function SummaryCard({
       </div>
 
       {!summaryScope ? <CategoryBars exercises={summaryTracked} /> : null}
+
+      <BodyTimeline />
 
       {horizon === "all" ? (
         <ProgressBodyWeightChart

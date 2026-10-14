@@ -10,6 +10,7 @@ import {
   assertGoalSettingsAllowed,
   UnsafeGoalError,
 } from "@/lib/nutrition/goal-safety";
+import { answerPauseReturn, savePause } from "@/lib/retention/pause-store";
 import {
   getUserSettings,
   saveUserSettings,
@@ -66,6 +67,18 @@ export const PATCH = sessionRoute(async (session, request) => {
           current?.birth_year ??
           null,
       });
+    }
+
+    if ("pause_days" in parsed.data) {
+      const settings = await savePause(session.userId, parsed.data.pause_days);
+      return jsonOk({ settings });
+    }
+    if ("pause_return" in parsed.data) {
+      const settings = await answerPauseReturn(
+        session.userId,
+        parsed.data.pause_return,
+      );
+      return jsonOk({ settings });
     }
 
     const before = await getUserSettings(session.userId);

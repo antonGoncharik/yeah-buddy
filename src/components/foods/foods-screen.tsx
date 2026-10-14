@@ -29,6 +29,15 @@ export function FoodsScreen() {
               <Plus className="size-5" aria-hidden />
               Новый продукт
             </Link>
+            <Link
+              href="/food/recipe"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-12 w-full text-base",
+              )}
+            >
+              Своя кастрюля
+            </Link>
           </StickyActions>
         }
       />

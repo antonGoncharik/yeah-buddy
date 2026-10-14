@@ -1,6 +1,7 @@
 import { shiftIsoDate } from "@/lib/day/dates";
 import { getServerEnv } from "@/lib/env";
 import { onboardingAgeDays } from "@/lib/retention";
+import { pauseCovers } from "@/lib/retention/pause";
 import { disableReminders } from "@/lib/settings";
 import {
   encodeMuscleWeekCard,
@@ -48,7 +49,7 @@ export async function runScheduledNotices(
     const page = await supabase
       .from("user_settings")
       .select(
-        "user_id, timezone, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, weigh_in_enabled, streak_reminder_enabled, reminders_enabled, users!inner(telegram_id, is_active)",
+        "user_id, timezone, onboarding_completed_at, quiet_from, quiet_to, weekly_digest_enabled, monthly_report_enabled, weigh_in_enabled, streak_reminder_enabled, reminders_enabled, pause_from, pause_until, users!inner(telegram_id, is_active)",
       )
       .eq("reminders_enabled", true)
       .not("onboarding_completed_at", "is", null)
@@ -85,6 +86,8 @@ async function deliverScheduledNotice(
     monthly_report_enabled: unknown;
     weigh_in_enabled: unknown;
     streak_reminder_enabled: unknown;
+    pause_from: unknown;
+    pause_until: unknown;
     users: unknown;
   },
   now: Date,
@@ -102,6 +105,14 @@ async function deliverScheduledNotice(
   const quietFrom = quietHour(row.quiet_from);
   const quietTo = quietHour(row.quiet_to);
   if (inQuietHours(clock.hour, quietFrom, quietTo)) {
+    result.skipped += 1;
+    return;
+  }
+  const pauseFrom =
+    typeof row.pause_from === "string" ? row.pause_from.slice(0, 10) : null;
+  const pauseUntil =
+    typeof row.pause_until === "string" ? row.pause_until.slice(0, 10) : null;
+  if (pauseCovers(clock.date, pauseFrom, pauseUntil)) {
     result.skipped += 1;
     return;
   }

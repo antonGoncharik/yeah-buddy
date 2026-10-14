@@ -32,11 +32,22 @@ export function priorFoodLogDays(
     fact_kcal: number;
   }>,
   endDate: string,
+  pause: { from: string; until: string } | null = null,
 ): number {
   const byDate = new Map(days.map((day) => [day.date, day]));
   let count = 0;
-  for (let offset = 1; offset < FOOD_LOG_STREAK_WINDOW; offset += 1) {
-    const row = byDate.get(shiftIsoDate(endDate, -offset)) ?? null;
+  let looked = 0;
+  for (
+    let offset = 1;
+    looked < FOOD_LOG_STREAK_WINDOW - 1 && offset < FOOD_LOG_STREAK_WINDOW + 21;
+    offset += 1
+  ) {
+    const date = shiftIsoDate(endDate, -offset);
+    if (pause && date >= pause.from && date <= pause.until) {
+      continue;
+    }
+    looked += 1;
+    const row = byDate.get(date) ?? null;
     if (!dayHasFood(row as DayHistoryRow | null)) {
       break;
     }

@@ -245,6 +245,31 @@ export function useSessionEdits({
     }
   }
 
+  async function swapExercise(
+    sessionExerciseId: string,
+    exerciseId: string,
+  ): Promise<boolean> {
+    if (detail?.session.status !== "planned") {
+      return false;
+    }
+    setError(null);
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}/swap`,
+        { exerciseId },
+      );
+      if (!applyPayload(data)) {
+        throw new Error(LOAD_FAILED);
+      }
+      haptic("commit");
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    }
+  }
+
   async function addExercise(exerciseId: string): Promise<boolean> {
     if (detail?.session.status !== "planned") {
       return false;
@@ -300,6 +325,7 @@ export function useSessionEdits({
     saveMissingTracks,
     markSet,
     addExercise,
+    swapExercise,
     cancelToday,
   };
 }

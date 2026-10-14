@@ -13,6 +13,7 @@ import {
   stepDraftValue,
 } from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
+import { SessionSetVoice } from "@/components/workout/session-set-voice";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import {
   sanitizeDecimalDraft,
@@ -89,6 +90,7 @@ export function SessionSetEditor({
         <p className="text-sm text-muted-foreground">
           План: <span className="tabular-nums">{planLine}</span>
         </p>
+        <SessionSetVoice disabled={disabled} timed={timed} onApply={onDraft} />
         <div className="flex flex-col gap-3">
           <Stepper
             label="Вес, кг"

@@ -60,8 +60,20 @@ export function mapSettings(row: Record<string, unknown>): UserSettings {
       typeof row.review_cooldown_until === "string"
         ? row.review_cooldown_until
         : null,
+    pause_from: parseIsoDate(row.pause_from),
+    pause_until: parseIsoDate(row.pause_until),
+    pause_return_pending: row.pause_return_pending === true,
+    pause_lighten: row.pause_lighten === true,
     updated_at: String(row.updated_at),
   };
+}
+
+function parseIsoDate(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const date = value.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }
 
 function parseStoredHeight(value: unknown): number | null {

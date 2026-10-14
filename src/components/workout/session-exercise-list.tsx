@@ -25,6 +25,7 @@ export function SessionExerciseList({
   setWarmupOpen,
   setDrafts,
   onRemove,
+  onSwap,
   onReorder,
   onStartRest,
   onToggleSet,
@@ -42,6 +43,7 @@ export function SessionExerciseList({
   setWarmupOpen: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDrafts: Dispatch<SetStateAction<Record<string, SetDraft>>>;
   onRemove: (sessionExerciseId: string) => void;
+  onSwap?: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
   onReorder?: (exerciseIds: string[]) => void;
   onStartRest?: (exerciseId: string) => void;
   onToggleSet?: (set: WorkoutSet, exerciseId: string) => void;
@@ -127,6 +129,9 @@ export function SessionExerciseList({
                 session.status === "planned"
                   ? () => onRemove(item.id)
                   : undefined
+              }
+              onSwap={
+                session.status === "planned" && onSwap ? onSwap : undefined
               }
               restActive={restActive}
               onStartRest={

@@ -29,6 +29,7 @@ import {
   SettingsPrivacySkeleton,
   SettingsRemindersSkeleton,
 } from "@/components/settings/settings-loading-skeleton";
+import { SettingsPauseSection } from "@/components/settings/settings-pause-section";
 import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
 import { SettingsSyncFailures } from "@/components/settings/settings-sync-failures";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
@@ -190,6 +191,8 @@ export function SettingsScreen() {
           order={order}
           setOrder={setOrder}
         />
+
+        <SettingsPauseSection />
 
         {loading ? <SettingsRemindersSkeleton /> : null}
         {!loading && form ? (

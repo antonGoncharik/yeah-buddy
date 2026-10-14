@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GramChips } from "@/components/day/gram-chips";
 import { saveMealItemGrams } from "@/components/day/grams-save";
+import { PortionHistoryChips } from "@/components/day/portion-history-chips";
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
 import { GramsStepperInput } from "@/components/ui/grams-stepper";
@@ -33,6 +34,28 @@ export function MealGramsSheet({
     }
     return calcMacrosFromPer100(item.per_100_snapshot, grams);
   }, [grams, item.per_100_snapshot]);
+
+  async function saveGrams(value: number) {
+    if (saving) {
+      return;
+    }
+    if (value === item.grams) {
+      onClose();
+      return;
+    }
+    setGramsInput(formatYieldGrams(value));
+    setSaving(true);
+    setError(null);
+    try {
+      await saveMealItemGrams({ date, item, grams: value });
+      haptic("commit");
+      onClose();
+    } catch (caught) {
+      haptic("error");
+      setSaving(false);
+      setError(caught instanceof Error ? caught.message : "Не сохранилось.");
+    }
+  }
 
   async function onSave() {
     if (grams == null || saving) {
@@ -73,6 +96,12 @@ export function MealGramsSheet({
           ? `${formatKcal(totals.kcal)} ккал · Б ${formatMacro(totals.protein)} · Ж ${formatMacro(totals.fat)} · У ${formatMacro(totals.carbs)}`
           : "Напиши граммы"}
       </p>
+      {item.food_id ? (
+        <PortionHistoryChips
+          foodId={item.food_id}
+          onPick={(value) => void saveGrams(value)}
+        />
+      ) : null}
       <GramChips
         onPick={(value) => {
           setGramsInput(formatYieldGrams(value));

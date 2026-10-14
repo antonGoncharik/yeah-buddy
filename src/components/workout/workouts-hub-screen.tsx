@@ -4,6 +4,7 @@ import { GuideTipCard } from "@/components/guide/guide-tip-card";
 import { useGuideTip } from "@/components/guide/use-guide-tip";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError } from "@/components/layout/screen-status";
+import { PauseReturnCard } from "@/components/workout/pause-return-card";
 import { ProgramEditableHintCard } from "@/components/workout/program-editable-hint-card";
 import { useProgramEditableHint } from "@/components/workout/use-program-editable-hint";
 import { useWorkoutsHub } from "@/components/workout/use-workouts-hub";
@@ -60,6 +61,7 @@ export function WorkoutsHubScreen() {
         {!loading && !error && !editableHint.open && guideTip.tip ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
+        {!loading && !error ? <PauseReturnCard /> : null}
         {loading ? <WorkoutsHubSkeleton /> : null}
 
         {!loading && error ? (

@@ -188,6 +188,7 @@ export function useSessionScreen() {
     saveMissingTracks,
     markSet,
     addExercise,
+    swapExercise,
     cancelToday,
   } = useSessionActions({
     detail,
@@ -300,5 +301,6 @@ export function useSessionScreen() {
     saveMissingTracks,
     markSet,
     addExercise,
+    swapExercise,
   };
 }

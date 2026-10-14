@@ -1,3 +1,4 @@
+import { consumePauseLighten } from "@/lib/retention/pause-store";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Exercise,
@@ -49,6 +50,9 @@ export async function ensureSessionPlan(
   }
 
   if ((existing.data ?? []).length > 0) {
+    if (session.status === "planned") {
+      await consumePauseLighten(userId, session.id);
+    }
     return;
   }
 
@@ -74,6 +78,10 @@ export async function ensureSessionPlan(
     if (inserted) {
       sortOrder += 10;
     }
+  }
+
+  if (session.status === "planned") {
+    await consumePauseLighten(userId, session.id);
   }
 }
 
