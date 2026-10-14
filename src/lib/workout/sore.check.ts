@@ -31,4 +31,8 @@ assertEqual(
   "an elbow covers the arm",
 );
 assertEqual(sorePlannedWeight(100, 2.5), 85, "fifteen percent on the plates");
-assertEqual(sorePlannedWeight(20, 2.5), 15, "a light weight steps down to the plate");
+assertEqual(
+  sorePlannedWeight(20, 2.5),
+  15,
+  "a light weight steps down to the plate",
+);
