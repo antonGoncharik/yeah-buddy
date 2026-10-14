@@ -1,6 +1,7 @@
 "use client";
 
 import { BodyWeightField } from "@/components/day/body-weight-field";
+import { MeasureTrendLines } from "@/components/day/measure-trend-lines";
 import { parseWaist } from "@/lib/day/body-weight";
 import { cn } from "@/lib/utils";
 
@@ -91,6 +92,9 @@ export function WeightBlock({
           </div>
         ) : null}
       </div>
+      {!readOnly ? (
+        <MeasureTrendLines weight={bodyWeight} waist={waist} />
+      ) : null}
       {note ? (
         <p
           className={cn(

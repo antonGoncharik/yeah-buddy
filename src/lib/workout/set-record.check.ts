@@ -2,6 +2,7 @@ import {
   heavierThanLine,
   liveSetRecord,
   liveWorkWeight,
+  recordTargetLine,
 } from "@/lib/workout/set-record";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -33,6 +34,12 @@ assertEqual(
   null,
   "the first time is not a record",
 );
+assertEqual(
+  recordTargetLine(82.5),
+  "Для рекорда нужно больше 82.5 кг",
+  "the bar to beat stays visible",
+);
+assertEqual(recordTargetLine(null), null, "no peak, no target");
 
 const sets = [
   {

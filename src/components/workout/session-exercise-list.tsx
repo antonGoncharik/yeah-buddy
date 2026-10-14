@@ -29,6 +29,10 @@ export function SessionExerciseList({
   onReorder,
   onStartRest,
   onToggleSet,
+  onLogSet,
+  onLogPlan,
+  pairs,
+  onPair,
   lastRestSeconds,
 }: {
   detail: SessionDetail;
@@ -47,6 +51,10 @@ export function SessionExerciseList({
   onReorder?: (exerciseIds: string[]) => void;
   onStartRest?: (exerciseId: string) => void;
   onToggleSet?: (set: WorkoutSet, exerciseId: string) => void;
+  onLogSet?: (set: WorkoutSet, exerciseId: string, draft: SetDraft) => void;
+  onLogPlan?: (exerciseId: string) => void;
+  pairs?: Record<string, string>;
+  onPair?: (exerciseId: string, nextExerciseId: string) => void;
   lastRestSeconds?: (exerciseId: string) => number;
 }) {
   const session = detail.session;
@@ -86,6 +94,8 @@ export function SessionExerciseList({
           const peak = detail.beats?.peaks.find(
             (row) => row.exercise_id === item.exercise_id,
           );
+          const index = detail.exercises.findIndex((row) => row.id === item.id);
+          const nextExercise = detail.exercises[index + 1];
           return (
             <SessionExerciseRow
               item={item}
@@ -142,6 +152,22 @@ export function SessionExerciseList({
               onToggleSet={
                 canEditSets && onToggleSet
                   ? (set) => onToggleSet(set, item.exercise_id)
+                  : undefined
+              }
+              onLogSet={
+                canEditSets && onLogSet
+                  ? (set, draft) => onLogSet(set, item.id, draft)
+                  : undefined
+              }
+              onLogPlan={
+                session.status === "planned" && onLogPlan
+                  ? () => onLogPlan(item.id)
+                  : undefined
+              }
+              paired={pairs?.[item.id] === nextExercise?.id}
+              onPair={
+                session.status === "planned" && onPair && nextExercise
+                  ? () => onPair(item.id, nextExercise.id)
                   : undefined
               }
               restSeconds={lastRestSeconds?.(item.exercise_id)}

@@ -16,15 +16,12 @@ export function SessionSetVoice({
   disabled,
   timed,
   onApply,
+  onCommit,
 }: {
   disabled: boolean;
   timed: boolean;
-  onApply: (patch: {
-    weight?: string;
-    reps?: string;
-    seconds?: string;
-    rir?: string;
-  }) => void;
+  onApply: (patch: UtterancePatch) => void;
+  onCommit?: (patch: UtterancePatch) => void;
 }) {
   const [text, setText] = useState("");
   const [hearing, setHearing] = useState(false);
@@ -37,7 +34,11 @@ export function SessionSetVoice({
       setHint("Не разобрал. Например: 82,5 на 6, запас 1.");
       return;
     }
-    onApply(draftPatch(parsed, timed));
+    const patch = draftPatch(parsed, timed);
+    onApply(patch);
+    if (onCommit && utteranceReady(patch, timed)) {
+      onCommit(patch);
+    }
     haptic("commit");
     setHint(null);
     setText("");
@@ -106,7 +107,28 @@ export function SessionSetVoice({
   );
 }
 
-function draftPatch(parsed: ParsedSetUtterance, timed: boolean) {
+type UtterancePatch = {
+  weight?: string;
+  reps?: string;
+  seconds?: string;
+  rir?: string;
+};
+
+function utteranceReady(patch: UtterancePatch, timed: boolean): boolean {
+  const weight = Number(patch.weight?.replace(",", "."));
+  if (!(weight > 0)) {
+    return false;
+  }
+  if (timed) {
+    return Number(patch.seconds?.replace(",", ".")) > 0;
+  }
+  return Number(patch.reps) > 0;
+}
+
+function draftPatch(
+  parsed: ParsedSetUtterance,
+  timed: boolean,
+): UtterancePatch {
   return {
     ...(parsed.weight != null ? { weight: formatWeight(parsed.weight) } : {}),
     ...(parsed.reps != null && !timed ? { reps: String(parsed.reps) } : {}),

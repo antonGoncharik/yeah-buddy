@@ -7,6 +7,7 @@ import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
   draftFromSet,
   formatVisibleSetLine,
+  plannedLogPatch,
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
@@ -27,7 +28,11 @@ import {
 } from "@/lib/workout/rest-timer";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatLastTimeWorkLine } from "@/lib/workout/session-memory";
-import { liveSetRecord, liveWorkWeight } from "@/lib/workout/set-record";
+import {
+  liveSetRecord,
+  liveWorkWeight,
+  recordTargetLine,
+} from "@/lib/workout/set-record";
 import { SLOT_INTENSITY_LABELS } from "@/lib/workout/slot-plan";
 
 export function SessionExerciseRow({
@@ -46,6 +51,10 @@ export function SessionExerciseRow({
   restActive,
   onStartRest,
   onToggleSet,
+  onLogSet,
+  onLogPlan,
+  paired = false,
+  onPair,
   restSeconds,
   track = null,
   priorPeak = null,
@@ -68,6 +77,10 @@ export function SessionExerciseRow({
   restActive?: boolean;
   onStartRest?: () => void;
   onToggleSet?: (set: WorkoutSet) => void;
+  onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
+  onLogPlan?: () => void;
+  paired?: boolean;
+  onPair?: () => void;
   restSeconds?: number;
   priorPeak?: number | null;
   priorOn?: string | null;
@@ -108,6 +121,13 @@ export function SessionExerciseRow({
     priorPeak,
     priorOn,
   });
+  const targetLine =
+    !recordLine && work.some((set) => !set.is_completed)
+      ? recordTargetLine(priorPeak)
+      : null;
+  const canLogPlan =
+    onLogPlan != null &&
+    work.some((set) => !set.is_completed && plannedLogPatch(set) != null);
   const recordReady = useRef(false);
 
   useEffect(() => {
@@ -152,6 +172,13 @@ export function SessionExerciseRow({
             onDraft(open.id, patch);
           }
         }}
+        onLog={
+          onLogSet && !set.is_completed
+            ? (next) => {
+                onLogSet(set, next);
+              }
+            : undefined
+        }
       />
     );
   }
@@ -211,6 +238,35 @@ export function SessionExerciseRow({
           <p className="-mt-1 text-base font-medium text-foreground">
             {recordLine}
           </p>
+        ) : null}
+        {targetLine ? (
+          <p className="-mt-1 text-sm leading-snug text-muted-foreground">
+            {targetLine}
+          </p>
+        ) : null}
+        {canLogPlan || onPair ? (
+          <div className="flex flex-wrap gap-2">
+            {canLogPlan ? (
+              <button
+                type="button"
+                className="min-h-11 rounded-lg bg-muted/60 px-3 text-base font-medium disabled:opacity-50"
+                disabled={disabled}
+                onClick={onLogPlan}
+              >
+                Как по плану
+              </button>
+            ) : null}
+            {onPair ? (
+              <button
+                type="button"
+                className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
+                disabled={disabled}
+                onClick={onPair}
+              >
+                {paired ? "Убрать пару" : "В пару со следующим"}
+              </button>
+            ) : null}
+          </div>
         ) : null}
         {warmup.length > 0 ? (
           <div className="flex w-full flex-col items-start gap-1">

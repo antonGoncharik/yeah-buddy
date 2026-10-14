@@ -1,6 +1,7 @@
 import {
   recipeCookedGrams,
   recipePer100,
+  recipePortion,
   recipeRawGrams,
 } from "@/lib/food/recipe";
 
@@ -38,3 +39,9 @@ const per100 = recipePer100(lines, 200);
 assertEqual(per100?.protein, 20, "protein concentrates when it fries");
 assertEqual(per100?.fat, 30, "oil stays in the pot");
 assertEqual(per100?.kcal, 350, "kcal follows 4/4/9");
+assertEqual(
+  recipePortion(400, 2),
+  { grams: 200, label: "1/2 кастрюли" },
+  "half the pot",
+);
+assertEqual(recipePortion(400, 0), null, "no empty servings");

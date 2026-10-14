@@ -10,7 +10,8 @@ import { fetchJson, peekJson } from "@/lib/api-cache";
 import { readCachedDay } from "@/lib/day/cache";
 import { parseFoodList } from "@/lib/food/map";
 import { quickAddGrams } from "@/lib/food/quick-add";
-import { formatGrams } from "@/lib/nutrition";
+import { formatGrams, formatKcal } from "@/lib/nutrition";
+import { closeDayCombo } from "@/lib/nutrition/close-day";
 import { macroGapProteinOffers } from "@/lib/nutrition/macro-gap-hint";
 import {
   type ProteinCloseCandidate,
@@ -80,7 +81,8 @@ export function ProteinCloseOffers({
   const offers = macroGap
     ? macroGapProteinOffers(budget, pool)
     : proteinCloseOffers(budget, pool);
-  if (offers.length === 0) {
+  const combo = closeDayCombo(budget, pool);
+  if (offers.length === 0 && !combo) {
     return null;
   }
 
@@ -118,6 +120,29 @@ export function ProteinCloseOffers({
       >
         {macroGap ? "Чем закрыть белок" : "Добить белок"}
       </p>
+      {combo ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className={cn(
+            "block h-auto w-full min-w-0 px-3 text-left font-medium leading-snug whitespace-normal",
+            compact ? "min-h-10 py-2 text-sm" : "min-h-12 py-3 text-base",
+          )}
+          disabled={busy || addingId != null}
+          onClick={() => {
+            void (async () => {
+              for (const piece of combo.pieces) {
+                await add(piece.foodId, piece.grams);
+              }
+            })();
+          }}
+        >
+          {combo.pieces
+            .map((piece) => `${piece.name} ${formatGrams(piece.grams)} г`)
+            .join(" + ")}
+          {` · ${formatKcal(combo.kcal)} ккал`}
+        </Button>
+      ) : null}
       {offers.map((offer) => (
         <Button
           key={offer.foodId}

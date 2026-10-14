@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
@@ -12,12 +12,14 @@ import { SessionAddExercise } from "@/components/workout/session-add-exercise";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
 import {
   loggedSetPatch,
+  plannedLogPatch,
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
 import { SessionNoteField } from "@/components/workout/session-note-field";
+import { SessionSoreBanner } from "@/components/workout/session-sore-banner";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { calendarToday } from "@/lib/day/dates";
@@ -28,6 +30,13 @@ import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
+import {
+  forgetPair,
+  nextFocusSetId,
+  pairWith,
+  readSessionPairs,
+  writeSessionPairs,
+} from "@/lib/workout/session-pairs";
 
 export function SessionScreen() {
   const confirm = useConfirm();
@@ -76,6 +85,13 @@ export function SessionScreen() {
     swapExercise,
   } = useSessionScreen();
   const marking = useRef(new Set<string>());
+  const [pairs, setPairs] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!session?.id) {
+      return;
+    }
+    setPairs(readSessionPairs(session.id));
+  }, [session?.id]);
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
   const focusExerciseId =
@@ -116,6 +132,13 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
+            {session.status === "planned" ? (
+              <SessionSoreBanner
+                sessionId={session.id}
+                disabled={busy}
+                onEased={() => void load()}
+              />
+            ) : null}
             <SessionExerciseList
               detail={detail}
               busy={busy}
@@ -135,14 +158,61 @@ export function SessionScreen() {
               }
               onStartRest={canRest ? (id) => rest.start(id) : undefined}
               onToggleSet={(set, exerciseId) => {
+                const row = detail.exercises.find(
+                  (item) => item.exercise_id === exerciseId,
+                );
                 void toggleSet({
                   set,
                   exerciseId,
+                  sessionExerciseId: row?.id ?? "",
                   draft: drafts[set.id],
+                  pairs,
+                  exercises: detail.exercises,
                   marking,
                   markSet,
                   openEditor: (id) => setOpenSetIds([id]),
+                  focusSet: (id) => setOpenSetIds([id]),
                   startRest: (id) => rest.start(id),
+                });
+              }}
+              onLogSet={(set, sessionExerciseId, draft) => {
+                const row = detail.exercises.find(
+                  (item) => item.id === sessionExerciseId,
+                );
+                void toggleSet({
+                  set,
+                  exerciseId: row?.exercise_id ?? "",
+                  sessionExerciseId,
+                  draft,
+                  pairs,
+                  exercises: detail.exercises,
+                  marking,
+                  markSet,
+                  openEditor: (id) => setOpenSetIds([id]),
+                  focusSet: (id) => setOpenSetIds([id]),
+                  startRest: (id) => rest.start(row?.exercise_id ?? id),
+                });
+              }}
+              onLogPlan={(sessionExerciseId) => {
+                void logPlannedSets({
+                  sessionExerciseId,
+                  exercises: detail.exercises,
+                  markSet,
+                  startRest: (id) => rest.start(id),
+                });
+              }}
+              pairs={pairs}
+              onPair={(leftId, rightId) => {
+                if (!session.id) {
+                  return;
+                }
+                setPairs((current) => {
+                  const next =
+                    current[leftId] === rightId
+                      ? forgetPair(current, leftId)
+                      : pairWith(current, leftId, rightId);
+                  writeSessionPairs(session.id, next);
+                  return next;
                 });
               }}
               lastRestSeconds={(id) => rest.lastSeconds(id)}
@@ -299,15 +369,22 @@ export function SessionScreen() {
 async function toggleSet({
   set,
   exerciseId,
+  sessionExerciseId,
   draft,
+  pairs,
+  exercises,
   marking,
   markSet,
   openEditor,
+  focusSet,
   startRest,
 }: {
   set: WorkoutSet;
   exerciseId: string;
+  sessionExerciseId: string;
   draft: SetDraft | undefined;
+  pairs: Record<string, string>;
+  exercises: SessionDetail["exercises"];
   marking: { current: Set<string> };
   markSet: (
     setId: string,
@@ -320,6 +397,7 @@ async function toggleSet({
     },
   ) => Promise<boolean>;
   openEditor: (setId: string) => void;
+  focusSet: (setId: string) => void;
   startRest: (exerciseId: string) => void;
 }) {
   if (marking.current.has(set.id)) {
@@ -337,6 +415,15 @@ async function toggleSet({
       const ok = await markSet(set.id, { is_completed: true, ...patch });
       if (ok && set.set_type === "work") {
         startRest(exerciseId);
+        const nextId = nextFocusSetId(
+          exercises,
+          sessionExerciseId,
+          set.id,
+          pairs[sessionExerciseId] ?? null,
+        );
+        if (nextId) {
+          focusSet(nextId);
+        }
       }
     } finally {
       marking.current.delete(set.id);
@@ -349,6 +436,50 @@ async function toggleSet({
     await markSet(set.id, { is_completed: false });
   } finally {
     marking.current.delete(set.id);
+  }
+}
+
+async function logPlannedSets({
+  sessionExerciseId,
+  exercises,
+  markSet,
+  startRest,
+}: {
+  sessionExerciseId: string;
+  exercises: SessionDetail["exercises"];
+  markSet: (
+    setId: string,
+    patch: {
+      is_completed: boolean;
+      actual_weight?: number;
+      actual_reps?: number | null;
+      actual_seconds?: number | null;
+      actual_rir?: number | null;
+    },
+  ) => Promise<boolean>;
+  startRest: (exerciseId: string) => void;
+}) {
+  const item = exercises.find((row) => row.id === sessionExerciseId);
+  if (!item) {
+    return;
+  }
+  let logged = false;
+  for (const set of item.sets) {
+    if (set.set_type !== "work" || set.is_completed) {
+      continue;
+    }
+    const patch = plannedLogPatch(set);
+    if (!patch) {
+      continue;
+    }
+    const ok = await markSet(set.id, { is_completed: true, ...patch });
+    if (!ok) {
+      return;
+    }
+    logged = true;
+  }
+  if (logged) {
+    startRest(item.exercise_id);
   }
 }
 

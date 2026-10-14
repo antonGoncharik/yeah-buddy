@@ -12,6 +12,24 @@ export interface RecipeLine {
   carbsPer100: number;
 }
 
+/** One serving of a cooked pot. Two to four servings split the cooked weight. */
+export function recipePortion(
+  cookedGrams: number,
+  portions: number,
+): { grams: number; label: string } | null {
+  if (!(cookedGrams > 0) || portions < 1 || portions > 4) {
+    return null;
+  }
+  const grams = roundYieldGrams(cookedGrams / portions);
+  if (!(grams > 0)) {
+    return null;
+  }
+  return {
+    grams,
+    label: portions === 1 ? "1 порция" : `1/${portions} кастрюли`,
+  };
+}
+
 export function recipeRawGrams(lines: readonly RecipeLine[]): number {
   return roundYieldGrams(
     lines.reduce((sum, line) => sum + (line.grams > 0 ? line.grams : 0), 0),

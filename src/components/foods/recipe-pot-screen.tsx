@@ -1,24 +1,32 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { FoodFormShell } from "@/components/foods/food-form-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cachedGet, postJson } from "@/lib/api-cache";
+import { calendarToday, isIsoDate, withDateQuery } from "@/lib/day/dates";
 import {
   type RecipeLine,
   recipeCookedGrams,
   recipePer100,
+  recipePortion,
   recipeRawGrams,
 } from "@/lib/food/recipe";
 import { parseFoodList, readFoodPayload } from "@/lib/foods";
-import { formatKcal, formatMacro } from "@/lib/nutrition";
+import {
+  formatKcal,
+  formatMacro,
+  isDayType,
+  isMealType,
+} from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";
 
 const SHRINK = [10, 20, 30] as const;
+const PORTIONS = [1, 2, 3, 4] as const;
 
 interface PotLine {
   food: Food;
@@ -27,12 +35,21 @@ interface PotLine {
 
 export function RecipePotScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const mealId = readParam(searchParams.get("mealId"));
+  const dayTypeRaw = readParam(searchParams.get("dayType"));
+  const mealTypeRaw = readParam(searchParams.get("mealType"));
+  const dateRaw = readParam(searchParams.get("date"));
+  const dayType = isDayType(dayTypeRaw) ? dayTypeRaw : undefined;
+  const mealType = isMealType(mealTypeRaw) ? mealTypeRaw : undefined;
+  const date = dateRaw && isIsoDate(dateRaw) ? dateRaw : null;
   const [name, setName] = useState("");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Food[]>([]);
   const [lines, setLines] = useState<PotLine[]>([]);
   const [cooked, setCooked] = useState("");
   const [shrink, setShrink] = useState<number | null>(null);
+  const [portions, setPortions] = useState<(typeof PORTIONS)[number]>(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +78,8 @@ export function RecipePotScreen() {
   }, [cooked, raw, shrink]);
   const per100 =
     cookedGrams != null ? recipePer100(recipeLines, cookedGrams) : null;
+  const portion =
+    cookedGrams != null ? recipePortion(cookedGrams, portions) : null;
 
   async function search(value: string) {
     setQuery(value);
@@ -110,12 +129,23 @@ export function RecipePotScreen() {
         protein_per_100: per100.protein,
         fat_per_100: per100.fat,
         carbs_per_100: per100.carbs,
-        default_portion_g:
-          cookedGrams && cookedGrams <= 500 ? cookedGrams : 250,
+        default_portion_g: portion?.grams ?? 250,
+        default_portion_label: portion?.label ?? null,
       });
       const food = readFoodPayload(data);
       haptic("commit");
-      router.push(food ? `/food/${food.id}` : "/foods");
+      const next = food
+        ? mealId
+          ? withDateQuery(
+              `/today/meals/${mealId}/add/${food.id}`,
+              date,
+              calendarToday(),
+            )
+          : dayType && mealType
+            ? `/settings/meals/${dayType}/${mealType}/add/${food.id}`
+            : `/food/${food.id}`
+        : "/foods";
+      router.push(next);
     } catch (caught) {
       haptic("error");
       setSaving(false);
@@ -217,12 +247,29 @@ export function RecipePotScreen() {
           placeholder="Вес готового, г"
           className="h-12 text-base"
         />
+        <div className="flex flex-wrap gap-2">
+          {PORTIONS.map((value) => (
+            <Button
+              key={value}
+              type="button"
+              variant={portions === value ? "secondary" : "outline"}
+              className="min-h-11"
+              onClick={() => {
+                haptic("tick");
+                setPortions(value);
+              }}
+            >
+              {value === 1 ? "1 порция" : `${value} порции`}
+            </Button>
+          ))}
+        </div>
         <p className="text-lg font-semibold tabular-nums">
           {per100
             ? `На 100 г: ${formatKcal(per100.kcal)} ккал · Б ${formatMacro(per100.protein)} · Ж ${formatMacro(per100.fat)} · У ${formatMacro(per100.carbs)}`
             : raw > 0
               ? "Проверь вес готового."
               : "Добавь ингредиенты."}
+          {portion ? ` Порция ${portion.grams} г.` : ""}
         </p>
         {error ? <p className="text-base text-destructive">{error}</p> : null}
         <Button
@@ -236,4 +283,11 @@ export function RecipePotScreen() {
       </div>
     </FoodFormShell>
   );
+}
+
+function readParam(value: string | null): string | undefined {
+  if (!value || value.trim() === "") {
+    return undefined;
+  }
+  return value;
 }

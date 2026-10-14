@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { MealLogActions } from "@/components/day/meal-log-actions";
+import { MealMemoryChips } from "@/components/day/meal-memory-chips";
 import { FoodPicker } from "@/components/foods/food-picker";
 import { FrequentFoodChips } from "@/components/foods/frequent-food-chips";
 import { useFrequentFoods } from "@/components/foods/use-frequent-foods";
@@ -56,6 +57,38 @@ export function AddMealItemScreen({
     window.history.replaceState(null, "", next);
   }, []);
 
+  async function pickLogged(
+    food: Pick<
+      Food,
+      | "id"
+      | "name"
+      | "protein_per_100"
+      | "fat_per_100"
+      | "carbs_per_100"
+      | "kcal_per_100"
+    >,
+    grams: number,
+  ) {
+    if (!quickAdd || addingId) {
+      return;
+    }
+    setAddingId(food.id);
+    try {
+      await addMealItemGrams({
+        date: quickAdd.date,
+        mealId: quickAdd.mealId,
+        food,
+        grams,
+      });
+      haptic("success");
+      router.replace(quickAdd.doneHref);
+    } catch (caught) {
+      haptic("error");
+      reportActionError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      setAddingId(null);
+    }
+  }
+
   async function pickFood(food: Food) {
     const href = appendFoodHrefSegment(foodHrefBase, food.id);
     if (!quickAdd || addingId) {
@@ -97,6 +130,14 @@ export function AddMealItemScreen({
 
   return (
     <>
+      {quickAdd ? (
+        <MealMemoryChips
+          date={quickAdd.date}
+          mealId={quickAdd.mealId}
+          addingId={addingId}
+          onPick={(food, grams) => void pickLogged(food, grams)}
+        />
+      ) : null}
       {frequentFoods.length > 0 ? (
         <div className="flex flex-col gap-2 px-4">
           <p className="text-sm font-medium text-muted-foreground">Частые</p>

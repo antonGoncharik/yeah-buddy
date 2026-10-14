@@ -15,6 +15,7 @@ import {
 import {
   primaryMuscle,
   rankSwapOptions,
+  swapMode,
   swapPlanLine,
 } from "@/lib/workout/session-swap";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
@@ -66,8 +67,9 @@ export async function swapSessionExercise(
   if (ready.session.status !== "planned") {
     throw new Error("Заменить упражнение можно только в открытой тренировке.");
   }
-  if (ready.target.sets.some((set) => set.is_completed)) {
-    throw new Error("Нельзя заменить упражнение с отмеченными подходами.");
+  const mode = swapMode(ready.target.sets);
+  if (mode === "blocked") {
+    throw new Error("Все рабочие подходы уже отмечены.");
   }
 
   const ranked = await rankedSwaps(
@@ -87,13 +89,15 @@ export async function swapSessionExercise(
   const ctx = await loadPlanContext(userId, ready.session, template);
   await attachOne(ctx, userId, ready.session.id, next.id);
   const kind = resolveAdHocKind(next.workout_type, ready.session.workout_type);
+  const sortOrder =
+    mode === "continue" ? ready.target.sort_order + 1 : ready.target.sort_order;
   const inserted =
     (await insertSessionExercise(
       userId,
       ready.session,
       next,
       null,
-      ready.target.sort_order,
+      sortOrder,
       ctx,
     )) ||
     (await insertSessionExercise(
@@ -101,7 +105,7 @@ export async function swapSessionExercise(
       ready.session,
       next,
       adHocFeelPlan(kind),
-      ready.target.sort_order,
+      sortOrder,
       ctx,
     ));
   if (!inserted) {
@@ -109,6 +113,27 @@ export async function swapSessionExercise(
   }
 
   const supabase = createSupabaseServerClient();
+  if (mode === "continue") {
+    const openWork = ready.target.sets.filter(
+      (set) => !set.is_completed && set.set_type === "work",
+    ).length;
+    await trimSwappedWorkSets(supabase, userId, sessionId, next.id, openWork);
+    const stale = ready.target.sets
+      .filter((set) => !set.is_completed)
+      .map((set) => set.id);
+    if (stale.length > 0) {
+      const removed = await supabase
+        .from("workout_sets")
+        .delete()
+        .eq("user_id", userId)
+        .in("id", stale);
+      if (removed.error) {
+        throw removed.error;
+      }
+    }
+    return loadSessionDetail(userId, ready.session);
+  }
+
   const deleted = await supabase
     .from("session_exercises")
     .delete()
@@ -120,6 +145,58 @@ export async function swapSessionExercise(
   }
 
   return loadSessionDetail(userId, ready.session);
+}
+
+async function trimSwappedWorkSets(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+  userId: string,
+  sessionId: string,
+  exerciseId: string,
+  keepWork: number,
+) {
+  const created = await supabase
+    .from("session_exercises")
+    .select("id, workout_sets(id, set_type, set_number)")
+    .eq("user_id", userId)
+    .eq("session_id", sessionId)
+    .eq("exercise_id", exerciseId)
+    .maybeSingle();
+  if (created.error) {
+    throw created.error;
+  }
+  const sets = Array.isArray(created.data?.workout_sets)
+    ? created.data.workout_sets
+    : [];
+  const work = sets
+    .flatMap((set) => {
+      if (typeof set !== "object" || set == null) {
+        return [];
+      }
+      if (
+        !("id" in set) ||
+        typeof set.id !== "string" ||
+        !("set_type" in set) ||
+        set.set_type !== "work" ||
+        !("set_number" in set) ||
+        typeof set.set_number !== "number"
+      ) {
+        return [];
+      }
+      return [{ id: set.id, set_number: set.set_number }];
+    })
+    .sort((left, right) => left.set_number - right.set_number);
+  const extra = work.slice(Math.max(0, keepWork)).map((set) => set.id);
+  if (extra.length === 0) {
+    return;
+  }
+  const removed = await supabase
+    .from("workout_sets")
+    .delete()
+    .eq("user_id", userId)
+    .in("id", extra);
+  if (removed.error) {
+    throw removed.error;
+  }
 }
 
 async function readySwap(

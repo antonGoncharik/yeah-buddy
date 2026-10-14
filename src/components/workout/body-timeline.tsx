@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
@@ -21,6 +21,10 @@ export function BodyTimeline() {
   const [wipe, setWipe] = useState(50);
   const [caption, setCaption] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shotDate, setShotDate] = useState(calendarToday);
+  const [sharing, setSharing] = useState(false);
+  const photosRef = useRef(photos);
+  photosRef.current = photos;
 
   useEffect(() => {
     let cancelled = false;
@@ -49,11 +53,11 @@ export function BodyTimeline() {
 
   useEffect(() => {
     return () => {
-      for (const photo of photos) {
+      for (const photo of photosRef.current) {
         URL.revokeObjectURL(photo.url);
       }
     };
-  }, [photos]);
+  }, []);
 
   useEffect(() => {
     if (!thenDate || !nowDate || thenDate === nowDate) {
@@ -83,7 +87,7 @@ export function BodyTimeline() {
     if (!file?.type.startsWith("image/")) {
       return;
     }
-    const date = calendarToday();
+    const date = shotDate || calendarToday();
     try {
       await saveBodyPhoto(date, file);
       const url = URL.createObjectURL(file);
@@ -116,12 +120,18 @@ export function BodyTimeline() {
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-medium text-muted-foreground">Тело</h3>
-        <label className="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium">
+        <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium">
+          <input
+            type="date"
+            value={shotDate}
+            aria-label="Дата снимка"
+            className="h-11 rounded-lg bg-muted px-2 text-base"
+            onChange={(event) => setShotDate(event.target.value)}
+          />
           Снимок
           <input
             type="file"
             accept="image/*"
-            capture="user"
             className="sr-only"
             onChange={(event) => {
               void onFile(event.target.files?.[0]);
@@ -135,29 +145,19 @@ export function BodyTimeline() {
         веса вокруг этих дат.
       </p>
       {photos.length > 1 ? (
-        <div className="flex flex-wrap gap-2">
-          {photos.map((photo) => (
-            <Button
-              key={photo.date}
-              type="button"
-              variant={
-                photo.date === thenDate || photo.date === nowDate
-                  ? "secondary"
-                  : "outline"
-              }
-              className="min-h-11"
-              onClick={() => {
-                haptic("tick");
-                if (!thenDate || photo.date < thenDate) {
-                  setThenDate(photo.date);
-                  return;
-                }
-                setNowDate(photo.date);
-              }}
-            >
-              {formatIsoDate(photo.date, "d MMM")}
-            </Button>
-          ))}
+        <div className="flex flex-col gap-2">
+          <DatePick
+            label="Тогда"
+            photos={photos}
+            selected={thenDate}
+            onPick={setThenDate}
+          />
+          <DatePick
+            label="Сейчас"
+            photos={photos}
+            selected={nowDate}
+            onPick={setNowDate}
+          />
         </div>
       ) : null}
       {canCompare && thenPhoto && nowPhoto ? (
@@ -207,6 +207,30 @@ export function BodyTimeline() {
         </p>
       )}
       {caption ? <p className="text-base leading-snug">{caption}</p> : null}
+      {canCompare && thenPhoto && nowPhoto ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11 self-start"
+          disabled={sharing}
+          onClick={() => {
+            setSharing(true);
+            void shareCompareCard(
+              thenPhoto.url,
+              nowPhoto.url,
+              caption ??
+                `${formatIsoDate(thenPhoto.date, "d MMM")} и ${formatIsoDate(nowPhoto.date, "d MMM")}`,
+            )
+              .catch(() => {
+                haptic("error");
+                setError("Карточка не собралась.");
+              })
+              .finally(() => setSharing(false));
+          }}
+        >
+          {sharing ? "Собираю…" : "Карточка для сторис"}
+        </Button>
+      ) : null}
       {error ? <p className="text-base text-destructive">{error}</p> : null}
       {nowPhoto ? (
         <Button
@@ -228,6 +252,138 @@ export function BodyTimeline() {
       ) : null}
     </section>
   );
+}
+
+function DatePick({
+  label,
+  photos,
+  selected,
+  onPick,
+}: {
+  label: string;
+  photos: Array<{ date: string }>;
+  selected: string | null;
+  onPick: (date: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      {photos.map((photo) => (
+        <Button
+          key={`${label}-${photo.date}`}
+          type="button"
+          variant={photo.date === selected ? "secondary" : "outline"}
+          className="min-h-11"
+          onClick={() => {
+            haptic("tick");
+            onPick(photo.date);
+          }}
+        >
+          {formatIsoDate(photo.date, "d MMM")}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+async function shareCompareCard(
+  thenUrl: string,
+  nowUrl: string,
+  caption: string,
+) {
+  const [before, after] = await Promise.all([
+    loadImage(thenUrl),
+    loadImage(nowUrl),
+  ]);
+  const width = 1080;
+  const photoWidth = width / 2;
+  const photoHeight = 720;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = photoHeight + 220;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("canvas");
+  }
+  context.fillStyle = "#111111";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  drawCover(context, before, 0, 0, photoWidth, photoHeight);
+  drawCover(context, after, photoWidth, 0, photoWidth, photoHeight);
+  context.fillStyle = "#f5f5f5";
+  context.font = "36px sans-serif";
+  wrapText(context, caption, 48, photoHeight + 64, width - 96, 46);
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.9);
+  });
+  if (!blob) {
+    throw new Error("blob");
+  }
+  const file = new File([blob], "yeah-buddy-body.jpg", { type: "image/jpeg" });
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file], title: "Тогда и сейчас" });
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image"));
+    image.src = url;
+  });
+}
+
+function drawCover(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.max(width / image.width, height / image.height);
+  const drawnWidth = image.width * scale;
+  const drawnHeight = image.height * scale;
+  context.drawImage(
+    image,
+    x + (width - drawnWidth) / 2,
+    y + (height - drawnHeight) / 2,
+    drawnWidth,
+    drawnHeight,
+  );
+}
+
+function wrapText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+) {
+  const words = text.split(" ");
+  let line = "";
+  let cursor = y;
+  for (const word of words) {
+    const next = line === "" ? word : `${line} ${word}`;
+    if (context.measureText(next).width > maxWidth && line !== "") {
+      context.fillText(line, x, cursor);
+      line = word;
+      cursor += lineHeight;
+      continue;
+    }
+    line = next;
+  }
+  if (line !== "") {
+    context.fillText(line, x, cursor);
+  }
 }
 
 function readCaption(data: unknown): string | null {

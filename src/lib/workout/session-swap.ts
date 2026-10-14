@@ -66,3 +66,16 @@ export function swapPlanLine(sets: readonly PlannedSetRow[]): string | null {
   }
   return `${count} · по самочувствию`;
 }
+
+/** Replace the whole line, keep finished sets and swap the rest, or refuse. */
+export function swapMode(
+  sets: readonly { is_completed: boolean; set_type: string }[],
+): "replace" | "continue" | "blocked" {
+  if (!sets.some((set) => set.is_completed)) {
+    return "replace";
+  }
+  const openWork = sets.some(
+    (set) => !set.is_completed && set.set_type === "work",
+  );
+  return openWork ? "continue" : "blocked";
+}

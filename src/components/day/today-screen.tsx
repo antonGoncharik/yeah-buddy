@@ -10,6 +10,7 @@ import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMark } from "@/components/day/today-day-mark";
 import { TodayDayView } from "@/components/day/today-day-view";
+import { TodayPauseBanner } from "@/components/day/today-pause-banner";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
@@ -197,6 +198,7 @@ export function TodayScreen({
       ) : null}
 
       <div className="flex flex-col gap-4 pb-4">
+        {contentReady && isToday && !viewOnly ? <TodayPauseBanner /> : null}
         {showLoading ? <TodayLoadingSkeleton gym={gymEnabled} /> : null}
 
         {contentReady && loadError ? (

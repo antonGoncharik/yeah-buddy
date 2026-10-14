@@ -36,7 +36,7 @@ export function NewFoodScreen() {
   return (
     <FoodFormShell title="Новый продукт" backHref={backHref}>
       <Link
-        href="/food/recipe"
+        href={recipeHref({ mealId, dayType, mealType, date })}
         className="text-base font-medium text-primary underline-offset-4 hover:underline"
       >
         Собрать из ингредиентов
@@ -44,6 +44,29 @@ export function NewFoodScreen() {
       <FoodForm afterCreateHref={afterCreateHref} />
     </FoodFormShell>
   );
+}
+
+function recipeHref(input: {
+  mealId?: string;
+  dayType?: string;
+  mealType?: string;
+  date: string | null;
+}): string {
+  const query = new URLSearchParams();
+  if (input.mealId) {
+    query.set("mealId", input.mealId);
+  }
+  if (input.dayType) {
+    query.set("dayType", input.dayType);
+  }
+  if (input.mealType) {
+    query.set("mealType", input.mealType);
+  }
+  if (input.date) {
+    query.set("date", input.date);
+  }
+  const text = query.toString();
+  return text === "" ? "/food/recipe" : `/food/recipe?${text}`;
 }
 
 function readParam(value: string | null): string | undefined {

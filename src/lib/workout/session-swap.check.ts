@@ -1,6 +1,7 @@
 import {
   primaryMuscle,
   rankSwapOptions,
+  swapMode,
   swapPlanLine,
 } from "@/lib/workout/session-swap";
 
@@ -101,4 +102,27 @@ assertEqual(
   ]),
   "1×30 с",
   "hold",
+);
+
+assertEqual(
+  swapMode([
+    { is_completed: false, set_type: "warmup" },
+    { is_completed: false, set_type: "work" },
+  ]),
+  "replace",
+  "nothing logged yet replaces the whole exercise",
+);
+assertEqual(
+  swapMode([
+    { is_completed: true, set_type: "warmup" },
+    { is_completed: false, set_type: "work" },
+    { is_completed: false, set_type: "work" },
+  ]),
+  "continue",
+  "a logged warmup keeps the exercise and swaps the rest",
+);
+assertEqual(
+  swapMode([{ is_completed: true, set_type: "work" }]),
+  "blocked",
+  "every work set logged leaves nothing to swap",
 );

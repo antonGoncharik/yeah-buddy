@@ -204,6 +204,33 @@ export function sessionHasSetEdits(
   return false;
 }
 
+/** Log the printed plan. Null when the plan has no weight or no reps yet. */
+export function plannedLogPatch(set: WorkoutSet): {
+  actual_weight: number;
+  actual_reps: number | null;
+  actual_seconds: number | null;
+  actual_rir: number | null;
+} | null {
+  const weight = set.planned_weight;
+  if (weight == null || !(weight > 0)) {
+    return null;
+  }
+  const timed = setUsesSeconds(set);
+  if (timed) {
+    if (set.planned_seconds == null || !(set.planned_seconds > 0)) {
+      return null;
+    }
+  } else if (set.planned_reps == null || !(set.planned_reps > 0)) {
+    return null;
+  }
+  return {
+    actual_weight: weight,
+    actual_reps: timed ? null : set.planned_reps,
+    actual_seconds: timed ? set.planned_seconds : null,
+    actual_rir: set.set_type === "work" ? set.planned_rir : null,
+  };
+}
+
 /** Numbers to store when a set is marked done. Null when the weight is still empty. */
 export function loggedSetPatch(
   set: WorkoutSet,

@@ -1,7 +1,7 @@
 import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 
-import { parseDecimal } from "@/lib/workout/numbers";
+import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 export function heavierThanLine(priorOn: string | null): string {
   if (!priorOn) {
@@ -26,6 +26,14 @@ export function liveSetRecord(input: {
     return null;
   }
   return heavierThanLine(input.priorOn);
+}
+
+/** Shown before the set, so the target is visible without typing a weight. */
+export function recordTargetLine(priorPeak: number | null): string | null {
+  if (priorPeak == null || !(priorPeak > 0)) {
+    return null;
+  }
+  return `Для рекорда нужно больше ${formatWeight(priorPeak)} кг`;
 }
 
 /** Heaviest working weight currently on the card, including an open draft. */

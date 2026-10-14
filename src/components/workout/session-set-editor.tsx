@@ -36,6 +36,7 @@ export function SessionSetEditor({
   groupCount,
   weightStep,
   onDraft,
+  onLog,
   onAdvance,
   hasNextSet = false,
 }: {
@@ -45,6 +46,7 @@ export function SessionSetEditor({
   groupCount: number;
   weightStep: number;
   onDraft: (patch: Partial<SetDraft>) => void;
+  onLog?: (draft: SetDraft) => void;
   onAdvance?: () => void;
   hasNextSet?: boolean;
 }) {
@@ -90,7 +92,14 @@ export function SessionSetEditor({
         <p className="text-sm text-muted-foreground">
           План: <span className="tabular-nums">{planLine}</span>
         </p>
-        <SessionSetVoice disabled={disabled} timed={timed} onApply={onDraft} />
+        <SessionSetVoice
+          disabled={disabled}
+          timed={timed}
+          onApply={onDraft}
+          onCommit={
+            onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined
+          }
+        />
         <div className="flex flex-col gap-3">
           <Stepper
             label="Вес, кг"
