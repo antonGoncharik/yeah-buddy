@@ -30,11 +30,14 @@ export function MealItemRow({
   item,
   href,
   onDelete,
+  onEditGrams,
   wrapName = false,
 }: {
   item: MealLine;
   href?: string;
   onDelete?: () => void;
+  /** Open a portion sheet instead of leaving Today. Catalog rows only. */
+  onEditGrams?: () => void;
   /** Show the full product name (multi-line); default is one truncated line. */
   wrapName?: boolean;
 }) {
@@ -47,6 +50,53 @@ export function MealItemRow({
     : `${formatGrams(item.grams)} г · ${formatKcal(item.kcal)} ккал`;
   const macros = `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`;
   const showMacros = expanded || Boolean(item.lump);
+
+  if (onEditGrams) {
+    const nameClassName = cn(
+      "min-w-0 truncate rounded-xl px-1 font-medium",
+      expanded ? "py-3 text-lg" : "py-2 text-base",
+      href &&
+        "transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
+    );
+    return (
+      <div className="flex w-full min-w-0 items-center gap-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          {href ? (
+            <Link href={href} className={nameClassName}>
+              {item.name}
+            </Link>
+          ) : (
+            <p className={nameClassName}>{item.name}</p>
+          )}
+          {expanded ? (
+            <p className="px-1 text-sm text-muted-foreground tabular-nums">
+              {macros}
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-muted-foreground tabular-nums transition-colors hover:bg-muted/60"
+          onClick={onEditGrams}
+        >
+          {formatGrams(item.grams)} г
+        </button>
+        <span
+          className={cn(
+            "w-14 shrink-0 text-right font-semibold tabular-nums",
+            expanded ? "text-lg" : "text-base",
+          )}
+        >
+          {formatKcal(item.kcal)}
+        </span>
+        {onDelete ? (
+          <div className="self-center">
+            <RemoveRowButton onClick={onDelete} />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   const detail = [amount, showMacros ? macros : null]
     .filter((line) => line != null)

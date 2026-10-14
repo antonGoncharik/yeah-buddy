@@ -186,6 +186,8 @@ export function useSessionScreen() {
     reorderExercises,
     saveMissingMaxes,
     saveMissingTracks,
+    markSet,
+    addExercise,
     cancelToday,
   } = useSessionActions({
     detail,
@@ -296,5 +298,7 @@ export function useSessionScreen() {
     reorderExercises,
     saveMissingMaxes,
     saveMissingTracks,
+    markSet,
+    addExercise,
   };
 }

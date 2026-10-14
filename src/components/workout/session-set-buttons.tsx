@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -18,6 +19,7 @@ export function SessionSetButtons({
   tone,
   openIds = [],
   onPick,
+  onToggleDone,
   renderAfter,
   memoryLine,
 }: {
@@ -29,6 +31,8 @@ export function SessionSetButtons({
   /** Sets whose editor is open; drawn as selected. */
   openIds?: string[];
   onPick: (ids: string[]) => void;
+  /** Mark a working set done and let the caller start rest. */
+  onToggleDone?: (set: WorkoutSet) => void;
   /** Rendered right under a set, e.g. the editor for the tapped one. */
   renderAfter?: (set: WorkoutSet) => ReactNode;
   /** Shown under each work set label, e.g. last session result. */
@@ -97,25 +101,43 @@ export function SessionSetButtons({
               open && "-mx-2 rounded-xl bg-primary/8 px-2 py-1",
             )}
           >
-            {disabled ? (
-              <div className="flex min-h-11 w-full items-center gap-2.5 rounded-lg">
-                {line}
-              </div>
-            ) : (
-              <button
-                type="button"
-                aria-expanded={open}
-                className={cn(
-                  "-mx-2 flex min-h-11 items-center gap-2.5 rounded-lg px-2 text-left transition-colors",
-                  open ? "" : "hover:bg-muted/50",
-                )}
-                onClick={() => onPick([set.id])}
-              >
-                {line}
-              </button>
-            )}
+            <div className="flex items-center">
+              {onToggleDone && !disabled ? (
+                <SetDoneButton
+                  done={set.is_completed}
+                  label={
+                    set.is_completed
+                      ? `Подход ${index + 1} сделан`
+                      : `Отметить подход ${index + 1}`
+                  }
+                  onClick={() => onToggleDone(set)}
+                />
+              ) : null}
+              {disabled ? (
+                <div className="flex min-h-11 w-full items-center gap-2.5 rounded-lg">
+                  {line}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  className={cn(
+                    "-mx-2 flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 text-left transition-colors",
+                    open ? "" : "hover:bg-muted/50",
+                  )}
+                  onClick={() => onPick([set.id])}
+                >
+                  {line}
+                </button>
+              )}
+            </div>
             {tone === "work" && memoryLine && !open ? (
-              <p className="pl-7 text-xs leading-snug text-muted-foreground">
+              <p
+                className={cn(
+                  "text-xs leading-snug text-muted-foreground",
+                  onToggleDone && !disabled ? "pl-[4.25rem]" : "pl-7",
+                )}
+              >
                 {memoryLine}
               </p>
             ) : null}
@@ -124,5 +146,36 @@ export function SessionSetButtons({
         );
       })}
     </ol>
+  );
+}
+
+function SetDoneButton({
+  done,
+  label,
+  onClick,
+}: {
+  done: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={done}
+      aria-label={label}
+      className="flex size-11 shrink-0 items-center justify-center"
+      onClick={onClick}
+    >
+      <span
+        className={cn(
+          "flex size-6 items-center justify-center rounded-full border-2",
+          done
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-muted-foreground/45",
+        )}
+      >
+        {done ? <Check className="size-3.5" strokeWidth={3} /> : null}
+      </span>
+    </button>
   );
 }

@@ -58,7 +58,13 @@ export function mealItemFromFood({
 
 export function mealItemFromLump(
   mealId: string,
-  input: { name: string; protein: number; fat: number; carbs: number },
+  input: {
+    name: string;
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal?: number;
+  },
 ): MealItem {
   const macros = macrosFromLump(input);
   return mealItemFromMacros({
@@ -247,7 +253,13 @@ export function withUpdatedItemGrams(
 export function withUpdatedLump(
   day: DayWithMeals,
   itemId: string,
-  input: { name: string; protein: number; fat: number; carbs: number },
+  input: {
+    name: string;
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal?: number;
+  },
 ): DayWithMeals {
   const macros = macrosFromLump(input);
   return {

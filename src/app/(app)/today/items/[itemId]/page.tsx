@@ -122,6 +122,9 @@ export default function EditMealItemPage() {
           initialProtein={String(item.protein)}
           initialFat={String(item.fat)}
           initialCarbs={String(item.carbs)}
+          initialKcal={
+            item.protein + item.fat + item.carbs > 0 ? "" : String(item.kcal)
+          }
           backHref={homeHref}
           doneHref={homeHref}
           readOnly={!writable}

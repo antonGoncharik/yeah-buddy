@@ -4,13 +4,15 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
-import { deleteJson, patchJson, postJson } from "@/lib/api-cache";
+import { deleteJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail } from "@/lib/types";
+import { withSetLogged } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
+import type { PatchSetInput } from "@/lib/workout/session-schema";
 
 export function useSessionEdits({
   detail,
@@ -202,6 +204,70 @@ export function useSessionEdits({
     });
   }
 
+  async function markSet(
+    setId: string,
+    patch: PatchSetInput,
+  ): Promise<boolean> {
+    if (detail?.session.status !== "planned") {
+      return false;
+    }
+
+    const previous = detail;
+    const next = withSetLogged(previous, setId, {
+      is_completed: patch.is_completed === true,
+      actual_weight: patch.actual_weight,
+      actual_reps: patch.actual_reps,
+      actual_seconds: patch.actual_seconds,
+      actual_rir: patch.actual_rir,
+    });
+    const url = `/api/sessions/${detail.session.id}`;
+    setDetail(next);
+    writeJson(url, next);
+    haptic("commit");
+
+    try {
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/sets/${setId}`,
+        body: patch,
+        cacheUrls: [url],
+      });
+      if (data != null) {
+        applyPayload(data);
+      }
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setDetail(previous);
+      writeJson(url, previous);
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    }
+  }
+
+  async function addExercise(exerciseId: string): Promise<boolean> {
+    if (detail?.session.status !== "planned") {
+      return false;
+    }
+
+    setError(null);
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/exercises`,
+        { exerciseId },
+      );
+      if (!applyPayload(data)) {
+        throw new Error(LOAD_FAILED);
+      }
+      haptic("commit");
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    }
+  }
+
   async function cancelToday() {
     if (!detail) {
       return;
@@ -232,6 +298,8 @@ export function useSessionEdits({
     reorderExercises,
     saveMissingMaxes,
     saveMissingTracks,
+    markSet,
+    addExercise,
     cancelToday,
   };
 }

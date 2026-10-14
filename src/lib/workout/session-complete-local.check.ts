@@ -9,6 +9,7 @@ import {
   completeSessionLocally,
   preferLiveCompleted,
   preferLiveFeel,
+  withSetLogged,
 } from "@/lib/workout/session-complete-local";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -170,6 +171,28 @@ assertEqual(
   ).session.feel,
   "easy",
   "feel tap during slow GET",
+);
+
+const checked = withSetLogged(detail, "set-1", {
+  is_completed: true,
+  actual_weight: 80,
+  actual_reps: 5,
+});
+assertEqual(
+  checked.exercises[0]?.sets[0]?.is_completed,
+  true,
+  "check marks done",
+);
+assertEqual(checked.exercises[0]?.sets[0]?.logged, true, "check is logged");
+assertEqual(
+  withSetLogged(checked, "set-1", { is_completed: false }).exercises[0]?.sets[0]
+    ?.is_completed,
+  false,
+  "uncheck clears done",
+);
+assert(
+  detail.exercises[0]?.sets[0]?.is_completed === false,
+  "check does not mutate",
 );
 
 console.log("session complete local ok");

@@ -115,7 +115,13 @@ export async function addLumpMealItem({
 }: {
   date: string;
   mealId: string;
-  input: { name: string; protein: number; fat: number; carbs: number };
+  input: {
+    name: string;
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal?: number;
+  };
 }): Promise<void> {
   const current = readCachedDay(date);
   if (!current) {
@@ -152,7 +158,13 @@ export async function saveLumpMealItem({
 }: {
   date: string;
   itemId: string;
-  input: { name: string; protein: number; fat: number; carbs: number };
+  input: {
+    name: string;
+    protein: number;
+    fat: number;
+    carbs: number;
+    kcal?: number;
+  };
 }): Promise<void> {
   const current = readCachedDay(date);
   if (!current) {

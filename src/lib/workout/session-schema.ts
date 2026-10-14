@@ -30,8 +30,13 @@ export const reorderSessionExercisesSchema = z.object({
   exerciseIds: z.array(z.string().uuid()).min(1),
 });
 
+export const addSessionExerciseSchema = z.object({
+  exerciseId: z.string().uuid(),
+});
+
 export type PatchSetInput = z.infer<typeof patchSetSchema>;
 export type CompleteSessionInput = z.infer<typeof completeSessionSchema>;
 export type ReorderSessionExercisesInput = z.infer<
   typeof reorderSessionExercisesSchema
 >;
+export type AddSessionExerciseInput = z.infer<typeof addSessionExerciseSchema>;

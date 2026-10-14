@@ -9,7 +9,7 @@ import { parseNonneg } from "@/components/foods/food-form-state";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LUMP_MACRO_MAX, LUMP_NAME_MAX } from "@/lib/day/lump";
+import { LUMP_KCAL_MAX, LUMP_MACRO_MAX, LUMP_NAME_MAX } from "@/lib/day/lump";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { calcKcalFromMacros, formatKcal } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
@@ -44,6 +44,7 @@ export function LumpMacrosScreen({
   initialProtein = "",
   initialFat = "",
   initialCarbs = "",
+  initialKcal = "",
   save,
   doneHref,
   readOnly = false,
@@ -52,11 +53,13 @@ export function LumpMacrosScreen({
   initialProtein?: string;
   initialFat?: string;
   initialCarbs?: string;
+  initialKcal?: string;
   save?: (input: {
     name: string;
     protein: number;
     fat: number;
     carbs: number;
+    kcal?: number;
   }) => Promise<void>;
   backHref: string;
   doneHref: string;
@@ -67,26 +70,32 @@ export function LumpMacrosScreen({
   const [protein, setProtein] = useState(initialProtein);
   const [fat, setFat] = useState(initialFat);
   const [carbs, setCarbs] = useState(initialCarbs);
+  const [kcal, setKcal] = useState(initialKcal);
   const [error, setError] = useState<string | null>(null);
 
   const parsed = useMemo(() => {
     const nextName = name.trim();
-    const nextProtein = parseNonneg(protein);
-    const nextFat = parseNonneg(fat);
-    const nextCarbs = parseNonneg(carbs);
+    const nextProtein = parseOptionalMacro(protein);
+    const nextFat = parseOptionalMacro(fat);
+    const nextCarbs = parseOptionalMacro(carbs);
+    const nextKcal = parseOptionalMacro(kcal);
     if (
       nextName === "" ||
       nextName.length > LUMP_NAME_MAX ||
       nextProtein == null ||
       nextFat == null ||
       nextCarbs == null ||
+      nextKcal == null ||
       nextProtein > LUMP_MACRO_MAX ||
       nextFat > LUMP_MACRO_MAX ||
-      nextCarbs > LUMP_MACRO_MAX
+      nextCarbs > LUMP_MACRO_MAX ||
+      nextKcal > LUMP_KCAL_MAX
     ) {
       return null;
     }
-    if (nextProtein + nextFat + nextCarbs <= 0) {
+    const fromMacros = calcKcalFromMacros(nextProtein, nextFat, nextCarbs);
+    const eatenKcal = fromMacros > 0 ? fromMacros : nextKcal;
+    if (eatenKcal <= 0) {
       return null;
     }
     return {
@@ -94,9 +103,10 @@ export function LumpMacrosScreen({
       protein: nextProtein,
       fat: nextFat,
       carbs: nextCarbs,
-      kcal: calcKcalFromMacros(nextProtein, nextFat, nextCarbs),
+      kcal: eatenKcal,
+      kcalOnly: fromMacros <= 0,
     };
-  }, [carbs, fat, name, protein]);
+  }, [carbs, fat, kcal, name, protein]);
 
   async function onSave() {
     if (readOnly || !save) {
@@ -104,7 +114,7 @@ export function LumpMacrosScreen({
     }
     if (!parsed) {
       haptic("warn");
-      setError("Заполни название и белки, жиры, углеводы.");
+      setError("Напиши название и БЖУ или только калории.");
       return;
     }
 
@@ -115,6 +125,7 @@ export function LumpMacrosScreen({
       protein: parsed.protein,
       fat: parsed.fat,
       carbs: parsed.carbs,
+      kcal: parsed.kcalOnly ? parsed.kcal : undefined,
     });
     router.push(doneHref);
     void pending;
@@ -129,8 +140,8 @@ export function LumpMacrosScreen({
       }}
     >
       <p className="text-base leading-relaxed text-muted-foreground">
-        Сколько белков, жиров и углеводов в этой порции. Разовая запись — в
-        список продуктов не попадёт.
+        Белки, жиры и углеводы в этой порции. Если их нет — хватит калорий.
+        Разовая запись, в список продуктов не попадёт.
       </p>
       <FoodFormField label="Что это">
         <Input
@@ -182,8 +193,20 @@ export function LumpMacrosScreen({
           />
         </FoodFormField>
       </div>
+      <FoodFormField label="Ккал, если БЖУ неизвестны">
+        <Input
+          inputMode="decimal"
+          enterKeyHint="done"
+          value={kcal}
+          onChange={(event) => setKcal(event.target.value)}
+          onKeyDown={readOnly ? undefined : handleNumericEnter}
+          className="h-12 text-base"
+          readOnly={readOnly}
+          placeholder="350"
+        />
+      </FoodFormField>
       <p className="text-lg font-semibold tabular-nums">
-        {parsed ? `${formatKcal(parsed.kcal)} ккал` : "ккал посчитаются"}
+        {parsed ? `${formatKcal(parsed.kcal)} ккал` : "Укажи БЖУ или калории"}
       </p>
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
@@ -198,4 +221,11 @@ export function LumpMacrosScreen({
       )}
     </form>
   );
+}
+
+function parseOptionalMacro(raw: string): number | null {
+  if (raw.trim() === "") {
+    return 0;
+  }
+  return parseNonneg(raw);
 }

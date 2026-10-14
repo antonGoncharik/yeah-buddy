@@ -9,7 +9,7 @@ import { SessionExerciseRow } from "@/components/workout/session-exercise-row";
 import { SortableList } from "@/components/workout/sortable-list";
 import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type { SessionDetail } from "@/lib/types";
+import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function SessionExerciseList({
@@ -27,6 +27,7 @@ export function SessionExerciseList({
   onRemove,
   onReorder,
   onStartRest,
+  onToggleSet,
   lastRestSeconds,
 }: {
   detail: SessionDetail;
@@ -43,6 +44,7 @@ export function SessionExerciseList({
   onRemove: (sessionExerciseId: string) => void;
   onReorder?: (exerciseIds: string[]) => void;
   onStartRest?: (exerciseId: string) => void;
+  onToggleSet?: (set: WorkoutSet, exerciseId: string) => void;
   lastRestSeconds?: (exerciseId: string) => number;
 }) {
   const session = detail.session;
@@ -130,6 +132,11 @@ export function SessionExerciseList({
               onStartRest={
                 canRest && onStartRest
                   ? () => onStartRest(item.exercise_id)
+                  : undefined
+              }
+              onToggleSet={
+                canEditSets && onToggleSet
+                  ? (set) => onToggleSet(set, item.exercise_id)
                   : undefined
               }
               restSeconds={lastRestSeconds?.(item.exercise_id)}

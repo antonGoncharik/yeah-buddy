@@ -204,6 +204,31 @@ export function sessionHasSetEdits(
   return false;
 }
 
+/** Numbers to store when a set is marked done. Null when the weight is still empty. */
+export function loggedSetPatch(
+  set: WorkoutSet,
+  draft?: SetDraft,
+): {
+  actual_weight: number;
+  actual_reps: number | null;
+  actual_seconds: number | null;
+  actual_rir: number | null;
+} | null {
+  const source = draft ?? draftFromSet(set);
+  const weight = parseDecimal(source.weight);
+  if (weight == null || weight <= 0) {
+    return null;
+  }
+
+  const timed = setUsesSeconds(set);
+  return {
+    actual_weight: weight,
+    actual_reps: timed ? null : parseInteger(source.reps),
+    actual_seconds: timed ? parseDecimal(source.seconds) : null,
+    actual_rir: set.set_type === "work" ? parseRir(source.rir) : null,
+  };
+}
+
 export function completeSetOverrides(
   detail: SessionDetail,
   drafts: Record<string, SetDraft>,

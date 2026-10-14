@@ -1,3 +1,4 @@
+export { addSessionExercise } from "@/lib/workout/session-add";
 export {
   completeSessionAsPlanned,
   patchWorkoutSet,
@@ -10,6 +11,8 @@ export {
   reorderSessionExercises,
 } from "@/lib/workout/session-rebuild";
 export {
+  type AddSessionExerciseInput,
+  addSessionExerciseSchema,
   type CompleteSessionInput,
   completeSessionSchema,
   type PatchSetInput,

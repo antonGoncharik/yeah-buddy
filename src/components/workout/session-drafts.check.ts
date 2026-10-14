@@ -5,6 +5,7 @@ import {
   draftFromSet,
   draftMatchesPlan,
   formatVisibleSetLine,
+  loggedSetPatch,
   sessionHasSetEdits,
   stepDraftValue,
   visibleSetRirLabel,
@@ -206,6 +207,16 @@ assertEqual(
   stepDraftValue("", 1, 2.5, "weight"),
   "2.5",
   "empty weight starts at a step",
+);
+assertEqual(
+  loggedSetPatch(set, { weight: "82.5", reps: "6", seconds: "", rir: "1" }),
+  { actual_weight: 82.5, actual_reps: 6, actual_seconds: null, actual_rir: 1 },
+  "done patch uses the typed set",
+);
+assertEqual(
+  loggedSetPatch(set, { weight: "", reps: "6", seconds: "", rir: "" }),
+  null,
+  "empty weight is not done yet",
 );
 
 console.log("session drafts close kind ok");

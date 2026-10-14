@@ -43,6 +43,7 @@ export function SessionExerciseRow({
   onRemove,
   restActive,
   onStartRest,
+  onToggleSet,
   restSeconds,
   track = null,
   priorPeak = null,
@@ -63,6 +64,7 @@ export function SessionExerciseRow({
   onRemove?: () => void;
   restActive?: boolean;
   onStartRest?: () => void;
+  onToggleSet?: (set: WorkoutSet) => void;
   restSeconds?: number;
   priorPeak?: number | null;
   priorOn?: string | null;
@@ -239,6 +241,7 @@ export function SessionExerciseRow({
               tone="work"
               openIds={openSetIds}
               onPick={onOpenSets}
+              onToggleDone={onToggleSet}
               renderAfter={renderEditor}
               memoryLine={lastTimeLine}
             />

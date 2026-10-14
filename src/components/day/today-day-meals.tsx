@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import { MealCard } from "@/components/day/meal-card";
+import { MealGramsSheet } from "@/components/day/meal-grams-sheet";
 import { withDateQuery } from "@/lib/day/dates";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
@@ -66,6 +69,8 @@ export function TodayDayMeals({
   deleteNamedMeal: (namedMealId: string, name: string) => Promise<void>;
   deleteItem: (item: MealItem) => Promise<void>;
 }) {
+  const [portion, setPortion] = useState<MealItem | null>(null);
+
   return (
     <>
       {visibleMeals.map((meal, index) => (
@@ -165,8 +170,26 @@ export function TodayDayMeals({
                   }
                 }
           }
+          onEditItemGrams={
+            viewOnly
+              ? undefined
+              : (item) => {
+                  const row = meal.items.find((entry) => entry.id === item.id);
+                  if (row?.food_id) {
+                    setPortion(row);
+                  }
+                }
+          }
         />
       ))}
+      {portion ? (
+        <MealGramsSheet
+          item={portion}
+          date={date}
+          itemHref={withDateQuery(`/today/items/${portion.id}`, date, today)}
+          onClose={() => setPortion(null)}
+        />
+      ) : null}
     </>
   );
 }

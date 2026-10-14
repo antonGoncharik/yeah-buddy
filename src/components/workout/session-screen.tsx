@@ -1,12 +1,19 @@
 "use client";
 
+import { useRef } from "react";
+
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
+import { SessionAddExercise } from "@/components/workout/session-add-exercise";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
+import {
+  loggedSetPatch,
+  type SetDraft,
+} from "@/components/workout/session-drafts";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
@@ -16,7 +23,8 @@ import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { calendarToday } from "@/lib/day/dates";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
 import { heaviestWorkLift } from "@/lib/share/joy";
-import type { SessionDetail } from "@/lib/types";
+import { haptic } from "@/lib/telegram/haptic";
+import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
@@ -63,7 +71,10 @@ export function SessionScreen() {
     reorderExercises,
     saveMissingMaxes,
     saveMissingTracks,
+    markSet,
+    addExercise,
   } = useSessionScreen();
+  const marking = useRef(new Set<string>());
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
   const focusExerciseId =
@@ -121,8 +132,27 @@ export function SessionScreen() {
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }
               onStartRest={canRest ? (id) => rest.start(id) : undefined}
+              onToggleSet={(set, exerciseId) => {
+                void toggleSet({
+                  set,
+                  exerciseId,
+                  draft: drafts[set.id],
+                  marking,
+                  markSet,
+                  openEditor: (id) => setOpenSetIds([id]),
+                  startRest: (id) => rest.start(id),
+                });
+              }}
               lastRestSeconds={(id) => rest.lastSeconds(id)}
             />
+
+            {session.status === "planned" ? (
+              <SessionAddExercise
+                takenIds={detail.exercises.map((item) => item.exercise_id)}
+                disabled={busy}
+                onAdd={addExercise}
+              />
+            ) : null}
 
             {session.status === "planned" && detail.missing_maxes.length > 0 ? (
               <SessionMissingMaxes
@@ -262,6 +292,62 @@ export function SessionScreen() {
       ) : null}
     </div>
   );
+}
+
+async function toggleSet({
+  set,
+  exerciseId,
+  draft,
+  marking,
+  markSet,
+  openEditor,
+  startRest,
+}: {
+  set: WorkoutSet;
+  exerciseId: string;
+  draft: SetDraft | undefined;
+  marking: { current: Set<string> };
+  markSet: (
+    setId: string,
+    patch: {
+      is_completed: boolean;
+      actual_weight?: number;
+      actual_reps?: number | null;
+      actual_seconds?: number | null;
+      actual_rir?: number | null;
+    },
+  ) => Promise<boolean>;
+  openEditor: (setId: string) => void;
+  startRest: (exerciseId: string) => void;
+}) {
+  if (marking.current.has(set.id)) {
+    return;
+  }
+  if (!set.is_completed) {
+    const patch = loggedSetPatch(set, draft);
+    if (!patch) {
+      haptic("warn");
+      openEditor(set.id);
+      return;
+    }
+    marking.current.add(set.id);
+    try {
+      const ok = await markSet(set.id, { is_completed: true, ...patch });
+      if (ok && set.set_type === "work") {
+        startRest(exerciseId);
+      }
+    } finally {
+      marking.current.delete(set.id);
+    }
+    return;
+  }
+
+  marking.current.add(set.id);
+  try {
+    await markSet(set.id, { is_completed: false });
+  } finally {
+    marking.current.delete(set.id);
+  }
 }
 
 function restExerciseFor(

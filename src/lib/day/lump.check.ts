@@ -44,6 +44,27 @@ assertEqual(
   true,
   "shawarma ok",
 );
+assertEqual(
+  lumpMealItemSchema.safeParse({
+    name: "круассан",
+    protein: 0,
+    fat: 0,
+    carbs: 0,
+    kcal: 350,
+  }).success,
+  true,
+  "kcal only ok",
+);
+assertEqual(
+  macrosFromLump({ protein: 0, fat: 0, carbs: 0, kcal: 350 }),
+  { protein: 0, fat: 0, carbs: 0, kcal: 350 },
+  "kcal only macros",
+);
+assertEqual(
+  macrosFromLump({ protein: 40, fat: 40, carbs: 60, kcal: 100 }),
+  { protein: 40, fat: 40, carbs: 60, kcal: 760 },
+  "macros beat a typed kcal",
+);
 
 assertEqual(
   lumpHref("/today/meals/m1/add/lump", "шаурма"),

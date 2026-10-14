@@ -48,6 +48,49 @@ export function preferLiveCompleted(
   return parsed;
 }
 
+export function withSetLogged(
+  detail: SessionDetail,
+  setId: string,
+  patch: {
+    is_completed: boolean;
+    actual_weight?: number | null;
+    actual_reps?: number | null;
+    actual_seconds?: number | null;
+    actual_rir?: number | null;
+  },
+): SessionDetail {
+  return {
+    ...detail,
+    exercises: detail.exercises.map((item) => ({
+      ...item,
+      sets: item.sets.map((set) => {
+        if (set.id !== setId) {
+          return set;
+        }
+        return {
+          ...set,
+          is_completed: patch.is_completed,
+          logged: true,
+          actual_weight:
+            patch.actual_weight !== undefined
+              ? patch.actual_weight
+              : set.actual_weight,
+          actual_reps:
+            patch.actual_reps !== undefined
+              ? patch.actual_reps
+              : set.actual_reps,
+          actual_seconds:
+            patch.actual_seconds !== undefined
+              ? patch.actual_seconds
+              : set.actual_seconds,
+          actual_rir:
+            patch.actual_rir !== undefined ? patch.actual_rir : set.actual_rir,
+        };
+      }),
+    })),
+  };
+}
+
 export function completeSessionLocally(
   detail: SessionDetail,
   input: CompleteSessionInput = {},

@@ -34,6 +34,7 @@ export function MealCard({
   logDate,
   logBusy = false,
   onDeleteItem,
+  onEditItemGrams,
   onReorderItems,
   date,
   copyDays,
@@ -63,6 +64,7 @@ export function MealCard({
   logDate?: string;
   logBusy?: boolean;
   onDeleteItem?: (item: MealLine) => void;
+  onEditItemGrams?: (item: MealLine) => void;
   onReorderItems?: (next: MealLine[]) => void;
   date?: string;
   copyDays?: CopyDayHint[];
@@ -172,6 +174,11 @@ export function MealCard({
               wrapName={wrapItemNames}
               href={itemHref ? itemHref(item) : undefined}
               onDelete={onDeleteItem ? () => onDeleteItem(item) : undefined}
+              onEditGrams={
+                onEditItemGrams && !item.lump
+                  ? () => onEditItemGrams(item)
+                  : undefined
+              }
             />
           )}
         />
@@ -185,6 +192,11 @@ export function MealCard({
               href={readOnly || !itemHref ? undefined : itemHref(item)}
               onDelete={
                 readOnly || !onDeleteItem ? undefined : () => onDeleteItem(item)
+              }
+              onEditGrams={
+                readOnly || !onEditItemGrams || item.lump
+                  ? undefined
+                  : () => onEditItemGrams(item)
               }
             />
           ))}
@@ -226,18 +238,14 @@ export function MealCard({
               {repeatYesterdayMealLabel(mealType)}
             </Button>
           ) : null}
-          {showAdd || (showCapture && items.length === 0) ? (
+          {showAdd || showCapture ? (
             <MealLogActions
               addHref={showAdd ? addHref : undefined}
               addProminent={showAdd && items.length === 0 && !yesterdaySource}
-              plateHref={
-                showCapture && items.length === 0 ? plateHref : undefined
-              }
-              dictateHref={
-                showCapture && items.length === 0 ? dictateHref : undefined
-              }
+              plateHref={showCapture ? plateHref : undefined}
+              dictateHref={showCapture ? dictateHref : undefined}
               textLog={
-                showCapture && items.length === 0 && aiText && mealId && logDate
+                showCapture && aiText && mealId && logDate
                   ? {
                       date: logDate,
                       mealId,
