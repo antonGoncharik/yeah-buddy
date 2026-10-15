@@ -65,4 +65,19 @@ assertEqual(
 const onlyDeload = measureProgress([point("2026-10-07", 92.5, "deload")]);
 assertEqual(onlyDeload.percent, 0, "single deload point");
 
+const customLight = measureProgress([
+  point("2026-09-11", 80, "p1"),
+  point("2026-09-18", 80, "p2"),
+  point("2026-09-25", 70, "light"),
+]);
+assertEqual(customLight.percent, 0, "a light week by weight, any phase key");
+assertEqual(customLight.current_weight, 70, "light week still the last dot");
+
+const lost = measureProgress([
+  point("2026-09-01", 100, null),
+  point("2026-09-08", 95, null),
+  point("2026-09-15", 90, null),
+]);
+assertEqual(Math.round(lost.percent ?? 0), -10, "a real slide still counts");
+
 console.log("progress measure ok");

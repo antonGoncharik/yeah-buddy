@@ -169,8 +169,8 @@ assertEqual(
 );
 assertEqual(
   measureProgress(mixed).delta,
-  82 - 115,
-  "ungated mix would look like a drop",
+  0,
+  "a heavier hold is not the baseline for later lighter sets",
 );
 
 console.log("progress relative ok");

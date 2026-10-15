@@ -25,7 +25,7 @@ export function phaseMarks(
     if (point.phase_type !== previous) {
       marks.push({
         x: dot.x,
-        label: phaseLabel(point.phase_type),
+        label: phaseMarkLabel(point),
         anchor:
           dot.x < pad + 28
             ? "start"
@@ -38,4 +38,14 @@ export function phaseMarks(
   }
 
   return marks;
+}
+
+/** Name the person gave the week. The label already carries it; the key is only a fallback. */
+function phaseMarkLabel(point: ProgressPoint): string {
+  const parts = point.label.split(" · ");
+  const named = parts.length > 1 ? parts.slice(1).join(" · ").trim() : "";
+  if (named) {
+    return named;
+  }
+  return point.phase_type ? phaseLabel(point.phase_type) : "";
 }
