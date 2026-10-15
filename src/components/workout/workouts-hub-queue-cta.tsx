@@ -10,6 +10,10 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { templateExerciseLoadPreview } from "@/lib/workout/hints";
+import {
+  templateSessionLine,
+  templateSessionOutline,
+} from "@/lib/workout/session-preview";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -90,6 +94,14 @@ export function WorkoutsHubQueueCta({
   }
 
   const catalog = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+  const outline = templateSessionOutline(
+    nextTemplate.exercises.map((exercise) => ({
+      plan:
+        nextTemplate.slots.find((slot) => slot.exercise_id === exercise.id)
+          ?.plan ?? null,
+    })),
+  );
+  const outlineLine = outline ? templateSessionLine(outline) : null;
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
@@ -102,6 +114,9 @@ export function WorkoutsHubQueueCta({
           <h2 className="mt-0.5 text-2xl font-semibold tracking-tight">
             {nextTemplate.name}
           </h2>
+          {outlineLine ? (
+            <p className="mt-0.5 text-sm text-muted-foreground">{outlineLine}</p>
+          ) : null}
           {followingTemplate && followingTemplate.id !== nextTemplate.id ? (
             <p className="mt-0.5 text-sm text-muted-foreground">
               Потом {followingTemplate.name}
