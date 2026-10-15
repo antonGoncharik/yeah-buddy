@@ -101,7 +101,7 @@ export function SessionSetEditor({
             onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined
           }
         />
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <Stepper
             label="Вес, кг"
             value={draft.weight}
@@ -111,14 +111,9 @@ export function SessionSetEditor({
             onChange={(value) => onDraft({ weight: value })}
             onStep={(direction) => step("weight", direction)}
           />
-          {platesLine(parseDecimal(draft.weight) ?? 0) ? (
-            <p className="text-xs text-muted-foreground">
-              {platesLine(parseDecimal(draft.weight) ?? 0)}
-            </p>
-          ) : null}
           {timed ? (
             <Stepper
-              label="Удержание, сек"
+              label="Секунды"
               value={draft.seconds}
               disabled={disabled}
               inputMode="decimal"
@@ -138,6 +133,11 @@ export function SessionSetEditor({
             />
           )}
         </div>
+        {platesLine(parseDecimal(draft.weight) ?? 0) ? (
+          <p className="text-xs text-muted-foreground">
+            {platesLine(parseDecimal(draft.weight) ?? 0)}
+          </p>
+        ) : null}
         {timed ? (
           <SessionHoldTimer
             seconds={parseDecimal(draft.seconds)}
@@ -182,7 +182,12 @@ export function SessionSetEditor({
           </div>
         ) : null}
         {!disabled && (offPlan || onAdvance) ? (
-          <div className="flex flex-col gap-2 pt-1">
+          <div
+            className={cn(
+              "grid gap-2 pt-1",
+              offPlan && onAdvance ? "grid-cols-2" : "grid-cols-1",
+            )}
+          >
             {offPlan ? (
               <Button
                 type="button"
