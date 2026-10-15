@@ -166,10 +166,8 @@ function closedDetail(
   seconds: number | null,
 ): string {
   const current = closedValue(stats.current_weight, seconds);
-  const showPercent =
-    stats.percent != null && Math.abs(stats.percent) >= 0.5;
-  const barMoved =
-    stats.delta != null && stats.delta !== 0;
+  const showPercent = stats.percent != null && Math.abs(stats.percent) >= 0.5;
+  const barMoved = stats.delta != null && stats.delta !== 0;
   const parts = [current];
   if (barMoved && stats.delta != null && stats.percent != null) {
     parts.push(`${formatSignedWeight(stats.delta)} кг`);

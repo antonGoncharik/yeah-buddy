@@ -1,8 +1,4 @@
-import type {
-  ExerciseProgress,
-  ProgressPoint,
-  StrengthProgress,
-} from "@/lib/types";
+import type { ExerciseProgress, StrengthProgress } from "@/lib/types";
 import {
   measureProgress,
   summarizeProgress,

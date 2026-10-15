@@ -1,5 +1,5 @@
-import { measureProgress } from "@/lib/workout/progress-measure";
 import type { ProgressPoint } from "@/lib/types";
+import { measureProgress } from "@/lib/workout/progress-measure";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const left = JSON.stringify(actual);

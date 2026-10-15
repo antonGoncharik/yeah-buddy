@@ -6,10 +6,7 @@ import type {
   StrengthProgress,
 } from "@/lib/types";
 import { phaseLabel } from "@/lib/workout/labels";
-import {
-  measureProgress,
-  strengthGrown,
-} from "@/lib/workout/progress-measure";
+import { measureProgress, strengthGrown } from "@/lib/workout/progress-measure";
 import {
   primaryProgressPoints,
   withRelativePoints,

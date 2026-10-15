@@ -17,7 +17,7 @@ export const EMPTY_BAR_KG = 20;
 
 function warmupTemplateFor(
   kind: WorkoutKind,
-  preset: FormulaPreset,
+  preset: Exclude<FormulaPreset, "none">,
   warmups: Record<WorkoutKind, KindWarmups>,
 ): FormulaSetSpec[] {
   const custom = warmups[kind][preset];

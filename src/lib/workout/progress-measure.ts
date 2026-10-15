@@ -11,9 +11,7 @@ export function isDeloadPoint(point: ProgressPoint): boolean {
 }
 
 /** Sessions used to answer «сильнее ли стал», not the full chart. */
-export function comparableWorkPoints(
-  points: ProgressPoint[],
-): ProgressPoint[] {
+export function comparableWorkPoints(points: ProgressPoint[]): ProgressPoint[] {
   const work = points.filter((point) => !isDeloadPoint(point));
   return work.length > 0 ? work : points;
 }
@@ -60,7 +58,7 @@ function blendPercent(
     startE1rm > 0
   ) {
     const e1rmPercent = percentChange(startE1rm, endE1rm);
-    if (Math.abs(e1rmPercent) >= E1RM_FLAT_WEIGHT_PCT) {
+    if (e1rmPercent != null && Math.abs(e1rmPercent) >= E1RM_FLAT_WEIGHT_PCT) {
       return e1rmPercent;
     }
   }
