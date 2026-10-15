@@ -25,8 +25,8 @@ import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
 import { postJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
-import { LOAD_FAILED } from "@/lib/messages";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
+import { LOAD_FAILED } from "@/lib/messages";
 import { heaviestWorkLift } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
@@ -486,13 +486,10 @@ export function SessionScreen() {
                 setSavingTemplate(true);
                 setTemplateError(null);
                 try {
-                  await postJson(
-                    `/api/sessions/${session.id}/template-swap`,
-                    {
-                      fromExerciseId: templateOffer.fromExerciseId,
-                      exerciseId: templateOffer.exerciseId,
-                    },
-                  );
+                  await postJson(`/api/sessions/${session.id}/template-swap`, {
+                    fromExerciseId: templateOffer.fromExerciseId,
+                    exerciseId: templateOffer.exerciseId,
+                  });
                   if (session.template_id) {
                     rememberTemplateSwap({
                       templateId: session.template_id,
