@@ -22,6 +22,7 @@ import {
   exerciseCatalogWeight,
   exerciseShortLabel,
 } from "@/lib/workout/labels";
+import { foldExerciseName } from "@/lib/workout/muscle-catalog-map";
 import { slotPlanSummary } from "@/lib/workout/slot-plan";
 
 export function TemplateExercisePicker({
@@ -43,14 +44,17 @@ export function TemplateExercisePicker({
 }) {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
-  const needle = query.trim().toLowerCase();
+  const needle = foldExerciseName(query);
+  const pool = needle
+    ? available
+    : available.filter((exercise) => exercise.is_active);
   const matches = needle
-    ? available.filter((exercise) =>
-        `${exercise.name} ${exercise.short_name ?? ""}`
-          .toLowerCase()
-          .includes(needle),
+    ? pool.filter((exercise) =>
+        foldExerciseName(
+          `${exercise.name} ${exercise.short_name ?? ""}`,
+        ).includes(needle),
       )
-    : available;
+    : pool;
   // Exercises with a 1RM are the ones actually in use — first.
   const ordered = [...matches].sort((a, b) => {
     const aMax = a.current_max?.max_weight ?? 0;
@@ -171,6 +175,11 @@ export function TemplateExercisePicker({
                     >
                       <span className="min-w-0 flex-1 truncate text-base">
                         {exerciseShortLabel(exercise.short_name, exercise.name)}
+                        {exercise.is_active ? null : (
+                          <span className="ml-2 text-sm font-normal text-muted-foreground">
+                            не делаю
+                          </span>
+                        )}
                       </span>
                       <AlignedPair
                         className="grid-cols-[3.25rem_1.75rem]"

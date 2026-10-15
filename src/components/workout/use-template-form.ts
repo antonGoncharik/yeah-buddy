@@ -46,7 +46,7 @@ export function useTemplateForm({ templateId }: { templateId?: string }) {
       setError(null);
 
       try {
-        const exercisesResponse = await fetch("/api/exercises?filter=active");
+        const exercisesResponse = await fetch("/api/exercises?filter=all");
         if (!exercisesResponse.ok) {
           throw new Error("load failed");
         }

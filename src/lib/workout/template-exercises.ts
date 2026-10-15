@@ -38,6 +38,18 @@ export async function replaceTemplateExercises(
   if (inserted.error) {
     throw inserted.error;
   }
+
+  const revived = await supabase
+    .from("exercises")
+    .update({ is_active: true, archived_at: null })
+    .eq("user_id", userId)
+    .in(
+      "id",
+      unique.map((slot) => slot.exercise_id),
+    );
+  if (revived.error) {
+    throw revived.error;
+  }
 }
 
 export interface TemplateSlotRows {

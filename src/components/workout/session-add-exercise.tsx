@@ -38,7 +38,7 @@ export function SessionAddExercise({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    void cachedGet("/api/exercises?filter=active", (data) => {
+    void cachedGet("/api/exercises?filter=all", (data) => {
       if (!cancelled) {
         setExercises(readExercises(data));
       }
@@ -67,7 +67,7 @@ export function SessionAddExercise({
       return false;
     }
     if (needle === "") {
-      return true;
+      return exercise.is_active;
     }
     return foldExerciseName(
       `${exercise.name} ${exercise.short_name ?? ""}`,
@@ -140,6 +140,11 @@ export function SessionAddExercise({
                 {addingId === exercise.id
                   ? "Добавляю…"
                   : exerciseShortLabel(exercise.short_name, exercise.name)}
+                {exercise.is_active ? null : (
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                    не делаю
+                  </span>
+                )}
               </button>
             ))}
           </div>

@@ -5,7 +5,7 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
-import { getExercise } from "@/lib/workout/exercises";
+import { archiveExercise, getExercise } from "@/lib/workout/exercises";
 import { loadLastWorkWeights } from "@/lib/workout/session-last-weights";
 import {
   insertSessionExercise,
@@ -68,10 +68,13 @@ export async function addSessionExercise(
     throw new Error("Добавить упражнение можно только в открытой тренировке.");
   }
 
-  const exercise = await getExercise(userId, exerciseId);
-  if (!exercise?.is_active) {
+  const found = await getExercise(userId, exerciseId);
+  if (!found) {
     throw new Error("Упражнение не найдено.");
   }
+  const exercise = found.is_active
+    ? found
+    : ((await archiveExercise(userId, found.id, false)) ?? found);
 
   const current = await loadSessionDetail(userId, session);
   if (current.exercises.some((item) => item.exercise_id === exercise.id)) {
