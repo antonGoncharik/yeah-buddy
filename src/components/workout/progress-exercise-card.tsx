@@ -166,8 +166,10 @@ function closedDetail(
   seconds: number | null,
 ): string {
   const current = closedValue(stats.current_weight, seconds);
+  const showPercent =
+    stats.percent != null && Math.abs(stats.percent) >= 0.5;
   const barMoved =
-    stats.delta != null && stats.percent != null && stats.delta !== 0;
+    stats.delta != null && stats.delta !== 0;
   const parts = [current];
   if (barMoved && stats.delta != null && stats.percent != null) {
     parts.push(`${formatSignedWeight(stats.delta)} кг`);
@@ -177,6 +179,8 @@ function closedDetail(
     ) {
       parts.push(`к телу ${formatSignedPercent(stats.relative_percent)}`);
     }
+  } else if (showPercent && stats.percent != null) {
+    parts.push(formatSignedPercent(stats.percent));
   } else if (stats.tonnage_percent != null && stats.tonnage_percent !== 0) {
     parts.push("тоннаж");
   }
@@ -186,7 +190,7 @@ function closedDetail(
 function headlinePercent(
   stats: ReturnType<typeof measureProgress>,
 ): number | null {
-  if (stats.delta != null && stats.percent != null && stats.delta !== 0) {
+  if (stats.percent != null && Math.abs(stats.percent) >= 0.5) {
     return stats.percent;
   }
   if (stats.tonnage_percent != null && stats.tonnage_percent !== 0) {

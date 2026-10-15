@@ -7,6 +7,7 @@ import {
   measureProgress,
   summarizeProgress,
 } from "@/lib/workout/progress-build";
+import { lastComparableBefore } from "@/lib/workout/progress-measure";
 import { lastProgressKind, pointsForKind } from "@/lib/workout/progress-stats";
 
 export function windowStrengthProgress(
@@ -59,25 +60,11 @@ function windowExerciseProgress(
   const inWindowKind = comparable.filter(
     (point) => point.date >= from && point.date <= to,
   );
-  const baseline = lastBefore(comparable, from);
+  const baseline = lastComparableBefore(comparable, from);
   const series = baseline ? [baseline, ...inWindowKind] : inWindowKind;
   return {
     ...item,
     ...measureProgress(series),
     points: inWindow,
   };
-}
-
-function lastBefore(
-  points: ProgressPoint[],
-  from: string,
-): ProgressPoint | null {
-  let found: ProgressPoint | null = null;
-  for (const point of points) {
-    if (point.date >= from) {
-      break;
-    }
-    found = point;
-  }
-  return found;
 }
