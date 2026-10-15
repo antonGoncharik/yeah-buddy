@@ -266,6 +266,10 @@ export function SessionScreen() {
                 });
               }}
               onLogSet={(set, sessionExerciseId, draft) => {
+                if (session.status === "completed" && correcting) {
+                  setDrafts((current) => ({ ...current, [set.id]: draft }));
+                  return;
+                }
                 const row = detail.exercises.find(
                   (item) => item.id === sessionExerciseId,
                 );
