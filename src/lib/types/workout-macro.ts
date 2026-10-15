@@ -113,6 +113,8 @@ export interface PhaseCircleProgress {
   suggest_end: boolean;
   /** The previous week finished itself and this one has not started. */
   opened_itself: boolean;
+  /** Looping cycle: last week ended, same macro continues at week one. */
+  phase_restarts?: boolean;
 }
 
 export interface PlannedCyclePhase {

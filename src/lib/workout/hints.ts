@@ -124,15 +124,16 @@ export function templateCanPlan(template: TemplateLike): boolean {
 export function templateExerciseLoadPreview(
   template: { slots: TemplateSlot[] },
   exercise: ExerciseWithMax,
+  phaseKey?: string | null,
 ): { value: number; kind: "max" | "track" } | null {
   const plan = slotFor(template.slots, exercise.id);
-  if (slotNeedsTrack(plan)) {
+  if (slotNeedsTrack(plan, phaseKey)) {
     const weight = exercise.track ? trackCurrentWeight(exercise.track) : null;
     return weight != null && weight > 0
       ? { value: weight, kind: "track" }
       : null;
   }
-  if (slotNeedsMax(plan, exercise)) {
+  if (slotNeedsMax(plan, exercise, phaseKey)) {
     const max = exercise.current_max?.max_weight ?? 0;
     return max > 0 ? { value: max, kind: "max" } : null;
   }
@@ -214,11 +215,22 @@ export function phaseEndHint(progress: PhaseCircleProgress): string | null {
     return null;
   }
 
+  const phase = progress.phase_name;
+  if (progress.phase_restarts && progress.next_phase_name) {
+    const rounds = Math.max(
+      1,
+      Math.floor(progress.completed_count / progress.circle_size),
+    );
+    if (rounds >= 2) {
+      return `«${phase}» идёт уже ${rounds} ${circleWord(rounds)}. Дальше снова «${progress.next_phase_name}».`;
+    }
+    return `Круг «${phase}» пройден. Дальше снова «${progress.next_phase_name}».`;
+  }
+
   const rounds = Math.max(
     1,
     Math.floor(progress.completed_count / progress.circle_size),
   );
-  const phase = progress.phase_name;
   const nextLabel = progress.next_phase_name;
 
   if (progress.last_in_cycle) {
@@ -382,6 +394,7 @@ export function readPhaseCircle(data: unknown): PhaseCircleProgress | null {
     circle_size: row.circle_size,
     suggest_end: row.suggest_end,
     opened_itself: row.opened_itself === true,
+    phase_restarts: row.phase_restarts === true,
   };
 }
 
