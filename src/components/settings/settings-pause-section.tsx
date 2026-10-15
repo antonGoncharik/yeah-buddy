@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Button } from "@/components/ui/button";
-import { cachedGet, patchJson } from "@/lib/api-cache";
+import { cachedGet, patchJson, writeJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { type PauseDays, pauseCovers } from "@/lib/retention/pause";
