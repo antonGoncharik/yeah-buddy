@@ -31,11 +31,13 @@ export function WorkoutsHubQueueCta({
   onSkip,
   onUnskip,
   onBackfill,
+  phaseKey = null,
 }: {
   session: WorkoutSession | null;
   nextTemplate: WorkoutTemplateDetail | null;
   followingTemplate: WorkoutTemplateDetail | null;
   exercises: ExerciseWithMax[];
+  phaseKey?: string | null;
   nextCanStart: boolean;
   creating: boolean;
   skipping: boolean;
@@ -132,7 +134,7 @@ export function WorkoutsHubQueueCta({
           {nextTemplate.exercises.map((exercise) => {
             const full = catalog.get(exercise.id);
             const preview = full
-              ? templateExerciseLoadPreview(nextTemplate, full)
+              ? templateExerciseLoadPreview(nextTemplate, full, phaseKey)
               : null;
             return (
               <li

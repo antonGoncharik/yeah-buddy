@@ -93,6 +93,7 @@ export function WorkoutsHubScreen() {
             nextTemplate={nextTemplate}
             followingTemplate={followingTemplate}
             exercises={exercises}
+            phaseKey={macro?.phase?.phase_type ?? null}
             nextCanStart={nextCanStart}
             creating={creating}
             skipping={skipping}

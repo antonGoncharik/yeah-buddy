@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { handleNumericEnter } from "@/lib/form/field-nav";
+import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { Exercise } from "@/lib/types";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
@@ -69,7 +70,7 @@ export function SessionMissingTracks({
                   onChange={(event) =>
                     setValues((current) => ({
                       ...current,
-                      [exercise.id]: event.target.value,
+                      [exercise.id]: sanitizeDecimalDraft(event.target.value),
                     }))
                   }
                   onKeyDown={handleNumericEnter}
