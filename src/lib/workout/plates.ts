@@ -32,3 +32,26 @@ export function platesLine(totalKg: number): string | null {
   }
   return `На сторону: ${plates.join(" + ")} кг`;
 }
+
+/** How the plates on one side changed from the previous bar set. */
+export function plateDeltaLine(
+  previousKg: number | null,
+  nextKg: number,
+): string | null {
+  if (previousKg == null) {
+    return null;
+  }
+  const before = platesPerSide(previousKg);
+  const after = platesPerSide(nextKg);
+  if (!before || !after) {
+    return null;
+  }
+  const delta =
+    after.reduce((sum, plate) => sum + plate, 0) -
+    before.reduce((sum, plate) => sum + plate, 0);
+  if (Math.abs(delta) < 0.05) {
+    return null;
+  }
+  const sign = delta > 0 ? "+" : "−";
+  return `(${sign}${Math.abs(delta)} кг на сторону)`;
+}

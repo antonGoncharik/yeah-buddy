@@ -162,9 +162,16 @@ export function SessionExerciseRow({
     const list = set.set_type === "warmup" ? warmup : work;
     const index = list.findIndex((row) => row.id === set.id);
     const hasNextSet = index >= 0 && index < list.length - 1;
+    const previous = index > 0 ? list[index - 1] : null;
+    const previousKg = previous
+      ? previous.is_completed && previous.actual_weight != null
+        ? previous.actual_weight
+        : previous.planned_weight
+      : null;
     return (
       <SessionSetEditor
         set={set}
+        previousKg={set.set_type === "work" ? previousKg : null}
         draft={drafts[set.id] ?? draftFromSet(set)}
         disabled={disabled}
         groupCount={openSets.length}

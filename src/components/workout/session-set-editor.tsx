@@ -23,7 +23,7 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
-import { platesLine } from "@/lib/workout/plates";
+import { plateDeltaLine, platesLine } from "@/lib/workout/plates";
 import { formatSetLine, setUsesSeconds } from "@/lib/workout/session-format";
 
 const HOLD_STEP_SECONDS = 5;
@@ -39,6 +39,7 @@ export function SessionSetEditor({
   onLog,
   onAdvance,
   hasNextSet = false,
+  previousKg = null,
 }: {
   set: WorkoutSet;
   draft: SetDraft;
@@ -49,6 +50,7 @@ export function SessionSetEditor({
   onLog?: (draft: SetDraft) => void;
   onAdvance?: () => void;
   hasNextSet?: boolean;
+  previousKg?: number | null;
 }) {
   const withRir = set.set_type === "work";
   const timed = setUsesSeconds(set);
@@ -58,6 +60,9 @@ export function SessionSetEditor({
   const shownReserve = typedReserve ?? set.planned_rir;
   const planLine = formatSetLine(set);
   const offPlan = !draftMatchesPlan(set, draft);
+  const loadKg = parseDecimal(draft.weight) ?? 0;
+  const loadLine = platesLine(loadKg);
+  const deltaLine = plateDeltaLine(previousKg, loadKg);
 
   function step(kind: "weight" | "reps" | "seconds", direction: -1 | 1) {
     haptic("tick");
@@ -133,9 +138,10 @@ export function SessionSetEditor({
             />
           )}
         </div>
-        {platesLine(parseDecimal(draft.weight) ?? 0) ? (
+        {loadLine ? (
           <p className="text-xs text-muted-foreground">
-            {platesLine(parseDecimal(draft.weight) ?? 0)}
+            {loadLine}
+            {deltaLine ? ` ${deltaLine}` : ""}
           </p>
         ) : null}
         {timed ? (
