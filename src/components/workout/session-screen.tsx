@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
+import { SheetFrame } from "@/components/layout/sheet-frame";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { RestBar } from "@/components/workout/rest-bar";
@@ -22,7 +23,9 @@ import { SessionNoteField } from "@/components/workout/session-note-field";
 import { SessionSoreBanner } from "@/components/workout/session-sore-banner";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
+import { postJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
+import { LOAD_FAILED } from "@/lib/messages";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
 import { heaviestWorkLift } from "@/lib/share/joy";
 import { haptic } from "@/lib/telegram/haptic";
@@ -91,6 +94,13 @@ export function SessionScreen() {
   } = useSessionScreen();
   const marking = useRef(new Set<string>());
   const [pairs, setPairs] = useState<Record<string, string>>({});
+  const [templateOffer, setTemplateOffer] = useState<{
+    fromExerciseId: string;
+    exerciseId: string;
+    name: string;
+  } | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   useEffect(() => {
     if (!session?.id) {
       return;
@@ -198,6 +208,7 @@ export function SessionScreen() {
               setDrafts={setDrafts}
               onRemove={(id) => void removeExercise(id)}
               onSwap={swapExercise}
+              onOfferTemplate={setTemplateOffer}
               onReorder={
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }
@@ -423,6 +434,67 @@ export function SessionScreen() {
                 : "Сохранить"}
           </Button>
         </StickyActions>
+      ) : null}
+      {templateOffer && session ? (
+        <SheetFrame
+          title="Замена в программе"
+          onCancel={() => {
+            if (!savingTemplate) {
+              setTemplateOffer(null);
+              setTemplateError(null);
+            }
+          }}
+        >
+          <p className="text-base leading-snug">
+            Сегодня стоит {templateOffer.name}.
+          </p>
+          {templateError ? (
+            <p className="text-base text-destructive">{templateError}</p>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            disabled={savingTemplate}
+            onClick={() => {
+              setTemplateOffer(null);
+              setTemplateError(null);
+            }}
+          >
+            Только на сегодня
+          </Button>
+          <Button
+            type="button"
+            className="min-h-11"
+            disabled={savingTemplate}
+            onClick={() => {
+              void (async () => {
+                setSavingTemplate(true);
+                setTemplateError(null);
+                try {
+                  await postJson(
+                    `/api/sessions/${session.id}/template-swap`,
+                    {
+                      fromExerciseId: templateOffer.fromExerciseId,
+                      exerciseId: templateOffer.exerciseId,
+                    },
+                  );
+                  haptic("commit");
+                  setTemplateOffer(null);
+                } catch (caught) {
+                  haptic("error");
+                  setTemplateError(
+                    caught instanceof Error ? caught.message : LOAD_FAILED,
+                  );
+                } finally {
+                  setSavingTemplate(false);
+                }
+              })();
+            }}
+          >
+            {savingTemplate ? "Сохраняю…" : "Заменить и в шаблоне"}
+          </Button>
+        </SheetFrame>
       ) : null}
     </div>
   );

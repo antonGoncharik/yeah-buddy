@@ -48,6 +48,7 @@ export function SessionExerciseRow({
   onDraft,
   onRemove,
   onSwap,
+  onOfferTemplate,
   templateId = null,
   restActive,
   onStartRest,
@@ -77,6 +78,11 @@ export function SessionExerciseRow({
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
   onRemove?: () => void;
   onSwap?: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
+  onOfferTemplate?: (offer: {
+    fromExerciseId: string;
+    exerciseId: string;
+    name: string;
+  }) => void;
   templateId?: string | null;
   restActive?: boolean;
   onStartRest?: () => void;
@@ -239,6 +245,7 @@ export function SessionExerciseRow({
               templateId={templateId}
               disabled={disabled}
               onSwap={onSwap}
+              onOfferTemplate={onOfferTemplate}
             />
           ) : null}
           {onRemove ? (

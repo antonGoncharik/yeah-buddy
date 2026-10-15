@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
-import { cachedGet, postJson } from "@/lib/api-cache";
+import { cachedGet } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
@@ -26,6 +26,7 @@ export function SessionSwapSheet({
   templateId,
   disabled,
   onSwap,
+  onOfferTemplate,
 }: {
   sessionId: string;
   sessionExerciseId: string;
@@ -33,6 +34,11 @@ export function SessionSwapSheet({
   templateId: string | null;
   disabled: boolean;
   onSwap: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
+  onOfferTemplate?: (offer: {
+    fromExerciseId: string;
+    exerciseId: string;
+    name: string;
+  }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [muscle, setMuscle] = useState<string | null>(null);
@@ -41,12 +47,6 @@ export function SessionSwapSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [kept, setKept] = useState<{
-    fromExerciseId: string;
-    exerciseId: string;
-    name: string;
-  } | null>(null);
-  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -90,35 +90,11 @@ export function SessionSwapSheet({
     setPendingId(exerciseId);
     const ok = await onSwap(sessionExerciseId, exerciseId);
     setPendingId(null);
-    if (!ok) {
-      return;
+    if (ok && templateId) {
+      onOfferTemplate?.({ fromExerciseId: from, exerciseId, name });
     }
-    if (templateId) {
-      setKept({ fromExerciseId: from, exerciseId, name });
-      return;
-    }
-    setOpen(false);
-  }
-
-  async function keepInTemplate() {
-    if (!kept || savingTemplate) {
-      return;
-    }
-    setSavingTemplate(true);
-    setError(null);
-    try {
-      await postJson(`/api/sessions/${sessionId}/template-swap`, {
-        fromExerciseId: kept.fromExerciseId,
-        exerciseId: kept.exerciseId,
-      });
-      haptic("commit");
+    if (ok) {
       setOpen(false);
-      setKept(null);
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-    } finally {
-      setSavingTemplate(false);
     }
   }
 
@@ -138,7 +114,6 @@ export function SessionSwapSheet({
         aria-label="Чем заменить"
         onClick={() => {
           haptic("tap");
-          setKept(null);
           setOpen(true);
         }}
       >
@@ -149,55 +124,23 @@ export function SessionSwapSheet({
           title={muscle ? `Чем заменить · ${muscle}` : "Чем заменить"}
           onCancel={() => setOpen(false)}
         >
-          {kept ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-base leading-snug">
-                Сегодня стоит {kept.name}.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-11"
-                disabled={savingTemplate}
-                onClick={() => {
-                  setOpen(false);
-                  setKept(null);
-                }}
-              >
-                Только на сегодня
-              </Button>
-              <Button
-                type="button"
-                className="min-h-11"
-                disabled={savingTemplate}
-                onClick={() => void keepInTemplate()}
-              >
-                {savingTemplate ? "Сохраняю…" : "Заменить и в шаблоне"}
-              </Button>
-            </div>
-          ) : null}
           {error ? <p className="text-base text-destructive">{error}</p> : null}
-          {kept ? null : (
-            <>
-              {loading ? (
-                <p className="text-base text-muted-foreground">
-                  Смотрю ту же мышцу…
-                </p>
-              ) : null}
-              {muscleSore ? (
-                <p className="text-base leading-snug text-muted-foreground">
-                  Эта мышца болит. Замена останется в той же зоне.
-                </p>
-              ) : null}
-              {!loading && !error && options.length === 0 ? (
-                <p className="text-base text-muted-foreground">
-                  На эту мышцу больше нечего подставить.
-                </p>
-              ) : null}
-            </>
-          )}
-          {kept ? null : (
-            <div className="flex flex-col gap-2">
+          {loading ? (
+            <p className="text-base text-muted-foreground">
+              Смотрю ту же мышцу…
+            </p>
+          ) : null}
+          {muscleSore ? (
+            <p className="text-base leading-snug text-muted-foreground">
+              Эта мышца болит. Замена останется в той же зоне.
+            </p>
+          ) : null}
+          {!loading && !error && options.length === 0 ? (
+            <p className="text-base text-muted-foreground">
+              На эту мышцу больше нечего подставить.
+            </p>
+          ) : null}
+          <div className="flex flex-col gap-2">
               {options.map((option) => (
                 <Button
                   key={option.exerciseId}
@@ -217,8 +160,7 @@ export function SessionSwapSheet({
                   </span>
                 </Button>
               ))}
-            </div>
-          )}
+          </div>
         </SheetFrame>
       ) : null}
     </>

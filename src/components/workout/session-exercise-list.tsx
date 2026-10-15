@@ -26,6 +26,7 @@ export function SessionExerciseList({
   setDrafts,
   onRemove,
   onSwap,
+  onOfferTemplate,
   onReorder,
   onStartRest,
   onToggleSet,
@@ -49,6 +50,11 @@ export function SessionExerciseList({
   setDrafts: Dispatch<SetStateAction<Record<string, SetDraft>>>;
   onRemove: (sessionExerciseId: string) => void;
   onSwap?: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
+  onOfferTemplate?: (offer: {
+    fromExerciseId: string;
+    exerciseId: string;
+    name: string;
+  }) => void;
   onReorder?: (exerciseIds: string[]) => void;
   onStartRest?: (exerciseId: string) => void;
   onToggleSet?: (set: WorkoutSet, exerciseId: string) => void;
@@ -149,6 +155,7 @@ export function SessionExerciseList({
                 session.status === "planned" && onSwap ? onSwap : undefined
               }
               templateId={session.template_id}
+              onOfferTemplate={onOfferTemplate}
               restActive={restActive}
               onStartRest={
                 canRest && onStartRest
