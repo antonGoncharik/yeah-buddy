@@ -632,24 +632,28 @@ async function logPlannedSets({
   if (!item) {
     return;
   }
-  let logged = false;
-  for (const set of item.sets) {
+  const pending = item.sets.flatMap((set) => {
     if (set.set_type !== "work" || set.is_completed) {
-      continue;
+      return [];
     }
     const patch = plannedLogPatch(set);
     if (!patch) {
-      continue;
+      return [];
     }
-    const ok = await markSet(set.id, { is_completed: true, ...patch });
-    if (!ok) {
-      return;
-    }
-    logged = true;
+    return [{ id: set.id, patch }];
+  });
+  if (pending.length === 0) {
+    return;
   }
-  if (logged) {
-    startRest(item.exercise_id);
+  const results = await Promise.all(
+    pending.map(({ id, patch }) =>
+      markSet(id, { is_completed: true, ...patch }),
+    ),
+  );
+  if (results.some((ok) => !ok)) {
+    return;
   }
+  startRest(item.exercise_id);
 }
 
 function exerciseIdForSet(

@@ -157,6 +157,28 @@ export function SessionExerciseRow({
     }
   }, [recordLine]);
 
+  function applyDraft(setId: string, patch: Partial<SetDraft>) {
+    onDraft(setId, patch);
+    if (patch.weight === undefined || disabled) {
+      return;
+    }
+    const source = item.sets.find((row) => row.id === setId);
+    if (!source || source.set_type !== "work") {
+      return;
+    }
+    const planned = source.planned_weight;
+    for (const row of work) {
+      if (
+        row.id === setId ||
+        row.is_completed ||
+        row.planned_weight !== planned
+      ) {
+        continue;
+      }
+      onDraft(row.id, { weight: patch.weight });
+    }
+  }
+
   function advanceSet(set: WorkoutSet) {
     if (onLogSet && !set.is_completed && !disabled) {
       const draft = drafts[set.id] ?? draftFromSet(set);
@@ -200,7 +222,7 @@ export function SessionExerciseRow({
         onAdvance={() => advanceSet(set)}
         onDraft={(patch) => {
           for (const open of openSets) {
-            onDraft(open.id, patch);
+            applyDraft(open.id, patch);
           }
         }}
         onLog={
@@ -284,7 +306,7 @@ export function SessionExerciseRow({
             {targetLine}
           </p>
         ) : null}
-        {focused && (canLogPlan || onPair || onAddSet || onDropSet) ? (
+        {focused && (canLogPlan || onPair) ? (
           <div className="flex flex-wrap gap-2">
             {canLogPlan ? (
               <button
@@ -294,26 +316,6 @@ export function SessionExerciseRow({
                 onClick={onLogPlan}
               >
                 Как по плану
-              </button>
-            ) : null}
-            {onAddSet && work.length > 0 ? (
-              <button
-                type="button"
-                className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
-                disabled={disabled}
-                onClick={onAddSet}
-              >
-                + Подход
-              </button>
-            ) : null}
-            {onDropSet && dropSetId ? (
-              <button
-                type="button"
-                className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
-                disabled={disabled}
-                onClick={() => onDropSet(dropSetId)}
-              >
-                Убрать подход
               </button>
             ) : null}
             {onPair ? (
@@ -381,6 +383,30 @@ export function SessionExerciseRow({
               >
                 Отдых {formatRestClock(restSeconds ?? WORK_REST_SECONDS)}
               </button>
+            ) : null}
+            {onAddSet || (onDropSet && dropSetId) ? (
+              <div className="mt-1 flex w-full flex-wrap gap-2">
+                {onAddSet && work.length > 0 ? (
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
+                    disabled={disabled}
+                    onClick={onAddSet}
+                  >
+                    + Подход
+                  </button>
+                ) : null}
+                {onDropSet && dropSetId ? (
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
+                    disabled={disabled}
+                    onClick={() => onDropSet(dropSetId)}
+                  >
+                    Убрать подход
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ) : null}

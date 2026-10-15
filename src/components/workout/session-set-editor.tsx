@@ -1,7 +1,7 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
-import type { ReactNode } from "react";
+import { Mic, Minus, Plus } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,7 @@ export function SessionSetEditor({
   const loadKg = parseDecimal(draft.weight) ?? 0;
   const loadLine = platesLine(loadKg);
   const deltaLine = plateDeltaLine(previousKg, loadKg);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   function step(kind: "weight" | "reps" | "seconds", direction: -1 | 1) {
     haptic("tick");
@@ -94,19 +95,37 @@ export function SessionSetEditor({
         {groupTitle ? (
           <p className="text-sm text-muted-foreground">{groupTitle}</p>
         ) : null}
-        <p className="text-sm text-muted-foreground">
-          План: <span className="tabular-nums">{planLine}</span>
-        </p>
-        <SessionSetVoice
-          disabled={disabled}
-          timed={timed}
-          needsWeight={set.planned_weight != null && set.planned_weight > 0}
-          draft={draft}
-          onApply={onDraft}
-          onCommit={
-            onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined
-          }
-        />
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+            План: <span className="tabular-nums">{planLine}</span>
+          </p>
+          {!disabled ? (
+            <button
+              type="button"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background text-muted-foreground"
+              aria-label={voiceOpen ? "Скрыть ввод строкой" : "Сказать подход"}
+              aria-expanded={voiceOpen}
+              onClick={() => {
+                haptic("tap");
+                setVoiceOpen((open) => !open);
+              }}
+            >
+              <Mic className="size-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+        {voiceOpen ? (
+          <SessionSetVoice
+            disabled={disabled}
+            timed={timed}
+            needsWeight={set.planned_weight != null && set.planned_weight > 0}
+            draft={draft}
+            onApply={onDraft}
+            onCommit={
+              onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined
+            }
+          />
+        ) : null}
         <div className="grid grid-cols-2 gap-2">
           <Stepper
             label="Вес, кг"

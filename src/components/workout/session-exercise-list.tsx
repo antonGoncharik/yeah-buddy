@@ -68,7 +68,8 @@ export function SessionExerciseList({
   lastRestSeconds?: (exerciseId: string) => number;
 }) {
   const session = detail.session;
-  const canReorder = Boolean(onReorder) && canEditSets;
+  const canReorder =
+    Boolean(onReorder) && canEditSets && openSetIds.length === 0;
 
   if (detail.exercises.length === 0) {
     const canFillBelow =
