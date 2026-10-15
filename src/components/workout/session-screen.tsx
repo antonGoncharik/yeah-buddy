@@ -127,11 +127,12 @@ export function SessionScreen() {
   }, [session?.id, detail?.exercises]);
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
-  const focusExerciseId =
-    rest.exerciseId ?? (detail ? restExerciseFor(detail, openSetIds) : null);
+  const focusExerciseId = detail
+    ? (restExerciseFor(detail, openSetIds) ?? rest.exerciseId)
+    : rest.exerciseId;
   const loadTarget = restLoadTargetKg(
     detail?.exercises ?? [],
-    rest.exerciseId ?? focusExerciseId,
+    focusExerciseId,
   );
 
   return (
@@ -583,7 +584,6 @@ async function toggleSet({
     try {
       const ok = await markSet(set.id, { is_completed: true, ...patch });
       if (ok && set.set_type === "work") {
-        startRest(exerciseId);
         const nextId = nextFocusSetId(
           exercises,
           sessionExerciseId,
@@ -593,6 +593,9 @@ async function toggleSet({
         if (nextId) {
           focusSet(nextId);
         }
+        const restExerciseId =
+          exerciseIdForSet(exercises, nextId) ?? exerciseId;
+        startRest(restExerciseId);
       }
     } finally {
       marking.current.delete(set.id);
@@ -650,6 +653,21 @@ async function logPlannedSets({
   if (logged) {
     startRest(item.exercise_id);
   }
+}
+
+function exerciseIdForSet(
+  exercises: SessionDetail["exercises"],
+  setId: string | null,
+): string | null {
+  if (!setId) {
+    return null;
+  }
+  for (const item of exercises) {
+    if (item.sets.some((row) => row.id === setId)) {
+      return item.exercise_id;
+    }
+  }
+  return null;
 }
 
 function restExerciseFor(
