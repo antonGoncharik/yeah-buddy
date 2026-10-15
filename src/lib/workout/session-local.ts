@@ -128,8 +128,8 @@ export function sessionDetailFromTemplate({
   };
 
   const planned: SessionExerciseDetail[] = [];
-  let sortOrder = 10;
-  for (const exercise of template.exercises) {
+  for (let index = 0; index < template.exercises.length; index += 1) {
+    const exercise = template.exercises[index];
     const catalogRow = byId.get(exercise.id);
     const plan = slotFor(template.slots, exercise.id);
     const maxWeight = maxByExercise.get(exercise.id) ?? null;
@@ -154,7 +154,7 @@ export function sessionDetailFromTemplate({
       user_id: "",
       session_id: id,
       exercise_id: exercise.id,
-      sort_order: sortOrder,
+      sort_order: (index + 1) * 10,
       max_weight: slotNeedsMax(plan, exercise, phaseKey) ? maxWeight : null,
       intensity: plan?.intensity ?? null,
       note: plan?.note ?? null,
@@ -166,7 +166,6 @@ export function sessionDetailFromTemplate({
       load_hint: slotWantsLoadHint(plan, exercise, phaseKey),
       sets: rows.map((row) => setFromPlan(row, sessionExerciseId, now)),
     });
-    sortOrder += 10;
   }
 
   const plannedIds = planned.map((item) => item.exercise_id);

@@ -85,8 +85,7 @@ export async function addSessionExercise(
   await attachExercisePlanContext(ctx, userId, session.id, exercise.id);
 
   const sortOrder =
-    current.exercises.reduce((max, item) => Math.max(max, item.sort_order), 0) +
-    10;
+    Math.max(0, ...current.exercises.map((item) => item.sort_order)) + 10;
   const planned = await insertSessionExercise(
     userId,
     session,

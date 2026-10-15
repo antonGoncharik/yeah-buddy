@@ -65,19 +65,16 @@ export async function ensureSessionPlan(
 
   const ctx = await loadPlanContext(userId, session, template);
 
-  let sortOrder = 10;
-  for (const exercise of template.exercises) {
-    const inserted = await insertSessionExercise(
+  for (let index = 0; index < template.exercises.length; index += 1) {
+    const exercise = template.exercises[index];
+    await insertSessionExercise(
       userId,
       session,
       exercise,
       slotFor(template.slots, exercise.id),
-      sortOrder,
+      (index + 1) * 10,
       ctx,
     );
-    if (inserted) {
-      sortOrder += 10;
-    }
   }
 
   if (session.status === "planned") {
