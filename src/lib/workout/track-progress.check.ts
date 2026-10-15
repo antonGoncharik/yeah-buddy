@@ -80,8 +80,33 @@ assertEqual(
       },
     ],
   }),
-  "hold",
-  "rep range 10 hold",
+  "maintain",
+  "rep range 10 maintain",
+);
+
+assertEqual(
+  trackProgressFromWorkSets({
+    feel: "easy",
+    sets: [
+      {
+        ...work(8, 6),
+        planned_reps_to: 8,
+        planned_reps: 6,
+        actual_reps: 6,
+      },
+    ],
+  }),
+  "maintain",
+  "rep range 6 maintain",
+);
+
+assertEqual(
+  shouldEaseTrackAfterHolds({
+    outcomes: ["maintain", "maintain", "maintain"],
+    workingWeights: [80, 80, 80],
+  }),
+  false,
+  "maintain streak does not ease",
 );
 
 assertEqual(

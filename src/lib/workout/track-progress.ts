@@ -1,7 +1,7 @@
 import type { SessionFeel } from "@/lib/types";
 import { floorToStep } from "@/lib/workout/formulas";
 
-export type TrackProgressOutcome = "up" | "hold";
+export type TrackProgressOutcome = "up" | "hold" | "maintain";
 
 export interface TrackProgressSet {
   set_type: string;
@@ -25,15 +25,36 @@ export function trackProgressFromWorkSets(input: {
     return "hold";
   }
 
+  let inRepRangePlateau = false;
+
   for (const set of workSets) {
-    const targetReps = set.planned_reps_to ?? set.planned_reps;
+    const floor = set.planned_reps;
+    const top = set.planned_reps_to ?? set.planned_reps;
     const actualReps = set.actual_reps ?? set.planned_reps;
-    if (targetReps == null || targetReps <= 0) {
+
+    if (floor != null && floor > 0) {
+      if (actualReps == null || actualReps < floor) {
+        return "hold";
+      }
+    }
+
+    if (top == null || top <= 0) {
       continue;
     }
-    if (actualReps == null || actualReps < targetReps) {
-      return "hold";
+
+    if (actualReps == null || actualReps < top) {
+      if (
+        set.planned_reps_to != null &&
+        floor != null &&
+        actualReps != null &&
+        actualReps >= floor
+      ) {
+        inRepRangePlateau = true;
+      } else {
+        return "hold";
+      }
     }
+
     const plannedWeight = set.planned_weight;
     const actualWeight = set.actual_weight ?? set.planned_weight;
     if (
@@ -45,7 +66,7 @@ export function trackProgressFromWorkSets(input: {
     }
   }
 
-  return "up";
+  return inRepRangePlateau ? "maintain" : "up";
 }
 
 export function peakWorkWeight(
