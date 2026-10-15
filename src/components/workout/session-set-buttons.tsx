@@ -56,12 +56,12 @@ export function SessionSetButtons({
             <span className="w-5 shrink-0 text-sm font-medium tabular-nums text-primary">
               {index + 1}
             </span>
-            <span className="text-base font-medium text-primary">
-              {tone === "warmup" ? "Разминка" : "Подход"}
+            <span className="text-2xl font-semibold tracking-tight text-primary tabular-nums">
+              {labels[index]}
             </span>
             {rirLabels[index] ? (
               <span className="text-sm text-muted-foreground">
-                · {rirLabels[index]}
+                {rirLabels[index]}
               </span>
             ) : null}
           </>
