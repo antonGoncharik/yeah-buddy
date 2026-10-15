@@ -64,33 +64,32 @@ export function TodayQuickFoods({
         compact ? "gap-1.5" : "gap-2",
       )}
     >
-      <p
-        className={cn(
-          "px-1 font-medium text-muted-foreground",
-          compact ? "text-xs" : "text-sm",
-        )}
-      >
-        Частые
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p
+          className={cn(
+            "font-medium text-muted-foreground",
+            compact ? "text-xs" : "text-sm",
+          )}
+        >
+          Частые
+        </p>
         {meal && meals.length > 1 ? (
-          <>
-            {" · "}
-            <button
-              type="button"
-              className="min-h-11 font-medium text-foreground"
-              onClick={() => {
-                const index = meals.findIndex((item) => item.id === meal.id);
-                const next = meals[(index + 1) % meals.length];
-                if (next) {
-                  haptic("tick");
-                  onMealId(next.id);
-                }
-              }}
-            >
-              в {getMealLabel(meal.meal_type)}
-            </button>
-          </>
+          <button
+            type="button"
+            className="min-h-11 shrink-0 px-2 text-sm font-medium text-foreground"
+            onClick={() => {
+              const index = meals.findIndex((item) => item.id === meal.id);
+              const next = meals[(index + 1) % meals.length];
+              if (next) {
+                haptic("tick");
+                onMealId(next.id);
+              }
+            }}
+          >
+            в {getMealLabel(meal.meal_type)}
+          </button>
         ) : null}
-      </p>
+      </div>
       <FrequentFoodChips
         foods={foods}
         busy={busy}

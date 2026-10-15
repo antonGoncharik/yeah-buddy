@@ -141,7 +141,7 @@ export function BodyWeightField({
       {value == null && placeholder != null && draft.trim() === "" ? (
         <button
           type="button"
-          className="min-h-11 text-sm font-medium text-primary disabled:opacity-50"
+          className="-my-2 min-h-11 px-1 text-sm font-medium text-primary disabled:opacity-50"
           disabled={disabled}
           onClick={() => {
             const parsed = parse(placeholder);
@@ -154,7 +154,7 @@ export function BodyWeightField({
             void onSave(parsed);
           }}
         >
-          Как вчера · {format(placeholder)}
+          Было {format(placeholder)}
         </button>
       ) : null}
       {invalid ? <p className={FIELD_ERROR_CLASS}>{invalidHint}</p> : null}
