@@ -53,6 +53,7 @@ export function SessionExerciseRow({
   onToggleSet,
   onLogSet,
   onLogPlan,
+  onAddSet,
   paired = false,
   pairName = null,
   onPair,
@@ -80,6 +81,7 @@ export function SessionExerciseRow({
   onToggleSet?: (set: WorkoutSet) => void;
   onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
   onLogPlan?: () => void;
+  onAddSet?: () => void;
   paired?: boolean;
   pairName?: string | null;
   onPair?: () => void;
@@ -252,7 +254,7 @@ export function SessionExerciseRow({
             {targetLine}
           </p>
         ) : null}
-        {focused && (canLogPlan || onPair) ? (
+        {focused && (canLogPlan || onPair || onAddSet) ? (
           <div className="flex flex-wrap gap-2">
             {canLogPlan ? (
               <button
@@ -262,6 +264,16 @@ export function SessionExerciseRow({
                 onClick={onLogPlan}
               >
                 Как по плану
+              </button>
+            ) : null}
+            {onAddSet && work.length > 0 ? (
+              <button
+                type="button"
+                className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
+                disabled={disabled}
+                onClick={onAddSet}
+              >
+                + Подход
               </button>
             ) : null}
             {onPair ? (

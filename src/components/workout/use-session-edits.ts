@@ -322,6 +322,37 @@ export function useSessionEdits({
     }
   }
 
+  async function addWorkSet(sessionExerciseId: string): Promise<string | null> {
+    if (detail?.session.status !== "planned") {
+      return null;
+    }
+    setError(null);
+    try {
+      const data = await postJson(
+        `/api/sessions/${detail.session.id}/exercises/${sessionExerciseId}/sets`,
+        {},
+      );
+      const next = applyPayload(data);
+      if (!next) {
+        throw new Error(LOAD_FAILED);
+      }
+      const added = next.exercises
+        .find((item) => item.id === sessionExerciseId)
+        ?.sets.filter((set) => set.set_type === "work")
+        .reduce<(typeof next.exercises)[number]["sets"][number] | null>(
+          (best, set) =>
+            best == null || set.set_number > best.set_number ? set : best,
+          null,
+        );
+      haptic("commit");
+      return added?.id ?? null;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return null;
+    }
+  }
+
   async function addExercise(exerciseId: string): Promise<boolean> {
     if (detail?.session.status !== "planned") {
       return false;
@@ -377,6 +408,7 @@ export function useSessionEdits({
     saveMissingTracks,
     markSet,
     addExercise,
+    addWorkSet,
     swapExercise,
     easeSession,
     shortenSession,

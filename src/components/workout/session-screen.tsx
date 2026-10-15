@@ -84,6 +84,7 @@ export function SessionScreen() {
     saveMissingTracks,
     markSet,
     addExercise,
+    addWorkSet,
     swapExercise,
     easeSession,
     shortenSession,
@@ -242,6 +243,16 @@ export function SessionScreen() {
                 });
               }}
               pairs={pairs}
+              onAddSet={
+                session.status === "planned"
+                  ? async (sessionExerciseId) => {
+                      const setId = await addWorkSet(sessionExerciseId);
+                      if (setId) {
+                        setOpenSetIds([setId]);
+                      }
+                    }
+                  : undefined
+              }
               onPair={(leftId, rightId) => {
                 if (!session.id) {
                   return;
