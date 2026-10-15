@@ -46,6 +46,7 @@ export function SettingsPauseSection() {
     setError(null);
     try {
       const data = await patchJson("/api/settings", { pause_days: days });
+      writeJson("/api/settings", data);
       const next = readSettingsPayload(data);
       if (next) {
         setSettings(next);
