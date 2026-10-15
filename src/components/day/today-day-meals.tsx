@@ -193,12 +193,24 @@ export function TodayDayMeals({
         <MealGramsSheet
           item={portion}
           date={date}
+          meals={visibleMeals.map((meal) => ({
+            id: meal.id,
+            meal_type: meal.meal_type,
+          }))}
           itemHref={withDateQuery(`/today/items/${portion.id}`, date, today)}
           onClose={() => setPortion(null)}
         />
       ) : null}
       {lump ? (
-        <MealLumpSheet item={lump} date={date} onClose={() => setLump(null)} />
+        <MealLumpSheet
+          item={lump}
+          date={date}
+          meals={visibleMeals.map((meal) => ({
+            id: meal.id,
+            meal_type: meal.meal_type,
+          }))}
+          onClose={() => setLump(null)}
+        />
       ) : null}
     </>
   );

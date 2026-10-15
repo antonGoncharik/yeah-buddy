@@ -5,6 +5,7 @@ import {
   mealItemFromFood,
   mealItemFromLump,
   withAddedItem,
+  withMovedItem,
   withReplacedItem,
   withUpdatedItemGrams,
   withUpdatedLump,
@@ -24,6 +25,42 @@ import {
 import { isMealType } from "@/lib/nutrition";
 import { queueMutate } from "@/lib/offline-mutate";
 import type { DayType, Food, MealItem } from "@/lib/types";
+
+export async function moveMealItemToMeal({
+  date,
+  item,
+  mealId,
+}: {
+  date: string;
+  item: MealItem;
+  mealId: string;
+}): Promise<void> {
+  const current = readCachedDay(date);
+  if (!current) {
+    await patchJson(`/api/meal-items/${item.id}`, { mealId });
+    return;
+  }
+
+  await withDayOptimistic(
+    date,
+    withMovedItem(current, item.id, mealId),
+    async () => {
+      const data = await queueMutate({
+        method: "PATCH",
+        url: `/api/meal-items/${item.id}`,
+        body: { mealId },
+        cacheUrls: [daysUrl(date)],
+        clientIds: isTempId(item.id) ? [item.id] : undefined,
+      });
+      const saved = readMealItemPayload(data);
+      const latest = readCachedDay(date);
+      if (saved && latest) {
+        return withMovedItem(latest, item.id, saved.meal_id);
+      }
+      return latest ?? "keep";
+    },
+  );
+}
 
 export async function saveMealItemGrams({
   date,

@@ -2,22 +2,25 @@
 
 import { useState } from "react";
 
-import { saveLumpMealItem } from "@/components/day/grams-save";
+import { moveMealItemToMeal, saveLumpMealItem } from "@/components/day/grams-save";
+import { MealMoveButtons } from "@/components/day/meal-move-buttons";
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { lumpMealItemSchema } from "@/lib/day/lump";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { haptic } from "@/lib/telegram/haptic";
-import type { MealItem } from "@/lib/types";
+import type { MealItem, MealType } from "@/lib/types";
 
 export function MealLumpSheet({
   item,
   date,
+  meals = [],
   onClose,
 }: {
   item: MealItem;
   date: string;
+  meals?: ReadonlyArray<{ id: string; meal_type: MealType }>;
   onClose: () => void;
 }) {
   const [name, setName] = useState(item.name_snapshot);
@@ -74,6 +77,28 @@ export function MealLumpSheet({
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
+      <MealMoveButtons
+        meals={meals}
+        currentMealId={item.meal_id}
+        disabled={saving}
+        onMove={(mealId) => {
+          void (async () => {
+            setSaving(true);
+            setError(null);
+            try {
+              await moveMealItemToMeal({ date, item, mealId });
+              haptic("commit");
+              onClose();
+            } catch (caught) {
+              setError(
+                caught instanceof Error ? caught.message : "Не перенеслось.",
+              );
+            } finally {
+              setSaving(false);
+            }
+          })();
+        }}
+      />
       <Button
         type="button"
         className="h-12 w-full text-base"

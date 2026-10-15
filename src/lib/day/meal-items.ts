@@ -234,6 +234,29 @@ export async function getMealItem(
   return mapMealItem(result.data as Record<string, unknown>);
 }
 
+export async function moveMealItem(
+  userId: string,
+  itemId: string,
+  mealId: string,
+): Promise<MealItem> {
+  const item = await getMealItem(userId, itemId);
+  if (!item) {
+    throw new Error("Meal item not found");
+  }
+
+  const fromDate = await getDateForMeal(userId, item.meal_id);
+  const toDate = await getDateForMeal(userId, mealId);
+  if (!fromDate || !toDate || fromDate !== toDate) {
+    throw new Error("Meal is on another day");
+  }
+  if (item.meal_id === mealId) {
+    return item;
+  }
+
+  await assertUserDayWritable(userId, fromDate);
+  return writeMealItem(userId, itemId, { meal_id: mealId });
+}
+
 export async function updateMealItemGrams(
   userId: string,
   itemId: string,

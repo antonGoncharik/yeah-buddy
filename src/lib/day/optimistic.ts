@@ -191,6 +191,34 @@ export function withAddedItems(
   };
 }
 
+export function withMovedItem(
+  day: DayWithMeals,
+  itemId: string,
+  mealId: string,
+): DayWithMeals {
+  let moved: MealItem | null = null;
+  const stripped = day.meals.map((meal) => ({
+    ...meal,
+    items: meal.items.filter((item) => {
+      if (item.id !== itemId) {
+        return true;
+      }
+      moved = { ...item, meal_id: mealId };
+      return false;
+    }),
+  }));
+  if (!moved || !stripped.some((meal) => meal.id === mealId)) {
+    return day;
+  }
+  const next = moved;
+  return {
+    ...day,
+    meals: stripped.map((meal) =>
+      meal.id === mealId ? { ...meal, items: [...meal.items, next] } : meal,
+    ),
+  };
+}
+
 export function withReplacedItem(
   day: DayWithMeals,
   itemId: string,

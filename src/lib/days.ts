@@ -55,6 +55,7 @@ export {
   deleteMealItem,
   getDateForMeal,
   getMealItem,
+  moveMealItem,
   updateLumpMealItem,
   updateMealItemGrams,
 } from "@/lib/day/meal-items";

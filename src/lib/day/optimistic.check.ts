@@ -12,6 +12,7 @@ import {
   withBodyWeight,
   withClearedItems,
   withDayType,
+  withMovedItem,
   withRemovedItem,
   withUpdatedItemGrams,
   zipClientIds,
@@ -197,5 +198,31 @@ assertEqual(
 const zipped = zipClientIds(["temp:a", "temp:b"], ["real-a", "real-b"]);
 assertEqual(zipped.get("temp:a"), "real-a", "zip first");
 assertEqual(zipped.get("temp:b"), "real-b", "zip second");
+
+const moveDay = placeholderDay("2026-10-15", "rest");
+const fromMeal = moveDay.meals[0];
+const toMeal = moveDay.meals[1];
+assert(fromMeal != null && toMeal != null, "two meals");
+if (fromMeal && toMeal) {
+  const seeded = {
+    ...moveDay,
+    meals: moveDay.meals.map((meal) =>
+      meal.id === fromMeal.id
+        ? {
+            ...meal,
+            items: [mealItemFromFood({ mealId: meal.id, food, grams: 50 })],
+          }
+        : meal,
+    ),
+  };
+  const itemId = seeded.meals[0]?.items[0]?.id ?? "";
+  const moved = withMovedItem(seeded, itemId, toMeal.id);
+  assertEqual(
+    moved.meals[0]?.items.length,
+    0,
+    "item leaves the first meal",
+  );
+  assertEqual(moved.meals[1]?.items[0]?.meal_id, toMeal.id, "item lands");
+}
 
 console.log("day optimistic ok");

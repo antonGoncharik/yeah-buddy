@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GramChips } from "@/components/day/gram-chips";
-import { saveMealItemGrams } from "@/components/day/grams-save";
+import { moveMealItemToMeal, saveMealItemGrams } from "@/components/day/grams-save";
+import { MealMoveButtons } from "@/components/day/meal-move-buttons";
 import { PortionHistoryChips } from "@/components/day/portion-history-chips";
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
@@ -11,17 +12,19 @@ import { GramsStepperInput } from "@/components/ui/grams-stepper";
 import { formatYieldGrams, parseGramsInput } from "@/lib/food/yield";
 import { calcMacrosFromPer100, formatKcal, formatMacro } from "@/lib/nutrition";
 import { haptic } from "@/lib/telegram/haptic";
-import type { MealItem } from "@/lib/types";
+import type { MealItem, MealType } from "@/lib/types";
 
 export function MealGramsSheet({
   item,
   date,
   itemHref,
+  meals = [],
   onClose,
 }: {
   item: MealItem;
   date: string;
   itemHref: string;
+  meals?: ReadonlyArray<{ id: string; meal_type: MealType }>;
   onClose: () => void;
 }) {
   const [gramsInput, setGramsInput] = useState(formatYieldGrams(item.grams));
@@ -106,6 +109,28 @@ export function MealGramsSheet({
       {error ? (
         <p className="text-base leading-snug text-destructive">{error}</p>
       ) : null}
+      <MealMoveButtons
+        meals={meals}
+        currentMealId={item.meal_id}
+        disabled={saving}
+        onMove={(mealId) => {
+          void (async () => {
+            setSaving(true);
+            setError(null);
+            try {
+              await moveMealItemToMeal({ date, item, mealId });
+              haptic("commit");
+              onClose();
+            } catch (caught) {
+              setError(
+                caught instanceof Error ? caught.message : "Не перенеслось.",
+              );
+            } finally {
+              setSaving(false);
+            }
+          })();
+        }}
+      />
       <Button
         type="button"
         className="h-12 w-full text-base"

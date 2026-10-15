@@ -17,6 +17,7 @@ import {
   getMealItem,
   getUserCalendarToday,
   isDayWritable,
+  moveMealItem,
   PastDayLockedError,
   updateLumpMealItem,
   updateMealItemGrams,
@@ -29,10 +30,13 @@ type RouteContext = {
 };
 
 const patchSchema = z.union([
-  lumpMealItemSchema,
+  z.object({
+    mealId: z.string().uuid(),
+  }),
   z.object({
     grams: z.number().finite().positive(),
   }),
+  lumpMealItemSchema,
 ]);
 
 export const GET = sessionRoute(
@@ -74,9 +78,11 @@ export const PATCH = sessionRoute(
 
     try {
       const item =
-        "grams" in parsed.data
-          ? await updateMealItemGrams(session.userId, id, parsed.data.grams)
-          : await updateLumpMealItem(session.userId, id, parsed.data);
+        "mealId" in parsed.data
+          ? await moveMealItem(session.userId, id, parsed.data.mealId)
+          : "grams" in parsed.data
+            ? await updateMealItemGrams(session.userId, id, parsed.data.grams)
+            : await updateLumpMealItem(session.userId, id, parsed.data);
       return jsonOk({ item });
     } catch (error) {
       return failRoute(error, [
@@ -84,6 +90,11 @@ export const PATCH = sessionRoute(
         whenMessage("Meal item not found", 404, NOT_FOUND),
         whenMessage("Not a lump item", 400, "Это продукт, не строка."),
         whenMessage("Not a catalog item", 400, "Это строка, не продукт."),
+        whenMessage(
+          "Meal is on another day",
+          400,
+          "Перенести можно только внутри этого дня.",
+        ),
       ]);
     }
   },
