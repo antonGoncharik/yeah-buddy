@@ -1,20 +1,28 @@
 "use client";
 
+import { isTempId } from "@/lib/day/optimistic";
 import { getMealLabel } from "@/lib/nutrition";
 import type { MealType } from "@/lib/types";
 
 export function MealMoveButtons({
   meals,
   currentMealId,
+  itemId,
   disabled,
   onMove,
 }: {
   meals: ReadonlyArray<{ id: string; meal_type: MealType }>;
   currentMealId: string;
+  itemId: string;
   disabled: boolean;
   onMove: (mealId: string) => void;
 }) {
-  const others = meals.filter((meal) => meal.id !== currentMealId);
+  const others = meals.filter(
+    (meal) => meal.id !== currentMealId && !isTempId(meal.id),
+  );
+  if (isTempId(itemId) || isTempId(currentMealId)) {
+    return null;
+  }
   if (others.length === 0) {
     return null;
   }

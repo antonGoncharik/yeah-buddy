@@ -115,6 +115,7 @@ export function MealGramsSheet({
       <MealMoveButtons
         meals={meals}
         currentMealId={item.meal_id}
+        itemId={item.id}
         disabled={saving}
         onMove={(mealId) => {
           void (async () => {
