@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
@@ -15,21 +15,27 @@ import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 export default function ExercisePage() {
   const params = useParams<{ id: string }>();
   if (params.id === "new") {
-    return (
-      <div className="flex flex-col gap-4">
-        <AppHeader
-          title="Новое упражнение"
-          subtitle="Название, максимум и расчёт"
-          backHref="/workouts/exercises"
-        />
-        <div className="px-4 pb-4">
-          <ExerciseForm />
-        </div>
-      </div>
-    );
+    return <NewExercisePage />;
   }
 
   return <EditExercisePage id={params.id} />;
+}
+
+function NewExercisePage() {
+  const search = useSearchParams();
+  const initialName = search.get("name") ?? undefined;
+  return (
+    <div className="flex flex-col gap-4">
+      <AppHeader
+        title="Новое упражнение"
+        subtitle="Название и веса — что знаешь сейчас"
+        backHref="/workouts/exercises"
+      />
+      <div className="px-4 pb-4">
+        <ExerciseForm initialName={initialName} />
+      </div>
+    </div>
+  );
 }
 
 function EditExercisePage({ id }: { id: string }) {

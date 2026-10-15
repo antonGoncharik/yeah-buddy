@@ -14,6 +14,7 @@ export interface ExerciseFormState {
   weight_step: number;
   formula_preset: FormulaPreset;
   max_weight: string;
+  start_weight: string;
 }
 
 export function toFormState(exercise?: ExerciseWithMax): ExerciseFormState {
@@ -27,6 +28,7 @@ export function toFormState(exercise?: ExerciseWithMax): ExerciseFormState {
     max_weight: exercise?.current_max
       ? formatWeight(exercise.current_max.max_weight)
       : "",
+    start_weight: "",
   };
 }
 
@@ -57,12 +59,19 @@ export function toPayload(
   }
 
   const maxWeight = parseDecimal(form.max_weight);
-  if (maxWeight == null || maxWeight <= 0) {
+  const startWeight = parseDecimal(form.start_weight);
+  const hasMax = maxWeight != null && maxWeight > 0;
+  const hasStart = startWeight != null && startWeight > 0;
+  if (!isEdit && !hasMax && !hasStart) {
+    return shared;
+  }
+  if (isEdit && !hasMax) {
     return null;
   }
 
   return {
     ...shared,
-    max_weight: maxWeight,
+    ...(hasMax ? { max_weight: maxWeight } : {}),
+    ...(hasStart ? { start_weight: startWeight } : {}),
   };
 }

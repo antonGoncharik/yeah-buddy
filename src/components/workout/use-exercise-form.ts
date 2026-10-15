@@ -12,9 +12,18 @@ import { mutateJson, patchJson, postJson } from "@/lib/api-cache";
 import { CHECK_FIELDS, LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
 
-export function useExerciseForm(exercise?: ExerciseWithMax) {
+export function useExerciseForm(
+  exercise?: ExerciseWithMax,
+  initialName?: string,
+) {
   const router = useRouter();
-  const [form, setForm] = useState<ExerciseFormState>(toFormState(exercise));
+  const [form, setForm] = useState<ExerciseFormState>(() => {
+    const state = toFormState(exercise);
+    if (!exercise && initialName?.trim()) {
+      return { ...state, name: initialName.trim() };
+    }
+    return state;
+  });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [canCorrectMax, setCanCorrectMax] = useState(!exercise);

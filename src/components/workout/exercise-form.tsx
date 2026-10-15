@@ -15,7 +15,13 @@ import { ExerciseTechniquePanel } from "@/components/workout/exercise-technique-
 import { useExerciseForm } from "@/components/workout/use-exercise-form";
 import type { ExerciseWithMax } from "@/lib/types";
 
-export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
+export function ExerciseForm({
+  exercise,
+  initialName,
+}: {
+  exercise?: ExerciseWithMax;
+  initialName?: string;
+}) {
   const {
     form,
     setForm,
@@ -26,7 +32,7 @@ export function ExerciseForm({ exercise }: { exercise?: ExerciseWithMax }) {
     toggling,
     onSubmit,
     toggleActive,
-  } = useExerciseForm(exercise);
+  } = useExerciseForm(exercise, initialName);
   const [catalogExerciseId, setCatalogExerciseId] = useState(
     exercise?.catalog_exercise_id ?? null,
   );

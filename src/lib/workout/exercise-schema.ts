@@ -31,7 +31,8 @@ export const exerciseCreateSchema = z
     weight_step: z.number().finite().positive().optional(),
     formula_preset: z.enum(FORMULA_PRESETS).optional(),
     slot: z.enum(EXERCISE_SLOTS).nullable().optional(),
-    max_weight: z.number().finite().positive(),
+    max_weight: z.number().finite().positive().optional(),
+    start_weight: z.number().finite().positive().optional(),
     achieved_at: z.string().optional(),
   })
   .transform((value) => ({
@@ -44,6 +45,7 @@ export const exerciseCreateSchema = z
     formula_preset: value.formula_preset ?? "barbell",
     slot: value.slot ?? null,
     max_weight: value.max_weight,
+    start_weight: value.start_weight,
     achieved_at: value.achieved_at,
   }));
 

@@ -9,7 +9,10 @@ import type {
   ExerciseCreateInput,
   ExerciseUpdateInput,
 } from "@/lib/workout/exercise-schema";
-import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
+import {
+  listTracksByExercise,
+  saveExerciseTrack,
+} from "@/lib/workout/exercise-tracks";
 import {
   attachMaxes,
   copyMaxToCurrentPhase,
@@ -207,15 +210,27 @@ export async function createExercise(
   }
 
   const exercise = mapExercise(inserted.data as Record<string, unknown>);
-  await insertGlobalMax(userId, {
-    exerciseId: exercise.id,
-    maxWeight: input.max_weight,
-    achievedAt: resolveAchievedAt(
-      input.achieved_at,
-      await getUserCalendarToday(userId),
-    ),
-  });
-  await copyMaxToCurrentPhase(supabase, userId, exercise.id, input.max_weight);
+  if (input.max_weight != null && input.max_weight > 0) {
+    await insertGlobalMax(userId, {
+      exerciseId: exercise.id,
+      maxWeight: input.max_weight,
+      achievedAt: resolveAchievedAt(
+        input.achieved_at,
+        await getUserCalendarToday(userId),
+      ),
+    });
+    await copyMaxToCurrentPhase(
+      supabase,
+      userId,
+      exercise.id,
+      input.max_weight,
+    );
+  }
+  if (input.start_weight != null && input.start_weight > 0) {
+    await saveExerciseTrack(userId, exercise.id, {
+      weight: input.start_weight,
+    });
+  }
 
   const created = await getExercise(userId, exercise.id);
   if (!created) {
