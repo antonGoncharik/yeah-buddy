@@ -35,6 +35,12 @@ const work = (
 });
 
 assertEqual(
+  trackProgressFromWorkSets({ feel: null, sets: [work(5, 5)] }),
+  "maintain",
+  "no feel yet maintain",
+);
+
+assertEqual(
   trackProgressFromWorkSets({ feel: "easy", sets: [work(5, 5)] }),
   "up",
   "5/5 up",

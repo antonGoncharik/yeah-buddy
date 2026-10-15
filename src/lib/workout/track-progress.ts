@@ -19,6 +19,9 @@ export function trackProgressFromWorkSets(input: {
   if (input.feel === "miss") {
     return "hold";
   }
+  if (input.feel == null) {
+    return "maintain";
+  }
 
   const workSets = input.sets.filter((set) => set.set_type === "work");
   if (workSets.length === 0) {

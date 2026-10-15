@@ -2,6 +2,7 @@ import { trackEvent } from "@/lib/analytics/track";
 import { markDateAsTrainingIfExists } from "@/lib/days";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutKind, WorkoutSession } from "@/lib/types";
+import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { templateCanPlan } from "@/lib/workout/hints";
 import { getCurrentMacroState } from "@/lib/workout/macros";
 import { mapWorkoutSession } from "@/lib/workout/map-rows";
@@ -14,7 +15,10 @@ import {
   TemplateEmptyError,
 } from "@/lib/workout/session-errors";
 import { getSession, getSessionOnDate } from "@/lib/workout/session-read";
+import { loadSessionDetail } from "@/lib/workout/session-work-load";
+import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { getTemplate, TemplateNotFoundError } from "@/lib/workout/templates";
+import { applyTrackProgressOnComplete } from "@/lib/workout/track-progress-apply";
 
 interface InsertSessionInput {
   session_date: string;
@@ -123,6 +127,11 @@ export async function patchSession(
   if (!current) {
     return null;
   }
+  const feelFirstSet =
+    current.status === "completed" &&
+    current.feel == null &&
+    input.feel != null &&
+    input.feel !== undefined;
 
   const supabase = createSupabaseServerClient();
   const updated = await supabase
@@ -146,5 +155,14 @@ export async function patchSession(
     return null;
   }
 
-  return mapWorkoutSession(updated.data as Record<string, unknown>);
+  const session = mapWorkoutSession(updated.data as Record<string, unknown>);
+  if (feelFirstSet) {
+    const detail = await loadSessionDetail(userId, session);
+    const settings = await ensureWorkoutSettings(userId);
+    if (!cycleDrivesTracks(settings.formulas.cycle)) {
+      await applyTrackProgressOnComplete(userId, detail, input.feel ?? null);
+    }
+  }
+
+  return session;
 }
