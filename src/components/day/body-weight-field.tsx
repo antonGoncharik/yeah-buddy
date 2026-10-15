@@ -138,6 +138,25 @@ export function BodyWeightField({
           {unit}
         </span>
       </div>
+      {value == null && placeholder != null && draft.trim() === "" ? (
+        <button
+          type="button"
+          className="min-h-11 text-sm font-medium text-primary disabled:opacity-50"
+          disabled={disabled}
+          onClick={() => {
+            const parsed = parse(placeholder);
+            if (parsed == null || !onSave) {
+              return;
+            }
+            setDraft(format(parsed));
+            setInvalid(false);
+            haptic("commit");
+            void onSave(parsed);
+          }}
+        >
+          Как вчера · {format(placeholder)}
+        </button>
+      ) : null}
       {invalid ? <p className={FIELD_ERROR_CLASS}>{invalidHint}</p> : null}
     </div>
   );
