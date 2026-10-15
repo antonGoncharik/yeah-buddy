@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { cachedGet } from "@/lib/api-cache";
 import {
@@ -15,6 +16,7 @@ import { formatIsoDate } from "@/lib/day/format";
 import { haptic } from "@/lib/telegram/haptic";
 
 export function BodyTimeline() {
+  const confirm = useConfirm();
   const [photos, setPhotos] = useState<Array<BodyPhoto & { url: string }>>([]);
   const [thenDate, setThenDate] = useState<string | null>(null);
   const [nowDate, setNowDate] = useState<string | null>(null);
@@ -240,7 +242,16 @@ export function BodyTimeline() {
           variant="ghost"
           className="min-h-11 self-start"
           onClick={() => {
-            void deleteBodyPhoto(nowPhoto.date).then(() => {
+            void (async () => {
+              const ok = await confirm({
+                message: "Удалить этот снимок с телефона?",
+                confirmLabel: "Удалить",
+                cancelLabel: "Оставить",
+              });
+              if (!ok) {
+                return;
+              }
+              await deleteBodyPhoto(nowPhoto.date);
               URL.revokeObjectURL(nowPhoto.url);
               const remaining = photos.filter(
                 (photo) => photo.date !== nowPhoto.date,
@@ -252,7 +263,7 @@ export function BodyTimeline() {
                   ? current
                   : (remaining[0]?.date ?? null),
               );
-            });
+            })();
           }}
         >
           Удалить этот снимок

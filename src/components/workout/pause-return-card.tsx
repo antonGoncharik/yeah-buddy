@@ -48,6 +48,7 @@ export function PauseReturnCard() {
       haptic("commit");
     } catch {
       haptic("error");
+    } finally {
       setBusy(false);
     }
   }

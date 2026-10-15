@@ -1,7 +1,8 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { addMealItemGrams } from "@/components/day/grams-save";
 import { FoodFormShell } from "@/components/foods/food-form-shell";
 import { Button } from "@/components/ui/button";
@@ -86,24 +87,27 @@ export function RecipePotScreen() {
   const portion =
     cookedGrams != null ? recipePortion(cookedGrams, portions) : null;
 
-  async function search(value: string) {
-    setQuery(value);
-    if (value.trim().length < 2) {
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
       setHits([]);
       return;
     }
-    try {
-      await cachedGet(
-        `/api/foods?filter=all&q=${encodeURIComponent(value.trim())}`,
+    const handle = window.setTimeout(() => {
+      void cachedGet(
+        `/api/foods?filter=all&q=${encodeURIComponent(trimmed)}`,
         (data) => {
           setHits(parseFoodList(data).slice(0, 8));
           return true;
         },
-      );
-    } catch {
-      setHits([]);
-    }
-  }
+      ).catch(() => {
+        setHits([]);
+      });
+    }, 300);
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [query]);
 
   function addFood(food: Food) {
     haptic("tick");
@@ -206,12 +210,33 @@ export function RecipePotScreen() {
           className="h-12 text-base"
           maxLength={80}
         />
-        <Input
-          value={query}
-          onChange={(event) => void search(event.target.value)}
-          placeholder="Ингредиент"
-          className="h-12 text-base"
-        />
+        <div className="relative">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Ингредиент"
+            className={
+              query.trim() === "" ? "h-12 text-base" : "h-12 pr-12 text-base"
+            }
+            inputMode="search"
+            enterKeyHint="search"
+          />
+          {query.trim() !== "" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+              aria-label="Очистить поиск"
+              onClick={() => {
+                setQuery("");
+                setHits([]);
+              }}
+            >
+              <X className="size-5" />
+            </Button>
+          ) : null}
+        </div>
         {hits.length > 0 ? (
           <div className="flex flex-col gap-2">
             {hits.map((food) => (
