@@ -11,13 +11,19 @@ export async function easeSoreSession(
   userId: string,
   sessionId: string,
   muscles: readonly MuscleId[],
-): Promise<SessionDetail | null> {
+): Promise<
+  | (SessionDetail & {
+      easedSets: number;
+    })
+  | null
+> {
   const session = await getSession(userId, sessionId);
   if (!session) {
     return null;
   }
   if (session.status !== "planned" || muscles.length === 0) {
-    return loadSessionDetail(userId, session);
+    const detail = await loadSessionDetail(userId, session);
+    return { ...detail, easedSets: 0 };
   }
 
   const supabase = createSupabaseServerClient();
@@ -37,6 +43,7 @@ export async function easeSoreSession(
   );
   const meta = await loadExerciseMuscleMeta(userId, ids);
   const wanted = new Set(muscles);
+  let easedSets = 0;
 
   for (const row of loaded.data ?? []) {
     if (typeof row.exercise_id !== "string") {
@@ -77,10 +84,12 @@ export async function easeSoreSession(
       if (updated.error) {
         throw updated.error;
       }
+      easedSets += 1;
     }
   }
 
-  return loadSessionDetail(userId, session);
+  const detail = await loadSessionDetail(userId, session);
+  return { ...detail, easedSets };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -13,6 +13,7 @@ import { withSetLogged } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
 import type { PatchSetInput } from "@/lib/workout/session-schema";
+import { readEaseSoreResult } from "@/lib/workout/sore";
 import { readShortResult } from "@/lib/workout/session-short";
 
 export function useSessionEdits({
@@ -281,8 +282,15 @@ export function useSessionEdits({
         `/api/sessions/${detail.session.id}/ease-sore`,
         { muscles },
       );
+      const result = readEaseSoreResult(data);
       if (!applyPayload(data)) {
         throw new Error(LOAD_FAILED);
+      }
+      if (result.eased === 0) {
+        setError(
+          "В этой тренировке нет упражнений на эту зону — вес не менялся.",
+        );
+        return false;
       }
       haptic("commit");
       return true;

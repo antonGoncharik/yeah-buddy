@@ -32,6 +32,7 @@ export function SessionSoreBanner({
   const [marks, setMarks] = useState<SoreMark[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
   const today = calendarToday();
   const active = activeSoreMarks(marks, today);
   const eased = active.some((mark) => mark.easedSessionIds.includes(sessionId));
@@ -65,20 +66,26 @@ export function SessionSoreBanner({
     }
     setBusy(true);
     try {
+      setHint(null);
       const ok = await onEase(muscles);
       if (!ok) {
+        setHint(
+          "В этой тренировке нет упражнений на эту зону — вес не менялся.",
+        );
         return;
       }
-      save(
-        marks.map((mark) =>
+      setMarks((current) => {
+        const next = current.map((mark) =>
           mark.until >= today && !mark.easedSessionIds.includes(sessionId)
             ? {
                 ...mark,
                 easedSessionIds: [...mark.easedSessionIds, sessionId],
               }
             : mark,
-        ),
-      );
+        );
+        writeStoredSoreMarks(next);
+        return next;
+      });
     } finally {
       setBusy(false);
     }
@@ -113,6 +120,7 @@ export function SessionSoreBanner({
           })}
         </div>
       ) : null}
+      {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
       {active.length > 0 && !eased ? (
         <Button
           type="button"

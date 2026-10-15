@@ -1,5 +1,6 @@
 import {
   activeSoreMarks,
+  readEaseSoreResult,
   soreMuscles,
   sorePlannedWeight,
   soreUntil,
@@ -35,4 +36,9 @@ assertEqual(
   sorePlannedWeight(20, 2.5),
   15,
   "a light weight steps down to the plate",
+);
+assertEqual(
+  readEaseSoreResult({ easedSets: 3 }).eased,
+  3,
+  "ease response carries a set count",
 );

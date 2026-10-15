@@ -70,3 +70,14 @@ export function sorePlannedWeight(weight: number, step: number): number {
   );
   return fallback > 0 ? fallback : weight;
 }
+
+export function readEaseSoreResult(data: unknown): { eased: number } {
+  if (typeof data !== "object" || data == null) {
+    return { eased: 0 };
+  }
+  const eased =
+    "easedSets" in data && typeof data.easedSets === "number"
+      ? data.easedSets
+      : 0;
+  return { eased };
+}
