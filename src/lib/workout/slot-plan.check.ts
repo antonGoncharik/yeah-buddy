@@ -128,15 +128,15 @@ const heavyPulls: SlotPlan = {
 assertEqual(
   line(plannedSetsForSlot(heavyPulls, ctx())),
   [
-    "w1:40×5",
-    "w2:60×3",
-    "w3:80×1",
+    "w1:30×5",
+    "w2:47.5×3",
+    "w3:62.5×1",
     "w4:80×6–8",
     "w5:80×6–8",
     "w6:80×6–8",
     "w7:80×6–8 rir0",
   ],
-  "heavy: rep range kept, RIR 0 only on the last work set",
+  "heavy: warmup from top work weight, RIR 0 only on the last work set",
 );
 
 assertEqual(
@@ -584,8 +584,8 @@ assertEqual(
   line(
     plannedSetsForSlot({ ...ormPlan, warmup: true }, ctx({ maxWeight: 200 })),
   ).filter((row) => row.startsWith("w1")),
-  ["w1:80×5"],
-  "warmup for a table slot is counted from 1RM",
+  ["w1:62.5×5"],
+  "warmup for a percent slot follows the top work weight",
 );
 
 console.log("slot plans ok");

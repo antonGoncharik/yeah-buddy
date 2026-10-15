@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import type { MutableRefObject } from "react";
+import { type MutableRefObject, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
@@ -113,6 +113,9 @@ function GroupRow({
 }) {
   const load = group.load;
   const exampleWeight = exercise.current_max?.max_weight ?? null;
+  const [offsetOpen, setOffsetOpen] = useState(
+    load.type === "track" && load.offset !== 0,
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-xl border border-border/70 px-3 py-2.5">
@@ -183,18 +186,32 @@ function GroupRow({
           />
         ) : null}
         {load.type === "track" ? (
-          <NumField
-            label="± кг"
-            value={load.offset}
-            inputMode="decimal"
-            allowZero
-            allowNegative
-            onCommit={(value) => {
-              if (value != null) {
-                onChange({ load: { ...load, offset: value } });
-              }
-            }}
-          />
+          offsetOpen || load.offset !== 0 ? (
+            <NumField
+              label="± кг"
+              value={load.offset}
+              inputMode="decimal"
+              allowZero
+              allowNegative
+              onCommit={(value) => {
+                if (value != null) {
+                  onChange({ load: { ...load, offset: value } });
+                  if (value === 0) {
+                    setOffsetOpen(false);
+                  }
+                }
+              }}
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-11 shrink-0 px-2 text-sm"
+              onClick={() => setOffsetOpen(true)}
+            >
+              Смещение ± кг
+            </Button>
+          )
         ) : null}
         {load.type === "fixed" ? (
           <NumField
@@ -209,9 +226,15 @@ function GroupRow({
           />
         ) : null}
       </div>
-      <p className="text-sm leading-snug text-muted-foreground">
-        {loadHint(load, exercise)}
-      </p>
+      {load.type === "track" ? (
+        <p className="text-sm font-medium leading-snug text-foreground">
+          {loadHint(load, exercise)}
+        </p>
+      ) : (
+        <p className="text-sm leading-snug text-muted-foreground">
+          {loadHint(load, exercise)}
+        </p>
+      )}
     </div>
   );
 }

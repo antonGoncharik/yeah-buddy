@@ -1,11 +1,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { MuscleId, SessionDetail } from "@/lib/types";
+import type { FormulaPreset, MuscleId, SessionDetail } from "@/lib/types";
 import { loadExerciseMuscleMeta } from "@/lib/workout/muscle-load";
 import { resolveExerciseMuscleWeights } from "@/lib/workout/muscle-resolve";
-import { primaryMuscle } from "@/lib/workout/session-swap";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession } from "@/lib/workout/sessions";
 import { sorePlannedWeight } from "@/lib/workout/sore";
+import { exerciseTouchesSoreMuscles } from "@/lib/workout/sore-muscles";
+import { EMPTY_BAR_KG } from "@/lib/workout/warmup-from-work";
 
 export async function easeSoreSession(
   userId: string,
@@ -30,7 +31,7 @@ export async function easeSoreSession(
   const loaded = await supabase
     .from("session_exercises")
     .select(
-      "exercise_id, exercises(weight_step), workout_sets(id, planned_weight, is_completed)",
+      "exercise_id, exercises(weight_step, formula_preset), workout_sets(id, planned_weight, is_completed)",
     )
     .eq("user_id", userId)
     .eq("session_id", sessionId);
@@ -53,12 +54,13 @@ export async function easeSoreSession(
     if (!info) {
       continue;
     }
-    const muscle = primaryMuscle(resolveExerciseMuscleWeights(info));
-    if (!muscle || !wanted.has(muscle)) {
+    const weights = resolveExerciseMuscleWeights(info);
+    if (!exerciseTouchesSoreMuscles(weights, wanted)) {
       continue;
     }
     const exercise = firstRecord(row.exercises);
     const step = Number(exercise?.weight_step);
+    const preset = readFormulaPreset(exercise?.formula_preset);
     const sets = Array.isArray(row.workout_sets) ? row.workout_sets : [];
     for (const set of sets) {
       if (
@@ -72,7 +74,15 @@ export async function easeSoreSession(
       if (!(weight > 0)) {
         continue;
       }
-      const next = sorePlannedWeight(weight, Number.isFinite(step) ? step : 0);
+      let next = sorePlannedWeight(weight, Number.isFinite(step) ? step : 0);
+      if (
+        preset === "barbell" &&
+        weight >= EMPTY_BAR_KG &&
+        next > 0 &&
+        next < EMPTY_BAR_KG
+      ) {
+        next = EMPTY_BAR_KG;
+      }
       if (next === weight) {
         continue;
       }
@@ -101,4 +111,11 @@ function firstRecord(value: unknown): Record<string, unknown> | null {
     return isRecord(value[0]) ? value[0] : null;
   }
   return isRecord(value) ? value : null;
+}
+
+function readFormulaPreset(value: unknown): FormulaPreset {
+  if (value === "barbell" || value === "cable" || value === "none") {
+    return value;
+  }
+  return "barbell";
 }

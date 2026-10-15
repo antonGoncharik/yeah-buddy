@@ -210,6 +210,24 @@ export function SessionScreen() {
                 ) : null}
               </div>
             ) : null}
+
+            {session.status === "planned" && detail.missing_maxes.length > 0 ? (
+              <SessionMissingMaxes
+                exercises={detail.missing_maxes}
+                busy={busy}
+                onSave={saveMissingMaxes}
+              />
+            ) : null}
+
+            {session.status === "planned" &&
+            detail.missing_tracks.length > 0 ? (
+              <SessionMissingTracks
+                exercises={detail.missing_tracks}
+                busy={busy}
+                onSave={saveMissingTracks}
+              />
+            ) : null}
+
             <SessionExerciseList
               detail={detail}
               busy={busy}
@@ -317,23 +335,6 @@ export function SessionScreen() {
                 takenIds={detail.exercises.map((item) => item.exercise_id)}
                 disabled={busy}
                 onAdd={addExercise}
-              />
-            ) : null}
-
-            {session.status === "planned" && detail.missing_maxes.length > 0 ? (
-              <SessionMissingMaxes
-                exercises={detail.missing_maxes}
-                busy={busy}
-                onSave={saveMissingMaxes}
-              />
-            ) : null}
-
-            {session.status === "planned" &&
-            detail.missing_tracks.length > 0 ? (
-              <SessionMissingTracks
-                exercises={detail.missing_tracks}
-                busy={busy}
-                onSave={saveMissingTracks}
               />
             ) : null}
 

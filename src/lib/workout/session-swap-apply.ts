@@ -122,7 +122,13 @@ export async function swapSessionExercise(
     const openWork = ready.target.sets.filter(
       (set) => !set.is_completed && set.set_type === "work",
     ).length;
-    await trimSwappedWorkSets(supabase, userId, sessionId, next.id, openWork);
+    await reshapeContinueSwapExercise(
+      supabase,
+      userId,
+      sessionId,
+      next.id,
+      openWork,
+    );
     const stale = ready.target.sets
       .filter((set) => !set.is_completed)
       .map((set) => set.id);
@@ -152,7 +158,7 @@ export async function swapSessionExercise(
   return loadSessionDetail(userId, ready.session);
 }
 
-async function trimSwappedWorkSets(
+async function reshapeContinueSwapExercise(
   supabase: ReturnType<typeof createSupabaseServerClient>,
   userId: string,
   sessionId: string,
@@ -172,35 +178,61 @@ async function trimSwappedWorkSets(
   const sets = Array.isArray(created.data?.workout_sets)
     ? created.data.workout_sets
     : [];
-  const work = sets
-    .flatMap((set) => {
-      if (typeof set !== "object" || set == null) {
-        return [];
-      }
-      if (
-        !("id" in set) ||
-        typeof set.id !== "string" ||
-        !("set_type" in set) ||
-        set.set_type !== "work" ||
-        !("set_number" in set) ||
-        typeof set.set_number !== "number"
-      ) {
-        return [];
-      }
-      return [{ id: set.id, set_number: set.set_number }];
-    })
+  const parsed = sets.flatMap((set) => {
+    if (typeof set !== "object" || set == null) {
+      return [];
+    }
+    if (
+      !("id" in set) ||
+      typeof set.id !== "string" ||
+      !("set_type" in set) ||
+      (set.set_type !== "work" && set.set_type !== "warmup") ||
+      !("set_number" in set) ||
+      typeof set.set_number !== "number"
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: set.id,
+        set_type: set.set_type as "work" | "warmup",
+        set_number: set.set_number,
+      },
+    ];
+  });
+  const work = parsed
+    .filter((set) => set.set_type === "work")
     .sort((left, right) => left.set_number - right.set_number);
-  const extra = work.slice(Math.max(0, keepWork)).map((set) => set.id);
-  if (extra.length === 0) {
-    return;
+  const keepIds = new Set(
+    work.slice(-Math.max(0, keepWork)).map((set) => set.id),
+  );
+  const dropIds = parsed
+    .filter((set) => set.set_type === "warmup" || !keepIds.has(set.id))
+    .map((set) => set.id);
+  if (dropIds.length > 0) {
+    const removed = await supabase
+      .from("workout_sets")
+      .delete()
+      .eq("user_id", userId)
+      .in("id", dropIds);
+    if (removed.error) {
+      throw removed.error;
+    }
   }
-  const removed = await supabase
-    .from("workout_sets")
-    .delete()
-    .eq("user_id", userId)
-    .in("id", extra);
-  if (removed.error) {
-    throw removed.error;
+  const kept = work.filter((set) => keepIds.has(set.id));
+  for (let index = 0; index < kept.length; index += 1) {
+    const setNumber = index + 1;
+    if (kept[index].set_number === setNumber) {
+      continue;
+    }
+    const updated = await supabase
+      .from("workout_sets")
+      .update({ set_number: setNumber })
+      .eq("user_id", userId)
+      .eq("id", kept[index].id);
+    if (updated.error) {
+      throw updated.error;
+    }
   }
 }
 

@@ -11,6 +11,7 @@ import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
 import { getSession } from "@/lib/workout/session-read";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { slotFor } from "@/lib/workout/slot-plan";
+import { templateExerciseSortOrder } from "@/lib/workout/template-sort-order";
 import { getTemplate } from "@/lib/workout/templates";
 
 export const sessionMaxesSchema = z.object({
@@ -76,22 +77,23 @@ export async function setSessionMaxes(
     ? await getTemplate(userId, session.template_id)
     : null;
   const ctx = await loadPlanContext(userId, session, template);
-  let sortOrder =
+  const fallbackSortOrder =
     Math.max(0, ...detail.exercises.map((item) => item.sort_order)) + 10;
 
   for (const target of targets) {
     ctx.maxByExercise.set(target.exercise.id, target.maxWeight);
-    const inserted = await insertSessionExercise(
+    await insertSessionExercise(
       userId,
       session,
       target.exercise,
       slotFor(template?.slots, target.exercise.id),
-      sortOrder,
+      templateExerciseSortOrder(
+        template,
+        target.exercise.id,
+        fallbackSortOrder,
+      ),
       ctx,
     );
-    if (inserted) {
-      sortOrder += 10;
-    }
   }
 
   return withSessionRaiseOffers(

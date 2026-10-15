@@ -423,8 +423,7 @@ export function plannedSetsForSlot(
     }
   }
 
-  const warmup =
-    plan.warmup && !skipWarmup ? warmupRows(groups, work, ctx) : [];
+  const warmup = plan.warmup && !skipWarmup ? warmupRows(work, ctx) : [];
   const rows = [...warmup, ...work].map((row, index) => ({
     ...row,
     set_number: index + 1,
@@ -467,7 +466,6 @@ function groupWeight(
 }
 
 function warmupRows(
-  groups: SlotSetGroup[],
   work: PlannedSetRow[],
   ctx: SlotPlanContext,
 ): PlannedSetRow[] {
@@ -483,28 +481,23 @@ function warmupRows(
       ? row.planned_weight
       : best;
   }, null);
-  const fromMax = groups.some(
-    (group) => group.load.type === "percent" || group.load.type === "orm",
-  );
-  const reference =
-    fromMax && ctx.maxWeight != null && ctx.maxWeight > 0 ? ctx.maxWeight : top;
-  if (reference == null || reference <= 0) {
+  if (top == null || top <= 0) {
     return [];
   }
 
   const sets = warmupSetsForWorkingWeight(
-    reference,
+    top,
     ctx.exercise.weight_step,
     preset,
     ctx.kind,
   );
-  const cap = top ?? reference;
   return sets.map<PlannedSetRow>((set) => ({
     set_type: "warmup",
     set_number: 0,
-    planned_weight: Math.min(
-      cap,
-      calcPlannedWeight(reference, set.percent, ctx.exercise.weight_step),
+    planned_weight: calcPlannedWeight(
+      top,
+      set.percent,
+      ctx.exercise.weight_step,
     ),
     planned_reps: set.reps,
     planned_reps_to: null,

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
+  draftChanged,
   draftFromSet,
   formatVisibleSetLine,
   loggedSetPatch,
@@ -180,11 +181,14 @@ export function SessionExerciseRow({
   }
 
   function advanceSet(set: WorkoutSet) {
-    if (onLogSet && !set.is_completed && !disabled) {
-      const draft = drafts[set.id] ?? draftFromSet(set);
-      if (loggedSetPatch(set, draft)) {
+    const draft = drafts[set.id] ?? draftFromSet(set);
+    if (onLogSet && !disabled) {
+      if (!set.is_completed && loggedSetPatch(set, draft)) {
         onLogSet(set, draft);
         return;
+      }
+      if (set.is_completed && draftChanged(set, draft)) {
+        onLogSet(set, draft);
       }
     }
     const list = set.set_type === "warmup" ? warmup : work;
@@ -226,7 +230,10 @@ export function SessionExerciseRow({
           }
         }}
         onLog={
-          onLogSet && !set.is_completed
+          onLogSet &&
+          !disabled &&
+          (!set.is_completed ||
+            draftChanged(set, drafts[set.id] ?? draftFromSet(set)))
             ? (next) => {
                 onLogSet(set, next);
               }
