@@ -8,7 +8,6 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { GramsStepperInput } from "@/components/ui/grams-stepper";
 import type { FoodYield } from "@/lib/food/yield";
-import { formatYieldGrams } from "@/lib/food/yield";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
 import type { FoodState } from "@/lib/types";
 
@@ -143,7 +142,7 @@ export function GramsScreen({
 
       {readOnly ? null : (
         <GramChips
-          onPick={(value) => grams.setGramsInput(formatYieldGrams(value))}
+          onPick={(value) => void grams.saveGrams(value)}
           defaultPortionG={grams.chip.grams ?? null}
           defaultPortionLabel={grams.chip.label ?? null}
         />
