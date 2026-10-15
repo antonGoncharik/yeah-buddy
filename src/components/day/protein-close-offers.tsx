@@ -10,7 +10,7 @@ import { fetchJson, peekJson } from "@/lib/api-cache";
 import { readCachedDay } from "@/lib/day/cache";
 import { parseFoodList } from "@/lib/food/map";
 import { quickAddGrams } from "@/lib/food/quick-add";
-import { formatGrams, formatKcal } from "@/lib/nutrition";
+import { formatGrams, formatKcal, getMealLabel } from "@/lib/nutrition";
 import { closeDayCombo } from "@/lib/nutrition/close-day";
 import { macroGapProteinOffers } from "@/lib/nutrition/macro-gap-hint";
 import {
@@ -18,12 +18,14 @@ import {
   proteinCloseOffers,
 } from "@/lib/nutrition/protein-close";
 import { haptic } from "@/lib/telegram/haptic";
-import type { Food } from "@/lib/types";
+import type { Food, MealType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function ProteinCloseOffers({
   date,
+  meals = [],
   mealId,
+  onMealId,
   remainingProtein,
   remainingFat,
   remainingCarbs,
@@ -32,7 +34,9 @@ export function ProteinCloseOffers({
   macroGap = false,
 }: {
   date: string;
+  meals?: ReadonlyArray<{ id: string; meal_type: MealType }>;
   mealId: string | null;
+  onMealId?: (mealId: string) => void;
   remainingProtein: number;
   remainingFat: number;
   remainingCarbs: number;
@@ -68,7 +72,10 @@ export function ProteinCloseOffers({
     };
   }, []);
 
-  if (!mealId) {
+  const targetMeal = meals.find((item) => item.id === mealId) ?? null;
+  const logMealId = targetMeal?.id ?? mealId;
+
+  if (!logMealId) {
     return null;
   }
 
@@ -94,7 +101,7 @@ export function ProteinCloseOffers({
   async function addPieces(
     pieces: ReadonlyArray<{ foodId: string; grams: number }>,
   ) {
-    if (!mealId || addingRef.current || pieces.length === 0) {
+    if (!logMealId || addingRef.current || pieces.length === 0) {
       return;
     }
     addingRef.current = true;
@@ -109,7 +116,7 @@ export function ProteinCloseOffers({
         const before = loggedGrams(date, piece.foodId);
         await addMealItemGrams({
           date,
-          mealId,
+          mealId: logMealId,
           food,
           grams: piece.grams,
         });
@@ -126,16 +133,39 @@ export function ProteinCloseOffers({
     }
   }
 
+  const mealLabel = targetMeal ? getMealLabel(targetMeal.meal_type) : null;
+
   return (
     <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
-      <p
-        className={cn(
-          "px-1 font-medium text-muted-foreground",
-          compact ? "text-xs" : "text-sm",
-        )}
-      >
-        {macroGap ? "Чем закрыть белок" : "Добить белок"}
-      </p>
+      <div className="flex items-center justify-between gap-2 px-1">
+        <p
+          className={cn(
+            "font-medium text-muted-foreground",
+            compact ? "text-xs" : "text-sm",
+          )}
+        >
+          {macroGap ? "Чем закрыть белок" : "Добить белок"}
+          {mealLabel ? ` · в ${mealLabel}` : ""}
+        </p>
+        {targetMeal && meals.length > 1 && onMealId ? (
+          <button
+            type="button"
+            className="min-h-11 shrink-0 px-2 text-sm font-medium text-foreground"
+            onClick={() => {
+              const index = meals.findIndex(
+                (item) => item.id === targetMeal.id,
+              );
+              const next = meals[(index + 1) % meals.length];
+              if (next) {
+                haptic("tick");
+                onMealId(next.id);
+              }
+            }}
+          >
+            сменить приём
+          </button>
+        ) : null}
+      </div>
       {combo ? (
         <Button
           type="button"

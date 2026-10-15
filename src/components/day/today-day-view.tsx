@@ -224,6 +224,11 @@ export function TodayDayView({
   )
     ? quickMealChoice
     : suggestedQuickMealId;
+  const quickLogMeals = visibleMeals
+    .filter((meal) => !isTempId(meal.id))
+    .map((meal) => ({ id: meal.id, meal_type: meal.meal_type }));
+  const proteinLogMealId =
+    quickLogMealId ?? closeMeal?.id ?? quickLogMeals[0]?.id ?? null;
   const showEmptyStart = !viewOnly && !dayHasItems;
   const emptyTextMeal =
     showEmptyStart &&
@@ -381,7 +386,9 @@ export function TodayDayView({
       remainingProtein > MACRO_GAP_PROTEIN_MIN ? (
         <MacroGapHint
           date={date}
-          mealId={closeMeal?.id ?? null}
+          meals={quickLogMeals}
+          mealId={proteinLogMealId}
+          onMealId={setQuickMealChoice}
           remainingProtein={remainingProtein}
           remainingFat={shownDay.target_fat - fact.fat}
           remainingCarbs={shownDay.target_carbs - fact.carbs}
@@ -391,7 +398,9 @@ export function TodayDayView({
       ) : (
         <ProteinCloseOffers
           date={date}
-          mealId={closeMeal?.id ?? null}
+          meals={quickLogMeals}
+          mealId={proteinLogMealId}
+          onMealId={setQuickMealChoice}
           remainingProtein={remainingProtein}
           remainingFat={shownDay.target_fat - fact.fat}
           remainingCarbs={shownDay.target_carbs - fact.carbs}
