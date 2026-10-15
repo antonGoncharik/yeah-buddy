@@ -47,8 +47,8 @@ export async function shortenSession(
     }),
   );
 
+  const supabase = createSupabaseServerClient();
   if (plan.dropSetIds.length > 0) {
-    const supabase = createSupabaseServerClient();
     const removed = await supabase
       .from("workout_sets")
       .delete()
@@ -56,6 +56,27 @@ export async function shortenSession(
       .in("id", plan.dropSetIds);
     if (removed.error) {
       throw removed.error;
+    }
+  }
+
+  for (const exercise of detail.exercises) {
+    const remaining = exercise.sets
+      .filter((set) => !plan.dropSetIds.includes(set.id))
+      .slice()
+      .sort((left, right) => left.set_number - right.set_number);
+    for (let index = 0; index < remaining.length; index += 1) {
+      const setNumber = index + 1;
+      if (remaining[index].set_number === setNumber) {
+        continue;
+      }
+      const updated = await supabase
+        .from("workout_sets")
+        .update({ set_number: setNumber })
+        .eq("user_id", userId)
+        .eq("id", remaining[index].id);
+      if (updated.error) {
+        throw updated.error;
+      }
     }
   }
 
