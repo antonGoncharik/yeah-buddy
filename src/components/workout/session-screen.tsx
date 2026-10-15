@@ -29,6 +29,7 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { upcomingWorkLine } from "@/lib/workout/next-load";
+import { canShortenSession } from "@/lib/workout/session-short";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 import {
@@ -142,11 +143,12 @@ export function SessionScreen() {
                   disabled={busy}
                   onEase={easeSession}
                 />
+                {canShortenSession(detail.exercises) ? (
                 <Button
                   type="button"
                   variant="outline"
                   className="min-h-11 self-start"
-                  disabled={busy || detail.exercises.length === 0}
+                  disabled={busy}
                   onClick={() => {
                     void (async () => {
                       const ok = await confirm({
@@ -174,6 +176,7 @@ export function SessionScreen() {
                 >
                   Мало времени
                 </Button>
+                ) : null}
               </div>
             ) : null}
             <SessionExerciseList

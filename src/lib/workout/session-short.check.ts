@@ -1,4 +1,8 @@
-import { readShortResult, shortSessionPlan } from "@/lib/workout/session-short";
+import {
+  canShortenSession,
+  readShortResult,
+  shortSessionPlan,
+} from "@/lib/workout/session-short";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -35,6 +39,31 @@ const plan = shortSessionPlan([
   },
 ]);
 
+assertEqual(
+  canShortenSession([
+    {
+      sets: [
+        { set_type: "work", is_completed: false },
+        { set_type: "work", is_completed: false },
+        { set_type: "work", is_completed: false },
+      ],
+    },
+  ]),
+  true,
+  "three open work sets can be shortened",
+);
+assertEqual(
+  canShortenSession([
+    {
+      sets: [
+        { set_type: "work", is_completed: true },
+        { set_type: "work", is_completed: true },
+      ],
+    },
+  ]),
+  false,
+  "two work sets are already short",
+);
 assertEqual(plan.dropSetIds, ["c", "d"], "two work sets stay, warmup stays");
 assertEqual(
   plan.pairs,

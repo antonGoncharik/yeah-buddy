@@ -1,5 +1,18 @@
 export const SHORT_WORK_SETS = 2;
 
+/** True while some exercise still has more than two work sets left to log. */
+export function canShortenSession(
+  exercises: readonly {
+    sets: readonly { set_type: string; is_completed: boolean }[];
+  }[],
+): boolean {
+  return exercises.some((exercise) => {
+    const work = exercise.sets.filter((set) => set.set_type === "work");
+    const open = work.filter((set) => !set.is_completed).length;
+    return open > 0 && work.length > SHORT_WORK_SETS;
+  });
+}
+
 export interface ShortExercise {
   id: string;
   muscle: string | null;
