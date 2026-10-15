@@ -6,13 +6,11 @@ import { haptic, playTimerStepHaptic } from "@/lib/telegram/haptic";
 import {
   clearStoredRest,
   nextRestLeft,
-  nextRestPreset,
   REST_ADJUST_SECONDS,
   readLastRestSeconds,
   readStoredRestState,
   restLeftAt,
   WORK_REST_SECONDS,
-  writeLastRestSeconds,
   writeStoredRestState,
 } from "@/lib/workout/rest-timer";
 import { notifyRestTimerDone } from "@/lib/workout/rest-timer-done";
@@ -61,9 +59,6 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       return;
     }
     const id = exerciseRef.current;
-    if (id) {
-      writeLastRestSeconds(id, nextRestPreset(readLastRestSeconds(id), delta));
-    }
     setLeft((current) => {
       if (current == null) {
         return current;
