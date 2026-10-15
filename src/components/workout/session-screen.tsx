@@ -42,6 +42,7 @@ import {
   writeSessionPairs,
 } from "@/lib/workout/session-pairs";
 import { canShortenSession } from "@/lib/workout/session-short";
+import { rememberTemplateSwap } from "@/lib/workout/template-cache-swap";
 
 export function SessionScreen() {
   const confirm = useConfirm();
@@ -479,6 +480,14 @@ export function SessionScreen() {
                       exerciseId: templateOffer.exerciseId,
                     },
                   );
+                  if (session.template_id) {
+                    rememberTemplateSwap({
+                      templateId: session.template_id,
+                      date: session.session_date,
+                      fromExerciseId: templateOffer.fromExerciseId,
+                      exerciseId: templateOffer.exerciseId,
+                    });
+                  }
                   haptic("commit");
                   setTemplateOffer(null);
                 } catch (caught) {

@@ -43,7 +43,7 @@ export async function keepSwapInTemplate(
 
   const updated = await supabase
     .from("workout_template_exercises")
-    .update({ exercise_id: toExerciseId })
+    .update({ exercise_id: toExerciseId, plan: null })
     .eq("user_id", userId)
     .eq("template_id", session.template_id)
     .eq("exercise_id", fromExerciseId)
