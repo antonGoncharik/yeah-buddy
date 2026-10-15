@@ -7,6 +7,7 @@ import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import {
   draftFromSet,
   formatVisibleSetLine,
+  loggedSetPatch,
   plannedLogPatch,
   type SetDraft,
 } from "@/components/workout/session-drafts";
@@ -157,6 +158,13 @@ export function SessionExerciseRow({
   }, [recordLine]);
 
   function advanceSet(set: WorkoutSet) {
+    if (onLogSet && !set.is_completed && !disabled) {
+      const draft = drafts[set.id] ?? draftFromSet(set);
+      if (loggedSetPatch(set, draft)) {
+        onLogSet(set, draft);
+        return;
+      }
+    }
     const list = set.set_type === "warmup" ? warmup : work;
     const index = list.findIndex((row) => row.id === set.id);
     if (index < 0) {

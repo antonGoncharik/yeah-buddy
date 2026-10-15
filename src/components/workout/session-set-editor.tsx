@@ -217,7 +217,7 @@ export function SessionSetEditor({
                   onAdvance();
                 }}
               >
-                {hasNextSet ? "Следующий подход" : "Свернуть"}
+                {hasNextSet ? "Записать · следующий" : "Записать подход"}
               </Button>
             ) : null}
           </div>
