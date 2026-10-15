@@ -32,3 +32,22 @@ export function nextWorkSetPlan(
     planned_rir: last.planned_rir,
   };
 }
+
+/** The last work set, when another work set would remain and this one is still open. */
+export function droppableWorkSetId(
+  sets: readonly {
+    id: string;
+    set_type: string;
+    set_number: number;
+    is_completed: boolean;
+  }[],
+): string | null {
+  const work = sets.filter((set) => set.set_type === "work");
+  if (work.length < 2) {
+    return null;
+  }
+  const last = work.reduce((best, set) =>
+    set.set_number > best.set_number ? set : best,
+  );
+  return last.is_completed ? null : last.id;
+}

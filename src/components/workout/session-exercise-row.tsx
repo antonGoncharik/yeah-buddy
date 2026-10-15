@@ -28,6 +28,7 @@ import {
 } from "@/lib/workout/rest-timer";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatLastTimeWorkLine } from "@/lib/workout/session-memory";
+import { droppableWorkSetId } from "@/lib/workout/session-set-add";
 import {
   liveSetRecord,
   liveWorkWeight,
@@ -56,6 +57,7 @@ export function SessionExerciseRow({
   onLogSet,
   onLogPlan,
   onAddSet,
+  onDropSet,
   paired = false,
   pairName = null,
   onPair,
@@ -90,6 +92,7 @@ export function SessionExerciseRow({
   onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
   onLogPlan?: () => void;
   onAddSet?: () => void;
+  onDropSet?: (setId: string) => void;
   paired?: boolean;
   pairName?: string | null;
   onPair?: () => void;
@@ -101,6 +104,7 @@ export function SessionExerciseRow({
   const diaryCompact = density === "compact";
   const warmup = item.sets.filter((set) => set.set_type === "warmup");
   const work = item.sets.filter((set) => set.set_type === "work");
+  const dropSetId = droppableWorkSetId(item.sets);
   const openSets = item.sets.filter((set) => openSetIds.includes(set.id));
   const leadSet = openSets[0] ?? null;
   const lastTimeLine = item.previous
@@ -272,7 +276,7 @@ export function SessionExerciseRow({
             {targetLine}
           </p>
         ) : null}
-        {focused && (canLogPlan || onPair || onAddSet) ? (
+        {focused && (canLogPlan || onPair || onAddSet || onDropSet) ? (
           <div className="flex flex-wrap gap-2">
             {canLogPlan ? (
               <button
@@ -292,6 +296,16 @@ export function SessionExerciseRow({
                 onClick={onAddSet}
               >
                 + Подход
+              </button>
+            ) : null}
+            {onDropSet && dropSetId ? (
+              <button
+                type="button"
+                className="min-h-11 rounded-lg px-3 text-base font-medium text-muted-foreground disabled:opacity-50"
+                disabled={disabled}
+                onClick={() => onDropSet(dropSetId)}
+              >
+                Убрать подход
               </button>
             ) : null}
             {onPair ? (

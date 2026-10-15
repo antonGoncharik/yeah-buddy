@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import { nextWorkSetPlan } from "@/lib/workout/session-set-add";
+import {
+  droppableWorkSetId,
+  nextWorkSetPlan,
+} from "@/lib/workout/session-set-add";
 
 const next = nextWorkSetPlan([
   {
@@ -51,6 +54,52 @@ assert.equal(
       planned_reps_to: null,
       planned_seconds: null,
       planned_rir: null,
+    },
+  ]),
+  null,
+);
+
+assert.equal(
+  droppableWorkSetId([
+    {
+      id: "a",
+      set_type: "work",
+      set_number: 1,
+      is_completed: true,
+    },
+    {
+      id: "b",
+      set_type: "work",
+      set_number: 2,
+      is_completed: false,
+    },
+  ]),
+  "b",
+);
+assert.equal(
+  droppableWorkSetId([
+    {
+      id: "a",
+      set_type: "work",
+      set_number: 1,
+      is_completed: false,
+    },
+  ]),
+  null,
+);
+assert.equal(
+  droppableWorkSetId([
+    {
+      id: "a",
+      set_type: "work",
+      set_number: 1,
+      is_completed: true,
+    },
+    {
+      id: "b",
+      set_type: "work",
+      set_number: 2,
+      is_completed: true,
     },
   ]),
   null,

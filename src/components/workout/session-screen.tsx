@@ -89,6 +89,7 @@ export function SessionScreen() {
     markSet,
     addExercise,
     addWorkSet,
+    dropWorkSet,
     swapExercise,
     easeSession,
     shortenSession,
@@ -259,6 +260,18 @@ export function SessionScreen() {
                 });
               }}
               pairs={pairs}
+              onDropSet={
+                session.status === "planned"
+                  ? async (setId) => {
+                      const ok = await dropWorkSet(setId);
+                      if (ok) {
+                        setOpenSetIds((current) =>
+                          current.filter((id) => id !== setId),
+                        );
+                      }
+                    }
+                  : undefined
+              }
               onAddSet={
                 session.status === "planned"
                   ? async (sessionExerciseId) => {

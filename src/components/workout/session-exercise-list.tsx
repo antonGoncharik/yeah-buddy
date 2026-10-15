@@ -33,6 +33,7 @@ export function SessionExerciseList({
   onLogSet,
   onLogPlan,
   onAddSet,
+  onDropSet,
   pairs,
   onPair,
   lastRestSeconds,
@@ -61,6 +62,7 @@ export function SessionExerciseList({
   onLogSet?: (set: WorkoutSet, exerciseId: string, draft: SetDraft) => void;
   onLogPlan?: (exerciseId: string) => void;
   onAddSet?: (sessionExerciseId: string) => void;
+  onDropSet?: (setId: string) => void;
   pairs?: Record<string, string>;
   onPair?: (exerciseId: string, nextExerciseId: string) => void;
   lastRestSeconds?: (exerciseId: string) => number;
@@ -180,6 +182,11 @@ export function SessionExerciseList({
               onAddSet={
                 session.status === "planned" && onAddSet
                   ? () => onAddSet(item.id)
+                  : undefined
+              }
+              onDropSet={
+                session.status === "planned" && onDropSet
+                  ? onDropSet
                   : undefined
               }
               paired={pairs?.[item.id] === nextExercise?.id}

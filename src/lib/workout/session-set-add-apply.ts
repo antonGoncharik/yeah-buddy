@@ -1,6 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail } from "@/lib/types";
-import { nextWorkSetPlan } from "@/lib/workout/session-set-add";
+import { mapWorkoutSet } from "@/lib/workout/map-session";
+import {
+  droppableWorkSetId,
+  nextWorkSetPlan,
+} from "@/lib/workout/session-set-add";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession } from "@/lib/workout/sessions";
 
@@ -61,6 +65,76 @@ export async function appendSessionWorkSet(
   });
   if (inserted.error) {
     throw inserted.error;
+  }
+
+  return loadSessionDetail(userId, session);
+}
+
+export async function deleteExtraWorkSet(
+  userId: string,
+  setId: string,
+): Promise<SessionDetail | null> {
+  const supabase = createSupabaseServerClient();
+  const existing = await supabase
+    .from("workout_sets")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", setId)
+    .maybeSingle();
+  if (existing.error) {
+    throw existing.error;
+  }
+  if (!existing.data) {
+    return null;
+  }
+
+  const current = mapWorkoutSet(existing.data as Record<string, unknown>);
+  const owned = await supabase
+    .from("session_exercises")
+    .select("id, session_id")
+    .eq("user_id", userId)
+    .eq("id", current.session_exercise_id)
+    .maybeSingle();
+  if (owned.error) {
+    throw owned.error;
+  }
+  if (!owned.data) {
+    return null;
+  }
+
+  const session = await getSession(userId, String(owned.data.session_id));
+  if (!session) {
+    return null;
+  }
+  if (session.status !== "planned") {
+    throw new Error("Убрать подход можно только в открытой тренировке.");
+  }
+
+  const siblings = await supabase
+    .from("workout_sets")
+    .select("id, set_type, set_number, is_completed")
+    .eq("user_id", userId)
+    .eq("session_exercise_id", current.session_exercise_id);
+  if (siblings.error) {
+    throw siblings.error;
+  }
+
+  const dropId = droppableWorkSetId(siblings.data ?? []);
+  if (dropId !== setId) {
+    throw new Error(
+      current.is_completed
+        ? "Этот подход уже отмечен."
+        : "Последний рабочий подход не убирается.",
+    );
+  }
+
+  const removed = await supabase
+    .from("workout_sets")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", setId);
+  if (removed.error) {
+    throw removed.error;
   }
 
   return loadSessionDetail(userId, session);

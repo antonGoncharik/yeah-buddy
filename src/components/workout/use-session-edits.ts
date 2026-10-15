@@ -322,6 +322,25 @@ export function useSessionEdits({
     }
   }
 
+  async function dropWorkSet(setId: string): Promise<boolean> {
+    if (detail?.session.status !== "planned") {
+      return false;
+    }
+    setError(null);
+    try {
+      const data = await deleteJson(`/api/sets/${setId}`);
+      if (!applyPayload(data)) {
+        throw new Error(LOAD_FAILED);
+      }
+      haptic("commit");
+      return true;
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return false;
+    }
+  }
+
   async function addWorkSet(sessionExerciseId: string): Promise<string | null> {
     if (detail?.session.status !== "planned") {
       return null;
@@ -409,6 +428,7 @@ export function useSessionEdits({
     markSet,
     addExercise,
     addWorkSet,
+    dropWorkSet,
     swapExercise,
     easeSession,
     shortenSession,
