@@ -276,7 +276,6 @@ export function completeSetOverrides(
   actual_seconds: number | null;
   actual_rir: number | null;
 }> {
-  const kind = detail.session.workout_type;
   const sets: Array<{
     id: string;
     actual_weight: number | null;
@@ -291,11 +290,12 @@ export function completeSetOverrides(
       if (!draft || !draftChanged(set, draft)) {
         continue;
       }
+      const timed = setUsesSeconds(set);
       sets.push({
         id: set.id,
         actual_weight: parseDecimal(draft.weight),
-        actual_reps: kind === "dynamic" ? parseInteger(draft.reps) : null,
-        actual_seconds: kind === "static" ? parseDecimal(draft.seconds) : null,
+        actual_reps: timed ? null : parseInteger(draft.reps),
+        actual_seconds: timed ? parseDecimal(draft.seconds) : null,
         actual_rir: parseRir(draft.rir),
       });
     }
