@@ -133,7 +133,7 @@ export function ProteinCloseOffers({
     }
   }
 
-  const mealLabel = targetMeal ? getMealLabel(targetMeal.meal_type) : null;
+  const meal = targetMeal ?? meals[0] ?? null;
 
   return (
     <div className={cn("flex flex-col", compact ? "gap-1.5" : "gap-2")}>
@@ -145,16 +145,13 @@ export function ProteinCloseOffers({
           )}
         >
           {macroGap ? "Чем закрыть белок" : "Добить белок"}
-          {mealLabel ? ` · в ${mealLabel}` : ""}
         </p>
-        {targetMeal && meals.length > 1 && onMealId ? (
+        {meal && meals.length > 1 && onMealId ? (
           <button
             type="button"
             className="min-h-11 shrink-0 px-2 text-sm font-medium text-foreground"
             onClick={() => {
-              const index = meals.findIndex(
-                (item) => item.id === targetMeal.id,
-              );
+              const index = meals.findIndex((item) => item.id === meal.id);
               const next = meals[(index + 1) % meals.length];
               if (next) {
                 haptic("tick");
@@ -162,7 +159,7 @@ export function ProteinCloseOffers({
               }
             }}
           >
-            сменить приём
+            в {getMealLabel(meal.meal_type)}
           </button>
         ) : null}
       </div>

@@ -196,7 +196,9 @@ export function SessionExerciseList({
                   : null
               }
               onPair={
-                session.status === "planned" && onPair
+                session.status === "planned" &&
+                onPair &&
+                (partner || nextExercise)
                   ? () => {
                       if (partner) {
                         onPair(item.id, partner.id);

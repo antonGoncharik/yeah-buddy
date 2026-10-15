@@ -61,8 +61,9 @@ export function MealMemoryChips({
       ),
     ]).then(refresh);
     const dayUrl = daysUrl(date);
+    const yesterdayUrl = daysUrl(yesterday);
     const unsubscribe = subscribeJson((url) => {
-      if (url === dayUrl) {
+      if (url === dayUrl || url === yesterdayUrl) {
         refresh();
       }
     });
