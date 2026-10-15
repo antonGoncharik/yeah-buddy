@@ -1,6 +1,6 @@
 "use client";
 
-import { ScanBarcode } from "lucide-react";
+import { ScanBarcode, X } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { BarcodeScanner } from "@/components/foods/barcode-scanner";
@@ -34,10 +34,26 @@ export function FoodSearch({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="h-14 rounded-2xl pr-14 text-base"
+          className={
+            value.trim() === ""
+              ? "h-14 rounded-2xl pr-14 text-base"
+              : "h-14 rounded-2xl pr-28 text-base"
+          }
           inputMode="search"
           enterKeyHint="search"
         />
+        {value.trim() !== "" ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="absolute top-1/2 right-14 -translate-y-1/2 text-muted-foreground"
+            aria-label="Очистить поиск"
+            onClick={() => onChange("")}
+          >
+            <X className="size-5" />
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"

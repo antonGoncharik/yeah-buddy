@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/app-header";
@@ -8,7 +8,7 @@ import { DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ExercisesList } from "@/components/workout/exercises-list";
 import { useExercisesScreen } from "@/components/workout/use-exercises-screen";
@@ -57,14 +57,32 @@ export function ExercisesScreen() {
 
         {!loading && exercises.length > 0 ? (
           <div className="animate-rise flex flex-col gap-6">
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Поиск упражнения"
-              className="h-14 rounded-2xl text-base"
-              inputMode="search"
-              enterKeyHint="search"
-            />
+            <div className="relative">
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Поиск упражнения"
+                className={
+                  searching
+                    ? "h-14 rounded-2xl pr-14 text-base"
+                    : "h-14 rounded-2xl text-base"
+                }
+                inputMode="search"
+                enterKeyHint="search"
+              />
+              {searching ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  className="absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground"
+                  aria-label="Очистить поиск"
+                  onClick={() => setQuery("")}
+                >
+                  <X className="size-5" />
+                </Button>
+              ) : null}
+            </div>
             {error ? (
               <p className="text-center text-base text-destructive">{error}</p>
             ) : null}
