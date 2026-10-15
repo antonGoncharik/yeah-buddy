@@ -8,7 +8,7 @@ type MealSlot = {
   items: readonly unknown[];
 };
 
-/** Meal to target for one-tap logging from Today (empty slot first, then time of day). */
+/** Meal for one tap: the slot for this hour, even when an earlier slot is still empty. */
 export function pickQuickLogMealId(
   meals: ReadonlyArray<MealSlot>,
   at = new Date(),
@@ -17,13 +17,6 @@ export function pickQuickLogMealId(
   const live = meals.filter((meal) => !isTempId(meal.id));
   if (live.length === 0) {
     return null;
-  }
-
-  for (const mealType of MEAL_DISPLAY_ORDER) {
-    const meal = live.find((entry) => entry.meal_type === mealType);
-    if (meal && meal.items.length === 0) {
-      return meal.id;
-    }
   }
 
   const hour =
@@ -36,9 +29,14 @@ export function pickQuickLogMealId(
     return match.id;
   }
 
-  const lastType = MEAL_DISPLAY_ORDER[MEAL_DISPLAY_ORDER.length - 1];
-  const fallback = live.find((meal) => meal.meal_type === lastType);
-  return fallback?.id ?? live[live.length - 1]?.id ?? null;
+  for (const mealType of MEAL_DISPLAY_ORDER) {
+    const meal = live.find((entry) => entry.meal_type === mealType);
+    if (meal && meal.items.length === 0) {
+      return meal.id;
+    }
+  }
+
+  return live[live.length - 1]?.id ?? null;
 }
 
 function mealTypeForHour(hour: number): MealType {

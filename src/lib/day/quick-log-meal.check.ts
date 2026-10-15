@@ -11,7 +11,19 @@ const meals = [
 assert.equal(
   pickQuickLogMealId(meals, new Date("2026-01-01T08:00:00")),
   "b",
-  "empty breakfast first",
+  "morning lands on breakfast",
+);
+assert.equal(
+  pickQuickLogMealId(
+    [
+      { id: "b", meal_type: "breakfast", items: [] },
+      { id: "s", meal_type: "snack", items: [] },
+      { id: "d", meal_type: "dinner", items: [{ id: "1" }] },
+    ],
+    new Date("2026-01-01T20:00:00"),
+  ),
+  "d",
+  "evening stays on dinner when an earlier slot is empty",
 );
 
 assert.equal(

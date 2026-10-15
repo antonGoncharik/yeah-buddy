@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
@@ -217,7 +217,13 @@ export function TodayDayView({
   const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
   const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
   const addHref = addPath ? withDateQuery(addPath, date, today) : null;
-  const quickLogMealId = pickQuickLogMealId(visibleMeals);
+  const suggestedQuickMealId = pickQuickLogMealId(visibleMeals);
+  const [quickMealChoice, setQuickMealChoice] = useState<string | null>(null);
+  const quickLogMealId = visibleMeals.some(
+    (meal) => meal.id === quickMealChoice,
+  )
+    ? quickMealChoice
+    : suggestedQuickMealId;
   const showEmptyStart = !viewOnly && !dayHasItems;
   const emptyTextMeal =
     showEmptyStart &&
@@ -396,7 +402,16 @@ export function TodayDayView({
     ) : null;
   const quickFoods =
     dayHasItems && !viewOnly && quickLogMealId ? (
-      <TodayQuickFoods date={date} mealId={quickLogMealId} busy={busy} />
+      <TodayQuickFoods
+        date={date}
+        meals={visibleMeals.map((meal) => ({
+          id: meal.id,
+          meal_type: meal.meal_type,
+        }))}
+        mealId={quickLogMealId}
+        onMealId={setQuickMealChoice}
+        busy={busy}
+      />
     ) : null;
 
   const energyGoalBlock =
