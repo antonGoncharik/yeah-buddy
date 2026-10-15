@@ -2,6 +2,7 @@ import type {
   CycleStatus,
   ExerciseCategory,
   ExerciseUnit,
+  ExerciseWithMax,
   ExerciseWorkoutType,
   FormulaPreset,
   SessionFeel,
@@ -9,6 +10,8 @@ import type {
   SetType,
   WorkoutKind,
 } from "@/lib/types";
+import { formatWeight } from "@/lib/workout/numbers";
+import { trackCurrentWeight } from "@/lib/workout/track-line";
 
 export const EXERCISE_CATEGORIES = ["base", "isolation"] as const;
 
@@ -130,4 +133,19 @@ export function defaultUnitForWorkoutType(
   workoutType: ExerciseWorkoutType,
 ): ExerciseUnit {
   return workoutType === "static" ? "seconds" : "reps";
+}
+
+/** Sidebar kg in exercise lists: 1RM or working track weight. */
+export function exerciseCatalogWeight(
+  exercise: ExerciseWithMax,
+): { kg: string; hint: "на раз" | "кг" } | null {
+  const max = exercise.current_max?.max_weight ?? 0;
+  if (max > 0) {
+    return { kg: formatWeight(max), hint: "на раз" };
+  }
+  const track = exercise.track ? trackCurrentWeight(exercise.track) : null;
+  if (track != null && track > 0) {
+    return { kg: formatWeight(track), hint: "кг" };
+  }
+  return null;
 }

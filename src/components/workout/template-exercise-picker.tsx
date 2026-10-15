@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -17,8 +18,10 @@ import type {
   WorkoutKind,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { exerciseShortLabel } from "@/lib/workout/labels";
-import { formatWeight } from "@/lib/workout/numbers";
+import {
+  exerciseCatalogWeight,
+  exerciseShortLabel,
+} from "@/lib/workout/labels";
 import { slotPlanSummary } from "@/lib/workout/slot-plan";
 
 export function TemplateExercisePicker({
@@ -142,13 +145,23 @@ export function TemplateExercisePicker({
             />
           ) : null}
           {ordered.length === 0 ? (
-            <p className="px-1 text-base text-muted-foreground">
-              Ничего не нашлось.
-            </p>
+            <div className="flex flex-col gap-2 px-1">
+              <p className="text-base text-muted-foreground">
+                Ничего не нашлось.
+              </p>
+              {needle ? (
+                <Link
+                  href={`/workouts/exercises/new?name=${encodeURIComponent(query.trim())}`}
+                  className="text-base font-medium text-primary"
+                >
+                  Создать «{query.trim()}»
+                </Link>
+              ) : null}
+            </div>
           ) : (
             <ul className="card-surface divide-y divide-border/70 px-5 py-1">
               {ordered.map((exercise) => {
-                const max = exercise.current_max?.max_weight ?? 0;
+                const load = exerciseCatalogWeight(exercise);
                 return (
                   <li key={exercise.id}>
                     <button
@@ -162,15 +175,15 @@ export function TemplateExercisePicker({
                       <AlignedPair
                         className="grid-cols-[3.25rem_1.75rem]"
                         leading={
-                          max > 0 ? (
+                          load ? (
                             <span className="text-sm text-muted-foreground">
-                              {formatWeight(max)}
+                              {load.kg}
                             </span>
                           ) : null
                         }
                         trailing={
                           <span className="text-sm text-muted-foreground">
-                            {max > 0 ? "кг" : ""}
+                            {load ? load.hint : ""}
                           </span>
                         }
                       />

@@ -9,8 +9,10 @@ import { AlignedPair } from "@/components/ui/aligned-pair";
 import type { ExerciseGroups } from "@/components/workout/use-exercises-screen";
 import type { ExerciseWithMax } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { exerciseShortLabel } from "@/lib/workout/labels";
-import { formatWeight } from "@/lib/workout/numbers";
+import {
+  exerciseCatalogWeight,
+  exerciseShortLabel,
+} from "@/lib/workout/labels";
 
 export function ExercisesList({
   groups,
@@ -92,7 +94,7 @@ function ExerciseRows({
   return (
     <ul className="card-surface divide-y divide-border/70 px-5 py-1">
       {exercises.map((exercise) => {
-        const max = exercise.current_max?.max_weight ?? 0;
+        const load = exerciseCatalogWeight(exercise);
         return (
           <li key={exercise.id}>
             <Link
@@ -110,15 +112,13 @@ function ExerciseRows({
               <AlignedPair
                 beside
                 leading={
-                  max > 0 ? (
-                    <span className="text-base font-semibold">
-                      {formatWeight(max)}
-                    </span>
+                  load ? (
+                    <span className="text-base font-semibold">{load.kg}</span>
                   ) : null
                 }
                 trailing={
                   <span className="text-sm font-medium text-muted-foreground">
-                    {max > 0 ? "кг" : "—"}
+                    {load ? load.hint : "—"}
                   </span>
                 }
               />
