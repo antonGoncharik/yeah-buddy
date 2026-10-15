@@ -189,15 +189,23 @@ export function SessionExerciseList({
                   ? onDropSet
                   : undefined
               }
-              paired={pairs?.[item.id] === nextExercise?.id}
+              paired={Boolean(partner)}
               pairName={
                 partner
                   ? partner.exercise.short_name || partner.exercise.name
                   : null
               }
               onPair={
-                session.status === "planned" && onPair && nextExercise
-                  ? () => onPair(item.id, nextExercise.id)
+                session.status === "planned" && onPair
+                  ? () => {
+                      if (partner) {
+                        onPair(item.id, partner.id);
+                        return;
+                      }
+                      if (nextExercise) {
+                        onPair(item.id, nextExercise.id);
+                      }
+                    }
                   : undefined
               }
               restSeconds={lastRestSeconds?.(item.exercise_id)}

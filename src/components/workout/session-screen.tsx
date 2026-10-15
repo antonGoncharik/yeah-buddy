@@ -38,6 +38,7 @@ import {
   forgetPair,
   nextFocusSetId,
   pairWith,
+  pruneSessionPairs,
   readSessionPairs,
   writeSessionPairs,
 } from "@/lib/workout/session-pairs";
@@ -109,6 +110,21 @@ export function SessionScreen() {
     }
     setPairs(readSessionPairs(session.id));
   }, [session?.id]);
+
+  useEffect(() => {
+    if (!session?.id || !detail?.exercises.length) {
+      return;
+    }
+    const ids = new Set(detail.exercises.map((item) => item.id));
+    setPairs((current) => {
+      const pruned = pruneSessionPairs(current, ids);
+      if (JSON.stringify(pruned) === JSON.stringify(current)) {
+        return current;
+      }
+      writeSessionPairs(session.id, pruned);
+      return pruned;
+    });
+  }, [session?.id, detail?.exercises]);
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
   const focusExerciseId =

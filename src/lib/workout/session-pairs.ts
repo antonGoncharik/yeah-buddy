@@ -42,6 +42,25 @@ export function pairWith(
   return { ...cleared, [leftId]: rightId, [rightId]: leftId };
 }
 
+/** Drop pairs whose exercise ids are no longer in the session. */
+export function pruneSessionPairs(
+  pairs: Readonly<Record<string, string>>,
+  exerciseIds: ReadonlySet<string>,
+): Record<string, string> {
+  const next: Record<string, string> = {};
+  for (const [left, right] of Object.entries(pairs)) {
+    if (!exerciseIds.has(left) || !exerciseIds.has(right)) {
+      continue;
+    }
+    if (next[left] || next[right]) {
+      continue;
+    }
+    next[left] = right;
+    next[right] = left;
+  }
+  return next;
+}
+
 export function forgetPair(
   pairs: Readonly<Record<string, string>>,
   id: string,
