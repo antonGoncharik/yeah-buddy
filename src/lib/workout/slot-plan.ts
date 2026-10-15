@@ -52,11 +52,11 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 ];
 
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
-  percent: "% на раз",
-  orm: "% на раз",
-  track: "Кг",
-  fixed: "Один",
-  feel: "Сам",
+  percent: "% от 1ПМ",
+  orm: "% от 1ПМ",
+  track: "Рост кг",
+  fixed: "Фикс кг",
+  feel: "Свободно",
 };
 
 export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
@@ -64,9 +64,9 @@ export const SLOT_LOAD_HINTS: Record<SlotLoadType, string> = {
     "Процент от максимума на раз в карточке. На другой неделе процент может быть другим.",
   orm: "Процент от максимума на раз в карточке. На другой неделе процент может быть другим.",
   track:
-    "Рабочий кг в карточке упражнения. После недели, если в цикле стоит прибавка, иначе — после тренировки.",
+    "Рабочий кг в карточке упражнения. После удачной тренировки + шаг, в цикле — по неделе.",
   fixed: "Один и тот же вес, пока сам не поменяешь.",
-  feel: "План не давит: подставим вес прошлого раза, впишешь свой.",
+  feel: "Без жёсткого плана: подставим прошлый вес, впишешь свой в зале.",
 };
 
 export interface PlannedSetRow {
