@@ -6,6 +6,11 @@ import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { refreshEstimateMaxesFromSession } from "@/lib/workout/estimate-max-refresh";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
+import {
+  resolveSetActuals,
+  shouldSkipSetOnComplete,
+  validateSessionBeforeComplete,
+} from "@/lib/workout/session-complete-validate";
 import { getSessionDetail } from "@/lib/workout/session-detail";
 import { SessionLockedError } from "@/lib/workout/session-errors";
 import { withSessionRaiseOffers } from "@/lib/workout/session-raise-store";
@@ -20,11 +25,6 @@ import {
   clearSkipTemplateIds,
   ensureWorkoutSettings,
 } from "@/lib/workout/settings";
-import {
-  resolveSetActuals,
-  shouldSkipSetOnComplete,
-  validateSessionBeforeComplete,
-} from "@/lib/workout/session-complete-validate";
 import { applyTrackProgressOnComplete } from "@/lib/workout/track-progress-apply";
 
 export function sessionBlocksSetPatch(

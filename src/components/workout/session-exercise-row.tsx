@@ -163,7 +163,7 @@ export function SessionExerciseRow({
       return;
     }
     const source = item.sets.find((row) => row.id === setId);
-    if (!source || source.set_type !== "work") {
+    if (source?.set_type !== "work") {
       return;
     }
     const planned = source.planned_weight;

@@ -10,6 +10,7 @@ import {
   easedWeightTenPercent,
   peakWorkWeight,
   shouldEaseTrackAfterHolds,
+  type TrackProgressOutcome,
   type TrackProgressSet,
   trackProgressFromWorkSets,
 } from "@/lib/workout/track-progress";
@@ -81,7 +82,9 @@ async function loadRecentTrackOutcomes(
   exerciseId: string,
   excludeSessionId: string,
   limit: number,
-): Promise<Array<{ outcome: "up" | "hold"; workingWeight: number | null }>> {
+): Promise<
+  Array<{ outcome: TrackProgressOutcome; workingWeight: number | null }>
+> {
   const supabase = createSupabaseServerClient();
   const links = await supabase
     .from("session_exercises")
@@ -128,8 +131,10 @@ async function loadRecentTrackOutcomes(
     ordered.map((row) => String(row.id)),
   );
 
-  const out: Array<{ outcome: "up" | "hold"; workingWeight: number | null }> =
-    [];
+  const out: Array<{
+    outcome: TrackProgressOutcome;
+    workingWeight: number | null;
+  }> = [];
   for (const row of ordered) {
     const sessionId = String(row.id);
     const exercises = workBySession.get(sessionId) ?? [];

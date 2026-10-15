@@ -14,12 +14,12 @@ import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
-import { validateSessionBeforeComplete } from "@/lib/workout/session-complete-validate";
 import {
   completeSessionLocally,
   preferLiveCompleted,
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
+import { validateSessionBeforeComplete } from "@/lib/workout/session-complete-validate";
 import { clearSessionDraft } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 

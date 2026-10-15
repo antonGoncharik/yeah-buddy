@@ -1,7 +1,7 @@
 import type { SessionDetail } from "@/lib/types";
 import { exerciseShortLabel } from "@/lib/workout/labels";
-import type { CompleteSessionInput } from "@/lib/workout/session-schema";
 import { setUsesSeconds } from "@/lib/workout/session-format";
+import type { CompleteSessionInput } from "@/lib/workout/session-schema";
 import { completedSetWeight } from "@/lib/workout/set-log";
 
 type SetOverride = NonNullable<CompleteSessionInput["sets"]>[number];
@@ -13,8 +13,7 @@ export function shouldSkipSetOnComplete(
   if (set.set_type !== "work") {
     return false;
   }
-  const touched =
-    set.is_completed || set.logged || override !== undefined;
+  const touched = set.is_completed || set.logged || override !== undefined;
   if (touched) {
     return false;
   }
