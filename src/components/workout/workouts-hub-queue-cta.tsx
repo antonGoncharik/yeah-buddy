@@ -10,12 +10,12 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { templateExerciseLoadPreview } from "@/lib/workout/hints";
+import { exerciseShortLabel } from "@/lib/workout/labels";
+import { formatWeight } from "@/lib/workout/numbers";
 import {
   templateSessionLine,
   templateSessionOutline,
 } from "@/lib/workout/session-preview";
-import { exerciseShortLabel } from "@/lib/workout/labels";
-import { formatWeight } from "@/lib/workout/numbers";
 
 export function WorkoutsHubQueueCta({
   session,
@@ -115,7 +115,9 @@ export function WorkoutsHubQueueCta({
             {nextTemplate.name}
           </h2>
           {outlineLine ? (
-            <p className="mt-0.5 text-sm text-muted-foreground">{outlineLine}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {outlineLine}
+            </p>
           ) : null}
           {followingTemplate && followingTemplate.id !== nextTemplate.id ? (
             <p className="mt-0.5 text-sm text-muted-foreground">

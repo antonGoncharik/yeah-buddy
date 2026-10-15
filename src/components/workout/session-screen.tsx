@@ -29,7 +29,6 @@ import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
 import { upcomingWorkLine } from "@/lib/workout/next-load";
-import { canShortenSession } from "@/lib/workout/session-short";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
 import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 import {
@@ -39,6 +38,7 @@ import {
   readSessionPairs,
   writeSessionPairs,
 } from "@/lib/workout/session-pairs";
+import { canShortenSession } from "@/lib/workout/session-short";
 
 export function SessionScreen() {
   const confirm = useConfirm();
@@ -145,38 +145,42 @@ export function SessionScreen() {
                   onEase={easeSession}
                 />
                 {canShortenSession(detail.exercises) ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 self-start"
-                  disabled={busy}
-                  onClick={() => {
-                    void (async () => {
-                      const ok = await confirm({
-                        message:
-                          "Оставить по два рабочих подхода и связать соседние упражнения?",
-                        confirmLabel: "Ужать",
-                        cancelLabel: "Оставить",
-                      });
-                      if (!ok) {
-                        return;
-                      }
-                      const nextPairs = await shortenSession();
-                      if (!nextPairs || nextPairs.length === 0 || !session.id) {
-                        return;
-                      }
-                      const stored = nextPairs.reduce(
-                        (current, [left, right]) =>
-                          pairWith(current, left, right),
-                        {} as Record<string, string>,
-                      );
-                      writeSessionPairs(session.id, stored);
-                      setPairs(stored);
-                    })();
-                  }}
-                >
-                  Мало времени
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11 self-start"
+                    disabled={busy}
+                    onClick={() => {
+                      void (async () => {
+                        const ok = await confirm({
+                          message:
+                            "Оставить по два рабочих подхода и связать соседние упражнения?",
+                          confirmLabel: "Ужать",
+                          cancelLabel: "Оставить",
+                        });
+                        if (!ok) {
+                          return;
+                        }
+                        const nextPairs = await shortenSession();
+                        if (
+                          !nextPairs ||
+                          nextPairs.length === 0 ||
+                          !session.id
+                        ) {
+                          return;
+                        }
+                        const stored = nextPairs.reduce(
+                          (current, [left, right]) =>
+                            pairWith(current, left, right),
+                          {} as Record<string, string>,
+                        );
+                        writeSessionPairs(session.id, stored);
+                        setPairs(stored);
+                      })();
+                    }}
+                  >
+                    Мало времени
+                  </Button>
                 ) : null}
               </div>
             ) : null}

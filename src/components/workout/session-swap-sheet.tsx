@@ -136,7 +136,7 @@ export function SessionSwapSheet({
         className="shrink-0"
         disabled={disabled}
         aria-label="Чем заменить"
-          onClick={() => {
+        onClick={() => {
           haptic("tap");
           setKept(null);
           setOpen(true);
@@ -197,27 +197,27 @@ export function SessionSwapSheet({
             </>
           )}
           {kept ? null : (
-          <div className="flex flex-col gap-2">
-            {options.map((option) => (
-              <Button
-                key={option.exerciseId}
-                type="button"
-                variant="outline"
-                className="h-auto min-h-12 justify-start py-2 text-left text-base"
-                disabled={pendingId != null}
-                onClick={() => void pick(option.exerciseId, option.name)}
-              >
-                <span className="flex min-w-0 flex-col items-start">
-                  <span>{option.name}</span>
-                  {option.line ? (
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {option.line}
-                    </span>
-                  ) : null}
-                </span>
-              </Button>
-            ))}
-          </div>
+            <div className="flex flex-col gap-2">
+              {options.map((option) => (
+                <Button
+                  key={option.exerciseId}
+                  type="button"
+                  variant="outline"
+                  className="h-auto min-h-12 justify-start py-2 text-left text-base"
+                  disabled={pendingId != null}
+                  onClick={() => void pick(option.exerciseId, option.name)}
+                >
+                  <span className="flex min-w-0 flex-col items-start">
+                    <span>{option.name}</span>
+                    {option.line ? (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {option.line}
+                      </span>
+                    ) : null}
+                  </span>
+                </Button>
+              ))}
+            </div>
           )}
         </SheetFrame>
       ) : null}

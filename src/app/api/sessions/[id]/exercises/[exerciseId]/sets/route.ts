@@ -10,11 +10,7 @@ export const POST = sessionRoute(
   async (session, _request, context: RouteContext) => {
     const { id, exerciseId } = await context.params;
     try {
-      const detail = await appendSessionWorkSet(
-        session.userId,
-        id,
-        exerciseId,
-      );
+      const detail = await appendSessionWorkSet(session.userId, id, exerciseId);
       if (!detail) {
         return jsonError("Тренировка не найдена.", 404);
       }

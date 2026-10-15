@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 
-import { plateDeltaLine, platesLine, platesPerSide } from "@/lib/workout/plates";
+import {
+  plateDeltaLine,
+  platesLine,
+  platesPerSide,
+} from "@/lib/workout/plates";
 
 assert.deepEqual(platesPerSide(60), [20]);
 assert.deepEqual(platesPerSide(100), [25, 15]);

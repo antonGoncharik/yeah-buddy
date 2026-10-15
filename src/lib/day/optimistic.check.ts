@@ -217,11 +217,7 @@ if (fromMeal && toMeal) {
   };
   const itemId = seeded.meals[0]?.items[0]?.id ?? "";
   const moved = withMovedItem(seeded, itemId, toMeal.id);
-  assertEqual(
-    moved.meals[0]?.items.length,
-    0,
-    "item leaves the first meal",
-  );
+  assertEqual(moved.meals[0]?.items.length, 0, "item leaves the first meal");
   assertEqual(moved.meals[1]?.items[0]?.meal_id, toMeal.id, "item lands");
 }
 
