@@ -14,6 +14,7 @@ import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
+import { validateSessionBeforeComplete } from "@/lib/workout/session-complete-validate";
 import {
   completeSessionLocally,
   preferLiveCompleted,
@@ -86,6 +87,13 @@ export function useSessionActions({
       feel: sentFeel,
       sets: completeSetOverrides(current, drafts),
     };
+    try {
+      validateSessionBeforeComplete(current, body);
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      return;
+    }
     const local = completeSessionLocally(current, body);
     const previous = current;
     writeCompletedCaches(sessionUrl, local);

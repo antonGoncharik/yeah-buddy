@@ -20,6 +20,11 @@ import {
   clearSkipTemplateIds,
   ensureWorkoutSettings,
 } from "@/lib/workout/settings";
+import {
+  resolveSetActuals,
+  shouldSkipSetOnComplete,
+  validateSessionBeforeComplete,
+} from "@/lib/workout/session-complete-validate";
 import { applyTrackProgressOnComplete } from "@/lib/workout/track-progress-apply";
 
 export function sessionBlocksSetPatch(
@@ -160,6 +165,8 @@ export async function completeSessionAsPlanned(
     return null;
   }
 
+  validateSessionBeforeComplete(detail, input);
+
   const overrides = new Map(
     (input.sets ?? []).map((set) => [set.id, set] as const),
   );
@@ -168,30 +175,12 @@ export async function completeSessionAsPlanned(
   for (const item of detail.exercises) {
     for (const set of item.sets) {
       const override = overrides.get(set.id);
-      const actual_weight =
-        override?.actual_weight !== undefined
-          ? override.actual_weight
-          : (set.actual_weight ?? set.planned_weight);
-      const actual_reps =
-        override?.actual_reps !== undefined
-          ? override.actual_reps
-          : (set.actual_reps ?? set.planned_reps);
-      const actual_seconds =
-        override?.actual_seconds !== undefined
-          ? override.actual_seconds
-          : (set.actual_seconds ?? set.planned_seconds);
-      const actual_rir =
-        override?.actual_rir !== undefined
-          ? override.actual_rir
-          : set.actual_rir;
-
-      // «По самочувствию» sets may have no planned weight; the lifter fills it in.
-      if (
-        (actual_weight == null || actual_weight <= 0) &&
-        set.planned_weight != null
-      ) {
-        throw new Error("Напиши фактический вес.");
+      if (shouldSkipSetOnComplete(set, override)) {
+        continue;
       }
+
+      const { actual_weight, actual_reps, actual_seconds, actual_rir } =
+        resolveSetActuals(set, override);
 
       const updated = await supabase
         .from("workout_sets")

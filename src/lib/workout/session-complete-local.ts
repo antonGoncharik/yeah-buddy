@@ -1,4 +1,9 @@
 import type { SessionDetail, SessionFeel } from "@/lib/types";
+import {
+  resolveSetActuals,
+  shouldSkipSetOnComplete,
+  validateSessionBeforeComplete,
+} from "@/lib/workout/session-complete-validate";
 import type { CompleteSessionInput } from "@/lib/workout/session-schema";
 
 /** A feel chosen while finish is still saving beats the stale reply. */
@@ -95,6 +100,8 @@ export function completeSessionLocally(
   detail: SessionDetail,
   input: CompleteSessionInput = {},
 ): SessionDetail {
+  validateSessionBeforeComplete(detail, input);
+
   const overrides = new Map(
     (input.sets ?? []).map((set) => [set.id, set] as const),
   );
@@ -111,24 +118,17 @@ export function completeSessionLocally(
       ...item,
       sets: item.sets.map((set) => {
         const override = overrides.get(set.id);
+        if (shouldSkipSetOnComplete(set, override)) {
+          return set;
+        }
+        const { actual_weight, actual_reps, actual_seconds, actual_rir } =
+          resolveSetActuals(set, override);
         return {
           ...set,
-          actual_weight:
-            override?.actual_weight !== undefined
-              ? override.actual_weight
-              : (set.actual_weight ?? set.planned_weight),
-          actual_reps:
-            override?.actual_reps !== undefined
-              ? override.actual_reps
-              : (set.actual_reps ?? set.planned_reps),
-          actual_seconds:
-            override?.actual_seconds !== undefined
-              ? override.actual_seconds
-              : (set.actual_seconds ?? set.planned_seconds),
-          actual_rir:
-            override?.actual_rir !== undefined
-              ? override.actual_rir
-              : set.actual_rir,
+          actual_weight,
+          actual_reps,
+          actual_seconds,
+          actual_rir,
           is_completed: true,
           logged: override !== undefined || set.logged,
         };
