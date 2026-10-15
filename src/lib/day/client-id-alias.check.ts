@@ -5,7 +5,9 @@ import {
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   if (actual !== expected) {
-    throw new Error(`${label}: got ${String(actual)}, expected ${String(expected)}`);
+    throw new Error(
+      `${label}: got ${String(actual)}, expected ${String(expected)}`,
+    );
   }
 }
 
@@ -32,8 +34,4 @@ assertEqual(
   "real-meal",
   "aliases survive a temp meal id",
 );
-assertEqual(
-  resolveClientIdAlias("other"),
-  "other",
-  "unknown ids pass through",
-);
+assertEqual(resolveClientIdAlias("other"), "other", "unknown ids pass through");

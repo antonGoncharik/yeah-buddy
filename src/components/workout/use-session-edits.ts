@@ -13,8 +13,8 @@ import { withSetLogged } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 import { raiseMaxConfirmMessage } from "@/lib/workout/session-raise";
 import type { PatchSetInput } from "@/lib/workout/session-schema";
-import { readEaseSoreResult } from "@/lib/workout/sore";
 import { readShortResult } from "@/lib/workout/session-short";
+import { readEaseSoreResult } from "@/lib/workout/sore";
 
 export function useSessionEdits({
   detail,

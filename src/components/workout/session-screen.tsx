@@ -130,10 +130,7 @@ export function SessionScreen() {
   const focusExerciseId = detail
     ? (restExerciseFor(detail, openSetIds) ?? rest.exerciseId)
     : rest.exerciseId;
-  const loadTarget = restLoadTargetKg(
-    detail?.exercises ?? [],
-    focusExerciseId,
-  );
+  const loadTarget = restLoadTargetKg(detail?.exercises ?? [], focusExerciseId);
 
   return (
     <div className="flex flex-col gap-4">

@@ -31,21 +31,28 @@ export function parseSetUtterance(raw: string): ParsedSetUtterance | null {
   const repsMatch = text.match(/(?:на|×|x|х)\s*(\d+(?:[.,]\d+)?)/);
   let reps = repsMatch ? numberAt(repsMatch[1] ?? "") : null;
   const repsFromNa = repsMatch != null;
-  if (weight == null && !repsFromNa) {
-    const leading = text.match(/(\d+(?:[.,]\d+)?)/);
+  if (weight == null) {
+    const weightText =
+      repsFromNa && repsMatch?.index != null
+        ? text.slice(0, repsMatch.index)
+        : text;
+    const leading = weightText.match(/(\d+(?:[.,]\d+)?)/);
     const leadingValue = leading ? numberAt(leading[1] ?? "") : null;
     const secondsValue = secondsMatch ? numberAt(secondsMatch[1] ?? "") : null;
     const rirValue = rirMatch ? numberAt(rirMatch[1] ?? "") : null;
     if (
       leadingValue != null &&
       leadingValue !== secondsValue &&
-      leadingValue !== rirValue
+      leadingValue !== rirValue &&
+      (!repsFromNa || weightText.trim() !== "")
     ) {
       weight = leadingValue;
     }
   }
 
-  const repsWord = text.match(/(\d+(?:[.,]\d+)?)\s*(?:повтор|раз)\b/);
+  const repsWord = text.match(
+    /(\d+(?:[.,]\d+)?)\s*(?:повтор(?:ов|а)?|раз(?:а)?)/,
+  );
   if (reps == null && repsWord) {
     const spoken = numberAt(repsWord[1] ?? "");
     if (spoken != null) {

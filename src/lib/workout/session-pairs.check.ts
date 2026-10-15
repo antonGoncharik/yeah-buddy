@@ -18,7 +18,10 @@ assertEqual(paired.bench, "row", "bench points at the row");
 assertEqual(paired.row, "bench", "the row points back");
 assertEqual(forgetPair(paired, "bench"), {}, "unpairing clears both sides");
 assertEqual(
-  pruneSessionPairs({ bench: "row", row: "bench", dead: "curl" }, new Set(["bench", "row"])),
+  pruneSessionPairs(
+    { bench: "row", row: "bench", dead: "curl" },
+    new Set(["bench", "row"]),
+  ),
   paired,
   "prune drops stale exercise ids",
 );

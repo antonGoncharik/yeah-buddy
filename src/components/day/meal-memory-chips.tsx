@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cachedGet, subscribeJson } from "@/lib/api-cache";
-import { resolveClientIdAlias } from "@/lib/day/client-id-alias";
 import { daysUrl, readCachedDay } from "@/lib/day/cache";
-import { isTempId } from "@/lib/day/optimistic";
+import { resolveClientIdAlias } from "@/lib/day/client-id-alias";
 import { shiftIsoDate } from "@/lib/day/dates";
+import { isTempId } from "@/lib/day/optimistic";
 import { readDay } from "@/lib/day/today-payload";
 import {
   todayOtherMealChips,
@@ -128,9 +128,10 @@ function ChipGroup({
 }
 
 function resolveMeal(
-  meals: ReadonlyArray<{ id: string; meal_type: MealType }>,
+  today: ReturnType<typeof readCachedDay>,
   mealId: string,
-): { id: string; meal_type: MealType } | null {
+): NonNullable<ReturnType<typeof readCachedDay>>["meals"][number] | null {
+  const meals = today?.meals ?? [];
   const direct = meals.find((item) => item.id === mealId);
   if (direct) {
     return direct;
@@ -157,7 +158,7 @@ function chipsFor(
 ): { yesterday: Chip[]; today: Chip[] } {
   const today = readCachedDay(date);
   const prior = readCachedDay(shiftIsoDate(date, -1));
-  const meal = resolveMeal(today?.meals ?? [], mealId);
+  const meal = resolveMeal(today, mealId);
   if (!meal) {
     return { yesterday: [], today: [] };
   }

@@ -1,6 +1,8 @@
 const KEY = "yeah-buddy-id-alias:";
 
-export function rememberClientIdAliases(map: ReadonlyMap<string, string>): void {
+export function rememberClientIdAliases(
+  map: ReadonlyMap<string, string>,
+): void {
   if (typeof sessionStorage === "undefined") {
     return;
   }
