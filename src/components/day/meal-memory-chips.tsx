@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, subscribeJson } from "@/lib/api-cache";
+import { resolveClientIdAlias } from "@/lib/day/client-id-alias";
 import { daysUrl, readCachedDay } from "@/lib/day/cache";
+import { isTempId } from "@/lib/day/optimistic";
 import { shiftIsoDate } from "@/lib/day/dates";
 import { readDay } from "@/lib/day/today-payload";
 import {
@@ -58,8 +60,15 @@ export function MealMemoryChips({
         () => undefined,
       ),
     ]).then(refresh);
+    const dayUrl = daysUrl(date);
+    const unsubscribe = subscribeJson((url) => {
+      if (url === dayUrl) {
+        refresh();
+      }
+    });
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, [date, mealId]);
 
@@ -118,13 +127,37 @@ function ChipGroup({
   );
 }
 
+function resolveMeal(
+  meals: ReadonlyArray<{ id: string; meal_type: MealType }>,
+  mealId: string,
+): { id: string; meal_type: MealType } | null {
+  const direct = meals.find((item) => item.id === mealId);
+  if (direct) {
+    return direct;
+  }
+  const aliased = resolveClientIdAlias(mealId);
+  if (aliased !== mealId) {
+    const mapped = meals.find((item) => item.id === aliased);
+    if (mapped) {
+      return mapped;
+    }
+  }
+  if (isTempId(mealId)) {
+    const stillTemp = meals.find((item) => item.id === mealId);
+    if (stillTemp) {
+      return stillTemp;
+    }
+  }
+  return null;
+}
+
 function chipsFor(
   date: string,
   mealId: string,
 ): { yesterday: Chip[]; today: Chip[] } {
   const today = readCachedDay(date);
   const prior = readCachedDay(shiftIsoDate(date, -1));
-  const meal = today?.meals.find((item) => item.id === mealId);
+  const meal = resolveMeal(today?.meals ?? [], mealId);
   if (!meal) {
     return { yesterday: [], today: [] };
   }

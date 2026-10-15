@@ -1,4 +1,5 @@
 import { ApiError, mutateJson, peekJson, writeJson } from "@/lib/api-cache";
+import { rememberClientIdAliases } from "@/lib/day/client-id-alias";
 import {
   daysUrl,
   readCachedDay,
@@ -214,6 +215,7 @@ function applyDayCreate(
   }
 
   const idMap = zipClientIds(clientIds, dayCreateClientIds(server));
+  rememberClientIdAliases(idMap);
   const local = readCachedDay(date);
   writeDayResponse(date, data);
   if (local) {
