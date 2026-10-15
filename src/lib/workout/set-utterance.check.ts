@@ -28,4 +28,14 @@ assertEqual(
   { weight: null, reps: 12, seconds: null, rir: 1 },
   "bodyweight reps",
 );
+assertEqual(
+  parseSetUtterance("на 6, запас 1"),
+  { weight: null, reps: 6, seconds: null, rir: 1 },
+  "reps and reserve without weight",
+);
+assertEqual(
+  parseSetUtterance("6 раз"),
+  { weight: null, reps: 6, seconds: null, rir: null },
+  "раз as reps",
+);
 assertEqual(parseSetUtterance("привет"), null, "not a set");

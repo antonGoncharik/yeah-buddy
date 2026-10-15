@@ -30,7 +30,8 @@ export function parseSetUtterance(raw: string): ParsedSetUtterance | null {
   let weight: number | null = half ? Number(half[1]) + 0.5 : null;
   const repsMatch = text.match(/(?:на|×|x|х)\s*(\d+(?:[.,]\d+)?)/);
   let reps = repsMatch ? numberAt(repsMatch[1] ?? "") : null;
-  if (weight == null) {
+  const repsFromNa = repsMatch != null;
+  if (weight == null && !repsFromNa) {
     const leading = text.match(/(\d+(?:[.,]\d+)?)/);
     const leadingValue = leading ? numberAt(leading[1] ?? "") : null;
     const secondsValue = secondsMatch ? numberAt(secondsMatch[1] ?? "") : null;
@@ -44,7 +45,7 @@ export function parseSetUtterance(raw: string): ParsedSetUtterance | null {
     }
   }
 
-  const repsWord = text.match(/(\d+(?:[.,]\d+)?)\s*повтор/);
+  const repsWord = text.match(/(\d+(?:[.,]\d+)?)\s*(?:повтор|раз)\b/);
   if (reps == null && repsWord) {
     const spoken = numberAt(repsWord[1] ?? "");
     if (spoken != null) {
@@ -53,6 +54,10 @@ export function parseSetUtterance(raw: string): ParsedSetUtterance | null {
         weight = null;
       }
     }
+  }
+
+  if (repsFromNa && weight != null && reps != null && weight === reps) {
+    weight = null;
   }
 
   if (

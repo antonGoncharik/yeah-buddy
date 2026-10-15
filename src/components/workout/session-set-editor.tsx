@@ -101,6 +101,7 @@ export function SessionSetEditor({
           disabled={disabled}
           timed={timed}
           needsWeight={set.planned_weight != null && set.planned_weight > 0}
+          draft={draft}
           onApply={onDraft}
           onCommit={
             onLog ? (patch) => onLog({ ...draft, ...patch }) : undefined

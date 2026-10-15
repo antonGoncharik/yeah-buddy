@@ -16,12 +16,14 @@ export function SessionSetVoice({
   disabled,
   timed,
   needsWeight = true,
+  draft = {},
   onApply,
   onCommit,
 }: {
   disabled: boolean;
   timed: boolean;
   needsWeight?: boolean;
+  draft?: UtterancePatch;
   onApply: (patch: UtterancePatch) => void;
   onCommit?: (patch: UtterancePatch) => void;
 }) {
@@ -38,7 +40,8 @@ export function SessionSetVoice({
     }
     const patch = draftPatch(parsed, timed);
     onApply(patch);
-    if (onCommit && utteranceReady(patch, timed, needsWeight)) {
+    const merged = { ...draft, ...patch };
+    if (onCommit && utteranceReady(merged, timed, needsWeight)) {
       onCommit(patch);
     }
     haptic("commit");
