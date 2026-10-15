@@ -12,8 +12,9 @@ import {
   shouldIncreaseMax as shouldIncreaseFromCycle,
 } from "@/lib/workout/cycle";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import { DEFAULT_WARMUP_PRESETS } from "@/lib/workout/formula-warmups";
 import {
-  EMPTY_BAR_KG,
+  plannedWarmupWeight,
   warmupSetsForWorkingWeight,
 } from "@/lib/workout/warmup-from-work";
 
@@ -84,6 +85,7 @@ export function plannedSetsFromFormula(
   kind: WorkoutKind,
   preset: FormulaPreset = "barbell",
   skipWarmup = false,
+  warmups: WorkoutFormulas["warmups"] = DEFAULT_WARMUP_PRESETS,
 ): Array<{
   set_type: "warmup" | "work";
   set_number: number;
@@ -105,7 +107,7 @@ export function plannedSetsFromFormula(
 
   const warmupSpec = skipWarmup
     ? []
-    : warmupSetsForWorkingWeight(topWork, step, preset, kind);
+    : warmupSetsForWorkingWeight(topWork, step, preset, kind, warmups);
 
   const rows = [
     ...warmupSpec.map((set) => ({ ...set, set_type: "warmup" as const })),
@@ -113,23 +115,10 @@ export function plannedSetsFromFormula(
   ];
 
   return rows.map((set, index) => {
-    const reference = set.set_type === "warmup" ? topWork : maxWeight;
-    let planned_weight = calcPlannedWeight(reference, set.percent, step);
-    if (set.set_type === "warmup" && set.seconds != null && set.reps == null) {
-      planned_weight = topWork;
-    } else if (
-      set.set_type === "warmup" &&
-      preset === "barbell" &&
-      kind === "dynamic"
-    ) {
-      planned_weight = Math.max(EMPTY_BAR_KG, planned_weight);
-      if (planned_weight >= topWork) {
-        planned_weight = Math.max(
-          EMPTY_BAR_KG,
-          floorToStep(topWork - step, step),
-        );
-      }
-    }
+    const planned_weight =
+      set.set_type === "warmup"
+        ? plannedWarmupWeight(topWork, set, step, preset, kind)
+        : calcPlannedWeight(maxWeight, set.percent, step);
     return {
       set_type: set.set_type,
       set_number: index + 1,

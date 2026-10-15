@@ -9,7 +9,7 @@ import { MAX_SETS } from "@/components/workout/formula-form";
 import { FormulaSetRow } from "@/components/workout/formula-set-row";
 import { SortableList } from "@/components/workout/sortable-list";
 import { haptic } from "@/lib/telegram/haptic";
-import type { FormulaSetSpec } from "@/lib/types";
+import type { FormulaPreset, FormulaSetSpec, WorkoutKind } from "@/lib/types";
 
 /** Editable list of sets; no card chrome so it can live inside any section. */
 export function FormulaSetList({
@@ -21,6 +21,10 @@ export function FormulaSetList({
   emptyLabel = "Пусто",
   previewMax,
   onPreviewMaxChange,
+  exampleHint,
+  referenceIsTopWork,
+  previewPreset,
+  previewKind,
   onChange,
 }: {
   sets: FormulaSetSpec[];
@@ -31,6 +35,10 @@ export function FormulaSetList({
   emptyLabel?: string;
   previewMax?: string;
   onPreviewMaxChange?: (value: string) => void;
+  exampleHint?: string;
+  referenceIsTopWork?: boolean;
+  previewPreset?: FormulaPreset;
+  previewKind?: WorkoutKind;
   onChange: (sets: FormulaSetSpec[]) => void;
 }) {
   const rowIds = useRef<string[]>([]);
@@ -96,6 +104,9 @@ export function FormulaSetList({
                 exampleMax={exampleMax}
                 exampleStep={exampleStep}
                 canRemove={allowEmpty || sets.length > 1}
+                referenceIsTopWork={referenceIsTopWork}
+                previewPreset={previewPreset}
+                previewKind={previewKind}
                 onUpdate={(patch) => updateAt(index, patch)}
                 onRemove={() => removeAt(index)}
               />
@@ -115,7 +126,11 @@ export function FormulaSetList({
       </Button>
       {previewMax != null && onPreviewMaxChange ? (
         <div className="border-t border-border/60 pt-3">
-          <FormulaExampleMax value={previewMax} onChange={onPreviewMaxChange} />
+          <FormulaExampleMax
+            value={previewMax}
+            onChange={onPreviewMaxChange}
+            hint={exampleHint}
+          />
         </div>
       ) : null}
     </div>

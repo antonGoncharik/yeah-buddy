@@ -5,9 +5,10 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { haptic } from "@/lib/telegram/haptic";
-import type { FormulaSetSpec } from "@/lib/types";
+import type { FormulaPreset, FormulaSetSpec, WorkoutKind } from "@/lib/types";
 import { calcPlannedWeight, setUsesHold } from "@/lib/workout/formulas";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { plannedWarmupWeight } from "@/lib/workout/warmup-from-work";
 
 /** One set: percent × reps/seconds, example kg underneath, X always on the right. */
 export function FormulaSetRow({
@@ -16,6 +17,9 @@ export function FormulaSetRow({
   exampleMax,
   exampleStep,
   canRemove,
+  referenceIsTopWork,
+  previewPreset,
+  previewKind,
   onUpdate,
   onRemove,
 }: {
@@ -24,6 +28,9 @@ export function FormulaSetRow({
   exampleMax: number;
   exampleStep: number;
   canRemove: boolean;
+  referenceIsTopWork?: boolean;
+  previewPreset?: FormulaPreset;
+  previewKind?: WorkoutKind;
   onUpdate: (patch: Partial<FormulaSetSpec>) => void;
   onRemove: () => void;
 }) {
@@ -31,7 +38,15 @@ export function FormulaSetRow({
   const count = hold ? set.seconds : set.reps;
   const weight =
     exampleMax > 0
-      ? calcPlannedWeight(exampleMax, set.percent, exampleStep)
+      ? referenceIsTopWork && previewPreset && previewKind
+        ? plannedWarmupWeight(
+            exampleMax,
+            set,
+            exampleStep,
+            previewPreset,
+            previewKind,
+          )
+        : calcPlannedWeight(exampleMax, set.percent, exampleStep)
       : null;
 
   return (

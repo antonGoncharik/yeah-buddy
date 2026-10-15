@@ -12,13 +12,16 @@ function times(spec: FormulaSetSpec, count: number): FormulaSetSpec[] {
   return Array.from({ length: count }, () => ({ ...spec }));
 }
 
+/** Percents of today's heaviest work set, ending one step under it. */
 export const BARBELL_WARMUP: FormulaSetSpec[] = [
   reps(50, 5),
   reps(70, 3),
   reps(80, 1),
+  reps(90, 1),
 ];
 
-export const CABLE_WARMUP: FormulaSetSpec[] = [reps(50, 5), reps(70, 3)];
+/** Short ramp for cables and dumbbells, also of the heaviest work set. */
+export const CABLE_WARMUP: FormulaSetSpec[] = [reps(50, 8), reps(75, 4)];
 
 export const STATIC_BARBELL_WARMUP: FormulaSetSpec[] = [
   reps(50, 5),

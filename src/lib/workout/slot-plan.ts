@@ -18,12 +18,12 @@ import {
   resolvePhaseSpec,
 } from "@/lib/workout/formulas";
 import { formatSignedWeight, formatWeight } from "@/lib/workout/numbers";
-import { warmupSetsForWorkingWeight } from "@/lib/workout/warmup-from-work";
+import {
+  plannedWarmupWeight,
+  warmupSetsForWorkingWeight,
+} from "@/lib/workout/warmup-from-work";
 
-/**
- * Work sets in the default scheme sit at 80 % of 1RM, so a kilogram-based
- * top set is treated as that 80 % when warmups are derived.
- */
+/** Legacy label kept for callers. Warmup percents are of the top work set. */
 export const WORK_REFERENCE_PERCENT = 80;
 
 /** Planned RIR on the last work set for each intensity tag. */
@@ -394,6 +394,7 @@ export function plannedSetsForSlot(
       ctx.kind,
       ctx.exercise.formula_preset,
       skipWarmup,
+      ctx.formulas.warmups,
     ).map<PlannedSetRow>((set) => ({
       ...set,
       planned_reps_to: null,
@@ -490,14 +491,17 @@ function warmupRows(
     ctx.exercise.weight_step,
     preset,
     ctx.kind,
+    ctx.formulas.warmups,
   );
   return sets.map<PlannedSetRow>((set) => ({
     set_type: "warmup",
     set_number: 0,
-    planned_weight: calcPlannedWeight(
+    planned_weight: plannedWarmupWeight(
       top,
-      set.percent,
+      set,
       ctx.exercise.weight_step,
+      preset,
+      ctx.kind,
     ),
     planned_reps: set.reps,
     planned_reps_to: null,

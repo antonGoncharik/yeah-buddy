@@ -87,14 +87,15 @@ const bench: SlotPlan = {
 assertEqual(
   line(plannedSetsForSlot(bench, ctx({ maxWeight: null, trackWeight: 80 }))),
   [
-    "w1:30×5",
-    "w2:47.5×3",
+    "w1:40×5",
+    "w2:55×3",
     "w3:62.5×1",
-    "w4:80×2",
+    "w4:70×1",
     "w5:80×2",
-    "w6:70×6",
+    "w6:80×2",
     "w7:70×6",
     "w8:70×6",
+    "w9:70×6",
   ],
   "bench by the line: warmup derived from the top set, no 1RM needed",
 );
@@ -128,13 +129,14 @@ const heavyPulls: SlotPlan = {
 assertEqual(
   line(plannedSetsForSlot(heavyPulls, ctx())),
   [
-    "w1:30×5",
-    "w2:47.5×3",
+    "w1:40×5",
+    "w2:55×3",
     "w3:62.5×1",
-    "w4:80×6–8",
+    "w4:70×1",
     "w5:80×6–8",
     "w6:80×6–8",
-    "w7:80×6–8 rir0",
+    "w7:80×6–8",
+    "w8:80×6–8 rir0",
   ],
   "heavy: warmup from top work weight, RIR 0 only on the last work set",
 );
@@ -147,7 +149,7 @@ assertEqual(
 
 assertEqual(
   line(plannedSetsForSlot({ ...heavyPulls, intensity: "light" }, ctx())).at(-1),
-  "w7:80×6–8 rir2",
+  "w8:80×6–8 rir2",
   "light: last work set keeps 2 in reserve",
 );
 
@@ -201,7 +203,7 @@ assertEqual(
       ctx({ formulas: withPhases, phaseKey: "volume" }),
     ),
   ).at(-1),
-  "w7:70×6–8 rir0",
+  "w8:70×6–8 rir0",
   "percent_scale 0.9 turns 80 % into 72 → 70 by the 2.5 step",
 );
 
@@ -584,7 +586,7 @@ assertEqual(
   line(
     plannedSetsForSlot({ ...ormPlan, warmup: true }, ctx({ maxWeight: 200 })),
   ).filter((row) => row.startsWith("w1")),
-  ["w1:62.5×5"],
+  ["w1:80×5"],
   "warmup for a percent slot follows the top work weight",
 );
 
