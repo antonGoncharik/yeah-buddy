@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, postJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
@@ -22,11 +22,15 @@ interface SwapOption {
 export function SessionSwapSheet({
   sessionId,
   sessionExerciseId,
+  fromExerciseId,
+  templateId,
   disabled,
   onSwap,
 }: {
   sessionId: string;
   sessionExerciseId: string;
+  fromExerciseId: string;
+  templateId: string | null;
   disabled: boolean;
   onSwap: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
 }) {
@@ -37,6 +41,12 @@ export function SessionSwapSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [kept, setKept] = useState<{
+    fromExerciseId: string;
+    exerciseId: string;
+    name: string;
+  } | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -72,15 +82,43 @@ export function SessionSwapSheet({
     };
   }, [open, sessionExerciseId, sessionId]);
 
-  async function pick(exerciseId: string) {
+  async function pick(exerciseId: string, name: string) {
     if (pendingId) {
       return;
     }
+    const from = fromExerciseId;
     setPendingId(exerciseId);
     const ok = await onSwap(sessionExerciseId, exerciseId);
     setPendingId(null);
-    if (ok) {
+    if (!ok) {
+      return;
+    }
+    if (templateId) {
+      setKept({ fromExerciseId: from, exerciseId, name });
+      return;
+    }
+    setOpen(false);
+  }
+
+  async function keepInTemplate() {
+    if (!kept || savingTemplate) {
+      return;
+    }
+    setSavingTemplate(true);
+    setError(null);
+    try {
+      await postJson(`/api/sessions/${sessionId}/template-swap`, {
+        fromExerciseId: kept.fromExerciseId,
+        exerciseId: kept.exerciseId,
+      });
+      haptic("commit");
       setOpen(false);
+      setKept(null);
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setSavingTemplate(false);
     }
   }
 
@@ -98,8 +136,9 @@ export function SessionSwapSheet({
         className="shrink-0"
         disabled={disabled}
         aria-label="Чем заменить"
-        onClick={() => {
+          onClick={() => {
           haptic("tap");
+          setKept(null);
           setOpen(true);
         }}
       >
@@ -110,22 +149,54 @@ export function SessionSwapSheet({
           title={muscle ? `Чем заменить · ${muscle}` : "Чем заменить"}
           onCancel={() => setOpen(false)}
         >
-          {loading ? (
-            <p className="text-base text-muted-foreground">
-              Смотрю ту же мышцу…
-            </p>
+          {kept ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-base leading-snug">
+                Сегодня стоит {kept.name}.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                disabled={savingTemplate}
+                onClick={() => {
+                  setOpen(false);
+                  setKept(null);
+                }}
+              >
+                Только на сегодня
+              </Button>
+              <Button
+                type="button"
+                className="min-h-11"
+                disabled={savingTemplate}
+                onClick={() => void keepInTemplate()}
+              >
+                {savingTemplate ? "Сохраняю…" : "Заменить и в шаблоне"}
+              </Button>
+            </div>
           ) : null}
           {error ? <p className="text-base text-destructive">{error}</p> : null}
-          {muscleSore ? (
-            <p className="text-base leading-snug text-muted-foreground">
-              Эта мышца болит. Замена останется в той же зоне.
-            </p>
-          ) : null}
-          {!loading && !error && options.length === 0 ? (
-            <p className="text-base text-muted-foreground">
-              На эту мышцу больше нечего подставить.
-            </p>
-          ) : null}
+          {kept ? null : (
+            <>
+              {loading ? (
+                <p className="text-base text-muted-foreground">
+                  Смотрю ту же мышцу…
+                </p>
+              ) : null}
+              {muscleSore ? (
+                <p className="text-base leading-snug text-muted-foreground">
+                  Эта мышца болит. Замена останется в той же зоне.
+                </p>
+              ) : null}
+              {!loading && !error && options.length === 0 ? (
+                <p className="text-base text-muted-foreground">
+                  На эту мышцу больше нечего подставить.
+                </p>
+              ) : null}
+            </>
+          )}
+          {kept ? null : (
           <div className="flex flex-col gap-2">
             {options.map((option) => (
               <Button
@@ -134,7 +205,7 @@ export function SessionSwapSheet({
                 variant="outline"
                 className="h-auto min-h-12 justify-start py-2 text-left text-base"
                 disabled={pendingId != null}
-                onClick={() => void pick(option.exerciseId)}
+                onClick={() => void pick(option.exerciseId, option.name)}
               >
                 <span className="flex min-w-0 flex-col items-start">
                   <span>{option.name}</span>
@@ -147,6 +218,7 @@ export function SessionSwapSheet({
               </Button>
             ))}
           </div>
+          )}
         </SheetFrame>
       ) : null}
     </>

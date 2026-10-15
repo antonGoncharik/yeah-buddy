@@ -48,6 +48,7 @@ export function SessionExerciseRow({
   onDraft,
   onRemove,
   onSwap,
+  templateId = null,
   restActive,
   onStartRest,
   onToggleSet,
@@ -76,6 +77,7 @@ export function SessionExerciseRow({
   onDraft: (setId: string, patch: Partial<SetDraft>) => void;
   onRemove?: () => void;
   onSwap?: (sessionExerciseId: string, exerciseId: string) => Promise<boolean>;
+  templateId?: string | null;
   restActive?: boolean;
   onStartRest?: () => void;
   onToggleSet?: (set: WorkoutSet) => void;
@@ -233,6 +235,8 @@ export function SessionExerciseRow({
             <SessionSwapSheet
               sessionId={item.session_id}
               sessionExerciseId={item.id}
+              fromExerciseId={item.exercise_id}
+              templateId={templateId}
               disabled={disabled}
               onSwap={onSwap}
             />

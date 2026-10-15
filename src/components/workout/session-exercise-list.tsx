@@ -148,6 +148,7 @@ export function SessionExerciseList({
               onSwap={
                 session.status === "planned" && onSwap ? onSwap : undefined
               }
+              templateId={session.template_id}
               restActive={restActive}
               onStartRest={
                 canRest && onStartRest
