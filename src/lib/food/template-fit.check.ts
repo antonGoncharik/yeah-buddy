@@ -9,6 +9,7 @@ import {
   inferRationRole,
   visibleTemplateFitItems,
 } from "@/lib/food/template-fit";
+import { mealTemplateModelInput } from "@/lib/food/template-model";
 import {
   calcMacrosFromPer100,
   type Macros,
@@ -213,6 +214,24 @@ const foodOnly = reviewVisibleTemplates(
 assert(
   foodOnly.lines.every((row) => !row.includes("трениров")),
   "gym off skips the training template",
+);
+
+const model = mealTemplateModelInput(
+  [
+    day("rest", [portion("rice", "lunch", "Рис сухой", 80)]),
+    day("training", []),
+  ],
+  goals(20, 10, 60, 20, 10, 80),
+);
+assert(model != null && model.training != null, "model sees both days");
+assert(model?.rest.items[0]?.name === "Рис сухой", "model names the food");
+assert((model?.rest.items[0]?.carbs ?? 0) > 0, "model sends carbs");
+assert(
+  mealTemplateModelInput(
+    [day("rest", []), day("training", [])],
+    goals(20, 10, 60, 20, 10, 80),
+  ) == null,
+  "empty templates are not sent",
 );
 
 console.log("template fit ok");

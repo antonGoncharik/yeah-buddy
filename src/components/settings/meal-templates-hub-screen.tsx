@@ -12,6 +12,7 @@ import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { PublishPackButton } from "@/components/share/publish-pack-button";
+import { Button } from "@/components/ui/button";
 import { cachedGet, postJson, writeJson } from "@/lib/api-cache";
 import {
   macroGoalsFromSettings,
@@ -22,6 +23,7 @@ import {
   fitGramsConfirm,
   reviewVisibleTemplates,
 } from "@/lib/food/template-audit";
+import { visibleTemplateFitItems } from "@/lib/food/template-fit";
 import { readMealTemplatesPayload } from "@/lib/meal/parse";
 import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -50,6 +52,8 @@ export function MealTemplatesHubScreen() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [applying, setApplying] = useState<RationId | null>(null);
   const [fitting, setFitting] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [modelAnswer, setModelAnswer] = useState<string | null>(null);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
 
@@ -131,6 +135,7 @@ export function MealTemplatesHubScreen() {
         throw new Error(LOAD_FAILED);
       }
       setTemplates(list);
+      setModelAnswer(null);
       writeJson("/api/meal-templates", { templates: list });
       for (const template of list) {
         writeCachedTemplate(template.day_type, template);
@@ -177,6 +182,7 @@ export function MealTemplatesHubScreen() {
         throw new Error(LOAD_FAILED);
       }
       setTemplates(list);
+      setModelAnswer(null);
       writeJson("/api/meal-templates", { templates: list });
       for (const template of list) {
         writeCachedTemplate(template.day_type, template);
@@ -190,7 +196,37 @@ export function MealTemplatesHubScreen() {
     }
   }
 
+  async function askModel() {
+    if (asking || fitting || applying) {
+      return;
+    }
+    setAsking(true);
+    setError(null);
+    try {
+      const data = await postJson("/api/ai/meal-template", {});
+      if (
+        data &&
+        typeof data === "object" &&
+        "answer" in data &&
+        typeof (data as { answer: unknown }).answer === "string"
+      ) {
+        setModelAnswer((data as { answer: string }).answer);
+        haptic("success");
+      } else {
+        throw new Error(LOAD_FAILED);
+      }
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setAsking(false);
+    }
+  }
+
   const goals = settings ? macroGoalsFromSettings(settings) : null;
+  const hasTemplateFood = templates.some(
+    (template) => visibleTemplateFitItems(template).length > 0,
+  );
   const review =
     settings && templates.length > 0
       ? reviewVisibleTemplates(
@@ -257,10 +293,32 @@ export function MealTemplatesHubScreen() {
             <TemplateReview
               lines={review.lines}
               fitLabel={review.fitDays.length > 0 ? "Подогнать граммы" : null}
-              disabled={fitting || applying != null}
+              disabled={fitting || applying != null || asking}
               pending={fitting}
               onFit={() => void fitTemplates()}
             />
+            {hasTemplateFood ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="h-12 w-full text-base"
+                disabled={asking || fitting || applying != null}
+                onClick={() => void askModel()}
+              >
+                {asking ? "Смотрю…" : "Оценить моделью"}
+              </Button>
+            ) : null}
+            {modelAnswer ? (
+              <p className="whitespace-pre-wrap text-base leading-snug">
+                {modelAnswer}
+              </p>
+            ) : null}
+            {hasTemplateFood ? (
+              <p className="text-sm text-muted-foreground">
+                Модель смотрит состав обоих дней. Это один вопрос из лимита
+                «Спросить».
+              </p>
+            ) : null}
           </section>
         ) : null}
 
