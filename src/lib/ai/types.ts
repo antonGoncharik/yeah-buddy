@@ -1,5 +1,5 @@
 import type { ReviewRange } from "@/lib/ai/range";
-import type { FoodShare } from "@/lib/days";
+import type { FoodShare, MealPlate } from "@/lib/days";
 import type { Macros } from "@/lib/nutrition";
 
 export type ReviewCoverage = "empty" | "thin" | "ok";
@@ -110,6 +110,8 @@ export type ReviewBrief = {
     foods: FoodShare[];
     foods_rest: FoodShare[];
     foods_training: FoodShare[];
+    meals_rest: MealPlate[];
+    meals_training: MealPlate[];
   };
   gym: {
     completed: number;

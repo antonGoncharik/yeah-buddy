@@ -1,5 +1,5 @@
 import type { ReviewRange } from "@/lib/ai/range";
-import type { FoodShare } from "@/lib/days";
+import type { FoodShare, MealPlate } from "@/lib/days";
 import type {
   CurrentMacroState,
   DayHistoryRow,
@@ -20,6 +20,8 @@ export type ReviewSource = {
   foods: FoodShare[];
   foodsRest?: FoodShare[];
   foodsTraining?: FoodShare[];
+  mealsRest?: MealPlate[];
+  mealsTraining?: MealPlate[];
   macro: CurrentMacroState;
   progress: StrengthProgress;
   seedWeight?: number | null;

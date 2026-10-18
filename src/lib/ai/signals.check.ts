@@ -118,7 +118,9 @@ const lines = buildSignals({
     protein_per_kg: null,
     protein_per_kg_target: null,
   },
-  foods: [{ name: "Творог", protein: 80, kcal: 400, grams: 400 }],
+  foods: [
+    { name: "Творог", protein: 80, fat: 20, carbs: 8, kcal: 400, grams: 400 },
+  ],
   gym: {
     completed: 3,
     skipped: 1,
@@ -748,6 +750,11 @@ assertEqual(
   REVIEW_SYSTEM_PROMPT.includes("foods_training"),
   true,
   "prompt reads the training plate",
+);
+assertEqual(
+  REVIEW_SYSTEM_PROMPT.includes("meals_training"),
+  true,
+  "prompt reads meal plates",
 );
 assertEqual(REVIEW_SYSTEM_PROMPT.includes("sex —"), true, "prompt reads sex");
 assertEqual(REVIEW_SYSTEM_PROMPT.includes("goal —"), true, "prompt reads goal");

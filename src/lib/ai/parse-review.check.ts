@@ -76,6 +76,8 @@ const brief = {
     foods: [],
     foods_rest: [],
     foods_training: [],
+    meals_rest: [],
+    meals_training: [],
     waist: null,
   },
   gym: {

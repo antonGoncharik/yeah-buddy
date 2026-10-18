@@ -156,6 +156,8 @@ export function buildReviewBrief(source: ReviewSource): ReviewBrief {
       foods: source.foods,
       foods_rest: source.foodsRest ?? [],
       foods_training: source.foodsTraining ?? [],
+      meals_rest: source.mealsRest ?? [],
+      meals_training: source.mealsTraining ?? [],
     },
     gym: {
       completed: gymStats.count,

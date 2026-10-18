@@ -53,6 +53,8 @@ export async function loadReviewSource(
     foods: foods.all,
     foodsRest: foods.rest,
     foodsTraining: foods.training,
+    mealsRest: foods.mealsRest,
+    mealsTraining: foods.mealsTraining,
     macro,
     progress,
     seedWeight: seedWeight?.weight ?? null,

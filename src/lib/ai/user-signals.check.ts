@@ -39,6 +39,8 @@ function emptyBrief(): ReviewBrief {
       foods: [],
       foods_rest: [],
       foods_training: [],
+      meals_rest: [],
+      meals_training: [],
     },
     gym: {
       completed: 0,

@@ -8,6 +8,7 @@ import {
   parseHalves,
   parseLastRecap,
   parseMaxRow,
+  parseMealPlate,
   parseMeasure,
   parseNamedCount,
   parseNamedPercent,
@@ -84,6 +85,11 @@ export function parseReviewBrief(value: unknown): ReviewBrief | null {
       foods_training: mapRecordList(
         value.nutrition.foods_training,
         parseFoodShare,
+      ),
+      meals_rest: mapRecordList(value.nutrition.meals_rest, parseMealPlate),
+      meals_training: mapRecordList(
+        value.nutrition.meals_training,
+        parseMealPlate,
       ),
     },
     gym: {

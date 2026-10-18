@@ -7,7 +7,7 @@ import type {
   ReviewSessionRow,
   ReviewWeekTonnage,
 } from "@/lib/ai/types";
-import type { Macros } from "@/lib/nutrition";
+import { isMealType, type Macros } from "@/lib/nutrition";
 import { isRecord } from "@/lib/read";
 
 export function stringList(value: unknown): string[] {
@@ -339,7 +339,24 @@ export function parseFoodShare(
   return {
     name: row.name,
     protein: toNumber(row.protein),
+    fat: toNumber(row.fat),
+    carbs: toNumber(row.carbs),
     kcal: toNumber(row.kcal),
     grams: toNumber(row.grams),
+  };
+}
+
+export function parseMealPlate(
+  row: Record<string, unknown>,
+): ReviewBrief["nutrition"]["meals_rest"][number] | null {
+  if (!isMealType(row.meal)) {
+    return null;
+  }
+  return {
+    meal: row.meal,
+    protein: toNumber(row.protein),
+    fat: toNumber(row.fat),
+    carbs: toNumber(row.carbs),
+    kcal: toNumber(row.kcal),
   };
 }

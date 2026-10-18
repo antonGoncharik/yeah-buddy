@@ -46,6 +46,7 @@ export {
   type FoodShare,
   type FoodShareSplit,
   listFoodSharesInRange,
+  type MealPlate,
 } from "@/lib/day/food-shares";
 export { listDayHistory, listDaysInRange } from "@/lib/day/history";
 export { type DayWithMeals, mapDayWithMeals } from "@/lib/day/map";
