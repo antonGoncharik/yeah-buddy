@@ -19,6 +19,7 @@ import {
 import {
   dateHasFoodRecord,
   datePriorFoodLogDays,
+  nextCircleName,
 } from "@/lib/telegram/reminder-facts";
 import {
   inQuietHours,
@@ -41,6 +42,10 @@ const NOTICE_PAGE = 100;
 
 /** A weigh-in nudge after this many full days without a logged weight. */
 export const WEIGH_IN_AFTER_DAYS = 4;
+/** A gym nudge once the break reaches this many days. One message, not daily. */
+export const GYM_NUDGE_AFTER_DAYS = 6;
+/** Breaks longer than this are a pause, not a forgotten session. */
+const GYM_NUDGE_MAX_DAYS = 8;
 /** How long a missed fixed-hour notice may still go out. */
 const NOTICE_CATCHUP_HOURS = 3;
 
@@ -204,6 +209,28 @@ async function deliverScheduledNotice(
     }
   }
 
+  if (noticeHourDue(clock.hour, 18)) {
+    const gap = await daysSinceGym(userId, clock.date);
+    if (
+      gap != null &&
+      gap >= GYM_NUDGE_AFTER_DAYS &&
+      gap <= GYM_NUDGE_MAX_DAYS
+    ) {
+      const name = await nextCircleName(userId);
+      if (name) {
+        const ago = `${gap} ${pluralDays(gap)}`;
+        await sendNotice(
+          result,
+          userId,
+          telegramId,
+          "gym",
+          clock.date,
+          async () => `${ago} без зала. Дальше «${name}».`,
+        );
+      }
+    }
+  }
+
   const age = onboardingAgeDays(onboarded, clock.date, timezone);
   if (
     row.streak_reminder_enabled !== false &&
@@ -308,11 +335,40 @@ export async function daysSinceWeight(
   if (typeof last !== "string") {
     return null;
   }
-  const [fromYear, fromMonth, fromDay] = last
-    .slice(0, 10)
-    .split("-")
-    .map(Number);
-  const [toYear, toMonth, toDay] = date.split("-").map(Number);
+  return fullDaysBetween(last.slice(0, 10), date);
+}
+
+/**
+ * Full days since the last completed session, today excluded. Null when the
+ * user never trained or the lookup failed.
+ */
+export async function daysSinceGym(
+  userId: string,
+  date: string,
+): Promise<number | null> {
+  const supabase = createSupabaseServerClient();
+  const rows = await supabase
+    .from("workout_sessions")
+    .select("session_date")
+    .eq("user_id", userId)
+    .eq("status", "completed")
+    .lt("session_date", date)
+    .order("session_date", { ascending: false })
+    .limit(1);
+  if (rows.error) {
+    return null;
+  }
+  const last = rows.data?.[0]?.session_date;
+  if (typeof last !== "string") {
+    return null;
+  }
+  return fullDaysBetween(last.slice(0, 10), date);
+}
+
+/** Days strictly between two ISO dates, or null when the span is not usable. */
+function fullDaysBetween(fromDate: string, toDate: string): number | null {
+  const [fromYear, fromMonth, fromDay] = fromDate.split("-").map(Number);
+  const [toYear, toMonth, toDay] = toDate.split("-").map(Number);
   const from = Date.UTC(fromYear, fromMonth - 1, fromDay);
   const to = Date.UTC(toYear, toMonth - 1, toDay);
   if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) {

@@ -585,9 +585,9 @@ async function sundayPack(
     const secret = getServerEnv().SESSION_SECRET;
     const muscleWeek = await loadMuscleWeekCard(userId);
     if (muscleWeek) {
-      const recap = `${muscleWeekCardCaption(muscleWeek)}\n${weekRecapText(snapshot.brief.signals)}`;
+      // Numbers wait for Monday's digest, so Sunday is the card only.
       return {
-        recap,
+        recap: muscleWeekCardCaption(muscleWeek),
         query: encodeMuscleWeekCard(muscleWeek, secret),
         card: null,
       };
