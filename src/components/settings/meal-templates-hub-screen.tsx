@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { RationCards } from "@/components/food/ration-cards";
+import { TemplateReview } from "@/components/food/template-review";
 import { AppHeader } from "@/components/layout/app-header";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { DayTypeMark } from "@/components/layout/day-type-mark";
@@ -17,10 +18,15 @@ import {
   type RationId,
   rationById,
 } from "@/lib/food/ration";
+import {
+  fitGramsConfirm,
+  reviewVisibleTemplates,
+} from "@/lib/food/template-audit";
 import { readMealTemplatesPayload } from "@/lib/meal/parse";
 import { writeCachedTemplate } from "@/lib/meal/template-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { DAY_TEMPLATE_TITLES, formatKcal, sumMealItems } from "@/lib/nutrition";
+import { gymFeaturesEnabled } from "@/lib/settings/gym-mode";
 import { readSettingsPayload } from "@/lib/settings/map";
 import { haptic } from "@/lib/telegram/haptic";
 import type { DayType, MealTemplateDetail, UserSettings } from "@/lib/types";
@@ -43,6 +49,7 @@ export function MealTemplatesHubScreen() {
   const [templates, setTemplates] = useState<MealTemplateDetail[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [applying, setApplying] = useState<RationId | null>(null);
+  const [fitting, setFitting] = useState(false);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
 
@@ -137,7 +144,61 @@ export function MealTemplatesHubScreen() {
     }
   }
 
+  async function fitTemplates() {
+    if (!settings || fitting || applying) {
+      return;
+    }
+    const review = reviewVisibleTemplates(
+      templates,
+      settings,
+      gymFeaturesEnabled(settings),
+    );
+    if (review.fitDays.length === 0) {
+      return;
+    }
+    const ok = await confirm({
+      message: fitGramsConfirm(review.fitDays.length),
+      confirmLabel: "Подогнать",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+
+    setFitting(true);
+    setError(null);
+    try {
+      const data = await postJson(
+        "/api/meal-templates/fit",
+        review.fitDays.length === 1 ? { dayType: review.fitDays[0] } : {},
+      );
+      const list = readTemplates(data);
+      if (!list) {
+        throw new Error(LOAD_FAILED);
+      }
+      setTemplates(list);
+      writeJson("/api/meal-templates", { templates: list });
+      for (const template of list) {
+        writeCachedTemplate(template.day_type, template);
+      }
+      haptic("success");
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setFitting(false);
+    }
+  }
+
   const goals = settings ? macroGoalsFromSettings(settings) : null;
+  const review =
+    settings && templates.length > 0
+      ? reviewVisibleTemplates(
+          templates,
+          settings,
+          gymFeaturesEnabled(settings),
+        )
+      : null;
 
   const visibleCards = CARDS.filter(
     (card) => settings?.gym_enabled !== false || card.dayType === "rest",
@@ -186,6 +247,22 @@ export function MealTemplatesHubScreen() {
               );
             })
           : null}
+
+        {!loading && review && review.lines.length > 0 ? (
+          <section className="flex flex-col gap-3">
+            <SectionHeading
+              title="Как собран"
+              hint="Сверка с целями. Продукты те же."
+            />
+            <TemplateReview
+              lines={review.lines}
+              fitLabel={review.fitDays.length > 0 ? "Подогнать граммы" : null}
+              disabled={fitting || applying != null}
+              pending={fitting}
+              onFit={() => void fitTemplates()}
+            />
+          </section>
+        ) : null}
 
         {!loading && templates.length > 0 ? (
           <section className="flex flex-col gap-2">

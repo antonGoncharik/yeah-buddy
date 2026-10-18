@@ -5,8 +5,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import { subscribeActionError } from "@/lib/action-error";
-import { cachedGet, deleteJson, patchJson, writeJson } from "@/lib/api-cache";
-import { readMealTemplatePayload } from "@/lib/meal/parse";
+import {
+  cachedGet,
+  deleteJson,
+  patchJson,
+  postJson,
+  writeJson,
+} from "@/lib/api-cache";
+import { fitGramsConfirm } from "@/lib/food/template-audit";
+import {
+  readMealTemplatePayload,
+  readMealTemplatesPayload,
+} from "@/lib/meal/parse";
 import {
   withRemovedTemplateItem,
   writeCachedTemplate,
@@ -38,6 +48,7 @@ export function useMealTemplateScreen(dayType: DayType) {
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [fitting, setFitting] = useState(false);
   const isTrainingDay = dayType === "training";
 
   const load = useCallback(async () => {
@@ -215,11 +226,48 @@ export function useMealTemplateScreen(dayType: DayType) {
     }
   }
 
+  async function fitGrams() {
+    if (!template || busy || fitting) {
+      return;
+    }
+    const ok = await confirm({
+      message: fitGramsConfirm(1),
+      confirmLabel: "Подогнать",
+      cancelLabel: "Оставить",
+    });
+    if (!ok) {
+      return;
+    }
+
+    setFitting(true);
+    setError(null);
+    try {
+      const data = await postJson("/api/meal-templates/fit", { dayType });
+      const list = readMealTemplatesPayload(data);
+      const loaded = list?.find((row) => row.day_type === dayType) ?? null;
+      if (!loaded) {
+        throw new Error(LOAD_FAILED);
+      }
+      setTemplate(loaded);
+      writeCachedTemplate(dayType, loaded);
+      writeJson(`/api/meal-templates/${dayType}`, { template: loaded });
+      writeJson("/api/meal-templates", { templates: list });
+      haptic("success");
+    } catch (caught) {
+      haptic("error");
+      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      setFitting(false);
+    }
+  }
+
   return {
     template,
+    settings,
     loading,
     error,
     busy,
+    fitting,
     mealTypes,
     visibleItems,
     fact,
@@ -227,6 +275,7 @@ export function useMealTemplateScreen(dayType: DayType) {
     load,
     deleteItem,
     reorderItems,
+    fitGrams,
   };
 }
 

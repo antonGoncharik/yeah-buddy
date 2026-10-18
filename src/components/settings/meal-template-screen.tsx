@@ -2,10 +2,12 @@
 
 import { DaySummary } from "@/components/day/day-summary";
 import { MealCard } from "@/components/day/meal-card";
+import { TemplateReview } from "@/components/food/template-review";
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenLoading } from "@/components/layout/screen-status";
 import { useMealTemplateScreen } from "@/components/settings/use-meal-template-screen";
 import { Button } from "@/components/ui/button";
+import { reviewVisibleTemplate } from "@/lib/food/template-audit";
 import { DAY_TEMPLATE_TITLES } from "@/lib/nutrition";
 import type { DayType } from "@/lib/types";
 
@@ -15,14 +17,19 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
     loading,
     error,
     busy,
+    fitting,
     mealTypes,
     visibleItems,
     fact,
     targets,
+    settings,
     load,
     deleteItem,
     reorderItems,
+    fitGrams,
   } = useMealTemplateScreen(dayType);
+  const review =
+    template && settings ? reviewVisibleTemplate(template, settings) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,6 +68,16 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
             <div className="animate-rise">
               <DaySummary day={targets} fact={fact} factLabel="В новом дне" />
             </div>
+
+            {review ? (
+              <TemplateReview
+                lines={review.lines}
+                fitLabel={review.canFit ? "Подогнать граммы" : null}
+                disabled={busy || fitting}
+                pending={fitting}
+                onFit={() => void fitGrams()}
+              />
+            ) : null}
 
             {mealTypes.map((mealType, index) => {
               const items = visibleItems
