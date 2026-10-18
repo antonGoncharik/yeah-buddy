@@ -8,8 +8,8 @@ export function weeklyDigestText(input: {
   proteinHit: number;
   proteinDays: number;
   gymSessions: number;
-  /** Sessions the program expected that week; 0 when there is no plan. */
-  gymPlanned: number;
+  /** Completed sessions the week before, for a like-for-like comparison. */
+  gymPrevious: number | null;
   /** This week's average minus last week's, when both weeks have weigh-ins. */
   weightDelta: number | null;
   /** New bar records inside the week. */
@@ -19,10 +19,11 @@ export function weeklyDigestText(input: {
     input.proteinDays > 0
       ? `белок ${input.proteinHit}/${input.proteinDays}`
       : "белок —";
-  const gym =
-    input.gymPlanned > 0
-      ? `зал ${input.gymSessions} из ${input.gymPlanned}`
-      : `зал ${input.gymSessions} ${pluralWorkouts(input.gymSessions)}`;
+  const gym = `зал ${input.gymSessions} ${pluralWorkouts(input.gymSessions)}`;
+  const gymCompare =
+    input.gymPrevious != null && input.gymPrevious !== input.gymSessions
+      ? ` (на прошлой неделе ${input.gymPrevious})`
+      : "";
   const weight =
     input.weightDelta != null && Math.abs(input.weightDelta) >= 0.05
       ? `, вес ${formatSignedBodyWeight(input.weightDelta)} кг к прошлой неделе`
@@ -31,7 +32,7 @@ export function weeklyDigestText(input: {
     input.records > 0
       ? `, ${input.records} ${input.records === 1 ? "рекорд" : "рекорда"}`
       : "";
-  return `Неделя: ${protein}, ${gym}${weight}${records}`;
+  return `Неделя: ${protein}, ${gym}${gymCompare}${weight}${records}`;
 }
 
 export async function buildWeeklyDigestForUser(
@@ -61,15 +62,16 @@ export async function buildWeeklyDigestForUser(
     }
   }
 
-  const sessions = snapshot.brief.gym.sessions.filter(
-    (session) => session.date >= from && session.date <= to,
-  );
-  const gymSessions = sessions.filter(
-    (session) => session.status === "completed",
-  ).length;
-  // Completed plus skipped: a skipped day was on the plan, an open one is not
-  // settled yet. The brief only carries those two statuses.
-  const gymPlanned = sessions.length;
+  const completedIn = (start: string, end: string): number =>
+    snapshot.brief.gym.sessions.filter(
+      (session) =>
+        session.status === "completed" &&
+        session.date >= start &&
+        session.date <= end,
+    ).length;
+  const gymSessions = completedIn(from, to);
+  const priorTo = shiftIsoDate(from, -1);
+  const gymPrevious = completedIn(priorFrom, priorTo);
 
   const weekWeights = averageWeight(snapshot.brief.nutrition.days, from, to);
   const priorWeights = averageWeight(
@@ -90,7 +92,7 @@ export async function buildWeeklyDigestForUser(
     proteinHit,
     proteinDays,
     gymSessions,
-    gymPlanned,
+    gymPrevious,
     weightDelta,
     records,
   });

@@ -51,6 +51,8 @@ assertEqual(calcPlannedWeight(76, 115, 1), 87, "calc 76 115");
 assertEqual(calcPlannedWeight(80, 115, 1), 92, "calc 80 115");
 assertEqual(increaseMax(220, 5, 2.5), 230, "220 +5% шаг 2.5");
 assertEqual(increaseMax(70, 5, 1), 73, "70 +5% шаг 1");
+assertEqual(increaseMax(40, 5, 2.5), 42.5, "small max still moves one step");
+assertEqual(increaseMax(100, 0, 2.5), 100, "zero percent stays put");
 assertEqual(
   previewMaxForPhase([], "ramp", 220, 5, 2.5),
   220,

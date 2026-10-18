@@ -14,12 +14,15 @@ const digest = weeklyDigestText({
   proteinHit: 5,
   proteinDays: 7,
   gymSessions: 3,
-  gymPlanned: 4,
+  gymPrevious: 4,
   weightDelta: -0.4,
   records: 1,
 });
 assert(digest.includes("5/7"), "digest counts protein days");
-assert(digest.includes("3 из 4"), "digest shows sessions against the plan");
+assert(
+  digest.includes("на прошлой неделе 4"),
+  "digest compares with the week before",
+);
 assert(digest.includes("прошлой неделе"), "digest compares week averages");
 assert(digest.includes("рекорд"), "digest names a new record");
 assert(
@@ -27,11 +30,11 @@ assert(
     proteinHit: 0,
     proteinDays: 0,
     gymSessions: 2,
-    gymPlanned: 0,
+    gymPrevious: 2,
     weightDelta: null,
     records: 0,
   }).includes("из"),
-  "no plan means no fraction",
+  "a flat week adds no comparison",
 );
 
 export default Promise.resolve();

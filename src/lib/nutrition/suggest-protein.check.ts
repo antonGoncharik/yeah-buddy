@@ -1,4 +1,5 @@
 import {
+  dailyGoalShiftKcal,
   macroGoalsForTargetKcal,
   suggestFatGrams,
   suggestMacroGoals,
@@ -67,6 +68,21 @@ assertEqual(
   "80 × 33 maintenance",
 );
 assertEqual(
+  dailyGoalShiftKcal({ weightKg: 80, goal: "lose", goal_pace: "normal" }),
+  -440,
+  "80 kg normal cut is capped at 0.4 kg a week",
+);
+assertEqual(
+  dailyGoalShiftKcal({ weightKg: 80, goal: "lose", goal_pace: "fast" }),
+  -660,
+  "fast cut stays inside the 0.7 kg cap",
+);
+assertEqual(
+  dailyGoalShiftKcal({ weightKg: 60, goal: "lose", goal_pace: "slow" }),
+  -275,
+  "light slow cut is lifted to 0.25 kg a week",
+);
+assertEqual(
   suggestRestKcal({
     sex: "male",
     weightKg: 80,
@@ -74,17 +90,7 @@ assertEqual(
     goal_pace: "normal",
   }),
   2200,
-  "kcal/kg cut subtracts a normal pace",
-);
-assertEqual(
-  suggestRestKcal({
-    sex: "male",
-    weightKg: 80,
-    goal: "lose",
-    goal_pace: "slow",
-  }),
-  2420,
-  "slow cut is a smaller deficit",
+  "carb floor keeps the rest goal from falling further",
 );
 assertEqual(
   suggestRestKcal({
@@ -97,7 +103,7 @@ assertEqual(
     birth_year: 1996,
   }),
   2230,
-  "mifflin maintenance minus a normal cut",
+  "mifflin maintenance minus the capped cut",
 );
 
 const goals = suggestMacroGoals({

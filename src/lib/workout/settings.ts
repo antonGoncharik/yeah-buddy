@@ -21,7 +21,7 @@ import {
 export { mapWorkoutSettings } from "@/lib/workout/map-settings";
 
 export const workoutSettingsPatchSchema = z.object({
-  max_increase_percent: z.number().finite().min(0).optional(),
+  max_increase_percent: z.number().finite().min(0).max(10).optional(),
   formulas: formulasSchema.optional(),
 });
 

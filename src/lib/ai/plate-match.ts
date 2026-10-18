@@ -235,7 +235,7 @@ function draftFromLump(row: PlateModelItem): PlateDraftLump | null {
 function portionFromModel(row: PlateModelItem): LumpMealItemInput | null {
   const portion = coalesceMacros(row.protein, row.fat, row.carbs);
   if (portion) {
-    return clampPortion({ name: row.name, ...portion });
+    return clampPortion({ name: row.name, ...portion }, row.grams);
   }
 
   if (row.grams <= 0) {
@@ -251,12 +251,15 @@ function portionFromModel(row: PlateModelItem): LumpMealItemInput | null {
     return null;
   }
 
-  return clampPortion({
-    name: row.name,
-    protein: (per100.protein * row.grams) / 100,
-    fat: (per100.fat * row.grams) / 100,
-    carbs: (per100.carbs * row.grams) / 100,
-  });
+  return clampPortion(
+    {
+      name: row.name,
+      protein: (per100.protein * row.grams) / 100,
+      fat: (per100.fat * row.grams) / 100,
+      carbs: (per100.carbs * row.grams) / 100,
+    },
+    row.grams,
+  );
 }
 
 function coalesceMacros(
@@ -280,13 +283,29 @@ function coalesceMacros(
   return next;
 }
 
-function clampPortion(input: LumpMealItemInput): LumpMealItemInput | null {
+/** Cooked meat tops out near here; anything denser is a misread portion. */
+const PROTEIN_PER_100_MAX = 45;
+
+function clampPortion(
+  input: LumpMealItemInput,
+  grams: number,
+): LumpMealItemInput | null {
   if (
     input.protein > LUMP_MACRO_MAX ||
     input.fat > LUMP_MACRO_MAX ||
     input.carbs > LUMP_MACRO_MAX
   ) {
     return null;
+  }
+
+  if (grams > 0) {
+    // Macros are grams of food. They cannot outweigh the portion itself.
+    if (input.protein + input.fat + input.carbs > grams) {
+      return null;
+    }
+    if ((input.protein / grams) * 100 > PROTEIN_PER_100_MAX) {
+      return null;
+    }
   }
 
   return input;

@@ -40,7 +40,12 @@ export function increaseMax(
   percent: number,
   step: number,
 ): number {
-  return floorToStep(maxWeight * (1 + percent / 100), step);
+  const raised = floorToStep(maxWeight * (1 + percent / 100), step);
+  // A small max rounds back to itself. A real increase is at least one step.
+  if (percent > 0 && step > 0 && raised <= maxWeight) {
+    return floorToStep(maxWeight + step, step);
+  }
+  return raised;
 }
 
 /** Example kg on the formulas screen: later phases may already use the raised max. */

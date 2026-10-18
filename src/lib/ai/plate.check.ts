@@ -181,6 +181,22 @@ const dropped = resolvePlateItems(
 );
 assertEqual(dropped.length, 0, "drop without macros");
 
+const heavierThanPortion = resolvePlateItems(
+  [raw({ name: "Курица", grams: 100, protein: 80, fat: 10, carbs: 20 })],
+  catalogFoods,
+);
+assertEqual(
+  heavierThanPortion.length,
+  0,
+  "macros heavier than the portion are dropped",
+);
+
+const tooDense = resolvePlateItems(
+  [raw({ name: "Курица", grams: 100, protein: 60, fat: 5, carbs: 0 })],
+  catalogFoods,
+);
+assertEqual(tooDense.length, 0, "protein past 45 g per 100 g is dropped");
+
 const merged = resolvePlateItems(
   [
     raw({ catalog_i: 1, name: "творог 5%", grams: 100 }),

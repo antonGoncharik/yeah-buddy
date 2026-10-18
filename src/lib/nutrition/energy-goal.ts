@@ -15,6 +15,7 @@ import {
   type TrainingLoad,
   trainingExtraCarbsG,
 } from "@/lib/nutrition/suggest-protein";
+import { WEEKLY_KG_CAP } from "@/lib/nutrition/weekly-pace";
 import type { UserGoal, UserGoalPace, UserSex } from "@/lib/types";
 
 /** Weigh-ins this far apart before a goal offer. Two weeks, not one noisy week. */
@@ -28,12 +29,6 @@ export const ENERGY_GOAL_GAP_KCAL = 100;
 
 /** Before this we do not nudge about expenditure on Today. */
 export const ENERGY_GOAL_HINT_MIN_ACCOUNT_DAYS = 7;
-
-const WEEKLY_KG_CAP: Record<UserGoal, { min: number; max: number }> = {
-  lose: { min: 0.25, max: 0.7 },
-  keep: { min: 0, max: 0 },
-  gain: { min: 0.12, max: 0.35 },
-};
 
 /** Below this the log is too patchy to move the goal at all. */
 const OFFER_MIN_COVERAGE = 0.75;

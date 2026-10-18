@@ -7,6 +7,7 @@ import {
   referenceBodyWeightKg,
   weeklyBodyRate,
 } from "@/lib/nutrition/profile-energy";
+import { WEEKLY_KG_CAP } from "@/lib/nutrition/weekly-pace";
 import type {
   UserActivityLevel,
   UserGoal,
@@ -87,7 +88,18 @@ export function dailyGoalShiftKcal(input: {
   goal_pace?: UserGoalPace | null;
 }): number {
   const rate = weeklyBodyRate(input.goal, input.goal_pace ?? null);
-  return Math.round((input.weightKg * rate * KCAL_PER_BODY_KG) / 7);
+  if (rate === 0 || !(input.weightKg > 0)) {
+    return 0;
+  }
+  // Same kg/week bounds as the later expenditure offer, so the first goal and
+  // the corrected one aim at one pace.
+  const cap = WEEKLY_KG_CAP[input.goal];
+  const weeklyKg = Math.min(
+    cap.max,
+    Math.max(cap.min, Math.abs(rate) * input.weightKg),
+  );
+  const signed = rate < 0 ? -weeklyKg : weeklyKg;
+  return Math.round((signed * KCAL_PER_BODY_KG) / 7);
 }
 
 export const ONBOARDING_SEX_OPTIONS: Array<{

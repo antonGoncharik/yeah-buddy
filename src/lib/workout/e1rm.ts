@@ -55,5 +55,31 @@ export function e1rmFromWorkSet(set: {
   if (reps == null || reps <= 0) {
     return null;
   }
-  return estimateE1rm(weight, reps, set.actual_rir ?? set.planned_rir ?? null);
+  return estimateE1rm(weight, reps, rirForEstimate(set));
+}
+
+/**
+ * A planned reserve belongs to the planned set. Once the weight or the reps
+ * were changed and no actual reserve was logged, counting it would invent
+ * reps that were not done.
+ */
+function rirForEstimate(set: {
+  planned_weight: number | null;
+  actual_weight: number | null;
+  planned_reps: number | null;
+  actual_reps: number | null;
+  planned_rir?: number | null;
+  actual_rir?: number | null;
+}): number | null {
+  if (set.actual_rir != null) {
+    return set.actual_rir;
+  }
+  const weightChanged =
+    set.actual_weight != null && set.actual_weight !== set.planned_weight;
+  const repsChanged =
+    set.actual_reps != null && set.actual_reps !== set.planned_reps;
+  if (weightChanged || repsChanged) {
+    return 0;
+  }
+  return set.planned_rir ?? null;
 }
