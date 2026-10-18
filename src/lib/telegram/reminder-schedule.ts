@@ -1,5 +1,5 @@
-import { shiftIsoDate } from "@/lib/day/dates";
 import { getServerEnv } from "@/lib/env";
+import { pluralDays } from "@/lib/i18n/plural";
 import { onboardingAgeDays } from "@/lib/retention";
 import { pauseCovers } from "@/lib/retention/pause";
 import { disableReminders } from "@/lib/settings";
@@ -38,6 +38,23 @@ export interface ScheduledNoticeResult {
 }
 
 const NOTICE_PAGE = 100;
+
+/** A weigh-in nudge after this many full days without a logged weight. */
+export const WEIGH_IN_AFTER_DAYS = 4;
+/** How long a missed fixed-hour notice may still go out. */
+const NOTICE_CATCHUP_HOURS = 3;
+
+/**
+ * True during the due hour and a short catch-up after it, so a late cron tick
+ * or a quiet-hours overlap does not drop the notice for the whole day.
+ */
+export function noticeHourDue(
+  hour: number,
+  dueHour: number,
+  catchupHours = NOTICE_CATCHUP_HOURS,
+): boolean {
+  return hour >= dueHour && hour < dueHour + catchupHours;
+}
 
 export async function runScheduledNotices(
   now = new Date(),
@@ -125,7 +142,7 @@ async function deliverScheduledNotice(
   if (
     row.weekly_digest_enabled !== false &&
     isoWeekdaySun0(clock.date) === 1 &&
-    clock.hour === 9
+    noticeHourDue(clock.hour, 9)
   ) {
     await sendNotice(
       result,
@@ -140,7 +157,7 @@ async function deliverScheduledNotice(
   if (
     row.monthly_report_enabled !== false &&
     clock.date.endsWith("-01") &&
-    clock.hour === 9
+    noticeHourDue(clock.hour, 9)
   ) {
     await sendNotice(
       result,
@@ -171,16 +188,18 @@ async function deliverScheduledNotice(
     );
   }
 
-  if (row.weigh_in_enabled !== false && clock.hour === 8) {
-    const missing = await missingWeightStreak(userId, clock.date);
-    if (missing >= 2) {
+  if (row.weigh_in_enabled !== false && noticeHourDue(clock.hour, 8)) {
+    const missing = await daysSinceWeight(userId, clock.date);
+    if (missing != null && missing >= WEIGH_IN_AFTER_DAYS) {
+      const ago = `${missing} ${pluralDays(missing)}`;
       await sendNotice(
         result,
         userId,
         telegramId,
         "weigh_in",
         clock.date,
-        async () => "Два дня без веса — одна цифра помогает цели.",
+        async () =>
+          `${ago} без веса. Одно взвешивание — и расход посчитается точнее.`,
       );
     }
   }
@@ -188,20 +207,21 @@ async function deliverScheduledNotice(
   const age = onboardingAgeDays(onboarded, clock.date, timezone);
   if (
     row.streak_reminder_enabled !== false &&
-    clock.hour === 20 &&
+    noticeHourDue(clock.hour, 20) &&
     age != null &&
     age >= 14
   ) {
     const streak = await datePriorFoodLogDays(userId, clock.date);
     const logged = await dateHasFoodRecord(userId, clock.date);
     if (!logged && streak >= 7) {
+      const days = `${streak} ${pluralDays(streak)}`;
       await sendNotice(
         result,
         userId,
         telegramId,
         "streak",
         clock.date,
-        async () => `Серия ${streak} дней — запиши хотя бы завтрак.`,
+        async () => `Серия ${days} — запиши хоть один приём, пока она идёт.`,
       );
     }
   }
@@ -263,33 +283,42 @@ async function sendNotice(
   }
 }
 
-async function missingWeightStreak(
+/**
+ * Full days since the last logged weight, not counting today: the nudge goes
+ * out at 08:00, before a morning weigh-in. Null when no weight was ever logged
+ * or the lookup failed, so the copy never invents a gap.
+ */
+export async function daysSinceWeight(
   userId: string,
   date: string,
-): Promise<number> {
-  const dates = [date, shiftIsoDate(date, -1), shiftIsoDate(date, -2)];
+): Promise<number | null> {
   const supabase = createSupabaseServerClient();
   const rows = await supabase
     .from("days")
-    .select("date, body_weight")
+    .select("date")
     .eq("user_id", userId)
-    .in("date", dates);
+    .gt("body_weight", 0)
+    .lt("date", date)
+    .order("date", { ascending: false })
+    .limit(1);
   if (rows.error) {
-    return 0;
+    return null;
   }
-  const weighed = new Set(
-    (rows.data ?? [])
-      .filter((row) => Number(row.body_weight) > 0)
-      .map((row) => String(row.date).slice(0, 10)),
-  );
-  let missing = 0;
-  for (const day of dates) {
-    if (weighed.has(day)) {
-      break;
-    }
-    missing += 1;
+  const last = rows.data?.[0]?.date;
+  if (typeof last !== "string") {
+    return null;
   }
-  return missing;
+  const [fromYear, fromMonth, fromDay] = last
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
+  const [toYear, toMonth, toDay] = date.split("-").map(Number);
+  const from = Date.UTC(fromYear, fromMonth - 1, fromDay);
+  const to = Date.UTC(toYear, toMonth - 1, toDay);
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) {
+    return null;
+  }
+  return Math.round((to - from) / 86_400_000) - 1;
 }
 
 function quietHour(value: unknown): number | null {

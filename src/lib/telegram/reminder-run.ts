@@ -2,7 +2,10 @@ import { getReviewSnapshot } from "@/lib/ai/review";
 import { trackEvent } from "@/lib/analytics/track";
 import { mapWithConcurrency } from "@/lib/async/map-with-concurrency";
 import { getServerEnv } from "@/lib/env";
-import { eveningMacroGapLine } from "@/lib/nutrition/macro-gap-hint";
+import {
+  eveningMacroGapLine,
+  MACRO_GAP_PROTEIN_MIN,
+} from "@/lib/nutrition/macro-gap-hint";
 import { isRecord } from "@/lib/read";
 import {
   inEarlyHabitWindow,
@@ -303,6 +306,10 @@ async function processEveningCandidate(
           dateShareSnapshot(candidate.userId, reminderDate),
         ]);
   const sessionStatus = session?.status ?? null;
+  const proteinGap =
+    foodLogged &&
+    (snapshot?.targetProtein ?? 0) - (snapshot?.protein ?? 0) >
+      MACRO_GAP_PROTEIN_MIN;
   const nag = reminderText({
     foodLogged,
     gymDone: gymDoneForReminder({
@@ -318,6 +325,7 @@ async function processEveningCandidate(
         candidate.timezone,
       ),
     ),
+    proteinGap,
   });
   const sunday = await sundayPack(candidate.userId, reminderDate);
   const recap = sunday.recap;
@@ -334,7 +342,7 @@ async function processEveningCandidate(
     foodLogged,
   });
   const text = composeEveningMessage(
-    nag,
+    nag || null,
     recap,
     reminderDayCard({
       protein: facts.protein,

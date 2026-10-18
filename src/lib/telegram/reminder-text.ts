@@ -12,6 +12,8 @@ export interface ReminderFacts {
   gymClosed?: boolean;
   nextTemplateName: string | null;
   early?: boolean;
+  /** Protein still short of the goal — a "day is fine" line would contradict it. */
+  proteinGap?: boolean;
 }
 
 export function gymDoneForReminder(input: {
@@ -46,6 +48,10 @@ export function reminderText(facts: ReminderFacts): string {
   }
   if (lines.length > 0) {
     return lines.join("\n");
+  }
+
+  if (facts.proteinGap) {
+    return "";
   }
 
   return BOT_REMINDER_DONE;

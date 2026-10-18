@@ -104,13 +104,13 @@ export function SettingsRemindersSection({
       />
       <NoticeSwitch
         label="Взвешивание"
-        hint="8:00, если два дня без веса"
+        hint="8:00, если 4 дня без веса"
         on={form.weigh_in_enabled}
         onChange={onWeighIn}
       />
       <NoticeSwitch
         label="Серия"
-        hint="20:00, если неделю записывал и сегодня пусто"
+        hint="20:00, если неделю записывал и сегодня пусто. Не придёт, если вечернее стоит на 20:00 или раньше"
         on={form.streak_reminder_enabled}
         onChange={onStreak}
       />
