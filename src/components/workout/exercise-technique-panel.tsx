@@ -98,6 +98,9 @@ export function ExerciseTechniquePanel({
           {showResults && catalog.loading ? (
             <p className="text-sm text-muted-foreground">Ищем…</p>
           ) : null}
+          {showResults && !catalog.loading && catalog.exercises.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Ничего не нашлось.</p>
+          ) : null}
           {showResults && catalog.exercises.length > 0 ? (
             <ul className="flex flex-col gap-0.5 rounded-xl border border-border/60 bg-background">
               {catalog.exercises.map((item) => (

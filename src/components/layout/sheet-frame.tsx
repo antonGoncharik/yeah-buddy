@@ -16,17 +16,29 @@ export function SheetFrame({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCancelRef = useRef(onCancel);
+  onCancelRef.current = onCancel;
   const accessibleName = title ?? label ?? "Меню";
 
   useEffect(() => {
-    panelRef.current?.focus();
+    const panel = panelRef.current;
+    const field = panel?.querySelector<HTMLElement>(
+      "input:not([disabled]), textarea:not([disabled])",
+    );
+    if (field) {
+      if (document.activeElement !== field) {
+        field.focus();
+      }
+    } else if (document.activeElement !== panel) {
+      panel?.focus();
+    }
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
-        onCancel();
+        onCancelRef.current();
         return;
       }
       if (event.key !== "Tab") {
@@ -62,7 +74,7 @@ export function SheetFrame({
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKey);
     };
-  }, [onCancel]);
+  }, []);
 
   const frame = (
     <div className="fixed inset-0 z-50 flex items-end justify-center pb-[calc(var(--app-chrome-bottom)+var(--app-nav-clearance))] sm:items-center sm:pb-0">

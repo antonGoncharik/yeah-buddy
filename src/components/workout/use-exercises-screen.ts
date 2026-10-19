@@ -12,6 +12,7 @@ import type {
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { readExercises, readTemplates } from "@/lib/workout/hub-payload";
+import { foldExerciseName } from "@/lib/workout/muscle-catalog-map";
 import { MUSCLE_IDS, MUSCLE_LABELS } from "@/lib/workout/muscle-taxonomy";
 
 export interface ExerciseGroups {
@@ -92,15 +93,15 @@ export function useExercisesScreen() {
     muscleFilter != null ? MUSCLE_LABELS[muscleFilter] : null;
 
   const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
+    const needle = foldExerciseName(query);
     if (needle === "") {
       return exercises;
     }
-    return exercises.filter((exercise) => {
-      const name = exercise.name.toLowerCase();
-      const short = (exercise.short_name ?? "").toLowerCase();
-      return name.includes(needle) || short.includes(needle);
-    });
+    return exercises.filter((exercise) =>
+      foldExerciseName(
+        `${exercise.name} ${exercise.short_name ?? ""}`,
+      ).includes(needle),
+    );
   }, [exercises, query]);
 
   const groups = useMemo<ExerciseGroups>(() => {

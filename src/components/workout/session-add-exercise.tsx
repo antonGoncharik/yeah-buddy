@@ -114,6 +114,7 @@ export function SessionAddExercise({
             placeholder="Название"
             className="h-12 text-base"
             autoComplete="off"
+            enterKeyHint="search"
           />
           {loading ? (
             <p className="text-sm text-muted-foreground">Загружаю…</p>
@@ -128,7 +129,7 @@ export function SessionAddExercise({
                   : "Все упражнения уже в тренировке."}
             </p>
           ) : null}
-          <div className="flex max-h-64 flex-col overflow-y-auto">
+          <div className="flex max-h-64 min-h-40 flex-col overflow-y-auto">
             {rows.map((exercise) => (
               <button
                 key={exercise.id}

@@ -59,9 +59,8 @@ export function useCatalogExerciseSearch(query: string): {
     };
   }, [needle, searching]);
 
-  const settled = searching && loadedNeedle === needle;
   return {
-    exercises: settled ? exercises : [],
+    exercises: searching ? exercises : [],
     loading: searching && loadedNeedle !== needle,
   };
 }
