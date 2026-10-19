@@ -158,28 +158,6 @@ export function SessionExerciseRow({
     }
   }, [recordLine]);
 
-  function applyDraft(setId: string, patch: Partial<SetDraft>) {
-    onDraft(setId, patch);
-    if (patch.weight === undefined || disabled) {
-      return;
-    }
-    const source = item.sets.find((row) => row.id === setId);
-    if (source?.set_type !== "work") {
-      return;
-    }
-    const planned = source.planned_weight;
-    for (const row of work) {
-      if (
-        row.id === setId ||
-        row.is_completed ||
-        row.planned_weight !== planned
-      ) {
-        continue;
-      }
-      onDraft(row.id, { weight: patch.weight });
-    }
-  }
-
   function advanceSet(set: WorkoutSet) {
     const draft = drafts[set.id] ?? draftFromSet(set);
     if (onLogSet && !disabled) {
@@ -224,11 +202,7 @@ export function SessionExerciseRow({
         weightStep={item.exercise.weight_step}
         hasNextSet={hasNextSet}
         onAdvance={() => advanceSet(set)}
-        onDraft={(patch) => {
-          for (const open of openSets) {
-            applyDraft(open.id, patch);
-          }
-        }}
+        onDraft={(patch) => onDraft(set.id, patch)}
         onLog={
           onLogSet &&
           !disabled &&

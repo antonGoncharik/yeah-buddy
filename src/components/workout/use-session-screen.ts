@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import {
+  draftChanged,
   draftsFromDetail,
   formatSessionDate,
   type SetDraft,
@@ -14,7 +15,11 @@ import { useSessionActions } from "@/components/workout/use-session-actions";
 import { cachedGet, postJson, subscribeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
+import type {
+  PhaseCircleProgress,
+  SessionDetail,
+  WorkoutSet,
+} from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { type EaseWeekKind, easeWeekConfirm } from "@/lib/workout/ease-week";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
@@ -84,7 +89,14 @@ export function useSessionScreen() {
       next.session.status === "planned"
         ? readSessionDraft(next.session.id)
         : null;
-    setDrafts(overlaySessionDrafts(draftsFromDetail(next), stored?.drafts));
+    setDrafts((current) =>
+      mergeLiveDrafts(
+        previous,
+        next,
+        overlaySessionDrafts(draftsFromDetail(next), stored?.drafts),
+        current,
+      ),
+    );
     setNote(stored ? stored.note : (next.session.note ?? ""));
     if (sessionChanged) {
       setOpenSetIds([]);
@@ -311,4 +323,53 @@ export function useSessionScreen() {
     easeSession,
     shortenSession,
   };
+}
+
+function setStamp(set: WorkoutSet): string {
+  return [
+    set.is_completed ? 1 : 0,
+    set.planned_weight,
+    set.planned_reps,
+    set.planned_reps_to,
+    set.planned_seconds,
+    set.planned_rir,
+    set.actual_weight,
+    set.actual_reps,
+    set.actual_seconds,
+    set.actual_rir,
+  ].join(":");
+}
+
+/** Keep an unsaved edit on screen when a refresh did not change that set. */
+function mergeLiveDrafts(
+  previous: SessionDetail | null,
+  next: SessionDetail,
+  base: Record<string, SetDraft>,
+  live: Record<string, SetDraft>,
+): Record<string, SetDraft> {
+  if (!previous || previous.session.id !== next.session.id) {
+    return base;
+  }
+
+  const before = new Map<string, WorkoutSet>();
+  for (const item of previous.exercises) {
+    for (const set of item.sets) {
+      before.set(set.id, set);
+    }
+  }
+
+  for (const item of next.exercises) {
+    for (const set of item.sets) {
+      const prior = before.get(set.id);
+      const draft = live[set.id];
+      if (!prior || !draft || setStamp(prior) !== setStamp(set)) {
+        continue;
+      }
+      if (draftChanged(set, draft)) {
+        base[set.id] = draft;
+      }
+    }
+  }
+
+  return base;
 }
