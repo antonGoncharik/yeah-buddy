@@ -306,7 +306,7 @@ export function SessionExerciseRow({
                 disabled={disabled}
                 onClick={onPair}
               >
-                {paired ? "Убрать пару" : "В пару со следующим"}
+                {paired ? "Убрать пару" : "В пару"}
               </button>
             ) : null}
           </div>

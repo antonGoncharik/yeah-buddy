@@ -126,7 +126,7 @@ export function SessionSetEditor({
             }
           />
         ) : null}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-3">
           <Stepper
             label="Вес, кг"
             value={draft.weight}
@@ -172,9 +172,7 @@ export function SessionSetEditor({
         ) : null}
         {withRir ? (
           <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">
-              Сколько повторов ещё мог(ла)
-            </span>
+            <span className="text-sm text-muted-foreground">Запас</span>
             <div className="grid grid-cols-4 gap-1.5">
               {RESERVE_CHOICES.map((choice) => {
                 const selected = shownReserve === choice;
@@ -208,12 +206,7 @@ export function SessionSetEditor({
           </div>
         ) : null}
         {!disabled && (offPlan || onAdvance) ? (
-          <div
-            className={cn(
-              "grid gap-2 pt-1",
-              offPlan && onAdvance ? "grid-cols-2" : "grid-cols-1",
-            )}
-          >
+          <div className="flex flex-col gap-2 pt-1">
             {offPlan ? (
               <Button
                 type="button"
