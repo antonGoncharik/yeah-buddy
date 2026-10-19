@@ -16,8 +16,6 @@ export function SessionExerciseList({
   detail,
   busy,
   canEditSets,
-  canRest,
-  restActive,
   openSetIds,
   warmupOpen,
   drafts,
@@ -28,7 +26,6 @@ export function SessionExerciseList({
   onSwap,
   onOfferTemplate,
   onReorder,
-  onStartRest,
   onToggleSet,
   onLogSet,
   onLogPlan,
@@ -36,13 +33,10 @@ export function SessionExerciseList({
   onDropSet,
   pairs,
   onPair,
-  lastRestSeconds,
 }: {
   detail: SessionDetail;
   busy: boolean;
   canEditSets: boolean;
-  canRest: boolean;
-  restActive: boolean;
   openSetIds: string[];
   warmupOpen: Record<string, boolean>;
   drafts: Record<string, SetDraft>;
@@ -57,7 +51,6 @@ export function SessionExerciseList({
     name: string;
   }) => void;
   onReorder?: (exerciseIds: string[]) => void;
-  onStartRest?: (exerciseId: string) => void;
   onToggleSet?: (set: WorkoutSet, exerciseId: string) => void;
   onLogSet?: (set: WorkoutSet, exerciseId: string, draft: SetDraft) => void;
   onLogPlan?: (exerciseId: string) => void;
@@ -65,7 +58,6 @@ export function SessionExerciseList({
   onDropSet?: (setId: string) => void;
   pairs?: Record<string, string>;
   onPair?: (exerciseId: string, nextExerciseId: string) => void;
-  lastRestSeconds?: (exerciseId: string) => number;
 }) {
   const session = detail.session;
   const canReorder =
@@ -159,12 +151,6 @@ export function SessionExerciseList({
               }
               templateId={session.template_id}
               onOfferTemplate={onOfferTemplate}
-              restActive={restActive}
-              onStartRest={
-                canRest && onStartRest
-                  ? () => onStartRest(item.exercise_id)
-                  : undefined
-              }
               onToggleSet={
                 canEditSets && onToggleSet
                   ? (set) => onToggleSet(set, item.exercise_id)
@@ -211,7 +197,6 @@ export function SessionExerciseList({
                     }
                   : undefined
               }
-              restSeconds={lastRestSeconds?.(item.exercise_id)}
             />
           );
         }}

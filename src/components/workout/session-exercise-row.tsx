@@ -22,11 +22,6 @@ import type {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { formatWeight } from "@/lib/workout/numbers";
-import {
-  formatRestClock,
-  WORK_REST_SECONDS,
-  workSetsNeedRest,
-} from "@/lib/workout/rest-timer";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatLastTimeWorkLine } from "@/lib/workout/session-memory";
 import { droppableWorkSetId } from "@/lib/workout/session-set-add";
@@ -52,8 +47,6 @@ export function SessionExerciseRow({
   onSwap,
   onOfferTemplate,
   templateId = null,
-  restActive,
-  onStartRest,
   onToggleSet,
   onLogSet,
   onLogPlan,
@@ -62,7 +55,6 @@ export function SessionExerciseRow({
   paired = false,
   pairName = null,
   onPair,
-  restSeconds,
   track = null,
   priorPeak = null,
   priorOn = null,
@@ -87,8 +79,6 @@ export function SessionExerciseRow({
     name: string;
   }) => void;
   templateId?: string | null;
-  restActive?: boolean;
-  onStartRest?: () => void;
   onToggleSet?: (set: WorkoutSet) => void;
   onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
   onLogPlan?: () => void;
@@ -97,7 +87,6 @@ export function SessionExerciseRow({
   paired?: boolean;
   pairName?: string | null;
   onPair?: () => void;
-  restSeconds?: number;
   priorPeak?: number | null;
   priorOn?: string | null;
 }) {
@@ -247,6 +236,11 @@ export function SessionExerciseRow({
             {slotLine}
           </p>
         ) : null}
+        {lastTimeLine && !showActual ? (
+          <p className="-mt-1 text-sm leading-snug text-muted-foreground">
+            {lastTimeLine}
+          </p>
+        ) : null}
         {recordLine ? (
           <p className="-mt-1 text-base font-medium text-foreground">
             {recordLine}
@@ -328,19 +322,8 @@ export function SessionExerciseRow({
               onPick={onOpenSets}
               onToggleDone={onToggleSet}
               renderAfter={renderEditor}
-              memoryLine={lastTimeLine}
             />
-            {onStartRest && !restActive && workSetsNeedRest(work) ? (
-              <button
-                type="button"
-                className="mt-1 h-11 w-full rounded-lg bg-muted/60 text-base font-medium disabled:opacity-50"
-                disabled={disabled}
-                onClick={onStartRest}
-              >
-                Отдых {formatRestClock(restSeconds ?? WORK_REST_SECONDS)}
-              </button>
-            ) : null}
-            {onAddSet || (onDropSet && dropSetId) ? (
+            {focused && (onAddSet || (onDropSet && dropSetId)) ? (
               <div className="mt-1 flex w-full flex-wrap gap-2">
                 {onAddSet && work.length > 0 ? (
                   <button

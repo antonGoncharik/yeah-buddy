@@ -21,7 +21,6 @@ export function SessionSetButtons({
   onPick,
   onToggleDone,
   renderAfter,
-  memoryLine,
 }: {
   sets: WorkoutSet[];
   drafts?: Record<string, SetDraft>;
@@ -35,8 +34,6 @@ export function SessionSetButtons({
   onToggleDone?: (set: WorkoutSet) => void;
   /** Rendered right under a set, e.g. the editor for the tapped one. */
   renderAfter?: (set: WorkoutSet) => ReactNode;
-  /** Shown under each work set label, e.g. last session result. */
-  memoryLine?: string | null;
 }) {
   const labels = sets.map((set) =>
     formatVisibleSetLine(set, drafts?.[set.id], { showActual }),
@@ -131,16 +128,6 @@ export function SessionSetButtons({
                 </button>
               )}
             </div>
-            {tone === "work" && memoryLine && !open ? (
-              <p
-                className={cn(
-                  "text-xs leading-snug text-muted-foreground",
-                  onToggleDone && !disabled ? "pl-[4.25rem]" : "pl-7",
-                )}
-              >
-                {memoryLine}
-              </p>
-            ) : null}
             {open ? renderAfter?.(set) : null}
           </li>
         );

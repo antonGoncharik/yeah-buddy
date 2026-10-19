@@ -232,8 +232,6 @@ export function SessionScreen() {
               detail={detail}
               busy={busy}
               canEditSets={canEditSets}
-              canRest={canRest}
-              restActive={rest.left != null}
               openSetIds={openSetIds}
               warmupOpen={warmupOpen}
               drafts={drafts}
@@ -246,7 +244,6 @@ export function SessionScreen() {
               onReorder={
                 canEditSets ? (ids) => void reorderExercises(ids) : undefined
               }
-              onStartRest={canRest ? (id) => rest.start(id) : undefined}
               onToggleSet={(set, exerciseId) => {
                 const row = detail.exercises.find(
                   (item) => item.exercise_id === exerciseId,
@@ -331,7 +328,6 @@ export function SessionScreen() {
                   return next;
                 });
               }}
-              lastRestSeconds={(id) => rest.lastSeconds(id)}
             />
 
             {session.status === "planned" ? (
