@@ -214,9 +214,9 @@ assertEqual(
   "done patch uses the typed set",
 );
 assertEqual(
-  loggedSetPatch(set, { weight: "", reps: "6", seconds: "", rir: "" }),
+  loggedSetPatch(set, { weight: "82.5", reps: "", seconds: "", rir: "" }),
   null,
-  "empty weight is not done yet",
+  "weight without reps is not done yet",
 );
 assertEqual(
   loggedSetPatch(

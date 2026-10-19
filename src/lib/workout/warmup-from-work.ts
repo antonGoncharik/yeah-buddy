@@ -84,8 +84,7 @@ export function warmupSetsForWorkingWeight(
       kind,
       maxWeight,
     );
-    const isHold = item.seconds != null && item.reps == null;
-    if (!isHold && clamped >= workingWeight) {
+    if (clamped >= workingWeight) {
       continue;
     }
     if (prevWeight != null && clamped === prevWeight) {

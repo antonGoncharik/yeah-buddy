@@ -5,6 +5,7 @@ import { cycleDef, nextPhaseType } from "@/lib/workout/cycle";
 import { phaseLabel } from "@/lib/workout/labels";
 import { toSessionFeel } from "@/lib/workout/map-enums";
 import { mapWorkoutPhase } from "@/lib/workout/map-rows";
+import { completedCircleDays } from "@/lib/workout/phase-auto-end";
 import { shouldHoldWeights } from "@/lib/workout/session-memory";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { listActiveTemplates } from "@/lib/workout/templates";
@@ -26,7 +27,7 @@ export async function getPhaseCircleProgress(
   const supabase = createSupabaseServerClient();
   const result = await supabase
     .from("workout_sessions")
-    .select("feel")
+    .select("feel, template_id")
     .eq("user_id", userId)
     .eq("phase_id", phase.id)
     .eq("status", "completed")
@@ -50,11 +51,13 @@ export async function getPhaseCircleProgress(
     phaseIndex === cycle.length - 1 &&
     next === cycle[0]?.key;
   const feels = (result.data ?? []).map((row) => toSessionFeel(row.feel));
-  const completedCount = feels.length;
+  const completedDays = completedCircleDays(
+    (result.data ?? []).map((row) => row.template_id),
+  );
   const openedItself = await circleOpenedItself(
     userId,
     phase,
-    completedCount,
+    completedDays,
     circleSize,
     settings.formulas.cycle_auto_end === true,
     cycle,
@@ -72,9 +75,9 @@ export async function getPhaseCircleProgress(
     increases_on_end: Boolean(current?.increase_on_end),
     kg_increase_on_end: current?.kg_increase_on_end ?? null,
     hold_weights: shouldHoldWeights(feels),
-    completed_count: completedCount,
+    completed_count: completedDays,
     circle_size: circleSize,
-    suggest_end: completedCount >= circleSize,
+    suggest_end: completedDays >= circleSize,
     opened_itself: openedItself,
   };
 }

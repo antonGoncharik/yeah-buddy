@@ -83,3 +83,28 @@ assert(
     ?.percent === 40,
   "settings percent is kept",
 );
+
+const staticLight = plannedSetsFromFormula(
+  { warmup: [], work: [{ percent: 80, reps: null, seconds: 6 }] },
+  100,
+  1,
+  "static",
+  "barbell",
+);
+assert(
+  staticLight.every(
+    (row) => row.set_type !== "warmup" || (row.planned_weight ?? 0) < 80,
+  ),
+  "a hold warmup is not heavier than the work set",
+);
+const staticDefault = plannedSetsFromFormula(
+  { warmup: [], work: [{ percent: 115, reps: null, seconds: 6 }] },
+  100,
+  1,
+  "static",
+  "barbell",
+);
+assert(
+  staticDefault.some((row) => row.planned_seconds === 2),
+  "default static warmup keeps the short hold under the work weight",
+);

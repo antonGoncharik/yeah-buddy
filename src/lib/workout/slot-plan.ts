@@ -369,7 +369,8 @@ export function plannedSetsForSlot(
   const phase = ctx.phaseKey
     ? ctx.formulas.cycle.find((item) => item.key === ctx.phaseKey)
     : undefined;
-  const skipWarmup = Boolean(phase?.skip_warmup);
+  const implicitDeload = ctx.phaseKey === "deload" && !phase;
+  const skipWarmup = Boolean(phase?.skip_warmup) || implicitDeload;
   const intensity = plan?.intensity ?? null;
   const { groups, fromPhase } = slotGroupsForPhase(plan, ctx.phaseKey);
 
@@ -405,9 +406,18 @@ export function plannedSetsForSlot(
 
   // Своя схема на этап — явная: процент этапа к ней не применяется.
   const scale = fromPhase ? 1 : (phase?.percent_scale ?? 1);
+  const absolutePercent =
+    !fromPhase && phase?.target_percent != null ? phase.target_percent : null;
+  const deloadCap = skipWarmup && !fromPhase ? 60 : null;
   const work: PlannedSetRow[] = [];
   for (const group of groups) {
-    const weight = groupWeight(group.load, ctx, scale);
+    const weight = groupWeight(
+      group.load,
+      ctx,
+      scale,
+      absolutePercent,
+      deloadCap,
+    );
     if (weight === undefined) {
       return null;
     }
@@ -437,6 +447,8 @@ function groupWeight(
   load: SlotLoad,
   ctx: SlotPlanContext,
   scale: number,
+  absolutePercent: number | null,
+  deloadCap: number | null,
 ): number | null | undefined {
   switch (load.type) {
     case "percent":
@@ -444,9 +456,10 @@ function groupWeight(
       if (ctx.maxWeight == null || ctx.maxWeight <= 0) {
         return undefined;
       }
+      const percent = absolutePercent ?? load.percent * scale;
       return calcPlannedWeight(
         ctx.maxWeight,
-        load.percent * scale,
+        deloadCap != null ? Math.min(percent, deloadCap) : percent,
         ctx.exercise.weight_step,
       );
     }

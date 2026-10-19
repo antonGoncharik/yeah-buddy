@@ -53,6 +53,8 @@ export interface CyclePhaseDef {
   increase_on_end: boolean;
   /** If set, phase work percents are base × this, not a copy of base. */
   percent_scale?: number;
+  /** Every work set uses this percent of the max. Reps stay from the base plan. */
+  target_percent?: number;
   /** Own work sets. Used on dynamic days; static keeps base / deload. */
   work?: FormulaSetSpec[];
   /** After this week, add kilograms to working kg on track slots. */

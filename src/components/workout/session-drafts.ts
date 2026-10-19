@@ -249,19 +249,17 @@ export function loggedSetPatch(
   if (needsWeight && (weight == null || weight <= 0)) {
     return null;
   }
-  if (!needsWeight && (weight == null || weight <= 0)) {
-    const reps = timed
-      ? parseDecimal(source.seconds)
-      : parseInteger(source.reps);
-    if (reps == null) {
-      return null;
-    }
+  const amount = timed
+    ? parseDecimal(source.seconds)
+    : parseInteger(source.reps);
+  if (amount == null || !(amount > 0)) {
+    return null;
   }
 
   return {
     actual_weight: weight != null && weight > 0 ? weight : null,
-    actual_reps: timed ? null : parseInteger(source.reps),
-    actual_seconds: timed ? parseDecimal(source.seconds) : null,
+    actual_reps: timed ? null : amount,
+    actual_seconds: timed ? amount : null,
     actual_rir: set.set_type === "work" ? parseRir(source.rir) : null,
   };
 }

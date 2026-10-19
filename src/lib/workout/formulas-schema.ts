@@ -27,6 +27,7 @@ const cyclePhaseSchema = z.object({
   skip_warmup: z.boolean(),
   increase_on_end: z.boolean(),
   percent_scale: z.number().finite().positive().max(3).optional(),
+  target_percent: z.number().finite().positive().max(200).optional(),
   work: z.array(formulaSetSchema).min(1).optional(),
   kg_increase_on_end: z.number().finite().positive().max(50).optional(),
 });

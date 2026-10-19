@@ -852,14 +852,14 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
     templates: [
       day("Жим", [
         bench(),
-        flippingBase("Подтягивания", 4, 6, "heavy", 8),
+        near("Подтягивания", 4, 8),
         flippingBase("Румынская тяга", 4, 10, "light"),
         near("Жим гантелей сидя", 3, 10),
         near("Махи в наклоне", 4, 15),
         near("Пресс", 3, 15),
       ]),
       day("Присед", [
-        flippingBase("Отжимания на брусьях", 4, 8, "light"),
+        near("Отжимания на брусьях", 4, 8),
         flippingBase("Приседания со штангой", 4, 6, "heavy"),
         flippingBase("Тяга горизонтального блока", 4, 8, "light"),
         near("Разведение гантелей в стороны", 4, 15),
@@ -868,7 +868,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
       day("Наклон", [
         incline(),
         flippingBase("Тяга штанги в наклоне", 3, 8, "heavy"),
-        flippingBase("Пуловер", 3, 10, "light"),
+        near("Пуловер", 3, 10),
         flippingBase("Жим узким хватом", 3, 8, "heavy"),
         near("Гиперэкстензия", 3, 15),
       ]),
@@ -954,7 +954,7 @@ export const PROGRAM_PRESETS: ProgramPreset[] = [
       ]),
       day("Таблица · день 3", [
         table("Жим лёжа", 6, 3, [70, 75, 80, 85]),
-        table("Приседания со штангой", 3, 5, [65, 70, 70, 75]),
+        table("Приседания со штангой", 3, 5, [65, 70, 72.5, 75]),
         near("Подтягивания", 4, 8),
         near("Разведение гантелей в стороны", 3, 15),
       ]),
@@ -1063,7 +1063,6 @@ function flippingBase(
     name,
     [group(sets, reps, percentLoad(intensityPercent(intensity)), repsTo)],
     {
-      intensity,
       phases: {
         w2: [group(sets, reps, percentLoad(intensityPercent(flipped)), repsTo)],
       },

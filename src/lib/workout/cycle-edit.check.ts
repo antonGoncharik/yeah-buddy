@@ -1,9 +1,10 @@
-import type { CyclePhaseDef } from "@/lib/types";
+import type { CyclePhaseDef, WorkoutFormulas } from "@/lib/types";
 import {
   applyWorkPattern,
   patchCyclePhase,
   patchKindBaseWork,
   phaseHasCustomWork,
+  removeCyclePhase,
   reorderCycle,
   resetPhaseWork,
   withCycle,
@@ -118,5 +119,21 @@ const cleared = withCycle(four, []);
 assert(cleared.cycle.length === 0, "an empty cycle wipes leftover weeks");
 assert(cleared.cycle_loop == null, "clearing weeks drops the loop");
 assert(cleared.cycle_auto_end == null, "clearing weeks drops auto-end");
+
+const looping = {
+  ...four,
+  cycle_auto_end: true,
+  cycle_loop: true,
+};
+let stripped: WorkoutFormulas = looping;
+for (const phase of looping.cycle) {
+  stripped = removeCyclePhase(stripped, phase.key);
+}
+assert(stripped.cycle.length === 0, "removing every phase leaves no cycle");
+assert(
+  stripped.cycle_auto_end == null,
+  "removing the last phase drops auto-end",
+);
+assert(stripped.cycle_loop == null, "removing the last phase drops the loop");
 
 console.log("cycle edit ok");

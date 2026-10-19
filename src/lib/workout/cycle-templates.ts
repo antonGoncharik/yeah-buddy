@@ -7,6 +7,7 @@ function phase(
     skip_warmup?: boolean;
     increase_on_end?: boolean;
     percent_scale?: number;
+    target_percent?: number;
     work?: FormulaSetSpec[];
     kg_increase_on_end?: number;
   } = {},
@@ -17,6 +18,7 @@ function phase(
     skip_warmup: extra.skip_warmup ?? false,
     increase_on_end: extra.increase_on_end ?? false,
     percent_scale: extra.percent_scale,
+    target_percent: extra.target_percent,
     work: extra.work,
     kg_increase_on_end: extra.kg_increase_on_end,
   };
@@ -54,10 +56,10 @@ export const LIGHT_HEAVY_CYCLE: CyclePhaseDef[] = [
 ];
 
 export const LINEAR_CYCLE: CyclePhaseDef[] = [
-  phase("w70", "70%", { percent_scale: 0.875 }),
-  phase("w75", "75%", { percent_scale: 0.9375 }),
-  phase("w80", "80%", { percent_scale: 1 }),
-  phase("w85", "85%", { increase_on_end: true, percent_scale: 1.0625 }),
+  phase("w70", "70%", { target_percent: 70 }),
+  phase("w75", "75%", { target_percent: 75 }),
+  phase("w80", "80%", { target_percent: 80 }),
+  phase("w85", "85%", { increase_on_end: true, target_percent: 85 }),
   phase("deload", "Сброс", { skip_warmup: true }),
 ];
 

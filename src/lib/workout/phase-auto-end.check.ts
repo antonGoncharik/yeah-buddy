@@ -1,4 +1,7 @@
-import { shouldAutoEndPhase } from "@/lib/workout/phase-auto-end";
+import {
+  completedCircleDays,
+  shouldAutoEndPhase,
+} from "@/lib/workout/phase-auto-end";
 
 function assert(condition: unknown, label: string): asserts condition {
   if (!condition) {
@@ -30,5 +33,13 @@ assert(
   "a 1RM bump waits for a look at the weights",
 );
 assert(!shouldAutoEndPhase(true, null), "no progress, no auto-end");
+assert(
+  completedCircleDays(["a", "a", "b"]) === 2,
+  "repeating a day still counts as one day of the round",
+);
+assert(
+  completedCircleDays(["a", null, "b", "c"]) === 3,
+  "sessions without a day are ignored",
+);
 
 console.log("phase auto-end ok");

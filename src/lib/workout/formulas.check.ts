@@ -1,6 +1,7 @@
 import {
   cycleDrivesTracks,
   nextPhaseType,
+  specForPhase,
   withCycle,
 } from "@/lib/workout/cycle";
 import {
@@ -361,6 +362,29 @@ assertEqual(linear.dynamic.phases.w85?.work[0]?.percent ?? 0, 85, "linear 85%");
 assert(linear.cycle[3]?.increase_on_end === true, "linear 85% raises max");
 assert(linear.cycle[4]?.skip_warmup === true, "linear ends with deload");
 
+const linearOnTens = withCycle(TEN_WORKOUT_FORMULAS, LINEAR_CYCLE);
+assertEqual(
+  linearOnTens.dynamic.phases.w70?.work[0]?.percent ?? 0,
+  70,
+  "linear 70% stays 70 on a 3×10 plan",
+);
+assertEqual(
+  linearOnTens.dynamic.phases.w70?.work[0]?.reps ?? 0,
+  10,
+  "linear keeps the plan's reps",
+);
+assertEqual(
+  linearOnTens.dynamic.phases.w85?.work[0]?.percent ?? 0,
+  85,
+  "linear 85% stays 85 on a 3×10 plan",
+);
+assertEqual(
+  specForPhase(DEFAULT_WORKOUT_FORMULAS, "dynamic", "deload").work[0]
+    ?.percent ?? 0,
+  60,
+  "a deload week without a saved scheme is still the light 60%",
+);
+
 const volumeStrength = withCycle(
   DEFAULT_WORKOUT_FORMULAS,
   VOLUME_STRENGTH_CYCLE,
@@ -474,5 +498,9 @@ assert(
   dropped.cycle_auto_end == null,
   "auto-end does not linger after weeks are cleared",
 );
+
+const swapped = withCycle(kgCycle, FOUR_PHASE_CYCLE);
+assert(swapped.cycle_auto_end == null, "another cycle does not keep auto-end");
+assert(swapped.cycle_loop == null, "another cycle does not keep the loop");
 
 console.log("workout formulas ok");

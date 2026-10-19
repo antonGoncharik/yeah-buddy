@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useRef } from "react";
 
 import { useConfirm } from "@/components/layout/confirm-provider";
 import { deleteJson, patchJson, postJson, writeJson } from "@/lib/api-cache";
@@ -349,10 +349,13 @@ export function useSessionEdits({
     }
   }
 
+  const addingSet = useRef<string | null>(null);
+
   async function addWorkSet(sessionExerciseId: string): Promise<string | null> {
-    if (detail?.session.status !== "planned") {
+    if (detail?.session.status !== "planned" || addingSet.current != null) {
       return null;
     }
+    addingSet.current = sessionExerciseId;
     setError(null);
     try {
       const data = await postJson(
@@ -377,6 +380,8 @@ export function useSessionEdits({
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       return null;
+    } finally {
+      addingSet.current = null;
     }
   }
 

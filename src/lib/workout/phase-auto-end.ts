@@ -8,6 +8,19 @@ import {
 import { rebuildTodaysPlannedSession } from "@/lib/workout/session-rebuild";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
+/** Сколько разных дней программы уже закрыто на этой неделе. Повтор одного дня круг не закрывает. */
+export function completedCircleDays(
+  templateIds: readonly (string | null | undefined)[],
+): number {
+  const seen = new Set<string>();
+  for (const id of templateIds) {
+    if (id) {
+      seen.add(id);
+    }
+  }
+  return seen.size;
+}
+
 /**
  * Закрывает этап сам, когда пройден круг дней программы — если так
  * настроен цикл. Последний этап и этап с подъёмом 1RM не трогаем:

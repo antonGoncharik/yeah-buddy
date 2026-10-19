@@ -96,6 +96,8 @@ export function SessionScreen() {
     shortenSession,
   } = useSessionScreen();
   const marking = useRef(new Set<string>());
+  const loggingPlan = useRef(false);
+  const closing = useRef(false);
   const [pairs, setPairs] = useState<Record<string, string>>({});
   const [templateOffer, setTemplateOffer] = useState<{
     fromExerciseId: string;
@@ -285,11 +287,17 @@ export function SessionScreen() {
                 });
               }}
               onLogPlan={(sessionExerciseId) => {
+                if (loggingPlan.current) {
+                  return;
+                }
+                loggingPlan.current = true;
                 void logPlannedSets({
                   sessionExerciseId,
                   exercises: detail.exercises,
                   markSet,
                   startRest: (id) => rest.start(id),
+                }).finally(() => {
+                  loggingPlan.current = false;
                 });
               }}
               pairs={pairs}
@@ -440,19 +448,27 @@ export function SessionScreen() {
             className="mt-2 h-14 w-full text-lg"
             disabled={busy || detail.exercises.length === 0}
             onClick={() => {
+              if (busy || closing.current) {
+                return;
+              }
+              closing.current = true;
               void (async () => {
-                rest.stop();
-                if (detail.session.status === "planned") {
-                  const ok = await confirm({
-                    message: "Закрыть тренировку?",
-                    confirmLabel: "Готово",
-                    cancelLabel: "Ещё правлю",
-                  });
-                  if (!ok) {
-                    return;
+                try {
+                  if (detail.session.status === "planned") {
+                    const ok = await confirm({
+                      message: "Закрыть тренировку?",
+                      confirmLabel: "Готово",
+                      cancelLabel: "Ещё правлю",
+                    });
+                    if (!ok) {
+                      return;
+                    }
                   }
+                  rest.stop();
+                  await complete();
+                } finally {
+                  closing.current = false;
                 }
-                await complete();
               })();
             }}
           >
@@ -646,11 +662,10 @@ async function logPlannedSets({
   if (pending.length === 0) {
     return;
   }
-  const results = await Promise.all(
-    pending.map(({ id, patch }) =>
-      markSet(id, { is_completed: true, ...patch }),
-    ),
-  );
+  const results: boolean[] = [];
+  for (const { id, patch } of pending) {
+    results.push(await markSet(id, { is_completed: true, ...patch }));
+  }
   if (results.some((ok) => !ok)) {
     return;
   }

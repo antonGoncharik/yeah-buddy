@@ -216,6 +216,23 @@ const mondayPull = press.templates[0]?.exercises.find(
 assert(mondayPull != null, "press day 1 has pull-ups");
 const pullW1 = plannedSetsForSlot(mondayPull, {
   kind: "dynamic",
+  exercise: { weight_step: 2.5, formula_preset: "none" },
+  formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: TWO_WEEK_KG_CYCLE },
+  phaseKey: "w1",
+  maxWeight: 100,
+  trackWeight: null,
+  feelWeight: null,
+});
+assert(
+  pullW1?.some((row) => row.set_type === "work") === true &&
+    pullW1.every((row) => row.planned_weight == null),
+  "pull-ups stay by feel, without a made-up bar weight",
+);
+const mondayHinge = press.templates[0]?.exercises.find(
+  (slot) => slot.name === "Румынская тяга",
+)?.plan;
+const hingeW1 = plannedSetsForSlot(mondayHinge ?? null, {
+  kind: "dynamic",
   exercise: { weight_step: 2.5, formula_preset: "barbell" },
   formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: TWO_WEEK_KG_CYCLE },
   phaseKey: "w1",
@@ -223,7 +240,7 @@ const pullW1 = plannedSetsForSlot(mondayPull, {
   trackWeight: null,
   feelWeight: null,
 });
-const pullW2 = plannedSetsForSlot(mondayPull, {
+const hingeW2 = plannedSetsForSlot(mondayHinge ?? null, {
   kind: "dynamic",
   exercise: { weight_step: 2.5, formula_preset: "barbell" },
   formulas: { ...DEFAULT_WORKOUT_FORMULAS, cycle: TWO_WEEK_KG_CYCLE },
@@ -233,9 +250,9 @@ const pullW2 = plannedSetsForSlot(mondayPull, {
   feelWeight: null,
 });
 assert(
-  (pullW1?.find((row) => row.set_type === "work")?.planned_weight ?? 0) >
-    (pullW2?.find((row) => row.set_type === "work")?.planned_weight ?? 0),
-  "week 2 flips the heavy monday pull to a lighter percent",
+  (hingeW2?.find((row) => row.set_type === "work")?.planned_weight ?? 0) >
+    (hingeW1?.find((row) => row.set_type === "work")?.planned_weight ?? 0),
+  "week 2 flips the light hinge to a heavier percent",
 );
 
 for (const id of ["table_squat", "table_bench", "table_three_lifts"] as const) {

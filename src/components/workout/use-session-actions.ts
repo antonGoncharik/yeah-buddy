@@ -20,7 +20,11 @@ import {
   preferLiveFeel,
 } from "@/lib/workout/session-complete-local";
 import { validateSessionBeforeComplete } from "@/lib/workout/session-complete-validate";
-import { clearSessionDraft } from "@/lib/workout/session-draft-store";
+import {
+  clearSessionDraft,
+  readSessionDraft,
+  writeSessionDraft,
+} from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 
 export function useSessionActions({
@@ -50,6 +54,7 @@ export function useSessionActions({
 }) {
   const detailRef = useRef(detail);
   detailRef.current = detail;
+  const completing = useRef(false);
 
   async function runBusy(work: () => Promise<void>) {
     setBusy(true);
@@ -77,7 +82,7 @@ export function useSessionActions({
 
   async function complete() {
     const current = detailRef.current;
-    if (!current) {
+    if (!current || completing.current) {
       return;
     }
 
@@ -94,10 +99,13 @@ export function useSessionActions({
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
       return;
     }
+
+    completing.current = true;
+    setBusy(true);
+    const draftSnapshot = readSessionDraft(current.session.id);
     const local = completeSessionLocally(current, body);
     const previous = current;
     writeCompletedCaches(sessionUrl, local);
-    clearSessionDraft(current.session.id);
     applyDetail(local);
     setCorrecting(false);
     setError(null);
@@ -110,6 +118,7 @@ export function useSessionActions({
         body,
         cacheUrls: [sessionUrl, sessionDateUrl(current.session.session_date)],
       });
+      clearSessionDraft(current.session.id);
       if (!data) {
         return;
       }
@@ -135,9 +144,15 @@ export function useSessionActions({
       await loadFollowUp(next.session.session_date);
     } catch (caught) {
       haptic("error");
+      if (draftSnapshot) {
+        writeSessionDraft(current.session.id, draftSnapshot);
+      }
       writeCompletedCaches(sessionUrl, previous);
       applyDetail(previous);
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+    } finally {
+      completing.current = false;
+      setBusy(false);
     }
   }
 

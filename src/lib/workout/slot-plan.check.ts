@@ -217,6 +217,16 @@ assertEqual(
   4,
   "deload phase drops the warmup of a custom slot",
 );
+assertEqual(
+  line(
+    plannedSetsForSlot(
+      heavyPulls,
+      ctx({ formulas: withPhases, phaseKey: "deload" }),
+    ),
+  ).at(-1),
+  "w4:60×6–8 rir0",
+  "deload phase lightens a custom slot to 60%",
+);
 
 // ---------- shared scheme with an intensity tag only ----------
 

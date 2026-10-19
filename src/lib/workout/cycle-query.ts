@@ -5,6 +5,7 @@ import type {
   WorkoutFormulas,
   WorkoutKind,
 } from "@/lib/types";
+import { DYNAMIC_DELOAD, STATIC_DELOAD } from "@/lib/workout/formula-warmups";
 
 const LEGACY_NEXT: Record<string, string | null> = {
   ramp: "volume",
@@ -51,6 +52,9 @@ export function phaseSchemeHint(
   if (phase.work != null && phase.work.length > 0) {
     return summary;
   }
+  if (phase.target_percent != null) {
+    return summary;
+  }
   if (phase.skip_warmup && phase.percent_scale == null) {
     return `Лёгкие · ${summary}`;
   }
@@ -76,7 +80,20 @@ export function specForPhase(
   phaseKey: string | null,
 ): FormulaPhaseSpec {
   if (phaseKey) {
-    return formulas[kind].phases[phaseKey] ?? formulas[kind].base;
+    const stored = formulas[kind].phases[phaseKey];
+    if (stored) {
+      return stored;
+    }
+    const named = formulas.cycle.find((phase) => phase.key === phaseKey);
+    if (phaseKey === "deload" || named?.skip_warmup) {
+      return {
+        warmup: [],
+        work: structuredClone(
+          kind === "static" ? STATIC_DELOAD : DYNAMIC_DELOAD,
+        ),
+      };
+    }
+    return formulas[kind].base;
   }
   return formulas[kind].base;
 }

@@ -25,11 +25,8 @@ export function withCycle(
     next.cycle_auto_end = undefined;
     next.cycle_loop = undefined;
   } else {
-    if (extra.auto_end === true || extra.loop === true) {
-      next.cycle_auto_end = true;
-    } else if (extra.auto_end === false) {
-      next.cycle_auto_end = undefined;
-    }
+    next.cycle_auto_end =
+      extra.auto_end === true || extra.loop === true ? true : undefined;
     next.cycle_loop = extra.loop === true ? true : undefined;
   }
   for (const phase of next.cycle) {
@@ -119,7 +116,8 @@ export function patchCyclePhase(
     !previous ||
     !updated ||
     (previous.skip_warmup === updated.skip_warmup &&
-      previous.percent_scale === updated.percent_scale)
+      previous.percent_scale === updated.percent_scale &&
+      previous.target_percent === updated.target_percent)
   ) {
     return next;
   }
@@ -199,6 +197,10 @@ export function removeCyclePhase(
   next.cycle = next.cycle.filter((phase) => phase.key !== key);
   delete next.dynamic.phases[key];
   delete next.static.phases[key];
+  if (next.cycle.length === 0) {
+    next.cycle_auto_end = undefined;
+    next.cycle_loop = undefined;
+  }
   return next;
 }
 
@@ -257,6 +259,13 @@ export function workForPhase(
 ): FormulaPhaseSpec {
   if (phase.work != null && phase.work.length > 0 && setsUseReps(base.work)) {
     return { warmup: [], work: structuredClone(phase.work) };
+  }
+  if (phase.target_percent != null) {
+    const percent = phase.target_percent;
+    return {
+      warmup: [],
+      work: base.work.map((set) => ({ ...set, percent })),
+    };
   }
   if (phase.percent_scale != null) {
     return {

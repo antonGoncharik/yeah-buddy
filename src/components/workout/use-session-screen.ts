@@ -97,7 +97,17 @@ export function useSessionScreen() {
         current,
       ),
     );
-    setNote(stored ? stored.note : (next.session.note ?? ""));
+    setNote((current) => {
+      const samePlanned =
+        previous != null &&
+        previous.session.id === next.session.id &&
+        previous.session.status === "planned" &&
+        next.session.status === "planned";
+      if (samePlanned && current !== (previous.session.note ?? "")) {
+        return current;
+      }
+      return stored ? stored.note : (next.session.note ?? "");
+    });
     if (sessionChanged) {
       setOpenSetIds([]);
     }
@@ -227,11 +237,13 @@ export function useSessionScreen() {
   const subtitle = session
     ? [
         formatSessionDate(session.session_date),
-        phaseCircle
+        phaseCircle && session.status !== "completed"
           ? phaseLabel(phaseCircle.phase_type, phaseCircle.phase_name)
           : detail?.phase
             ? phaseLabel(detail.phase.phase_type, detail.phase.name)
-            : null,
+            : phaseCircle
+              ? phaseLabel(phaseCircle.phase_type, phaseCircle.phase_name)
+              : null,
       ]
         .filter(Boolean)
         .join(" · ")

@@ -280,7 +280,7 @@ export function useWorkoutsHub() {
       : session?.status === "skipped"
         ? SESSION_STATUS_LABELS.skipped
         : session?.status === "completed"
-          ? "Готово"
+          ? SESSION_STATUS_LABELS.completed
           : null;
   const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
   const nextCanStart = nextTemplate != null && templateCanPlan(nextTemplate);
