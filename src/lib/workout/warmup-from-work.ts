@@ -36,9 +36,16 @@ export function plannedWarmupWeight(
   step: number,
   preset: FormulaPreset,
   kind: WorkoutKind,
+  maxWeight?: number | null,
 ): number {
+  // Timed warmup (2s at 100%) is a percent of the max. Work holds stay
+  // heavier (6s at 115%). Reps in the same warmup are still of the top set.
   if (set.seconds != null && set.reps == null) {
-    return topWork;
+    const base =
+      kind === "static" && maxWeight != null && maxWeight > 0
+        ? maxWeight
+        : topWork;
+    return calcPlannedWeight(base, set.percent, step);
   }
   let planned_weight = calcPlannedWeight(topWork, set.percent, step);
   if (preset === "barbell" && kind === "dynamic") {
@@ -59,6 +66,7 @@ export function warmupSetsForWorkingWeight(
   preset: FormulaPreset,
   kind: WorkoutKind,
   warmups: Record<WorkoutKind, KindWarmups> = DEFAULT_WARMUP_PRESETS,
+  maxWeight?: number | null,
 ): FormulaSetSpec[] {
   if (preset === "none" || !(workingWeight > 0)) {
     return [];
@@ -74,6 +82,7 @@ export function warmupSetsForWorkingWeight(
       step,
       preset,
       kind,
+      maxWeight,
     );
     const isHold = item.seconds != null && item.reps == null;
     if (!isHold && clamped >= workingWeight) {
@@ -99,6 +108,7 @@ export function warmupPlannedWeights(
   preset: FormulaPreset,
   kind: WorkoutKind,
   warmups: Record<WorkoutKind, KindWarmups> = DEFAULT_WARMUP_PRESETS,
+  maxWeight?: number | null,
 ): number[] {
   const specs = warmupSetsForWorkingWeight(
     workingWeight,
@@ -106,6 +116,7 @@ export function warmupPlannedWeights(
     preset,
     kind,
     warmups,
+    maxWeight,
   );
   const out: number[] = [];
   let prev: number | null = null;
@@ -116,6 +127,7 @@ export function warmupPlannedWeights(
       step,
       preset,
       kind,
+      maxWeight,
     );
     if (clamped >= workingWeight) {
       continue;

@@ -112,7 +112,14 @@ export function plannedSetsFromFormula(
 
   const warmupSpec = skipWarmup
     ? []
-    : warmupSetsForWorkingWeight(topWork, step, preset, kind, warmups);
+    : warmupSetsForWorkingWeight(
+        topWork,
+        step,
+        preset,
+        kind,
+        warmups,
+        maxWeight,
+      );
 
   const rows = [
     ...warmupSpec.map((set) => ({ ...set, set_type: "warmup" as const })),
@@ -122,7 +129,7 @@ export function plannedSetsFromFormula(
   return rows.map((set, index) => {
     const planned_weight =
       set.set_type === "warmup"
-        ? plannedWarmupWeight(topWork, set, step, preset, kind)
+        ? plannedWarmupWeight(topWork, set, step, preset, kind, maxWeight)
         : calcPlannedWeight(maxWeight, set.percent, step);
     return {
       set_type: set.set_type,

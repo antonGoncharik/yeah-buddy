@@ -492,6 +492,7 @@ function warmupRows(
     preset,
     ctx.kind,
     ctx.formulas.warmups,
+    ctx.maxWeight,
   );
   return sets.map<PlannedSetRow>((set) => ({
     set_type: "warmup",
@@ -502,6 +503,7 @@ function warmupRows(
       ctx.exercise.weight_step,
       preset,
       ctx.kind,
+      ctx.maxWeight,
     ),
     planned_reps: set.reps,
     planned_reps_to: null,

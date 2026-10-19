@@ -149,9 +149,9 @@ if (
 }
 if (
   staticWarmups[2]?.planned_seconds !== 2 ||
-  staticWarmups[2]?.planned_weight !== 87
+  staticWarmups[2]?.planned_weight !== 76
 ) {
-  throw new Error("static warmup 3rd set must be 2s at working weight");
+  throw new Error("static warmup 3rd set must be 2s at 100% of the max");
 }
 assertEqual(staticHold[0]?.planned_reps ?? 0, 5, "static warmup reps");
 assertEqual(
@@ -159,10 +159,12 @@ assertEqual(
   -1,
   "static warmup no seconds",
 );
+assertEqual(staticHold[0]?.planned_weight ?? 0, 43, "static warmup 50% of work");
+assertEqual(staticHold[1]?.planned_weight ?? 0, 60, "static warmup 70% of work");
 assertEqual(
   staticHold[2]?.planned_weight ?? 0,
-  87,
-  "static warmup hold weight",
+  76,
+  "static warmup 2s is 100% of the max",
 );
 assertEqual(
   staticHold[2]?.planned_seconds ?? 0,
