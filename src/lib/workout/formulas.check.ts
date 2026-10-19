@@ -159,8 +159,16 @@ assertEqual(
   -1,
   "static warmup no seconds",
 );
-assertEqual(staticHold[0]?.planned_weight ?? 0, 43, "static warmup 50% of work");
-assertEqual(staticHold[1]?.planned_weight ?? 0, 60, "static warmup 70% of work");
+assertEqual(
+  staticHold[0]?.planned_weight ?? 0,
+  43,
+  "static warmup 50% of work",
+);
+assertEqual(
+  staticHold[1]?.planned_weight ?? 0,
+  60,
+  "static warmup 70% of work",
+);
 assertEqual(
   staticHold[2]?.planned_weight ?? 0,
   76,

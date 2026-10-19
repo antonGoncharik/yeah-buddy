@@ -10,6 +10,7 @@ import {
   REST_ADJUST_SECONDS,
   readLastRestSeconds,
   readStoredRestState,
+  restLeftAt,
   restSecondsToRestore,
   WORK_REST_SECONDS,
   writeLastRestSeconds,
