@@ -25,7 +25,7 @@ export function StickyActions({
         className,
       )}
     >
-      <div className="pointer-events-auto mx-auto flex w-full max-w-lg flex-col items-stretch gap-2 px-4 [&_a]:w-full [&_button]:w-full">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-lg flex-col items-stretch gap-2 px-4 [&>a]:w-full [&>button]:w-full">
         {children}
       </div>
     </div>

@@ -28,58 +28,58 @@ export function RestBar({
 }) {
   if (left === 0) {
     return (
-      <div className="flex animate-recap-glow items-center gap-2 rounded-xl bg-background px-3 py-2">
-        <p className="min-w-0 flex-1 text-lg font-semibold">
+      <div className="flex animate-recap-glow flex-col gap-2 rounded-xl bg-background px-3 py-2">
+        <p className="text-lg font-semibold">
           {away ? "Отдых закончился" : REST_DONE_LABEL}
         </p>
-        <Button
-          type="button"
-          className="h-11 px-4 text-base"
-          onClick={onRestart}
-        >
-          Ещё раз
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-11 px-3 text-base"
-          onClick={onStop}
-        >
-          Скрыть
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button type="button" className="h-11 text-base" onClick={onRestart}>
+            Ещё раз
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 text-base"
+            onClick={onStop}
+          >
+            Скрыть
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex w-full flex-col gap-2 rounded-xl bg-background px-3 py-2">
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <p className="min-w-0 flex-1 text-3xl font-semibold tracking-tight tabular-nums">
           {formatRestClock(left)}
         </p>
         <Button
           type="button"
-          variant="outline"
-          className="h-11 px-3.5 text-base"
-          onClick={onSubtract}
-        >
-          −30
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 px-3.5 text-base"
-          onClick={onAdd}
-        >
-          +30
-        </Button>
-        <Button
-          type="button"
           variant="ghost"
-          className="h-11 px-3 text-base"
+          className="h-11 shrink-0 px-3 text-base"
           onClick={onStop}
         >
           Стоп
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 text-base"
+          onClick={onSubtract}
+        >
+          −30 с
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 text-base"
+          onClick={onAdd}
+        >
+          +30 с
         </Button>
       </div>
       {nextLine ? (

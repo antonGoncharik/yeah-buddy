@@ -141,9 +141,9 @@ export function SessionScreen() {
           showStickyComplete && rest.left != null && rest.left > 0
             ? "flex flex-col gap-5 px-4 pb-80"
             : showStickyComplete && rest.left != null
-              ? "flex flex-col gap-5 px-4 pb-40"
+              ? "flex flex-col gap-5 px-4 pb-52"
               : showStickyComplete
-                ? "flex flex-col gap-5 px-4 pb-24"
+                ? "flex flex-col gap-5 px-4 pb-36"
                 : "flex flex-col gap-5 px-4 pb-4"
         }
       >
