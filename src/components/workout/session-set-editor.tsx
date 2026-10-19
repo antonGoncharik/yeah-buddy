@@ -37,8 +37,6 @@ export function SessionSetEditor({
   weightStep,
   onDraft,
   onLog,
-  onAdvance,
-  hasNextSet = false,
   previousKg = null,
 }: {
   set: WorkoutSet;
@@ -48,8 +46,6 @@ export function SessionSetEditor({
   weightStep: number;
   onDraft: (patch: Partial<SetDraft>) => void;
   onLog?: (draft: SetDraft) => void;
-  onAdvance?: () => void;
-  hasNextSet?: boolean;
   previousKg?: number | null;
 }) {
   const withRir = set.set_type === "work";
@@ -205,34 +201,18 @@ export function SessionSetEditor({
             </div>
           </div>
         ) : null}
-        {!disabled && (offPlan || onAdvance) ? (
-          <div className="flex flex-col gap-2 pt-1">
-            {offPlan ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 w-full text-base"
-                onClick={() => {
-                  haptic("tap");
-                  onDraft(draftFromPlan(set));
-                }}
-              >
-                По плану
-              </Button>
-            ) : null}
-            {onAdvance ? (
-              <Button
-                type="button"
-                className="h-11 w-full text-base"
-                onClick={() => {
-                  haptic("commit");
-                  onAdvance();
-                }}
-              >
-                {hasNextSet ? "Записать · следующий" : "Записать подход"}
-              </Button>
-            ) : null}
-          </div>
+        {!disabled && offPlan ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full text-base"
+            onClick={() => {
+              haptic("tap");
+              onDraft(draftFromPlan(set));
+            }}
+          >
+            По плану
+          </Button>
         ) : null}
       </div>
     </div>
