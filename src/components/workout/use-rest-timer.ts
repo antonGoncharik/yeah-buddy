@@ -6,11 +6,13 @@ import { haptic, playTimerStepHaptic } from "@/lib/telegram/haptic";
 import {
   clearStoredRest,
   nextRestLeft,
+  nextRestPreset,
   REST_ADJUST_SECONDS,
   readLastRestSeconds,
   readStoredRestState,
-  restLeftAt,
+  restSecondsToRestore,
   WORK_REST_SECONDS,
+  writeLastRestSeconds,
   writeStoredRestState,
 } from "@/lib/workout/rest-timer";
 import { notifyRestTimerDone } from "@/lib/workout/rest-timer-done";
@@ -23,6 +25,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
   const [finishedAway, setFinishedAway] = useState(false);
   const endsAtRef = useRef<number | null>(null);
   const exerciseRef = useRef<string | null>(null);
+  const presetRef = useRef(WORK_REST_SECONDS);
   const running = left != null && left > 0;
 
   function persist(nextEndsAt: number | null, nextExerciseId: string | null) {
@@ -49,6 +52,7 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
     haptic("tap");
     setFinishedAway(false);
     const seconds = id ? readLastRestSeconds(id) : WORK_REST_SECONDS;
+    presetRef.current = seconds;
     persist(Date.now() + seconds * 1000, id);
     setLeft(seconds);
     setRound((current) => current + 1);
@@ -59,6 +63,11 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
       return;
     }
     const id = exerciseRef.current;
+    const preset = nextRestPreset(presetRef.current, delta);
+    presetRef.current = preset;
+    if (id) {
+      writeLastRestSeconds(id, preset);
+    }
     setLeft((current) => {
       if (current == null) {
         return current;
@@ -102,10 +111,17 @@ export function useRestTimer(sessionId: string | null, enabled: boolean) {
     if (stored == null) {
       return;
     }
+    const restored = restSecondsToRestore(stored.endsAt, Date.now());
+    if (restored == null) {
+      clearStoredRest(sessionId);
+      return;
+    }
     endsAtRef.current = stored.endsAt;
     exerciseRef.current = stored.exerciseId;
     setExerciseId(stored.exerciseId);
-    const restored = restLeftAt(stored.endsAt, Date.now());
+    presetRef.current = stored.exerciseId
+      ? readLastRestSeconds(stored.exerciseId)
+      : WORK_REST_SECONDS;
     setLeft(restored);
     if (restored === 0) {
       setFinishedAway(true);

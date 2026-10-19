@@ -1,4 +1,6 @@
 export const WORK_REST_SECONDS = 180;
+/** A finished rest stays on screen this long, then it is dropped. */
+export const REST_DONE_LINGER_MS = 120_000;
 export const REST_ADJUST_SECONDS = 30;
 export const REST_MIN_SECONDS = 30;
 export const REST_MAX_SECONDS = 900;
@@ -16,6 +18,21 @@ export function restTimerKey(sessionId: string): string {
 
 export function restLeftAt(endsAt: number, now: number): number {
   return Math.max(0, Math.ceil((endsAt - now) / 1000));
+}
+
+/** Seconds still worth showing. Null when the rest finished long enough ago to forget. */
+export function restSecondsToRestore(
+  endsAt: number,
+  now: number,
+): number | null {
+  const left = restLeftAt(endsAt, now);
+  if (left > 0) {
+    return left;
+  }
+  if (now - endsAt > REST_DONE_LINGER_MS) {
+    return null;
+  }
+  return 0;
 }
 
 export function clampRestSeconds(value: number): number {

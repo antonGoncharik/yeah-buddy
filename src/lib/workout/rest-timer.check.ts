@@ -8,6 +8,7 @@ import {
   parseRestState,
   REST_ADJUST_SECONDS,
   restLeftAt,
+  restSecondsToRestore,
   restTimerKey,
   serializeRestEndsAt,
   serializeRestState,
@@ -75,6 +76,13 @@ assertEqual(
   parseRestState(serializeRestEndsAt(1_700))?.exerciseId,
   null,
   "old rest json has no exercise",
+);
+assertEqual(restSecondsToRestore(5_000, 1_000), 4, "restore a running rest");
+assertEqual(restSecondsToRestore(1_000, 1_000), 0, "just finished stays");
+assertEqual(
+  restSecondsToRestore(1_000, 1_000 + 120_001),
+  null,
+  "old finished rest is dropped",
 );
 assertEqual(restLeftAt(1_000, 1_000), 0, "due now");
 assertEqual(restLeftAt(2_400, 1_000), 2, "ceils leftover ms");
