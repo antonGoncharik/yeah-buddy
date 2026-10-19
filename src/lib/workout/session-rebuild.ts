@@ -4,9 +4,16 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail, SessionStatus, WorkoutSession } from "@/lib/types";
 import { getCurrentMacroState } from "@/lib/workout/macro-state";
 import { mapWorkoutSession } from "@/lib/workout/map-rows";
-import { ensureSessionPlan } from "@/lib/workout/session-plan";
+import { adHocFeelPlan, resolveAdHocKind } from "@/lib/workout/session-add";
+import {
+  ensureSessionPlan,
+  insertSessionExercise,
+  loadPlanContext,
+} from "@/lib/workout/session-plan";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
 import { getSession, getSessionOnDate } from "@/lib/workout/sessions";
+import { slotFor } from "@/lib/workout/slot-plan";
+import { getTemplate } from "@/lib/workout/templates";
 
 /**
  * A planned session with nothing logged yet follows the phase that is
@@ -228,6 +235,90 @@ async function retargetPlannedSessionPhase(
     return session;
   }
   return mapWorkoutSession(updated.data as Record<string, unknown>);
+}
+
+/** Template order, minus exercises already in the session. */
+export function templateExercisesToAdd(
+  sessionExerciseIds: readonly string[],
+  templateExerciseIds: readonly string[],
+): string[] {
+  const present = new Set(sessionExerciseIds);
+  return templateExerciseIds.filter((id) => !present.has(id));
+}
+
+/**
+ * Today's open workout follows its template. Nothing logged yet — rebuild.
+ * Already started — append exercises added to the template, leave logs alone.
+ */
+export async function syncTodaysSessionTemplate(
+  userId: string,
+  templateId: string,
+): Promise<void> {
+  const session = await getSessionOnDate(
+    userId,
+    await getUserCalendarToday(userId),
+  );
+  if (
+    !session ||
+    session.template_id !== templateId ||
+    session.status !== "planned"
+  ) {
+    return;
+  }
+
+  const detail = await loadSessionDetail(userId, session);
+  const logged = detail.exercises.some((item) =>
+    item.sets.some((set) => set.is_completed),
+  );
+  if (!logged) {
+    await rebuildPlannedSession(userId, session.id);
+    return;
+  }
+
+  const template = await getTemplate(userId, templateId);
+  if (!template) {
+    return;
+  }
+
+  const missingIds = templateExercisesToAdd(
+    detail.exercises.map((item) => item.exercise_id),
+    template.exercises.map((exercise) => exercise.id),
+  );
+  if (missingIds.length === 0) {
+    return;
+  }
+
+  const ctx = await loadPlanContext(userId, session, template);
+  let sort = Math.max(0, ...detail.exercises.map((item) => item.sort_order));
+  for (const exerciseId of missingIds) {
+    const exercise = template.exercises.find((item) => item.id === exerciseId);
+    if (!exercise) {
+      continue;
+    }
+    sort += 10;
+    const plan = slotFor(template.slots, exercise.id);
+    const inserted = await insertSessionExercise(
+      userId,
+      session,
+      exercise,
+      plan,
+      sort,
+      ctx,
+    );
+    if (inserted) {
+      continue;
+    }
+    await insertSessionExercise(
+      userId,
+      session,
+      exercise,
+      adHocFeelPlan(
+        resolveAdHocKind(exercise.workout_type, session.workout_type),
+      ),
+      sort,
+      ctx,
+    );
+  }
 }
 
 export async function rebuildTodaysPlannedSession(

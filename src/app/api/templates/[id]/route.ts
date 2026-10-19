@@ -6,6 +6,7 @@ import {
 } from "@/lib/api/respond";
 import { sessionRoute } from "@/lib/api/session-route";
 import { WORKOUT_NOT_FOUND } from "@/lib/messages";
+import { syncTodaysSessionTemplate } from "@/lib/workout/session-rebuild";
 import {
   getTemplate,
   templateWriteSchema,
@@ -47,6 +48,8 @@ export const PATCH = sessionRoute(
       if (!template) {
         return jsonError(WORKOUT_NOT_FOUND, 404);
       }
+
+      await syncTodaysSessionTemplate(session.userId, id);
 
       return jsonOk({ template });
     } catch (error) {
