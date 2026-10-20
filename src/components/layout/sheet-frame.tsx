@@ -77,7 +77,7 @@ export function SheetFrame({
   }, []);
 
   const frame = (
-    <div className="fixed inset-0 z-50 flex items-end justify-center pb-[calc(var(--app-chrome-bottom)+var(--app-nav-clearance))] sm:items-center sm:pb-0">
+    <div className="fixed inset-0 z-50 flex items-end justify-center pb-[calc(var(--app-fixed-bottom)+var(--app-nav-clearance))] sm:items-center sm:pb-0">
       <button
         type="button"
         className="absolute inset-0 animate-fade bg-black/45"
@@ -91,7 +91,7 @@ export function SheetFrame({
         aria-labelledby={title ? titleId : undefined}
         aria-label={title ? undefined : accessibleName}
         tabIndex={-1}
-        className="card-surface animate-rise relative z-10 mx-auto max-h-[min(32rem,calc(100dvh-var(--app-chrome-bottom)-var(--app-nav-clearance)-1.5rem))] w-full max-w-lg overflow-y-auto rounded-t-[1.75rem] px-5 py-5 outline-none sm:mb-10 sm:max-h-[min(32rem,calc(100dvh-3rem))] sm:rounded-[1.75rem] sm:pt-6"
+        className="card-surface animate-rise relative z-10 mx-auto max-h-[min(32rem,calc(100dvh-var(--app-fixed-bottom)-var(--app-nav-clearance)-1.5rem))] w-full max-w-lg overflow-y-auto rounded-t-[1.75rem] px-5 py-5 outline-none sm:mb-10 sm:max-h-[min(32rem,calc(100dvh-3rem))] sm:rounded-[1.75rem] sm:pt-6"
       >
         {title ? (
           <p id={titleId} className="text-lg font-medium leading-snug">

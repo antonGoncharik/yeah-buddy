@@ -73,6 +73,20 @@ assertEqual(
   false,
   "full visual height is not a keyboard",
 );
+assertEqual(
+  isKeyboardOpen(480, {
+    stableHeight: 500,
+    baselineHeight: 800,
+    focusedField: true,
+  }),
+  true,
+  "stable height that follows the keyboard still counts while typing",
+);
+assertEqual(
+  isKeyboardOpen(480, { stableHeight: 500, baselineHeight: 800 }),
+  false,
+  "stable height that follows a scroll is not a keyboard",
+);
 assertEqual(keyboardOverlayInset(852, 400), 452, "keyboard overlay lift");
 assertEqual(
   keyboardOverlayInset(852, 818),

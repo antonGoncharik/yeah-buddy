@@ -115,17 +115,27 @@ export function isKeyboardOpen(
     return false;
   }
   const shrink = baseline - visualHeight;
-  if (shrink <= KEYBOARD_SHRINK_MIN) {
+  if (shrink > KEYBOARD_SHRINK_MIN) {
+    if (
+      typeof stableHeight !== "number" &&
+      typeof baselineHeight === "number" &&
+      !focusedField
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  // Some Android WebViews shrink viewportStableHeight with the keyboard, so
+  // the stable delta stays under the threshold. The remembered visual height
+  // still drops; a focused field separates that from a scroll shrink.
+  if (!focusedField || typeof baselineHeight !== "number") {
     return false;
   }
-  if (
-    typeof stableHeight !== "number" &&
-    typeof baselineHeight === "number" &&
-    !focusedField
-  ) {
-    return false;
-  }
-  return true;
+  const rememberedDrop = baselineHeight - visualHeight;
+  return (
+    Number.isFinite(rememberedDrop) && rememberedDrop > KEYBOARD_SHRINK_MIN
+  );
 }
 
 function pickBaseline(

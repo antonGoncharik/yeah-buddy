@@ -19,7 +19,7 @@ export function StickyActions({
         "app-sticky-actions app-chrome-bar pointer-events-none fixed inset-x-0 z-[20]",
         overlay &&
           (withNav
-            ? "bottom-[calc(var(--app-bottom-nav-block)+var(--app-fixed-bottom))]"
+            ? "bottom-[calc(var(--app-sticky-nav,var(--app-bottom-nav-block))+var(--app-fixed-bottom))]"
             : "app-fixed-bottom bottom-[var(--app-fixed-bottom)]"),
         withNav ? "py-3" : "pt-3 pb-[max(1.25rem,var(--app-safe-bottom))]",
         className,

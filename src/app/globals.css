@@ -552,6 +552,7 @@ html[data-tg-fullscreen] {
 
 html[data-keyboard="open"] {
   --app-field-scroll-pad: 5.5rem;
+  --app-sticky-nav: 0px;
 }
 
 html[data-keyboard="open"] .app-bottom-nav {

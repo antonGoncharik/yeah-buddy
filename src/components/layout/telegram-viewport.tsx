@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { bindFieldReveal } from "@/lib/form/field-nav";
 import {
   bindTelegramViewport,
   type TelegramViewportSource,
@@ -12,6 +13,7 @@ export function TelegramViewport() {
   useEffect(() => {
     let cancelled = false;
     let unbind: (() => void) | undefined;
+    const releaseFields = bindFieldReveal();
 
     void loadTelegramWebApp().then((webApp) => {
       if (cancelled) {
@@ -23,6 +25,7 @@ export function TelegramViewport() {
     return () => {
       cancelled = true;
       unbind?.();
+      releaseFields();
     };
   }, []);
 
