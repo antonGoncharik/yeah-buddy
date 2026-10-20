@@ -1,7 +1,9 @@
 import {
   fieldScrollDelta,
+  keyboardFallbackPx,
   scrollSlackPx,
   visibleFieldBand,
+  visibleViewportBottom,
 } from "@/lib/form/field-nav";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -62,5 +64,27 @@ assertEqual(
 assertEqual(scrollSlackPx(80, 30), 0, "existing room needs no spacer");
 assertEqual(scrollSlackPx(10, 40), 30, "spacer covers the missing scroll");
 assertEqual(scrollSlackPx(0, 0), 0, "no scroll needs no spacer");
+
+assertEqual(keyboardFallbackPx(800), 336, "assumed keyboard on a phone");
+assertEqual(
+  visibleViewportBottom(800, 800, 800, false),
+  800,
+  "idle viewport stays full",
+);
+assertEqual(
+  visibleViewportBottom(800, 800, 800, true),
+  464,
+  "unreported keyboard still shortens the band",
+);
+assertEqual(
+  visibleViewportBottom(800, 450, 800, true),
+  450,
+  "reported keyboard uses the visual bottom",
+);
+assertEqual(
+  visibleViewportBottom(450, 450, 800, true),
+  450,
+  "already shrunk layout is not shortened again",
+);
 
 console.log("field-nav ok");

@@ -110,6 +110,11 @@ export function isKeyboardOpen(
   } = {},
 ): boolean {
   const { stableHeight, baselineHeight, focusedField = false } = options;
+  // Focus wins. Android WebViews often leave visualViewport at the full
+  // height while the keyboard (and fixed bars) already cover the field.
+  if (focusedField) {
+    return true;
+  }
   const baseline = pickBaseline(stableHeight, baselineHeight);
   if (baseline == null || !Number.isFinite(visualHeight)) {
     return false;

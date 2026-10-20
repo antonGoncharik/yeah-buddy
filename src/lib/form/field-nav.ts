@@ -3,15 +3,17 @@ import type { KeyboardEvent } from "react";
 const FIELD_SELECTOR =
   "input:not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([disabled]):not([readonly])";
 const FIELD_REVEAL_GAP_PX = 16;
-const FOLLOW_MS = 800;
-const VIEWPORT_FOLLOW_MS = 400;
+const FOLLOW_MS = 1200;
+const VIEWPORT_FOLLOW_MS = 700;
 const SLACK_CAP_PX = 1200;
+const RETRY_MS = [0, 60, 160, 320, 640, 1100];
 const BOTTOM_CHROME = ".app-bottom-nav, .app-sticky-actions";
 
 let focused: HTMLElement | null = null;
 let followUntil = 0;
 let frame = 0;
-let stuckScrolls = 0;
+let layoutBaseline = 0;
+let retries: number[] = [];
 let releaseListeners: (() => void) | null = null;
 
 export function visibleFieldBand(
@@ -58,6 +60,38 @@ export function scrollSlackPx(roomPx: number, deltaPx: number): number {
     return 0;
   }
   return Math.ceil(missing);
+}
+
+export function keyboardFallbackPx(layoutHeight: number): number {
+  if (!Number.isFinite(layoutHeight) || layoutHeight <= 0) {
+    return 0;
+  }
+  return Math.min(420, Math.max(260, Math.round(layoutHeight * 0.42)));
+}
+
+/**
+ * Bottom of the area that is actually on screen. When a focused field is up
+ * and neither innerHeight nor visualViewport has shrunk, assume a keyboard
+ * covers the lower portion — some Android WebViews never report it.
+ */
+export function visibleViewportBottom(
+  layoutHeight: number,
+  visualBottom: number | null,
+  rememberedLayout: number,
+  assumeKeyboard: boolean,
+): number {
+  const measured =
+    visualBottom == null || !Number.isFinite(visualBottom)
+      ? layoutHeight
+      : Math.min(layoutHeight, visualBottom);
+  if (!assumeKeyboard) {
+    return measured;
+  }
+  const baseline = Math.max(layoutHeight, rememberedLayout);
+  if (baseline - measured > 80) {
+    return measured;
+  }
+  return Math.min(measured, layoutHeight - keyboardFallbackPx(baseline));
 }
 
 function isRevealTarget(node: EventTarget | null): node is HTMLElement {
@@ -107,10 +141,34 @@ function scheduleReveal(): void {
   });
 }
 
+function noteLayout(): void {
+  const height = window.innerHeight;
+  if (height > layoutBaseline) {
+    layoutBaseline = height;
+  }
+}
+
+function onOrientation(): void {
+  layoutBaseline = 0;
+  noteLayout();
+  onViewport();
+}
+
+function clearRetries(): void {
+  for (const id of retries) {
+    window.clearTimeout(id);
+  }
+  retries = [];
+}
+
 function watchField(node: HTMLElement): void {
   focused = node;
-  stuckScrolls = 0;
+  document.documentElement.dataset.fieldFocus = "true";
+  noteLayout();
   armFollow(FOLLOW_MS);
+  clearRetries();
+  retries = RETRY_MS.map((ms) => window.setTimeout(scheduleReveal, ms));
+  revealActive();
   scheduleReveal();
 }
 
@@ -219,22 +277,43 @@ function isDocumentScroller(scroller: HTMLElement): boolean {
   );
 }
 
-function scrollOffset(scroller: HTMLElement): number {
-  return isDocumentScroller(scroller) ? window.scrollY : scroller.scrollTop;
+function scrollTarget(scroller: HTMLElement, delta: number): boolean {
+  const before = scroller.scrollTop;
+  scroller.scrollTop = before + delta;
+  return Math.abs(scroller.scrollTop - before) >= 1;
 }
 
-function scrollScroller(scroller: HTMLElement, delta: number): void {
+function scrollByDelta(node: HTMLElement, delta: number): void {
   if (Math.abs(delta) < 1) {
     return;
   }
-  if (isDocumentScroller(scroller)) {
-    const scrolling = document.scrollingElement;
-    if (scrolling) {
-      scrolling.scrollTop += delta;
+  const nested = scrollParent(node);
+  if (!isDocumentScroller(nested)) {
+    if (delta > 0) {
+      ensureRoom(nested, delta);
     }
+    if (scrollTarget(nested, delta)) {
+      return;
+    }
+  }
+
+  const root =
+    document.scrollingElement instanceof HTMLElement
+      ? document.scrollingElement
+      : document.documentElement;
+  if (delta > 0) {
+    ensureRoom(root, delta);
+  }
+  if (scrollTarget(root, delta)) {
     return;
   }
-  scroller.scrollTop += delta;
+  if (scrollTarget(document.documentElement, delta)) {
+    return;
+  }
+  if (scrollTarget(document.body, delta)) {
+    return;
+  }
+  node.scrollIntoView({ block: "center", inline: "nearest" });
 }
 
 function revealActive(): void {
@@ -249,10 +328,19 @@ function revealActive(): void {
     return;
   }
 
+  noteLayout();
   const viewport = window.visualViewport;
-  const metrics = viewport ?? {
-    height: window.innerHeight,
-    offsetTop: 0,
+  const offsetTop = viewport?.offsetTop ?? 0;
+  const visualBottom = viewport ? viewport.height + viewport.offsetTop : null;
+  const bottom = visibleViewportBottom(
+    window.innerHeight,
+    visualBottom,
+    layoutBaseline,
+    true,
+  );
+  const metrics = {
+    height: Math.max(0, bottom - offsetTop),
+    offsetTop,
   };
   const visibleTop = metrics.offsetTop;
   const visibleBottom = metrics.offsetTop + metrics.height;
@@ -260,29 +348,11 @@ function revealActive(): void {
     metrics,
     bottomChromeTop(visibleTop, visibleBottom),
   );
-  let delta = fieldScrollDelta(node.getBoundingClientRect(), band);
+  const delta = fieldScrollDelta(node.getBoundingClientRect(), band);
   if (Math.abs(delta) < 1) {
     return;
   }
-
-  const scroller = scrollParent(node);
-  if (delta > 0) {
-    ensureRoom(scroller, delta);
-    delta = fieldScrollDelta(node.getBoundingClientRect(), band);
-  }
-  if (Math.abs(delta) < 1) {
-    return;
-  }
-  const before = scrollOffset(scroller);
-  scrollScroller(scroller, delta);
-  if (Math.abs(scrollOffset(scroller) - before) < 1) {
-    stuckScrolls += 1;
-    if (stuckScrolls > 2) {
-      followUntil = 0;
-    }
-    return;
-  }
-  stuckScrolls = 0;
+  scrollByDelta(node, delta);
 }
 
 function onFocusIn(event: FocusEvent): void {
@@ -305,6 +375,8 @@ function onFocusOut(): void {
     }
     focused = null;
     followUntil = 0;
+    clearRetries();
+    delete document.documentElement.dataset.fieldFocus;
     clearSlack();
   }, 30);
 }
@@ -327,18 +399,24 @@ function install(): () => void {
   viewport?.addEventListener("resize", onViewport);
   viewport?.addEventListener("scroll", onViewport);
   window.addEventListener("resize", onViewport);
+  window.addEventListener("orientationchange", onOrientation);
+  noteLayout();
   releaseListeners = () => {
     document.removeEventListener("focusin", onFocusIn, true);
     document.removeEventListener("focusout", onFocusOut, true);
     viewport?.removeEventListener("resize", onViewport);
     viewport?.removeEventListener("scroll", onViewport);
     window.removeEventListener("resize", onViewport);
+    window.removeEventListener("orientationchange", onOrientation);
     if (frame) {
       window.cancelAnimationFrame(frame);
       frame = 0;
     }
+    clearRetries();
     focused = null;
     followUntil = 0;
+    layoutBaseline = 0;
+    delete document.documentElement.dataset.fieldFocus;
     clearSlack();
     releaseListeners = null;
   };

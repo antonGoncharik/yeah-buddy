@@ -87,6 +87,11 @@ assertEqual(
   false,
   "stable height that follows a scroll is not a keyboard",
 );
+assertEqual(
+  isKeyboardOpen(800, { stableHeight: 800, focusedField: true }),
+  true,
+  "focused field counts as keyboard before the viewport shrinks",
+);
 assertEqual(keyboardOverlayInset(852, 400), 452, "keyboard overlay lift");
 assertEqual(
   keyboardOverlayInset(852, 818),

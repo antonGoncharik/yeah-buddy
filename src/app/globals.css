@@ -550,12 +550,17 @@ html[data-tg-fullscreen] {
   --app-safe-top-extra: 0.625rem;
 }
 
-html[data-keyboard="open"] {
-  --app-field-scroll-pad: 5.5rem;
+html[data-keyboard="open"],
+html[data-field-focus] {
   --app-sticky-nav: 0px;
 }
 
-html[data-keyboard="open"] .app-bottom-nav {
+html[data-keyboard="open"] {
+  --app-field-scroll-pad: 5.5rem;
+}
+
+html[data-keyboard="open"] .app-bottom-nav,
+html[data-field-focus] .app-bottom-nav {
   visibility: hidden;
   pointer-events: none;
 }
