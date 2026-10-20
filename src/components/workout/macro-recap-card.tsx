@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { pluralExercises } from "@/lib/i18n/plural";
 import type { MacroRecap } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { phaseLabel } from "@/lib/workout/labels";
@@ -72,7 +73,7 @@ export function MacroRecapCard({
                 в среднем
                 {recap.grown_count > 0
                   ? ` · выросли ${recap.grown_count} из ${recap.gains.length}`
-                  : ` · ${recap.gains.length} упр.`}
+                  : ` · ${recap.gains.length} ${pluralExercises(recap.gains.length)}`}
               </span>
             </>
           )}

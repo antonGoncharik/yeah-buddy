@@ -5,6 +5,7 @@ import {
   ReviewSection,
   StatGrid,
 } from "@/components/ai/review-blocks";
+import { WeekTonnageChart } from "@/components/workout/week-tonnage-chart";
 import type { ReviewBrief } from "@/lib/ai/types";
 import { formatIsoDate } from "@/lib/day/format";
 import {
@@ -13,6 +14,8 @@ import {
   workoutsPerWeek,
 } from "@/lib/workout/history-stats";
 import { SESSION_FEEL_LABELS } from "@/lib/workout/labels";
+import { formatTonnage } from "@/lib/workout/numbers";
+import { formatPeakRecord } from "@/lib/workout/progress-control";
 
 export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
   const gym = brief.gym;
@@ -38,19 +41,43 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
       ? {
           label: "Темп",
           value: `${formatWeekRate(gym.rate_halves.first)} → ${formatWeekRate(gym.rate_halves.second)}`,
-          detail: "в неделю",
+          detail:
+            brief.gym.circle_size > 0
+              ? `в неделю · ${brief.gym.circle_size} в круге`
+              : "в неделю",
         }
       : null,
     gym.plan_total > 0
       ? {
-          label: "Не слабее плана",
+          label: "Подходы по плану",
           value: `${gym.plan_hit} из ${gym.plan_total}`,
+          detail: "которые правил",
         }
       : null,
     gym.completed > 0 && gym.as_planned > 0 && gym.as_planned < gym.completed
       ? {
-          label: "Как план",
+          label: "Без правок",
           value: `${gym.as_planned} из ${gym.completed}`,
+        }
+      : null,
+    gym.gap_days != null
+      ? {
+          label: "Пауза",
+          value: `${gym.gap_days} дн.`,
+          detail: "без зала",
+        }
+      : null,
+    gym.skipped > 0
+      ? {
+          label: "Пропуски",
+          value: String(gym.skipped),
+        }
+      : null,
+    gym.static > 0
+      ? {
+          label: "На время",
+          value: String(gym.static),
+          detail: gym.dynamic > 0 ? `повторы ${gym.dynamic}` : null,
         }
       : null,
     brief.phase.type &&
@@ -71,7 +98,54 @@ export function ReviewGymCard({ brief }: { brief: ReviewBrief }) {
       value={gymValue(brief, perWeek)}
     >
       {stats.length > 0 ? <StatGrid items={stats} /> : null}
+      {gym.tonnage_weeks.length >= 2 ? (
+        <WeekTonnageChart
+          weeks={gym.tonnage_weeks}
+          periodTotal={gym.tonnage ?? undefined}
+        />
+      ) : gym.tonnage != null && gym.tonnage > 0 ? (
+        <StatGrid
+          items={[
+            {
+              label: "Тоннаж",
+              value: formatTonnage(gym.tonnage),
+              detail: "кг",
+            },
+          ]}
+        />
+      ) : null}
+      {gym.records.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <BlockTitle>Рекорды</BlockTitle>
+          <ul className="flex flex-col gap-1.5">
+            {gym.records.slice(0, 6).map((row) => (
+              <li key={`${row.name}-${row.date}`} className="text-sm">
+                {formatPeakRecord(row)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       {feelTotal > 0 ? <FeelBar feels={feels} /> : null}
+      {gym.templates.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <BlockTitle>Тренировки</BlockTitle>
+          <ul className="flex flex-wrap gap-2">
+            {gym.templates.map((item) => (
+              <li
+                key={item.name}
+                className="rounded-full bg-muted px-3 py-1 text-sm"
+              >
+                {item.name}
+                <span className="tabular-nums text-muted-foreground">
+                  {" "}
+                  · {item.count}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       {gym.weak.length > 0 ? (
         <div className="flex flex-col gap-2">
           <BlockTitle>Слабее плана</BlockTitle>
@@ -128,7 +202,11 @@ function gymSummary(brief: ReviewBrief, perWeek: number): string | null {
       ? `план ${brief.gym.plan_hit} из ${brief.gym.plan_total}`
       : null;
   if (perWeek > 0) {
-    return plan ? `в неделю · ${plan}` : "в неделю";
+    const circle =
+      brief.gym.circle_size > 0 ? `${brief.gym.circle_size} в круге` : null;
+    return ["в неделю", circle, plan]
+      .filter((part): part is string => part != null)
+      .join(" · ");
   }
   if (brief.gym.completed > 0) {
     const word = pluralWorkouts(brief.gym.completed);

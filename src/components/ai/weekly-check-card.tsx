@@ -140,23 +140,18 @@ export function WeeklyCheckCard({ brief }: { brief: ReviewBrief }) {
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card px-4 py-4">
-      <div>
-        <h2 className="text-base font-semibold">Недельная проверка</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Цифры за период и предложение по калориям — без отдельного захода в
-          дневник.
-        </p>
-      </div>
-      {forecastLine ? (
-        <p className="text-sm leading-snug text-muted-foreground">
-          {forecastLine}
-        </p>
-      ) : null}
-      {computed?.hint ? (
-        <p className="text-sm leading-snug text-muted-foreground">
-          {computed.hint}
-        </p>
+    <div className="flex flex-col gap-3">
+      {forecastLine || computed?.hint ? (
+        <section className="flex flex-col gap-2 rounded-2xl border border-border/80 bg-card px-4 py-4">
+          {forecastLine ? (
+            <p className="text-sm leading-snug">{forecastLine}</p>
+          ) : null}
+          {computed?.hint ? (
+            <p className="text-sm leading-snug text-muted-foreground">
+              {computed.hint}
+            </p>
+          ) : null}
+        </section>
       ) : null}
       {activeOffer ? (
         <EnergyGoalCard
@@ -175,6 +170,6 @@ export function WeeklyCheckCard({ brief }: { brief: ReviewBrief }) {
           onDismiss={() => void dismiss()}
         />
       ) : null}
-    </section>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/components/ai/review-blocks";
 import { formatPct } from "@/lib/ai/format";
 import type { ReviewBrief, ReviewMaxRow } from "@/lib/ai/types";
+import { pluralExercises } from "@/lib/i18n/plural";
 import { cn } from "@/lib/utils";
 import { STRENGTH_LABEL } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
@@ -88,16 +89,33 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
           <p className="text-sm font-medium">
             {maxes.last_recap.from} → {maxes.last_recap.to}
           </p>
-          <p className="text-sm tabular-nums text-muted-foreground">
-            {maxes.last_recap.avg_percent != null
-              ? `${formatPct(maxes.last_recap.avg_percent)} · `
-              : null}
-            выросли {maxes.last_recap.grown}
-          </p>
+          {maxes.last_recap.avg_percent != null ||
+          maxes.last_recap.grown > 0 ? (
+            <p className="text-sm tabular-nums text-muted-foreground">
+              {maxes.last_recap.avg_percent != null
+                ? formatPct(maxes.last_recap.avg_percent)
+                : null}
+              {maxes.last_recap.avg_percent != null &&
+              maxes.last_recap.grown > 0
+                ? " · "
+                : null}
+              {maxes.last_recap.grown > 0
+                ? grownPhrase(maxes.last_recap.grown)
+                : null}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </ReviewSection>
   );
+}
+
+function grownPhrase(count: number): string {
+  const word = pluralExercises(count);
+  const mod10 = Math.abs(count) % 10;
+  const mod100 = Math.abs(count) % 100;
+  const singular = mod10 === 1 && mod100 !== 11;
+  return `${singular ? "выросло" : "выросли"} ${count} ${word}`;
 }
 
 function liftsValue(brief: ReviewBrief): string | null {

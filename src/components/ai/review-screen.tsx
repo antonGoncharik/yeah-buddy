@@ -108,7 +108,7 @@ export function ReviewScreen() {
                     <>
                       {brief.coverage === "thin" ? (
                         <p className="text-sm text-muted-foreground">
-                          Записей пока мало.
+                          Записей мало — разбор будет короче.
                         </p>
                       ) : null}
                       {snapshot?.configured &&
@@ -122,7 +122,7 @@ export function ReviewScreen() {
                           {writing
                             ? "Разбираю…"
                             : review
-                              ? "Ещё раз разбор от ИИ"
+                              ? "Разобрать ещё раз"
                               : "Разбор от ИИ"}
                         </Button>
                       ) : snapshot?.configured ? (

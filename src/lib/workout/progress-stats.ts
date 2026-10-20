@@ -15,7 +15,7 @@ export type ProgressMetric =
 
 export const CATEGORY_SHORT_LABELS: Record<ExerciseCategory, string> = {
   base: "База",
-  isolation: "Изол.",
+  isolation: "Изоляция",
 };
 
 const CATEGORY_ORDER: ExerciseCategory[] = ["base", "isolation"];

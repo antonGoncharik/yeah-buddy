@@ -55,10 +55,10 @@ export function averageValue(brief: FoodBrief): string | null {
 
 export function averageSummary(brief: FoodBrief): string | null {
   if (brief.nutrition.training && brief.nutrition.rest) {
-    return `зал · отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`;
+    return `тренировка · отдых ${formatKcal(brief.nutrition.rest.fact.kcal)}`;
   }
   if (brief.nutrition.training) {
-    return "зал";
+    return "тренировка";
   }
   if (brief.nutrition.rest) {
     return "отдых";

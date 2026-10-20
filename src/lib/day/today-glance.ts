@@ -115,7 +115,7 @@ function glanceLead(input: {
     input.isTrainingDay &&
     input.gym.label === "нет программы"
   ) {
-    return "Тренировочный день, а программы нет — выбери шаблон в Тренировках.";
+    return "День тренировки, а программы нет — выбери шаблон в Тренировках.";
   }
 
   if (!input.proteinOk && input.targetProtein > 0) {

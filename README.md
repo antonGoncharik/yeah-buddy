@@ -8,7 +8,7 @@ Bottom nav: **Today · Workouts · Settings**. Your food list lives in Settings.
 
 A day is rest or training. That switches calorie targets and which meals show up: a snack on a rest day, pre- and post-workout on a training day. Body weight is one number for the day. Waist is optional and is not copied from yesterday.
 
-Pick a food, enter grams, get protein, fat, carbs, and calories. A card with a usual portion goes straight into the meal. A name that is not in your list can be a one-off row for that portion. With a plate, voice, or text key the same screen can read a photo, a spoken list, or a line like «овсянка 80 г». Without those keys the diary is filled by hand. Each of those three is capped at three uses a day.
+Pick a food, enter grams, get protein, fat, carbs, and calories. A card with a usual portion goes straight into the meal. A name that is not in your list can be a one-off row for that portion. With a plate, voice, or text key the same screen can read a photo, a spoken list, or a line like «овсянка 80 г». Without those keys the diary is filled by hand. Each of those three is capped at four uses a day.
 
 The list is yours: search, favorites, recents. A shop catalog can copy a card in. A barcode is looked up in that catalog, then Open Food Facts.
 

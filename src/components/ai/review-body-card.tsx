@@ -89,13 +89,15 @@ export function ReviewBodyCard({ brief }: { brief: ReviewBrief }) {
                 value: `~${formatKcal(energy.kcal)}`,
                 detail: "ккал в день",
               },
-              energy.target == null
-                ? { label: "Цель", value: "" }
-                : {
-                    label: "Цель",
-                    value: formatKcal(energy.target),
-                    detail: "ккал в день",
-                  },
+              ...(energy.target == null
+                ? []
+                : [
+                    {
+                      label: "Цель",
+                      value: formatKcal(energy.target),
+                      detail: "ккал в день",
+                    },
+                  ]),
             ]}
           />
           <p className="text-sm text-muted-foreground">

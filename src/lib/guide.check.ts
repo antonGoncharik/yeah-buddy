@@ -84,12 +84,12 @@ assert(
 assert(
   guidePageText(GUIDE_INTRO_PAGE_GYM).includes("сколько его ещё съесть") &&
     guidePageText(GUIDE_INTRO_PAGE_GYM).includes("«Отдых»") &&
-    guidePageText(GUIDE_INTRO_PAGE_GYM).includes("«Тренировочный»"),
+    guidePageText(GUIDE_INTRO_PAGE_GYM).includes("«Тренировка»"),
   "gym intro says protein left and the two day modes",
 );
 assert(
   guidePageText(GUIDE_INTRO_PAGE_FOOD).includes("сколько его ещё съесть") &&
-    !guidePageText(GUIDE_INTRO_PAGE_FOOD).includes("«Тренировочный»"),
+    !guidePageText(GUIDE_INTRO_PAGE_FOOD).includes("«Тренировка»"),
   "food intro stays about the diary without gym day modes",
 );
 assertEqual(

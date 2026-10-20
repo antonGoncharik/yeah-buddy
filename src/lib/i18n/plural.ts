@@ -10,6 +10,23 @@ export function pluralDays(count: number): string {
   return "дней";
 }
 
+/** Exercises after a number: 1 упражнение, 2 упражнения, 5 упражнений. */
+export function pluralExercises(count: number): string {
+  if (!Number.isFinite(count) || !Number.isInteger(count)) {
+    return "упражнения";
+  }
+  const n = Math.abs(count);
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return "упражнение";
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "упражнения";
+  }
+  return "упражнений";
+}
+
 /** Sets after a number: 1 подход, 2 подхода, 5 подходов, 1.5 подхода. */
 export function pluralSets(count: number): string {
   if (!Number.isFinite(count) || !Number.isInteger(count)) {

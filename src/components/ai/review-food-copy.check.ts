@@ -91,7 +91,7 @@ assertEqual(
 );
 assertEqual(
   averageSummary({ nutrition: { ...nutrition, training } }),
-  "зал",
+  "тренировка",
   "training label",
 );
 

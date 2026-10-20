@@ -28,8 +28,13 @@ import {
 import type { ReviewBrief } from "@/lib/ai/types";
 import { formatProteinPerKg } from "@/lib/day/body-weight";
 import { formatIsoDate } from "@/lib/day/format";
-import { DAY_TYPE_LABELS } from "@/lib/nutrition/day-labels";
-import { formatKcal } from "@/lib/nutrition/macros";
+import type { FoodShare, MealPlate } from "@/lib/days";
+import {
+  DAY_TYPE_LABELS,
+  formatKcal,
+  getMealLabel,
+  MEAL_DISPLAY_ORDER,
+} from "@/lib/nutrition";
 
 export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   const days = [...brief.nutrition.days].sort((left, right) =>
@@ -83,7 +88,7 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
               {weight.protein_per_kg != null ? (
                 <div className="flex flex-col gap-1.5">
                   <MeterLine
-                    label="На килограмм"
+                    label="Белок на кг"
                     value={formatProteinPerKg(weight.protein_per_kg)}
                     ratio={
                       weight.protein_per_kg_target != null &&
@@ -158,28 +163,40 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
             <StatGrid
               items={[
                 {
-                  label: "Ккал в зале",
+                  label: "Ккал к отдыху",
                   value: signedAmount(
                     brief.nutrition.training.fact.kcal -
                       brief.nutrition.rest.fact.kcal,
                     (value) => formatKcal(value),
                   ),
-                  detail: "к отдыху",
                 },
                 {
-                  label: "Белок в зале",
+                  label: "Белок к отдыху",
                   value: signedAmount(
                     brief.nutrition.training.fact.protein -
                       brief.nutrition.rest.fact.protein,
                     (value) => `${formatG(value)} г`,
                   ),
-                  detail: "к отдыху",
                 },
               ]}
             />
           ) : null}
           {brief.nutrition.halves ? (
             <HalfCompare halves={brief.nutrition.halves} />
+          ) : null}
+          {brief.nutrition.meals_rest.length > 0 ||
+          brief.nutrition.meals_training.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              <BlockTitle>По приёмам</BlockTitle>
+              <MealAverages
+                label={DAY_TYPE_LABELS.rest}
+                meals={brief.nutrition.meals_rest}
+              />
+              <MealAverages
+                label={DAY_TYPE_LABELS.training}
+                meals={brief.nutrition.meals_training}
+              />
+            </div>
           ) : null}
           {brief.nutrition.foods.length > 0 ? (
             <div className="flex flex-col gap-3">
@@ -188,12 +205,76 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
               brief.nutrition.halves ? (
                 <BlockTitle>Откуда белок</BlockTitle>
               ) : null}
-              <ShareBars foods={brief.nutrition.foods} />
+              {foodListsDiffer(
+                brief.nutrition.foods_rest,
+                brief.nutrition.foods_training,
+              ) ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {DAY_TYPE_LABELS.rest}
+                    </p>
+                    <ShareBars foods={brief.nutrition.foods_rest} />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {DAY_TYPE_LABELS.training}
+                    </p>
+                    <ShareBars foods={brief.nutrition.foods_training} />
+                  </div>
+                </div>
+              ) : (
+                <ShareBars foods={brief.nutrition.foods} />
+              )}
             </div>
           ) : null}
         </ReviewSection>
       ) : null}
     </>
+  );
+}
+
+function MealAverages({ label, meals }: { label: string; meals: MealPlate[] }) {
+  const ordered = [...meals].sort(
+    (left, right) =>
+      MEAL_DISPLAY_ORDER.indexOf(left.meal) -
+      MEAL_DISPLAY_ORDER.indexOf(right.meal),
+  );
+  if (ordered.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-medium">{label}</p>
+      <ul className="flex flex-col gap-1.5">
+        {ordered.map((meal) => (
+          <li
+            key={meal.meal}
+            className="flex items-baseline justify-between gap-3 text-sm"
+          >
+            <span>{getMealLabel(meal.meal)}</span>
+            <span className="shrink-0 tabular-nums text-muted-foreground">
+              {formatG(meal.protein)} г · {formatKcal(meal.kcal)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function foodListsDiffer(rest: FoodShare[], training: FoodShare[]): boolean {
+  const names = (foods: FoodShare[]) =>
+    foods
+      .filter((food) => food.protein > 0)
+      .slice(0, 3)
+      .map((food) => food.name)
+      .join("\0");
+  const restNames = names(rest);
+  const trainingNames = names(training);
+  return (
+    restNames !== "" && trainingNames !== "" && restNames !== trainingNames
   );
 }
 

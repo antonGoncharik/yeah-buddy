@@ -51,7 +51,7 @@ import { categoryAverages } from "@/lib/workout/progress-stats";
 const FILTERS: Array<{ id: ProgressFilter; label: string }> = [
   { id: "all", label: "Все" },
   { id: "base", label: EXERCISE_CATEGORY_LABELS.base },
-  { id: "isolation", label: "Изол." },
+  { id: "isolation", label: EXERCISE_CATEGORY_LABELS.isolation },
 ];
 
 export function ProgressScreen() {
