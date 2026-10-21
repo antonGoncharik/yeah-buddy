@@ -60,10 +60,10 @@ export function FormulaWarmupScreen() {
           <>
             <p className="px-1 text-base leading-relaxed text-muted-foreground">
               Какая разминка — зависит от упражнения: в каждом выбрано «штанга»
-              или «блок». Повторы — проценты от самого тяжёлого рабочего
-              подхода.
+              или «блок». Повторы — доли самого тяжёлого подхода сегодня, не от
+              «на раз».
               {kind === "static"
-                ? " Удержание в секундах — процент от максимума: короткие 2 секунды легче рабочих 6 секунд."
+                ? " Удержание в секундах — доля от «на раз»: короткие 2 секунды легче рабочих 6 секунд."
                 : ""}
             </p>
 
@@ -99,7 +99,7 @@ export function FormulaWarmupScreen() {
                   allowEmpty
                   emptyLabel="Без разминки"
                   previewMax={previewMax[kind]}
-                  exampleHint="Килограммы под строкой — пример от верхнего рабочего веса"
+                  exampleHint="Килограммы под строкой — пример от самого тяжёлого подхода сегодня"
                   referenceIsTopWork
                   previewPreset={preset}
                   previewKind={kind}

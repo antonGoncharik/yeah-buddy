@@ -20,7 +20,7 @@ export function FormulaExampleMax({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-10 w-16 px-2 text-center text-sm tabular-nums"
-        aria-label="Пример верхнего рабочего веса, кг"
+        aria-label="Пример веса, кг"
       />
       <span>кг</span>
     </div>

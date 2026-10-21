@@ -254,7 +254,7 @@ export function completePhaseHint(
     return "Максимум перейдёт как есть. Перед подтверждением можно поправить.";
   }
   if (progress.hold_weights) {
-    return "Не пошло — максимум на раз и рабочий кг не трогаем.";
+    return "Не пошло — ни «на раз», ни штангу не трогаем.";
   }
   const kg = kgBumpLabel(progress.kg_increase_on_end);
   if (progress.last_in_cycle) {
@@ -288,12 +288,12 @@ export function phaseHoldHint(progress: PhaseCircleProgress): string | null {
   if (!progress.hold_weights) {
     return null;
   }
-  return "Не пошло — максимум на раз и рабочий кг не трогаем.";
+  return "Не пошло — ни «на раз», ни штангу не трогаем.";
 }
 
 export function transitionExplain(preview: TransitionPreview): string {
   if (preview.hold_weights) {
-    return "Не пошло — максимум на раз и рабочий кг не трогаем, можно поправить.";
+    return "Не пошло — ни «на раз», ни штангу не трогаем. Можно поправить руками.";
   }
   const kg = kgBumpLabel(preview.kg_increase);
   if (preview.new_macro && preview.increased && kg) {
@@ -327,7 +327,7 @@ function kgBumpLabel(kg: number | null | undefined): string | null {
   if (kg == null || !(kg > 0)) {
     return null;
   }
-  return `рабочий вес +${formatWeight(kg)} кг`;
+  return `на штанге +${formatWeight(kg)} кг`;
 }
 
 function capitalize(value: string): string {

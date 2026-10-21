@@ -15,6 +15,7 @@ import {
   exerciseWeightLead,
 } from "@/lib/workout/exercise-load-need";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { ONE_REP_FIELD } from "@/lib/workout/user-copy";
 
 function maxWeightOutOfRange(raw: string): boolean {
   if (raw.trim() === "") {
@@ -98,7 +99,7 @@ export function ExerciseLoadsSectionNew({
         </p>
       </div>
       <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-        <p className="text-sm font-medium">На раз, кг</p>
+        <p className="text-sm font-medium">{ONE_REP_FIELD}</p>
         <MaxDraft form={form} setForm={setForm} optional />
       </div>
     </section>
@@ -118,7 +119,7 @@ function MaxField({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-      <p className="text-sm font-medium">На раз, кг</p>
+      <p className="text-sm font-medium">{ONE_REP_FIELD}</p>
       {locked ? (
         <>
           <Input

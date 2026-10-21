@@ -93,6 +93,7 @@ const lead = exerciseWeightLead({
 });
 assert(lead.includes("50, 70, 80 и 90%"), "barbell warmup names its percents");
 assert(lead.includes("не от этой цифры"), "warmup is not the one-rep number");
+assert(lead.includes("проценты"), "one-rep card talks about percents");
 
 const trackLead = exerciseWeightLead({
   need: kilos,

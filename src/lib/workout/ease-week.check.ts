@@ -120,7 +120,7 @@ assertEqual(
 );
 assertEqual(
   easeWeekConfirm("lighter"),
-  "Снизить рабочий вес на шаг?",
+  "Снизить вес на шаг?",
   "lighter confirm",
 );
 

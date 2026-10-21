@@ -76,7 +76,7 @@ export function MacroScreen() {
               <p className="text-base leading-relaxed text-muted-foreground">
                 {state.planned_cycle.length > 0
                   ? `Круг: ${cycleSequenceLabel(state.planned_cycle)}. Тренировки те же — по неделям меняется вес.`
-                  : "Сначала выбери недели, потом запусти. Тренировки те же — меняется вес: проценты от максимума на раз или рабочие килограммы."}
+                  : "Сначала выбери недели, потом запусти. Тренировки те же — меняется вес: проценты от «на раз» или килограммы на штанге."}
               </p>
               {state.planned_cycle.length > 0 ? (
                 <CycleTimeline

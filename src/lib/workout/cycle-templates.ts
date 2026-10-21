@@ -196,7 +196,7 @@ export const CYCLE_TEMPLATES: Array<{
   {
     id: "two_week_kg",
     name: "Две недели · +2.5 кг",
-    hint: "Две недели по кругу. Рабочий кг +2.5 после каждой. Для жима в килограммах.",
+    hint: "Две недели по кругу. На штанге +2,5 кг после каждой. Для жима лесенкой.",
     cycle: TWO_WEEK_KG_CYCLE,
     auto_end: true,
     loop: true,

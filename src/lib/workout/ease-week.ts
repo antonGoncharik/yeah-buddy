@@ -57,14 +57,14 @@ export function easeWeekMessage(kind: EaseWeekKind): string {
   if (kind === "deload") {
     return "Три раза не пошло. Можно открыть лёгкую неделю — максимум тот же, подходы легче.";
   }
-  return "Три раза не пошло. Можно снизить рабочий вес на шаг.";
+  return "Три раза не пошло. Можно снизить вес на шаг — и «на раз», и штангу.";
 }
 
 export function easeWeekConfirm(kind: EaseWeekKind): string {
   if (kind === "deload") {
     return "Открыть лёгкую неделю?";
   }
-  return "Снизить рабочий вес на шаг?";
+  return "Снизить вес на шаг?";
 }
 
 export function readEaseWeek(value: unknown): EaseWeekKind | null {

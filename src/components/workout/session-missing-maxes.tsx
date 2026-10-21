@@ -65,8 +65,8 @@ export function SessionMissingMaxes({
       <div>
         <p className="text-xl font-semibold tracking-tight">Ещё без плана</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Укажи максимум на раз или рабочий вес с повторами — от этого посчитаем
-          подходы.
+          Сколько поднимаешь один раз. Не знаешь точно — напиши вес и повторы,
+          посчитаем «на раз».
         </p>
       </div>
       <div className="flex flex-col gap-4" data-field-group>
@@ -105,10 +105,10 @@ export function SessionMissingMaxes({
             </div>
             <div className="flex items-center gap-2">
               <span className="min-w-0 flex-1 text-sm text-muted-foreground">
-                или рабочий × повторы
+                или вес × повторы
               </span>
               <Input
-                aria-label={`Рабочий вес, ${exerciseShortLabel(exercise.short_name, exercise.name)}`}
+                aria-label={`Вес, ${exerciseShortLabel(exercise.short_name, exercise.name)}`}
                 inputMode="decimal"
                 enterKeyHint="next"
                 autoComplete="off"

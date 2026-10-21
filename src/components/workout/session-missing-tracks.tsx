@@ -38,11 +38,11 @@ export function SessionMissingTracks({
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
       <div>
         <p className="text-xl font-semibold tracking-tight">
-          Первый рабочий вес
+          Килограммы на штанге
         </p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Напиши килограммы на первый раз. Дальше вес пойдёт сам: после недели,
-          если в цикле стоит прибавка, или после тренировки.
+          С этого веса пойдёт лесенка. Дальше плюс шаг — после недели, если так
+          стоит в цикле, или после тренировки.
         </p>
       </div>
       <div className="divide-y divide-border/70" data-field-group>

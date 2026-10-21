@@ -16,12 +16,12 @@ import { trackSummary } from "@/lib/workout/track-line";
 export function loadHint(load: SlotLoad, exercise: ExerciseWithMax): string {
   if (load.type === "track") {
     return exercise.track
-      ? `Рабочий кг: ${trackSummary(exercise.track)}.`
-      : "Рабочий кг — в карточке упражнения.";
+      ? `На штанге ${trackSummary(exercise.track)}.`
+      : "Килограммы на штанге — в карточке упражнения.";
   }
   if (load.type === "percent" || load.type === "orm") {
     return exercise.current_max
-      ? `От максимума на раз ${formatWeight(exercise.current_max.max_weight)} кг.`
+      ? `На раз ${formatWeight(exercise.current_max.max_weight)} кг.`
       : SLOT_LOAD_HINTS.percent;
   }
   return SLOT_LOAD_HINTS[load.type];

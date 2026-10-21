@@ -15,6 +15,7 @@ import type { ExerciseTrack, ExerciseWithMax } from "@/lib/types";
 import { parseExerciseWithMax } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 import { trackCurrentWeight } from "@/lib/workout/track-line";
+import { BAR_KG_FIELD } from "@/lib/workout/user-copy";
 
 /**
  * Working kilograms for slots that use kg, same role as 1RM for percent.
@@ -78,8 +79,7 @@ function EmbeddedWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
 
   async function remove() {
     const ok = await confirm({
-      message:
-        "Убрать рабочий кг? Подходы с типом «Кг» снова спросят вес в зале.",
+      message: "Убрать килограммы на штанге? Лесенка снова спросит вес в зале.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -103,9 +103,9 @@ function EmbeddedWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-      <p className="text-sm font-medium">Рабочий, кг</p>
+      <p className="text-sm font-medium">{BAR_KG_FIELD}</p>
       <Input
-        aria-label="Рабочий кг"
+        aria-label={BAR_KG_FIELD}
         value={weightText}
         inputMode="decimal"
         enterKeyHint="done"
@@ -131,7 +131,7 @@ function EmbeddedWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
           disabled={busy}
           onClick={() => void remove()}
         >
-          Убрать рабочий
+          Убрать
         </button>
       ) : null}
     </div>
@@ -157,7 +157,7 @@ function StandaloneWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
 
   async function save() {
     if (parsed == null || parsed <= 0) {
-      setError("Нужен рабочий вес.");
+      setError("Нужны килограммы на штанге.");
       return;
     }
     setBusy(true);
@@ -180,8 +180,7 @@ function StandaloneWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
 
   async function remove() {
     const ok = await confirm({
-      message:
-        "Убрать рабочий кг? Подходы с типом «Кг» снова спросят вес в зале.",
+      message: "Убрать килограммы на штанге? Лесенка снова спросит вес в зале.",
       confirmLabel: "Убрать",
       cancelLabel: "Оставить",
       destructive: true,
@@ -207,10 +206,10 @@ function StandaloneWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-4">
       <div>
-        <p className="text-base font-medium">Рабочий кг</p>
+        <p className="text-base font-medium">{BAR_KG_FIELD}</p>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Нужен, если в дне стоит «Кг». После недели, если в цикле стоит
-          прибавка, иначе — после тренировки. Максимум на раз отдельно.
+          Лесенка: эти килограммы идут на штангу. Дальше плюс шаг после недели
+          или после тренировки. «На раз» тут ни при чём.
         </p>
       </div>
 
@@ -256,7 +255,7 @@ function StandaloneWorkingWeight({ exercise }: { exercise: ExerciseWithMax }) {
       {editing ? (
         <div className="flex flex-col gap-3" data-field-group>
           <Input
-            aria-label="Рабочий кг"
+            aria-label={BAR_KG_FIELD}
             value={weightText}
             inputMode="decimal"
             enterKeyHint="done"

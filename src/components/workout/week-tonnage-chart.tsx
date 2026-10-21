@@ -56,8 +56,8 @@ export function WeekTonnageChart({
             Тоннаж по неделям
           </h3>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            Сумма «вес × повторы» по рабочим подходам за каждую неделю. Не
-            путать с рабочим весом на штанге.
+            Сумма «вес × повторы» по рабочим подходам за каждую неделю. Это
+            объём, не килограммы одного подхода.
           </p>
           {periodTotal != null && periodTotal > 0 ? (
             <p className="mt-1.5 text-sm tabular-nums text-muted-foreground">

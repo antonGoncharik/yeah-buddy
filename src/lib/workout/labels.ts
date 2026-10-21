@@ -138,14 +138,14 @@ export function defaultUnitForWorkoutType(
 /** Sidebar kg in exercise lists: 1RM or working track weight. */
 export function exerciseCatalogWeight(
   exercise: ExerciseWithMax,
-): { kg: string; hint: "на раз" | "кг" } | null {
+): { kg: string; hint: "на раз" | "штанга" } | null {
   const max = exercise.current_max?.max_weight ?? 0;
   if (max > 0) {
     return { kg: formatWeight(max), hint: "на раз" };
   }
   const track = exercise.track ? trackCurrentWeight(exercise.track) : null;
   if (track != null && track > 0) {
-    return { kg: formatWeight(track), hint: "кг" };
+    return { kg: formatWeight(track), hint: "штанга" };
   }
   return null;
 }

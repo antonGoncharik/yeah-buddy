@@ -30,7 +30,7 @@ export function ExercisesList({
         <section className="flex flex-col gap-2">
           <SectionHeading
             title="В тренировках"
-            hint="Справа — сколько поднимаешь один раз, если вес считается от этого."
+            hint="Справа «на раз» или «штанга» — какое число у этого упражнения."
           />
           <ExerciseRows exercises={groups.queued} />
         </section>

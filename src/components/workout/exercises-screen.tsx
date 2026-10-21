@@ -36,7 +36,7 @@ export function ExercisesScreen() {
         subtitle={
           muscleFilterLabel
             ? `Зона: ${muscleFilterLabel}`
-            : "Что делаешь и рабочие веса"
+            : "Что делаешь и какой вес"
         }
         backHref="/workouts"
       />

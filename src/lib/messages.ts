@@ -313,7 +313,7 @@ export const NUTRITION_HISTORY_EMPTY_HINT =
 export const WEEK_NO_FOOD = "еды нет";
 export const WEEK_NO_GYM = "зала нет";
 export const SESSION_PLAN_EMPTY =
-  "Нет веса для плана. Напиши, сколько поднимаешь один раз, или первый кг — прямо здесь.";
+  "Нет веса для плана. Для процентов — сколько поднимаешь один раз. Для лесенки — килограммы на штанге.";
 export const TEMPLATE_MEAL_HIDDEN = "Этот приём в такой день скрыт.";
 export const AI_REVIEW_EMPTY = "Пока мало записей. Другу не о чем говорить.";
 export const AI_REVIEW_NO_KEY = "Пока недоступно.";

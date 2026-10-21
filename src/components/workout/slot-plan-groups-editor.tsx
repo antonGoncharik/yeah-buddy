@@ -281,9 +281,9 @@ function SlotTrackWorkingField({ exercise }: { exercise: ExerciseWithMax }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium">Рабочий кг</span>
+      <span className="text-sm font-medium">На штанге, кг</span>
       <Input
-        aria-label="Рабочий кг"
+        aria-label="На штанге, кг"
         inputMode="decimal"
         enterKeyHint="done"
         disabled={busy}
