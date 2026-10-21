@@ -28,6 +28,7 @@ export function ExerciseForm({
     error,
     saving,
     canCorrectMax,
+    need,
     active,
     toggling,
     onSubmit,
@@ -80,6 +81,7 @@ export function ExerciseForm({
           form={form}
           setForm={setForm}
           canCorrectMax={canCorrectMax}
+          need={need}
         />
       ) : (
         <ExerciseLoadsSectionNew form={form} setForm={setForm} />

@@ -28,6 +28,7 @@ import {
   REVIEW_LABEL,
   STRENGTH_LABEL,
 } from "@/lib/workout/labels";
+import { HUB_WEIGHT_NAV_HINT } from "@/lib/workout/user-copy";
 
 export function WorkoutsHubNavSections({
   macro,
@@ -214,7 +215,7 @@ export function WorkoutsHubNavSections({
         <NavRow
           href="/workouts/exercises"
           title="Упражнения"
-          hint="Сколько поднимаешь один раз и рабочий вес"
+          hint={HUB_WEIGHT_NAV_HINT}
           icon={<DumbbellDoodle />}
         />
         <NavRow

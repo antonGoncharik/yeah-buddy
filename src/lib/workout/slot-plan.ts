@@ -52,8 +52,8 @@ export const SLOT_LOAD_TYPES: SlotLoadType[] = [
 ];
 
 export const SLOT_LOAD_LABELS: Record<SlotLoadType, string> = {
-  percent: "% от 1ПМ",
-  orm: "% от 1ПМ",
+  percent: "Процент",
+  orm: "Процент",
   track: "Рост кг",
   fixed: "Фикс кг",
   feel: "Свободно",

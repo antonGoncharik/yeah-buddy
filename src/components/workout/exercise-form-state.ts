@@ -36,6 +36,7 @@ export function toPayload(
   form: ExerciseFormState,
   isEdit: boolean,
   canCorrectMax: boolean,
+  requireMax = true,
 ) {
   if (!form.name.trim()) {
     return null;
@@ -65,7 +66,7 @@ export function toPayload(
   if (!isEdit && !hasMax && !hasStart) {
     return shared;
   }
-  if (isEdit && !hasMax) {
+  if (isEdit && requireMax && !hasMax) {
     return null;
   }
 

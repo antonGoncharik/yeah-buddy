@@ -3,8 +3,7 @@
 export const EXERCISE_ONE_REP_HINT =
   "Сколько поднимаешь один раз — если вес в программе от процентов.";
 
-export const HUB_WEIGHT_NAV_HINT =
-  "Сколько поднимаешь один раз и рабочий вес на штанге.";
+export const HUB_WEIGHT_NAV_HINT = "Вес, от которого считаются подходы";
 
 /** Точка на графике «Сила» — за одну тренировку. */
 export const PROGRESS_SESSION_WEIGHT_HINT =

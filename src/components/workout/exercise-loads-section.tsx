@@ -9,6 +9,11 @@ import { ExerciseTrackCard } from "@/components/workout/exercise-track-card";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { ExerciseWithMax } from "@/lib/types";
+import {
+  EXERCISE_WEIGHT_NEW_LEAD,
+  type ExerciseLoadNeed,
+  exerciseWeightLead,
+} from "@/lib/workout/exercise-load-need";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
 
 function maxWeightOutOfRange(raw: string): boolean {
@@ -24,72 +29,51 @@ export function ExerciseLoadsSection({
   form,
   setForm,
   canCorrectMax,
+  need,
 }: {
   exercise: ExerciseWithMax;
   form: ExerciseFormState;
   setForm: Dispatch<SetStateAction<ExerciseFormState>>;
   canCorrectMax: boolean;
+  need: ExerciseLoadNeed;
 }) {
   const maxLocked = !canCorrectMax;
+  const lead = exerciseWeightLead({
+    need,
+    preset: exercise.formula_preset,
+    workoutType: exercise.workout_type,
+  });
 
   return (
     <section className="card-surface flex flex-col gap-4 px-5 py-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">Веса</h2>
-        <p className="text-sm leading-snug text-muted-foreground">
-          <span className="font-medium text-foreground">На раз</span> — от него
-          считаются проценты в плане.{" "}
-          <span className="font-medium text-foreground">Рабочий</span> — только
-          если в подходе стоит «Кг», не проценты. Это разные числа.
-        </p>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {need.max && need.track ? "Веса" : "Вес"}
+        </h2>
+        <p className="text-sm leading-snug text-muted-foreground">{lead}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 min-[400px]:gap-4">
-        <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-          <p className="text-sm font-medium">На раз, кг</p>
-          {maxLocked ? (
-            <>
-              <Input
-                readOnly
-                tabIndex={-1}
-                aria-label="Максимум на раз, кг"
-                value={
-                  exercise.current_max
-                    ? formatWeight(exercise.current_max.max_weight)
-                    : ""
-                }
-                className={EXERCISE_LOAD_INPUT_CLASS}
-              />
-              <p className="text-xs leading-snug text-muted-foreground">
-                Идёт цикл — меняется в «Недели».
-              </p>
-            </>
-          ) : (
-            <>
-              <Input
-                aria-label="Максимум на раз, кг"
-                inputMode="decimal"
-                enterKeyHint="done"
-                value={form.max_weight}
-                aria-invalid={maxWeightOutOfRange(form.max_weight) || undefined}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    max_weight: sanitizeDecimalDraft(event.target.value),
-                  }))
-                }
-                onKeyDown={handleNumericEnter}
-                className={EXERCISE_LOAD_INPUT_CLASS}
-              />
-              {maxWeightOutOfRange(form.max_weight) ? (
-                <p className="text-xs text-destructive">0,1–1000 кг</p>
-              ) : null}
-            </>
-          )}
+      {need.max || need.track ? (
+        <div
+          className={
+            need.max && need.track
+              ? "grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 min-[400px]:gap-4"
+              : "flex flex-col gap-3"
+          }
+        >
+          {need.max ? (
+            <MaxField
+              exercise={exercise}
+              form={form}
+              setForm={setForm}
+              locked={maxLocked}
+            />
+          ) : null}
+          {need.track ? (
+            <ExerciseTrackCard exercise={exercise} embedded />
+          ) : null}
         </div>
-
-        <ExerciseTrackCard exercise={exercise} embedded />
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -101,59 +85,94 @@ export function ExerciseLoadsSectionNew({
   form: ExerciseFormState;
   setForm: Dispatch<SetStateAction<ExerciseFormState>>;
 }) {
+  if (form.formula_preset === "none") {
+    return null;
+  }
+
   return (
     <section className="card-surface flex flex-col gap-4 px-5 py-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold tracking-tight">Веса</h2>
-        <p className="text-sm text-muted-foreground">
-          Можно указать сейчас или позже в тренировке. Для процентов — максимум
-          на раз, для схемы «Кг» — рабочий вес.
+        <h2 className="text-lg font-semibold tracking-tight">Вес</h2>
+        <p className="text-sm leading-snug text-muted-foreground">
+          {EXERCISE_WEIGHT_NEW_LEAD}
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 min-[400px]:gap-4">
-        <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-          <p className="text-sm font-medium">На раз, кг</p>
-          <Input
-            inputMode="decimal"
-            enterKeyHint="next"
-            placeholder="необязательно"
-            value={form.max_weight}
-            aria-invalid={maxWeightOutOfRange(form.max_weight) || undefined}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                max_weight: sanitizeDecimalDraft(event.target.value),
-              }))
-            }
-            onKeyDown={handleNumericEnter}
-            className={EXERCISE_LOAD_INPUT_CLASS}
-          />
-          {maxWeightOutOfRange(form.max_weight) ? (
-            <p className="text-xs text-destructive">0,1–1000 кг</p>
-          ) : null}
-        </div>
-        <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
-          <p className="text-sm font-medium">Рабочий, кг</p>
-          <Input
-            inputMode="decimal"
-            enterKeyHint="done"
-            placeholder="необязательно"
-            value={form.start_weight}
-            aria-invalid={maxWeightOutOfRange(form.start_weight) || undefined}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                start_weight: sanitizeDecimalDraft(event.target.value),
-              }))
-            }
-            onKeyDown={handleNumericEnter}
-            className={EXERCISE_LOAD_INPUT_CLASS}
-          />
-          {maxWeightOutOfRange(form.start_weight) ? (
-            <p className="text-xs text-destructive">0,1–1000 кг</p>
-          ) : null}
-        </div>
+      <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
+        <p className="text-sm font-medium">На раз, кг</p>
+        <MaxDraft form={form} setForm={setForm} optional />
       </div>
     </section>
+  );
+}
+
+function MaxField({
+  exercise,
+  form,
+  setForm,
+  locked,
+}: {
+  exercise: ExerciseWithMax;
+  form: ExerciseFormState;
+  setForm: Dispatch<SetStateAction<ExerciseFormState>>;
+  locked: boolean;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
+      <p className="text-sm font-medium">На раз, кг</p>
+      {locked ? (
+        <>
+          <Input
+            readOnly
+            tabIndex={-1}
+            aria-label="Максимум на раз, кг"
+            value={
+              exercise.current_max
+                ? formatWeight(exercise.current_max.max_weight)
+                : ""
+            }
+            className={EXERCISE_LOAD_INPUT_CLASS}
+          />
+          <p className="text-xs leading-snug text-muted-foreground">
+            Идёт цикл — меняется в «Недели».
+          </p>
+        </>
+      ) : (
+        <MaxDraft form={form} setForm={setForm} />
+      )}
+    </div>
+  );
+}
+
+function MaxDraft({
+  form,
+  setForm,
+  optional = false,
+}: {
+  form: ExerciseFormState;
+  setForm: Dispatch<SetStateAction<ExerciseFormState>>;
+  optional?: boolean;
+}) {
+  return (
+    <>
+      <Input
+        aria-label="Максимум на раз, кг"
+        inputMode="decimal"
+        enterKeyHint="done"
+        placeholder={optional ? "необязательно" : undefined}
+        value={form.max_weight}
+        aria-invalid={maxWeightOutOfRange(form.max_weight) || undefined}
+        onChange={(event) =>
+          setForm((current) => ({
+            ...current,
+            max_weight: sanitizeDecimalDraft(event.target.value),
+          }))
+        }
+        onKeyDown={handleNumericEnter}
+        className={EXERCISE_LOAD_INPUT_CLASS}
+      />
+      {maxWeightOutOfRange(form.max_weight) ? (
+        <p className="text-xs text-destructive">0,1–1000 кг</p>
+      ) : null}
+    </>
   );
 }

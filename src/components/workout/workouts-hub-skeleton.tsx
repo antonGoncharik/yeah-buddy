@@ -12,6 +12,7 @@ import {
   REVIEW_LABEL,
   STRENGTH_LABEL,
 } from "@/lib/workout/labels";
+import { HUB_WEIGHT_NAV_HINT } from "@/lib/workout/user-copy";
 
 const LIFTS = [
   { name: "румынская", load: "50" },
@@ -103,10 +104,7 @@ export function WorkoutsHubSkeleton() {
       </section>
 
       <section className="card-surface divide-y divide-border/70 px-5 py-2">
-        <NavRowSkeleton
-          title="Упражнения"
-          hint="Сколько поднимаешь один раз и рабочий вес"
-        />
+        <NavRowSkeleton title="Упражнения" hint={HUB_WEIGHT_NAV_HINT} />
         <NavRowSkeleton
           title={STRENGTH_LABEL}
           hint="За 90 дней и с первой записи"
