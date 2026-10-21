@@ -156,8 +156,8 @@ export function WorkoutsHubQueueCta({
                   trailing={
                     <span className="text-sm font-medium text-muted-foreground">
                       {preview
-                        ? preview.kind === "max"
-                          ? "на раз"
+                        ? preview.reps != null && preview.reps > 0
+                          ? `× ${preview.reps}`
                           : "кг"
                         : "—"}
                     </span>

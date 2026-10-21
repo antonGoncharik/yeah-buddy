@@ -242,6 +242,7 @@ export function MealCard({
               addProminent={showAdd && items.length === 0 && !yesterdaySource}
               plateHref={showCapture ? plateHref : undefined}
               dictateHref={showCapture ? dictateHref : undefined}
+              foldCapture={items.length > 0}
               textLog={
                 showCapture && aiText && mealId && logDate
                   ? {

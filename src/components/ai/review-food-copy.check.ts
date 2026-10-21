@@ -65,15 +65,11 @@ assertEqual(
   "0",
   "zero",
 );
-assertEqual(foodValue({ nutrition }), "5 из 7", "protein hits");
-assertEqual(
-  foodSummary({ nutrition }),
-  "белок · ккал 4 из 7",
-  "protein and kcal",
-);
+assertEqual(foodValue({ nutrition }), "белок 5 из 7", "protein hits");
+assertEqual(foodSummary({ nutrition }), "ккал 4 из 7", "protein and kcal");
 assertEqual(
   foodValue({ nutrition: { ...nutrition, protein_total: 0 } }),
-  "4 из 7",
+  "ккал 4 из 7",
   "kcal hits",
 );
 assertEqual(averageValue({ nutrition }), null, "no averages");

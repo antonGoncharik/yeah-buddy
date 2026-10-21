@@ -51,10 +51,13 @@ export function ExerciseForm({
       className="flex flex-col gap-5 pb-36 animate-rise"
       onSubmit={onSubmit}
     >
-      {catalogExercise ? (
-        <ExerciseTechniquePanel
-          exercise={catalogExercise}
-          onLinked={(next) => setCatalogExerciseId(next.catalog_exercise_id)}
+      {exercise ? (
+        <ExerciseLoadsSection
+          exercise={exercise}
+          form={form}
+          setForm={setForm}
+          canCorrectMax={canCorrectMax}
+          need={need}
         />
       ) : null}
 
@@ -75,17 +78,16 @@ export function ExerciseForm({
         />
       </section>
 
-      {exercise ? (
-        <ExerciseLoadsSection
-          exercise={exercise}
-          form={form}
-          setForm={setForm}
-          canCorrectMax={canCorrectMax}
-          need={need}
-        />
-      ) : (
+      {exercise ? null : (
         <ExerciseLoadsSectionNew form={form} setForm={setForm} />
       )}
+
+      {catalogExercise ? (
+        <ExerciseTechniquePanel
+          exercise={catalogExercise}
+          onLinked={(next) => setCatalogExerciseId(next.catalog_exercise_id)}
+        />
+      ) : null}
 
       <ExerciseFormSettings
         form={form}

@@ -117,9 +117,15 @@ function ExerciseRows({
                   ) : null
                 }
                 trailing={
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {load ? load.hint : "—"}
-                  </span>
+                  load?.hint === "штанга" ? (
+                    <span className="text-sm font-medium text-muted-foreground">
+                      штанга
+                    </span>
+                  ) : load ? null : (
+                    <span className="text-sm font-medium text-muted-foreground">
+                      —
+                    </span>
+                  )
                 }
               />
               <ChevronRight

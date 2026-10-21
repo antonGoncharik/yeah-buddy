@@ -23,6 +23,7 @@ export function MealLogActions({
   plateHref,
   dictateHref,
   textLog,
+  foldCapture = false,
   className,
 }: {
   addHref?: string;
@@ -36,10 +37,14 @@ export function MealLogActions({
     mealId: string;
     busy?: boolean;
   };
+  /** Meal already has food: photo, voice and text stay behind one tap. */
+  foldCapture?: boolean;
   className?: string;
 }) {
   const [textOpen, setTextOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const showText = textLog != null;
+  const captureFolded = foldCapture && !captureOpen;
   const hasPrimary = Boolean(addHref || lumpHrefBase);
   const sideCount =
     (plateHref ? 1 : 0) + (dictateHref ? 1 : 0) + (showText ? 1 : 0);
@@ -90,21 +95,36 @@ export function MealLogActions({
           </Link>
         ) : null}
 
-        {plateHref ? (
+        {captureFolded && sideCount > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label="Фото, голос или текст"
+            aria-expanded={false}
+            className={cn(
+              mealActionIconSegmentClass,
+              "rounded-none border-0 px-3 text-sm",
+            )}
+            onClick={() => setCaptureOpen(true)}
+          >
+            Ещё
+          </Button>
+        ) : null}
+        {!captureFolded && plateHref ? (
           <MealPlateLink
             href={plateHref}
             compact
             segmentClassName={mealActionIconSegmentClass}
           />
         ) : null}
-        {dictateHref ? (
+        {!captureFolded && dictateHref ? (
           <MealDictateLink
             href={dictateHref}
             compact
             segmentClassName={mealActionIconSegmentClass}
           />
         ) : null}
-        {showText ? (
+        {!captureFolded && showText ? (
           <Button
             type="button"
             variant="ghost"

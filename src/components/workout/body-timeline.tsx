@@ -123,11 +123,15 @@ export function BodyTimeline() {
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-medium text-muted-foreground">Тело</h3>
         <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium">
+          <span className="tabular-nums">
+            {formatIsoDate(shotDate, "d MMM")}
+          </span>
           <input
             type="date"
+            lang="ru"
             value={shotDate}
             aria-label="Дата снимка"
-            className="h-11 rounded-lg bg-muted px-2 text-base"
+            className="sr-only"
             onChange={(event) => setShotDate(event.target.value)}
           />
           Снимок

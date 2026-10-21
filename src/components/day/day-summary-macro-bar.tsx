@@ -11,6 +11,7 @@ export function MacroBar({
   barClass,
   compact = false,
   kind = "macro",
+  celebrateOverflow = false,
 }: {
   label: string;
   fact: number;
@@ -18,9 +19,12 @@ export function MacroBar({
   barClass: string;
   compact?: boolean;
   kind?: "macro" | "kcal";
+  /** Protein past the target stays its own color. Fat and carbs warn. */
+  celebrateOverflow?: boolean;
 }) {
   const remaining = plan - fact;
   const overflow = remaining < 0;
+  const warn = overflow && !celebrateOverflow;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
   const formatAmount = (value: number) =>
     kind === "kcal" ? formatKcal(value) : formatMacro(value);
@@ -37,7 +41,7 @@ export function MacroBar({
         <p
           className={cn(
             "flex items-baseline gap-1.5 tabular-nums text-muted-foreground",
-            overflow && "text-destructive",
+            warn && "text-destructive",
           )}
         >
           <span className={cn("text-right", !overflow && "text-foreground")}>
@@ -50,7 +54,7 @@ export function MacroBar({
       <MeterBar
         ratio={ratio}
         barClass={barClass}
-        overflow={overflow}
+        overflow={warn}
         size={compact ? "sm" : "md"}
         valueNow={fact}
         valueMax={plan > 0 ? plan : 1}

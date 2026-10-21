@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
@@ -72,6 +73,12 @@ export function ProgressScreen() {
     mixedCategories,
     visible,
   } = useProgressScreen();
+  const ranked = useMemo(() => rankProgress(visible), [visible]);
+  const listKey = `${filter}:${horizon}`;
+  const [restKey, setRestKey] = useState<string | null>(null);
+  const showRest = restKey === listKey;
+  const shown = showRest ? ranked : ranked.slice(0, 8);
+  const hiddenCount = ranked.length - shown.length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,7 +158,7 @@ export function ProgressScreen() {
               </p>
             ) : (
               <ul className="animate-rise flex flex-col gap-2">
-                {visible.map((item) => {
+                {shown.map((item) => {
                   const lifetime = progress.exercises.find(
                     (row) => row.exercise_id === item.exercise_id,
                   );
@@ -174,6 +181,15 @@ export function ProgressScreen() {
                 })}
               </ul>
             )}
+            {hiddenCount > 0 ? (
+              <button
+                type="button"
+                className="h-12 text-base font-medium text-muted-foreground"
+                onClick={() => setRestKey(listKey)}
+              >
+                Ещё {hiddenCount}
+              </button>
+            ) : null}
 
             <ReviewCta from="workouts" />
             <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
@@ -262,7 +278,7 @@ function SummaryCard({
           size="lg"
           items={[
             {
-              label: "В среднем",
+              label: "Штанга",
               value:
                 summary.avg_percent == null
                   ? "—"
@@ -343,6 +359,29 @@ function SummaryCard({
       ) : null}
     </section>
   );
+}
+
+function rankProgress(items: ExerciseProgress[]): ExerciseProgress[] {
+  return [...items].sort((left, right) => {
+    const leftMove =
+      left.percent != null && left.percent !== 0 ? Math.abs(left.percent) : 0;
+    const rightMove =
+      right.percent != null && right.percent !== 0
+        ? Math.abs(right.percent)
+        : 0;
+    if (leftMove !== rightMove) {
+      return rightMove - leftMove;
+    }
+    const leftDate = left.points.reduce(
+      (latest, point) => (point.date > latest ? point.date : latest),
+      "",
+    );
+    const rightDate = right.points.reduce(
+      (latest, point) => (point.date > latest ? point.date : latest),
+      "",
+    );
+    return rightDate.localeCompare(leftDate);
+  });
 }
 
 function exercisesForSummary(

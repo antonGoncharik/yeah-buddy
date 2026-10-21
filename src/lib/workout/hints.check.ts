@@ -261,8 +261,8 @@ assertEqual(
 );
 assertEqual(
   JSON.stringify(templateExerciseLoadPreview({ slots: [] }, squat)),
-  JSON.stringify({ value: 100, kind: "max" }),
-  "shared percent plan previews 1RM",
+  JSON.stringify({ value: 80, reps: 5 }),
+  "shared percent plan previews the first work set, not 1RM",
 );
 assertEqual(
   templateExerciseLoadPreview({ slots: [] }, plank),
@@ -310,8 +310,8 @@ assertEqual(
       squatOnTrack,
     ),
   ),
-  JSON.stringify({ value: 82.5, kind: "track" }),
-  "a track slot previews the next kilogram, not 1RM",
+  JSON.stringify({ value: 82.5, reps: 5 }),
+  "a track slot previews today's bar, not 1RM",
 );
 
 console.log("workout hints ok");

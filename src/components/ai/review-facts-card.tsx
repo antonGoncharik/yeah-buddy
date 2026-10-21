@@ -22,19 +22,39 @@ export function ReviewFactsCard({
   brief,
   afterOverview,
   showGym = true,
+  gymFirst = false,
 }: {
   brief: ReviewBrief;
   afterOverview?: ReactNode;
   showGym?: boolean;
+  gymFirst?: boolean;
 }) {
+  const food = <ReviewFoodCard brief={brief} />;
+  const body = <ReviewBodyCard brief={brief} />;
+  const gym = showGym ? (
+    <>
+      <ReviewGymCard brief={brief} />
+      <ReviewLiftsCard brief={brief} />
+    </>
+  ) : null;
+
   return (
     <>
       <ReviewOverview brief={brief} showGym={showGym} />
       {afterOverview}
-      <ReviewFoodCard brief={brief} />
-      <ReviewBodyCard brief={brief} />
-      {showGym ? <ReviewGymCard brief={brief} /> : null}
-      {showGym ? <ReviewLiftsCard brief={brief} /> : null}
+      {gymFirst ? (
+        <>
+          {gym}
+          {food}
+          {body}
+        </>
+      ) : (
+        <>
+          {food}
+          {body}
+          {gym}
+        </>
+      )}
     </>
   );
 }

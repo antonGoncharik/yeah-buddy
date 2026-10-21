@@ -55,12 +55,6 @@ export function WorkoutsHubScreen() {
       <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {!loading && !error && editableHint.open ? (
-          <ProgramEditableHintCard onDismiss={editableHint.dismiss} />
-        ) : null}
-        {!loading && !error && !editableHint.open && guideTip.tip ? (
-          <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
-        ) : null}
         {!loading && !error ? <PauseReturnCard /> : null}
         {loading ? <WorkoutsHubSkeleton /> : null}
 
@@ -106,6 +100,13 @@ export function WorkoutsHubScreen() {
               void createOnDate(nextTemplate?.id ?? "", previousIsoDate(date))
             }
           />
+        ) : null}
+
+        {!loading && !error && editableHint.open ? (
+          <ProgramEditableHintCard onDismiss={editableHint.dismiss} />
+        ) : null}
+        {!loading && !error && !editableHint.open && guideTip.tip ? (
+          <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
 
         {!loading && !error && muscleRecoveryHint ? (

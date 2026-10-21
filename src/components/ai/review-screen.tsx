@@ -39,6 +39,7 @@ export function ReviewScreen() {
 
   const {
     backHref,
+    from,
     range,
     snapshot,
     loading,
@@ -79,6 +80,7 @@ export function ReviewScreen() {
             <ReviewFactsCard
               brief={brief}
               showGym={gymEnabled}
+              gymFirst={from === "workouts" || from === "gym"}
               afterOverview={
                 <>
                   {review ? (

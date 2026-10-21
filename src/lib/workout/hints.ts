@@ -7,11 +7,17 @@ import type {
   PlannedCyclePhase,
   TemplateSlot,
   TransitionPreview,
+  WorkoutFormulas,
+  WorkoutKind,
 } from "@/lib/types";
-import { isPhaseType } from "@/lib/workout/default-formulas";
+import {
+  DEFAULT_WORKOUT_FORMULAS,
+  isPhaseType,
+} from "@/lib/workout/default-formulas";
 import { phaseLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 import {
+  plannedSetsForSlot,
   slotCanPlan,
   slotFor,
   slotNeedsMax,
@@ -118,26 +124,33 @@ export function templateCanPlan(template: TemplateLike): boolean {
 }
 
 /**
- * Number shown next to a lift on the hub: 1RM, or the next kilogram on a
- * track. Null means a dash — we'll ask in the session.
+ * First work set on the hub: the kilograms for today, not the one-rep max.
+ * Null means a dash — the session will ask.
  */
 export function templateExerciseLoadPreview(
-  template: { slots: TemplateSlot[] },
+  template: { slots: TemplateSlot[]; kind?: WorkoutKind },
   exercise: ExerciseWithMax,
   phaseKey?: string | null,
-): { value: number; kind: "max" | "track" } | null {
+  formulas: WorkoutFormulas = DEFAULT_WORKOUT_FORMULAS,
+): { value: number; reps: number | null } | null {
   const plan = slotFor(template.slots, exercise.id);
-  if (slotNeedsTrack(plan, phaseKey)) {
-    const weight = exercise.track ? trackCurrentWeight(exercise.track) : null;
-    return weight != null && weight > 0
-      ? { value: weight, kind: "track" }
-      : null;
+  const kind: WorkoutKind =
+    template.kind ??
+    (exercise.workout_type === "static" ? "static" : "dynamic");
+  const rows = plannedSetsForSlot(plan, {
+    kind,
+    exercise,
+    formulas,
+    phaseKey: phaseKey ?? null,
+    maxWeight: exercise.current_max?.max_weight ?? null,
+    trackWeight: exercise.track ? trackCurrentWeight(exercise.track) : null,
+    feelWeight: null,
+  });
+  const work = rows?.find((row) => row.set_type === "work");
+  if (work?.planned_weight == null || !(work.planned_weight > 0)) {
+    return null;
   }
-  if (slotNeedsMax(plan, exercise, phaseKey)) {
-    const max = exercise.current_max?.max_weight ?? 0;
-    return max > 0 ? { value: max, kind: "max" } : null;
-  }
-  return null;
+  return { value: work.planned_weight, reps: work.planned_reps };
 }
 
 /**

@@ -56,7 +56,7 @@ export function WorkoutsHubSkeleton() {
                   text={lift.load}
                   className="text-base font-semibold tabular-nums"
                 />
-                <TextBone text="на раз" className="text-sm font-medium" />
+                <TextBone text="× 5" className="text-sm font-medium" />
               </span>
             </li>
           ))}

@@ -152,9 +152,6 @@ function WeightFieldSkeleton({ label, unit }: { label: string; unit: string }) {
 }
 
 function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
-  const protein = gym ? "закрыт" : formatMacro(120);
-  const kcalPair = `${formatKcal(4)} / ${formatKcal(1975)}`;
-
   return (
     <section
       className={cn(
@@ -167,7 +164,7 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm font-medium">
               <IconBone className="size-4 rounded-full" />
-              <TextBone text={gym ? "Белок" : "Осталось"} />
+              <TextBone text="Белок" />
             </div>
             <p
               className={cn(
@@ -175,66 +172,35 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
                 compact ? "text-xl" : "text-2xl",
               )}
             >
-              <TextBone text={protein} className="tabular-nums" />
-              {gym ? null : (
-                <TextBone
-                  text="г белка"
-                  className="ml-1.5 text-base font-medium"
-                />
-              )}
+              <TextBone text={formatMacro(140)} className="tabular-nums" />
+              <TextBone
+                text={`/ ${formatMacro(110)}`}
+                className="ml-1.5 text-base font-medium"
+              />
             </p>
-            {gym ? null : (
-              <p className="mt-1 text-sm tabular-nums">
-                <TextBone text={`${kcalPair} ккал · Съел ${formatKcal(0)}`} />
-              </p>
-            )}
           </div>
-          {gym ? (
-            <div className="max-w-[48%] text-right">
-              <p className="text-sm font-medium">
-                <TextBone text="Зал" />
-              </p>
-              <p className="mt-1 text-xl font-semibold tracking-tight">
-                <TextBone text="отдых" />
-              </p>
-            </div>
-          ) : (
-            <div className="text-right">
-              <p className="text-sm font-medium">
-                <TextBone text="Съел" />
-              </p>
-              <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-                <TextBone text={formatKcal(0)} />
-                <TextBone
-                  text={`/ ${formatKcal(2400)}`}
-                  className="ml-1.5 text-sm font-medium"
-                />
-              </p>
-            </div>
-          )}
+          <div className="text-right">
+            <p className="text-sm font-medium">
+              <TextBone text="ккал" />
+            </p>
+            <p
+              className={cn(
+                "mt-1 font-semibold tracking-tight tabular-nums",
+                compact ? "text-xl" : "text-2xl",
+              )}
+            >
+              <TextBone text={`+${formatKcal(347)}`} />
+              <TextBone
+                text={`/ ${formatKcal(1975)}`}
+                className="ml-1.5 text-base font-medium"
+              />
+            </p>
+          </div>
         </div>
         {gym ? (
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { value: kcalPair, label: "ккал", align: "" },
-                {
-                  value: formatKcal(1971),
-                  label: "съел",
-                  align: "text-center",
-                },
-                { value: "1,8", label: "г/кг", align: "text-right" },
-              ] as const
-            ).map((cell) => (
-              <p key={cell.label} className={cn("min-w-0", cell.align)}>
-                <span className="block text-lg font-semibold tracking-tight tabular-nums">
-                  <TextBone text={cell.value} />
-                </span>
-                <span className="text-sm font-medium">
-                  <TextBone text={cell.label} />
-                </span>
-              </p>
-            ))}
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+            <TextBone text="Зал" className="text-sm font-medium" />
+            <TextBone text="День 2" className="text-base font-semibold" />
           </div>
         ) : null}
       </div>

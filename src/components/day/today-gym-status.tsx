@@ -9,15 +9,15 @@ import { cn } from "@/lib/utils";
 export function TodayGymStatus({ label, href }: GymLoop) {
   const tappable = href != null;
   const body = (
-    <>
+    <div className="flex items-center justify-between gap-3">
       <p className="text-sm font-medium text-muted-foreground">Зал</p>
       <p
         className={cn(
-          "mt-1 flex items-center justify-end gap-0.5 text-xl font-semibold tracking-tight",
+          "flex min-w-0 items-center gap-0.5 text-base font-semibold tracking-tight",
           !tappable && "text-muted-foreground",
         )}
       >
-        <span className="min-w-0 truncate">{label}</span>
+        <span className="truncate">{label}</span>
         {tappable ? (
           <ChevronRight
             className="size-5 shrink-0 text-muted-foreground"
@@ -25,16 +25,16 @@ export function TodayGymStatus({ label, href }: GymLoop) {
           />
         ) : null}
       </p>
-    </>
+    </div>
   );
 
   if (href) {
     return (
-      <Link href={href} className="max-w-[48%] text-right">
+      <Link href={href} className="block">
         {body}
       </Link>
     );
   }
 
-  return <div className="max-w-[48%] text-right">{body}</div>;
+  return body;
 }

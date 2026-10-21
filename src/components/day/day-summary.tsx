@@ -2,19 +2,12 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import {
-  KcalLine,
-  LoopFacts,
-  ProteinFigure,
-} from "@/components/day/day-summary-kcal";
 import { MacroBar } from "@/components/day/day-summary-macro-bar";
 import { WeightBlock } from "@/components/day/day-summary-weight-block";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { CookieDoodle } from "@/components/layout/doodles";
 import { useWiggle } from "@/components/layout/wiggle-tap";
 import { JoyShareButton } from "@/components/share/joy-share-button";
-import { proteinPerKg } from "@/lib/day/body-weight";
-import { proteinLoopLine } from "@/lib/day/loop";
 import {
   hundredWeightLine,
   liveProteinHits,
@@ -35,7 +28,6 @@ import { cn } from "@/lib/utils";
 export function DaySummary({
   day,
   fact,
-  factLabel = "Съел",
   showWeight = false,
   bodyWeight = null,
   lastBodyWeight = null,
@@ -64,7 +56,6 @@ export function DaySummary({
     carbs: number;
     kcal: number;
   };
-  factLabel?: string;
   showWeight?: boolean;
   bodyWeight?: number | null;
   lastBodyWeight?: number | null;
@@ -89,7 +80,6 @@ export function DaySummary({
   const remainingKcal = targetKcal - fact.kcal;
   const overflow = remainingKcal < 0;
   const remainingProtein = day.target_protein - fact.protein;
-  const proteinOverflow = remainingProtein < 0;
   const closed = proteinClosed(remainingProtein, fact.protein);
   const hits = liveProteinHits(closed, priorProteinHits);
   const weekLine = proteinWeekLine(hits);
@@ -110,12 +100,6 @@ export function DaySummary({
         proteinHits: hits,
       })
     : null;
-  const knownWeight = bodyWeight ?? lastBodyWeight;
-  const perKg =
-    knownWeight != null ? proteinPerKg(fact.protein, knownWeight) : null;
-  const loop = gym != null;
-  const proteinGlance = proteinLoopLine(remainingProtein, fact.protein);
-
   useEffect(() => {
     if (!closed) {
       wasClosed.current = false;
@@ -134,18 +118,12 @@ export function DaySummary({
     return () => window.clearTimeout(timer);
   }, [closed, wiggleCookie]);
 
-  const glance = compact
-    ? null
-    : (almost ?? trainingGap ?? foodStreakLine ?? weekLine ?? macros);
-  const proteinNumber = loop
-    ? flashClosed
-      ? PROTEIN_CLOSED_LABEL
-      : proteinGlance.replace(/ г$/, "\u00A0г")
-    : flashClosed
-      ? PROTEIN_CLOSED_LABEL
-      : proteinOverflow
-        ? `+${formatMacro(Math.abs(remainingProtein))}`
-        : formatMacro(Math.max(0, remainingProtein));
+  const glance = almost ?? trainingGap ?? foodStreakLine ?? weekLine ?? macros;
+  const flavor = compact ? null : overflow ? overflowKcalLabel(true) : glance;
+  const kcalOver = overflow && targetKcal > 0;
+  const kcalFigure = kcalOver
+    ? `+${formatKcal(Math.abs(remainingKcal))}`
+    : formatKcal(Math.max(0, targetKcal > 0 ? remainingKcal : fact.kcal));
   const bodyMetrics = showWeight;
 
   return (
@@ -173,73 +151,47 @@ export function DaySummary({
                   <CookieDoodle className="size-4" />
                 </span>
               </button>
-              {loop ? "Белок" : overflowKcalLabel(overflow)}
+              Белок
+              {flashClosed ? (
+                <span className="animate-fade">{PROTEIN_CLOSED_LABEL}</span>
+              ) : null}
             </div>
             <p
               className={cn(
-                "mt-1 font-semibold tracking-tight transition-colors duration-300 ease-[var(--ease-out-soft)]",
+                "mt-1 font-semibold tracking-tight tabular-nums",
                 compact ? "text-xl" : "text-2xl",
-                flashClosed ? "animate-fade" : "tabular-nums",
-                proteinOverflow &&
-                  !flashClosed &&
-                  !closed &&
-                  "text-destructive",
               )}
             >
-              <ProteinFigure text={proteinNumber} />
-              {loop || flashClosed ? null : (
-                <span className="ml-1.5 whitespace-nowrap text-base font-medium text-muted-foreground">
-                  г белка
+              {formatMacro(fact.protein)}
+              {day.target_protein > 0 ? (
+                <span className="ml-1.5 text-base font-medium text-muted-foreground">
+                  / {formatMacro(day.target_protein)}
                 </span>
-              )}
+              ) : null}
             </p>
-            {glance ? (
-              <p className="mt-1 text-sm text-muted-foreground">{glance}</p>
-            ) : null}
-            {loop ? null : (
-              <div className="mt-1">
-                <KcalLine
-                  overflow={overflow}
-                  remainingKcal={remainingKcal}
-                  targetKcal={targetKcal}
-                  showWeight={showWeight}
-                  factLabel={factLabel}
-                  factKcal={fact.kcal}
-                  perKg={perKg}
-                />
-              </div>
-            )}
           </div>
-          {loop ? (
-            gym
-          ) : (
-            <div className="text-right">
-              <p className="text-sm font-medium text-muted-foreground">
-                {factLabel}
-              </p>
-              <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums">
-                {formatKcal(fact.kcal)}
-                {targetKcal > 0 ? (
-                  <span className="ml-1.5 text-sm font-medium text-muted-foreground">
-                    / {formatKcal(targetKcal)}
-                  </span>
-                ) : null}
-              </p>
-            </div>
-          )}
+          <div className="text-right">
+            <p className="text-sm font-medium text-muted-foreground">ккал</p>
+            <p
+              className={cn(
+                "mt-1 font-semibold tracking-tight tabular-nums",
+                compact ? "text-xl" : "text-2xl",
+                kcalOver && "text-destructive",
+              )}
+            >
+              {kcalFigure}
+              {targetKcal > 0 ? (
+                <span className="ml-1.5 text-base font-medium text-muted-foreground">
+                  / {formatKcal(targetKcal)}
+                </span>
+              ) : null}
+            </p>
+          </div>
         </div>
-
-        {loop ? (
-          <LoopFacts
-            overflow={overflow}
-            remainingKcal={remainingKcal}
-            targetKcal={targetKcal}
-            showWeight={showWeight}
-            factLabel={factLabel}
-            factKcal={fact.kcal}
-            perKg={perKg}
-          />
+        {flavor ? (
+          <p className="text-sm text-muted-foreground">{flavor}</p>
         ) : null}
+        {gym ? <div className="border-t border-border pt-3">{gym}</div> : null}
       </div>
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}
@@ -251,6 +203,7 @@ export function DaySummary({
           plan={day.target_protein}
           barClass="bg-[var(--macro-protein)]"
           compact={compact}
+          celebrateOverflow
         />
         <MacroBar
           label="Жиры"

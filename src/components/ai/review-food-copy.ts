@@ -20,10 +20,10 @@ export function signedAmount(
 
 export function foodValue(brief: FoodBrief): string | null {
   if (brief.nutrition.protein_total > 0) {
-    return `${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`;
+    return `белок ${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`;
   }
   if (brief.nutrition.kcal_total > 0) {
-    return `${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
+    return `ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
   }
   return null;
 }
@@ -32,7 +32,7 @@ export function foodSummary(brief: FoodBrief): string | null {
   const hasProtein = brief.nutrition.protein_total > 0;
   const hasKcal = brief.nutrition.kcal_total > 0;
   if (hasProtein && hasKcal) {
-    return `белок · ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
+    return `ккал ${brief.nutrition.kcal_hit} из ${brief.nutrition.kcal_total}`;
   }
   if (hasProtein) {
     return "белок";

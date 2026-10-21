@@ -32,6 +32,7 @@ export function ExerciseTechniquePanel({
 }) {
   const searchInputId = useId();
   const linked = exercise.catalog_exercise_id != null;
+  const [open, setOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(!linked);
   const [query, setQuery] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -63,9 +64,31 @@ export function ExerciseTechniquePanel({
     }
   }
 
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className="card-surface flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+        aria-expanded={false}
+        onClick={() => setOpen(true)}
+      >
+        <span className="text-lg font-semibold tracking-tight">Как делать</span>
+        <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
+      </button>
+    );
+  }
+
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
-      <h2 className="text-lg font-semibold tracking-tight">Как делать</h2>
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 text-left"
+        aria-expanded
+        onClick={() => setOpen(false)}
+      >
+        <h2 className="text-lg font-semibold tracking-tight">Как делать</h2>
+        <ChevronDown className="size-5 shrink-0 rotate-180 text-muted-foreground" />
+      </button>
 
       {linked && exercise.catalog_exercise_id ? (
         <TechniquePreview

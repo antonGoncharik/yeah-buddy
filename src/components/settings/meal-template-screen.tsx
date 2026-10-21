@@ -66,7 +66,7 @@ export function MealTemplateScreen({ dayType }: { dayType: DayType }) {
             ) : null}
 
             <div className="animate-rise">
-              <DaySummary day={targets} fact={fact} factLabel="В новом дне" />
+              <DaySummary day={targets} fact={fact} />
             </div>
 
             {review ? (
