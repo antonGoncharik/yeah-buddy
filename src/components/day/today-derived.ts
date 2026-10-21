@@ -1,6 +1,6 @@
 import type { DayWithMeals } from "@/lib/day/map";
 import { type RecipeLine, remainingFills } from "@/lib/day/remaining";
-import { isMealVisible, sumMeals } from "@/lib/nutrition";
+import { getMealOrder, isMealVisible, sumMeals } from "@/lib/nutrition";
 import type { MealType } from "@/lib/types";
 
 function trainingFlag(
@@ -21,9 +21,16 @@ export function visibleMealsFromDay(
     return [];
   }
 
-  return shownDay.meals.filter((meal) =>
-    isMealVisible(meal.meal_type, trainingFlag(shownDay, isTrainingDay)),
-  );
+  const training = trainingFlag(shownDay, isTrainingDay);
+  return shownDay.meals
+    .filter(
+      (meal) =>
+        meal.items.length > 0 || isMealVisible(meal.meal_type, training),
+    )
+    .sort(
+      (left, right) =>
+        getMealOrder(left.meal_type) - getMealOrder(right.meal_type),
+    );
 }
 
 export function factFromDay(shownDay: DayWithMeals | null) {
@@ -33,6 +40,15 @@ export function factFromDay(shownDay: DayWithMeals | null) {
   return sumMeals(shownDay.meals);
 }
 
+function filledMealsOffScreen(shownDay: DayWithMeals, isTrainingDay?: boolean) {
+  const shown = new Set(
+    visibleMealsFromDay(shownDay, isTrainingDay).map((meal) => meal.meal_type),
+  );
+  return shownDay.meals.filter(
+    (meal) => meal.items.length > 0 && !shown.has(meal.meal_type),
+  );
+}
+
 export function hiddenMealKcalFromDay(
   shownDay: DayWithMeals | null,
   isTrainingDay?: boolean,
@@ -40,13 +56,7 @@ export function hiddenMealKcalFromDay(
   if (!shownDay) {
     return 0;
   }
-  const training = trainingFlag(shownDay, isTrainingDay);
-  return sumMeals(
-    shownDay.meals.filter(
-      (meal) =>
-        !isMealVisible(meal.meal_type, training) && meal.items.length > 0,
-    ),
-  ).kcal;
+  return sumMeals(filledMealsOffScreen(shownDay, isTrainingDay)).kcal;
 }
 
 export function hiddenMealTypesFromDay(
@@ -56,13 +66,9 @@ export function hiddenMealTypesFromDay(
   if (!shownDay) {
     return [];
   }
-  const training = trainingFlag(shownDay, isTrainingDay);
-  return shownDay.meals
-    .filter(
-      (meal) =>
-        !isMealVisible(meal.meal_type, training) && meal.items.length > 0,
-    )
-    .map((meal) => meal.meal_type);
+  return filledMealsOffScreen(shownDay, isTrainingDay).map(
+    (meal) => meal.meal_type,
+  );
 }
 
 export function remainingFromDay(

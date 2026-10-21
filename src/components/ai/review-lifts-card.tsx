@@ -35,7 +35,7 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
     maxes.total > 0
       ? {
           label: "Выросли",
-          value: `${maxes.grown} из ${maxes.total}`,
+          value: maxes.grown > 0 ? `${maxes.grown} из ${maxes.total}` : "нет",
         }
       : null,
     maxes.avg_percent != null
@@ -60,7 +60,7 @@ export function ReviewLiftsCard({ brief }: { brief: ReviewBrief }) {
       {maxes.grown_list.length > 0 ? (
         <LiftBars rows={maxes.grown_list} />
       ) : null}
-      {maxes.stalled.length > 0 ? (
+      {maxes.grown > 0 && maxes.stalled.length > 0 ? (
         <div className="flex flex-col gap-2">
           <BlockTitle>Без роста</BlockTitle>
           {easy >= 2 ? (
@@ -122,20 +122,20 @@ function liftsValue(brief: ReviewBrief): string | null {
   if (brief.maxes.avg_percent != null) {
     return formatPct(brief.maxes.avg_percent);
   }
-  if (brief.maxes.total > 0) {
+  if (brief.maxes.grown > 0 && brief.maxes.total > 0) {
     return `${brief.maxes.grown} из ${brief.maxes.total}`;
   }
   return null;
 }
 
 function liftsSummary(brief: ReviewBrief): string | null {
-  if (brief.maxes.avg_percent != null && brief.maxes.total > 0) {
-    return `выросли ${brief.maxes.grown} из ${brief.maxes.total}`;
+  if (brief.maxes.total <= 0) {
+    return null;
   }
-  if (brief.maxes.total > 0) {
-    return "выросли";
+  if (brief.maxes.grown <= 0) {
+    return "без роста";
   }
-  return null;
+  return `выросли ${brief.maxes.grown} из ${brief.maxes.total}`;
 }
 
 function LiftBars({ rows }: { rows: ReviewMaxRow[] }) {

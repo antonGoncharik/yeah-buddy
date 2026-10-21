@@ -8,6 +8,7 @@ import { diaryRangeStart } from "@/lib/diary-range";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { StrengthProgress } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
+import { readTemplates } from "@/lib/workout/hub-payload";
 import { parseStrengthProgress } from "@/lib/workout/map-rows";
 import {
   type ProgressHorizon,
@@ -24,6 +25,7 @@ export function useProgressScreen() {
   const [filter, setFilter] = useState<ProgressFilter>("all");
   const [horizon, setHorizon] = useState<ProgressHorizon>("90");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [programIds, setProgramIds] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     begin();
@@ -53,6 +55,24 @@ export function useProgressScreen() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    void cachedGet("/api/templates", (data) => {
+      const ids: string[] = [];
+      const templates = readTemplates(data)
+        .filter((template) => template.is_active)
+        .sort((left, right) => left.sort_order - right.sort_order);
+      for (const template of templates) {
+        for (const exercise of template.exercises) {
+          if (!ids.includes(exercise.id)) {
+            ids.push(exercise.id);
+          }
+        }
+      }
+      setProgramIds(ids);
+      return true;
+    });
+  }, []);
 
   const viewed = useMemo(
     () => (progress ? viewedProgress(progress, today, horizon) : null),
@@ -104,5 +124,6 @@ export function useProgressScreen() {
     tracked,
     mixedCategories,
     visible,
+    programIds,
   };
 }

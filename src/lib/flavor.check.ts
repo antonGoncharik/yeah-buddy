@@ -432,7 +432,7 @@ assertEqual(
 );
 assertEqual(
   mealEmptyLine("post_workout"),
-  "Пока пусто. Зал был, еды нет.",
+  "Пока пусто. После зала запиши сюда.",
   "post empty",
 );
 assertEqual(

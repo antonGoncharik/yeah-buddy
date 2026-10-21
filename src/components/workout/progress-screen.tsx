@@ -72,8 +72,12 @@ export function ProgressScreen() {
     tracked,
     mixedCategories,
     visible,
+    programIds,
   } = useProgressScreen();
-  const ranked = useMemo(() => rankProgress(visible), [visible]);
+  const ranked = useMemo(
+    () => rankProgress(visible, programIds),
+    [programIds, visible],
+  );
   const listKey = `${filter}:${horizon}`;
   const [restKey, setRestKey] = useState<string | null>(null);
   const showRest = restKey === listKey;
@@ -361,7 +365,11 @@ function SummaryCard({
   );
 }
 
-function rankProgress(items: ExerciseProgress[]): ExerciseProgress[] {
+function rankProgress(
+  items: ExerciseProgress[],
+  programIds: readonly string[],
+): ExerciseProgress[] {
+  const order = new Map(programIds.map((id, index) => [id, index]));
   return [...items].sort((left, right) => {
     const leftMove =
       left.percent != null && left.percent !== 0 ? Math.abs(left.percent) : 0;
@@ -371,6 +379,23 @@ function rankProgress(items: ExerciseProgress[]): ExerciseProgress[] {
         : 0;
     if (leftMove !== rightMove) {
       return rightMove - leftMove;
+    }
+    const leftProgram = order.get(left.exercise_id);
+    const rightProgram = order.get(right.exercise_id);
+    if ((leftProgram != null) !== (rightProgram != null)) {
+      return leftProgram != null ? -1 : 1;
+    }
+    if (
+      leftProgram != null &&
+      rightProgram != null &&
+      leftProgram !== rightProgram
+    ) {
+      return leftProgram - rightProgram;
+    }
+    const leftBase = left.category === "base" ? 0 : 1;
+    const rightBase = right.category === "base" ? 0 : 1;
+    if (leftBase !== rightBase) {
+      return leftBase - rightBase;
     }
     const leftDate = left.points.reduce(
       (latest, point) => (point.date > latest ? point.date : latest),
