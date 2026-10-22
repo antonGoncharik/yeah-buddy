@@ -121,9 +121,6 @@ export function DaySummary({
   const glance = almost ?? trainingGap ?? foodStreakLine ?? weekLine ?? macros;
   const flavor = compact ? null : overflow ? overflowKcalLabel(true) : glance;
   const kcalOver = overflow && targetKcal > 0;
-  const kcalFigure = kcalOver
-    ? `+${formatKcal(Math.abs(remainingKcal))}`
-    : formatKcal(Math.max(0, targetKcal > 0 ? remainingKcal : fact.kcal));
   const bodyMetrics = showWeight;
 
   return (
@@ -171,7 +168,7 @@ export function DaySummary({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm font-medium text-muted-foreground">ккал</p>
+            <p className="text-sm font-medium text-muted-foreground">Съел</p>
             <p
               className={cn(
                 "mt-1 font-semibold tracking-tight tabular-nums",
@@ -179,7 +176,7 @@ export function DaySummary({
                 kcalOver && "text-destructive",
               )}
             >
-              {kcalFigure}
+              {formatKcal(fact.kcal)}
               {targetKcal > 0 ? (
                 <span className="ml-1.5 text-base font-medium text-muted-foreground">
                   / {formatKcal(targetKcal)}

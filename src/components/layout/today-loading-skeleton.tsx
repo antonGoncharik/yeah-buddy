@@ -181,7 +181,7 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
           </div>
           <div className="text-right">
             <p className="text-sm font-medium">
-              <TextBone text="ккал" />
+              <TextBone text="Съел" />
             </p>
             <p
               className={cn(
@@ -189,7 +189,7 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
                 compact ? "text-xl" : "text-2xl",
               )}
             >
-              <TextBone text={`+${formatKcal(347)}`} />
+              <TextBone text={formatKcal(1628)} />
               <TextBone
                 text={`/ ${formatKcal(1975)}`}
                 className="ml-1.5 text-base font-medium"
