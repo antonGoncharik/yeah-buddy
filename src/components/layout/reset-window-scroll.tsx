@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useLayoutEffect } from "react";
 
+import { releaseFieldChrome } from "@/lib/form/field-nav";
 import { shouldResetWindowScroll } from "@/lib/scroll-policy";
 
 function resetWindowScroll() {
@@ -15,6 +16,7 @@ export function ResetWindowScroll() {
   const pathname = usePathname();
 
   useLayoutEffect(() => {
+    releaseFieldChrome();
     if (!shouldResetWindowScroll(pathname)) {
       return;
     }

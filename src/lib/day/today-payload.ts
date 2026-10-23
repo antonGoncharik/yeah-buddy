@@ -199,8 +199,10 @@ export function readEnergyGoal(data: unknown): EnergyGoalOffer | null {
   ) {
     return null;
   }
+  const currentRest = toNumber(row.currentRestKcal);
   return {
     expenditure,
+    currentRestKcal: currentRest > 0 ? currentRest : null,
     restKcal,
     goal: row.goal,
     delta: row.delta,

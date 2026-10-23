@@ -1,40 +1,60 @@
-import { todayGlanceLine } from "@/lib/nutrition/today-glance";
+import { todayGlance } from "@/lib/nutrition/today-glance";
 
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
-  if (actual !== expected) {
-    throw new Error(`${label}: got ${JSON.stringify(actual)}`);
+  const left = JSON.stringify(actual);
+  const right = JSON.stringify(expected);
+  if (left !== right) {
+    throw new Error(`${label}: got ${left}, expected ${right}`);
   }
 }
 
 assertEqual(
-  todayGlanceLine({
+  todayGlance({
     protein: 0,
+    fat: 0,
+    carbs: 0,
     kcal: 0,
     targetProtein: 160,
-    targetKcal: 2000,
+    targetFat: 70,
+    targetCarbs: 200,
+    targetKcal: 900,
   }),
   null,
   "empty day",
 );
 assertEqual(
-  todayGlanceLine({
+  todayGlance({
     protein: 118,
-    kcal: 1360,
+    fat: 40,
+    carbs: 150,
+    kcal: 860,
     targetProtein: 160,
-    targetKcal: 2000,
+    targetFat: 70,
+    targetCarbs: 200,
+    targetKcal: 900,
   }),
-  "ещё 640 ккал · ещё 42 г белка",
-  "remaining",
+  {
+    kcal: "860 / 900 ккал",
+    macros: "Б 118/160 · Ж 40/70 · У 150/200",
+  },
+  "eaten kcal and macros",
 );
 assertEqual(
-  todayGlanceLine({
+  todayGlance({
     protein: 160,
-    kcal: 2200,
+    fat: 80,
+    carbs: 210,
+    kcal: 980,
     targetProtein: 160,
-    targetKcal: 2000,
+    targetFat: 70,
+    targetCarbs: 200,
+    targetKcal: 900,
   }),
-  "перебор 200 ккал · белок закрыт",
-  "over and closed",
+  {
+    kcal: "980 / 900 ккал",
+    macros: "Б 160/160 · Ж 80/70 · У 210/200",
+  },
+  "over the targets still shows what was eaten",
 );
 
 console.log("today glance ok");

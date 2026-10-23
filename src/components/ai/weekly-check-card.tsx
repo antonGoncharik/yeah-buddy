@@ -8,11 +8,11 @@ import type { ReviewBrief } from "@/lib/ai/types";
 import { peekJson, postJson } from "@/lib/api-cache";
 import { readMacroGoals } from "@/lib/day/today-payload";
 import { LOAD_FAILED } from "@/lib/messages";
-import { calcKcalFromMacros } from "@/lib/nutrition";
 import {
   type EnergyGoalOffer,
   energyGoalHint,
   energyGoalOffer,
+  energyGoalPayload,
 } from "@/lib/nutrition/energy-goal";
 import { goalForecastLine } from "@/lib/nutrition/goal-forecast";
 import { isRecord } from "@/lib/read";
@@ -54,15 +54,8 @@ export function WeeklyCheckCard({ brief }: { brief: ReviewBrief }) {
     if (!plan) {
       return null;
     }
-    const restOffer: EnergyGoalOffer = {
-      expenditure: plan.expenditure,
-      restKcal: plan.restKcal,
-      goal: plan.goal,
-      delta: plan.delta,
-      span: plan.span,
-    };
     return {
-      offer: restOffer,
+      offer: energyGoalPayload(plan),
       hint: energyGoalHint({
         days: reviewDaysToEnergy(brief.nutrition.days),
         goal: settings.goal,
@@ -156,15 +149,6 @@ export function WeeklyCheckCard({ brief }: { brief: ReviewBrief }) {
       {activeOffer ? (
         <EnergyGoalCard
           offer={activeOffer}
-          currentRestKcal={
-            settings
-              ? calcKcalFromMacros(
-                  settings.rest_protein,
-                  settings.rest_fat,
-                  settings.rest_carbs,
-                )
-              : null
-          }
           busy={busy}
           onApply={() => void apply()}
           onDismiss={() => void dismiss()}

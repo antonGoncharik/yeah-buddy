@@ -23,7 +23,10 @@ import {
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
-import { todayGlanceLine } from "@/lib/nutrition/today-glance";
+import {
+  type TodayGlance as TodayGlanceFacts,
+  todayGlance,
+} from "@/lib/nutrition/today-glance";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
@@ -174,10 +177,14 @@ export function TodayScreen({
         ) : null}
         {contentReady && shownDay && dayHasItems ? (
           <TodayGlance
-            line={todayGlanceLine({
+            glance={todayGlance({
               protein: fact.protein,
+              fat: fact.fat,
+              carbs: fact.carbs,
               kcal: fact.kcal,
               targetProtein: shownDay.target_protein,
+              targetFat: shownDay.target_fat,
+              targetCarbs: shownDay.target_carbs,
               targetKcal: shownDay.target_kcal,
             })}
           />
@@ -302,14 +309,15 @@ export function TodayScreen({
   );
 }
 
-function TodayGlance({ line }: { line: string | null }) {
-  if (!line) {
+function TodayGlance({ glance }: { glance: TodayGlanceFacts | null }) {
+  if (!glance) {
     return null;
   }
 
   return (
-    <p className="px-0.5 text-sm font-medium text-muted-foreground tabular-nums">
-      {line}
-    </p>
+    <div className="px-0.5 text-sm font-medium text-muted-foreground tabular-nums">
+      <p>{glance.kcal}</p>
+      <p>{glance.macros}</p>
+    </div>
   );
 }

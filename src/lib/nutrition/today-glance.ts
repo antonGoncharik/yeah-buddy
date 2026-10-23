@@ -1,26 +1,48 @@
 import { formatGrams, formatKcal } from "@/lib/nutrition";
 
-/** One sticky line for Today: what's left, while the meals scroll. */
-export function todayGlanceLine(input: {
+/** Sticky facts for Today: eaten kcal and macros, while the meals scroll. */
+export type TodayGlance = {
+  kcal: string;
+  macros: string;
+};
+
+export function todayGlance(input: {
   protein: number;
+  fat: number;
+  carbs: number;
   kcal: number;
   targetProtein: number;
+  targetFat: number;
+  targetCarbs: number;
   targetKcal: number;
-}): string | null {
-  if (input.protein <= 0 && input.kcal <= 0) {
+}): TodayGlance | null {
+  if (
+    input.protein <= 0 &&
+    input.fat <= 0 &&
+    input.carbs <= 0 &&
+    input.kcal <= 0
+  ) {
     return null;
   }
 
-  const kcalLeft = input.targetKcal - input.kcal;
-  const proteinLeft = input.targetProtein - input.protein;
   const kcal =
-    kcalLeft < 0
-      ? `перебор ${formatKcal(Math.abs(kcalLeft))} ккал`
-      : `ещё ${formatKcal(Math.max(0, kcalLeft))} ккал`;
-  const protein =
-    input.protein > 0 && proteinLeft <= 0.5
-      ? "белок закрыт"
-      : `ещё ${formatGrams(Math.max(0, proteinLeft))} г белка`;
+    input.targetKcal > 0
+      ? `${formatKcal(input.kcal)} / ${formatKcal(input.targetKcal)} ккал`
+      : `${formatKcal(input.kcal)} ккал`;
 
-  return `${kcal} · ${protein}`;
+  return {
+    kcal,
+    macros: [
+      macroPair("Б", input.protein, input.targetProtein),
+      macroPair("Ж", input.fat, input.targetFat),
+      macroPair("У", input.carbs, input.targetCarbs),
+    ].join(" · "),
+  };
+}
+
+function macroPair(label: string, fact: number, target: number): string {
+  if (target > 0) {
+    return `${label} ${formatGrams(fact)}/${formatGrams(target)}`;
+  }
+  return `${label} ${formatGrams(fact)}`;
 }

@@ -51,6 +51,8 @@ const MAX_CARBS_G = 500;
 
 export type EnergyGoalPlan = {
   expenditure: number;
+  /** Rest-day kcal already saved in settings. Not today's training target. */
+  currentRestKcal: number;
   restKcal: number;
   goal: UserGoal;
   restCarbs: number;
@@ -62,10 +64,15 @@ export type EnergyGoalPlan = {
 };
 
 /** What Today shows. The server recomputes carbs on «Поставить». */
-export type EnergyGoalOffer = Pick<
-  EnergyGoalPlan,
-  "expenditure" | "restKcal" | "goal" | "delta" | "span"
->;
+export type EnergyGoalOffer = {
+  expenditure: number;
+  /** Null when an older cached payload has no rest-day baseline. */
+  currentRestKcal: number | null;
+  restKcal: number;
+  goal: UserGoal;
+  delta: number;
+  span: number;
+};
 
 export function energyGoalOffer(input: {
   days: EnergyDay[];
@@ -172,6 +179,7 @@ export function energyGoalOffer(input: {
 
   return {
     expenditure: energy.kcal,
+    currentRestKcal: currentKcal,
     restKcal: rest.kcal,
     goal: input.goal,
     restCarbs: rest.carbs,
@@ -196,6 +204,7 @@ export function energyGoalPayload(
   }
   return {
     expenditure: plan.expenditure,
+    currentRestKcal: plan.currentRestKcal,
     restKcal: plan.restKcal,
     goal: plan.goal,
     delta: plan.delta,

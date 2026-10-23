@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cachedGet, subscribeJson } from "@/lib/api-cache";
 import { daysUrl, readCachedDay } from "@/lib/day/cache";
 import { resolveClientIdAlias } from "@/lib/day/client-id-alias";
@@ -14,6 +13,7 @@ import {
   yesterdayMealChips,
 } from "@/lib/food/meal-memory";
 import type { Food, MealItem, MealType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type MemoryFood = Pick<
   Food,
@@ -112,18 +112,26 @@ function ChipGroup({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium text-muted-foreground">{title}</p>
-      {chips.map((chip) => (
-        <Button
-          key={`${title}-${chip.id}`}
-          type="button"
-          variant="secondary"
-          className="h-12 justify-start text-base"
-          disabled={addingId != null}
-          onClick={() => onPick(chip, chip.grams)}
-        >
-          {chip.label}
-        </Button>
-      ))}
+      <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {chips.map((chip) => {
+          const pending = addingId === chip.id;
+          return (
+            <button
+              key={`${title}-${chip.id}`}
+              type="button"
+              disabled={addingId != null}
+              onClick={() => onPick(chip, chip.grams)}
+              className={cn(
+                "h-12 shrink-0 rounded-full border border-border bg-card px-3 text-base font-medium text-foreground shadow-sm",
+                "hover:bg-muted/80 active:scale-[0.98] disabled:opacity-50",
+                pending && "opacity-70",
+              )}
+            >
+              {pending ? "…" : chip.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

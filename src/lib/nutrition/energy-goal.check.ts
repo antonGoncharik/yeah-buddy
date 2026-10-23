@@ -90,6 +90,11 @@ if (lose) {
     assertEqual(payload.delta, 0, "payload keeps the scale");
     assertEqual(payload.span, 14, "payload keeps the window");
     assertEqual(
+      payload.currentRestKcal,
+      2230,
+      "payload keeps the saved rest-day kcal, not a training day",
+    );
+    assertEqual(
       "restCarbs" in payload,
       false,
       "payload leaves carbs on the server",

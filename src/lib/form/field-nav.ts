@@ -423,6 +423,24 @@ function install(): () => void {
   return releaseListeners;
 }
 
+/** Drop a keyboard or field-focus flag left behind after leaving a screen. */
+export function releaseFieldChrome(): void {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && !active.isConnected) {
+    active.blur();
+  }
+  if (isRevealTarget(document.activeElement)) {
+    return;
+  }
+  focused = null;
+  followUntil = 0;
+  clearRetries();
+  delete document.documentElement.dataset.fieldFocus;
+  delete document.documentElement.dataset.keyboard;
+  document.documentElement.style.removeProperty("--app-fixed-bottom");
+  clearSlack();
+}
+
 export function bindFieldReveal(): () => void {
   return install();
 }

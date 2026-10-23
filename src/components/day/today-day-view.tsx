@@ -39,11 +39,7 @@ import {
   waistGapLine,
   weightGapLine,
 } from "@/lib/flavor";
-import {
-  calcKcalFromMacros,
-  hiddenMealSlotsNote,
-  sumMealItems,
-} from "@/lib/nutrition";
+import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import {
   MACRO_GAP_PROTEIN_MIN,
@@ -427,11 +423,6 @@ export function TodayDayView({
     date === today && !viewOnly && energyGoal ? (
       <EnergyGoalCard
         offer={energyGoal}
-        currentRestKcal={calcKcalFromMacros(
-          shownDay.target_protein,
-          shownDay.target_fat,
-          shownDay.target_carbs,
-        )}
         busy={energyGoalBusy}
         onApply={onApplyEnergyGoal}
         onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
@@ -494,13 +485,13 @@ export function TodayDayView({
         {proteinCloseBlock}
       </>
     ) : null;
+  const extraNodes = [weekShare, reviewBlock].filter((node) => node != null);
   const todayExtras =
-    dayHasItems && (weekShare || reviewBlock) ? (
-      <TodayExtrasSection>
-        {weekShare}
-        {reviewBlock}
-      </TodayExtrasSection>
-    ) : null;
+    !dayHasItems || extraNodes.length === 0 ? null : extraNodes.length === 1 ? (
+      extraNodes[0]
+    ) : (
+      <TodayExtrasSection>{extraNodes}</TodayExtrasSection>
+    );
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-1.5" : "gap-4")}>
@@ -533,11 +524,6 @@ export function TodayDayView({
         <div className="animate-rise">
           <EnergyGoalCard
             offer={energyGoal}
-            currentRestKcal={calcKcalFromMacros(
-              shownDay.target_protein,
-              shownDay.target_fat,
-              shownDay.target_carbs,
-            )}
             busy={energyGoalBusy}
             onApply={onApplyEnergyGoal}
             onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}

@@ -36,13 +36,11 @@ export function EnergyGoalHintCard({ line }: { line: string }) {
 
 export function EnergyGoalCard({
   offer,
-  currentRestKcal,
   busy,
   onApply,
   onDismiss,
 }: {
   offer: EnergyGoalOffer;
-  currentRestKcal: number | null;
   busy: boolean;
   onApply: () => void;
   onDismiss: () => void;
@@ -61,6 +59,7 @@ export function EnergyGoalCard({
     });
   }, [offer.restKcal]);
 
+  const currentRestKcal = offer.currentRestKcal;
   const shift =
     currentRestKcal != null &&
     currentRestKcal > 0 &&
@@ -88,8 +87,9 @@ export function EnergyGoalCard({
           <p className="mt-1 text-sm text-muted-foreground">{shift}</p>
         ) : null}
         <p className="mt-2 text-sm leading-snug text-muted-foreground">
-          «Поставить» обновит калории и БЖУ в настройках — по тому, что съедено
-          и как сдвинулся вес.
+          Цифра — цель дня отдыха, не вчерашней тренировки. Расход считается по
+          всей еде и весу за эти недели. «Поставить» обновит и отдых, и зал: в
+          зале углеводов больше.
         </p>
       </div>
       <Button
