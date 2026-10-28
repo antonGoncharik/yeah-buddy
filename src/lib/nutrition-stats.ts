@@ -10,6 +10,10 @@ export {
   MACRO_HIT_RATIO,
   macroGoalToleranceGrams,
   macroInGoal,
+  macroOverGoal,
+  macroReached,
+  macroRoomGrams,
+  macroShortfallGrams,
 } from "@/lib/nutrition/macro-hit";
 export {
   type HistoryMetric,

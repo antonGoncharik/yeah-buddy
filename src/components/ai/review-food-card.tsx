@@ -35,12 +35,15 @@ import {
   getMealLabel,
   MEAL_DISPLAY_ORDER,
 } from "@/lib/nutrition";
+import { MACRO_HIT_RATIO, nutritionHits } from "@/lib/nutrition-stats";
 
 export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
   const days = [...brief.nutrition.days].sort((left, right) =>
     left.date.localeCompare(right.date),
   );
   const history = historyDays(days);
+  const macroHits = nutritionHits(history);
+  const band = `±${Math.round(MACRO_HIT_RATIO * 100)}%`;
   const lowProtein = worstProteinDays(history);
   const lowKcal = worstKcalDays(history);
   const weight = brief.nutrition.weight;
@@ -64,17 +67,35 @@ export function ReviewFoodCard({ brief }: { brief: ReviewBrief }) {
           value={foodValue(brief)}
         >
           {brief.nutrition.protein_total > 0 ||
+          macroHits.fatTotal > 0 ||
+          macroHits.carbsTotal > 0 ||
           brief.nutrition.kcal_total > 0 ||
           weight.protein_per_kg != null ? (
             <div className="flex flex-col gap-4">
               {brief.nutrition.protein_total > 0 ? (
                 <MeterLine
-                  label="Белок в цели (±2%)"
+                  label={`Белок в цели (${band})`}
                   value={`${brief.nutrition.protein_hit} из ${brief.nutrition.protein_total}`}
                   ratio={
                     brief.nutrition.protein_hit / brief.nutrition.protein_total
                   }
                   barClass="bg-[var(--macro-protein)]"
+                />
+              ) : null}
+              {macroHits.fatTotal > 0 ? (
+                <MeterLine
+                  label={`Жир в цели (${band})`}
+                  value={`${macroHits.fatHit} из ${macroHits.fatTotal}`}
+                  ratio={macroHits.fatHit / macroHits.fatTotal}
+                  barClass="bg-[var(--macro-fat)]"
+                />
+              ) : null}
+              {macroHits.carbsTotal > 0 ? (
+                <MeterLine
+                  label={`Углеводы в цели (${band})`}
+                  value={`${macroHits.carbsHit} из ${macroHits.carbsTotal}`}
+                  ratio={macroHits.carbsHit / macroHits.carbsTotal}
+                  barClass="bg-[var(--macro-carbs)]"
                 />
               ) : null}
               {brief.nutrition.kcal_total > 0 ? (

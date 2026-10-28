@@ -45,6 +45,7 @@ import {
   MACRO_GAP_PROTEIN_MIN,
   todayStatusLine,
 } from "@/lib/nutrition/macro-gap-hint";
+import { macroRoomGrams, macroShortfallGrams } from "@/lib/nutrition/macro-hit";
 import { emptyStartCopy } from "@/lib/retention";
 import {
   buildEarlyHabitSnapshot,
@@ -190,7 +191,10 @@ export function TodayDayView({
     effectiveTraining,
   );
   const reviewOffer = useReviewOffer(reviewReady);
-  const remainingProtein = shownDay.target_protein - fact.protein;
+  const remainingProtein = macroShortfallGrams(
+    fact.protein,
+    shownDay.target_protein,
+  );
   const muscleNutritionHint = useTodayMuscleNutritionHint({
     enabled:
       gymEnabled &&
@@ -386,8 +390,8 @@ export function TodayDayView({
           mealId={proteinLogMealId}
           onMealId={setQuickMealChoice}
           remainingProtein={remainingProtein}
-          remainingFat={shownDay.target_fat - fact.fat}
-          remainingCarbs={shownDay.target_carbs - fact.carbs}
+          remainingFat={macroRoomGrams(fact.fat, shownDay.target_fat)}
+          remainingCarbs={macroRoomGrams(fact.carbs, shownDay.target_carbs)}
           remainingKcal={shownDay.target_kcal - fact.kcal}
           busy={busy}
         />
@@ -398,8 +402,8 @@ export function TodayDayView({
           mealId={proteinLogMealId}
           onMealId={setQuickMealChoice}
           remainingProtein={remainingProtein}
-          remainingFat={shownDay.target_fat - fact.fat}
-          remainingCarbs={shownDay.target_carbs - fact.carbs}
+          remainingFat={macroRoomGrams(fact.fat, shownDay.target_fat)}
+          remainingCarbs={macroRoomGrams(fact.carbs, shownDay.target_carbs)}
           remainingKcal={shownDay.target_kcal - fact.kcal}
           busy={busy}
         />

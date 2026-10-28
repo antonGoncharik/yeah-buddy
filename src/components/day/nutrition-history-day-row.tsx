@@ -11,6 +11,7 @@ import { todayHistoryDayHref } from "@/lib/day/dates";
 import { formatIsoDate } from "@/lib/day/format";
 import { CATCH_UP_MARK } from "@/lib/messages";
 import { DAY_TYPE_LABELS, formatKcal } from "@/lib/nutrition";
+import { macroOverGoal } from "@/lib/nutrition/macro-hit";
 import type { DayHistoryRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -78,11 +79,13 @@ export function NutritionHistoryDayRow({
               fact={item.fact_fat}
               plan={item.target_fat}
               barClass="bg-[var(--macro-fat)]"
+              warnOverflow
             />
             <MiniBar
               fact={item.fact_carbs}
               plan={item.target_carbs}
               barClass="bg-[var(--macro-carbs)]"
+              warnOverflow
             />
           </div>
         )}
@@ -99,13 +102,15 @@ function MiniBar({
   fact,
   plan,
   barClass,
+  warnOverflow = false,
 }: {
   fact: number;
   plan: number;
   barClass: string;
+  warnOverflow?: boolean;
 }) {
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
-  const overflow = plan > 0 && fact > plan;
+  const overflow = warnOverflow && macroOverGoal(fact, plan);
 
   return (
     <MeterBar

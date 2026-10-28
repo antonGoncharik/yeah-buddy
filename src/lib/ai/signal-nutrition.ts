@@ -22,6 +22,7 @@ import {
   KCAL_HIT_RATIO,
   MACRO_HIT_RATIO,
   macroInGoal,
+  nutritionHits,
 } from "@/lib/nutrition-stats";
 import type { DayHistoryRow } from "@/lib/types";
 
@@ -63,9 +64,14 @@ export function nutritionSignalLines(input: {
   }
 
   if (input.proteinTotal >= 3) {
-    lines.push(
-      `Белок в цели (±${Math.round(MACRO_HIT_RATIO * 100)}%): ${input.proteinHit} из ${input.proteinTotal} дней.`,
-    );
+    lines.push(macroHitLine("Белок", input.proteinHit, input.proteinTotal));
+  }
+  const hits = nutritionHits(input.days);
+  if (hits.fatTotal >= 3) {
+    lines.push(macroHitLine("Жир", hits.fatHit, hits.fatTotal));
+  }
+  if (hits.carbsTotal >= 3) {
+    lines.push(macroHitLine("Углеводы", hits.carbsHit, hits.carbsTotal));
   }
   if (input.kcalTotal >= 3) {
     lines.push(
@@ -181,6 +187,10 @@ export function nutritionSignalLines(input: {
   }
 
   return lines;
+}
+
+function macroHitLine(label: string, hit: number, total: number): string {
+  return `${label} в цели (±${Math.round(MACRO_HIT_RATIO * 100)}%): ${hit} из ${total} дней.`;
 }
 
 function halfWindowParts(halves: {

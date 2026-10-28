@@ -1,3 +1,4 @@
+import { macroShortfallGrams } from "@/lib/nutrition/macro-hit";
 import type {
   MacroBudget,
   ProteinCloseCandidate,
@@ -24,7 +25,7 @@ export function eveningMacroGapLine(input: {
   if (input.foodLogged === false) {
     return null;
   }
-  const gap = input.targetProtein - input.protein;
+  const gap = macroShortfallGrams(input.protein, input.targetProtein);
   if (!(gap > MACRO_GAP_PROTEIN_MIN)) {
     return null;
   }
@@ -36,7 +37,7 @@ export function todayStatusLine(input: {
   protein: number;
   targetProtein: number;
 }): string | null {
-  const gap = input.targetProtein - input.protein;
+  const gap = macroShortfallGrams(input.protein, input.targetProtein);
   if (!(gap > MACRO_GAP_PROTEIN_MIN)) {
     return null;
   }

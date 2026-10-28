@@ -1,12 +1,9 @@
 import { reviewScoreboardSignals } from "@/lib/ai/signal-lines";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
-import {
-  macroGoalToleranceGrams,
-  macroInGoal,
-} from "@/lib/nutrition/macro-hit";
+import { macroInGoal } from "@/lib/nutrition/macro-hit";
 import { type DayShareGym, dayShareGymLine } from "@/lib/share/day";
 
-const RECAP_LINES = 5;
+const RECAP_LINES = 7;
 
 export function weekRecapText(signals: string[]): string | null {
   const lines = reviewScoreboardSignals(signals).slice(0, RECAP_LINES);
@@ -97,10 +94,7 @@ function gramsLine(
     return base;
   }
   const delta = fact - target;
-  if (
-    macroInGoal(fact, target) ||
-    Math.abs(delta) <= Math.max(GRAM_GAP, macroGoalToleranceGrams(target))
-  ) {
+  if (macroInGoal(fact, target)) {
     return base;
   }
   if (delta > 0) {

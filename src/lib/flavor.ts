@@ -2,7 +2,11 @@ import { shiftIsoDate } from "@/lib/day/dates";
 import type { FoodListFilter } from "@/lib/food/schema";
 import { FOODS_EMPTY } from "@/lib/messages";
 import { formatGrams } from "@/lib/nutrition";
-import { macroInGoal } from "@/lib/nutrition/macro-hit";
+import {
+  macroGoalToleranceGrams,
+  macroInGoal,
+  macroReached,
+} from "@/lib/nutrition/macro-hit";
 import type {
   MealType,
   PhaseCircleProgress,
@@ -191,7 +195,7 @@ export function consecutiveProteinHits(
     if (!day || day.target_protein <= 0) {
       break;
     }
-    if (day.fact_protein + 0.5 < day.target_protein) {
+    if (!macroReached(day.fact_protein, day.target_protein)) {
       break;
     }
     count += 1;
@@ -457,14 +461,17 @@ const MEAL_EMPTY_LINES: Record<MealType, string> = {
 };
 
 export function proteinClosed(remaining: number, factProtein: number): boolean {
-  return factProtein > 0 && remaining <= 0.5;
+  return macroReached(factProtein, factProtein + remaining);
 }
 
 export function proteinAlmostLine(
   remaining: number,
   factProtein: number,
 ): string | null {
-  if (factProtein <= 0 || remaining <= 0.5 || remaining > 5) {
+  if (factProtein <= 0 || remaining > 5) {
+    return null;
+  }
+  if (macroReached(factProtein, factProtein + remaining)) {
     return null;
   }
   return PROTEIN_ALMOST_LINE;
@@ -657,7 +664,10 @@ function gapGrams(
   training: number,
   unit: string,
 ): string | null {
-  if (!(training > rest + 0.5) || fact + 0.5 < rest) {
+  if (
+    !(training > rest + macroGoalToleranceGrams(training)) ||
+    (rest > 0 && !macroReached(fact, rest))
+  ) {
     return null;
   }
   const left = training - fact;

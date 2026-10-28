@@ -7,6 +7,10 @@ import { pluralWorkouts } from "@/lib/workout/history-stats";
 export function weeklyDigestText(input: {
   proteinHit: number;
   proteinDays: number;
+  fatHit?: number;
+  fatDays?: number;
+  carbsHit?: number;
+  carbsDays?: number;
   gymSessions: number;
   /** Completed sessions the week before, for a like-for-like comparison. */
   gymPrevious: number | null;
@@ -15,10 +19,19 @@ export function weeklyDigestText(input: {
   /** New bar records inside the week. */
   records: number;
 }): string {
-  const protein =
+  const macros = [
     input.proteinDays > 0
       ? `белок ${input.proteinHit}/${input.proteinDays}`
-      : "белок —";
+      : "белок —",
+    (input.fatDays ?? 0) > 0
+      ? `жир ${input.fatHit ?? 0}/${input.fatDays}`
+      : null,
+    (input.carbsDays ?? 0) > 0
+      ? `углеводы ${input.carbsHit ?? 0}/${input.carbsDays}`
+      : null,
+  ]
+    .filter((part) => part != null)
+    .join(", ");
   const gym = `зал ${input.gymSessions} ${pluralWorkouts(input.gymSessions)}`;
   const gymCompare =
     input.gymPrevious != null && input.gymPrevious !== input.gymSessions
@@ -32,7 +45,7 @@ export function weeklyDigestText(input: {
     input.records > 0
       ? `, ${input.records} ${input.records === 1 ? "рекорд" : "рекорда"}`
       : "";
-  return `Неделя: ${protein}, ${gym}${gymCompare}${weight}${records}`;
+  return `Неделя: ${macros}, ${gym}${gymCompare}${weight}${records}`;
 }
 
 export async function buildWeeklyDigestForUser(
@@ -52,13 +65,28 @@ export async function buildWeeklyDigestForUser(
   );
   let proteinHit = 0;
   let proteinDays = 0;
+  let fatHit = 0;
+  let fatDays = 0;
+  let carbsHit = 0;
+  let carbsDays = 0;
   for (const day of days) {
-    if (day.protein_target <= 0) {
-      continue;
+    if (day.protein_target > 0) {
+      proteinDays += 1;
+      if (macroInGoal(day.protein, day.protein_target)) {
+        proteinHit += 1;
+      }
     }
-    proteinDays += 1;
-    if (macroInGoal(day.protein, day.protein_target)) {
-      proteinHit += 1;
+    if (day.fat_target > 0) {
+      fatDays += 1;
+      if (macroInGoal(day.fat, day.fat_target)) {
+        fatHit += 1;
+      }
+    }
+    if (day.carbs_target > 0) {
+      carbsDays += 1;
+      if (macroInGoal(day.carbs, day.carbs_target)) {
+        carbsHit += 1;
+      }
     }
   }
 
@@ -91,6 +119,10 @@ export async function buildWeeklyDigestForUser(
   return weeklyDigestText({
     proteinHit,
     proteinDays,
+    fatHit,
+    fatDays,
+    carbsHit,
+    carbsDays,
     gymSessions,
     gymPrevious,
     weightDelta,

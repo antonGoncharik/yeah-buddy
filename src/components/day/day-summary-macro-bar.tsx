@@ -2,6 +2,7 @@
 
 import { MeterBar } from "@/components/ui/meter-bar";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
+import { macroOverGoal } from "@/lib/nutrition/macro-hit";
 import { cn } from "@/lib/utils";
 
 export function MacroBar({
@@ -22,8 +23,8 @@ export function MacroBar({
   /** Protein past the target stays its own color. Fat and carbs warn. */
   celebrateOverflow?: boolean;
 }) {
-  const remaining = plan - fact;
-  const overflow = remaining < 0;
+  const overflow =
+    kind === "macro" ? macroOverGoal(fact, plan) : plan > 0 && fact > plan;
   const warn = overflow && !celebrateOverflow;
   const ratio = plan > 0 ? Math.min(fact / plan, 1) : 0;
   const formatAmount = (value: number) =>

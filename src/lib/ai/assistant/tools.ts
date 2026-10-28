@@ -3,6 +3,7 @@ import { getUserCalendarToday } from "@/lib/day/writable";
 import { filterAndSortFoodsBySearch } from "@/lib/food/catalog-map";
 import { listFoods } from "@/lib/food/store";
 import { sumMealItems } from "@/lib/nutrition";
+import { macroShortfallGrams } from "@/lib/nutrition/macro-hit";
 import { mapSettings } from "@/lib/settings/map";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { nextCircleName } from "@/lib/telegram/reminder-facts";
@@ -61,7 +62,7 @@ export async function gatherAssistantTools(
       targetProtein: day.target_protein,
       kcal: fact.kcal,
       targetKcal: day.target_kcal,
-      remainingProtein: Math.max(0, day.target_protein - fact.protein),
+      remainingProtein: macroShortfallGrams(fact.protein, day.target_protein),
     };
   }
 

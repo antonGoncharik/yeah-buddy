@@ -1,9 +1,6 @@
 import type { GymLoop } from "@/lib/day/loop";
 import { formatKcal, formatMacro } from "@/lib/nutrition";
-import {
-  macroGoalToleranceGrams,
-  macroInGoal,
-} from "@/lib/nutrition/macro-hit";
+import { macroInGoal } from "@/lib/nutrition/macro-hit";
 
 const KCAL_GAP = 50;
 
@@ -120,8 +117,7 @@ function glanceLead(input: {
 
   if (!input.proteinOk && input.targetProtein > 0) {
     const delta = input.targetProtein - input.protein;
-    const tol = Math.max(0.5, macroGoalToleranceGrams(input.targetProtein));
-    if (delta > tol) {
+    if (delta > 0) {
       const grams = formatMacro(delta);
       if (input.phase === "morning") {
         return `До цели ещё ${grams} г белка — распредели по приёмам.`;
@@ -131,8 +127,8 @@ function glanceLead(input: {
       }
       return `Белка не хватает: ещё ${grams} г.`;
     }
-    if (input.protein > input.targetProtein + tol) {
-      return `Белок выше цели на ${formatMacro(input.protein - input.targetProtein)} г — ок, если так задумано.`;
+    if (delta < 0) {
+      return `Белок выше цели на ${formatMacro(-delta)} г — ок, если так задумано.`;
     }
   }
 
@@ -169,10 +165,6 @@ function macroPillar(
     return { label, state: "ok", short: "в цели" };
   }
   const delta = fact - target;
-  const tol = Math.max(0.5, macroGoalToleranceGrams(target));
-  if (Math.abs(delta) <= tol) {
-    return { label, state: "ok", short: "в цели" };
-  }
   if (delta < 0) {
     const short = protein
       ? `ещё ${formatMacro(-delta)}`

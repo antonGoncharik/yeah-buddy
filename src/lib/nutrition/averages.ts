@@ -13,6 +13,10 @@ export interface MacroAverages {
 export interface NutritionHits {
   proteinHit: number;
   proteinTotal: number;
+  fatHit: number;
+  fatTotal: number;
+  carbsHit: number;
+  carbsTotal: number;
   kcalHit: number;
   kcalTotal: number;
 }
@@ -84,6 +88,10 @@ export function splitAverages(items: DayHistoryRow[]): {
 export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
   let proteinHit = 0;
   let proteinTotal = 0;
+  let fatHit = 0;
+  let fatTotal = 0;
+  let carbsHit = 0;
+  let carbsTotal = 0;
   let kcalHit = 0;
   let kcalTotal = 0;
 
@@ -92,6 +100,18 @@ export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
       proteinTotal += 1;
       if (macroInGoal(item.fact_protein, item.target_protein)) {
         proteinHit += 1;
+      }
+    }
+    if (item.target_fat > 0) {
+      fatTotal += 1;
+      if (macroInGoal(item.fact_fat, item.target_fat)) {
+        fatHit += 1;
+      }
+    }
+    if (item.target_carbs > 0) {
+      carbsTotal += 1;
+      if (macroInGoal(item.fact_carbs, item.target_carbs)) {
+        carbsHit += 1;
       }
     }
 
@@ -105,5 +125,14 @@ export function nutritionHits(items: DayHistoryRow[]): NutritionHits {
     }
   }
 
-  return { proteinHit, proteinTotal, kcalHit, kcalTotal };
+  return {
+    proteinHit,
+    proteinTotal,
+    fatHit,
+    fatTotal,
+    carbsHit,
+    carbsTotal,
+    kcalHit,
+    kcalTotal,
+  };
 }

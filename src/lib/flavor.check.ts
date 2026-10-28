@@ -273,9 +273,12 @@ assertEqual(
 );
 
 assertEqual(proteinClosed(0.4, 160), true, "protein hit");
-assertEqual(proteinClosed(0.6, 160), false, "still leftover");
+assertEqual(proteinClosed(0.6, 160), true, "inside two percent");
+assertEqual(proteinClosed(3, 157), true, "three grams under 160 is inside");
+assertEqual(proteinClosed(4, 156), false, "past two percent");
 assertEqual(proteinClosed(0, 0), false, "empty day is not closed");
 assertEqual(proteinClosed(-12, 180), true, "overflow is closed");
+assertEqual(proteinAlmostLine(3, 157), null, "in-band is not almost");
 assertEqual(overflowKcalLabel(true), "Ну, праздник.", "kcal overflow");
 assertEqual(overflowKcalLabel(false), "Осталось", "kcal leftover");
 

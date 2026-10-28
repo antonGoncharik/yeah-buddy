@@ -10,6 +10,7 @@ import {
 } from "@/lib/day/body-weight";
 import { DAY_TYPE_LABELS, formatKcal, formatMacro } from "@/lib/nutrition";
 import {
+  MACRO_HIT_RATIO,
   type MacroAverages,
   type NutritionHits,
   type NutritionRange,
@@ -34,7 +35,12 @@ export function NutritionHistoryStats({
   perKg: ReturnType<typeof proteinPerKgStats>;
   weight: BodyWeightWindow | null;
 }) {
-  const showHits = hits.proteinTotal > 0 || hits.kcalTotal > 0;
+  const showHits =
+    hits.proteinTotal > 0 ||
+    hits.fatTotal > 0 ||
+    hits.carbsTotal > 0 ||
+    hits.kcalTotal > 0;
+  const band = `±${Math.round(MACRO_HIT_RATIO * 100)}%`;
   const showWeight =
     weight?.start != null &&
     weight.end != null &&
@@ -68,10 +74,22 @@ export function NutritionHistoryStats({
       {showHits ? (
         <div className="flex flex-col gap-3 border-t border-border/70 pt-4">
           <HitRow
-            label="Белок в цели (±2%)"
+            label={`Белок в цели (${band})`}
             hit={hits.proteinHit}
             total={hits.proteinTotal}
             barClass="bg-[var(--macro-protein)]"
+          />
+          <HitRow
+            label={`Жир в цели (${band})`}
+            hit={hits.fatHit}
+            total={hits.fatTotal}
+            barClass="bg-[var(--macro-fat)]"
+          />
+          <HitRow
+            label={`Углеводы в цели (${band})`}
+            hit={hits.carbsHit}
+            total={hits.carbsTotal}
+            barClass="bg-[var(--macro-carbs)]"
           />
           <HitRow
             label="Калории около цели"

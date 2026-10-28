@@ -192,6 +192,16 @@ assertEqual(
   "protein hit",
 );
 assertEqual(
+  lines.some((line) => line === "Жир в цели (±2%): 3 из 3 дней."),
+  true,
+  "fat hit",
+);
+assertEqual(
+  lines.some((line) => line === "Углеводы в цели (±2%): 3 из 3 дней."),
+  true,
+  "carbs hit",
+);
+assertEqual(
   lines.some((line) => line.includes("углеводов не хватало на 110 г")),
   true,
   "training carbs",
@@ -331,6 +341,16 @@ assertEqual(
   details.some((line) => line.startsWith("Белок в цели")),
   false,
   "detail drops protein hit",
+);
+assertEqual(
+  details.some((line) => line.startsWith("Жир в цели")),
+  false,
+  "detail drops fat hit",
+);
+assertEqual(
+  details.some((line) => line.startsWith("Углеводы в цели")),
+  false,
+  "detail drops carbs hit",
 );
 assertEqual(
   details.some((line) => line.startsWith("Зал:")),

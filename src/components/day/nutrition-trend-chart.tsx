@@ -142,12 +142,12 @@ function macroInsight(
 ): string | null {
   const mean = chartMean(facts);
   const targetMean = chartMean(targets);
-  const hits =
-    metric === "protein"
-      ? countChartHits(facts, targets, "within", MACRO_HIT_RATIO)
-      : metric === "kcal"
-        ? countChartHits(facts, targets, "within", KCAL_HIT_RATIO)
-        : null;
+  const hits = countChartHits(
+    facts,
+    targets,
+    "within",
+    metric === "kcal" ? KCAL_HIT_RATIO : MACRO_HIT_RATIO,
+  );
 
   return chartInsight([
     mean != null ? `Среднее ${formatMetricValue(metric, mean)}` : null,
