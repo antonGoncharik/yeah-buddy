@@ -1,33 +1,29 @@
 "use client";
 
-import { Mic, Minus, Plus } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { Mic } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   draftFromPlan,
   draftMatchesPlan,
-  parseRir,
   type SetDraft,
   stepDraftValue,
 } from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
+import { SessionSetReservePicker } from "@/components/workout/session-set-reserve-picker";
+import { SessionSetStepper } from "@/components/workout/session-set-stepper";
 import { SessionSetVoice } from "@/components/workout/session-set-voice";
-import { handleNumericEnter } from "@/lib/form/field-nav";
-import {
-  sanitizeDecimalDraft,
-  sanitizeIntegerDraft,
-} from "@/lib/form/numeric-draft";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { plateDeltaLine, platesLine } from "@/lib/workout/plates";
 import { formatSetLine, setUsesSeconds } from "@/lib/workout/session-format";
+import { setCountWord } from "@/lib/workout/set-count-word";
+
+export { setCountWord } from "@/lib/workout/set-count-word";
 
 const HOLD_STEP_SECONDS = 5;
-const RESERVE_CHOICES = [0, 1, 2, 3] as const;
 
 export function SessionSetEditor({
   set,
@@ -52,8 +48,6 @@ export function SessionSetEditor({
   const timed = setUsesSeconds(set);
   const groupTitle =
     groupCount > 1 ? `${groupCount} ${setCountWord(groupCount)}` : null;
-  const typedReserve = parseRir(draft.rir);
-  const shownReserve = typedReserve ?? set.planned_rir;
   const planLine = formatSetLine(set);
   const offPlan = !draftMatchesPlan(set, draft);
   const loadKg = parseDecimal(draft.weight) ?? 0;
@@ -123,7 +117,7 @@ export function SessionSetEditor({
           />
         ) : null}
         <div className="flex flex-col gap-3">
-          <Stepper
+          <SessionSetStepper
             label="Вес, кг"
             value={draft.weight}
             disabled={disabled}
@@ -133,7 +127,7 @@ export function SessionSetEditor({
             onStep={(direction) => step("weight", direction)}
           />
           {timed ? (
-            <Stepper
+            <SessionSetStepper
               label="Секунды"
               value={draft.seconds}
               disabled={disabled}
@@ -143,7 +137,7 @@ export function SessionSetEditor({
               onStep={(direction) => step("seconds", direction)}
             />
           ) : (
-            <Stepper
+            <SessionSetStepper
               label="Повторы"
               value={draft.reps}
               disabled={disabled}
@@ -167,39 +161,12 @@ export function SessionSetEditor({
           />
         ) : null}
         {withRir ? (
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-muted-foreground">Запас</span>
-            <div className="grid grid-cols-4 gap-1.5">
-              {RESERVE_CHOICES.map((choice) => {
-                const selected = shownReserve === choice;
-                return (
-                  <button
-                    key={choice}
-                    type="button"
-                    disabled={disabled}
-                    aria-pressed={selected}
-                    className={cn(
-                      "h-11 rounded-lg text-base font-medium disabled:opacity-50",
-                      selected
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-foreground",
-                    )}
-                    onClick={() => {
-                      if (typedReserve == null && set.planned_rir === choice) {
-                        return;
-                      }
-                      haptic("tick");
-                      onDraft({
-                        rir: typedReserve === choice ? "" : String(choice),
-                      });
-                    }}
-                  >
-                    {choice === 0 ? "отказ" : choice}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <SessionSetReservePicker
+            set={set}
+            draft={draft}
+            disabled={disabled}
+            onDraft={onDraft}
+          />
         ) : null}
         {!disabled && offPlan ? (
           <Button
@@ -216,97 +183,5 @@ export function SessionSetEditor({
         ) : null}
       </div>
     </div>
-  );
-}
-
-export function setCountWord(count: number): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return "подход";
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return "подхода";
-  }
-  return "подходов";
-}
-
-function Stepper({
-  label,
-  value,
-  disabled,
-  inputMode,
-  enterKeyHint,
-  onChange,
-  onStep,
-}: {
-  label: string;
-  value: string;
-  disabled: boolean;
-  inputMode: "decimal" | "numeric";
-  enterKeyHint: "next" | "done";
-  onChange: (value: string) => void;
-  onStep: (direction: -1 | 1) => void;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-1.5">
-        <StepButton
-          label={`Меньше, ${label}`}
-          disabled={disabled}
-          onClick={() => onStep(-1)}
-        >
-          <Minus className="size-5" />
-        </StepButton>
-        <Input
-          inputMode={inputMode}
-          enterKeyHint={enterKeyHint}
-          value={value}
-          disabled={disabled}
-          onChange={(event) =>
-            onChange(
-              inputMode === "numeric"
-                ? sanitizeIntegerDraft(event.target.value)
-                : sanitizeDecimalDraft(event.target.value),
-            )
-          }
-          onKeyDown={handleNumericEnter}
-          className="h-12 min-w-0 flex-1 px-2 text-center text-xl font-semibold tabular-nums"
-          aria-label={label}
-        />
-        <StepButton
-          label={`Больше, ${label}`}
-          disabled={disabled}
-          onClick={() => onStep(1)}
-        >
-          <Plus className="size-5" />
-        </StepButton>
-      </div>
-    </div>
-  );
-}
-
-function StepButton({
-  label,
-  disabled,
-  onClick,
-  children,
-}: {
-  label: string;
-  disabled: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-background disabled:opacity-50"
-      onClick={onClick}
-    >
-      {children}
-    </button>
   );
 }
