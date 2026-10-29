@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { AppHeader } from "@/components/layout/app-header";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -10,28 +10,21 @@ import { MuscleWeekProgressShare } from "@/components/share/muscle-week-progress
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { MuscleBalanceBars } from "@/components/workout/muscle-balance-bars";
-import { MuscleBodyFigure } from "@/components/workout/muscle-body-figure";
 import { MuscleHeatGrid } from "@/components/workout/muscle-heat-grid";
-import { MuscleWeeklySparkline } from "@/components/workout/muscle-weekly-sparkline";
+import { MuscleScreenFigurePanel } from "@/components/workout/muscle-screen-figure-panel";
+import { MuscleSelectedDetail } from "@/components/workout/muscle-selected-detail";
 import {
   type MuscleHorizon,
   useMuscleScreen,
 } from "@/components/workout/use-muscle-screen";
 import { trackClientEvent } from "@/lib/analytics/client";
-import { formatIsoDate } from "@/lib/day/format";
-import { pluralSets } from "@/lib/i18n/plural";
-import type { MuscleCell, MuscleId, VolumeBand } from "@/lib/types";
+import type { MuscleId, VolumeBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
-  muscleBandLabel,
-  muscleCellHint,
   muscleVolumeLegendSuffix,
   muscleVolumeSwatchStyle,
 } from "@/lib/workout/muscle-heat-style";
-import { setsShortOfGrowthZone } from "@/lib/workout/muscle-insights";
 import { VOLUME_BAND_LABELS } from "@/lib/workout/muscle-volume";
-import { muscleVolumeLandmarkLine } from "@/lib/workout/muscle-volume-landmarks";
-import { formatTonnage } from "@/lib/workout/numbers";
 
 const HORIZONS: Array<{ id: MuscleHorizon; label: string }> = [
   { id: "7", label: "7 дн" },
@@ -61,38 +54,12 @@ export function MuscleScreen() {
     selected,
     selectedHits,
   } = useMuscleScreen();
-  const shortfall = selected ? setsShortOfGrowthZone(selected) : null;
-
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (selected && selected.view !== view) {
       setSelectedId(null);
     }
   }, [selected, setSelectedId, view]);
-
-  const onTouchStart = useCallback((event: React.TouchEvent) => {
-    const touch = event.touches[0];
-    touchStart.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
-
-  const onTouchEnd = useCallback(
-    (event: React.TouchEvent) => {
-      const start = touchStart.current;
-      touchStart.current = null;
-      if (!start) {
-        return;
-      }
-      const touch = event.changedTouches[0];
-      const dx = touch.clientX - start.x;
-      const dy = touch.clientY - start.y;
-      if (Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.2) {
-        return;
-      }
-      setView(dx > 0 ? "front" : "back");
-    },
-    [setView],
-  );
 
   const onSelectMuscle = useCallback(
     (id: MuscleId) => {
@@ -165,79 +132,18 @@ export function MuscleScreen() {
               </ul>
             ) : null}
 
-            <div className="card-surface flex flex-col gap-3 px-4 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm text-muted-foreground">
-                  {formatIsoDate(snapshot.since, "d MMM")} —{" "}
-                  {formatIsoDate(snapshot.until, "d MMM")}
-                </p>
-                <div className="sm:hidden">
-                  <Segmented
-                    value={view}
-                    options={[
-                      { id: "front", label: "Спереди" },
-                      { id: "back", label: "Сзади" },
-                    ]}
-                    onChange={setView}
-                  />
-                </div>
-              </div>
-
-              <div className="hidden w-full items-start justify-center gap-3 sm:flex">
-                <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
-                  <span className="text-xs text-muted-foreground">Спереди</span>
-                  <MuscleBodyFigure
-                    view="front"
-                    muscles={snapshot.muscles}
-                    selectedId={selectedId}
-                    displayMode={displayMode}
-                    onSelect={onSelectMuscle}
-                    figureSex={snapshot.figure_sex}
-                    zoomable
-                    className="max-w-full"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
-                  <span className="text-xs text-muted-foreground">Сзади</span>
-                  <MuscleBodyFigure
-                    view="back"
-                    muscles={snapshot.muscles}
-                    selectedId={selectedId}
-                    displayMode={displayMode}
-                    onSelect={onSelectMuscle}
-                    figureSex={snapshot.figure_sex}
-                    zoomable
-                    className="max-w-full"
-                  />
-                </div>
-              </div>
-
-              <div
-                className="sm:hidden"
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-              >
-                <MuscleBodyFigure
-                  view={view}
-                  muscles={snapshot.muscles}
-                  selectedId={selectedId}
-                  displayMode={displayMode}
-                  onSelect={onSelectMuscle}
-                  figureSex={snapshot.figure_sex}
-                  zoomable
-                />
-              </div>
-
-              <p className="text-center text-xs text-muted-foreground">
-                Нажми на мышцу. Кнопки или щипок двумя пальцами — крупнее, потом
-                можно двигать.
-              </p>
-              {snapshot.unmapped_exercise_count > 0 ? (
-                <p className="text-center text-xs text-muted-foreground">
-                  {unmappedExerciseLine(snapshot.unmapped_exercise_count)}
-                </p>
-              ) : null}
-            </div>
+            <MuscleScreenFigurePanel
+              since={snapshot.since}
+              until={snapshot.until}
+              muscles={snapshot.muscles}
+              view={view}
+              setView={setView}
+              selectedId={selectedId}
+              displayMode={displayMode}
+              onSelect={onSelectMuscle}
+              figureSex={snapshot.figure_sex}
+              unmappedCount={snapshot.unmapped_exercise_count}
+            />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {(["front", "back"] as const).map((side) => (
@@ -290,110 +196,7 @@ export function MuscleScreen() {
             <MuscleBalanceBars pairs={snapshot.balance} />
 
             {selected ? (
-              <section className="card-surface flex flex-col gap-3 px-5 py-4">
-                <div>
-                  <h2 className="text-lg font-semibold">{selected.label}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {muscleCellHint(selected)}
-                  </p>
-                </div>
-                <MuscleWeeklySparkline cell={selected} />
-                <p className="text-sm text-muted-foreground">
-                  {muscleVolumeLandmarkLine(selected.id)}
-                </p>
-                {shortfall != null ? (
-                  <p className="text-sm text-muted-foreground">
-                    Ещё ~{shortfall} {pluralSets(shortfall)} в неделю, чтобы
-                    хватало.
-                  </p>
-                ) : null}
-                <MuscleSelectedActions cell={selected} />
-                <dl className="grid grid-cols-2 gap-3 text-sm">
-                  {selected.direct_sets > 0 || selected.assist_sets > 0 ? (
-                    <>
-                      <div>
-                        <dt className="text-muted-foreground">На эту мышцу</dt>
-                        <dd className="font-medium tabular-nums">
-                          {formatSets(selected.direct_sets)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">Заодно</dt>
-                        <dd className="font-medium tabular-nums">
-                          {formatSets(selected.assist_sets)}
-                        </dd>
-                      </div>
-                      <div className="col-span-2 text-sm text-muted-foreground">
-                        На эту мышцу — где она главная. Заодно — где только
-                        помогает, как трицепс в жиме.
-                      </div>
-                    </>
-                  ) : null}
-                  <div>
-                    <dt className="text-muted-foreground">В неделю</dt>
-                    <dd className="font-medium tabular-nums">
-                      ~{selected.sets_per_week} ·{" "}
-                      {muscleBandLabel(selected.volume_band)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Последний раз</dt>
-                    <dd className="font-medium">
-                      {selected.last_trained
-                        ? formatIsoDate(selected.last_trained, "d MMM")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Восстановление</dt>
-                    <dd className="font-medium">
-                      {selected.recovery_percent != null
-                        ? `~${selected.recovery_percent}%`
-                        : selected.days_since != null
-                          ? `${selected.days_since} дн назад`
-                          : "—"}
-                    </dd>
-                  </div>
-                  {selected.missed_sessions > 0 ? (
-                    <div className="col-span-2">
-                      <dt className="text-muted-foreground">
-                        Пропущено тренировок
-                      </dt>
-                      <dd className="font-medium tabular-nums">
-                        {selected.missed_sessions}
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-                {selectedHits.length > 0 ? (
-                  <ol className="divide-y divide-border/70 text-sm">
-                    {selectedHits.map((hit) => (
-                      <li
-                        key={hit.exercise_id}
-                        className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:justify-between"
-                      >
-                        <Link
-                          href={`/workouts/exercises/${hit.exercise_id}`}
-                          className="min-w-0 truncate font-medium text-primary underline-offset-4 hover:underline"
-                        >
-                          {hit.name}
-                        </Link>
-                        <span className="shrink-0 text-muted-foreground tabular-nums">
-                          {formatSets(hit.sets)} {pluralSets(hit.sets)} ·{" "}
-                          {formatIsoDate(hit.last_date, "d MMM")}
-                          {hit.tonnage > 0
-                            ? ` · ${formatTonnage(hit.tonnage)}`
-                            : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    За этот период на эту мышцу упражнений не было.
-                  </p>
-                )}
-              </section>
+              <MuscleSelectedDetail cell={selected} hits={selectedHits} />
             ) : (
               <p className="px-1 text-sm text-muted-foreground">
                 Выбери мышцу — покажем график по неделям и упражнения.
@@ -408,40 +211,4 @@ export function MuscleScreen() {
       </div>
     </div>
   );
-}
-
-function MuscleSelectedActions({ cell }: { cell: MuscleCell }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {cell.in_next_session ? (
-        <Link href="/workouts" className={cn(buttonVariants(), "h-11 w-full")}>
-          В следующей тренировке
-        </Link>
-      ) : null}
-      <Link
-        href={`/workouts/exercises?muscle=${cell.id}`}
-        className={cn(buttonVariants({ variant: "outline" }), "h-11 w-full")}
-      >
-        Упражнения на эту мышцу
-      </Link>
-    </div>
-  );
-}
-
-function formatSets(value: number): string {
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
-}
-
-function unmappedExerciseLine(count: number): string {
-  const n = Math.abs(Math.trunc(count));
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  const verb =
-    mod10 === 1 && mod100 !== 11
-      ? "упражнение не попало"
-      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
-        ? "упражнения не попали"
-        : "упражнений не попали";
-  return `${n} ${verb} на схему`;
 }
