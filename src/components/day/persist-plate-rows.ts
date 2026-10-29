@@ -1,8 +1,3 @@
-import type { PlateRow } from "@/components/day/plate-draft";
-import {
-  commitItemsFromRows,
-  toCommitItem,
-} from "@/components/day/plate-draft-commit";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
 import type { FoodLogMethod } from "@/lib/analytics/food-log";
 import { postJson } from "@/lib/api-cache";
@@ -13,6 +8,11 @@ import {
   withAddedItems,
   withReplacedItems,
 } from "@/lib/day/optimistic";
+import type { PlateRow } from "@/lib/day/plate-draft";
+import {
+  commitItemsFromRows,
+  toCommitItem,
+} from "@/lib/day/plate-draft-commit";
 import { readMealItemsPayload } from "@/lib/meal/parse";
 import { queueMutate } from "@/lib/offline-mutate";
 import type { MealItem } from "@/lib/types";

@@ -2,15 +2,11 @@
 
 import { Plus } from "lucide-react";
 import { mealActionFullButtonClass } from "@/components/day/meal-action-bar";
-import type { PlateLumpPatch } from "@/components/day/plate-draft";
-import {
-  type PlateRow,
-  rowNativeGrams,
-  rowYield,
-} from "@/components/day/plate-draft";
 import { PlateDraftRow } from "@/components/day/plate-draft-row";
 import { Button } from "@/components/ui/button";
 import { SortableList } from "@/components/workout/sortable-list";
+import type { PlateLumpPatch } from "@/lib/day/plate-draft";
+import { type PlateRow, rowNativeGrams, rowYield } from "@/lib/day/plate-draft";
 import type { GramsMode } from "@/lib/food/yield";
 import {
   calcMacrosFromPer100,

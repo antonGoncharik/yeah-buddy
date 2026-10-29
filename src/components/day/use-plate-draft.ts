@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { persistPlateRows } from "@/components/day/persist-plate-rows";
+import type { FoodLogMethod } from "@/lib/analytics/food-log";
 import {
   emptyLumpRow,
   foodRowFromPick,
@@ -16,8 +17,7 @@ import {
   patchLumpRow,
   setRowGrams,
   withGramsMode,
-} from "@/components/day/plate-draft";
-import type { FoodLogMethod } from "@/lib/analytics/food-log";
+} from "@/lib/day/plate-draft";
 import type { GramsMode } from "@/lib/food/yield";
 import { haptic } from "@/lib/telegram/haptic";
 import type { Food } from "@/lib/types";

@@ -3,7 +3,7 @@ import {
   foodRowToLump,
   setRowGrams,
   toPlateRow,
-} from "@/components/day/plate-draft";
+} from "@/lib/day/plate-draft";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
   if (actual !== expected) {

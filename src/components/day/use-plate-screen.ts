@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
+import { usePlateCamera } from "@/components/day/use-plate-camera";
+import { usePlateDraft } from "@/components/day/use-plate-draft";
+import { parseRemaining } from "@/lib/ai/parse-review";
+import { parsePlateDraft } from "@/lib/ai/plate-parse";
+import { compressPlateImage } from "@/lib/ai/read-plate-image";
+import { ApiError, mutateJson } from "@/lib/api-cache";
 import {
   type PlateRow,
   type PlateStatus,
@@ -9,21 +14,15 @@ import {
   requestPlateDraft,
   revokePreview,
   toPlateRow,
-} from "@/components/day/plate-draft";
-import { plateRowsReadyToSave } from "@/components/day/plate-draft-commit";
-import { usePlateCamera } from "@/components/day/use-plate-camera";
-import { usePlateDraft } from "@/components/day/use-plate-draft";
-import { parseRemaining } from "@/lib/ai/parse-review";
-import { parsePlateDraft } from "@/lib/ai/plate-parse";
-import { compressPlateImage } from "@/lib/ai/read-plate-image";
-import { ApiError, mutateJson } from "@/lib/api-cache";
+} from "@/lib/day/plate-draft";
+import { plateRowsReadyToSave } from "@/lib/day/plate-draft-commit";
 import { AI_PLATE_FAILED, AI_PLATE_PHOTO_FAILED } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 import { dismissPendingMealDraftToken } from "@/lib/share/pending";
 import { haptic } from "@/lib/telegram/haptic";
 import { isAbortError } from "@/lib/telegram/html-capture";
 
-export type { PlatePicker, PlateRow } from "@/components/day/plate-draft";
+export type { PlatePicker, PlateRow } from "@/lib/day/plate-draft";
 
 export function usePlateScreen({
   mealId,

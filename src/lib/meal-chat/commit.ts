@@ -1,6 +1,6 @@
-import { toCommitItem } from "@/components/day/plate-draft-commit";
 import { commitPlateItems, plateCommitSchema } from "@/lib/ai/plate-commit";
 import type { PlateDraftItem } from "@/lib/ai/plate-types";
+import { toCommitItem } from "@/lib/day/plate-draft-commit";
 import type { MealItem } from "@/lib/types";
 
 export function plateDraftReadyToCommit(

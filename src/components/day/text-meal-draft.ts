@@ -1,7 +1,7 @@
-import { toPlateRow } from "@/components/day/plate-draft";
 import { parseRemaining } from "@/lib/ai/parse-review";
 import { parsePlateDraft } from "@/lib/ai/plate-parse";
 import { ApiError } from "@/lib/api-cache";
+import { toPlateRow } from "@/lib/day/plate-draft";
 import { AI_TEXT_MEAL_FAILED, readApiError } from "@/lib/messages";
 import { isRecord } from "@/lib/read";
 
