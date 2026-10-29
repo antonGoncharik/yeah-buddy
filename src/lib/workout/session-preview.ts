@@ -1,3 +1,4 @@
+import type { WorkoutTemplateDetail } from "@/lib/types";
 import { WORK_REST_SECONDS } from "@/lib/workout/rest-timer";
 
 /** Seconds of lifting on top of the rest, so the clock is not only the timer. */
@@ -42,6 +43,19 @@ export function templateSessionLine(outline: {
   minutes: number;
 }): string {
   return `${outline.exercises} ${exerciseWord(outline.exercises)} · ${outline.workSets} ${workSetWord(outline.workSets)} · ~${outline.minutes} мин`;
+}
+
+export function workoutTemplateSessionLine(
+  template: WorkoutTemplateDetail,
+): string | null {
+  const outline = templateSessionOutline(
+    template.exercises.map((exercise) => ({
+      plan:
+        template.slots.find((slot) => slot.exercise_id === exercise.id)?.plan ??
+        null,
+    })),
+  );
+  return outline ? templateSessionLine(outline) : null;
 }
 
 function exerciseWord(count: number): string {

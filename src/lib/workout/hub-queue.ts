@@ -1,8 +1,39 @@
 import { peekJson, writeJson } from "@/lib/api-cache";
 import { isRecord } from "@/lib/read";
 import type { WorkoutTemplateDetail } from "@/lib/types";
+import type { HubSessionState } from "@/lib/workout/hub-payload";
 import { pickNextTemplate, templateAfter } from "@/lib/workout/rotation";
 import { sessionDateUrl } from "@/lib/workout/session-local";
+
+export type HubQueueSkipPatch = Pick<
+  HubSessionState,
+  "skipTemplateIds" | "nextTemplate" | "followingTemplate" | "canUnskip"
+>;
+
+export function applyHubQueueSkipPatch(
+  date: string,
+  activeTemplates: WorkoutTemplateDetail[],
+  queueLastTemplateId: string | null,
+  newSkip: string[],
+): HubQueueSkipPatch {
+  const { nextTemplate, followingTemplate } = recomputeHubQueue(
+    activeTemplates,
+    newSkip,
+    queueLastTemplateId,
+  );
+  writeHubQueuePreview(date, {
+    next_template: nextTemplate,
+    following_template: followingTemplate,
+    can_unskip: newSkip.length > 0,
+    skip_template_ids: newSkip,
+  });
+  return {
+    skipTemplateIds: newSkip,
+    nextTemplate,
+    followingTemplate,
+    canUnskip: newSkip.length > 0,
+  };
+}
 
 export function recomputeHubQueue<T extends { id: string }>(
   active: T[],

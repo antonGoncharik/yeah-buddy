@@ -11,12 +11,42 @@ import type {
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { templateExerciseLoadPreview } from "@/lib/workout/hints";
+import {
+  exercisesById,
+  hubQueueSecondaryActions,
+} from "@/lib/workout/hub-view";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
-import {
-  templateSessionLine,
-  templateSessionOutline,
-} from "@/lib/workout/session-preview";
+import { workoutTemplateSessionLine } from "@/lib/workout/session-preview";
+
+function HubQueueGhostButtons({
+  actions,
+  busy,
+}: {
+  actions: ReturnType<typeof hubQueueSecondaryActions>;
+  busy: boolean;
+}) {
+  if (actions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="-mb-1 flex min-w-0 flex-col gap-2">
+      {actions.map((item) => (
+        <Button
+          key={item.key}
+          type="button"
+          variant="ghost"
+          className="h-auto min-h-11 w-full max-w-full whitespace-normal px-4 py-2.5 text-base leading-snug text-muted-foreground"
+          disabled={busy}
+          onClick={item.onClick}
+        >
+          {item.label}
+        </Button>
+      ))}
+    </div>
+  );
+}
 
 export function WorkoutsHubQueueCta({
   session,
@@ -57,24 +87,20 @@ export function WorkoutsHubQueueCta({
     followingTemplate != null &&
     nextTemplate != null &&
     followingTemplate.id !== nextTemplate.id;
-  const secondary = [
-    canUnskip
-      ? {
-          key: "unskip",
-          label: skipping ? "Возвращаю…" : "Вернуть пропущенную",
-          onClick: onUnskip,
-        }
-      : canSkip
-        ? {
-            key: "skip",
-            label: skipping ? "Пропускаю…" : "Пропустить",
-            onClick: () => onSkip(followingTemplate),
-          }
-        : null,
-    canBackfillYesterday && nextCanStart
-      ? { key: "backfill", label: backfillLabel, onClick: onBackfill }
-      : null,
-  ].filter((item) => item != null);
+  const secondary = hubQueueSecondaryActions({
+    canUnskip,
+    canSkip,
+    canBackfill: canBackfillYesterday && nextCanStart,
+    skipping,
+    backfillLabel,
+    onUnskip,
+    onSkip: () => {
+      if (followingTemplate) {
+        onSkip(followingTemplate);
+      }
+    },
+    onBackfill,
+  });
 
   if (session) {
     if (!nextTemplate || !canBackfillYesterday || !nextCanStart) {
@@ -97,15 +123,8 @@ export function WorkoutsHubQueueCta({
     return null;
   }
 
-  const catalog = new Map(exercises.map((exercise) => [exercise.id, exercise]));
-  const outline = templateSessionOutline(
-    nextTemplate.exercises.map((exercise) => ({
-      plan:
-        nextTemplate.slots.find((slot) => slot.exercise_id === exercise.id)
-          ?.plan ?? null,
-    })),
-  );
-  const outlineLine = outline ? templateSessionLine(outline) : null;
+  const catalog = exercisesById(exercises);
+  const outlineLine = workoutTemplateSessionLine(nextTemplate);
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
@@ -189,22 +208,7 @@ export function WorkoutsHubQueueCta({
         </Button>
       ) : null}
 
-      {secondary.length > 0 ? (
-        <div className="-mb-1 flex min-w-0 flex-col gap-2">
-          {secondary.map((item) => (
-            <Button
-              key={item.key}
-              type="button"
-              variant="ghost"
-              className="h-auto min-h-11 w-full max-w-full whitespace-normal px-4 py-2.5 text-base leading-snug text-muted-foreground"
-              disabled={busy}
-              onClick={item.onClick}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </div>
-      ) : null}
+      <HubQueueGhostButtons actions={secondary} busy={busy} />
     </section>
   );
 }

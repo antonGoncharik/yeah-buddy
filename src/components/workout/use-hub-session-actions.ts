@@ -8,41 +8,22 @@ import { mutateJson, peekJson, postJson } from "@/lib/api-cache";
 import { daysUrl } from "@/lib/day/cache";
 import { mealsMatchRecipe } from "@/lib/day/remaining";
 import { readDay, readRecipes } from "@/lib/day/today-payload";
-import {
-  LOAD_FAILED,
-  switchRestToTrainingMessage,
-  WORKOUT_TEMPLATE_EMPTY,
-} from "@/lib/messages";
+import { switchRestToTrainingMessage } from "@/lib/messages";
 import { isOffline } from "@/lib/offline";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSession, WorkoutTemplateDetail } from "@/lib/types";
 import { templateCanPlan } from "@/lib/workout/hints";
 import { isRestFoodDay } from "@/lib/workout/hub-payload";
 import {
+  hubFailAction,
+  hubWarnEmptyTemplate,
+} from "@/lib/workout/hub-session-errors";
+import {
   isEmptyTemplateError,
   queueCreateSession,
 } from "@/lib/workout/session-start";
 
 export type HubCreateTarget = "today" | "yesterday";
-
-function loadErrorMessage(caught: unknown): string {
-  return caught instanceof Error ? caught.message : LOAD_FAILED;
-}
-
-function warnEmptyTemplate(
-  setError: Dispatch<SetStateAction<string | null>>,
-): void {
-  haptic("warn");
-  setError(WORKOUT_TEMPLATE_EMPTY);
-}
-
-function failAction(
-  setError: Dispatch<SetStateAction<string | null>>,
-  caught: unknown,
-): void {
-  haptic("error");
-  setError(loadErrorMessage(caught));
-}
 
 export function useHubSessionActions({
   date,
@@ -71,6 +52,14 @@ export function useHubSessionActions({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+
+  function reportEmpty() {
+    hubWarnEmptyTemplate((message) => setError(message));
+  }
+
+  function reportFail(caught: unknown) {
+    hubFailAction((message) => setError(message), caught);
+  }
 
   async function confirmRestToTraining(sessionDate: string): Promise<boolean> {
     let dayData = peekJson(daysUrl(sessionDate));
@@ -104,7 +93,7 @@ export function useHubSessionActions({
   ) {
     const template = templates.find((item) => item.id === templateId);
     if (template && !templateCanPlan(template)) {
-      warnEmptyTemplate(setError);
+      reportEmpty();
       return;
     }
 
@@ -121,17 +110,17 @@ export function useHubSessionActions({
         templateId,
       });
       if (!created) {
-        warnEmptyTemplate(setError);
+        reportEmpty();
         return;
       }
       haptic("commit");
       router.push(`/workouts/sessions/${created.session.id}`);
     } catch (caught) {
       if (isEmptyTemplateError(caught)) {
-        warnEmptyTemplate(setError);
+        reportEmpty();
         return;
       }
-      failAction(setError, caught);
+      reportFail(caught);
     } finally {
       setCreating(null);
     }
@@ -147,7 +136,7 @@ export function useHubSessionActions({
       haptic("commit");
       void refreshSessions();
     } catch (caught) {
-      failAction(setError, caught);
+      reportFail(caught);
       await load();
     } finally {
       setSkipping(false);
@@ -178,7 +167,7 @@ export function useHubSessionActions({
       haptic("commit");
       void refreshSessions();
     } catch (caught) {
-      failAction(setError, caught);
+      reportFail(caught);
       await load();
     } finally {
       setSkipping(false);

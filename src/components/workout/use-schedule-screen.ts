@@ -14,6 +14,10 @@ import {
   type ProgramPresetId,
   programPresetById,
 } from "@/lib/workout/program-presets";
+import {
+  activeWorkoutTemplates,
+  inactiveWorkoutTemplates,
+} from "@/lib/workout/template-list";
 
 export function useScheduleScreen() {
   const confirm = useConfirm();
@@ -23,12 +27,9 @@ export function useScheduleScreen() {
   const [saving, setSaving] = useState(false);
   const [showPrograms, setShowPrograms] = useState(false);
 
-  const active = useMemo(
-    () => templates.filter((template) => template.is_active),
-    [templates],
-  );
+  const active = useMemo(() => activeWorkoutTemplates(templates), [templates]);
   const inactive = useMemo(
-    () => templates.filter((template) => !template.is_active),
+    () => inactiveWorkoutTemplates(templates),
     [templates],
   );
 

@@ -8,7 +8,7 @@ import {
   type HubCreateTarget,
   useHubSessionActions,
 } from "@/components/workout/use-hub-session-actions";
-import { cachedGet } from "@/lib/api-cache";
+import { cachedGet, cachedGetOk } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type {
   CurrentMacroState,
@@ -19,58 +19,18 @@ import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, templateCanPlan } from "@/lib/workout/hints";
 import {
   EMPTY_HUB_SESSION,
-  type HubSessionState,
   readExercises,
   readHubSessionState,
   readMacro,
   readTemplates,
 } from "@/lib/workout/hub-payload";
-import {
-  recomputeHubQueue,
-  writeHubQueuePreview,
-} from "@/lib/workout/hub-queue";
-import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
+import { applyHubQueueSkipPatch } from "@/lib/workout/hub-queue";
+import { hubSessionActionLabel } from "@/lib/workout/hub-view";
 import { muscleHubRecoveryHint } from "@/lib/workout/muscle-insights";
 import { parseMuscleSnapshot } from "@/lib/workout/parse-muscles";
+import { activeWorkoutTemplates } from "@/lib/workout/template-list";
 
-function fetchCached(
-  url: string,
-  apply: (data: unknown) => boolean,
-  onCached: () => void,
-): Promise<boolean> {
-  return cachedGet(url, apply, onCached).then(
-    () => true,
-    () => false,
-  );
-}
-
-function patchHubQueueSkip(
-  date: string,
-  activeTemplates: WorkoutTemplateDetail[],
-  queueLastTemplateId: string | null,
-  newSkip: string[],
-): Pick<
-  HubSessionState,
-  "skipTemplateIds" | "nextTemplate" | "followingTemplate" | "canUnskip"
-> {
-  const { nextTemplate, followingTemplate } = recomputeHubQueue(
-    activeTemplates,
-    newSkip,
-    queueLastTemplateId,
-  );
-  writeHubQueuePreview(date, {
-    next_template: nextTemplate,
-    following_template: followingTemplate,
-    can_unskip: newSkip.length > 0,
-    skip_template_ids: newSkip,
-  });
-  return {
-    skipTemplateIds: newSkip,
-    nextTemplate,
-    followingTemplate,
-    canUnskip: newSkip.length > 0,
-  };
-}
+export type WorkoutsHubModel = ReturnType<typeof useWorkoutsHub>;
 
 export function useWorkoutsHub() {
   const date = format(new Date(), "yyyy-MM-dd");
@@ -88,7 +48,7 @@ export function useWorkoutsHub() {
   );
 
   const activeTemplates = useMemo(
-    () => templates.filter((template) => template.is_active),
+    () => activeWorkoutTemplates(templates),
     [templates],
   );
 
@@ -115,7 +75,7 @@ export function useWorkoutsHub() {
           : [...prev.skipTemplateIds, templateId];
         return {
           ...prev,
-          ...patchHubQueueSkip(
+          ...applyHubQueueSkipPatch(
             date,
             activeTemplates,
             prev.queueLastTemplateId,
@@ -135,7 +95,7 @@ export function useWorkoutsHub() {
       const newSkip = prev.skipTemplateIds.slice(0, -1);
       return {
         ...prev,
-        ...patchHubQueueSkip(
+        ...applyHubQueueSkipPatch(
           date,
           activeTemplates,
           prev.queueLastTemplateId,
@@ -151,7 +111,7 @@ export function useWorkoutsHub() {
     const showCached = () => done(true);
 
     const results = await Promise.all([
-      fetchCached(
+      cachedGetOk(
         "/api/exercises?filter=active",
         (data) => {
           setExercises(readExercises(data));
@@ -159,7 +119,7 @@ export function useWorkoutsHub() {
         },
         showCached,
       ),
-      fetchCached(
+      cachedGetOk(
         "/api/templates",
         (data) => {
           setTemplates(readTemplates(data));
@@ -167,7 +127,7 @@ export function useWorkoutsHub() {
         },
         showCached,
       ),
-      fetchCached(
+      cachedGetOk(
         "/api/macros",
         (data) => {
           setMacro(readMacro(data));
@@ -175,9 +135,9 @@ export function useWorkoutsHub() {
         },
         showCached,
       ),
-      fetchCached(sessionUrl, applySessionPayload, showCached),
-      fetchCached("/api/workout-settings", () => true, showCached),
-      fetchCached(
+      cachedGetOk(sessionUrl, applySessionPayload, showCached),
+      cachedGetOk("/api/workout-settings", () => true, showCached),
+      cachedGetOk(
         "/api/muscles?days=14",
         (data) => {
           const snapshot = parseMuscleSnapshot(data);
@@ -239,16 +199,6 @@ export function useWorkoutsHub() {
   });
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
-  const sessionAction =
-    session?.status === "planned"
-      ? "Продолжить"
-      : session?.status === "skipped"
-        ? SESSION_STATUS_LABELS.skipped
-        : session?.status === "completed"
-          ? SESSION_STATUS_LABELS.completed
-          : null;
-  const phaseHint = phaseCircle ? phaseEndHint(phaseCircle) : null;
-  const nextCanStart = nextTemplate != null && templateCanPlan(nextTemplate);
 
   return {
     date,
@@ -270,9 +220,9 @@ export function useWorkoutsHub() {
     canBackfillYesterday,
     creating,
     skipping,
-    sessionAction,
-    phaseHint,
-    nextCanStart,
+    sessionAction: hubSessionActionLabel(session),
+    phaseHint: phaseCircle ? phaseEndHint(phaseCircle) : null,
+    nextCanStart: nextTemplate != null && templateCanPlan(nextTemplate),
     createOnDate,
     unskipLast,
     skipNext,

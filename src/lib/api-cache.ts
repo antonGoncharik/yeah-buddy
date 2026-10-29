@@ -296,3 +296,14 @@ export async function cachedGet(
     throw error;
   }
 }
+
+export async function cachedGetOk(
+  url: string,
+  apply: (data: unknown) => boolean,
+  onCached?: () => void,
+): Promise<boolean> {
+  return cachedGet(url, apply, onCached).then(
+    () => true,
+    () => false,
+  );
+}
