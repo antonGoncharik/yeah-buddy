@@ -1,32 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import {
-  BARBELL_VIEWBOX,
-  BarbellMark,
-  Doodle,
-} from "@/components/layout/doodles";
+import { useMemo } from "react";
+
 import { FlavorNote } from "@/components/layout/flavor-note";
 import { JoyShareButton } from "@/components/share/joy-share-button";
 import { Button } from "@/components/ui/button";
 import { CircleOpenedNote } from "@/components/workout/circle-opened-note";
+import { SessionCompletedPanelHeader } from "@/components/workout/session-completed-panel-header";
 import { SessionFeelPicker } from "@/components/workout/session-feel-picker";
 import { SessionMuscleMini } from "@/components/workout/session-muscle-mini";
+import { useSessionCompletedSplash } from "@/components/workout/use-session-completed-splash";
 import {
-  comebackLine,
-  firstPhaseLine,
   LIGHT_WEIGHT_LINE,
-  PLATE_BURST_MS,
-  SPLASH_HOLD_MS,
-  sessionDoneHeadline,
   sessionDoneLead,
-  sessionMilestoneLine,
   sessionRaiseLine,
 } from "@/lib/flavor";
 import { CYCLE_RAISE_LATER } from "@/lib/messages";
-import { type JoyLift, sessionJoyMoment } from "@/lib/share/joy";
-import { haptic } from "@/lib/telegram/haptic";
+import type { JoyLift } from "@/lib/share/joy";
 import type {
   PhaseCircleProgress,
   SessionFeel,
@@ -37,6 +28,7 @@ import type { SessionExerciseDetail } from "@/lib/types/workout-session";
 import type { SessionBeat } from "@/lib/workout/beats";
 import type { EaseWeekKind } from "@/lib/workout/ease-week";
 import { easeWeekMessage } from "@/lib/workout/ease-week";
+import { buildSessionCompletedCopy } from "@/lib/workout/session-completed-copy";
 
 export function SessionCompletedPanel({
   abovePlan,
@@ -87,142 +79,61 @@ export function SessionCompletedPanel({
   sessionExercises?: SessionExerciseDetail[];
   figureSex?: UserSex | null;
 }) {
-  const canRaise = raiseOffers.length > 0;
-  const milestone = sessionMilestoneLine(completedSessions);
-  const record = beat?.kind === "record" ? beat : null;
-  const joy = sessionJoyMoment({
-    feel,
-    completedSessions,
-    workKg: workLift?.kg ?? null,
-    record,
-  });
-  const shareLift =
-    joy?.kind === "record" && record
-      ? { name: record.name, kg: record.kg }
-      : workLift;
-  const phase = firstPhaseLine(phaseCircle);
-  const comeback = milestone
-    ? null
-    : comebackLine(sessionDate, lastCompletedBefore);
-  const [extraPlate, setExtraPlate] = useState(false);
-  const [lightWeight, setLightWeight] = useState(false);
-  const plateHold = useRef<number | null>(null);
-  const titleHold = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!extraPlate) {
-      return;
-    }
-    const timer = window.setTimeout(() => setExtraPlate(false), PLATE_BURST_MS);
-    return () => window.clearTimeout(timer);
-  }, [extraPlate]);
-
-  useEffect(() => {
-    return () => {
-      if (plateHold.current != null) {
-        window.clearTimeout(plateHold.current);
-      }
-      if (titleHold.current != null) {
-        window.clearTimeout(titleHold.current);
-      }
-    };
-  }, []);
-
-  async function raise() {
-    if (await onRaise()) {
-      setExtraPlate(true);
-    }
-  }
-
-  function burstPlate() {
-    haptic("tick");
-    setExtraPlate(true);
-  }
-
-  function startPlateHold() {
-    if (plateHold.current != null) {
-      window.clearTimeout(plateHold.current);
-    }
-    plateHold.current = window.setTimeout(() => {
-      plateHold.current = null;
-      burstPlate();
-    }, SPLASH_HOLD_MS);
-  }
-
-  function endPlateHold() {
-    if (plateHold.current != null) {
-      window.clearTimeout(plateHold.current);
-      plateHold.current = null;
-    }
-  }
-
-  function startTitleHold() {
-    if (feel !== "easy" || lightWeight) {
-      return;
-    }
-    if (titleHold.current != null) {
-      window.clearTimeout(titleHold.current);
-    }
-    titleHold.current = window.setTimeout(() => {
-      titleHold.current = null;
-      setLightWeight(true);
-      haptic("success");
-    }, SPLASH_HOLD_MS);
-  }
-
-  function endTitleHold() {
-    if (titleHold.current != null) {
-      window.clearTimeout(titleHold.current);
-      titleHold.current = null;
-    }
-  }
+  const copy = useMemo(
+    () =>
+      buildSessionCompletedCopy({
+        feel,
+        completedSessions,
+        lastCompletedBefore,
+        sessionDate,
+        phaseCircle,
+        beat,
+        workLift,
+        raiseOffers,
+      }),
+    [
+      beat,
+      completedSessions,
+      feel,
+      lastCompletedBefore,
+      phaseCircle,
+      raiseOffers,
+      sessionDate,
+      workLift,
+    ],
+  );
+  const splash = useSessionCompletedSplash(feel);
 
   return (
     <section className="card-surface flex flex-col gap-3 px-5 py-5">
-      <div className="flex items-start justify-between gap-3">
-        <h2
-          className="select-none text-xl font-semibold"
-          onPointerDown={feel === "easy" ? startTitleHold : undefined}
-          onPointerUp={feel === "easy" ? endTitleHold : undefined}
-          onPointerLeave={feel === "easy" ? endTitleHold : undefined}
-          onPointerCancel={feel === "easy" ? endTitleHold : undefined}
-        >
-          {sessionDoneHeadline(feel)}
-        </h2>
-        <button
-          type="button"
-          className="mt-1 text-muted-foreground"
-          aria-label="Штанга"
-          onPointerDown={startPlateHold}
-          onPointerUp={endPlateHold}
-          onPointerLeave={endPlateHold}
-          onPointerCancel={endPlateHold}
-        >
-          <Doodle className="h-5 w-auto" viewBox={BARBELL_VIEWBOX}>
-            <BarbellMark extra={extraPlate} />
-          </Doodle>
-        </button>
-      </div>
+      <SessionCompletedPanelHeader
+        feel={feel}
+        easyPointer={splash.easyPointer}
+        barbellPointer={splash.barbellPointer}
+        extraPlate={splash.extraPlate}
+      />
       <FlavorNote
         line={sessionDoneLead(feel)}
         className="text-muted-foreground"
       />
       <FlavorNote
-        line={lightWeight ? LIGHT_WEIGHT_LINE : null}
+        line={splash.lightWeight ? LIGHT_WEIGHT_LINE : null}
         className="text-foreground"
       />
-      <FlavorNote line={milestone} className="text-foreground" />
+      <FlavorNote line={copy.milestone} className="text-foreground" />
       <CircleOpenedNote phaseId={phaseId} open={circleOpen} />
-      <FlavorNote line={beat?.line ?? null} className="text-foreground" />
-      <FlavorNote line={phase} className="text-foreground" />
-      <FlavorNote line={comeback} className="text-foreground" />
+      <FlavorNote line={copy.beatLine} className="text-foreground" />
+      <FlavorNote line={copy.phase} className="text-foreground" />
+      <FlavorNote line={copy.comeback} className="text-foreground" />
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium text-muted-foreground">Как прошло</p>
         <SessionFeelPicker value={feel} disabled={busy} onChange={onFeel} />
       </div>
-      {joy ? <JoyShareButton moment={joy} lift={shareLift} /> : null}
+      {copy.joy ? (
+        <JoyShareButton moment={copy.joy} lift={copy.shareLift} />
+      ) : null}
       <SessionMuscleMini exercises={sessionExercises} figureSex={figureSex} />
-      {canRaise && abovePlan ? (
+      {copy.canRaise && abovePlan ? (
         <p className="text-base leading-relaxed">
           {sessionRaiseLine(true, feel)}
         </p>
@@ -251,12 +162,12 @@ export function SessionCompletedPanel({
           </Button>
         </>
       ) : null}
-      {canRaise ? (
+      {copy.canRaise ? (
         <Button
           type="button"
           className="h-12 text-base"
           disabled={busy}
-          onClick={() => void raise()}
+          onClick={() => void splash.raise(onRaise)}
         >
           {busy ? "Поднимаю…" : "Поднять максимум"}
         </Button>
