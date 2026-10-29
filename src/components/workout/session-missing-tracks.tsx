@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSessionMissingTracksForm } from "@/components/workout/use-session-missing-tracks-form";
 import { handleNumericEnter } from "@/lib/form/field-nav";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import type { Exercise } from "@/lib/types";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { partialFormSaveLabel } from "@/lib/workout/partial-form-save-label";
 
-export interface MissingTrackInput {
+export type MissingTrackInput = {
   exercise_id: string;
   start_weight: number;
-}
+};
 
 export function SessionMissingTracks({
   exercises,
@@ -25,14 +25,7 @@ export function SessionMissingTracks({
   busy: boolean;
   onSave: (tracks: MissingTrackInput[]) => Promise<void>;
 }) {
-  const [values, setValues] = useState<Record<string, string>>({});
-
-  const filled = exercises.flatMap((exercise) => {
-    const weight = parseDecimal(values[exercise.id] ?? "");
-    return weight != null && weight > 0
-      ? [{ exercise_id: exercise.id, start_weight: weight }]
-      : [];
-  });
+  const { values, setValues, filled } = useSessionMissingTracksForm(exercises);
 
   return (
     <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
@@ -94,11 +87,11 @@ export function SessionMissingTracks({
         disabled={busy || filled.length === 0}
         onClick={() => void onSave(filled)}
       >
-        {busy
-          ? "Сохраняю…"
-          : filled.length > 0 && filled.length < exercises.length
-            ? "Сохранить заполненные"
-            : "Сохранить кг"}
+        {partialFormSaveLabel(busy, filled.length, exercises.length, {
+          saving: "Сохраняю…",
+          partial: "Сохранить заполненные",
+          all: "Сохранить кг",
+        })}
       </Button>
     </section>
   );
