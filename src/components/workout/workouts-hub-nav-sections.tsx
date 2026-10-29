@@ -38,9 +38,6 @@ export function WorkoutsHubNavSections({
   phaseCircle,
   phaseHint,
   activeTemplates,
-  creating,
-  skipping,
-  onPickTemplate,
 }: {
   macro: CurrentMacroState | null;
   session: WorkoutSession | null;
@@ -49,9 +46,6 @@ export function WorkoutsHubNavSections({
   phaseCircle: PhaseCircleProgress | null;
   phaseHint: string | null;
   activeTemplates: WorkoutTemplateDetail[];
-  creating: boolean;
-  skipping: boolean;
-  onPickTemplate: (template: WorkoutTemplateDetail) => void;
 }) {
   const highlightId =
     session?.status === "planned" ? sessionTemplate?.id : nextTemplate?.id;
@@ -179,23 +173,7 @@ export function WorkoutsHubNavSections({
 
               return (
                 <li key={template.id}>
-                  {session ? (
-                    <div className="flex items-center gap-3 py-2.5">{body}</div>
-                  ) : (
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-3 py-2.5 text-left transition-colors hover:bg-muted/40 disabled:opacity-50"
-                      disabled={creating || skipping}
-                      onClick={() => onPickTemplate(template)}
-                    >
-                      {body}
-                      {creating ? (
-                        <span className="shrink-0 text-sm font-medium text-muted-foreground">
-                          Открываю…
-                        </span>
-                      ) : null}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3 py-2.5">{body}</div>
                 </li>
               );
             })}

@@ -23,6 +23,8 @@ import {
   queueCreateSession,
 } from "@/lib/workout/session-start";
 
+export type HubCreateTarget = "today" | "yesterday";
+
 export function useHubSessionActions({
   date,
   templates,
@@ -44,14 +46,18 @@ export function useHubSessionActions({
   refreshSessions: () => Promise<void>;
   applySkipOptimistic: (templateId: string) => void;
   applyUnskipOptimistic: () => void;
-  setCreating: Dispatch<SetStateAction<boolean>>;
+  setCreating: Dispatch<SetStateAction<HubCreateTarget | null>>;
   setSkipping: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
 
-  async function createOnDate(templateId: string, sessionDate: string) {
+  async function createOnDate(
+    templateId: string,
+    sessionDate: string,
+    target: HubCreateTarget,
+  ) {
     const template = templates.find((item) => item.id === templateId);
     if (template && !templateCanPlan(template)) {
       haptic("warn");
@@ -59,7 +65,7 @@ export function useHubSessionActions({
       return;
     }
 
-    setCreating(true);
+    setCreating(target);
     setError(null);
 
     try {
@@ -108,7 +114,7 @@ export function useHubSessionActions({
       haptic("error");
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
-      setCreating(false);
+      setCreating(null);
     }
   }
 
@@ -162,24 +168,5 @@ export function useHubSessionActions({
     }
   }
 
-  async function pickTemplate(template: WorkoutTemplateDetail) {
-    if (session) {
-      return;
-    }
-
-    if (nextTemplate && template.id !== nextTemplate.id) {
-      const ok = await confirm({
-        message: `Начать «${template.name}» вместо «${nextTemplate.name}»?`,
-        confirmLabel: "Начать",
-        cancelLabel: "Оставить",
-      });
-      if (!ok) {
-        return;
-      }
-    }
-
-    void createOnDate(template.id, date);
-  }
-
-  return { createOnDate, unskipLast, skipNext, pickTemplate };
+  return { createOnDate, unskipLast, skipNext };
 }

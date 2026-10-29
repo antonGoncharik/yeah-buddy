@@ -4,7 +4,10 @@ import { format, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDayMood } from "@/components/layout/day-mood";
-import { useHubSessionActions } from "@/components/workout/use-hub-session-actions";
+import {
+  type HubCreateTarget,
+  useHubSessionActions,
+} from "@/components/workout/use-hub-session-actions";
 import { cachedGet } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import type {
@@ -86,7 +89,7 @@ export function useWorkoutsHub() {
   const [skipTemplateIds, setSkipTemplateIds] = useState<string[]>([]);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<HubCreateTarget | null>(null);
   const [skipping, setSkipping] = useState(false);
   const [muscleRecoveryHint, setMuscleRecoveryHint] = useState<string | null>(
     null,
@@ -258,20 +261,19 @@ export function useWorkoutsHub() {
     return () => setMood(null);
   }, [loading, macro?.phase?.phase_type, setMood]);
 
-  const { createOnDate, unskipLast, skipNext, pickTemplate } =
-    useHubSessionActions({
-      date,
-      templates,
-      session,
-      nextTemplate,
-      load,
-      refreshSessions,
-      applySkipOptimistic,
-      applyUnskipOptimistic,
-      setCreating,
-      setSkipping,
-      setError,
-    });
+  const { createOnDate, unskipLast, skipNext } = useHubSessionActions({
+    date,
+    templates,
+    session,
+    nextTemplate,
+    load,
+    refreshSessions,
+    applySkipOptimistic,
+    applyUnskipOptimistic,
+    setCreating,
+    setSkipping,
+    setError,
+  });
 
   const todayLabel = format(new Date(), "d MMMM", { locale: ru });
   const sessionAction =
@@ -311,7 +313,6 @@ export function useWorkoutsHub() {
     createOnDate,
     unskipLast,
     skipNext,
-    pickTemplate,
     muscleRecoveryHint,
   };
 }

@@ -44,7 +44,6 @@ export function WorkoutsHubScreen() {
     createOnDate,
     unskipLast,
     skipNext,
-    pickTemplate,
     muscleRecoveryHint,
   } = useWorkoutsHub();
   const guideTip = useGuideTip("workouts");
@@ -93,11 +92,17 @@ export function WorkoutsHubScreen() {
             skipping={skipping}
             canUnskip={canUnskip}
             canBackfillYesterday={canBackfillYesterday}
-            onStart={() => void createOnDate(nextTemplate?.id ?? "", date)}
+            onStart={() =>
+              void createOnDate(nextTemplate?.id ?? "", date, "today")
+            }
             onSkip={(following) => void skipNext(following)}
             onUnskip={() => void unskipLast()}
             onBackfill={() =>
-              void createOnDate(nextTemplate?.id ?? "", previousIsoDate(date))
+              void createOnDate(
+                nextTemplate?.id ?? "",
+                previousIsoDate(date),
+                "yesterday",
+              )
             }
           />
         ) : null}
@@ -124,9 +129,6 @@ export function WorkoutsHubScreen() {
             phaseCircle={phaseCircle}
             phaseHint={phaseHint}
             activeTemplates={activeTemplates}
-            creating={creating}
-            skipping={skipping}
-            onPickTemplate={(template) => void pickTemplate(template)}
           />
         ) : null}
 

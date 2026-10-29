@@ -4,6 +4,7 @@ import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { AlignedPair } from "@/components/ui/aligned-pair";
 import { Button } from "@/components/ui/button";
+import type { HubCreateTarget } from "@/components/workout/use-hub-session-actions";
 import type {
   ExerciseWithMax,
   WorkoutSession,
@@ -39,7 +40,7 @@ export function WorkoutsHubQueueCta({
   exercises: ExerciseWithMax[];
   phaseKey?: string | null;
   nextCanStart: boolean;
-  creating: boolean;
+  creating: HubCreateTarget | null;
   skipping: boolean;
   canUnskip: boolean;
   canBackfillYesterday: boolean;
@@ -48,9 +49,10 @@ export function WorkoutsHubQueueCta({
   onUnskip: () => void;
   onBackfill: () => void;
 }) {
-  const busy = creating || skipping;
-  const startLabel = creating ? "Открываю…" : "Начать";
-  const backfillLabel = creating ? "Записываю…" : "Записать вчера";
+  const busy = creating != null || skipping;
+  const startLabel = creating === "today" ? "Открываю…" : "Начать";
+  const backfillLabel =
+    creating === "yesterday" ? "Записываю…" : "Записать вчера";
   const canSkip =
     followingTemplate != null &&
     nextTemplate != null &&
