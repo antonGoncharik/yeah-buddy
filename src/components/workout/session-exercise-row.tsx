@@ -191,7 +191,9 @@ export function SessionExerciseRow({
       <div
         className={
           compact
-            ? "flex flex-col items-start gap-2.5 px-2 py-3"
+            ? diaryCompact
+              ? "flex flex-col items-start gap-1 px-2 py-1.5"
+              : "flex flex-col items-start gap-2.5 px-2 py-3"
             : "flex flex-col items-start gap-2.5 px-5 py-4"
         }
       >
@@ -199,7 +201,7 @@ export function SessionExerciseRow({
           <h3
             className={cn(
               "min-w-0 flex-1 font-semibold tracking-tight",
-              diaryCompact ? "text-lg" : "text-xl",
+              diaryCompact ? "text-base leading-tight" : "text-xl",
             )}
           >
             {item.exercise.short_name || item.exercise.name}

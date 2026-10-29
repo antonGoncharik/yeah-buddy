@@ -23,10 +23,6 @@ import {
 import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
-import {
-  type TodayGlance as TodayGlanceFacts,
-  todayGlance,
-} from "@/lib/nutrition/today-glance";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
@@ -175,20 +171,6 @@ export function TodayScreen({
         ) : showLoading && gymEnabled && !viewOnly ? (
           <TodayDayTypeSkeleton />
         ) : null}
-        {contentReady && shownDay && dayHasItems ? (
-          <TodayGlance
-            glance={todayGlance({
-              protein: fact.protein,
-              fat: fact.fat,
-              carbs: fact.carbs,
-              kcal: fact.kcal,
-              targetProtein: shownDay.target_protein,
-              targetFat: shownDay.target_fat,
-              targetCarbs: shownDay.target_carbs,
-              targetKcal: shownDay.target_kcal,
-            })}
-          />
-        ) : null}
       </div>
       {pickerOpen ? (
         <TodayDatePickerSheet
@@ -305,19 +287,6 @@ export function TodayScreen({
           />
         ) : null}
       </div>
-    </div>
-  );
-}
-
-function TodayGlance({ glance }: { glance: TodayGlanceFacts | null }) {
-  if (!glance) {
-    return null;
-  }
-
-  return (
-    <div className="px-0.5 text-sm font-medium text-muted-foreground tabular-nums">
-      <p>{glance.kcal}</p>
-      <p>{glance.macros}</p>
     </div>
   );
 }

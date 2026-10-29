@@ -116,23 +116,39 @@ function MacroRowSkeleton({
   plan: number;
   compact: boolean;
 }) {
+  const amounts = (
+    <TextBone
+      text={`${formatMacro(fact)} / ${formatMacro(plan)}`}
+      className="tabular-nums"
+    />
+  );
+  const bar = (
+    <div className={cn("relative", compact ? "h-2" : "h-2.5")} aria-hidden>
+      <div className="absolute inset-0 animate-pulse rounded-full bg-foreground/20" />
+    </div>
+  );
+
+  if (compact) {
+    const [factText, planText] =
+      `${formatMacro(fact)} / ${formatMacro(plan)}`.split(" / ");
+    return (
+      <>
+        <TextBone text={label} className="font-medium whitespace-nowrap" />
+        <div className="min-w-0">{bar}</div>
+        <TextBone text={factText ?? ""} className="text-right tabular-nums" />
+        <TextBone text="/" />
+        <TextBone text={planText ?? ""} className="tabular-nums" />
+      </>
+    );
+  }
+
   return (
-    <div className={cn("flex flex-col", compact ? "gap-1" : "gap-1.5")}>
-      <div
-        className={cn(
-          "flex items-baseline justify-between gap-3",
-          compact ? "text-sm" : "text-base",
-        )}
-      >
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-3 text-base">
         <TextBone text={label} className="font-medium" />
-        <TextBone
-          text={`${formatMacro(fact)} / ${formatMacro(plan)}`}
-          className="tabular-nums"
-        />
+        {amounts}
       </div>
-      <div className={cn("relative", compact ? "h-2" : "h-2.5")} aria-hidden>
-        <div className="absolute inset-0 animate-pulse rounded-full bg-foreground/20" />
-      </div>
+      {bar}
     </div>
   );
 }
@@ -160,40 +176,64 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
       )}
     >
       <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
+        <div
+          className={cn(
+            "flex justify-between gap-3",
+            compact ? "items-center" : "items-start gap-4",
+          )}
+        >
           <div className="min-w-0">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <IconBone className="size-4 rounded-full" />
-              <TextBone text="Белок" />
-            </div>
-            <p
-              className={cn(
-                "mt-1 font-semibold tracking-tight",
-                compact ? "text-xl" : "text-2xl",
-              )}
-            >
-              <TextBone text={formatMacro(140)} className="tabular-nums" />
-              <TextBone
-                text={`/ ${formatMacro(110)}`}
-                className="ml-1.5 text-base font-medium"
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <IconBone
+                className={
+                  compact ? "size-3.5 rounded-full" : "size-4 rounded-full"
+                }
               />
-            </p>
+              {compact ? (
+                <span className="truncate">
+                  <TextBone text="Белок" />{" "}
+                  <TextBone text={formatMacro(140)} className="tabular-nums" />
+                  <TextBone
+                    text={`/ ${formatMacro(110)}`}
+                    className="font-medium"
+                  />
+                </span>
+              ) : (
+                <TextBone text="Белок" />
+              )}
+            </div>
+            {compact ? null : (
+              <p className="mt-1 text-2xl font-semibold tracking-tight">
+                <TextBone text={formatMacro(140)} className="tabular-nums" />
+                <TextBone
+                  text={`/ ${formatMacro(110)}`}
+                  className="ml-1.5 text-base font-medium"
+                />
+              </p>
+            )}
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">
-              <TextBone text="Съел" />
-            </p>
+          <div className="shrink-0 text-right">
+            {compact ? null : (
+              <p className="text-sm font-medium">
+                <TextBone text="Съел" />
+              </p>
+            )}
             <p
               className={cn(
-                "mt-1 font-semibold tracking-tight tabular-nums",
-                compact ? "text-xl" : "text-2xl",
+                "font-semibold tracking-tight tabular-nums",
+                compact ? "text-sm" : "mt-1 text-2xl",
               )}
             >
               <TextBone text={formatKcal(1628)} />
               <TextBone
                 text={`/ ${formatKcal(1975)}`}
-                className="ml-1.5 text-base font-medium"
+                className={
+                  compact ? "ml-1 font-medium" : "ml-1.5 text-base font-medium"
+                }
               />
+              {compact ? (
+                <TextBone text="ккал" className="ml-1 font-medium" />
+              ) : null}
             </p>
           </div>
         </div>
@@ -205,7 +245,13 @@ function SummarySkeleton({ compact, gym }: { compact: boolean; gym: boolean }) {
         ) : null}
       </div>
 
-      <div className={cn("flex flex-col", compact ? "gap-2" : "gap-3.5")}>
+      <div
+        className={cn(
+          compact
+            ? "grid grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] items-center gap-x-2 gap-y-1 text-sm"
+            : "flex flex-col gap-3.5",
+        )}
+      >
         {MACRO_ROWS.map((row) => (
           <MacroRowSkeleton
             key={row.label}
@@ -280,15 +326,24 @@ function MealCardSkeleton({
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <h2
-          className={cn(
-            "flex min-w-0 items-center gap-2 font-semibold",
-            compact ? "text-lg" : "text-xl",
-          )}
-        >
+        <div className="flex min-w-0 items-center gap-2">
           <IconBone className={MEAL_ICON_CLASS[meal.mealType]} />
-          <TextBone text={getMealLabel(meal.mealType)} />
-        </h2>
+          <div className="min-w-0">
+            <h2
+              className={cn(
+                "truncate font-semibold",
+                compact ? "text-base leading-tight" : "text-xl",
+              )}
+            >
+              <TextBone text={getMealLabel(meal.mealType)} />
+            </h2>
+            {compact ? (
+              <p className="truncate text-xs leading-tight">
+                <TextBone text={meal.macros} />
+              </p>
+            ) : null}
+          </div>
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <TextBone
             text={meal.kcal}
@@ -312,14 +367,11 @@ function MealCardSkeleton({
         />
       ))}
 
-      <p
-        className={cn(
-          "tabular-nums tracking-tight",
-          compact ? "text-sm" : "text-lg font-semibold",
-        )}
-      >
-        <TextBone text={meal.macros} />
-      </p>
+      {compact ? null : (
+        <p className="text-lg font-semibold tabular-nums tracking-tight">
+          <TextBone text={meal.macros} />
+        </p>
+      )}
 
       <div className={mealActionBarClass}>
         <div className={mealActionPrimarySegmentClass}>
@@ -369,13 +421,15 @@ function TodayTailSkeleton({ compact }: { compact: boolean }) {
 
 function DiaryLinksSkeleton() {
   return (
-    <nav
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium"
-      aria-hidden
-    >
-      <TextBone text="Неделя" />
-      <TextBone text="История еды" />
-      <TextBone text="Спросить" />
+    <nav className="grid grid-cols-3 gap-2" aria-hidden>
+      {["Неделя", "История еды", "Спросить"].map((label) => (
+        <span
+          key={label}
+          className="flex min-h-11 items-center justify-center rounded-xl border border-border px-1.5 text-center text-sm"
+        >
+          <TextBone text={label} />
+        </span>
+      ))}
     </nav>
   );
 }

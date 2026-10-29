@@ -125,15 +125,25 @@ export function MealCard({
       style={style}
     >
       <div className="flex items-center justify-between gap-3">
-        <h2
-          className={cn(
-            "flex min-w-0 items-center gap-2 font-semibold",
-            compact ? "text-lg" : "text-xl",
-          )}
-        >
+        <div className="flex min-w-0 items-center gap-2">
           <MealTypeMark mealType={mealType} />
-          <span className="truncate">{getMealLabel(mealType)}</span>
-        </h2>
+          <div className="min-w-0">
+            <h2
+              className={cn(
+                "truncate font-semibold",
+                compact ? "text-base leading-tight" : "text-xl",
+              )}
+            >
+              {getMealLabel(mealType)}
+            </h2>
+            {compact && items.length > 0 ? (
+              <p className="truncate text-xs leading-tight text-muted-foreground tabular-nums">
+                Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} ·
+                У {formatMacro(totals.carbs)}
+              </p>
+            ) : null}
+          </div>
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           {items.length > 0 ? (
             <p className="text-base font-semibold tabular-nums">
@@ -201,13 +211,8 @@ export function MealCard({
         </div>
       )}
 
-      {items.length > 0 ? (
-        <p
-          className={cn(
-            "tabular-nums tracking-tight",
-            compact ? "text-sm text-muted-foreground" : "text-lg font-semibold",
-          )}
-        >
+      {!compact && items.length > 0 ? (
+        <p className="text-lg font-semibold tabular-nums tracking-tight">
           Б {formatMacro(totals.protein)} · Ж {formatMacro(totals.fat)} · У{" "}
           {formatMacro(totals.carbs)}
         </p>

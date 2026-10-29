@@ -30,37 +30,65 @@ export function MacroBar({
   const formatAmount = (value: number) =>
     kind === "kcal" ? formatKcal(value) : formatMacro(value);
 
-  return (
-    <div className={cn("flex flex-col", compact ? "gap-1" : "gap-1.5")}>
-      <div
-        className={cn(
-          "flex items-baseline justify-between gap-3",
-          compact ? "text-sm" : "text-base",
-        )}
-      >
-        <p className="font-medium">{label}</p>
-        <p
+  const amounts = (
+    <p
+      className={cn(
+        "flex items-baseline gap-1.5 tabular-nums text-muted-foreground",
+        warn && "text-destructive",
+      )}
+    >
+      <span className={cn("text-right", !overflow && "text-foreground")}>
+        {formatAmount(fact)}
+      </span>
+      <span>/</span>
+      <span>{formatAmount(plan)}</span>
+    </p>
+  );
+  const meter = (
+    <MeterBar
+      ratio={ratio}
+      barClass={barClass}
+      overflow={warn}
+      size={compact ? "sm" : "md"}
+      valueNow={fact}
+      valueMax={plan > 0 ? plan : 1}
+      valueText={`${formatAmount(fact)} из ${formatAmount(plan)} ${label}`}
+    />
+  );
+
+  if (compact) {
+    return (
+      <>
+        <p className="font-medium whitespace-nowrap">{label}</p>
+        <div className="min-w-0">{meter}</div>
+        <span
           className={cn(
-            "flex items-baseline gap-1.5 tabular-nums text-muted-foreground",
+            "text-right font-medium tabular-nums",
+            warn ? "text-destructive" : "text-foreground",
+          )}
+        >
+          {formatAmount(fact)}
+        </span>
+        <span className={cn(warn && "text-destructive")}>/</span>
+        <span
+          className={cn(
+            "tabular-nums text-muted-foreground",
             warn && "text-destructive",
           )}
         >
-          <span className={cn("text-right", !overflow && "text-foreground")}>
-            {formatAmount(fact)}
-          </span>
-          <span>/</span>
-          <span>{formatAmount(plan)}</span>
-        </p>
+          {formatAmount(plan)}
+        </span>
+      </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-3 text-base">
+        <p className="font-medium">{label}</p>
+        {amounts}
       </div>
-      <MeterBar
-        ratio={ratio}
-        barClass={barClass}
-        overflow={warn}
-        size={compact ? "sm" : "md"}
-        valueNow={fact}
-        valueMax={plan > 0 ? plan : 1}
-        valueText={`${formatAmount(fact)} из ${formatAmount(plan)} ${label}`}
-      />
+      {meter}
     </div>
   );
 }

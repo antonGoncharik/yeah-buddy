@@ -580,12 +580,12 @@ export function TodayDayView({
         </p>
       ) : null}
 
+      <TodayDiaryLinks />
+
       {todayExtras}
 
       {!dayHasItems ? weekShare : null}
       {!dayHasItems ? reviewBlock : null}
-
-      <TodayDiaryLinks />
     </div>
   );
 }

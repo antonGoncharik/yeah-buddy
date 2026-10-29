@@ -183,15 +183,20 @@ export function MealItemRow({
         <Link
           href={href}
           className={cn(
-            "min-w-0 flex-1 rounded-xl px-1 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
+            "flex min-w-0 flex-1 items-center rounded-xl px-1 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
             expanded ? "py-3" : "py-2",
           )}
         >
-          {body}
+          <div className="min-w-0 w-full">{body}</div>
         </Link>
       ) : (
-        <div className={cn("min-w-0 flex-1 px-1", expanded ? "py-3" : "py-2")}>
-          {body}
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center px-1",
+            expanded ? "py-3" : "py-2",
+          )}
+        >
+          <div className="min-w-0 w-full">{body}</div>
         </div>
       )}
       {onDelete ? (

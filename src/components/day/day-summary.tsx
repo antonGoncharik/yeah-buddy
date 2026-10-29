@@ -131,9 +131,19 @@ export function DaySummary({
       )}
     >
       <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
+        <div
+          className={cn(
+            "flex justify-between gap-3",
+            compact ? "items-center" : "items-start gap-4",
+          )}
+        >
           <div className="min-w-0">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <div
+              className={cn(
+                "flex items-center text-sm font-medium text-muted-foreground",
+                compact ? "gap-1.5" : "gap-2",
+              )}
+            >
               <button
                 type="button"
                 aria-label="Печенье"
@@ -145,41 +155,65 @@ export function DaySummary({
                   className={cn("inline-flex", cookie.className)}
                   onAnimationEnd={cookie.onAnimationEnd}
                 >
-                  <CookieDoodle className="size-4" />
+                  <CookieDoodle className={compact ? "size-3.5" : "size-4"} />
                 </span>
               </button>
-              Белок
+              {compact ? (
+                <span className="min-w-0 truncate">
+                  Белок{" "}
+                  <span className="font-semibold text-foreground tabular-nums">
+                    {formatMacro(fact.protein)}
+                  </span>
+                  {day.target_protein > 0 ? (
+                    <span className="font-medium">
+                      {" "}
+                      / {formatMacro(day.target_protein)}
+                    </span>
+                  ) : null}
+                </span>
+              ) : (
+                "Белок"
+              )}
               {flashClosed ? (
                 <span className="animate-fade">{PROTEIN_CLOSED_LABEL}</span>
               ) : null}
             </div>
-            <p
-              className={cn(
-                "mt-1 font-semibold tracking-tight tabular-nums",
-                compact ? "text-xl" : "text-2xl",
-              )}
-            >
-              {formatMacro(fact.protein)}
-              {day.target_protein > 0 ? (
-                <span className="ml-1.5 text-base font-medium text-muted-foreground">
-                  / {formatMacro(day.target_protein)}
-                </span>
-              ) : null}
-            </p>
+            {compact ? null : (
+              <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">
+                {formatMacro(fact.protein)}
+                {day.target_protein > 0 ? (
+                  <span className="ml-1.5 text-base font-medium text-muted-foreground">
+                    / {formatMacro(day.target_protein)}
+                  </span>
+                ) : null}
+              </p>
+            )}
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-muted-foreground">Съел</p>
+          <div className="shrink-0 text-right">
+            {compact ? null : (
+              <p className="text-sm font-medium text-muted-foreground">Съел</p>
+            )}
             <p
               className={cn(
-                "mt-1 font-semibold tracking-tight tabular-nums",
-                compact ? "text-xl" : "text-2xl",
+                "font-semibold tracking-tight tabular-nums",
+                compact ? "text-sm" : "mt-1 text-2xl",
                 kcalOver && "text-destructive",
               )}
             >
               {formatKcal(fact.kcal)}
               {targetKcal > 0 ? (
-                <span className="ml-1.5 text-base font-medium text-muted-foreground">
+                <span
+                  className={cn(
+                    "font-medium text-muted-foreground",
+                    compact ? "ml-1" : "ml-1.5 text-base",
+                  )}
+                >
                   / {formatKcal(targetKcal)}
+                </span>
+              ) : null}
+              {compact ? (
+                <span className="ml-1 font-medium text-muted-foreground">
+                  ккал
                 </span>
               ) : null}
             </p>
@@ -193,7 +227,13 @@ export function DaySummary({
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}
 
-      <div className={cn("flex flex-col", compact ? "gap-2" : "gap-3.5")}>
+      <div
+        className={cn(
+          compact
+            ? "grid grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"
+            : "flex flex-col gap-3.5",
+        )}
+      >
         <MacroBar
           label="Белки"
           fact={fact.protein}
