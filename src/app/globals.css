@@ -609,6 +609,97 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
   appearance: none;
 }
 
+/* Single-line controls are taller than the font line box, so glyphs sit
+   on the top edge. Stretch the line box to the border box (minus the 1px
+   borders) and drop vertical padding. Left alignment stays. */
+input.field-control:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"],
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [type="hidden"],
+    [type="image"]
+  ),
+select.field-control {
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: calc(2rem - 2px);
+}
+
+input.field-control.h-9:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-9 {
+  line-height: calc(2.25rem - 2px);
+}
+
+input.field-control.h-10:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-10 {
+  line-height: calc(2.5rem - 2px);
+}
+
+input.field-control.h-11:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-11 {
+  line-height: calc(2.75rem - 2px);
+}
+
+input.field-control.h-12:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-12 {
+  line-height: calc(3rem - 2px);
+}
+
+/* Meal composer is one line tall, with the glyphs in the middle.
+   Extra lines keep a normal line box and the field grows. */
+textarea.field-control:not([data-slot="textarea"]) {
+  field-sizing: content;
+  height: auto;
+  min-height: 3rem;
+  line-height: 1.5rem;
+  padding-top: calc((3rem - 2px - 1.5rem) / 2);
+  padding-bottom: calc((3rem - 2px - 1.5rem) / 2);
+}
+
+input.field-control.h-14:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-14 {
+  line-height: calc(3.5rem - 2px);
+}
+
+input.field-control.h-16:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ),
+select.field-control.h-16 {
+  line-height: calc(4rem - 2px);
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -1069,6 +1160,58 @@ html[data-density="compact"]:not(:has([data-onboarding-ui])) .py-8 {
 html[data-density="compact"]:not(:has([data-onboarding-ui])) .px-6 {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+}
+
+/* Compact remaps h-10…h-14, and .text-* resets line-height. Follow the
+   used control height so glyphs stay in the vertical middle. */
+html[data-density="compact"]:not(:has([data-onboarding-ui]))
+  :is(input.field-control.h-8, input.field-control:not([class*="h-"])):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ) {
+  line-height: calc(2rem - 2px);
+}
+
+html[data-density="compact"]:not(:has([data-onboarding-ui]))
+  :is(input.field-control.h-9, select.field-control.h-9):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ) {
+  line-height: calc(2.25rem - 2px);
+}
+
+html[data-density="compact"]:not(:has([data-onboarding-ui]))
+  :is(input.field-control.h-10, select.field-control.h-10):not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="range"]
+  ) {
+  line-height: calc(2rem - 2px);
+}
+
+html[data-density="compact"]:not(:has([data-onboarding-ui]))
+  :is(
+    input.field-control.h-11,
+    input.field-control.h-12,
+    input.field-control.h-14,
+    select.field-control.h-11,
+    select.field-control.h-12,
+    select.field-control.h-14
+  ):not([type="checkbox"], [type="radio"], [type="file"], [type="range"]) {
+  line-height: calc(2.25rem - 2px);
+}
+
+html[data-density="compact"]:not(:has([data-onboarding-ui]))
+  textarea.field-control:not([data-slot="textarea"]) {
+  min-height: 2.25rem;
+  line-height: 1.125rem;
+  padding-top: calc((2.25rem - 2px - 1.125rem) / 2);
+  padding-bottom: calc((2.25rem - 2px - 1.125rem) / 2);
 }
 
 /* Основные тап-цели в дневнике — не меньше 44 px (UX-03).

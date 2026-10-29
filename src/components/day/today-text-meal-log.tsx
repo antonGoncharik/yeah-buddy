@@ -117,10 +117,10 @@ export function TodayTextMealForm({
         }}
         placeholder="овсянка 80 г, яйца 2 шт"
         ref={inputRef}
-        rows={compact ? 2 : 3}
+        rows={1}
         disabled={disabled}
         className={cn(
-          "w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-foreground",
+          "field-control w-full resize-none rounded-xl px-3 text-foreground",
           compact ? "text-sm" : "text-base",
         )}
         onKeyDown={(event) => {
