@@ -1,59 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
 import { DaySummary } from "@/components/day/day-summary";
-import { EarlyHabitCard } from "@/components/day/early-habit-card";
 import {
   EnergyGoalCard,
   EnergyGoalHintCard,
 } from "@/components/day/energy-goal-card";
-import { HabitBridgeCard } from "@/components/day/habit-bridge-card";
 import { MacroGapHint } from "@/components/day/macro-gap-hint";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayDayViewEmptyNudges } from "@/components/day/today-day-view-empty-nudges";
 import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
 import { TodayGymStatus } from "@/components/day/today-gym-status";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
-import { useTodayMuscleNutritionHint } from "@/components/day/use-today-muscle-nutrition-hint";
-import {
-  showYesterdayCatchUpHint,
-  YesterdayCatchUpHint,
-} from "@/components/day/yesterday-catch-up-hint";
+import { useTodayDayDerived } from "@/components/day/use-today-day-derived";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
-import { withDateQuery } from "@/lib/day/dates";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
-import { pickQuickLogMealId } from "@/lib/day/quick-log-meal";
 import type { MacroGoals } from "@/lib/day/today-payload";
-import {
-  proteinClosed,
-  trainingDayGapLine,
-  waistGapLine,
-  weightGapLine,
-} from "@/lib/flavor";
-import { hiddenMealSlotsNote, sumMealItems } from "@/lib/nutrition";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import {
   MACRO_GAP_PROTEIN_MIN,
   todayStatusLine,
 } from "@/lib/nutrition/macro-gap-hint";
-import { macroRoomGrams, macroShortfallGrams } from "@/lib/nutrition/macro-hit";
-import { emptyStartCopy } from "@/lib/retention";
-import {
-  buildEarlyHabitSnapshot,
-  type EarlyHabitSnapshot,
-  FOOD_STREAK_SUMMARY_DAYS,
-  foodStreakLabel,
-  inEarlyHabitWindow,
-} from "@/lib/retention/habit";
+import { macroRoomGrams } from "@/lib/nutrition/macro-hit";
+import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
   CopyDayHint,
@@ -185,145 +163,59 @@ export function TodayDayView({
   const { density } = useDiaryDensity();
   const { order } = useTodayOrder();
   const compact = density === "compact";
-  const hiddenNote = hiddenMealSlotsNote(
+  const reviewOffer = useReviewOffer(reviewReady);
+  const {
+    setQuickMealChoice,
+    hiddenNote,
+    remainingProtein,
+    muscleNutritionHint,
+    addHref,
+    quickLogMealId,
+    quickLogMeals,
+    proteinLogMealId,
+    showEmptyStart,
+    emptyTextMeal,
+    showSaveTemplate,
+    proteinMealCount,
+    trainingGap,
+    weightGap,
+    waistGap,
+    startCopy,
+    habitSnapshot,
+    showWeekShare,
+    topNudge,
+    foodStreakLine,
+  } = useTodayDayDerived({
+    date,
+    today,
+    viewOnly,
+    shownDay,
+    visibleMeals,
     hiddenMealKcal,
     hiddenMealTypes,
-    effectiveTraining,
-  );
-  const reviewOffer = useReviewOffer(reviewReady);
-  const remainingProtein = macroShortfallGrams(
-    fact.protein,
-    shownDay.target_protein,
-  );
-  const muscleNutritionHint = useTodayMuscleNutritionHint({
-    enabled:
-      gymEnabled &&
-      effectiveTraining &&
-      date === today &&
-      dayHasItems &&
-      shownDay.is_training_day &&
-      !viewOnly,
-    remainingProtein,
-  });
-  const yesterdayCatchUp = showYesterdayCatchUpHint({
-    isToday: date === today,
+    fact,
+    dayHasItems,
     yesterdayExists,
-    viewOnly,
-    retentionTail,
-  });
-  const closeMeal = [...visibleMeals]
-    .reverse()
-    .find((meal) => !isTempId(meal.id));
-  const firstMeal = visibleMeals.find((meal) => !isTempId(meal.id));
-  const addPath = firstMeal ? `/today/meals/${firstMeal.id}/add` : null;
-  const addHref = addPath ? withDateQuery(addPath, date, today) : null;
-  const suggestedQuickMealId = pickQuickLogMealId(visibleMeals);
-  const [quickMealChoice, setQuickMealChoice] = useState<string | null>(null);
-  const quickLogMealId = visibleMeals.some(
-    (meal) => meal.id === quickMealChoice,
-  )
-    ? quickMealChoice
-    : suggestedQuickMealId;
-  const quickLogMeals = visibleMeals
-    .filter((meal) => !isTempId(meal.id))
-    .map((meal) => ({ id: meal.id, meal_type: meal.meal_type }));
-  const proteinLogMealId =
-    quickLogMealId ?? closeMeal?.id ?? quickLogMeals[0]?.id ?? null;
-  const showEmptyStart = !viewOnly && !dayHasItems;
-  const emptyTextMeal =
-    showEmptyStart &&
-    aiText &&
-    date === today &&
-    accountAgeDays != null &&
-    accountAgeDays < 3 &&
-    quickLogMealId
-      ? { date, mealId: quickLogMealId, busy }
-      : null;
-  const showSaveTemplate = !viewOnly && dayHasItems && !isTempId(shownDay.id);
-  const proteinMealCount = shownDay.meals.filter(
-    (meal) => sumMealItems(meal.items).protein > 0,
-  ).length;
-  const trainingGap = gymEnabled
-    ? trainingDayGapLine({
-        training: effectiveTraining,
-        fact,
-        rest: { protein: goals.restProtein, carbs: goals.restCarbs },
-        day: { protein: shownDay.target_protein, carbs: shownDay.target_carbs },
-      })
-    : null;
-  const weightGap = weightGapLine({
-    weight: shownDay.body_weight,
-    lastWeightDate: lastBodyWeightDate,
-    accountAgeDays,
-    date,
-    canLog: !viewOnly,
-  });
-  const waistGap = waistGapLine({
-    waist: shownDay.waist_cm,
-    lastWaistDate,
-    accountAgeDays,
-    date,
-    canLog: !viewOnly,
-  });
-  const startCopy = emptyStartCopy({
-    earlyHabit,
-    isToday: date === today,
-    viewOnly,
-    dayHasItems,
     yesterdayHasFood,
-  });
-  const habitSnapshot = useMemo(() => {
-    if (accountAgeDays == null) {
-      return null;
-    }
-    const needsSnapshot =
-      inEarlyHabitWindow(accountAgeDays) ||
-      (dayHasItems && accountAgeDays < FOOD_STREAK_SUMMARY_DAYS);
-    if (!needsSnapshot) {
-      return null;
-    }
-    const todayProteinClosed = proteinClosed(
-      shownDay.target_protein - fact.protein,
-      fact.protein,
-    );
-    return buildEarlyHabitSnapshot({
-      accountAgeDays,
-      todayHasFood: dayHasItems,
-      priorFoodLogDays,
-      todayProteinClosed,
-      priorProteinHits,
-      gymSessionsWeek: earlyHabitSnapshot?.gymSessionsWeek ?? 0,
-    });
-  }, [
-    accountAgeDays,
-    dayHasItems,
-    earlyHabitSnapshot?.gymSessionsWeek,
-    fact.protein,
+    retentionTail,
+    earlyHabit,
+    earlyHabitSnapshot,
     priorFoodLogDays,
+    habitBridge,
+    habitBridgeSnapshot,
+    accountAgeDays,
+    goals,
+    lastBodyWeightDate,
+    lastWaistDate,
     priorProteinHits,
-    shownDay.target_protein,
-  ]);
-  const showWeekShare = !viewOnly && date === today;
+    gymEnabled,
+    effectiveTraining,
+    busy,
+    aiText,
+  });
   const weekShare = showWeekShare ? (
     <WeekProgressShare tone={compact ? "card" : "solid"} motion={!compact} />
   ) : null;
-
-  const topNudge = yesterdayCatchUp
-    ? ("catch-up" as const)
-    : habitSnapshot
-      ? ("early-habit" as const)
-      : habitBridge && habitBridgeSnapshot
-        ? ("habit-bridge" as const)
-        : null;
-
-  const foodStreakLine =
-    dayHasItems &&
-    accountAgeDays != null &&
-    accountAgeDays < FOOD_STREAK_SUMMARY_DAYS &&
-    habitSnapshot &&
-    habitSnapshot.foodLogStreak > 0
-      ? foodStreakLabel(habitSnapshot.foodLogStreak, false)
-      : null;
 
   const daySummary = (
     <DaySummary
@@ -499,51 +391,23 @@ export function TodayDayView({
 
   return (
     <div className={cn("flex w-full flex-col", compact ? "gap-1.5" : "gap-4")}>
-      {!dayHasItems && topNudge === "catch-up" ? (
-        <div className="animate-rise">
-          <YesterdayCatchUpHint onOpen={onOpenYesterday} />
-        </div>
-      ) : null}
-      {!dayHasItems && topNudge === "early-habit" && habitSnapshot ? (
-        <div className="animate-rise">
-          <EarlyHabitCard
-            snapshot={habitSnapshot}
-            compact={compact}
-            showGymLine={gymEnabled}
-          />
-        </div>
-      ) : null}
-      {!dayHasItems && topNudge === "habit-bridge" && habitBridgeSnapshot ? (
-        <div className="animate-rise">
-          <HabitBridgeCard
-            snapshot={habitBridgeSnapshot}
-            compact={compact}
-            showGymLine={gymEnabled}
-            showReviewLink
-          />
-        </div>
-      ) : null}
-
-      {!dayHasItems && date === today && !viewOnly && energyGoal ? (
-        <div className="animate-rise">
-          <EnergyGoalCard
-            offer={energyGoal}
-            busy={energyGoalBusy}
-            onApply={onApplyEnergyGoal}
-            onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
-          />
-        </div>
-      ) : null}
-
-      {!dayHasItems &&
-      date === today &&
-      !viewOnly &&
-      !energyGoal &&
-      energyGoalHint ? (
-        <div className="animate-rise">
-          <EnergyGoalHintCard line={energyGoalHint} />
-        </div>
-      ) : null}
+      <TodayDayViewEmptyNudges
+        dayHasItems={dayHasItems}
+        topNudge={topNudge}
+        habitSnapshot={habitSnapshot}
+        habitBridgeSnapshot={habitBridgeSnapshot}
+        compact={compact}
+        gymEnabled={gymEnabled}
+        onOpenYesterday={onOpenYesterday}
+        date={date}
+        today={today}
+        viewOnly={viewOnly}
+        energyGoal={energyGoal}
+        energyGoalHint={energyGoalHint}
+        energyGoalBusy={energyGoalBusy}
+        onApplyEnergyGoal={onApplyEnergyGoal}
+        onDismissEnergyGoal={onDismissEnergyGoal}
+      />
 
       {showEmptyStart ? (
         <div className="animate-rise">
