@@ -14,8 +14,9 @@ import {
   type ProgressHorizon,
   viewedProgress,
 } from "@/lib/workout/progress-control";
+import type { ProgressSummaryFilter } from "@/lib/workout/progress-rank";
 
-export type ProgressFilter = "all" | "base" | "isolation";
+export type ProgressFilter = ProgressSummaryFilter;
 
 export function useProgressScreen() {
   const today = calendarToday();

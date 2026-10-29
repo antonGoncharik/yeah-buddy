@@ -2,13 +2,13 @@
 
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { WorkoutsHubSessionLink } from "@/components/workout/workouts-hub-session-link";
+import { WorkoutsHubUnfinishedList } from "@/components/workout/workouts-hub-unfinished-list";
 import type {
   RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { formatWorkDate } from "@/lib/workout/exercise-work-phase";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubSessionCard({
@@ -31,27 +31,7 @@ export function WorkoutsHubSessionCard({
 
   return (
     <>
-      {unfinished.length > 0 ? (
-        <ul className="animate-rise flex flex-col gap-2">
-          {unfinished.map((item) => (
-            <li key={item.session.id}>
-              <WorkoutsHubSessionLink
-                href={`/workouts/sessions/${item.session.id}`}
-                compact={compact}
-                eyebrow={
-                  <span className="text-primary">
-                    Не закончена · {formatWorkDate(item.session.session_date)}
-                  </span>
-                }
-                title={
-                  item.template_name ??
-                  WORKOUT_KIND_LABELS[item.session.workout_type]
-                }
-              />
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <WorkoutsHubUnfinishedList items={unfinished} />
 
       {session ? (
         <WorkoutsHubSessionLink
