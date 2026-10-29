@@ -123,7 +123,7 @@ export function FormulaCyclePhaseRow({
             <Toggle
               on={phase.increase_on_end}
               label="В конце поднять максимум"
-              hint="Новый максимум по первому подходу теста"
+              hint="Новый максимум по самому тяжёлому рабочему подходу"
               onClick={() => patch({ increase_on_end: !phase.increase_on_end })}
             />
             <Toggle

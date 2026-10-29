@@ -91,6 +91,31 @@ export function testWasPassed(input: {
   );
 }
 
+/**
+ * Work sets that are the test. The heaviest load wins, wherever it sits.
+ * A static test also has to be planned for at least 8 seconds. Several sets
+ * at that same load all count; the better result is kept.
+ */
+export function heaviestWorkIndexes(
+  kind: WorkoutKind,
+  sets: Array<{ load: number; reps: number | null; seconds: number | null }>,
+): number[] {
+  const eligible = sets.flatMap((set, index) => {
+    if (kind === "static") {
+      return (set.seconds ?? 0) >= STATIC_TEST_SECONDS ? [index] : [];
+    }
+    return set.load > 0 && (set.reps ?? 0) > 0 ? [index] : [];
+  });
+  const top = eligible.reduce<number | null>((best, index) => {
+    const load = sets[index]?.load ?? 0;
+    return best == null || load > best ? load : best;
+  }, null);
+  if (top == null) {
+    return [];
+  }
+  return eligible.filter((index) => (sets[index]?.load ?? 0) >= top - 0.001);
+}
+
 /** What the later weeks would use if the planned test is made as written. */
 export function plannedTestMax(input: {
   maxKg: number;
@@ -98,32 +123,44 @@ export function plannedTestMax(input: {
   kind: WorkoutKind;
   work: FormulaSetSpec[];
 }): number | null {
-  if (input.kind === "static") {
-    const hold = input.work.find(
-      (set) => (set.seconds ?? 0) >= STATIC_TEST_SECONDS,
-    );
-    if (!hold?.seconds) {
-      return null;
+  const indexes = heaviestWorkIndexes(
+    input.kind,
+    input.work.map((set) => ({
+      load: set.percent,
+      reps: set.reps,
+      seconds: set.seconds,
+    })),
+  );
+  let best: number | null = null;
+  for (const index of indexes) {
+    const set = input.work[index];
+    if (!set) {
+      continue;
     }
-    return staticTestMax({
-      maxKg: input.maxKg,
-      stepKg: input.stepKg,
-      seconds: hold.seconds,
-      requiredSeconds: hold.seconds,
-    });
+    const next =
+      input.kind === "static"
+        ? set.seconds == null
+          ? null
+          : staticTestMax({
+              maxKg: input.maxKg,
+              stepKg: input.stepKg,
+              seconds: set.seconds,
+              requiredSeconds: set.seconds,
+            })
+        : set.reps == null
+          ? null
+          : dynamicTestMax({
+              maxKg: input.maxKg,
+              stepKg: input.stepKg,
+              weight: calcPlannedWeight(input.maxKg, set.percent, input.stepKg),
+              reps: set.reps,
+              requiredReps: set.reps,
+            });
+    if (next != null && (best == null || next > best)) {
+      best = next;
+    }
   }
-
-  const set = input.work.find((item) => item.reps != null && item.reps > 0);
-  if (!set?.reps) {
-    return null;
-  }
-  return dynamicTestMax({
-    maxKg: input.maxKg,
-    stepKg: input.stepKg,
-    weight: calcPlannedWeight(input.maxKg, set.percent, input.stepKg),
-    reps: set.reps,
-    requiredReps: set.reps,
-  });
+  return best;
 }
 
 /** Example max on the formulas screen. Test weeks replace the percent bump. */

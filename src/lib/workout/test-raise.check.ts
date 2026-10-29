@@ -4,6 +4,7 @@ import { calcPlannedWeight } from "@/lib/workout/formulas";
 import {
   dropMaxFivePercent,
   dynamicTestMax,
+  heaviestWorkIndexes,
   maxAfterTest,
   maxShownForPhase,
   plannedTestMax,
@@ -174,9 +175,58 @@ assertEqual(
   "planned squat test is 245",
 );
 assertEqual(
+  plannedTestMax({
+    maxKg: 240,
+    stepKg: 2.5,
+    kind: "dynamic",
+    work: [reps(75, 5), reps(85, 3), reps(95, 1)],
+  }),
+  242.5,
+  "the last single is the test, not the opening five",
+);
+assertEqual(
+  plannedTestMax({
+    maxKg: 240,
+    stepKg: 2.5,
+    kind: "dynamic",
+    work: [reps(80, 5), reps(90, 3), reps(100, 1)],
+  }),
+  247.5,
+  "a made max single uses that last set",
+);
+assertEqual(
+  heaviestWorkIndexes("dynamic", [
+    { load: 180, reps: 5, seconds: null },
+    { load: 210, reps: 5, seconds: null },
+    { load: 190, reps: 5, seconds: null },
+  ]),
+  [1],
+  "middle set is the test when it is the heaviest",
+);
+assertEqual(
   plannedTestMax({ maxKg: 47, stepKg: 1, kind: "static", work: staticVolume }),
   48,
   "planned pronation test is 48",
+);
+assertEqual(
+  plannedTestMax({
+    maxKg: 47,
+    stepKg: 1,
+    kind: "static",
+    work: [seconds(115, 6), seconds(115, 6), seconds(115, 8)],
+  }),
+  48,
+  "the last 8s hold is the test",
+);
+assertEqual(
+  plannedTestMax({
+    maxKg: 47,
+    stepKg: 1,
+    kind: "static",
+    work: [seconds(115, 6), seconds(115, 6), seconds(115, 6)],
+  }),
+  null,
+  "a 6s plan has no test",
 );
 
 assertEqual(calcPlannedWeight(240, 85, 2.5), 202.5, "squat ramp top");

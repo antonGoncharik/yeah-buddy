@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutKind } from "@/lib/types";
 import {
   type ExerciseTestAttempt,
+  heaviestWorkIndexes,
   maxAfterTest,
   testWasPassed,
 } from "@/lib/workout/test-raise";
@@ -239,52 +240,61 @@ async function attemptsByExercise(
     if (!kind) {
       continue;
     }
-    const attempt = firstWorkAttempt(
+    const attempts = testAttempts(
       kind,
       setsByExercise.get(String(row.id)) ?? [],
     );
-    if (!attempt) {
+    if (attempts.length === 0) {
       continue;
     }
     const exerciseId = String(row.exercise_id);
     const list = grouped.get(exerciseId) ?? [];
-    list.push(attempt);
+    list.push(...attempts);
     grouped.set(exerciseId, list);
   }
   return grouped;
 }
 
-function firstWorkAttempt(
+function testAttempts(
   kind: WorkoutKind,
   sets: Array<Record<string, unknown>>,
-): ExerciseTestAttempt | null {
+): ExerciseTestAttempt[] {
   const work = sets
     .filter((set) => set.set_type === "work")
     .sort(
       (left, right) =>
         (toNumber(left.set_number) ?? 0) - (toNumber(right.set_number) ?? 0),
     );
-  const set = work[0];
-  if (!set) {
-    return null;
-  }
-
-  const completed = set.is_completed === true;
-  const plannedReps = toNumber(set.planned_reps);
-  const plannedSeconds = toNumber(set.planned_seconds);
-  const actualReps = toNumber(set.actual_reps);
-  const actualSeconds = toNumber(set.actual_seconds);
-  const weight =
-    toNumber(set.actual_weight) ?? toNumber(set.planned_weight) ?? 0;
-
-  return {
+  const indexes = heaviestWorkIndexes(
     kind,
-    weight,
-    reps: actualReps ?? (completed ? plannedReps : null),
-    seconds: actualSeconds ?? (completed ? plannedSeconds : null),
-    requiredReps: plannedReps,
-    requiredSeconds: plannedSeconds,
-  };
+    work.map((set) => ({
+      load: toNumber(set.planned_weight) ?? toNumber(set.actual_weight) ?? 0,
+      reps: toNumber(set.planned_reps),
+      seconds: toNumber(set.planned_seconds),
+    })),
+  );
+  return indexes.flatMap((index) => {
+    const set = work[index];
+    if (!set) {
+      return [];
+    }
+    const completed = set.is_completed === true;
+    const plannedReps = toNumber(set.planned_reps);
+    const plannedSeconds = toNumber(set.planned_seconds);
+    const actualReps = toNumber(set.actual_reps);
+    const actualSeconds = toNumber(set.actual_seconds);
+    return [
+      {
+        kind,
+        weight:
+          toNumber(set.actual_weight) ?? toNumber(set.planned_weight) ?? 0,
+        reps: actualReps ?? (completed ? plannedReps : null),
+        seconds: actualSeconds ?? (completed ? plannedSeconds : null),
+        requiredReps: plannedReps,
+        requiredSeconds: plannedSeconds,
+      },
+    ];
+  });
 }
 
 function toNumber(value: unknown): number | null {
