@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { FormulaSetSpec } from "@/lib/types";
+import type { FormulaSetSpec, WorkoutFormulas } from "@/lib/types";
 import { specForPhase } from "@/lib/workout/cycle";
 import { calcPlannedWeight } from "@/lib/workout/formulas";
 import { getCurrentMacroState } from "@/lib/workout/macro-state";
