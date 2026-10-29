@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import type { SetDraft } from "@/components/workout/session-drafts";
 import { SessionExerciseRowHeader } from "@/components/workout/session-exercise-row-header";
 import { SessionExerciseRowMeta } from "@/components/workout/session-exercise-row-meta";
 import { SessionExerciseSetSections } from "@/components/workout/session-exercise-set-sections";
@@ -15,6 +14,7 @@ import type {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { buildSessionExerciseDisplay } from "@/lib/workout/session-exercise-display";
+import type { SetDraft } from "@/lib/workout/session-set-drafts";
 
 export function SessionExerciseRow({
   item,

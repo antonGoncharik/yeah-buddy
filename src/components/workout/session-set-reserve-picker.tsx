@@ -1,9 +1,9 @@
 "use client";
 
-import { parseRir, type SetDraft } from "@/components/workout/session-drafts";
 import { haptic } from "@/lib/telegram/haptic";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { parseRir, type SetDraft } from "@/lib/workout/session-set-drafts";
 
 const RESERVE_CHOICES = [0, 1, 2, 3] as const;
 

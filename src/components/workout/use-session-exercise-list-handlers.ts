@@ -2,14 +2,13 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import { useRef } from "react";
-
-import type { SetDraft } from "@/components/workout/session-drafts";
 import type { SessionDetail, WorkoutSession, WorkoutSet } from "@/lib/types";
 import {
   forgetPair,
   pairWith,
   writeSessionPairs,
 } from "@/lib/workout/session-pairs";
+import type { SetDraft } from "@/lib/workout/session-set-drafts";
 import {
   logPlannedSessionSets,
   toggleSessionSet,

@@ -3,10 +3,6 @@
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDayMood } from "@/components/layout/day-mood";
-import {
-  draftsFromDetail,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import { useSessionActions } from "@/components/workout/use-session-actions";
 import { useSessionEaseWeek } from "@/components/workout/use-session-ease-week";
 import { useSessionFollowUpState } from "@/components/workout/use-session-follow-up-state";
@@ -28,6 +24,10 @@ import {
   sessionScreenSubtitle,
   sessionScreenTitle,
 } from "@/lib/workout/session-screen-view";
+import {
+  draftsFromDetail,
+  type SetDraft,
+} from "@/lib/workout/session-set-drafts";
 
 export type SessionScreenModel = ReturnType<typeof useSessionScreen>;
 

@@ -1,6 +1,6 @@
-import { formatSessionDate } from "@/components/workout/session-drafts";
 import type { PhaseCircleProgress, SessionDetail } from "@/lib/types";
 import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { formatSessionDate } from "@/lib/workout/session-set-drafts";
 
 export function sessionScreenTitle(detail: SessionDetail | null): string {
   const session = detail?.session;

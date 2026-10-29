@@ -1,14 +1,14 @@
 "use client";
 
-import {
-  draftChanged,
-  draftFromSet,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import { SessionSetButtons } from "@/components/workout/session-set-buttons";
 import { SessionSetEditor } from "@/components/workout/session-set-editor";
 import type { SessionExerciseDetail, WorkoutSet } from "@/lib/types";
 import { warmupSummary } from "@/lib/workout/session-exercise-display";
+import {
+  draftChanged,
+  draftFromSet,
+  type SetDraft,
+} from "@/lib/workout/session-set-drafts";
 
 export function SessionExerciseSetSections({
   item,

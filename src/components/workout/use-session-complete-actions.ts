@@ -1,11 +1,6 @@
 "use client";
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
-
-import {
-  completeSetOverrides,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import { writeJson } from "@/lib/api-cache";
 import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
@@ -29,6 +24,10 @@ import {
   writeSessionDraft,
 } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
+import {
+  completeSetOverrides,
+  type SetDraft,
+} from "@/lib/workout/session-set-drafts";
 import { sessionDateUrl } from "@/lib/workout/session-urls";
 
 export function useSessionCompleteActions({

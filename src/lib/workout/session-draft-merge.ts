@@ -1,8 +1,5 @@
-import {
-  draftChanged,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
+import { draftChanged, type SetDraft } from "@/lib/workout/session-set-drafts";
 
 function setStamp(set: WorkoutSet): string {
   return [

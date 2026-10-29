@@ -1,8 +1,6 @@
 "use client";
 
 import { type Dispatch, type SetStateAction, useRef } from "react";
-
-import type { SetDraft } from "@/components/workout/session-drafts";
 import { useSessionCompleteActions } from "@/components/workout/use-session-complete-actions";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
 import { writeJson } from "@/lib/api-cache";
@@ -10,6 +8,7 @@ import type { SessionDetail } from "@/lib/types";
 import { sessionFailAction } from "@/lib/workout/session-action-errors";
 import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
+import type { SetDraft } from "@/lib/workout/session-set-drafts";
 
 export function useSessionActions({
   detail,

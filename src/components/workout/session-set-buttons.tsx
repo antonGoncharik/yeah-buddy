@@ -1,15 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-
+import { SessionSetDoneButton } from "@/components/workout/session-set-done-button";
+import type { WorkoutSet } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import {
   formatVisibleSetLine,
   type SetDraft,
   visibleSetRirLabel,
-} from "@/components/workout/session-drafts";
-import { SessionSetDoneButton } from "@/components/workout/session-set-done-button";
-import type { WorkoutSet } from "@/lib/types";
-import { cn } from "@/lib/utils";
+} from "@/lib/workout/session-set-drafts";
 
 export function SessionSetButtons({
   sets,

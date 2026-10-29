@@ -1,12 +1,12 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import type { SetDraft } from "@/components/workout/session-drafts";
 import { SessionExerciseListEmpty } from "@/components/workout/session-exercise-list-empty";
 import { SessionExerciseRow } from "@/components/workout/session-exercise-row";
 import { SortableList } from "@/components/workout/sortable-list";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
+import type { SetDraft } from "@/lib/workout/session-set-drafts";
 
 export function SessionExerciseList({
   detail,

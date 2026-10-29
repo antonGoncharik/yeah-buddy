@@ -4,12 +4,6 @@ import { Mic } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  draftFromPlan,
-  draftMatchesPlan,
-  type SetDraft,
-  stepDraftValue,
-} from "@/components/workout/session-drafts";
 import { SessionHoldTimer } from "@/components/workout/session-hold-timer";
 import { SessionSetReservePicker } from "@/components/workout/session-set-reserve-picker";
 import { SessionSetStepper } from "@/components/workout/session-set-stepper";
@@ -19,6 +13,12 @@ import type { WorkoutSet } from "@/lib/types";
 import { parseDecimal } from "@/lib/workout/numbers";
 import { plateDeltaLine, platesLine } from "@/lib/workout/plates";
 import { formatSetLine, setUsesSeconds } from "@/lib/workout/session-format";
+import {
+  draftFromPlan,
+  draftMatchesPlan,
+  type SetDraft,
+  stepDraftValue,
+} from "@/lib/workout/session-set-drafts";
 import { setCountWord } from "@/lib/workout/set-count-word";
 
 export { setCountWord } from "@/lib/workout/set-count-word";

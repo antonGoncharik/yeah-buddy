@@ -1,8 +1,3 @@
-import {
-  formatVisibleSetLine,
-  plannedLogPatch,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import type {
   SessionExerciseDetail,
   SessionTrackInfo,
@@ -12,6 +7,11 @@ import { formatWeight } from "@/lib/workout/numbers";
 import { formatNextLoadHint } from "@/lib/workout/session-load-hint";
 import { formatLastTimeWorkLine } from "@/lib/workout/session-memory";
 import { droppableWorkSetId } from "@/lib/workout/session-set-add";
+import {
+  formatVisibleSetLine,
+  plannedLogPatch,
+  type SetDraft,
+} from "@/lib/workout/session-set-drafts";
 import {
   liveSetRecord,
   liveWorkWeight,

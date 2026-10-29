@@ -1,12 +1,12 @@
-import {
-  loggedSetPatch,
-  plannedLogPatch,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { workSetsNeedRest } from "@/lib/workout/rest-timer";
 import { nextFocusSetId } from "@/lib/workout/session-pairs";
+import {
+  loggedSetPatch,
+  plannedLogPatch,
+  type SetDraft,
+} from "@/lib/workout/session-set-drafts";
 
 export async function toggleSessionSet({
   set,
