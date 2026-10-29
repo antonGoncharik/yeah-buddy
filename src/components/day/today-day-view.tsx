@@ -2,35 +2,23 @@
 
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
-import { DaySummary } from "@/components/day/day-summary";
-import {
-  EnergyGoalCard,
-  EnergyGoalHintCard,
-} from "@/components/day/energy-goal-card";
-import { MacroGapHint } from "@/components/day/macro-gap-hint";
-import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayDayViewCloseBlock } from "@/components/day/today-day-view-close-block";
 import { TodayDayViewEmptyNudges } from "@/components/day/today-day-view-empty-nudges";
+import { TodayDayViewSummaryCard } from "@/components/day/today-day-view-summary-card";
 import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
-import { TodayGymStatus } from "@/components/day/today-gym-status";
-import { TodayQuickFoods } from "@/components/day/today-quick-foods";
 import { useTodayDayDerived } from "@/components/day/use-today-day-derived";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { useTodayOrder } from "@/components/layout/today-order-provider";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
-import { isTempId } from "@/lib/day/optimistic";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
-import {
-  MACRO_GAP_PROTEIN_MIN,
-  todayStatusLine,
-} from "@/lib/nutrition/macro-gap-hint";
-import { macroRoomGrams } from "@/lib/nutrition/macro-hit";
+import { todayStatusLine } from "@/lib/nutrition/macro-gap-hint";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
@@ -218,13 +206,10 @@ export function TodayDayView({
   ) : null;
 
   const daySummary = (
-    <DaySummary
-      day={shownDay}
+    <TodayDayViewSummaryCard
+      shownDay={shownDay}
       fact={fact}
-      showWeight
-      bodyWeight={shownDay.body_weight}
       lastBodyWeight={lastBodyWeight}
-      waist={shownDay.waist_cm}
       lastWaist={lastWaist}
       weightSteady={weightSteady}
       priorProteinHits={priorProteinHits}
@@ -232,12 +217,13 @@ export function TodayDayView({
       trainingGap={trainingGap}
       weightGap={weightGap}
       waistGap={waistGap}
-      share={writable}
-      gym={gymEnabled ? <TodayGymStatus {...gym} /> : null}
-      onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
-      onSaveWaist={viewOnly ? undefined : saveWaist}
-      bodyWeightReadOnly={viewOnly}
-      bodyWeightBusy={busy || isTempId(shownDay.id)}
+      writable={writable}
+      gymEnabled={gymEnabled}
+      gym={gym}
+      viewOnly={viewOnly}
+      busy={busy}
+      saveBodyWeight={saveBodyWeight}
+      saveWaist={saveWaist}
     />
   );
 
@@ -273,61 +259,31 @@ export function TodayDayView({
     ) : null;
 
   const numbersFirst = order === "numbers" && dayHasItems;
-  const proteinCloseBlock =
-    dayHasItems && !viewOnly ? (
-      remainingProtein > MACRO_GAP_PROTEIN_MIN ? (
-        <MacroGapHint
-          date={date}
-          meals={quickLogMeals}
-          mealId={proteinLogMealId}
-          onMealId={setQuickMealChoice}
-          remainingProtein={remainingProtein}
-          remainingFat={macroRoomGrams(fact.fat, shownDay.target_fat)}
-          remainingCarbs={macroRoomGrams(fact.carbs, shownDay.target_carbs)}
-          remainingKcal={shownDay.target_kcal - fact.kcal}
-          busy={busy}
-        />
-      ) : (
-        <ProteinCloseOffers
-          date={date}
-          meals={quickLogMeals}
-          mealId={proteinLogMealId}
-          onMealId={setQuickMealChoice}
-          remainingProtein={remainingProtein}
-          remainingFat={macroRoomGrams(fact.fat, shownDay.target_fat)}
-          remainingCarbs={macroRoomGrams(fact.carbs, shownDay.target_carbs)}
-          remainingKcal={shownDay.target_kcal - fact.kcal}
-          busy={busy}
-        />
-      )
-    ) : null;
-  const quickFoods =
-    dayHasItems && !viewOnly && quickLogMealId ? (
-      <TodayQuickFoods
-        date={date}
-        meals={visibleMeals.map((meal) => ({
-          id: meal.id,
-          meal_type: meal.meal_type,
-        }))}
-        mealId={quickLogMealId}
-        onMealId={setQuickMealChoice}
-        busy={busy}
-      />
-    ) : null;
 
-  const energyGoalBlock =
-    date === today && !viewOnly && energyGoal ? (
-      <EnergyGoalCard
-        offer={energyGoal}
-        busy={energyGoalBusy}
-        onApply={onApplyEnergyGoal}
-        onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
-      />
-    ) : null;
-  const energyHintBlock =
-    date === today && !viewOnly && !energyGoal && energyGoalHint ? (
-      <EnergyGoalHintCard line={energyGoalHint} />
-    ) : null;
+  const closeTheDay = (
+    <TodayDayViewCloseBlock
+      dayHasItems={dayHasItems}
+      viewOnly={viewOnly}
+      date={date}
+      today={today}
+      shownDay={shownDay}
+      fact={fact}
+      quickLogMeals={quickLogMeals}
+      quickLogMealId={quickLogMealId}
+      proteinLogMealId={proteinLogMealId}
+      remainingProtein={remainingProtein}
+      muscleNutritionHint={muscleNutritionHint}
+      energyGoal={energyGoal}
+      energyGoalHint={energyGoalHint}
+      energyGoalBusy={energyGoalBusy}
+      onApplyEnergyGoal={onApplyEnergyGoal}
+      onDismissEnergyGoal={onDismissEnergyGoal}
+      onQuickMealChange={setQuickMealChoice}
+      busy={busy}
+      visibleMeals={visibleMeals}
+    />
+  );
+
   const reviewBlock =
     viewOnly || !reviewOffer.show ? null : (
       <ReviewCta from="today" onOpen={reviewOffer.open} />
@@ -359,10 +315,6 @@ export function TodayDayView({
     </div>
   ) : null;
 
-  const muscleNutritionBlock = muscleNutritionHint ? (
-    <p className="text-sm text-muted-foreground">{muscleNutritionHint}</p>
-  ) : null;
-
   const todayLine =
     date === today && dayHasItems
       ? todayStatusLine({
@@ -371,16 +323,6 @@ export function TodayDayView({
         })
       : null;
 
-  const closeTheDay =
-    dayHasItems && !viewOnly ? (
-      <>
-        {energyGoalBlock}
-        {energyHintBlock}
-        {muscleNutritionBlock}
-        {quickFoods}
-        {proteinCloseBlock}
-      </>
-    ) : null;
   const extraNodes = [weekShare, reviewBlock].filter((node) => node != null);
   const todayExtras =
     !dayHasItems || extraNodes.length === 0 ? null : extraNodes.length === 1 ? (

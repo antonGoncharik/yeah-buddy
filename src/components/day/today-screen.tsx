@@ -4,25 +4,19 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useState } from "react";
 
-import { CreateDayButtons } from "@/components/day/create-day-buttons";
 import { TodayDateNav } from "@/components/day/today-date-nav";
 import { TodayDatePickerSheet } from "@/components/day/today-date-picker-sheet";
 import { TodayDayHeader } from "@/components/day/today-day-header";
 import { TodayDayMark } from "@/components/day/today-day-mark";
-import { TodayDayView } from "@/components/day/today-day-view";
-import { TodayPauseBanner } from "@/components/day/today-pause-banner";
+import { TodayScreenBody } from "@/components/day/today-screen-body";
 import { useTodayScreen } from "@/components/day/use-today-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { ScreenError } from "@/components/layout/screen-status";
-import {
-  TodayDayTypeSkeleton,
-  TodayLoadingSkeleton,
-} from "@/components/layout/today-loading-skeleton";
-import { nutritionHistoryHref, previousIsoDate } from "@/lib/day/dates";
+import { TodayDayTypeSkeleton } from "@/components/layout/today-loading-skeleton";
+import { nutritionHistoryHref } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
-import { CATCH_UP_TITLE, LOAD_FAILED } from "@/lib/messages";
+import { CATCH_UP_TITLE } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import { cn } from "@/lib/utils";
 
@@ -186,107 +180,70 @@ export function TodayScreen({
         />
       ) : null}
 
-      <div className="flex flex-col gap-4 pb-4">
-        {contentReady && isToday && !viewOnly ? <TodayPauseBanner /> : null}
-        {showLoading ? <TodayLoadingSkeleton gym={gymEnabled} /> : null}
-
-        {contentReady && loadError ? (
-          <ScreenError message={LOAD_FAILED} onRetry={() => void load()} />
-        ) : null}
-
-        {contentReady && !loadError && actionError ? (
-          <ScreenError message={actionError} />
-        ) : null}
-
-        {contentReady &&
-        !loadError &&
-        !shownDay &&
-        !viewOnly &&
-        (!isToday || actionError) ? (
-          <div className="animate-rise flex flex-col gap-5">
-            <CreateDayButtons
-              busy={busy}
-              trainingFirst={isToday && gymEnabled}
-              showTraining={gymEnabled}
-              showCopy={yesterdayHasFood}
-              catchUp={catchUp}
-              onCreateRest={() => void createDay("rest")}
-              onCreateTraining={() => void createDay("training")}
-              onCopyYesterday={() => void copyYesterday()}
-            />
-          </div>
-        ) : null}
-
-        {contentReady && !loadError && !shownDay && viewOnly ? (
-          <p className="animate-rise text-center text-base text-muted-foreground">
-            В этот день записей нет.
-          </p>
-        ) : null}
-
-        {contentReady && !loadError && shownDay ? (
-          <TodayDayView
-            date={date}
-            today={today}
-            writable={writable}
-            viewOnly={viewOnly}
-            shownDay={shownDay}
-            visibleMeals={visibleMeals}
-            hiddenMealKcal={hiddenMealKcal}
-            hiddenMealTypes={hiddenMealTypes}
-            fact={fact}
-            remainingMealTypes={remainingMealTypes}
-            dayHasItems={dayHasItems}
-            yesterdayExists={yesterdayExists}
-            yesterdayHasFood={yesterdayHasFood}
-            retentionTail={retentionTail && isToday}
-            earlyHabit={earlyHabit && isToday}
-            earlyHabitSnapshot={earlyHabitSnapshot}
-            priorFoodLogDays={priorFoodLogDays}
-            habitBridge={habitBridge && isToday}
-            habitBridgeSnapshot={habitBridgeSnapshot}
-            energyGoal={isToday ? energyGoal : null}
-            energyGoalHint={isToday ? energyGoalHint : null}
-            onApplyEnergyGoal={applyEnergyGoal}
-            onDismissEnergyGoal={dismissEnergyGoal}
-            energyGoalBusy={energyGoalBusy}
-            onOpenYesterday={() => goToDate(previousIsoDate(date))}
-            copyDays={copyDays}
-            namedMeals={namedMeals}
-            lastBodyWeight={lastBodyWeight}
-            lastBodyWeightDate={lastBodyWeightDate}
-            lastWaist={lastWaist}
-            lastWaistDate={lastWaistDate}
-            accountAgeDays={accountAgeDays}
-            goals={goals}
-            weightSteady={weightSteady}
-            priorProteinHits={priorProteinHits}
-            reviewReady={reviewReady && isToday}
-            gymEnabled={gymEnabled}
-            effectiveTraining={effectiveTraining}
-            gym={gym}
-            busy={busy}
-            saveBodyWeight={saveBodyWeight}
-            saveWaist={saveWaist}
-            copyYesterday={copyYesterday}
-            saveDayAsTemplate={() => {
-              if (!shownDay) {
-                return Promise.resolve();
-              }
-              return saveDayAsTemplate(shownDay.id);
-            }}
-            fillMealFromTemplate={fillMealFromTemplate}
-            copyMealFromDate={copyMealFromDate}
-            applyNamedMeal={applyNamedMeal}
-            saveNamedMeal={saveNamedMeal}
-            shareMeal={shareMeal}
-            shareNamedMeal={shareNamedMeal}
-            deleteNamedMeal={deleteNamedMeal}
-            deleteItem={deleteItem}
-            aiCapture={aiCapture}
-            aiText={aiText}
-          />
-        ) : null}
-      </div>
+      <TodayScreenBody
+        contentReady={contentReady}
+        isToday={isToday}
+        viewOnly={viewOnly}
+        showLoading={showLoading}
+        loadError={loadError}
+        actionError={actionError}
+        load={load}
+        shownDay={shownDay}
+        gymEnabled={gymEnabled}
+        catchUp={catchUp}
+        yesterdayHasFood={yesterdayHasFood}
+        busy={busy}
+        createDay={createDay}
+        copyYesterday={copyYesterday}
+        date={date}
+        today={today}
+        writable={writable}
+        visibleMeals={visibleMeals}
+        hiddenMealKcal={hiddenMealKcal}
+        hiddenMealTypes={hiddenMealTypes}
+        fact={fact}
+        remainingMealTypes={remainingMealTypes}
+        dayHasItems={dayHasItems}
+        yesterdayExists={yesterdayExists}
+        retentionTail={retentionTail}
+        earlyHabit={earlyHabit}
+        earlyHabitSnapshot={earlyHabitSnapshot}
+        priorFoodLogDays={priorFoodLogDays}
+        habitBridge={habitBridge}
+        habitBridgeSnapshot={habitBridgeSnapshot}
+        energyGoal={energyGoal}
+        energyGoalHint={energyGoalHint}
+        applyEnergyGoal={applyEnergyGoal}
+        dismissEnergyGoal={dismissEnergyGoal}
+        energyGoalBusy={energyGoalBusy}
+        goToDate={goToDate}
+        copyDays={copyDays}
+        namedMeals={namedMeals}
+        lastBodyWeight={lastBodyWeight}
+        lastBodyWeightDate={lastBodyWeightDate}
+        lastWaist={lastWaist}
+        lastWaistDate={lastWaistDate}
+        accountAgeDays={accountAgeDays}
+        goals={goals}
+        weightSteady={weightSteady}
+        priorProteinHits={priorProteinHits}
+        reviewReady={reviewReady}
+        effectiveTraining={effectiveTraining}
+        gym={gym}
+        saveBodyWeight={saveBodyWeight}
+        saveWaist={saveWaist}
+        saveDayAsTemplate={saveDayAsTemplate}
+        fillMealFromTemplate={fillMealFromTemplate}
+        copyMealFromDate={copyMealFromDate}
+        applyNamedMeal={applyNamedMeal}
+        saveNamedMeal={saveNamedMeal}
+        shareMeal={shareMeal}
+        shareNamedMeal={shareNamedMeal}
+        deleteNamedMeal={deleteNamedMeal}
+        deleteItem={deleteItem}
+        aiCapture={aiCapture}
+        aiText={aiText}
+      />
     </div>
   );
 }

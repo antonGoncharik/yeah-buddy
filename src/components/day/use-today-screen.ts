@@ -1,14 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import {
-  factFromDay,
-  hiddenMealKcalFromDay,
-  hiddenMealTypesFromDay,
-  remainingFromDay,
-  visibleMealsFromDay,
-} from "@/components/day/today-derived";
 import { useEnergyGoal } from "@/components/day/use-energy-goal";
 import { useTodayCopy } from "@/components/day/use-today-copy";
 import { useTodayData } from "@/components/day/use-today-data";
@@ -28,6 +20,13 @@ import {
   writeStateFromDay,
 } from "@/lib/day/dates";
 import { gymLoopFromTodayState } from "@/lib/day/loop";
+import {
+  factFromDay,
+  hiddenMealKcalFromDay,
+  hiddenMealTypesFromDay,
+  remainingFromDay,
+  visibleMealsFromDay,
+} from "@/lib/day/today-derived";
 import { isRecord } from "@/lib/read";
 import { effectiveTrainingDay } from "@/lib/settings/gym-mode";
 import { appendPreservedTelegramLaunchHash } from "@/lib/telegram/launch-hash";
