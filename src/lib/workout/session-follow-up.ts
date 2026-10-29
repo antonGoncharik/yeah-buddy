@@ -11,7 +11,7 @@ import {
 import { readTemplate } from "@/lib/workout/hub-payload";
 import { toNumber } from "@/lib/workout/numbers";
 
-export async function loadSessionFollowUp(sessionDate: string): Promise<{
+export type SessionFollowUp = {
   nextName: string | null;
   phaseHint: string | null;
   holdHint: string | null;
@@ -21,19 +21,23 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
   phaseId: string | null;
   easeWeek: EaseWeekKind | null;
   easeSessionId: string | null;
-}> {
-  const empty = {
-    nextName: null,
-    phaseHint: null,
-    holdHint: null,
-    completedSessions: 0,
-    lastCompletedBefore: null,
-    phaseCircle: null,
-    phaseId: null,
-    easeWeek: null,
-    easeSessionId: null,
-  };
+};
 
+export const EMPTY_SESSION_FOLLOW_UP: SessionFollowUp = {
+  nextName: null,
+  phaseHint: null,
+  holdHint: null,
+  completedSessions: 0,
+  lastCompletedBefore: null,
+  phaseCircle: null,
+  phaseId: null,
+  easeWeek: null,
+  easeSessionId: null,
+};
+
+export async function loadSessionFollowUp(
+  sessionDate: string,
+): Promise<SessionFollowUp> {
   try {
     const data = await mutateJson(
       `/api/sessions?date=${encodeURIComponent(sessionDate)}`,
@@ -65,6 +69,6 @@ export async function loadSessionFollowUp(sessionDate: string): Promise<{
           : null,
     };
   } catch {
-    return empty;
+    return EMPTY_SESSION_FOLLOW_UP;
   }
 }

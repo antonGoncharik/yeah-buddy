@@ -3,50 +3,40 @@
 import { useEffect, useRef, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { ScreenLoading } from "@/components/layout/screen-status";
-import { SheetFrame } from "@/components/layout/sheet-frame";
-import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { RestBar } from "@/components/workout/rest-bar";
 import { SessionAddExercise } from "@/components/workout/session-add-exercise";
 import { SessionCompletedPanel } from "@/components/workout/session-completed-panel";
-import {
-  loggedSetPatch,
-  plannedLogPatch,
-  type SetDraft,
-} from "@/components/workout/session-drafts";
 import { SessionExerciseList } from "@/components/workout/session-exercise-list";
 import { SessionMissingMaxes } from "@/components/workout/session-missing-maxes";
 import { SessionMissingTracks } from "@/components/workout/session-missing-tracks";
 import { SessionNoteField } from "@/components/workout/session-note-field";
-import { SessionSoreBanner } from "@/components/workout/session-sore-banner";
+import { SessionScreenPlannedTools } from "@/components/workout/session-screen-planned-tools";
+import { SessionScreenStickyFooter } from "@/components/workout/session-screen-sticky-footer";
+import { SessionTemplateSwapSheet } from "@/components/workout/session-template-swap-sheet";
 import { useRestTimer } from "@/components/workout/use-rest-timer";
 import { useSessionScreen } from "@/components/workout/use-session-screen";
-import { postJson } from "@/lib/api-cache";
 import { calendarToday } from "@/lib/day/dates";
 import { SKIP_SESSION_LABEL } from "@/lib/flavor";
-import { LOAD_FAILED } from "@/lib/messages";
 import { heaviestWorkLift } from "@/lib/share/joy";
-import { haptic } from "@/lib/telegram/haptic";
-import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import { sessionClosedCircle, sessionDetailBeat } from "@/lib/workout/beats";
-import { upcomingWorkLine } from "@/lib/workout/next-load";
 import { restLoadTargetKg } from "@/lib/workout/rest-load";
-import { formatRestClock, workSetsNeedRest } from "@/lib/workout/rest-timer";
 import {
   forgetPair,
-  nextFocusSetId,
   pairWith,
   pruneSessionPairs,
   readSessionPairs,
   writeSessionPairs,
 } from "@/lib/workout/session-pairs";
-import { canShortenSession } from "@/lib/workout/session-short";
-import { rememberTemplateSwap } from "@/lib/workout/template-cache-swap";
+import { sessionScreenContentPadding } from "@/lib/workout/session-screen-view";
+import {
+  logPlannedSessionSets,
+  restExerciseFor,
+  toggleSessionSet,
+} from "@/lib/workout/session-set-interaction";
 
 export function SessionScreen() {
-  const confirm = useConfirm();
+  const screen = useSessionScreen();
   const {
     loading,
     error,
@@ -94,7 +84,8 @@ export function SessionScreen() {
     swapExercise,
     easeSession,
     shortenSession,
-  } = useSessionScreen();
+  } = screen;
+
   const marking = useRef(new Set<string>());
   const loggingPlan = useRef(false);
   const closing = useRef(false);
@@ -104,8 +95,7 @@ export function SessionScreen() {
     exerciseId: string;
     name: string;
   } | null>(null);
-  const [savingTemplate, setSavingTemplate] = useState(false);
-  const [templateError, setTemplateError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!session?.id) {
       return;
@@ -127,6 +117,7 @@ export function SessionScreen() {
       return pruned;
     });
   }, [session?.id, detail?.exercises]);
+
   const rest = useRestTimer(session?.id ?? null, session?.status === "planned");
   const canRest = session?.status === "planned" && !busy;
   const focusExerciseId = detail
@@ -139,15 +130,7 @@ export function SessionScreen() {
       <AppHeader title={title} subtitle={subtitle} backHref="/workouts" />
 
       <div
-        className={
-          showStickyComplete && rest.left != null && rest.left > 0
-            ? "flex flex-col gap-5 px-4 pb-80"
-            : showStickyComplete && rest.left != null
-              ? "flex flex-col gap-5 px-4 pb-52"
-              : showStickyComplete
-                ? "flex flex-col gap-5 px-4 pb-36"
-                : "flex flex-col gap-5 px-4 pb-4"
-        }
+        className={sessionScreenContentPadding(showStickyComplete, rest.left)}
       >
         {loading ? <ScreenLoading /> : null}
 
@@ -165,53 +148,14 @@ export function SessionScreen() {
 
         {!loading && session && detail ? (
           <>
-            {session.status === "planned" ? (
-              <div className="flex flex-col gap-2">
-                <SessionSoreBanner
-                  sessionId={session.id}
-                  disabled={busy}
-                  onEase={easeSession}
-                />
-                {canShortenSession(detail.exercises) ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="min-h-11 self-start"
-                    disabled={busy}
-                    onClick={() => {
-                      void (async () => {
-                        const ok = await confirm({
-                          message:
-                            "Оставить по два рабочих подхода и связать соседние упражнения?",
-                          confirmLabel: "Ужать",
-                          cancelLabel: "Оставить",
-                        });
-                        if (!ok) {
-                          return;
-                        }
-                        const nextPairs = await shortenSession();
-                        if (
-                          !nextPairs ||
-                          nextPairs.length === 0 ||
-                          !session.id
-                        ) {
-                          return;
-                        }
-                        const stored = nextPairs.reduce(
-                          (current, [left, right]) =>
-                            pairWith(current, left, right),
-                          {} as Record<string, string>,
-                        );
-                        writeSessionPairs(session.id, stored);
-                        setPairs(stored);
-                      })();
-                    }}
-                  >
-                    Мало времени
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
+            <SessionScreenPlannedTools
+              sessionId={session.id}
+              detail={detail}
+              busy={busy}
+              onEase={easeSession}
+              onShorten={shortenSession}
+              onPairsApplied={setPairs}
+            />
 
             {session.status === "planned" && detail.missing_maxes.length > 0 ? (
               <SessionMissingMaxes
@@ -250,7 +194,7 @@ export function SessionScreen() {
                 const row = detail.exercises.find(
                   (item) => item.exercise_id === exerciseId,
                 );
-                void toggleSet({
+                void toggleSessionSet({
                   set,
                   exerciseId,
                   sessionExerciseId: row?.id ?? "",
@@ -272,7 +216,7 @@ export function SessionScreen() {
                 const row = detail.exercises.find(
                   (item) => item.id === sessionExerciseId,
                 );
-                void toggleSet({
+                void toggleSessionSet({
                   set,
                   exerciseId: row?.exercise_id ?? "",
                   sessionExerciseId,
@@ -291,7 +235,7 @@ export function SessionScreen() {
                   return;
                 }
                 loggingPlan.current = true;
-                void logPlannedSets({
+                void logPlannedSessionSets({
                   sessionExerciseId,
                   exercises: detail.exercises,
                   markSet,
@@ -411,296 +355,45 @@ export function SessionScreen() {
       </div>
 
       {showStickyComplete && detail ? (
-        <StickyActions className="[&>div]:gap-4">
-          {rest.left != null ? (
-            <div data-keyboard-secondary>
-              <RestBar
-                away={rest.finishedAway}
-                left={rest.left}
-                targetKg={loadTarget}
-                nextLine={upcomingWorkLine(
-                  detail.exercises.map((item) => ({
-                    name: item.exercise.short_name || item.exercise.name,
-                    sets: item.sets,
-                  })),
-                  openSetIds,
-                )}
-                round={rest.round}
-                onAdd={rest.add}
-                onSubtract={rest.subtract}
-                onStop={rest.stop}
-                onRestart={rest.restart}
-              />
-            </div>
-          ) : null}
-          {canRest && rest.left == null && focusExerciseId ? (
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-12 w-full text-base"
-              onClick={() => rest.start(focusExerciseId)}
-            >
-              Отдых {formatRestClock(rest.lastSeconds(focusExerciseId))}
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            className="mt-2 h-14 w-full text-lg"
-            disabled={busy || detail.exercises.length === 0}
-            onClick={() => {
-              if (busy || closing.current) {
-                return;
-              }
-              closing.current = true;
-              void (async () => {
-                try {
-                  if (detail.session.status === "planned") {
-                    const ok = await confirm({
-                      message: "Закрыть тренировку?",
-                      confirmLabel: "Готово",
-                      cancelLabel: "Ещё правлю",
-                    });
-                    if (!ok) {
-                      return;
-                    }
-                  }
-                  rest.stop();
-                  await complete();
-                } finally {
-                  closing.current = false;
-                }
-              })();
-            }}
-          >
-            {busy
-              ? "Сохраняю…"
-              : detail.session.status === "planned"
-                ? "Готово"
-                : "Сохранить"}
-          </Button>
-        </StickyActions>
-      ) : null}
-      {templateOffer && session ? (
-        <SheetFrame
-          title="Замена в программе"
-          onCancel={() => {
-            if (!savingTemplate) {
-              setTemplateOffer(null);
-              setTemplateError(null);
+        <SessionScreenStickyFooter
+          detail={detail}
+          busy={busy}
+          openSetIds={openSetIds}
+          restLeft={rest.left}
+          restFinishedAway={rest.finishedAway}
+          loadTarget={loadTarget}
+          restRound={rest.round}
+          canRest={canRest}
+          focusExerciseId={focusExerciseId}
+          lastRestSeconds={
+            focusExerciseId ? rest.lastSeconds(focusExerciseId) : 0
+          }
+          onComplete={async () => {
+            if (busy || closing.current) {
+              return;
+            }
+            closing.current = true;
+            try {
+              await complete();
+            } finally {
+              closing.current = false;
             }
           }}
-        >
-          <p className="text-base leading-snug">
-            Сегодня стоит {templateOffer.name}.
-          </p>
-          {templateError ? (
-            <p className="text-base text-destructive">{templateError}</p>
-          ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11"
-            disabled={savingTemplate}
-            onClick={() => {
-              setTemplateOffer(null);
-              setTemplateError(null);
-            }}
-          >
-            Только на сегодня
-          </Button>
-          <Button
-            type="button"
-            className="min-h-11"
-            disabled={savingTemplate}
-            onClick={() => {
-              void (async () => {
-                setSavingTemplate(true);
-                setTemplateError(null);
-                try {
-                  await postJson(`/api/sessions/${session.id}/template-swap`, {
-                    fromExerciseId: templateOffer.fromExerciseId,
-                    exerciseId: templateOffer.exerciseId,
-                  });
-                  if (session.template_id) {
-                    rememberTemplateSwap({
-                      templateId: session.template_id,
-                      date: session.session_date,
-                      fromExerciseId: templateOffer.fromExerciseId,
-                      exerciseId: templateOffer.exerciseId,
-                    });
-                  }
-                  haptic("commit");
-                  setTemplateOffer(null);
-                } catch (caught) {
-                  haptic("error");
-                  setTemplateError(
-                    caught instanceof Error ? caught.message : LOAD_FAILED,
-                  );
-                } finally {
-                  setSavingTemplate(false);
-                }
-              })();
-            }}
-          >
-            {savingTemplate ? "Сохраняю…" : "Заменить и в шаблоне"}
-          </Button>
-        </SheetFrame>
+          onRestAdd={rest.add}
+          onRestSubtract={rest.subtract}
+          onRestStop={rest.stop}
+          onRestRestart={rest.restart}
+          onRestStart={(id) => rest.start(id)}
+        />
+      ) : null}
+
+      {templateOffer && session ? (
+        <SessionTemplateSwapSheet
+          session={session}
+          offer={templateOffer}
+          onClose={() => setTemplateOffer(null)}
+        />
       ) : null}
     </div>
   );
-}
-
-async function toggleSet({
-  set,
-  exerciseId,
-  sessionExerciseId,
-  draft,
-  pairs,
-  exercises,
-  marking,
-  markSet,
-  openEditor,
-  focusSet,
-  startRest,
-}: {
-  set: WorkoutSet;
-  exerciseId: string;
-  sessionExerciseId: string;
-  draft: SetDraft | undefined;
-  pairs: Record<string, string>;
-  exercises: SessionDetail["exercises"];
-  marking: { current: Set<string> };
-  markSet: (
-    setId: string,
-    patch: {
-      is_completed: boolean;
-      actual_weight?: number | null;
-      actual_reps?: number | null;
-      actual_seconds?: number | null;
-      actual_rir?: number | null;
-    },
-  ) => Promise<boolean>;
-  openEditor: (setId: string) => void;
-  focusSet: (setId: string) => void;
-  startRest: (exerciseId: string) => void;
-}) {
-  if (marking.current.has(set.id)) {
-    return;
-  }
-  if (!set.is_completed) {
-    const patch = loggedSetPatch(set, draft);
-    if (!patch) {
-      haptic("warn");
-      openEditor(set.id);
-      return;
-    }
-    marking.current.add(set.id);
-    try {
-      const ok = await markSet(set.id, { is_completed: true, ...patch });
-      if (ok && set.set_type === "work") {
-        const nextId = nextFocusSetId(
-          exercises,
-          sessionExerciseId,
-          set.id,
-          pairs[sessionExerciseId] ?? null,
-        );
-        if (nextId) {
-          focusSet(nextId);
-        }
-        const restExerciseId =
-          exerciseIdForSet(exercises, nextId) ?? exerciseId;
-        startRest(restExerciseId);
-      }
-    } finally {
-      marking.current.delete(set.id);
-    }
-    return;
-  }
-
-  marking.current.add(set.id);
-  try {
-    await markSet(set.id, { is_completed: false });
-  } finally {
-    marking.current.delete(set.id);
-  }
-}
-
-async function logPlannedSets({
-  sessionExerciseId,
-  exercises,
-  markSet,
-  startRest,
-}: {
-  sessionExerciseId: string;
-  exercises: SessionDetail["exercises"];
-  markSet: (
-    setId: string,
-    patch: {
-      is_completed: boolean;
-      actual_weight?: number | null;
-      actual_reps?: number | null;
-      actual_seconds?: number | null;
-      actual_rir?: number | null;
-    },
-  ) => Promise<boolean>;
-  startRest: (exerciseId: string) => void;
-}) {
-  const item = exercises.find((row) => row.id === sessionExerciseId);
-  if (!item) {
-    return;
-  }
-  const pending = item.sets.flatMap((set) => {
-    if (set.set_type !== "work" || set.is_completed) {
-      return [];
-    }
-    const patch = plannedLogPatch(set);
-    if (!patch) {
-      return [];
-    }
-    return [{ id: set.id, patch }];
-  });
-  if (pending.length === 0) {
-    return;
-  }
-  const results: boolean[] = [];
-  for (const { id, patch } of pending) {
-    results.push(await markSet(id, { is_completed: true, ...patch }));
-  }
-  if (results.some((ok) => !ok)) {
-    return;
-  }
-  startRest(item.exercise_id);
-}
-
-function exerciseIdForSet(
-  exercises: SessionDetail["exercises"],
-  setId: string | null,
-): string | null {
-  if (!setId) {
-    return null;
-  }
-  for (const item of exercises) {
-    if (item.sets.some((row) => row.id === setId)) {
-      return item.exercise_id;
-    }
-  }
-  return null;
-}
-
-function restExerciseFor(
-  detail: SessionDetail,
-  openSetIds: string[],
-): string | null {
-  for (const item of detail.exercises) {
-    if (item.sets.some((set) => openSetIds.includes(set.id))) {
-      return item.exercise_id;
-    }
-  }
-  for (const item of detail.exercises) {
-    const work = item.sets.filter((set) => set.set_type === "work");
-    if (workSetsNeedRest(work)) {
-      return item.exercise_id;
-    }
-  }
-  return null;
 }

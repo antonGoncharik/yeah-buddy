@@ -8,12 +8,15 @@ import {
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
 import { peekJson, writeJson } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
 import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
+import {
+  sessionFailAction,
+  sessionLoadErrorMessage,
+} from "@/lib/workout/session-action-errors";
 import {
   completeSessionLocally,
   preferLiveCompleted,
@@ -62,8 +65,7 @@ export function useSessionActions({
     try {
       await work();
     } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      sessionFailAction((message) => setError(message), caught);
     } finally {
       setBusy(false);
     }
@@ -95,8 +97,7 @@ export function useSessionActions({
     try {
       validateSessionBeforeComplete(current, body);
     } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      sessionFailAction((message) => setError(message), caught);
       return;
     }
 
@@ -149,7 +150,7 @@ export function useSessionActions({
       }
       writeCompletedCaches(sessionUrl, previous);
       applyDetail(previous);
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      setError(sessionLoadErrorMessage(caught));
     } finally {
       completing.current = false;
       setBusy(false);
@@ -202,7 +203,7 @@ export function useSessionActions({
       };
       writeCompletedCaches(sessionUrl, reverted);
       setDetail(reverted);
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      setError(sessionLoadErrorMessage(caught));
     }
   }
 

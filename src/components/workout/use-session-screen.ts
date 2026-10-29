@@ -2,28 +2,20 @@
 
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useConfirm } from "@/components/layout/confirm-provider";
 import { useDayMood } from "@/components/layout/day-mood";
 import {
-  draftChanged,
   draftsFromDetail,
-  formatSessionDate,
   type SetDraft,
 } from "@/components/workout/session-drafts";
-import { loadSessionFollowUp } from "@/components/workout/session-follow-up";
 import { useSessionActions } from "@/components/workout/use-session-actions";
-import { cachedGet, postJson, subscribeJson } from "@/lib/api-cache";
+import { useSessionEaseWeek } from "@/components/workout/use-session-ease-week";
+import { useSessionFollowUpState } from "@/components/workout/use-session-follow-up-state";
+import { cachedGet, subscribeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
-import { haptic } from "@/lib/telegram/haptic";
-import type {
-  PhaseCircleProgress,
-  SessionDetail,
-  WorkoutSet,
-} from "@/lib/types";
+import type { SessionDetail } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
-import { type EaseWeekKind, easeWeekConfirm } from "@/lib/workout/ease-week";
-import { phaseLabel, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 import { preferLiveCompleted } from "@/lib/workout/session-complete-local";
+import { mergeLiveDrafts } from "@/lib/workout/session-draft-merge";
 import {
   clearSessionDraft,
   overlaySessionDrafts,
@@ -32,6 +24,12 @@ import {
 } from "@/lib/workout/session-draft-store";
 import { workAbovePlan } from "@/lib/workout/session-format";
 import { readSessionDetail } from "@/lib/workout/session-payload";
+import {
+  sessionScreenSubtitle,
+  sessionScreenTitle,
+} from "@/lib/workout/session-screen-view";
+
+export type SessionScreenModel = ReturnType<typeof useSessionScreen>;
 
 export function useSessionScreen() {
   const params = useParams<{ id: string }>();
@@ -42,20 +40,19 @@ export function useSessionScreen() {
   const [busy, setBusy] = useState(false);
   const [openSetIds, setOpenSetIds] = useState<string[]>([]);
   const [warmupOpen, setWarmupOpen] = useState<Record<string, boolean>>({});
-  const [nextName, setNextName] = useState<string | null>(null);
-  const [phaseHint, setPhaseHint] = useState<string | null>(null);
-  const [holdHint, setHoldHint] = useState<string | null>(null);
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [lastCompletedBefore, setLastCompletedBefore] = useState<string | null>(
-    null,
-  );
-  const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
-    null,
-  );
-  const [phaseId, setPhaseId] = useState<string | null>(null);
-  const [easeWeek, setEaseWeek] = useState<EaseWeekKind | null>(null);
-  const [easeSessionId, setEaseSessionId] = useState<string | null>(null);
-  const confirm = useConfirm();
+  const {
+    nextName,
+    phaseHint,
+    holdHint,
+    completedSessions,
+    lastCompletedBefore,
+    phaseCircle,
+    phaseId,
+    easeWeek,
+    easeSessionId,
+    applyFollowUp,
+    clearFollowUp,
+  } = useSessionFollowUpState();
   const [drafts, setDrafts] = useState<Record<string, SetDraft>>({});
   const [note, setNote] = useState("");
   const [correcting, setCorrecting] = useState(false);
@@ -63,19 +60,6 @@ export function useSessionScreen() {
   detailRef.current = detail;
 
   const sessionUrl = `/api/sessions/${params.id}`;
-
-  const loadFollowUp = useCallback(async (sessionDate: string) => {
-    const followUp = await loadSessionFollowUp(sessionDate);
-    setNextName(followUp.nextName);
-    setPhaseHint(followUp.phaseHint);
-    setHoldHint(followUp.holdHint);
-    setCompletedSessions(followUp.completedSessions);
-    setLastCompletedBefore(followUp.lastCompletedBefore);
-    setPhaseCircle(followUp.phaseCircle);
-    setPhaseId(followUp.phaseId);
-    setEaseWeek(followUp.easeWeek);
-    setEaseSessionId(followUp.easeSessionId);
-  }, []);
 
   const applyDetail = useCallback((incoming: SessionDetail) => {
     const previous = detailRef.current;
@@ -116,8 +100,7 @@ export function useSessionScreen() {
   const load = useCallback(async () => {
     begin();
     setError(null);
-    setEaseWeek(null);
-    setEaseSessionId(null);
+    clearFollowUp();
 
     try {
       await cachedGet(
@@ -129,16 +112,9 @@ export function useSessionScreen() {
           }
           applyDetail(next);
           if (next.session.status === "completed") {
-            void loadFollowUp(next.session.session_date);
+            void applyFollowUp(next.session.session_date);
           } else {
-            setNextName(null);
-            setPhaseHint(null);
-            setHoldHint(null);
-            setCompletedSessions(0);
-            setLastCompletedBefore(null);
-            setPhaseCircle(null);
-            setEaseWeek(null);
-            setEaseSessionId(null);
+            clearFollowUp();
           }
           return true;
         },
@@ -150,7 +126,7 @@ export function useSessionScreen() {
       setDetail(null);
       done(false);
     }
-  }, [applyDetail, begin, done, loadFollowUp, sessionUrl]);
+  }, [applyDetail, applyFollowUp, begin, clearFollowUp, done, sessionUrl]);
 
   useEffect(() => {
     if (params.id.length > 0) {
@@ -222,7 +198,7 @@ export function useSessionScreen() {
     drafts,
     sessionUrl,
     applyDetail,
-    loadFollowUp,
+    loadFollowUp: applyFollowUp,
     setBusy,
     setError,
     setCorrecting,
@@ -230,24 +206,16 @@ export function useSessionScreen() {
     correcting,
   });
 
+  const { easeWeek: activeEaseWeek, easeWeekNow } = useSessionEaseWeek({
+    detail,
+    easeWeek,
+    easeSessionId,
+    setBusy,
+    setError,
+    onApplied: applyFollowUp,
+  });
+
   const session = detail?.session;
-  const title =
-    detail?.template?.name ??
-    (session ? WORKOUT_KIND_LABELS[session.workout_type] : "Тренировка");
-  const subtitle = session
-    ? [
-        formatSessionDate(session.session_date),
-        phaseCircle && session.status !== "completed"
-          ? phaseLabel(phaseCircle.phase_type, phaseCircle.phase_name)
-          : detail?.phase
-            ? phaseLabel(detail.phase.phase_type, detail.phase.name)
-            : phaseCircle
-              ? phaseLabel(phaseCircle.phase_type, phaseCircle.phase_name)
-              : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : undefined;
   const showStickyComplete =
     session?.status === "planned" ||
     (session?.status === "completed" && correcting);
@@ -255,45 +223,14 @@ export function useSessionScreen() {
     session?.status === "planned" ||
     (session?.status === "completed" && correcting);
 
-  async function easeWeekNow(): Promise<boolean> {
-    if (!detail || easeWeek == null || detail.session.id !== easeSessionId) {
-      return false;
-    }
-    const kind = easeWeek;
-    const ok = await confirm({
-      message: easeWeekConfirm(kind),
-      confirmLabel: kind === "deload" ? "Открыть" : "Снизить",
-      cancelLabel: "Оставить",
-    });
-    if (!ok) {
-      return false;
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      await postJson(`/api/sessions/${detail.session.id}/ease-week`, {});
-      haptic("success");
-      setEaseWeek(null);
-      await loadFollowUp(detail.session.session_date);
-      return true;
-    } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return {
     loading,
     error,
     detail,
     load,
     session,
-    title,
-    subtitle,
+    title: sessionScreenTitle(detail),
+    subtitle: sessionScreenSubtitle(detail, phaseCircle),
     showStickyComplete,
     canEditSets,
     busy,
@@ -314,8 +251,7 @@ export function useSessionScreen() {
     lastCompletedBefore,
     phaseCircle,
     phaseId,
-    easeWeek:
-      session && easeWeek && session.id === easeSessionId ? easeWeek : null,
+    easeWeek: activeEaseWeek,
     easeWeekNow,
     openSetIds,
     setOpenSetIds,
@@ -335,53 +271,4 @@ export function useSessionScreen() {
     easeSession,
     shortenSession,
   };
-}
-
-function setStamp(set: WorkoutSet): string {
-  return [
-    set.is_completed ? 1 : 0,
-    set.planned_weight,
-    set.planned_reps,
-    set.planned_reps_to,
-    set.planned_seconds,
-    set.planned_rir,
-    set.actual_weight,
-    set.actual_reps,
-    set.actual_seconds,
-    set.actual_rir,
-  ].join(":");
-}
-
-/** Keep an unsaved edit on screen when a refresh did not change that set. */
-function mergeLiveDrafts(
-  previous: SessionDetail | null,
-  next: SessionDetail,
-  base: Record<string, SetDraft>,
-  live: Record<string, SetDraft>,
-): Record<string, SetDraft> {
-  if (!previous || previous.session.id !== next.session.id) {
-    return base;
-  }
-
-  const before = new Map<string, WorkoutSet>();
-  for (const item of previous.exercises) {
-    for (const set of item.sets) {
-      before.set(set.id, set);
-    }
-  }
-
-  for (const item of next.exercises) {
-    for (const set of item.sets) {
-      const prior = before.get(set.id);
-      const draft = live[set.id];
-      if (!prior || !draft || setStamp(prior) !== setStamp(set)) {
-        continue;
-      }
-      if (draftChanged(set, draft)) {
-        base[set.id] = draft;
-      }
-    }
-  }
-
-  return base;
 }
