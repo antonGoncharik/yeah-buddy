@@ -1,16 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
-
-import { buttonVariants } from "@/components/ui/button";
 import type { SetDraft } from "@/components/workout/session-drafts";
+import { SessionExerciseListEmpty } from "@/components/workout/session-exercise-list-empty";
 import { SessionExerciseRow } from "@/components/workout/session-exercise-row";
 import { SortableList } from "@/components/workout/sortable-list";
-import { SESSION_PLAN_EMPTY } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export function SessionExerciseList({
   detail,
@@ -64,27 +60,7 @@ export function SessionExerciseList({
     Boolean(onReorder) && canEditSets && openSetIds.length === 0;
 
   if (detail.exercises.length === 0) {
-    const canFillBelow =
-      session.status === "planned" &&
-      (detail.missing_maxes.length > 0 || detail.missing_tracks.length > 0);
-    return (
-      <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-5">
-        <p className="text-lg font-medium">Нет упражнений в плане</p>
-        <p className="text-base leading-relaxed text-muted-foreground">
-          {canFillBelow
-            ? "Ни у одного упражнения ещё нет «на раз» или килограммов на штанге. Заполни выше — план посчитается."
-            : SESSION_PLAN_EMPTY}
-        </p>
-        {session.status === "planned" && !canFillBelow ? (
-          <Link
-            href="/workouts/exercises"
-            className={cn(buttonVariants(), "h-14 text-lg")}
-          >
-            Указать вес
-          </Link>
-        ) : null}
-      </section>
-    );
+    return <SessionExerciseListEmpty detail={detail} />;
   }
 
   return (

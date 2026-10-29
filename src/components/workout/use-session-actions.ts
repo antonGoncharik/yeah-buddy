@@ -7,7 +7,7 @@ import {
   type SetDraft,
 } from "@/components/workout/session-drafts";
 import { useSessionEdits } from "@/components/workout/use-session-edits";
-import { peekJson, writeJson } from "@/lib/api-cache";
+import { writeJson } from "@/lib/api-cache";
 import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
@@ -17,6 +17,7 @@ import {
   sessionFailAction,
   sessionLoadErrorMessage,
 } from "@/lib/workout/session-action-errors";
+import { writeCompletedSessionCaches } from "@/lib/workout/session-cache-write";
 import {
   completeSessionLocally,
   preferLiveCompleted,
@@ -29,6 +30,7 @@ import {
   writeSessionDraft,
 } from "@/lib/workout/session-draft-store";
 import { readSessionDetail } from "@/lib/workout/session-payload";
+import { sessionDateUrl } from "@/lib/workout/session-urls";
 
 export function useSessionActions({
   detail,
@@ -106,7 +108,7 @@ export function useSessionActions({
     const draftSnapshot = readSessionDraft(current.session.id);
     const local = completeSessionLocally(current, body);
     const previous = current;
-    writeCompletedCaches(sessionUrl, local);
+    writeCompletedSessionCaches(current.session.id, local);
     applyDetail(local);
     setCorrecting(false);
     setError(null);
@@ -148,7 +150,7 @@ export function useSessionActions({
       if (draftSnapshot) {
         writeSessionDraft(current.session.id, draftSnapshot);
       }
-      writeCompletedCaches(sessionUrl, previous);
+      writeCompletedSessionCaches(current.session.id, previous);
       applyDetail(previous);
       setError(sessionLoadErrorMessage(caught));
     } finally {
@@ -169,7 +171,7 @@ export function useSessionActions({
       session: { ...current.session, feel },
     };
     setDetail(optimistic);
-    writeCompletedCaches(sessionUrl, optimistic);
+    writeCompletedSessionCaches(current.session.id, optimistic);
 
     try {
       const data = await queueMutate({
@@ -192,7 +194,7 @@ export function useSessionActions({
         ...live,
         session: patched,
       });
-      writeCompletedCaches(sessionUrl, merged);
+      writeCompletedSessionCaches(current.session.id, merged);
       applyDetail(merged);
       await loadFollowUp(current.session.session_date);
     } catch (caught) {
@@ -201,7 +203,7 @@ export function useSessionActions({
         ...optimistic,
         session: { ...optimistic.session, feel: previous },
       };
-      writeCompletedCaches(sessionUrl, reverted);
+      writeCompletedSessionCaches(current.session.id, reverted);
       setDetail(reverted);
       setError(sessionLoadErrorMessage(caught));
     }
@@ -221,20 +223,4 @@ export function useSessionActions({
     saveFeel,
     ...edits,
   };
-}
-
-function sessionDateUrl(date: string): string {
-  return `/api/sessions?date=${encodeURIComponent(date)}`;
-}
-
-function writeCompletedCaches(sessionUrl: string, detail: SessionDetail): void {
-  writeJson(sessionUrl, detail);
-  const hubUrl = sessionDateUrl(detail.session.session_date);
-  const current = peekJson(hubUrl);
-  writeJson(
-    hubUrl,
-    isRecord(current)
-      ? { ...current, session: detail.session }
-      : { session: detail.session },
-  );
 }
