@@ -1,14 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
 import { SheetFrame } from "@/components/layout/sheet-frame";
 import { Button } from "@/components/ui/button";
-import { postJson } from "@/lib/api-cache";
-import { LOAD_FAILED } from "@/lib/messages";
-import { haptic } from "@/lib/telegram/haptic";
+import { useSessionTemplateSwap } from "@/components/workout/use-session-template-swap";
 import type { WorkoutSession } from "@/lib/types";
-import { rememberTemplateSwap } from "@/lib/workout/template-cache-swap";
 
 export function SessionTemplateSwapSheet({
   session,
@@ -23,15 +18,11 @@ export function SessionTemplateSwapSheet({
   };
   onClose: () => void;
 }) {
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function dismiss() {
-    if (!saving) {
-      onClose();
-      setError(null);
-    }
-  }
+  const { saving, error, dismiss, saveToTemplate } = useSessionTemplateSwap({
+    session,
+    offer,
+    onClose,
+  });
 
   return (
     <SheetFrame title="Замена в программе" onCancel={dismiss}>
@@ -50,33 +41,7 @@ export function SessionTemplateSwapSheet({
         type="button"
         className="min-h-11"
         disabled={saving}
-        onClick={() => {
-          void (async () => {
-            setSaving(true);
-            setError(null);
-            try {
-              await postJson(`/api/sessions/${session.id}/template-swap`, {
-                fromExerciseId: offer.fromExerciseId,
-                exerciseId: offer.exerciseId,
-              });
-              if (session.template_id) {
-                rememberTemplateSwap({
-                  templateId: session.template_id,
-                  date: session.session_date,
-                  fromExerciseId: offer.fromExerciseId,
-                  exerciseId: offer.exerciseId,
-                });
-              }
-              haptic("commit");
-              onClose();
-            } catch (caught) {
-              haptic("error");
-              setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-            } finally {
-              setSaving(false);
-            }
-          })();
-        }}
+        onClick={() => void saveToTemplate()}
       >
         {saving ? "Сохраняю…" : "Заменить и в шаблоне"}
       </Button>
