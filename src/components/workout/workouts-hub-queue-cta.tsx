@@ -2,51 +2,17 @@
 
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
-import { AlignedPair } from "@/components/ui/aligned-pair";
 import { Button } from "@/components/ui/button";
 import type { HubCreateTarget } from "@/components/workout/use-hub-session-actions";
+import { WorkoutsHubNextTemplatePreview } from "@/components/workout/workouts-hub-next-template-preview";
+import { WorkoutsHubQueueSecondaryButtons } from "@/components/workout/workouts-hub-queue-secondary-buttons";
 import type {
   ExerciseWithMax,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
-import { templateExerciseLoadPreview } from "@/lib/workout/hints";
-import {
-  exercisesById,
-  hubQueueSecondaryActions,
-} from "@/lib/workout/hub-view";
-import { exerciseShortLabel } from "@/lib/workout/labels";
-import { formatWeight } from "@/lib/workout/numbers";
+import { hubQueueSecondaryActions } from "@/lib/workout/hub-view";
 import { workoutTemplateSessionLine } from "@/lib/workout/session-preview";
-
-function HubQueueGhostButtons({
-  actions,
-  busy,
-}: {
-  actions: ReturnType<typeof hubQueueSecondaryActions>;
-  busy: boolean;
-}) {
-  if (actions.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="-mb-1 flex min-w-0 flex-col gap-2">
-      {actions.map((item) => (
-        <Button
-          key={item.key}
-          type="button"
-          variant="ghost"
-          className="h-auto min-h-11 w-full max-w-full whitespace-normal px-4 py-2.5 text-base leading-snug text-muted-foreground"
-          disabled={busy}
-          onClick={item.onClick}
-        >
-          {item.label}
-        </Button>
-      ))}
-    </div>
-  );
-}
 
 export function WorkoutsHubQueueCta({
   session,
@@ -123,7 +89,6 @@ export function WorkoutsHubQueueCta({
     return null;
   }
 
-  const catalog = exercisesById(exercises);
   const outlineLine = workoutTemplateSessionLine(nextTemplate);
 
   return (
@@ -150,45 +115,11 @@ export function WorkoutsHubQueueCta({
         </div>
       </div>
 
-      {nextTemplate.exercises.length > 0 ? (
-        <ul className="flex flex-col divide-y divide-border/60">
-          {nextTemplate.exercises.map((exercise) => {
-            const full = catalog.get(exercise.id);
-            const preview = full
-              ? templateExerciseLoadPreview(nextTemplate, full, phaseKey)
-              : null;
-            return (
-              <li
-                key={exercise.id}
-                className="flex items-baseline justify-between gap-3 py-2 first:pt-0 last:pb-0"
-              >
-                <span className="min-w-0 truncate text-base">
-                  {exerciseShortLabel(exercise.short_name, exercise.name)}
-                </span>
-                <AlignedPair
-                  beside
-                  leading={
-                    preview ? (
-                      <span className="text-base font-semibold">
-                        {formatWeight(preview.value)}
-                      </span>
-                    ) : null
-                  }
-                  trailing={
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {preview
-                        ? preview.reps != null && preview.reps > 0
-                          ? `× ${preview.reps}`
-                          : "кг"
-                        : "—"}
-                    </span>
-                  }
-                />
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      <WorkoutsHubNextTemplatePreview
+        template={nextTemplate}
+        exercises={exercises}
+        phaseKey={phaseKey}
+      />
 
       {!nextCanStart ? (
         <p className="text-sm leading-snug text-muted-foreground">
@@ -208,7 +139,7 @@ export function WorkoutsHubQueueCta({
         </Button>
       ) : null}
 
-      <HubQueueGhostButtons actions={secondary} busy={busy} />
+      <WorkoutsHubQueueSecondaryButtons actions={secondary} busy={busy} />
     </section>
   );
 }
