@@ -1,6 +1,5 @@
 "use client";
 
-import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
@@ -8,6 +7,7 @@ import {
   type SetDraft,
   visibleSetRirLabel,
 } from "@/components/workout/session-drafts";
+import { SessionSetDoneButton } from "@/components/workout/session-set-done-button";
 import type { WorkoutSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -100,7 +100,7 @@ export function SessionSetButtons({
           >
             <div className="flex items-center">
               {onToggleDone && !disabled ? (
-                <SetDoneButton
+                <SessionSetDoneButton
                   done={set.is_completed}
                   label={
                     set.is_completed
@@ -133,36 +133,5 @@ export function SessionSetButtons({
         );
       })}
     </ol>
-  );
-}
-
-function SetDoneButton({
-  done,
-  label,
-  onClick,
-}: {
-  done: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={done}
-      aria-label={label}
-      className="flex size-11 shrink-0 items-center justify-center"
-      onClick={onClick}
-    >
-      <span
-        className={cn(
-          "flex size-6 items-center justify-center rounded-full border-2",
-          done
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-muted-foreground/45",
-        )}
-      >
-        {done ? <Check className="size-3.5" strokeWidth={3} /> : null}
-      </span>
-    </button>
   );
 }
