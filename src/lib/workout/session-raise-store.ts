@@ -5,7 +5,6 @@ import { listGlobalMaxes, pickCurrentMax } from "@/lib/workout/global-maxes";
 import { sessionRaiseOffers } from "@/lib/workout/session-raise";
 import { getSession } from "@/lib/workout/session-read";
 import { loadSessionDetail } from "@/lib/workout/session-work-load";
-import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
 export async function listSessionRaiseOffers(
   userId: string,
@@ -18,7 +17,6 @@ export async function listSessionRaiseOffers(
     return [];
   }
 
-  const settings = await ensureWorkoutSettings(userId);
   const maxes = await listGlobalMaxes(
     userId,
     detail.exercises.map((item) => item.exercise_id),
@@ -30,11 +28,7 @@ export async function listSessionRaiseOffers(
     }),
   );
 
-  return sessionRaiseOffers(
-    detail,
-    settings.max_increase_percent,
-    currentMaxByExercise,
-  );
+  return sessionRaiseOffers(detail, currentMaxByExercise);
 }
 
 export async function withSessionRaiseOffers(

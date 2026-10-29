@@ -13,9 +13,6 @@ assertEqual(maxFollowsWeek(100, 110), false, "peak week differs");
 assertEqual(
   forwardDraft({
     weekDraft: "100",
-    step: 2.5,
-    increased: false,
-    increasePercent: 5,
     pinned: null,
     override: undefined,
   }),
@@ -25,21 +22,15 @@ assertEqual(
 assertEqual(
   forwardDraft({
     weekDraft: "100",
-    step: 2.5,
-    increased: true,
-    increasePercent: 5,
     pinned: null,
     override: undefined,
   }),
-  "105",
-  "raise shows the next max",
+  null,
+  "no formula result keeps the typed max",
 );
 assertEqual(
   forwardDraft({
     weekDraft: "110",
-    step: 2.5,
-    increased: true,
-    increasePercent: 5,
     pinned: 140,
     override: undefined,
   }),
@@ -49,9 +40,6 @@ assertEqual(
 assertEqual(
   forwardDraft({
     weekDraft: "100",
-    step: 2.5,
-    increased: true,
-    increasePercent: 5,
     pinned: null,
     override: "108",
   }),

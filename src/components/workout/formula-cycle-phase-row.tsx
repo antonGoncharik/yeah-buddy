@@ -19,8 +19,8 @@ import {
   removeCyclePhase,
   resetPhaseWork,
 } from "@/lib/workout/cycle";
-import { previewMaxForPhase } from "@/lib/workout/formulas";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { maxShownForPhase } from "@/lib/workout/test-raise";
 
 /** One phase of the cycle. Collapsed: name + how the weight is derived. Expanded: editing. */
 export function FormulaCyclePhaseRow({
@@ -30,7 +30,6 @@ export function FormulaCyclePhaseRow({
   onToggle,
   exampleMax,
   exampleStep,
-  increasePercent,
   formulas,
   setFormulas,
   setSaved,
@@ -41,7 +40,6 @@ export function FormulaCyclePhaseRow({
   onToggle: () => void;
   exampleMax: number;
   exampleStep: number;
-  increasePercent: number;
   formulas: WorkoutFormulas;
   setFormulas: Dispatch<SetStateAction<WorkoutFormulas | null>>;
   setSaved: Dispatch<SetStateAction<boolean>>;
@@ -52,16 +50,16 @@ export function FormulaCyclePhaseRow({
   // «Свои» right after tapping equals the derived sets, so remember the choice.
   const [editing, setEditing] = useState(false);
   const custom = editing || phaseHasCustomWork(formulas, kind, phase);
-  const phaseMax = previewMaxForPhase(
-    formulas.cycle,
-    phase.key,
-    exampleMax,
-    increasePercent,
-    exampleStep,
-  );
+  const phaseMax = maxShownForPhase({
+    formulas,
+    kind,
+    phaseKey: phase.key,
+    maxKg: exampleMax,
+    stepKg: exampleStep,
+  });
   const tags = [
     phase.skip_warmup ? "без разминки" : null,
-    phase.increase_on_end ? "в конце поднять максимум" : null,
+    phase.increase_on_end ? "в конце максимум по тесту" : null,
     phase.kg_increase_on_end
       ? `в конце +${formatWeight(phase.kg_increase_on_end)} кг`
       : null,
@@ -125,7 +123,7 @@ export function FormulaCyclePhaseRow({
             <Toggle
               on={phase.increase_on_end}
               label="В конце поднять максимум"
-              hint="На шаг вверх, когда этап закрывается"
+              hint="Новый максимум по первому подходу теста"
               onClick={() => patch({ increase_on_end: !phase.increase_on_end })}
             />
             <Toggle

@@ -254,9 +254,6 @@ function forwardMap(
         row.exercise.id,
         forwardDraft({
           weekDraft: drafts[row.exercise.id] ?? "",
-          step: row.exercise.weight_step,
-          increased: preview.increased && !preview.hold_weights,
-          increasePercent: preview.increase_percent,
           pinned,
           override: overrides[row.exercise.id],
         }),

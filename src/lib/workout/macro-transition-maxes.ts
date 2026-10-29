@@ -10,7 +10,7 @@ import { mapWorkoutPhase } from "@/lib/workout/map-rows";
 
 export function toTransitionMaxes(
   rows: PhaseMaxRow[],
-  propose: (current: number, step: number) => number,
+  propose: (row: PhaseMaxRow) => number,
 ): TransitionPreview["maxes"] {
   return rows.flatMap((row) => {
     if (!row.phase_max) {
@@ -22,10 +22,7 @@ export function toTransitionMaxes(
         exercise_id: row.exercise.id,
         name: row.exercise.short_name || row.exercise.name,
         current_weight: row.phase_max.max_weight,
-        proposed_weight: propose(
-          row.phase_max.max_weight,
-          row.exercise.weight_step,
-        ),
+        proposed_weight: propose(row),
       },
     ];
   });

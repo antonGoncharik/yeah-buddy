@@ -4,7 +4,7 @@ import type {
   SessionMaxRaiseOffer,
 } from "@/lib/types";
 import { estimateE1rm } from "@/lib/workout/e1rm";
-import { floorToStep, increaseMax } from "@/lib/workout/formulas";
+import { floorToStep } from "@/lib/workout/formulas";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 
@@ -60,7 +60,6 @@ export function proposeMaxFromWorkSets(input: {
 export function proposeSessionMaxRaises(input: {
   inCycle: boolean;
   feel: SessionFeel | null;
-  increasePercent: number;
   currentMaxByExercise: Map<string, number>;
   exercises: Array<{
     exercise_id: string;
@@ -84,17 +83,12 @@ export function proposeSessionMaxRaises(input: {
 
   const offers: SessionMaxRaiseOffer[] = [];
   for (const item of input.exercises) {
-    const fromFact = proposeMaxFromWorkSets({
+    const proposed = proposeMaxFromWorkSets({
       sessionMax: item.max_weight,
       step: item.weight_step,
       sets: item.sets,
     });
-    const fromEasy =
-      input.feel === "easy"
-        ? increaseMax(item.max_weight, input.increasePercent, item.weight_step)
-        : null;
-    const proposed = Math.max(fromFact ?? 0, fromEasy ?? 0);
-    if (proposed <= 0) {
+    if (proposed == null || proposed <= 0) {
       continue;
     }
 
@@ -117,7 +111,6 @@ export function proposeSessionMaxRaises(input: {
 
 export function sessionRaiseOffers(
   detail: Pick<SessionDetail, "session" | "phase" | "exercises">,
-  increasePercent: number,
   currentMaxByExercise: Map<string, number>,
 ): SessionMaxRaiseOffer[] {
   if (detail.session.status !== "completed") {
@@ -127,7 +120,6 @@ export function sessionRaiseOffers(
   return proposeSessionMaxRaises({
     inCycle: Boolean(detail.session.phase_id || detail.phase),
     feel: detail.session.feel,
-    increasePercent,
     currentMaxByExercise,
     exercises: detail.exercises.flatMap((item) =>
       item.max_weight != null

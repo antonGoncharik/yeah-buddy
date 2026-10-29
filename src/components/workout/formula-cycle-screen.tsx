@@ -25,7 +25,6 @@ export function FormulaCycleScreen() {
     setFormulas,
     exampleMax,
     exampleStep,
-    increasePercent,
     loading,
     error,
     saved,
@@ -151,7 +150,6 @@ export function FormulaCycleScreen() {
                       }
                       exampleMax={exampleMax}
                       exampleStep={exampleStep}
-                      increasePercent={increasePercent}
                       formulas={formulas}
                       setFormulas={setFormulas}
                       setSaved={setSaved}

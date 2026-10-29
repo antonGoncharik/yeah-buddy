@@ -101,7 +101,6 @@ export function useFormulasScreen() {
 
   const exampleMax = parseDecimal(previewMax[kind]) ?? 0;
   const exampleStep = EXAMPLE_STEP[kind];
-  const increasePercent = parseDecimal(maxIncrease) ?? 0;
 
   return {
     kind,
@@ -115,7 +114,6 @@ export function useFormulasScreen() {
     setPreviewMax,
     exampleMax,
     exampleStep,
-    increasePercent,
     loading,
     error,
     saved,

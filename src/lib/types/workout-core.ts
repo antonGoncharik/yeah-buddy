@@ -51,6 +51,11 @@ export interface CyclePhaseDef {
   name: string;
   skip_warmup: boolean;
   increase_on_end: boolean;
+  /**
+   * The new max comes from the test set, not from a percent.
+   * Dynamic: first work set, Epley. Static: a clean 8s hold, plus one step.
+   */
+  raise_from_test?: boolean;
   /** If set, phase work percents are base × this, not a copy of base. */
   percent_scale?: number;
   /** Every work set uses this percent of the max. Reps stay from the base plan. */

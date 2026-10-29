@@ -1,4 +1,3 @@
-import { increaseMax } from "@/lib/workout/formulas";
 import {
   proposeMaxFromWorkSets,
   proposeSessionMaxRaises,
@@ -95,7 +94,6 @@ assertEqual(
   proposeSessionMaxRaises({
     inCycle: true,
     feel: "easy",
-    increasePercent: 5,
     currentMaxByExercise: new Map([["squat", 100]]),
     exercises,
   }),
@@ -107,7 +105,6 @@ assertEqual(
   proposeSessionMaxRaises({
     inCycle: false,
     feel: "miss",
-    increasePercent: 5,
     currentMaxByExercise: new Map([["squat", 100]]),
     exercises,
   }),
@@ -119,7 +116,6 @@ assertEqual(
   proposeSessionMaxRaises({
     inCycle: false,
     feel: null,
-    increasePercent: 5,
     currentMaxByExercise: new Map([["squat", 100]]),
     exercises,
   }),
@@ -131,7 +127,6 @@ assertEqual(
   proposeSessionMaxRaises({
     inCycle: false,
     feel: "easy",
-    increasePercent: 5,
     currentMaxByExercise: new Map([["squat", 100]]),
     exercises: [
       {
@@ -140,22 +135,14 @@ assertEqual(
       },
     ],
   }),
-  [
-    {
-      exercise_id: "squat",
-      name: "Присед",
-      from_weight: 100,
-      to_weight: increaseMax(100, 5, 2.5),
-    },
-  ],
-  "easy at plan uses increase percent",
+  [],
+  "easy at plan does not invent a percent",
 );
 
 assertEqual(
   proposeSessionMaxRaises({
     inCycle: false,
     feel: "close",
-    increasePercent: 5,
     currentMaxByExercise: new Map([["squat", 105]]),
     exercises,
   }),

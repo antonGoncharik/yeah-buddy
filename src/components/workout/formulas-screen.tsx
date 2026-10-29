@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { E1rmCalculator } from "@/components/workout/e1rm-calculator";
 import { cycleHint, warmupsHint } from "@/components/workout/formula-form";
-import { FormulaIncreaseField } from "@/components/workout/formula-increase-field";
 import { FormulaWorkCard } from "@/components/workout/formula-work-card";
 import { FormulasNavRow } from "@/components/workout/formulas-nav-row";
 import { useFormulasScreen } from "@/components/workout/use-formulas-screen";
@@ -20,8 +19,6 @@ export function FormulasScreen() {
     kind,
     setKind,
     showKindSwitch,
-    maxIncrease,
-    setMaxIncrease,
     formulas,
     setFormulas,
     previewMax,
@@ -41,9 +38,6 @@ export function FormulasScreen() {
   } = useFormulasScreen();
 
   const hasCycle = (formulas?.cycle.length ?? 0) > 0;
-  const cycleRaises = Boolean(
-    formulas?.cycle.some((phase) => phase.increase_on_end),
-  );
   const [showMore, setShowMore] = useState(false);
 
   return (
@@ -120,14 +114,6 @@ export function FormulasScreen() {
                     onSave={onSave}
                   />
                 )}
-                <FormulaIncreaseField
-                  maxIncrease={maxIncrease}
-                  cycleRaises={cycleRaises}
-                  onChange={(value) => {
-                    setMaxIncrease(value);
-                    setSaved(false);
-                  }}
-                />
                 <Button
                   type="button"
                   variant="ghost"

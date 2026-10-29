@@ -6,6 +6,11 @@ import { Input } from "@/components/ui/input";
 import { estimateE1rm } from "@/lib/workout/e1rm";
 import { parseDecimal } from "@/lib/workout/numbers";
 
+function formatEstimate(value: number): string {
+  const rounded = Math.round(value * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2);
+}
+
 export function E1rmCalculator() {
   const [weight, setWeight] = useState("80");
   const [reps, setReps] = useState("5");
@@ -49,7 +54,7 @@ export function E1rmCalculator() {
         </div>
       </div>
       <p className="text-lg font-medium tabular-nums">
-        {e1rm != null ? `≈ ${e1rm} кг` : "—"}
+        {e1rm != null ? `≈ ${formatEstimate(e1rm)} кг` : "—"}
       </p>
     </section>
   );

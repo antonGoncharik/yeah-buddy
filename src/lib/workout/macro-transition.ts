@@ -1,16 +1,16 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
+import type {
+  CurrentMacroState,
+  PhaseMaxRow,
+  TransitionPreview,
+} from "@/lib/types";
 import {
   cycleDef,
   isLastCyclePhase,
   sortOrderForPhase,
 } from "@/lib/workout/cycle";
 import { bumpTracksByKg } from "@/lib/workout/exercise-tracks";
-import {
-  increaseMax,
-  nextPhaseType,
-  shouldIncreaseMax,
-} from "@/lib/workout/formulas";
+import { nextPhaseType, shouldIncreaseMax } from "@/lib/workout/formulas";
 import { phaseLabel } from "@/lib/workout/labels";
 import {
   createFirstMacro,
@@ -29,6 +29,7 @@ import {
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 import { exerciseIdsNeedingTrack } from "@/lib/workout/slot-plan";
 import { listActiveTemplates } from "@/lib/workout/template-store";
+import { loadTestMaxes } from "@/lib/workout/test-raise-load";
 
 export async function previewTransition(
   userId: string,
@@ -46,9 +47,33 @@ export async function previewTransition(
   const holdWeights = state.phase_circle?.hold_weights === true;
   const increased =
     !holdWeights && shouldIncreaseMax(state.phase.phase_type, nextType, cycle);
-  const kgIncrease = holdWeights
-    ? 0
-    : (cycleDef(cycle, state.phase.phase_type)?.kg_increase_on_end ?? 0);
+  const ending = cycleDef(cycle, state.phase.phase_type);
+  const useTest = increased;
+  const kgIncrease = holdWeights ? 0 : (ending?.kg_increase_on_end ?? 0);
+  const testMaxByExercise = useTest
+    ? await loadTestMaxes({
+        userId,
+        phaseId: state.phase.id,
+        phaseKey: state.phase.phase_type,
+        rows: state.maxes.flatMap((row) =>
+          row.phase_max
+            ? [
+                {
+                  exerciseId: row.exercise.id,
+                  maxKg: row.phase_max.max_weight,
+                  stepKg: row.exercise.weight_step,
+                },
+              ]
+            : [],
+        ),
+      })
+    : new Map<string, number>();
+  const propose = (row: PhaseMaxRow) =>
+    proposedWeight(row, {
+      increased,
+      useTest,
+      testMaxByExercise,
+    });
 
   if (!nextType) {
     const peak = await getRecapEndMaxes(userId, state.macro.id, cycle);
@@ -63,11 +88,7 @@ export async function previewTransition(
       increase_percent: settings.max_increase_percent,
       kg_increase: kgIncrease,
       hold_weights: holdWeights,
-      maxes: toTransitionMaxes(source, (weight, step) =>
-        increased
-          ? increaseMax(weight, settings.max_increase_percent, step)
-          : weight,
-      ),
+      maxes: toTransitionMaxes(source, propose),
     };
   }
   return {
@@ -80,12 +101,23 @@ export async function previewTransition(
     increase_percent: settings.max_increase_percent,
     kg_increase: kgIncrease,
     hold_weights: holdWeights,
-    maxes: toTransitionMaxes(state.maxes, (weight, step) =>
-      increased
-        ? increaseMax(weight, settings.max_increase_percent, step)
-        : weight,
-    ),
+    maxes: toTransitionMaxes(state.maxes, propose),
   };
+}
+
+function proposedWeight(
+  row: PhaseMaxRow,
+  input: {
+    increased: boolean;
+    useTest: boolean;
+    testMaxByExercise: Map<string, number>;
+  },
+): number {
+  const weight = row.phase_max?.max_weight ?? 0;
+  if (!input.increased || !input.useTest) {
+    return weight;
+  }
+  return input.testMaxByExercise.get(row.exercise.id) ?? weight;
 }
 
 export async function confirmTransition(
