@@ -1,20 +1,15 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
-import { FormulaCyclePhaseRow } from "@/components/workout/formula-cycle-phase-row";
-import { FormulaCycleTemplates } from "@/components/workout/formula-cycle-templates";
-import { MAX_PHASES } from "@/components/workout/formula-form";
-import { SortableList } from "@/components/workout/sortable-list";
+import { FormulaCycleActiveEditor } from "@/components/workout/formula-cycle-active-editor";
+import { FormulaCycleTemplateSection } from "@/components/workout/formula-cycle-template-section";
 import { useFormulasScreen } from "@/components/workout/use-formulas-screen";
-import { addCyclePhase, reorderCycle } from "@/lib/workout/cycle";
-import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
+import { addCyclePhase } from "@/lib/workout/cycle";
 
 export function FormulaCycleScreen() {
   const {
@@ -77,154 +72,34 @@ export function FormulaCycleScreen() {
             </p>
 
             {showTemplates ? (
-              <section className="card-surface animate-rise flex flex-col gap-3 px-5 py-4">
-                <h2 className="text-xl font-semibold">
-                  {hasCycle ? "Другая схема" : "Выбрать схему"}
-                </h2>
-                <FormulaCycleTemplates
-                  onApply={(cycle, name, extra) => {
-                    void applyCycleTemplate(cycle, name, extra).then(() =>
-                      setPicking(false),
-                    );
-                  }}
-                  onCustom={hasCycle ? undefined : addPhase}
-                />
-                {hasCycle ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11 text-base"
-                    onClick={() => setPicking(false)}
-                  >
-                    Оставить как есть
-                  </Button>
-                ) : null}
-              </section>
+              <FormulaCycleTemplateSection
+                hasCycle={hasCycle}
+                onApply={(cycle, name, extra) => {
+                  void applyCycleTemplate(cycle, name, extra).then(() =>
+                    setPicking(false),
+                  );
+                }}
+                onCustom={hasCycle ? undefined : addPhase}
+                onDismiss={hasCycle ? () => setPicking(false) : undefined}
+              />
             ) : null}
 
             {hasCycle && !picking ? (
-              <>
-                {showKindSwitch ? (
-                  <Segmented
-                    value={kind}
-                    options={[
-                      { id: "dynamic", label: WORKOUT_KIND_LABELS.dynamic },
-                      { id: "static", label: WORKOUT_KIND_LABELS.static },
-                    ]}
-                    onChange={setKind}
-                  />
-                ) : null}
-
-                <p className="px-1 text-sm text-muted-foreground">
-                  Порядок — потяни за номер слева. Нажми на этап, чтобы
-                  настроить.
-                </p>
-
-                <SortableList
-                  variant="cards"
-                  disabled={openKey != null}
-                  items={formulas.cycle.map((phase) => ({
-                    ...phase,
-                    id: phase.key,
-                  }))}
-                  onReorder={(next) => {
-                    setSaved(false);
-                    setFormulas((current) =>
-                      current
-                        ? reorderCycle(
-                            current,
-                            next.map((phase) => phase.key),
-                          )
-                        : current,
-                    );
-                  }}
-                  renderItem={(phase) => (
-                    <FormulaCyclePhaseRow
-                      phase={phase}
-                      kind={kind}
-                      open={openKey === phase.key}
-                      onToggle={() =>
-                        setOpenKey((current) =>
-                          current === phase.key ? null : phase.key,
-                        )
-                      }
-                      exampleMax={exampleMax}
-                      exampleStep={exampleStep}
-                      formulas={formulas}
-                      setFormulas={setFormulas}
-                      setSaved={setSaved}
-                    />
-                  )}
-                />
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="h-12 text-base"
-                  disabled={formulas.cycle.length >= MAX_PHASES}
-                  onClick={addPhase}
-                >
-                  <Plus className="size-4" />
-                  Этап
-                </Button>
-
-                <section className="card-surface flex flex-col gap-2 px-5 py-4">
-                  <h2 className="text-base font-medium">Когда менять этап</h2>
-                  <Segmented
-                    value={
-                      formulas.cycle_loop
-                        ? "loop"
-                        : formulas.cycle_auto_end
-                          ? "auto"
-                          : "manual"
-                    }
-                    options={[
-                      { id: "manual", label: "Сам" },
-                      { id: "auto", label: "После дней" },
-                      { id: "loop", label: "По кругу" },
-                    ]}
-                    onChange={(id) => {
-                      setSaved(false);
-                      setFormulas((current) =>
-                        current
-                          ? {
-                              ...current,
-                              cycle_auto_end:
-                                id === "manual" ? undefined : true,
-                              cycle_loop: id === "loop" ? true : undefined,
-                            }
-                          : current,
-                      );
-                    }}
-                  />
-                  <p className="text-sm leading-snug text-muted-foreground">
-                    {formulas.cycle_loop
-                      ? "Прошёл все дни — следующая неделя сама. После последней круг начнётся сначала, и где положена прибавка — килограммы на штанге вырастут."
-                      : formulas.cycle_auto_end
-                        ? "Прошёл все дни — этап сменится сам. Где положена прибавка, поднимется «на раз» или килограммы на штанге. Последний этап закрывается руками: там новый цикл."
-                        : "Прошёл все дни — подскажем, а закроешь этап сам, когда восстановился."}
-                  </p>
-                </section>
-
-                <div className="flex flex-col">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11 text-base text-muted-foreground"
-                    onClick={() => setPicking(true)}
-                  >
-                    Поставить другую схему
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-11 text-base text-muted-foreground"
-                    onClick={() => void clearCycle()}
-                  >
-                    Убрать этапы
-                  </Button>
-                </div>
-              </>
+              <FormulaCycleActiveEditor
+                formulas={formulas}
+                kind={kind}
+                showKindSwitch={showKindSwitch}
+                setKind={setKind}
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+                exampleMax={exampleMax}
+                exampleStep={exampleStep}
+                setFormulas={setFormulas}
+                setSaved={setSaved}
+                onAddPhase={addPhase}
+                onPickOtherTemplate={() => setPicking(true)}
+                onClearCycle={() => void clearCycle()}
+              />
             ) : null}
 
             {error ? (
