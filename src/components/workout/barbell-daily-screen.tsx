@@ -8,44 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { BarbellBalanceGame } from "@/components/workout/barbell-balance-game";
 import { BarbellDailyGame } from "@/components/workout/barbell-daily-game";
+import { BarbellDailyResultSummary } from "@/components/workout/barbell-daily-result-summary";
 import { BarbellPendulumGame } from "@/components/workout/barbell-pendulum-game";
 import { calendarToday } from "@/lib/day/dates";
-import { BALANCE_RULES, balanceDeal } from "@/lib/workout/barbell-balance";
+import { balanceDeal } from "@/lib/workout/barbell-balance";
 import {
-  BARBELL_DAILY_RULES,
   type BarbellDailyChallenge,
   barbellDailyGrade,
-  barbellDailyGradeLine,
   dailyChallenge,
   formatMissingRack,
   formatRack,
-  formatSidePlateStack,
-  plateCountWord,
   streakDayWord,
 } from "@/lib/workout/barbell-daily";
+import {
+  BARBELL_DAILY_MODE_OPTIONS,
+  BARBELL_DAILY_MODE_RULES,
+  BARBELL_DAILY_MODE_SUBTITLE,
+  type BarbellDailyMode,
+} from "@/lib/workout/barbell-daily-screen";
 import { readBarbellDailyProgress } from "@/lib/workout/barbell-daily-storage";
-import { PENDULUM_RULES } from "@/lib/workout/barbell-pendulum";
 import { plateLabel } from "@/lib/workout/rest-load";
-
-type BarbellMode = "rack" | "balance" | "pendulum";
-
-const MODE_OPTIONS: Array<{ id: BarbellMode; label: string }> = [
-  { id: "rack", label: "Стойка" },
-  { id: "balance", label: "Ровно" },
-  { id: "pendulum", label: "Маятник" },
-];
-
-const MODE_SUBTITLE: Record<BarbellMode, string> = {
-  rack: "Задача дня",
-  balance: "Баланс",
-  pendulum: "Башня",
-};
-
-const MODE_RULES: Record<BarbellMode, string> = {
-  rack: BARBELL_DAILY_RULES,
-  balance: BALANCE_RULES,
-  pendulum: PENDULUM_RULES,
-};
 
 export function BarbellDailyScreen() {
   const dayKey = calendarToday();
@@ -57,7 +39,7 @@ export function BarbellDailyScreen() {
     () => (challenge ? balanceDeal(challenge.parPlates, challenge.dayKey) : []),
     [challenge],
   );
-  const [mode, setMode] = useState<BarbellMode>("rack");
+  const [mode, setMode] = useState<BarbellDailyMode>("rack");
   const [progress, setProgress] = useState(() =>
     readBarbellDailyProgress(dayKey),
   );
@@ -84,12 +66,19 @@ export function BarbellDailyScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AppHeader title="Собери штангу" subtitle={MODE_SUBTITLE[mode]} />
+      <AppHeader
+        title="Собери штангу"
+        subtitle={BARBELL_DAILY_MODE_SUBTITLE[mode]}
+      />
 
       <div className="flex flex-col gap-4 px-4 pb-4">
-        <Segmented value={mode} options={MODE_OPTIONS} onChange={setMode} />
+        <Segmented
+          value={mode}
+          options={BARBELL_DAILY_MODE_OPTIONS}
+          onChange={setMode}
+        />
         <p className="text-sm leading-snug text-muted-foreground">
-          {MODE_RULES[mode]}
+          {BARBELL_DAILY_MODE_RULES[mode]}
         </p>
 
         <div className={mode === "rack" ? "flex flex-col gap-4" : "hidden"}>
@@ -126,7 +115,7 @@ export function BarbellDailyScreen() {
               }}
             />
             {showShare ? (
-              <ResultSummary
+              <BarbellDailyResultSummary
                 moves={win?.moves ?? progress.bestMoves ?? challenge.parMoves}
                 parMoves={challenge.parMoves}
                 grade={
@@ -195,38 +184,6 @@ export function BarbellDailyScreen() {
           </section>
         ) : null}
       </div>
-    </div>
-  );
-}
-
-function ResultSummary({
-  moves,
-  parMoves,
-  grade,
-  parPlates,
-}: {
-  moves: number;
-  parMoves: number;
-  grade: ReturnType<typeof barbellDailyGrade>;
-  parPlates: number[];
-}) {
-  const overPar = moves - parMoves;
-  const detail =
-    overPar <= 0
-      ? "В пар."
-      : overPar === 1
-        ? "+1 к пару."
-        : `+${overPar} к пару.`;
-
-  return (
-    <div className="rounded-xl bg-muted/50 px-4 py-3 text-sm">
-      <p className="font-medium">{barbellDailyGradeLine(grade)}</p>
-      <p className="mt-1 text-muted-foreground">
-        {moves} {plateCountWord(moves)} · {detail}
-      </p>
-      <p className="mt-1 text-muted-foreground">
-        Пар на сторону: {formatSidePlateStack(parPlates)}
-      </p>
     </div>
   );
 }
