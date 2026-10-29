@@ -10,7 +10,7 @@ import { EmptyNote } from "@/components/layout/empty-note";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { buttonVariants } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
-import { ProgressExerciseCard } from "@/components/workout/progress-exercise-card";
+import { ProgressExerciseList } from "@/components/workout/progress-exercise-list";
 import { ProgressScreenLinks } from "@/components/workout/progress-screen-links";
 import { ProgressSummaryCard } from "@/components/workout/progress-summary-card";
 import {
@@ -19,10 +19,7 @@ import {
 } from "@/components/workout/use-progress-screen";
 import { cn } from "@/lib/utils";
 import { EXERCISE_CATEGORY_LABELS, STRENGTH_LABEL } from "@/lib/workout/labels";
-import {
-  isNewPeak,
-  PROGRESS_HORIZON_OPTIONS,
-} from "@/lib/workout/progress-control";
+import { PROGRESS_HORIZON_OPTIONS } from "@/lib/workout/progress-control";
 import { rankExerciseProgress } from "@/lib/workout/progress-rank";
 
 const FILTERS: Array<{ id: ProgressFilter; label: string }> = [
@@ -137,39 +134,19 @@ export function ProgressScreen() {
                 Нет упражнений в этой категории.
               </p>
             ) : (
-              <ul className="animate-rise flex flex-col gap-2">
-                {shown.map((item) => {
-                  const lifetime = progress.exercises.find(
-                    (row) => row.exercise_id === item.exercise_id,
-                  );
-                  return (
-                    <li key={item.exercise_id}>
-                      <ProgressExerciseCard
-                        item={item}
-                        record={lifetime ? isNewPeak(lifetime, item) : false}
-                        open={openId === item.exercise_id}
-                        onToggle={() =>
-                          setOpenId((current) =>
-                            current === item.exercise_id
-                              ? null
-                              : item.exercise_id,
-                          )
-                        }
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
+              <ProgressExerciseList
+                progress={progress}
+                shown={shown}
+                openId={openId}
+                onToggleOpen={(exerciseId) =>
+                  setOpenId((current) =>
+                    current === exerciseId ? null : exerciseId,
+                  )
+                }
+                hiddenCount={hiddenCount}
+                onShowRest={() => setRestKey(listKey)}
+              />
             )}
-            {hiddenCount > 0 ? (
-              <button
-                type="button"
-                className="h-12 text-base font-medium text-muted-foreground"
-                onClick={() => setRestKey(listKey)}
-              >
-                Ещё {hiddenCount}
-              </button>
-            ) : null}
 
             <ReviewCta from="workouts" />
             <ProgressScreenLinks />

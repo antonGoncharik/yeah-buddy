@@ -8,9 +8,10 @@ import { StickyActions } from "@/components/layout/sticky-actions";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
 import { E1rmCalculator } from "@/components/workout/e1rm-calculator";
-import { cycleHint, warmupsHint } from "@/components/workout/formula-form";
+import { cycleHint } from "@/components/workout/formula-form";
 import { FormulaWorkCard } from "@/components/workout/formula-work-card";
 import { FormulasNavRow } from "@/components/workout/formulas-nav-row";
+import { FormulasScreenExtraNav } from "@/components/workout/formulas-screen-extra";
 import { useFormulasScreen } from "@/components/workout/use-formulas-screen";
 import { FORMULAS_LABEL, WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
@@ -95,35 +96,15 @@ export function FormulasScreen() {
             ) : null}
 
             {showMore ? (
-              <>
-                <FormulasNavRow
-                  href="/settings/formulas/warmup"
-                  title="Разминка"
-                  hint={warmupsHint(formulas, kind)}
-                  dirty={dirty}
-                  busy={saving}
-                  onSave={onSave}
-                />
-                {hasCycle ? null : (
-                  <FormulasNavRow
-                    href="/settings/formulas/cycle"
-                    title="Недели"
-                    hint={cycleHint(formulas)}
-                    dirty={dirty}
-                    busy={saving}
-                    onSave={onSave}
-                  />
-                )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-12 text-base text-muted-foreground"
-                  disabled={saving}
-                  onClick={() => void restoreDefaults()}
-                >
-                  Вернуть как было в начале
-                </Button>
-              </>
+              <FormulasScreenExtraNav
+                formulas={formulas}
+                kind={kind}
+                hasCycle={hasCycle}
+                dirty={dirty}
+                saving={saving}
+                onSave={onSave}
+                onRestoreDefaults={restoreDefaults}
+              />
             ) : (
               <button
                 type="button"
