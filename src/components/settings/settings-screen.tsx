@@ -5,14 +5,8 @@ import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import {
-  BookDoodle,
-  MacroDoodle,
-  MealDayDoodle,
-  ProductDoodle,
-} from "@/components/layout/doodles";
+import { MacroDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
-import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError } from "@/components/layout/screen-status";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { useTheme } from "@/components/layout/theme-provider";
@@ -21,6 +15,10 @@ import { SettingsAccessSection } from "@/components/settings/settings-access-sec
 import { SettingsAccount } from "@/components/settings/settings-account";
 import { SettingsAppearanceSection } from "@/components/settings/settings-appearance-section";
 import { SettingsContactSection } from "@/components/settings/settings-contact-section";
+import {
+  SettingsFoodNavRows,
+  SettingsGuideNavRow,
+} from "@/components/settings/settings-food-nav-section";
 import { SettingsGoalsForm } from "@/components/settings/settings-goals-form";
 import { SettingsGymModeSection } from "@/components/settings/settings-gym-mode-section";
 import {
@@ -33,10 +31,8 @@ import { SettingsPauseSection } from "@/components/settings/settings-pause-secti
 import { SettingsRemindersSection } from "@/components/settings/settings-reminders-section";
 import { SettingsSyncFailures } from "@/components/settings/settings-sync-failures";
 import { useSettingsScreen } from "@/components/settings/use-settings-screen";
-import { GUIDE_HINT, GUIDE_HREF, GUIDE_LABEL } from "@/lib/guide";
 import { formatKcal } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
-import { MEAL_TEMPLATES_LABEL } from "@/lib/workout/labels";
 
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
@@ -89,16 +85,7 @@ export function SettingsScreen() {
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        <section className="flex flex-col gap-2">
-          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow
-              href={GUIDE_HREF}
-              title={GUIDE_LABEL}
-              hint={GUIDE_HINT}
-              icon={<BookDoodle />}
-            />
-          </div>
-        </section>
+        <SettingsGuideNavRow />
 
         <section className="flex flex-col gap-2">
           <SectionHeading title="Еда и цели" />
@@ -159,20 +146,7 @@ export function SettingsScreen() {
               showTrainingGoals={form.gym_enabled}
             />
           ) : null}
-          <div className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
-            <NavRow
-              href="/settings/meals"
-              title={MEAL_TEMPLATES_LABEL}
-              hint="Что подставлять в новый день"
-              icon={<MealDayDoodle />}
-            />
-            <NavRow
-              href="/foods"
-              title="Продукты"
-              hint="Из них собирается еда на день"
-              icon={<ProductDoodle />}
-            />
-          </div>
+          <SettingsFoodNavRows />
         </section>
 
         {loading ? <SettingsGymSkeleton /> : null}
