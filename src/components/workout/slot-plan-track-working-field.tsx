@@ -8,7 +8,8 @@ import { putJson } from "@/lib/api-cache";
 import { sanitizeDecimalDraft } from "@/lib/form/numeric-draft";
 import { LOAD_FAILED } from "@/lib/messages";
 import type { ExerciseWithMax } from "@/lib/types";
-import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { formatExerciseTrackDraft } from "@/lib/workout/exercise-track-payload";
+import { parseDecimal } from "@/lib/workout/numbers";
 import { trackCurrentWeight } from "@/lib/workout/track-line";
 
 export function SlotPlanTrackWorkingField({
@@ -17,21 +18,19 @@ export function SlotPlanTrackWorkingField({
   exercise: ExerciseWithMax;
 }) {
   const current = exercise.track ? trackCurrentWeight(exercise.track) : null;
-  const [text, setText] = useState(
-    current != null && current > 0 ? formatWeight(current) : "",
-  );
+  const [text, setText] = useState(formatExerciseTrackDraft(exercise.track));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setText(current != null && current > 0 ? formatWeight(current) : "");
-  }, [current]);
+    setText(formatExerciseTrackDraft(exercise.track));
+  }, [exercise.track]);
 
   async function commit() {
     const parsed = parseDecimal(text);
     if (parsed == null || parsed <= 0) {
       if (text.trim() === "" && current != null) {
-        setText(formatWeight(current));
+        setText(formatExerciseTrackDraft(exercise.track));
       }
       return;
     }
@@ -44,7 +43,7 @@ export function SlotPlanTrackWorkingField({
       await putJson(`/api/exercises/${exercise.id}/track`, { weight: parsed });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
-      setText(current != null && current > 0 ? formatWeight(current) : "");
+      setText(formatExerciseTrackDraft(exercise.track));
     } finally {
       setBusy(false);
     }
