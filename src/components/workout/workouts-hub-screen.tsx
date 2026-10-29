@@ -48,20 +48,21 @@ export function WorkoutsHubScreen() {
   } = useWorkoutsHub();
   const guideTip = useGuideTip("workouts");
   const editableHint = useProgramEditableHint();
+  const showContent = !loading && !error;
 
   return (
     <div className="flex flex-col gap-4">
       <AppHeader title="Тренировки" subtitle={todayLabel} />
 
       <div className="flex flex-col gap-5 px-4 pb-4">
-        {!loading && !error ? <PauseReturnCard /> : null}
+        {showContent ? <PauseReturnCard /> : null}
         {loading ? <WorkoutsHubSkeleton /> : null}
 
         {!loading && error ? (
           <ScreenError message={error} onRetry={() => void load()} />
         ) : null}
 
-        {!loading && !error ? (
+        {showContent ? (
           <WorkoutsHubEmpty
             exercisesCount={exercises.length}
             session={session}
@@ -69,7 +70,7 @@ export function WorkoutsHubScreen() {
           />
         ) : null}
 
-        {!loading && !error ? (
+        {showContent ? (
           <WorkoutsHubSessionCard
             unfinished={unfinished}
             session={session}
@@ -80,7 +81,7 @@ export function WorkoutsHubScreen() {
           />
         ) : null}
 
-        {!loading && !error ? (
+        {showContent ? (
           <WorkoutsHubQueueCta
             session={session}
             nextTemplate={nextTemplate}
@@ -107,20 +108,20 @@ export function WorkoutsHubScreen() {
           />
         ) : null}
 
-        {!loading && !error && editableHint.open ? (
+        {showContent && editableHint.open ? (
           <ProgramEditableHintCard onDismiss={editableHint.dismiss} />
         ) : null}
-        {!loading && !error && !editableHint.open && guideTip.tip ? (
+        {showContent && !editableHint.open && guideTip.tip ? (
           <GuideTipCard tip={guideTip.tip} onDismiss={guideTip.dismiss} />
         ) : null}
 
-        {!loading && !error && muscleRecoveryHint ? (
+        {showContent && muscleRecoveryHint ? (
           <p className="animate-rise px-1 text-sm text-muted-foreground">
             {muscleRecoveryHint}
           </p>
         ) : null}
 
-        {!loading && !error && exercises.length > 0 ? (
+        {showContent && exercises.length > 0 ? (
           <WorkoutsHubNavSections
             macro={macro}
             session={session}
@@ -132,9 +133,9 @@ export function WorkoutsHubScreen() {
           />
         ) : null}
 
-        {!loading && !error ? <WorkoutsHubRecent recent={recent} /> : null}
+        {showContent ? <WorkoutsHubRecent recent={recent} /> : null}
 
-        {!loading && !error ? <WorkoutsHubBarbellCard /> : null}
+        {showContent ? <WorkoutsHubBarbellCard /> : null}
       </div>
     </div>
   );

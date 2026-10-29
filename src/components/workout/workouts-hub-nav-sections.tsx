@@ -2,6 +2,7 @@
 
 import { ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import {
   BarbellDoodle,
@@ -30,6 +31,26 @@ import {
 } from "@/lib/workout/labels";
 import { HUB_WEIGHT_NAV_HINT } from "@/lib/workout/user-copy";
 
+function MacroCycleHubLink({ children }: { children: ReactNode }) {
+  return (
+    <Link
+      href="/workouts/macro"
+      className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-muted-foreground">
+          {CYCLE_LABEL}
+        </p>
+        <ChevronRight
+          className="size-4 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+      </div>
+      {children}
+    </Link>
+  );
+}
+
 export function WorkoutsHubNavSections({
   macro,
   session,
@@ -57,19 +78,7 @@ export function WorkoutsHubNavSections({
       style={{ animationDelay: "40ms" }}
     >
       {macro?.macro && macro.phase ? (
-        <Link
-          href="/workouts/macro"
-          className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              {CYCLE_LABEL}
-            </p>
-            <ChevronRight
-              className="size-4 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </div>
+        <MacroCycleHubLink>
           <p className="text-xl font-semibold tracking-tight">
             {phaseLinkLabel(
               macro.macro.number,
@@ -94,21 +103,9 @@ export function WorkoutsHubNavSections({
           {phaseHint ? (
             <p className="text-base leading-snug">{phaseHint}</p>
           ) : null}
-        </Link>
+        </MacroCycleHubLink>
       ) : macro && macro.planned_cycle.length > 0 ? (
-        <Link
-          href="/workouts/macro"
-          className="card-surface flex flex-col gap-2 px-5 py-4 transition-colors hover:bg-muted/40"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              {CYCLE_LABEL}
-            </p>
-            <ChevronRight
-              className="size-4 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-          </div>
+        <MacroCycleHubLink>
           <p className="text-xl font-semibold tracking-tight">
             Ещё не запущены
           </p>
@@ -116,7 +113,7 @@ export function WorkoutsHubNavSections({
             {macro.planned_cycle.map((phase) => phase.name).join(" → ")}. Те же
             дни, другой вес по кругу.
           </p>
-        </Link>
+        </MacroCycleHubLink>
       ) : null}
 
       {activeTemplates.length > 0 ? (

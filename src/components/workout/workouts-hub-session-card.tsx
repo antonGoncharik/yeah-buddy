@@ -6,14 +6,13 @@ import Link from "next/link";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
-
-import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type {
   RecentWorkoutSession,
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { formatWorkDate } from "@/lib/workout/exercise-work-phase";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubSessionCard({
@@ -52,7 +51,7 @@ export function WorkoutsHubSessionCard({
                 </MarkBadge>
                 <span className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-primary">
-                    Не закончена · {formatSessionDay(item.session.session_date)}
+                    Не закончена · {formatWorkDate(item.session.session_date)}
                   </p>
                   <h2 className="mt-0.5 text-xl font-semibold tracking-tight">
                     {item.template_name ??

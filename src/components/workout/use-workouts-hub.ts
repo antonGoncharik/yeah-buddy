@@ -1,6 +1,6 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDayMood } from "@/components/layout/day-mood";
@@ -13,14 +13,13 @@ import { LOAD_FAILED } from "@/lib/messages";
 import type {
   CurrentMacroState,
   ExerciseWithMax,
-  PhaseCircleProgress,
-  RecentWorkoutSession,
-  WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { phaseEndHint, templateCanPlan } from "@/lib/workout/hints";
 import {
+  EMPTY_HUB_SESSION,
+  type HubSessionState,
   readExercises,
   readHubSessionState,
   readMacro,
@@ -34,33 +33,43 @@ import { SESSION_STATUS_LABELS } from "@/lib/workout/labels";
 import { muscleHubRecoveryHint } from "@/lib/workout/muscle-insights";
 import { parseMuscleSnapshot } from "@/lib/workout/parse-muscles";
 
-function applyHubState(
-  hub: ReturnType<typeof readHubSessionState>,
-  setters: {
-    setSession: (value: WorkoutSession | null) => void;
-    setSessionTemplate: (value: WorkoutTemplateDetail | null) => void;
-    setNextTemplate: (value: WorkoutTemplateDetail | null) => void;
-    setFollowingTemplate: (value: WorkoutTemplateDetail | null) => void;
-    setUnfinished: (value: RecentWorkoutSession[]) => void;
-    setRecent: (value: RecentWorkoutSession[]) => void;
-    setPhaseCircle: (value: PhaseCircleProgress | null) => void;
-    setCanUnskip: (value: boolean) => void;
-    setCanBackfillYesterday: (value: boolean) => void;
-    setQueueLastTemplateId: (value: string | null) => void;
-    setSkipTemplateIds: (value: string[]) => void;
-  },
-): void {
-  setters.setSession(hub.session);
-  setters.setSessionTemplate(hub.sessionTemplate);
-  setters.setNextTemplate(hub.nextTemplate);
-  setters.setFollowingTemplate(hub.followingTemplate);
-  setters.setUnfinished(hub.unfinished);
-  setters.setRecent(hub.recent);
-  setters.setPhaseCircle(hub.phaseCircle);
-  setters.setCanUnskip(hub.canUnskip);
-  setters.setCanBackfillYesterday(hub.canBackfillYesterday);
-  setters.setQueueLastTemplateId(hub.queueLastTemplateId);
-  setters.setSkipTemplateIds(hub.skipTemplateIds);
+function fetchCached(
+  url: string,
+  apply: (data: unknown) => boolean,
+  onCached: () => void,
+): Promise<boolean> {
+  return cachedGet(url, apply, onCached).then(
+    () => true,
+    () => false,
+  );
+}
+
+function patchHubQueueSkip(
+  date: string,
+  activeTemplates: WorkoutTemplateDetail[],
+  queueLastTemplateId: string | null,
+  newSkip: string[],
+): Pick<
+  HubSessionState,
+  "skipTemplateIds" | "nextTemplate" | "followingTemplate" | "canUnskip"
+> {
+  const { nextTemplate, followingTemplate } = recomputeHubQueue(
+    activeTemplates,
+    newSkip,
+    queueLastTemplateId,
+  );
+  writeHubQueuePreview(date, {
+    next_template: nextTemplate,
+    following_template: followingTemplate,
+    can_unskip: newSkip.length > 0,
+    skip_template_ids: newSkip,
+  });
+  return {
+    skipTemplateIds: newSkip,
+    nextTemplate,
+    followingTemplate,
+    canUnskip: newSkip.length > 0,
+  };
 }
 
 export function useWorkoutsHub() {
@@ -69,24 +78,7 @@ export function useWorkoutsHub() {
   const [exercises, setExercises] = useState<ExerciseWithMax[]>([]);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[]>([]);
   const [macro, setMacro] = useState<CurrentMacroState | null>(null);
-  const [session, setSession] = useState<WorkoutSession | null>(null);
-  const [sessionTemplate, setSessionTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [nextTemplate, setNextTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [followingTemplate, setFollowingTemplate] =
-    useState<WorkoutTemplateDetail | null>(null);
-  const [unfinished, setUnfinished] = useState<RecentWorkoutSession[]>([]);
-  const [recent, setRecent] = useState<RecentWorkoutSession[]>([]);
-  const [phaseCircle, setPhaseCircle] = useState<PhaseCircleProgress | null>(
-    null,
-  );
-  const [canUnskip, setCanUnskip] = useState(false);
-  const [canBackfillYesterday, setCanBackfillYesterday] = useState(false);
-  const [queueLastTemplateId, setQueueLastTemplateId] = useState<string | null>(
-    null,
-  );
-  const [skipTemplateIds, setSkipTemplateIds] = useState<string[]>([]);
+  const [hub, setHub] = useState(EMPTY_HUB_SESSION);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState<HubCreateTarget | null>(null);
@@ -100,33 +92,12 @@ export function useWorkoutsHub() {
     [templates],
   );
 
-  const hubSetters = useMemo(
-    () => ({
-      setSession,
-      setSessionTemplate,
-      setNextTemplate,
-      setFollowingTemplate,
-      setUnfinished,
-      setRecent,
-      setPhaseCircle,
-      setCanUnskip,
-      setCanBackfillYesterday,
-      setQueueLastTemplateId,
-      setSkipTemplateIds,
-    }),
-    [],
-  );
-
   const sessionUrl = `/api/sessions?date=${encodeURIComponent(date)}`;
 
-  const applySessionPayload = useCallback(
-    (data: unknown): boolean => {
-      const hub = readHubSessionState(data);
-      applyHubState(hub, hubSetters);
-      return true;
-    },
-    [hubSetters],
-  );
+  const applySessionPayload = useCallback((data: unknown): boolean => {
+    setHub(readHubSessionState(data));
+    return true;
+  }, []);
 
   const refreshSessions = useCallback(async () => {
     try {
@@ -138,43 +109,41 @@ export function useWorkoutsHub() {
 
   const applySkipOptimistic = useCallback(
     (templateId: string) => {
-      const newSkip = skipTemplateIds.includes(templateId)
-        ? skipTemplateIds
-        : [...skipTemplateIds, templateId];
-      const { nextTemplate: next, followingTemplate: following } =
-        recomputeHubQueue(activeTemplates, newSkip, queueLastTemplateId);
-      setSkipTemplateIds(newSkip);
-      setNextTemplate(next);
-      setFollowingTemplate(following);
-      setCanUnskip(newSkip.length > 0);
-      writeHubQueuePreview(date, {
-        next_template: next,
-        following_template: following,
-        can_unskip: newSkip.length > 0,
-        skip_template_ids: newSkip,
+      setHub((prev) => {
+        const newSkip = prev.skipTemplateIds.includes(templateId)
+          ? prev.skipTemplateIds
+          : [...prev.skipTemplateIds, templateId];
+        return {
+          ...prev,
+          ...patchHubQueueSkip(
+            date,
+            activeTemplates,
+            prev.queueLastTemplateId,
+            newSkip,
+          ),
+        };
       });
     },
-    [activeTemplates, date, queueLastTemplateId, skipTemplateIds],
+    [activeTemplates, date],
   );
 
   const applyUnskipOptimistic = useCallback(() => {
-    if (skipTemplateIds.length === 0) {
-      return;
-    }
-    const newSkip = skipTemplateIds.slice(0, -1);
-    const { nextTemplate: next, followingTemplate: following } =
-      recomputeHubQueue(activeTemplates, newSkip, queueLastTemplateId);
-    setSkipTemplateIds(newSkip);
-    setNextTemplate(next);
-    setFollowingTemplate(following);
-    setCanUnskip(newSkip.length > 0);
-    writeHubQueuePreview(date, {
-      next_template: next,
-      following_template: following,
-      can_unskip: newSkip.length > 0,
-      skip_template_ids: newSkip,
+    setHub((prev) => {
+      if (prev.skipTemplateIds.length === 0) {
+        return prev;
+      }
+      const newSkip = prev.skipTemplateIds.slice(0, -1);
+      return {
+        ...prev,
+        ...patchHubQueueSkip(
+          date,
+          activeTemplates,
+          prev.queueLastTemplateId,
+          newSkip,
+        ),
+      };
     });
-  }, [activeTemplates, date, queueLastTemplateId, skipTemplateIds]);
+  }, [activeTemplates, date]);
 
   const load = useCallback(async () => {
     begin();
@@ -182,48 +151,33 @@ export function useWorkoutsHub() {
     const showCached = () => done(true);
 
     const results = await Promise.all([
-      cachedGet(
+      fetchCached(
         "/api/exercises?filter=active",
         (data) => {
           setExercises(readExercises(data));
           return true;
         },
         showCached,
-      ).then(
-        () => true,
-        () => false,
       ),
-      cachedGet(
+      fetchCached(
         "/api/templates",
         (data) => {
           setTemplates(readTemplates(data));
           return true;
         },
         showCached,
-      ).then(
-        () => true,
-        () => false,
       ),
-      cachedGet(
+      fetchCached(
         "/api/macros",
         (data) => {
           setMacro(readMacro(data));
           return true;
         },
         showCached,
-      ).then(
-        () => true,
-        () => false,
       ),
-      cachedGet(sessionUrl, applySessionPayload, showCached).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet("/api/workout-settings", () => true, showCached).then(
-        () => true,
-        () => false,
-      ),
-      cachedGet(
+      fetchCached(sessionUrl, applySessionPayload, showCached),
+      fetchCached("/api/workout-settings", () => true, showCached),
+      fetchCached(
         "/api/muscles?days=14",
         (data) => {
           const snapshot = parseMuscleSnapshot(data);
@@ -233,9 +187,6 @@ export function useWorkoutsHub() {
           return true;
         },
         showCached,
-      ).then(
-        () => true,
-        () => false,
       ),
     ]);
 
@@ -260,6 +211,18 @@ export function useWorkoutsHub() {
     setMood(macro?.phase?.phase_type === "deload" ? "deload" : "training");
     return () => setMood(null);
   }, [loading, macro?.phase?.phase_type, setMood]);
+
+  const {
+    session,
+    sessionTemplate,
+    nextTemplate,
+    followingTemplate,
+    unfinished,
+    recent,
+    phaseCircle,
+    canUnskip,
+    canBackfillYesterday,
+  } = hub;
 
   const { createOnDate, unskipLast, skipNext } = useHubSessionActions({
     date,
@@ -315,12 +278,4 @@ export function useWorkoutsHub() {
     skipNext,
     muscleRecoveryHint,
   };
-}
-
-export function formatSessionDay(isoDate: string): string {
-  try {
-    return format(parseISO(isoDate), "d MMM", { locale: ru });
-  } catch {
-    return isoDate;
-  }
 }

@@ -5,8 +5,8 @@ import Link from "next/link";
 
 import { SectionHeading } from "@/components/layout/section-heading";
 import { SessionCloseTrail } from "@/components/workout/session-close-trail";
-import { formatSessionDay } from "@/components/workout/use-workouts-hub";
 import type { RecentWorkoutSession } from "@/lib/types";
+import { formatWorkDate } from "@/lib/workout/exercise-work-phase";
 import { WORKOUT_KIND_LABELS } from "@/lib/workout/labels";
 
 export function WorkoutsHubRecent({
@@ -42,7 +42,7 @@ export function WorkoutsHubRecent({
                       WORKOUT_KIND_LABELS[item.session.workout_type]}
                   </span>
                   <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                    {formatSessionDay(item.session.session_date)}
+                    {formatWorkDate(item.session.session_date)}
                   </span>
                 </span>
                 {item.summary || item.close_kind ? (

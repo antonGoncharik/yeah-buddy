@@ -25,6 +25,25 @@ import {
 
 export type HubCreateTarget = "today" | "yesterday";
 
+function loadErrorMessage(caught: unknown): string {
+  return caught instanceof Error ? caught.message : LOAD_FAILED;
+}
+
+function warnEmptyTemplate(
+  setError: Dispatch<SetStateAction<string | null>>,
+): void {
+  haptic("warn");
+  setError(WORKOUT_TEMPLATE_EMPTY);
+}
+
+function failAction(
+  setError: Dispatch<SetStateAction<string | null>>,
+  caught: unknown,
+): void {
+  haptic("error");
+  setError(loadErrorMessage(caught));
+}
+
 export function useHubSessionActions({
   date,
   templates,
@@ -53,6 +72,31 @@ export function useHubSessionActions({
   const router = useRouter();
   const confirm = useConfirm();
 
+  async function confirmRestToTraining(sessionDate: string): Promise<boolean> {
+    let dayData = peekJson(daysUrl(sessionDate));
+    if (!isOffline()) {
+      try {
+        dayData = await mutateJson(daysUrl(sessionDate));
+      } catch {
+        // keep the cached day if the phone is in a basement with a fake "online"
+      }
+    }
+    if (!dayData || !isRestFoodDay(dayData)) {
+      return true;
+    }
+    const day = readDay(dayData);
+    return confirm({
+      message: switchRestToTrainingMessage({
+        isToday: sessionDate === date,
+        swapMeals: day
+          ? mealsMatchRecipe(day.meals, readRecipes(dayData).rest)
+          : false,
+      }),
+      confirmLabel: "Сделать тренировочным",
+      cancelLabel: "Отмена",
+    });
+  }
+
   async function createOnDate(
     templateId: string,
     sessionDate: string,
@@ -60,8 +104,7 @@ export function useHubSessionActions({
   ) {
     const template = templates.find((item) => item.id === templateId);
     if (template && !templateCanPlan(template)) {
-      haptic("warn");
-      setError(WORKOUT_TEMPLATE_EMPTY);
+      warnEmptyTemplate(setError);
       return;
     }
 
@@ -69,29 +112,8 @@ export function useHubSessionActions({
     setError(null);
 
     try {
-      let dayData = peekJson(daysUrl(sessionDate));
-      if (!isOffline()) {
-        try {
-          dayData = await mutateJson(daysUrl(sessionDate));
-        } catch {
-          // keep the cached day if the phone is in a basement with a fake "online"
-        }
-      }
-      if (dayData && isRestFoodDay(dayData)) {
-        const day = readDay(dayData);
-        const ok = await confirm({
-          message: switchRestToTrainingMessage({
-            isToday: sessionDate === date,
-            swapMeals: day
-              ? mealsMatchRecipe(day.meals, readRecipes(dayData).rest)
-              : false,
-          }),
-          confirmLabel: "Сделать тренировочным",
-          cancelLabel: "Отмена",
-        });
-        if (!ok) {
-          return;
-        }
+      if (!(await confirmRestToTraining(sessionDate))) {
+        return;
       }
 
       const created = await queueCreateSession({
@@ -99,20 +121,17 @@ export function useHubSessionActions({
         templateId,
       });
       if (!created) {
-        haptic("warn");
-        setError(WORKOUT_TEMPLATE_EMPTY);
+        warnEmptyTemplate(setError);
         return;
       }
       haptic("commit");
       router.push(`/workouts/sessions/${created.session.id}`);
     } catch (caught) {
       if (isEmptyTemplateError(caught)) {
-        haptic("warn");
-        setError(WORKOUT_TEMPLATE_EMPTY);
+        warnEmptyTemplate(setError);
         return;
       }
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      failAction(setError, caught);
     } finally {
       setCreating(null);
     }
@@ -128,8 +147,7 @@ export function useHubSessionActions({
       haptic("commit");
       void refreshSessions();
     } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      failAction(setError, caught);
       await load();
     } finally {
       setSkipping(false);
@@ -160,8 +178,7 @@ export function useHubSessionActions({
       haptic("commit");
       void refreshSessions();
     } catch (caught) {
-      haptic("error");
-      setError(caught instanceof Error ? caught.message : LOAD_FAILED);
+      failAction(setError, caught);
       await load();
     } finally {
       setSkipping(false);

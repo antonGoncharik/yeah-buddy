@@ -143,7 +143,7 @@ export function readCompletedSessions(data: unknown): number {
   return isRecord(data) ? toNumber(data.completed_sessions) : 0;
 }
 
-export function readHubSessionState(data: unknown): {
+export type HubSessionState = {
   session: WorkoutSession | null;
   sessionTemplate: WorkoutTemplateDetail | null;
   nextTemplate: WorkoutTemplateDetail | null;
@@ -155,8 +155,23 @@ export function readHubSessionState(data: unknown): {
   queueLastTemplateId: string | null;
   skipTemplateIds: string[];
   canBackfillYesterday: boolean;
-  completedSessions: number;
-} {
+};
+
+export const EMPTY_HUB_SESSION: HubSessionState = {
+  session: null,
+  sessionTemplate: null,
+  nextTemplate: null,
+  followingTemplate: null,
+  unfinished: [],
+  recent: [],
+  phaseCircle: null,
+  canUnskip: false,
+  queueLastTemplateId: null,
+  skipTemplateIds: [],
+  canBackfillYesterday: false,
+};
+
+export function readHubSessionState(data: unknown): HubSessionState {
   return {
     session: readTodaySession(data),
     sessionTemplate: readTemplate(data, "session_template"),
@@ -169,7 +184,6 @@ export function readHubSessionState(data: unknown): {
     queueLastTemplateId: readQueueLastTemplateId(data),
     skipTemplateIds: readSkipTemplateIds(data),
     canBackfillYesterday: readCanBackfillYesterday(data),
-    completedSessions: readCompletedSessions(data),
   };
 }
 
