@@ -613,16 +613,16 @@ html[data-keyboard="open"] .app-sticky-actions [data-keyboard-secondary] {
    on the top edge. Stretch the line box to the border box (minus the 1px
    borders) and drop vertical padding. Left alignment stays. */
 input.field-control:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"],
-    [type="button"],
-    [type="submit"],
-    [type="reset"],
-    [type="hidden"],
-    [type="image"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  [type="hidden"],
+  [type="image"]
+),
 select.field-control {
   padding-top: 0;
   padding-bottom: 0;
@@ -630,41 +630,41 @@ select.field-control {
 }
 
 input.field-control.h-9:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-9 {
   line-height: calc(2.25rem - 2px);
 }
 
 input.field-control.h-10:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-10 {
   line-height: calc(2.5rem - 2px);
 }
 
 input.field-control.h-11:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-11 {
   line-height: calc(2.75rem - 2px);
 }
 
 input.field-control.h-12:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-12 {
   line-height: calc(3rem - 2px);
 }
@@ -681,21 +681,21 @@ textarea.field-control:not([data-slot="textarea"]) {
 }
 
 input.field-control.h-14:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-14 {
   line-height: calc(3.5rem - 2px);
 }
 
 input.field-control.h-16:not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ),
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+),
 select.field-control.h-16 {
   line-height: calc(4rem - 2px);
 }
@@ -1165,12 +1165,12 @@ html[data-density="compact"]:not(:has([data-onboarding-ui])) .px-6 {
 /* Compact remaps h-10…h-14, and .text-* resets line-height. Follow the
    used control height so glyphs stay in the vertical middle. */
 html[data-density="compact"]:not(:has([data-onboarding-ui]))
-  :is(input.field-control.h-8, input.field-control:not([class*="h-"])):not(
-    [type="checkbox"],
-    [type="radio"],
-    [type="file"],
-    [type="range"]
-  ) {
+:is(input.field-control.h-8, input.field-control:not([class*="h-"])):not(
+  [type="checkbox"],
+  [type="radio"],
+  [type="file"],
+  [type="range"]
+) {
   line-height: calc(2rem - 2px);
 }
 

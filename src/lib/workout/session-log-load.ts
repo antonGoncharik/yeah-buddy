@@ -22,16 +22,14 @@ export async function loadWorkBySession(
   }
 
   const supabase = createSupabaseServerClient();
-  const sessionExercises = await selectInChunks(
-    sessionIds,
-    (chunk, from, to) =>
-      supabase
-        .from("session_exercises")
-        .select("id, session_id, exercise_id, sort_order, note")
-        .eq("user_id", userId)
-        .in("session_id", chunk)
-        .order("sort_order", { ascending: true })
-        .range(from, to),
+  const sessionExercises = await selectInChunks(sessionIds, (chunk, from, to) =>
+    supabase
+      .from("session_exercises")
+      .select("id, session_id, exercise_id, sort_order, note")
+      .eq("user_id", userId)
+      .in("session_id", chunk)
+      .order("sort_order", { ascending: true })
+      .range(from, to),
   );
   if (sessionExercises.length === 0) {
     return grouped;
