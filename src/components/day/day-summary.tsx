@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MacroBar } from "@/components/day/day-summary-macro-bar";
 import { WeightBlock } from "@/components/day/day-summary-weight-block";
@@ -42,7 +42,6 @@ export function DaySummary({
   weightGap = null,
   waistGap = null,
   share = false,
-  gym = null,
   onSaveBodyWeight,
   onSaveWaist,
 }: {
@@ -70,7 +69,6 @@ export function DaySummary({
   weightGap?: string | null;
   waistGap?: string | null;
   share?: boolean;
-  gym?: ReactNode;
   onSaveBodyWeight?: (value: number | null) => Promise<void>;
   onSaveWaist?: (value: number | null) => Promise<void>;
 }) {
@@ -222,7 +220,6 @@ export function DaySummary({
         {flavor ? (
           <p className="text-sm text-muted-foreground">{flavor}</p>
         ) : null}
-        {gym ? <div className="border-t border-border pt-3">{gym}</div> : null}
       </div>
 
       {joy && !compact ? <JoyShareButton moment={joy} /> : null}

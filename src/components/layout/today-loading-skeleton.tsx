@@ -100,28 +100,20 @@ function MealItemSkeleton({
   kcal: string;
 }) {
   return (
-    <div className="flex w-full min-w-0 items-stretch gap-1">
-      <div className="min-w-0 flex-1 px-1 py-2">
-        <span className="flex w-full min-w-0 items-baseline justify-between gap-3">
-          <TextBone text={name} className="text-base font-medium" />
-          <span className="grid shrink-0 grid-cols-[4.75rem_3.5rem] items-baseline gap-x-1.5 tabular-nums">
-            <span className="min-w-0 text-right">
-              <TextBone text={grams} className="text-sm font-medium" />
-            </span>
-            <span className="min-w-0 text-right">
-              <TextBone text={kcal} className="text-base font-semibold" />
-            </span>
-          </span>
-        </span>
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_2.75rem_4.75rem_3.5rem_2.75rem] items-center gap-x-1">
+      <div className="min-w-0 px-1 py-2">
+        <TextBone text={name} className="text-base font-medium" />
       </div>
-      <div className="self-center">
-        <TextBone text="БЖУ" className="px-2 text-sm font-medium" />
-      </div>
-      <div className="self-center" aria-hidden>
-        <span className="flex size-11 items-center justify-center">
-          <IconBone className="size-5" />
-        </span>
-      </div>
+      <TextBone text="БЖУ" className="text-center text-sm font-medium" />
+      <span className="text-right">
+        <TextBone text={grams} className="text-sm font-medium" />
+      </span>
+      <span className="text-right">
+        <TextBone text={kcal} className="text-base font-semibold" />
+      </span>
+      <span className="flex size-11 items-center justify-center" aria-hidden>
+        <IconBone className="size-5" />
+      </span>
     </div>
   );
 }

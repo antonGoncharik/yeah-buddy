@@ -19,7 +19,6 @@ import {
   visibleTodayDate,
   writeStateFromDay,
 } from "@/lib/day/dates";
-import { gymLoopFromTodayState } from "@/lib/day/loop";
 import {
   factFromDay,
   hiddenMealKcalFromDay,
@@ -79,20 +78,6 @@ export function useTodayScreen({
     shownDay?.caught_up === true ||
     (writable && isCatchUpWindowDate(date, data.today));
   const viewOnly = fromHistory || !writable;
-
-  const gym = useMemo(
-    () =>
-      gymEnabled
-        ? gymLoopFromTodayState(data.workoutState, {
-            isToday,
-            isTrainingDay: effectiveTraining,
-          })
-        : gymLoopFromTodayState(null, {
-            isToday,
-            isTrainingDay: false,
-          }),
-    [data.workoutState, effectiveTraining, gymEnabled, isToday],
-  );
 
   useEffect(() => {
     const routeChanged = routeDateRef.current !== initialDate;
@@ -242,7 +227,6 @@ export function useTodayScreen({
     viewOnly,
     contentReady: data.contentReady,
     shownDay,
-    gym,
     visibleMeals,
     hiddenMealKcal,
     hiddenMealTypes,

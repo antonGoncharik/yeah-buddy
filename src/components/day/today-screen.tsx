@@ -41,7 +41,6 @@ export function TodayScreen({
     viewOnly,
     contentReady,
     shownDay,
-    gym,
     visibleMeals,
     hiddenMealKcal,
     hiddenMealTypes,
@@ -226,7 +225,6 @@ export function TodayScreen({
         priorProteinHits={priorProteinHits}
         reviewReady={reviewReady}
         effectiveTraining={effectiveTraining}
-        gym={gym}
         saveBodyWeight={saveBodyWeight}
         saveWaist={saveWaist}
         switchType={switchType}

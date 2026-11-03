@@ -20,7 +20,6 @@ import { useTodayDayDerived } from "@/components/day/use-today-day-derived";
 import { useTodayWorkoutPeek } from "@/components/day/use-today-workout-peek";
 import { useUndoToast } from "@/components/layout/undo-toast-provider";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
-import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import { clearTrainingFlip, readTrainingFlip } from "@/lib/day/training-flip";
@@ -75,7 +74,6 @@ export function TodayDayView({
   reviewReady,
   gymEnabled,
   effectiveTraining,
-  gym,
   busy,
   saveBodyWeight,
   saveWaist,
@@ -131,7 +129,6 @@ export function TodayDayView({
   reviewReady: boolean;
   gymEnabled: boolean;
   effectiveTraining: boolean;
-  gym: GymLoop;
   busy: boolean;
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
@@ -244,8 +241,6 @@ export function TodayDayView({
       weightGap={weightGap}
       waistGap={waistGap}
       writable={writable}
-      gymEnabled={gymEnabled}
-      gym={gym}
       viewOnly={viewOnly}
       busy={busy}
       saveBodyWeight={saveBodyWeight}

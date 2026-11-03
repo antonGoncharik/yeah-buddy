@@ -1,8 +1,6 @@
 "use client";
 
 import { DaySummary } from "@/components/day/day-summary";
-import { TodayGymStatus } from "@/components/day/today-gym-status";
-import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import { isTempId } from "@/lib/day/optimistic";
 
@@ -18,8 +16,6 @@ export function TodayDayViewSummaryCard({
   weightGap,
   waistGap,
   writable,
-  gymEnabled,
-  gym,
   viewOnly,
   busy,
   saveBodyWeight,
@@ -36,8 +32,6 @@ export function TodayDayViewSummaryCard({
   weightGap: string | null;
   waistGap: string | null;
   writable: boolean;
-  gymEnabled: boolean;
-  gym: GymLoop;
   viewOnly: boolean;
   busy: boolean;
   saveBodyWeight: (value: number | null) => Promise<void>;
@@ -59,7 +53,6 @@ export function TodayDayViewSummaryCard({
       weightGap={weightGap}
       waistGap={waistGap}
       share={writable}
-      gym={gymEnabled ? <TodayGymStatus {...gym} /> : null}
       onSaveBodyWeight={viewOnly ? undefined : saveBodyWeight}
       onSaveWaist={viewOnly ? undefined : saveWaist}
       bodyWeightReadOnly={viewOnly}

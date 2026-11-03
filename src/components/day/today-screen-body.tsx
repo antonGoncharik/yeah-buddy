@@ -6,7 +6,6 @@ import { TodayPauseBanner } from "@/components/day/today-pause-banner";
 import { ScreenError } from "@/components/layout/screen-status";
 import { TodayLoadingSkeleton } from "@/components/layout/today-loading-skeleton";
 import { previousIsoDate } from "@/lib/day/dates";
-import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import type { MacroGoals } from "@/lib/day/today-payload";
 import { LOAD_FAILED } from "@/lib/messages";
@@ -70,7 +69,6 @@ export function TodayScreenBody({
   priorProteinHits,
   reviewReady,
   effectiveTraining,
-  gym,
   saveBodyWeight,
   saveWaist,
   switchType,
@@ -134,7 +132,6 @@ export function TodayScreenBody({
   priorProteinHits: number;
   reviewReady: boolean;
   effectiveTraining: boolean;
-  gym: GymLoop;
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
   switchType: (dayType: DayType) => Promise<void>;
@@ -236,7 +233,6 @@ export function TodayScreenBody({
           reviewReady={reviewReady && isToday}
           gymEnabled={gymEnabled}
           effectiveTraining={effectiveTraining}
-          gym={gym}
           busy={busy}
           saveBodyWeight={saveBodyWeight}
           saveWaist={saveWaist}
