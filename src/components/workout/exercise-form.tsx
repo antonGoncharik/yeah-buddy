@@ -28,6 +28,7 @@ export function ExerciseForm({
     error,
     saving,
     canCorrectMax,
+    inCycle,
     need,
     active,
     toggling,
@@ -57,6 +58,7 @@ export function ExerciseForm({
           form={form}
           setForm={setForm}
           canCorrectMax={canCorrectMax}
+          inCycle={inCycle}
           need={need}
         />
       ) : null}

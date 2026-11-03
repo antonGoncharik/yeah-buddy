@@ -12,7 +12,8 @@ import {
   StartingMaxLockedError,
   updateExercise,
 } from "@/lib/workout/exercises";
-import { rebuildTodaysPlannedSession } from "@/lib/workout/session-work";
+import { overlayPhaseWorkingMax } from "@/lib/workout/macro-maxes";
+import { rebuildUnstartedPlannedSessions } from "@/lib/workout/session-work";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -28,7 +29,8 @@ export const GET = sessionRoute(
         return jsonError("Упражнение не найдено.", 404);
       }
 
-      return jsonOk({ exercise });
+      const [shown] = await overlayPhaseWorkingMax(session.userId, [exercise]);
+      return jsonOk({ exercise: shown ?? exercise });
     } catch (error) {
       return failRoute(error);
     }
@@ -82,7 +84,7 @@ export async function PATCH(
     }
 
     if (parsed.data.max_weight != null) {
-      await rebuildTodaysPlannedSession(auth.session.userId);
+      await rebuildUnstartedPlannedSessions(auth.session.userId);
     }
 
     return jsonOk({ exercise });

@@ -16,7 +16,7 @@ import {
 import {
   attachMaxes,
   copyMaxToCurrentPhase,
-  correctStartingMax,
+  correctWorkingMax,
   insertGlobalMax,
   listGlobalMaxes,
   resolveAchievedAt,
@@ -286,7 +286,7 @@ export async function updateExercise(
   }
 
   if (input.max_weight != null) {
-    await correctStartingMax({
+    await correctWorkingMax({
       userId,
       exerciseId: id,
       maxWeight: input.max_weight,

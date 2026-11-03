@@ -34,7 +34,7 @@ export function useExerciseForm(
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [canCorrectMax, setCanCorrectMax] = useState(!exercise);
+  const [inCycle, setInCycle] = useState(false);
   const [active, setActive] = useState(exercise?.is_active !== false);
   const [toggling, setToggling] = useState(false);
   const [templates, setTemplates] = useState<WorkoutTemplateDetail[] | null>(
@@ -68,10 +68,10 @@ export function useExerciseForm(
         const phase =
           data && typeof data === "object" && "phase" in data
             ? data.phase
-            : true;
-        setCanCorrectMax(phase == null);
+            : null;
+        setInCycle(phase != null);
       } catch {
-        // Keep the field locked until we know there is no current phase.
+        setInCycle(false);
       }
     }
 
@@ -91,12 +91,7 @@ export function useExerciseForm(
       const need = exercise
         ? exerciseLoadNeed(exercise, templates)
         : { max: form.formula_preset !== "none", track: false };
-      const payload = toPayload(
-        form,
-        Boolean(exercise),
-        canCorrectMax,
-        need.max,
-      );
+      const payload = toPayload(form, Boolean(exercise), true, need.max);
       if (!payload) {
         setError(CHECK_FIELDS);
         return;
@@ -145,7 +140,8 @@ export function useExerciseForm(
     setForm,
     error,
     saving,
-    canCorrectMax,
+    canCorrectMax: true,
+    inCycle,
     active,
     toggling,
     need,

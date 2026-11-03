@@ -14,7 +14,7 @@ import {
   type ExerciseLoadNeed,
   exerciseWeightLead,
 } from "@/lib/workout/exercise-load-need";
-import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+import { parseDecimal } from "@/lib/workout/numbers";
 import { ONE_REP_FIELD } from "@/lib/workout/user-copy";
 
 function maxWeightOutOfRange(raw: string): boolean {
@@ -30,15 +30,16 @@ export function ExerciseLoadsSection({
   form,
   setForm,
   canCorrectMax,
+  inCycle,
   need,
 }: {
   exercise: ExerciseWithMax;
   form: ExerciseFormState;
   setForm: Dispatch<SetStateAction<ExerciseFormState>>;
   canCorrectMax: boolean;
+  inCycle: boolean;
   need: ExerciseLoadNeed;
 }) {
-  const maxLocked = !canCorrectMax;
   const lead = exerciseWeightLead({
     need,
     preset: exercise.formula_preset,
@@ -64,10 +65,10 @@ export function ExerciseLoadsSection({
         >
           {need.max ? (
             <MaxField
-              exercise={exercise}
               form={form}
               setForm={setForm}
-              locked={maxLocked}
+              editable={canCorrectMax}
+              inCycle={inCycle}
             />
           ) : null}
           {need.track ? (
@@ -107,39 +108,35 @@ export function ExerciseLoadsSectionNew({
 }
 
 function MaxField({
-  exercise,
   form,
   setForm,
-  locked,
+  editable,
+  inCycle,
 }: {
-  exercise: ExerciseWithMax;
   form: ExerciseFormState;
   setForm: Dispatch<SetStateAction<ExerciseFormState>>;
-  locked: boolean;
+  editable: boolean;
+  inCycle: boolean;
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-muted/35 px-3 py-3">
       <p className="text-sm font-medium">{ONE_REP_FIELD}</p>
-      {locked ? (
-        <>
-          <Input
-            readOnly
-            tabIndex={-1}
-            aria-label="Максимум на раз, кг"
-            value={
-              exercise.current_max
-                ? formatWeight(exercise.current_max.max_weight)
-                : ""
-            }
-            className={EXERCISE_LOAD_INPUT_CLASS}
-          />
-          <p className="text-xs leading-snug text-muted-foreground">
-            Идёт цикл — меняется в «Недели».
-          </p>
-        </>
-      ) : (
+      {editable ? (
         <MaxDraft form={form} setForm={setForm} />
+      ) : (
+        <Input
+          readOnly
+          tabIndex={-1}
+          aria-label="Максимум на раз, кг"
+          value={form.max_weight}
+          className={EXERCISE_LOAD_INPUT_CLASS}
+        />
       )}
+      {inCycle ? (
+        <p className="text-xs leading-snug text-muted-foreground">
+          Проценты этой недели считаются от этого числа.
+        </p>
+      ) : null}
     </div>
   );
 }

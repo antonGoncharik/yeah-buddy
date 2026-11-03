@@ -155,6 +155,71 @@ export async function setStartingMaxes(
   }
 }
 
+/**
+ * The number the current week uses. Outside a cycle this corrects the
+ * starting record. Inside a cycle it writes the week max: a higher number
+ * also raises the record, a lower one leaves the record history alone.
+ */
+export async function correctWorkingMax(input: {
+  userId: string;
+  exerciseId: string;
+  maxWeight: number;
+}): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const phase = await supabase
+    .from("workout_phases")
+    .select("id")
+    .eq("user_id", input.userId)
+    .eq("status", "current")
+    .maybeSingle();
+
+  if (phase.error) {
+    throw phase.error;
+  }
+
+  if (!phase.data) {
+    await correctStartingMax(input);
+    return;
+  }
+
+  const latest = await supabase
+    .from("phase_maxes")
+    .select("max_weight")
+    .eq("user_id", input.userId)
+    .eq("phase_id", phase.data.id)
+    .eq("exercise_id", input.exerciseId)
+    .order("set_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latest.error) {
+    throw latest.error;
+  }
+
+  const current = latest.data == null ? null : Number(latest.data.max_weight);
+  if (current == null || Math.abs(current - input.maxWeight) > 0.001) {
+    const inserted = await supabase.from("phase_maxes").insert({
+      user_id: input.userId,
+      phase_id: phase.data.id,
+      exercise_id: input.exerciseId,
+      max_weight: input.maxWeight,
+      source: "manual",
+    });
+    if (inserted.error) {
+      throw inserted.error;
+    }
+  }
+
+  await raiseGlobalMax({
+    userId: input.userId,
+    exerciseId: input.exerciseId,
+    maxWeight: input.maxWeight,
+    achievedAt: await getUserCalendarToday(input.userId),
+    phaseId: phase.data.id,
+  });
+}
+
 export async function raiseGlobalMax(input: {
   userId: string;
   exerciseId: string;

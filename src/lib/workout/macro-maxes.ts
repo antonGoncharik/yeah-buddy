@@ -107,6 +107,48 @@ export async function latestWeightsByExercise(
   return latest;
 }
 
+/** Show the week max in place of the record while a cycle is running. */
+export async function overlayPhaseWorkingMax<
+  T extends { id: string; current_max: { max_weight: number } | null },
+>(userId: string, exercises: T[]): Promise<T[]> {
+  if (exercises.length === 0) {
+    return exercises;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const phase = await supabase
+    .from("workout_phases")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "current")
+    .maybeSingle();
+
+  if (phase.error) {
+    throw phase.error;
+  }
+
+  if (!phase.data) {
+    return exercises;
+  }
+
+  const weights = await latestWeightsByExercise(userId, phase.data.id);
+  return exercises.map((exercise) => {
+    const weight = weights.get(exercise.id);
+    if (
+      weight == null ||
+      !exercise.current_max ||
+      Math.abs(exercise.current_max.max_weight - weight) <= 0.001
+    ) {
+      return exercise;
+    }
+
+    return {
+      ...exercise,
+      current_max: { ...exercise.current_max, max_weight: weight },
+    };
+  });
+}
+
 export async function exerciseNamesById(
   userId: string,
   exerciseIds: string[],

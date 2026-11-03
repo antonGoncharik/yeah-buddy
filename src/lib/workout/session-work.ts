@@ -7,6 +7,7 @@ export { getSessionDetail } from "@/lib/workout/session-detail";
 export {
   rebuildPlannedSession,
   rebuildTodaysPlannedSession,
+  rebuildUnstartedPlannedSessions,
   removeSessionExercise,
   reorderSessionExercises,
 } from "@/lib/workout/session-rebuild";

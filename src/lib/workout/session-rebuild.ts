@@ -321,6 +321,30 @@ export async function syncTodaysSessionTemplate(
   }
 }
 
+export async function rebuildUnstartedPlannedSessions(
+  userId: string,
+): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  const listed = await supabase
+    .from("workout_sessions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "planned");
+
+  if (listed.error) {
+    throw listed.error;
+  }
+
+  for (const row of listed.data ?? []) {
+    const session = await getSession(userId, String(row.id));
+    if (!session) {
+      continue;
+    }
+    const aligned = await retargetPlannedSessionPhase(userId, session);
+    await rebuildPlannedSession(userId, aligned.id);
+  }
+}
+
 export async function rebuildTodaysPlannedSession(
   userId: string,
 ): Promise<void> {

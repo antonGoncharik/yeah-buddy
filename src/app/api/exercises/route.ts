@@ -7,6 +7,7 @@ import {
   listExercises,
   listExercisesForMuscle,
 } from "@/lib/workout/exercises";
+import { overlayPhaseWorkingMax } from "@/lib/workout/macro-maxes";
 import { MUSCLE_IDS } from "@/lib/workout/muscle-taxonomy";
 import { ensureWorkoutSettings } from "@/lib/workout/settings";
 
@@ -32,7 +33,9 @@ export const GET = sessionRoute(async (session, request) => {
     const exercises = muscleId
       ? await listExercisesForMuscle(session.userId, muscleId, filter)
       : await listExercises(session.userId, filter);
-    return jsonOk({ exercises });
+    return jsonOk({
+      exercises: await overlayPhaseWorkingMax(session.userId, exercises),
+    });
   } catch (error) {
     return failRoute(error);
   }
