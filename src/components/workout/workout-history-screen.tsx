@@ -1,6 +1,5 @@
 "use client";
 
-import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -118,12 +117,7 @@ export function WorkoutHistoryScreen() {
           </Button>
         ) : null}
 
-        {screen.showStats ? (
-          <>
-            <ReviewCta from="gym" />
-            <WorkoutHistoryNavLinks />
-          </>
-        ) : null}
+        {screen.showStats ? <WorkoutHistoryNavLinks /> : null}
       </div>
     </div>
   );

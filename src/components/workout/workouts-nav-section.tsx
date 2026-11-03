@@ -7,6 +7,7 @@ import {
   MealDayDoodle,
 } from "@/components/layout/doodles";
 import { NavRow } from "@/components/layout/nav-row";
+import { reviewHref } from "@/lib/ai/review-nav";
 import { REVIEW_LABEL, STRENGTH_LABEL } from "@/lib/workout/labels";
 
 const LINKS = {
@@ -47,14 +48,21 @@ export type WorkoutsNavLinkId = keyof typeof LINKS;
 export function WorkoutsNavSection({
   items,
   foodHistoryHref = "/today/history",
+  reviewFrom = "workouts",
 }: {
   items: readonly WorkoutsNavLinkId[];
   foodHistoryHref?: string;
+  reviewFrom?: string;
 }) {
   return (
     <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
       {items.map((id) => {
-        const row = id === "food" ? LINKS.food(foodHistoryHref) : LINKS[id];
+        const row =
+          id === "food"
+            ? LINKS.food(foodHistoryHref)
+            : id === "review"
+              ? { ...LINKS.review, href: reviewHref(reviewFrom) }
+              : LINKS[id];
         return (
           <NavRow
             key={id}

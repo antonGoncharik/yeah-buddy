@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { ReviewCta } from "@/components/ai/review-cta";
 import { AppHeader } from "@/components/layout/app-header";
 import { BarbellDoodle, DumbbellDoodle } from "@/components/layout/doodles";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -148,7 +147,6 @@ export function ProgressScreen() {
               />
             )}
 
-            <ReviewCta from="workouts" />
             <ProgressScreenLinks />
           </>
         ) : null}

@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { ReviewCta } from "@/components/ai/review-cta";
 import { NutritionHistoryDayRow } from "@/components/day/nutrition-history-day-row";
 import { NutritionHistoryStats } from "@/components/day/nutrition-history-stats";
 import { NutritionTrendChart } from "@/components/day/nutrition-trend-chart";
@@ -19,6 +18,7 @@ import { NavRow } from "@/components/layout/nav-row";
 import { ScreenError, ScreenLoading } from "@/components/layout/screen-status";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { reviewHref } from "@/lib/ai/review-nav";
 import { bodyWeightWindow } from "@/lib/day/body-weight";
 import { calendarToday } from "@/lib/day/dates";
 import { groupByMonth } from "@/lib/day/format";
@@ -133,8 +133,6 @@ export function NutritionHistoryScreen() {
           />
         ) : null}
 
-        {showStats ? <ReviewCta from="food" /> : null}
-
         {showStats && chartDays.length >= 2 ? (
           <section className="card-surface animate-rise flex flex-col gap-4 px-5 py-5">
             <Segmented
@@ -187,7 +185,7 @@ export function NutritionHistoryScreen() {
         {showStats ? (
           <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
             <NavRow
-              href="/settings/review"
+              href={reviewHref("food")}
               title={REVIEW_LABEL}
               hint="За 14, 30 или 90 дней"
               icon={<ChartDoodle />}
