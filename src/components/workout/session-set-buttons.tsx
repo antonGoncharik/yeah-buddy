@@ -17,6 +17,7 @@ export function SessionSetButtons({
   disabled,
   tone,
   openIds = [],
+  testSetId = null,
   onPick,
   onToggleDone,
   renderAfter,
@@ -28,6 +29,7 @@ export function SessionSetButtons({
   tone: "warmup" | "work";
   /** Sets whose editor is open; drawn as selected. */
   openIds?: string[];
+  testSetId?: string | null;
   onPick: (ids: string[]) => void;
   /** Mark a working set done and let the caller start rest. */
   onToggleDone?: (set: WorkoutSet) => void;
@@ -55,6 +57,9 @@ export function SessionSetButtons({
             <span className="min-w-0 text-xl font-semibold tracking-tight text-primary tabular-nums">
               {labels[index]}
             </span>
+            {set.id === testSetId ? (
+              <span className="text-sm font-medium text-primary">тест</span>
+            ) : null}
             {rirLabels[index] ? (
               <span className="text-sm text-muted-foreground">
                 {rirLabels[index]}
@@ -81,6 +86,9 @@ export function SessionSetButtons({
             >
               {labels[index]}
             </span>
+            {set.id === testSetId ? (
+              <span className="text-sm font-medium text-primary">тест</span>
+            ) : null}
             {rirLabels[index] ? (
               <span className="text-sm text-muted-foreground">
                 {rirLabels[index]}

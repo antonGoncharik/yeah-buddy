@@ -137,6 +137,8 @@ export interface TransitionMaxRow {
   name: string;
   current_weight: number;
   proposed_weight: number;
+  /** Why the next max is what it is. Empty when this week does not test. */
+  note: string;
 }
 
 export interface TransitionPreview {

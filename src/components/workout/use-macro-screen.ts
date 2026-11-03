@@ -3,42 +3,34 @@
 import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 
-import { cachedGet, mutateJson, postJson } from "@/lib/api-cache";
+import { cachedGet, mutateJson, postJson, writeJson } from "@/lib/api-cache";
 import { LOAD_FAILED } from "@/lib/messages";
 import { haptic } from "@/lib/telegram/haptic";
-import type {
-  CurrentMacroState,
-  PhaseType,
-  TransitionPreview,
-} from "@/lib/types";
+import type { CurrentMacroState, TransitionPreview } from "@/lib/types";
 import { useFirstLoad } from "@/lib/use-first-load";
 import { parseCurrentMacroState } from "@/lib/workout/hub-payload";
-import { phaseLabel } from "@/lib/workout/labels";
 import type { MacroAdvanceStep } from "@/lib/workout/macro-advance-copy";
-import { forwardDraft, maxFollowsWeek } from "@/lib/workout/macro-forward";
 import { parseTransitionPreview } from "@/lib/workout/map-rows";
 import { formatWeight, parseDecimal } from "@/lib/workout/numbers";
+
+const SETTINGS_URL = "/api/macros";
 
 export function useMacroScreen() {
   const [state, setState] = useState<CurrentMacroState | null>(null);
   const { loading, begin, done } = useFirstLoad();
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<TransitionPreview | null>(null);
   const [transitionDate, setTransitionDate] = useState(
     format(new Date(), "yyyy-MM-dd"),
   );
-  const [pendingTitle, setPendingTitle] = useState<string | null>(null);
   const [advancing, setAdvancing] = useState(false);
   const [advanceStep, setAdvanceStep] = useState<MacroAdvanceStep | null>(null);
   const [justClosed, setJustClosed] = useState(false);
 
   const applyState = useCallback((next: CurrentMacroState) => {
     setState(next);
-    setDrafts(draftsFromState(next));
-    setOverrides({});
-    setPendingTitle(null);
+    setDrafts({});
   }, []);
 
   const load = useCallback(async () => {
@@ -47,7 +39,7 @@ export function useMacroScreen() {
 
     try {
       await cachedGet(
-        "/api/macros",
+        SETTINGS_URL,
         (data) => {
           const next = readState(data);
           if (!next) {
@@ -77,12 +69,12 @@ export function useMacroScreen() {
     }
 
     let cancel = false;
+    setPreview(null);
     void mutateJson("/api/macros/transition")
       .then((data) => {
-        if (cancel) {
-          return;
+        if (!cancel) {
+          setPreview(readPreview(data));
         }
-        setPreview(readPreview(data));
       })
       .catch(() => {
         if (!cancel) {
@@ -97,21 +89,9 @@ export function useMacroScreen() {
 
   function changeDraft(exerciseId: string, value: string) {
     setDrafts((current) => ({ ...current, [exerciseId]: value }));
-    setOverrides((current) => {
-      if (current[exerciseId] == null) {
-        return current;
-      }
-      const next = { ...current };
-      delete next[exerciseId];
-      return next;
-    });
   }
 
-  function changeForward(exerciseId: string, value: string) {
-    setOverrides((current) => ({ ...current, [exerciseId]: value }));
-  }
-
-  const forward = forwardMap(state, drafts, overrides, preview);
+  const rows = maxRows(state, preview);
 
   async function completeWeek() {
     if (!state?.phase || advancing) {
@@ -119,7 +99,7 @@ export function useMacroScreen() {
     }
 
     setAdvancing(true);
-    setAdvanceStep(null);
+    setAdvanceStep("transition");
     setError(null);
     let ready = preview;
     if (!ready) {
@@ -134,13 +114,15 @@ export function useMacroScreen() {
         return;
       }
     }
+    if (!ready) {
+      setAdvancing(false);
+      setAdvanceStep(null);
+      setError(LOAD_FAILED);
+      return;
+    }
 
-    const sent = collectForward(
-      drafts,
-      forwardMap(state, drafts, overrides, ready),
-      ready,
-    );
-    if (!sent || !ready) {
+    const maxes = collectNext(ready, drafts);
+    if (!maxes) {
       setAdvancing(false);
       setAdvanceStep(null);
       haptic("warn");
@@ -148,40 +130,25 @@ export function useMacroScreen() {
       return;
     }
 
-    const previous = {
-      drafts,
-      overrides,
-      pendingTitle,
-    };
-    const title = ready.to_name ?? (ready.new_macro ? "Новый цикл" : "Дальше");
-    setPendingTitle(title);
-    setDrafts(sent.asCurrent);
-    setOverrides({});
-    haptic("success");
-
+    const previous = drafts;
     try {
-      setAdvanceStep("maxes");
-      await saveDirtyMaxes(state, previous.drafts);
-      setAdvanceStep("transition");
       const closingMacro = ready.new_macro;
-      await postJson("/api/macros/transition", {
+      const data = await postJson("/api/macros/transition", {
         end_date: transitionDate,
-        maxes: sent.maxes,
+        maxes,
       });
-      setJustClosed(closingMacro);
-      setAdvanceStep("reload");
-      const data = await mutateJson("/api/macros");
       const next = readState(data);
       if (!next) {
         throw new Error(LOAD_FAILED);
       }
+      writeJson(SETTINGS_URL, next);
+      haptic("success");
+      setJustClosed(closingMacro);
       applyState(next);
       setPreview(null);
     } catch (caught) {
       haptic("error");
-      setDrafts(previous.drafts);
-      setOverrides(previous.overrides);
-      setPendingTitle(previous.pendingTitle);
+      setDrafts(previous);
       setError(caught instanceof Error ? caught.message : LOAD_FAILED);
     } finally {
       setAdvancing(false);
@@ -189,130 +156,81 @@ export function useMacroScreen() {
     }
   }
 
-  const pendingTimelinePhase: {
-    phase_type: PhaseType;
-    name: string;
-  } | null =
-    pendingTitle != null && preview?.to_phase
-      ? {
-          phase_type: preview.to_phase,
-          name: preview.to_name?.trim() || phaseLabel(preview.to_phase),
-        }
-      : null;
-
   return {
     state,
     loading,
     error,
+    rows,
     drafts,
-    forward,
+    nextTitle: nextTitle(state, preview),
     transitionDate,
     setTransitionDate,
-    pendingTitle,
-    pendingTimelinePhase,
     advancing,
     advanceStep,
     justClosed,
     load,
     changeDraft,
-    changeForward,
     completeWeek,
   };
 }
 
-function draftsFromState(state: CurrentMacroState): Record<string, string> {
-  return Object.fromEntries(
-    state.maxes.map((row) => [
-      row.exercise.id,
-      row.phase_max ? formatWeight(row.phase_max.max_weight) : "",
-    ]),
-  );
-}
-
-function forwardMap(
+function maxRows(
   state: CurrentMacroState | null,
-  drafts: Record<string, string>,
-  overrides: Record<string, string>,
   preview: TransitionPreview | null,
-): Record<string, string | null> {
-  if (!state || !preview) {
-    return {};
+) {
+  if (preview) {
+    return preview.maxes.map((row) => ({
+      exerciseId: row.exercise_id,
+      name: row.name,
+      current: row.current_weight,
+      proposed: row.proposed_weight,
+      note: row.note,
+    }));
   }
-
-  const rows = new Map(
-    preview.maxes.map((row) => [row.exercise_id, row] as const),
-  );
-  return Object.fromEntries(
-    state.maxes.map((row) => {
-      const planned = rows.get(row.exercise.id);
-      const saved = row.phase_max?.max_weight ?? null;
-      const pinned =
-        planned && !maxFollowsWeek(planned.current_weight, saved)
-          ? planned.proposed_weight
-          : null;
-      return [
-        row.exercise.id,
-        forwardDraft({
-          weekDraft: drafts[row.exercise.id] ?? "",
-          pinned,
-          override: overrides[row.exercise.id],
-        }),
-      ];
-    }),
+  return (state?.maxes ?? []).flatMap((row) =>
+    row.phase_max
+      ? [
+          {
+            exerciseId: row.exercise.id,
+            name: row.exercise.short_name || row.exercise.name,
+            current: row.phase_max.max_weight,
+            proposed: row.phase_max.max_weight,
+            note: "",
+          },
+        ]
+      : [],
   );
 }
 
-function collectForward(
-  drafts: Record<string, string>,
-  forward: Record<string, string | null>,
+function nextTitle(
+  state: CurrentMacroState | null,
   preview: TransitionPreview | null,
-): {
-  maxes: Array<{ exercise_id: string; max_weight: number }>;
-  asCurrent: Record<string, string>;
-} | null {
-  if (!preview) {
-    return null;
+): string {
+  if (preview?.new_macro) {
+    return "новый цикл";
   }
+  return (
+    preview?.to_name ??
+    state?.phase_circle?.next_phase_name ??
+    "следующая неделя"
+  );
+}
 
-  const asCurrent = { ...drafts };
+function collectNext(
+  preview: TransitionPreview,
+  drafts: Record<string, string>,
+): Array<{ exercise_id: string; max_weight: number }> | null {
   const maxes = [];
   for (const row of preview.maxes) {
-    const raw = forward[row.exercise_id] ?? drafts[row.exercise_id] ?? "";
-    const weight = parseDecimal(raw);
+    const weight = parseDecimal(
+      drafts[row.exercise_id] ?? formatWeight(row.proposed_weight),
+    );
     if (weight == null || weight <= 0) {
       return null;
     }
     maxes.push({ exercise_id: row.exercise_id, max_weight: weight });
-    asCurrent[row.exercise_id] = formatWeight(weight);
   }
-  return { maxes, asCurrent };
-}
-
-async function saveDirtyMaxes(
-  state: CurrentMacroState,
-  drafts: Record<string, string>,
-): Promise<void> {
-  if (!state.phase) {
-    return;
-  }
-
-  const phaseId = state.phase.id;
-  await Promise.all(
-    state.maxes.map(async (row) => {
-      const weight = parseDecimal(drafts[row.exercise.id] ?? "");
-      const saved = row.phase_max?.max_weight ?? null;
-      if (weight == null || weight <= 0) {
-        return;
-      }
-      if (saved != null && Math.abs(saved - weight) < 0.001) {
-        return;
-      }
-      await postJson(`/api/phases/${phaseId}/maxes`, {
-        exercise_id: row.exercise.id,
-        max_weight: weight,
-      });
-    }),
-  );
+  return maxes;
 }
 
 function readState(data: unknown): CurrentMacroState | null {

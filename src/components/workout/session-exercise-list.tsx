@@ -7,6 +7,7 @@ import { SortableList } from "@/components/workout/sortable-list";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, WorkoutSet } from "@/lib/types";
 import type { SetDraft } from "@/lib/workout/session-set-drafts";
+import { testSetId } from "@/lib/workout/test-raise";
 
 export function SessionExerciseList({
   detail,
@@ -29,6 +30,7 @@ export function SessionExerciseList({
   onDropSet,
   pairs,
   onPair,
+  markTests = false,
 }: {
   detail: SessionDetail;
   busy: boolean;
@@ -54,6 +56,7 @@ export function SessionExerciseList({
   onDropSet?: (setId: string) => void;
   pairs?: Record<string, string>;
   onPair?: (exerciseId: string, nextExerciseId: string) => void;
+  markTests?: boolean;
 }) {
   const session = detail.session;
   const canReorder =
@@ -151,6 +154,11 @@ export function SessionExerciseList({
                 session.status === "planned" && onDropSet
                   ? onDropSet
                   : undefined
+              }
+              testSetId={
+                markTests && session.status === "planned"
+                  ? testSetId(item.sets)
+                  : null
               }
               paired={Boolean(partner)}
               pairName={

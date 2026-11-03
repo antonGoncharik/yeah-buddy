@@ -16,7 +16,6 @@ import {
   sessionDoneLead,
   sessionRaiseLine,
 } from "@/lib/flavor";
-import { CYCLE_RAISE_LATER } from "@/lib/messages";
 import type { JoyLift } from "@/lib/share/joy";
 import type {
   PhaseCircleProgress,
@@ -140,7 +139,9 @@ export function SessionCompletedPanel({
       ) : null}
       {inCycle && !holdHint && (feel === "easy" || abovePlan) ? (
         <p className="text-base leading-relaxed text-muted-foreground">
-          {CYCLE_RAISE_LATER}
+          {phaseCircle?.increases_on_end
+            ? "Максимум решится, когда закроешь эту неделю."
+            : "На этой неделе максимум не меняется."}
         </p>
       ) : null}
       {holdHint ? (
@@ -184,7 +185,9 @@ export function SessionCompletedPanel({
             href="/workouts/macro"
             className="text-base font-medium text-primary"
           >
-            Открыть цикл
+            {phaseCircle?.increases_on_end && phaseCircle.suggest_end
+              ? "Закрыть неделю"
+              : "Открыть цикл"}
           </Link>
         ) : null}
         <Button

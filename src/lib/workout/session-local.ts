@@ -13,6 +13,7 @@ import type {
 } from "@/lib/types";
 import { cycleDrivesTracks } from "@/lib/workout/cycle";
 import { DEFAULT_WORKOUT_FORMULAS } from "@/lib/workout/default-formulas";
+import { exerciseKind } from "@/lib/workout/exercise-kind";
 import {
   templateMissingMaxes,
   templateMissingTracks,
@@ -135,7 +136,7 @@ export function sessionDetailFromTemplate({
     const maxWeight = maxByExercise.get(exercise.id) ?? null;
     const track = catalogRow?.track ?? null;
     const rows = plannedSetsForSlot(plan, {
-      kind: template.kind,
+      kind: exerciseKind(exercise.workout_type, template.kind),
       exercise,
       formulas: planFormulas,
       phaseKey,

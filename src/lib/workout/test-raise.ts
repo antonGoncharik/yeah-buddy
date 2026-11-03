@@ -1,8 +1,15 @@
 import type { FormulaSetSpec, WorkoutFormulas, WorkoutKind } from "@/lib/types";
 import { raisedMaxForPhase } from "@/lib/workout/cycle-query";
 import { calcPlannedWeight, floorToStep } from "@/lib/workout/formulas";
+import { formatSeconds, formatWeight } from "@/lib/workout/numbers";
 
-/** The static test is a clean hold of this many seconds. */
+/**
+ * A static max is the heaviest load held 5 seconds. The test asks for up to 8.
+ * Extra seconds are not turned into a percent: the elbow endurance curve
+ * (Frey-Law 2010) already predicts ~18s at true MVC, so it cannot price a
+ * 5–8s hold. Surplus time adds one or two plate steps on the load that was held.
+ */
+export const STATIC_PASS_SECONDS = 5;
 export const STATIC_TEST_SECONDS = 8;
 
 export interface ExerciseTestAttempt {
@@ -33,21 +40,27 @@ export function dynamicTestMax(input: {
   return Math.max(stepUp, estimated);
 }
 
-/** New max after a clean 8s hold. Null when the hold was short. */
+/**
+ * 5s sets the max to the load that was held. 6–7s adds one step on that load,
+ * 8s and more adds two. A lighter hold does not pull the max down.
+ * Shorter than 5s is a miss. Null only on a miss.
+ */
 export function staticTestMax(input: {
   maxKg: number;
   stepKg: number;
   seconds: number;
-  requiredSeconds: number;
+  weightKg?: number;
 }): number | null {
-  if (
-    input.requiredSeconds < STATIC_TEST_SECONDS ||
-    input.seconds < STATIC_TEST_SECONDS ||
-    input.seconds < input.requiredSeconds
-  ) {
+  if (!(input.seconds >= STATIC_PASS_SECONDS)) {
     return null;
   }
-  return floorToStep(input.maxKg + input.stepKg, input.stepKg);
+  const steps =
+    input.seconds >= STATIC_TEST_SECONDS ? 2 : input.seconds >= 6 ? 1 : 0;
+  const held =
+    input.weightKg != null && input.weightKg > 0 ? input.weightKg : input.maxKg;
+  const raised = floorToStep(held + steps * input.stepKg, input.stepKg);
+  const kept = floorToStep(input.maxKg, input.stepKg);
+  return Math.max(kept, raised);
 }
 
 export function dropMaxFivePercent(maxKg: number, stepKg: number): number {
@@ -59,26 +72,49 @@ export function dropMaxFivePercent(maxKg: number, stepKg: number): number {
  * both count; the higher one wins. Two macros in a row with no passed test
  * take 5% off.
  */
-export function maxAfterTest(input: {
+export interface TestDecision {
+  weight: number;
+  note: string;
+}
+
+export function decideTest(input: {
   maxKg: number;
   stepKg: number;
   attempts: ExerciseTestAttempt[];
   previousFailed: boolean;
-}): number {
-  let best: number | null = null;
+}): TestDecision {
+  let best: TestDecision | null = null;
+  let missed: string | null = null;
   for (const attempt of input.attempts) {
     const next = raiseFromAttempt(input.maxKg, input.stepKg, attempt);
-    if (next != null && (best == null || next > best)) {
-      best = next;
+    if (next == null) {
+      missed = missed ?? attemptNote(attempt, false);
+      continue;
+    }
+    if (best == null || next > best.weight) {
+      const same = next <= floorToStep(input.maxKg, input.stepKg) + 0.001;
+      best = { weight: next, note: attemptNote(attempt, true, same) };
     }
   }
   if (best != null) {
     return best;
   }
   if (input.previousFailed) {
-    return dropMaxFivePercent(input.maxKg, input.stepKg);
+    return {
+      weight: dropMaxFivePercent(input.maxKg, input.stepKg),
+      note: "два цикла без теста",
+    };
   }
-  return input.maxKg;
+  return { weight: input.maxKg, note: missed ?? "без теста" };
+}
+
+export function maxAfterTest(input: {
+  maxKg: number;
+  stepKg: number;
+  attempts: ExerciseTestAttempt[];
+  previousFailed: boolean;
+}): number {
+  return decideTest(input).weight;
 }
 
 export function testWasPassed(input: {
@@ -93,7 +129,7 @@ export function testWasPassed(input: {
 
 /**
  * Work sets that are the test. The heaviest load wins, wherever it sits.
- * A static test also has to be planned for at least 8 seconds. Several sets
+ * A static test also has to be planned for at least 5 seconds. Several sets
  * at that same load all count; the better result is kept.
  */
 export function heaviestWorkIndexes(
@@ -102,7 +138,7 @@ export function heaviestWorkIndexes(
 ): number[] {
   const eligible = sets.flatMap((set, index) => {
     if (kind === "static") {
-      return (set.seconds ?? 0) >= STATIC_TEST_SECONDS ? [index] : [];
+      return (set.seconds ?? 0) >= STATIC_PASS_SECONDS ? [index] : [];
     }
     return set.load > 0 && (set.reps ?? 0) > 0 ? [index] : [];
   });
@@ -145,7 +181,11 @@ export function plannedTestMax(input: {
               maxKg: input.maxKg,
               stepKg: input.stepKg,
               seconds: set.seconds,
-              requiredSeconds: set.seconds,
+              weightKg: calcPlannedWeight(
+                input.maxKg,
+                set.percent,
+                input.stepKg,
+              ),
             })
         : set.reps == null
           ? null
@@ -193,20 +233,70 @@ export function maxShownForPhase(input: {
   );
 }
 
+function attemptNote(
+  attempt: ExerciseTestAttempt,
+  passed: boolean,
+  same = false,
+): string {
+  if (attempt.kind === "static") {
+    const seconds = formatSeconds(attempt.seconds ?? 0);
+    if (!passed) {
+      return `${seconds} с, не сдан`;
+    }
+    return same ? `${seconds} с, тот же` : `${seconds} с`;
+  }
+  const line = `${formatWeight(attempt.weight)}×${attempt.reps ?? 0}`;
+  return passed ? line : `${line}, не сдан`;
+}
+
+/** The work set that decides the max: heaviest reps, or heaviest hold of at least 5s. */
+export function testSetId(
+  sets: readonly {
+    id: string;
+    set_type: string;
+    planned_weight: number | null;
+    planned_reps: number | null;
+    planned_seconds: number | null;
+  }[],
+): string | null {
+  const work = sets.filter((set) => set.set_type === "work");
+  const holds = work.filter(isHoldSet);
+  const lifts = work.filter((set) => !isHoldSet(set));
+  const group = holds.length > 0 && lifts.length === 0 ? holds : lifts;
+  const kind: WorkoutKind = group === holds ? "static" : "dynamic";
+  const indexes = heaviestWorkIndexes(
+    kind,
+    group.map((set) => ({
+      load: set.planned_weight ?? 0,
+      reps: set.planned_reps,
+      seconds: set.planned_seconds,
+    })),
+  );
+  const index = indexes[0];
+  return index == null ? null : (group[index]?.id ?? null);
+}
+
+function isHoldSet(set: {
+  planned_reps: number | null;
+  planned_seconds: number | null;
+}): boolean {
+  return set.planned_seconds != null && set.planned_reps == null;
+}
+
 function raiseFromAttempt(
   maxKg: number,
   stepKg: number,
   attempt: ExerciseTestAttempt,
 ): number | null {
   if (attempt.kind === "static") {
-    if (attempt.seconds == null || attempt.requiredSeconds == null) {
+    if (attempt.seconds == null) {
       return null;
     }
     return staticTestMax({
       maxKg,
       stepKg,
       seconds: attempt.seconds,
-      requiredSeconds: attempt.requiredSeconds,
+      weightKg: attempt.weight,
     });
   }
   if (attempt.reps == null || attempt.requiredReps == null) {

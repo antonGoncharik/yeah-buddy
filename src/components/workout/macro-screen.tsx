@@ -15,18 +15,16 @@ export function MacroScreen() {
     state,
     loading,
     error,
+    rows,
     drafts,
-    forward,
+    nextTitle,
     transitionDate,
     setTransitionDate,
-    pendingTitle,
-    pendingTimelinePhase,
     advancing,
     advanceStep,
     justClosed,
     load,
     changeDraft,
-    changeForward,
     completeWeek,
   } = useMacroScreen();
 
@@ -57,17 +55,15 @@ export function MacroScreen() {
               phase: state.phase,
             }}
             justClosed={justClosed}
+            rows={rows}
             drafts={drafts}
-            forward={forward}
-            pendingTitle={pendingTitle}
-            pendingTimelinePhase={pendingTimelinePhase}
+            nextTitle={nextTitle}
             transitionDate={transitionDate}
             setTransitionDate={setTransitionDate}
             error={error}
             advancing={advancing}
             advanceStep={advanceStep}
             onDraftChange={changeDraft}
-            onForwardChange={changeForward}
             onCompleteWeek={() => void completeWeek()}
           />
         ) : null}

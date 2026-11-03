@@ -4,6 +4,7 @@ import type {
   SlotPlan,
   WorkoutKind,
 } from "@/lib/types";
+import { exerciseKind } from "@/lib/workout/exercise-kind";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
 import { archiveExercise, getExercise } from "@/lib/workout/exercises";
 import { loadLastWorkWeights } from "@/lib/workout/session-last-weights";
@@ -19,14 +20,8 @@ import { getTemplate } from "@/lib/workout/templates";
 export function resolveAdHocKind(
   exerciseType: ExerciseWorkoutType,
   sessionType: WorkoutKind,
-): "dynamic" | "static" {
-  if (exerciseType === "static") {
-    return "static";
-  }
-  if (exerciseType === "both" && sessionType === "static") {
-    return "static";
-  }
-  return "dynamic";
+): WorkoutKind {
+  return exerciseKind(exerciseType, sessionType);
 }
 
 /** Three working sets when the usual percent plan has no weight yet. */

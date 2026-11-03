@@ -14,6 +14,7 @@ import {
   DEFAULT_WORKOUT_FORMULAS,
   isPhaseType,
 } from "@/lib/workout/default-formulas";
+import { exerciseKind } from "@/lib/workout/exercise-kind";
 import { phaseLabel } from "@/lib/workout/labels";
 import { formatWeight } from "@/lib/workout/numbers";
 import {
@@ -134,9 +135,7 @@ export function templateExerciseLoadPreview(
   formulas: WorkoutFormulas = DEFAULT_WORKOUT_FORMULAS,
 ): { value: number; reps: number | null } | null {
   const plan = slotFor(template.slots, exercise.id);
-  const kind: WorkoutKind =
-    template.kind ??
-    (exercise.workout_type === "static" ? "static" : "dynamic");
+  const kind = exerciseKind(exercise.workout_type, template.kind ?? "dynamic");
   const rows = plannedSetsForSlot(plan, {
     kind,
     exercise,

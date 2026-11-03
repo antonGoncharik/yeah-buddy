@@ -145,6 +145,7 @@ export function SessionScreenBody({
         onDropSet={listHandlers.onDropSet}
         onAddSet={listHandlers.onAddSet}
         onPair={listHandlers.onPair}
+        markTests={phaseCircle?.increases_on_end === true}
       />
 
       {session.status === "planned" ? (

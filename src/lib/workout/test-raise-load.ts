@@ -1,9 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { WorkoutKind } from "@/lib/types";
 import {
+  decideTest,
   type ExerciseTestAttempt,
   heaviestWorkIndexes,
-  maxAfterTest,
+  type TestDecision,
   testWasPassed,
 } from "@/lib/workout/test-raise";
 
@@ -12,18 +13,18 @@ export async function loadTestMaxes(input: {
   phaseId: string;
   phaseKey: string;
   rows: Array<{ exerciseId: string; maxKg: number; stepKg: number }>;
-}): Promise<Map<string, number>> {
+}): Promise<Map<string, TestDecision>> {
   const attempts = await attemptsByExercise(input.userId, input.phaseId);
   const previousFailed = await exercisesThatMissedPreviousTest(
     input.userId,
     input.phaseId,
     input.phaseKey,
   );
-  const proposed = new Map<string, number>();
+  const proposed = new Map<string, TestDecision>();
   for (const row of input.rows) {
     proposed.set(
       row.exerciseId,
-      maxAfterTest({
+      decideTest({
         maxKg: row.maxKg,
         stepKg: row.stepKg,
         attempts: attempts.get(row.exerciseId) ?? [],
@@ -181,7 +182,7 @@ async function attemptsByExercise(
   const supabase = createSupabaseServerClient();
   const sessions = await supabase
     .from("workout_sessions")
-    .select("id, workout_type")
+    .select("id")
     .eq("user_id", userId)
     .eq("phase_id", phaseId)
     .eq("status", "completed");
@@ -189,13 +190,7 @@ async function attemptsByExercise(
     throw sessions.error;
   }
 
-  const sessionKind = new Map<string, WorkoutKind>();
-  for (const row of sessions.data ?? []) {
-    if (row.workout_type === "dynamic" || row.workout_type === "static") {
-      sessionKind.set(String(row.id), row.workout_type);
-    }
-  }
-  const sessionIds = [...sessionKind.keys()];
+  const sessionIds = (sessions.data ?? []).map((row) => String(row.id));
   if (sessionIds.length === 0) {
     return grouped;
   }
@@ -236,14 +231,7 @@ async function attemptsByExercise(
   }
 
   for (const row of exerciseRows) {
-    const kind = sessionKind.get(String(row.session_id));
-    if (!kind) {
-      continue;
-    }
-    const attempts = testAttempts(
-      kind,
-      setsByExercise.get(String(row.id)) ?? [],
-    );
+    const attempts = testAttempts(setsByExercise.get(String(row.id)) ?? []);
     if (attempts.length === 0) {
       continue;
     }
@@ -256,7 +244,6 @@ async function attemptsByExercise(
 }
 
 function testAttempts(
-  kind: WorkoutKind,
   sets: Array<Record<string, unknown>>,
 ): ExerciseTestAttempt[] {
   const work = sets
@@ -265,6 +252,21 @@ function testAttempts(
       (left, right) =>
         (toNumber(left.set_number) ?? 0) - (toNumber(right.set_number) ?? 0),
     );
+  const holds = work.filter(isHold);
+  const lifts = work.filter((set) => !isHold(set));
+  return [...attemptsOf("static", holds), ...attemptsOf("dynamic", lifts)];
+}
+
+function isHold(set: Record<string, unknown>): boolean {
+  return (
+    toNumber(set.planned_seconds) != null && toNumber(set.planned_reps) == null
+  );
+}
+
+function attemptsOf(
+  kind: WorkoutKind,
+  work: Array<Record<string, unknown>>,
+): ExerciseTestAttempt[] {
   const indexes = heaviestWorkIndexes(
     kind,
     work.map((set) => ({

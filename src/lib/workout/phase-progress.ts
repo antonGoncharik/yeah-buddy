@@ -74,7 +74,7 @@ export async function getPhaseCircleProgress(
     phase_restarts: phaseRestarts,
     increases_on_end: Boolean(current?.increase_on_end),
     kg_increase_on_end: current?.kg_increase_on_end ?? null,
-    hold_weights: shouldHoldWeights(feels),
+    hold_weights: current?.increase_on_end ? false : shouldHoldWeights(feels),
     completed_count: completedDays,
     circle_size: circleSize,
     suggest_end: completedDays >= circleSize,

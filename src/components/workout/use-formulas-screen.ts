@@ -63,7 +63,13 @@ export function useFormulasScreen() {
         // Templates only decide whether the «На время» switch is shown.
         cachedGet("/api/templates", (data) => {
           setHasStaticTemplates(
-            readTemplates(data).some((template) => template.kind === "static"),
+            readTemplates(data).some(
+              (template) =>
+                template.kind === "static" ||
+                template.exercises.some(
+                  (exercise) => exercise.workout_type === "static",
+                ),
+            ),
           );
           return true;
         }).catch(() => undefined),

@@ -26,6 +26,7 @@ export function SessionExerciseSetSections({
   onLogSet,
   onAddSet,
   onDropSet,
+  testSetId = null,
 }: {
   item: SessionExerciseDetail;
   display: {
@@ -49,6 +50,7 @@ export function SessionExerciseSetSections({
   onLogSet?: (set: WorkoutSet, draft: SetDraft) => void;
   onAddSet?: () => void;
   onDropSet?: (setId: string) => void;
+  testSetId?: string | null;
 }) {
   const { warmup, work, dropSetId, leadSet, openSets, focused } = display;
 
@@ -128,6 +130,7 @@ export function SessionExerciseSetSections({
             disabled={disabled}
             tone="work"
             openIds={openSetIds}
+            testSetId={testSetId}
             onPick={onOpenSets}
             onToggleDone={onToggleSet}
             renderAfter={renderEditor}

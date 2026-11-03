@@ -156,6 +156,7 @@ function parseTransitionMaxRow(
     name: String(row.name ?? ""),
     current_weight: toNumber(row.current_weight),
     proposed_weight: toNumber(row.proposed_weight),
+    note: typeof row.note === "string" ? row.note : "",
   };
 }
 

@@ -7,6 +7,7 @@ import { SortableList } from "@/components/workout/sortable-list";
 import type { TemplateFormSlot } from "@/components/workout/use-template-form";
 import type { CyclePhaseDef, SlotPlan, WorkoutKind } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { exerciseKind } from "@/lib/workout/exercise-kind";
 import { exerciseShortLabel } from "@/lib/workout/labels";
 import { slotPlanSummary } from "@/lib/workout/slot-plan";
 
@@ -82,7 +83,7 @@ export function TemplateExercisePickerSelectedSection({
             renderAfter={(row) =>
               openId === row.id ? (
                 <SlotPlanEditor
-                  kind={kind}
+                  kind={exerciseKind(row.exercise.workout_type, kind)}
                   exercise={row.exercise}
                   plan={row.plan}
                   cycle={cycle}

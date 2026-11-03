@@ -99,8 +99,9 @@ export function withSetLogged(
 export function completeSessionLocally(
   detail: SessionDetail,
   input: CompleteSessionInput = {},
+  options: { requireTest?: boolean } = {},
 ): SessionDetail {
-  validateSessionBeforeComplete(detail, input);
+  validateSessionBeforeComplete(detail, input, options);
 
   const overrides = new Map(
     (input.sets ?? []).map((set) => [set.id, set] as const),

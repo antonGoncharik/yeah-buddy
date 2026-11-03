@@ -64,6 +64,10 @@ export function TemplateForm({ templateId }: { templateId?: string }) {
 
           <Field label="Тип">
             <Segmented value={kind} options={KIND_OPTIONS} onChange={setKind} />
+            <p className="text-sm leading-snug text-muted-foreground">
+              Упражнение со статикой всегда на секунды, обычное — на повторы.
+              Тип дня решает только для упражнений «Оба».
+            </p>
           </Field>
 
           <TemplateExercisePicker

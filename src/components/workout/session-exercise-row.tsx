@@ -36,6 +36,7 @@ export function SessionExerciseRow({
   onLogPlan,
   onAddSet,
   onDropSet,
+  testSetId = null,
   paired = false,
   pairName = null,
   onPair,
@@ -67,6 +68,7 @@ export function SessionExerciseRow({
   onLogPlan?: () => void;
   onAddSet?: () => void;
   onDropSet?: (setId: string) => void;
+  testSetId?: string | null;
   paired?: boolean;
   pairName?: string | null;
   onPair?: () => void;
@@ -187,6 +189,7 @@ export function SessionExerciseRow({
           onLogSet={onLogSet}
           onAddSet={onAddSet}
           onDropSet={onDropSet}
+          testSetId={testSetId}
         />
       </div>
     </div>

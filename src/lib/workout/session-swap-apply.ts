@@ -1,5 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { ExerciseWithMax, MuscleId, SessionDetail } from "@/lib/types";
+import type {
+  ExerciseWithMax,
+  MuscleId,
+  SessionDetail,
+  WorkoutKind,
+} from "@/lib/types";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
 import { listExercisesForMuscle } from "@/lib/workout/exercises";
 import { loadExerciseMuscleMeta } from "@/lib/workout/muscle-load";
@@ -335,13 +340,14 @@ async function previewSwaps(
 }
 
 function previewSets(
-  kind: ExerciseWithMax["workout_type"],
+  dayKind: WorkoutKind,
   exercise: ExerciseWithMax,
   ctx: PlanContext,
 ): PlannedSetRow[] | null {
   const track = ctx.trackByExercise.get(exercise.id) ?? null;
+  const kind = resolveAdHocKind(exercise.workout_type, dayKind);
   const planned = plannedSetsForSlot(null, {
-    kind: kind === "static" ? "static" : "dynamic",
+    kind,
     exercise,
     formulas: ctx.formulas,
     phaseKey: ctx.phaseKey,
@@ -352,23 +358,15 @@ function previewSets(
   if (planned) {
     return planned;
   }
-  return plannedSetsForSlot(
-    adHocFeelPlan(
-      resolveAdHocKind(
-        exercise.workout_type,
-        kind === "static" ? "static" : "dynamic",
-      ),
-    ),
-    {
-      kind: kind === "static" ? "static" : "dynamic",
-      exercise,
-      formulas: ctx.formulas,
-      phaseKey: ctx.phaseKey,
-      maxWeight: ctx.maxByExercise.get(exercise.id) ?? null,
-      trackWeight: track ? trackCurrentWeight(track) : null,
-      feelWeight: ctx.feelWeightByExercise.get(exercise.id) ?? null,
-    },
-  );
+  return plannedSetsForSlot(adHocFeelPlan(kind), {
+    kind,
+    exercise,
+    formulas: ctx.formulas,
+    phaseKey: ctx.phaseKey,
+    maxWeight: ctx.maxByExercise.get(exercise.id) ?? null,
+    trackWeight: track ? trackCurrentWeight(track) : null,
+    feelWeight: ctx.feelWeightByExercise.get(exercise.id) ?? null,
+  });
 }
 
 async function attachOne(

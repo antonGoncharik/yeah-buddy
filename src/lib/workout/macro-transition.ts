@@ -67,7 +67,7 @@ export async function previewTransition(
             : [],
         ),
       })
-    : new Map<string, number>();
+    : new Map<string, { weight: number; note: string }>();
   const propose = (row: PhaseMaxRow) =>
     proposedWeight(row, {
       increased,
@@ -110,14 +110,19 @@ function proposedWeight(
   input: {
     increased: boolean;
     useTest: boolean;
-    testMaxByExercise: Map<string, number>;
+    testMaxByExercise: Map<string, { weight: number; note: string }>;
   },
-): number {
+): { weight: number; note: string } {
   const weight = row.phase_max?.max_weight ?? 0;
   if (!input.increased || !input.useTest) {
-    return weight;
+    return { weight, note: "" };
   }
-  return input.testMaxByExercise.get(row.exercise.id) ?? weight;
+  return (
+    input.testMaxByExercise.get(row.exercise.id) ?? {
+      weight,
+      note: "без теста",
+    }
+  );
 }
 
 export async function confirmTransition(

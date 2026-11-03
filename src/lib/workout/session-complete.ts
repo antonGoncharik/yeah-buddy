@@ -2,7 +2,7 @@ import { trackEvent } from "@/lib/analytics/track";
 import { recordFunnelEvent } from "@/lib/funnel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SessionDetail, WorkoutSession } from "@/lib/types";
-import { cycleDrivesTracks } from "@/lib/workout/cycle";
+import { cycleDef, cycleDrivesTracks } from "@/lib/workout/cycle";
 import { refreshEstimateMaxesFromSession } from "@/lib/workout/estimate-max-refresh";
 import { mapWorkoutSet } from "@/lib/workout/map-rows";
 import { maybeAutoEndPhase } from "@/lib/workout/phase-auto-end";
@@ -165,7 +165,12 @@ export async function completeSessionAsPlanned(
     return null;
   }
 
-  validateSessionBeforeComplete(detail, input);
+  const settings = await ensureWorkoutSettings(userId);
+  const phaseKey = detail.phase?.phase_type;
+  const requireTest = phaseKey
+    ? Boolean(cycleDef(settings.formulas.cycle, phaseKey)?.increase_on_end)
+    : false;
+  validateSessionBeforeComplete(detail, input, { requireTest });
 
   const overrides = new Map(
     (input.sets ?? []).map((set) => [set.id, set] as const),
@@ -209,7 +214,6 @@ export async function completeSessionAsPlanned(
   });
   await clearSkipTemplateIds(userId);
   if (firstCompletion) {
-    const settings = await ensureWorkoutSettings(userId);
     // Working kg grows after the session unless the week itself adds kilograms.
     if (!cycleDrivesTracks(settings.formulas.cycle)) {
       await applyTrackProgressOnComplete(userId, detail, input.feel);

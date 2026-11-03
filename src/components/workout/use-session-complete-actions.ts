@@ -6,6 +6,7 @@ import { queueMutate } from "@/lib/offline-mutate";
 import { isRecord } from "@/lib/read";
 import { haptic } from "@/lib/telegram/haptic";
 import type { SessionDetail, SessionFeel } from "@/lib/types";
+import { cycleDef } from "@/lib/workout/cycle";
 import { parseWorkoutSession } from "@/lib/workout/map-rows";
 import {
   sessionFailAction,
@@ -23,6 +24,7 @@ import {
   readSessionDraft,
   writeSessionDraft,
 } from "@/lib/workout/session-draft-store";
+import { peekWorkoutFormulas } from "@/lib/workout/session-local";
 import { readSessionDetail } from "@/lib/workout/session-payload";
 import {
   completeSetOverrides,
@@ -69,8 +71,9 @@ export function useSessionCompleteActions({
       feel: sentFeel,
       sets: completeSetOverrides(current, drafts),
     };
+    const requireTest = phaseRequiresTest(current);
     try {
-      validateSessionBeforeComplete(current, body);
+      validateSessionBeforeComplete(current, body, { requireTest });
     } catch (caught) {
       sessionFailAction((message) => setError(message), caught);
       return;
@@ -79,7 +82,7 @@ export function useSessionCompleteActions({
     completing.current = true;
     setBusy(true);
     const draftSnapshot = readSessionDraft(current.session.id);
-    const local = completeSessionLocally(current, body);
+    const local = completeSessionLocally(current, body, { requireTest });
     const previous = current;
     writeCompletedSessionCaches(current.session.id, local);
     applyDetail(local);
@@ -183,4 +186,14 @@ export function useSessionCompleteActions({
   }
 
   return { complete, saveFeel };
+}
+
+function phaseRequiresTest(detail: {
+  phase: { phase_type: string } | null;
+}): boolean {
+  const key = detail.phase?.phase_type;
+  if (!key) {
+    return false;
+  }
+  return Boolean(cycleDef(peekWorkoutFormulas().cycle, key)?.increase_on_end);
 }

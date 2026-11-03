@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { MacroPhaseHeader } from "@/components/workout/macro-phase-header";
 import { MacroPhaseMaxes } from "@/components/workout/macro-phase-maxes";
 import { MacroRecapCard } from "@/components/workout/macro-recap-card";
-import type { CurrentMacroState, PhaseType } from "@/lib/types";
+import type { CurrentMacroState } from "@/lib/types";
 import { phaseLabel } from "@/lib/workout/labels";
 import {
   type MacroAdvanceStep,
@@ -18,17 +18,15 @@ import {
 export function MacroScreenActiveMacro({
   state,
   justClosed,
+  rows,
   drafts,
-  forward,
-  pendingTitle,
-  pendingTimelinePhase,
+  nextTitle,
   transitionDate,
   setTransitionDate,
   error,
   advancing,
   advanceStep,
   onDraftChange,
-  onForwardChange,
   onCompleteWeek,
 }: {
   state: CurrentMacroState & {
@@ -36,17 +34,21 @@ export function MacroScreenActiveMacro({
     phase: NonNullable<CurrentMacroState["phase"]>;
   };
   justClosed: boolean;
+  rows: Array<{
+    exerciseId: string;
+    name: string;
+    current: number;
+    proposed: number;
+    note: string;
+  }>;
   drafts: Record<string, string>;
-  forward: Record<string, string | null>;
-  pendingTitle: string | null;
-  pendingTimelinePhase: { phase_type: PhaseType; name: string } | null;
+  nextTitle: string;
   transitionDate: string;
   setTransitionDate: (value: string) => void;
   error: string | null;
   advancing: boolean;
   advanceStep: MacroAdvanceStep | null;
   onDraftChange: (id: string, value: string) => void;
-  onForwardChange: (id: string, value: string) => void;
   onCompleteWeek: () => void;
 }) {
   const [dateOpen, setDateOpen] = useState(false);
@@ -66,16 +68,13 @@ export function MacroScreenActiveMacro({
           macro: state.macro,
           phase: state.phase,
         }}
-        titleOverride={pendingTitle}
-        pendingTimelinePhase={pendingTimelinePhase}
       />
 
       <MacroPhaseMaxes
-        maxes={state.maxes}
+        nextTitle={nextTitle}
+        rows={rows}
         drafts={drafts}
-        forward={pendingTitle ? {} : forward}
         onDraftChange={onDraftChange}
-        onForwardChange={onForwardChange}
       />
 
       {dateOpen ? (

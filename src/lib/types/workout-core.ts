@@ -53,7 +53,7 @@ export interface CyclePhaseDef {
   increase_on_end: boolean;
   /**
    * The new max comes from the test set, not from a percent.
-   * Dynamic: heaviest work set, Epley. Static: a clean 8s hold, plus one step.
+   * Dynamic: heaviest work set, Epley. Static: the 5s load, plus one step at 6–7s or two at 8s.
    */
   raise_from_test?: boolean;
   /** If set, phase work percents are base × this, not a copy of base. */

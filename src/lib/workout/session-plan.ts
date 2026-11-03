@@ -8,6 +8,7 @@ import type {
   WorkoutSession,
   WorkoutTemplateDetail,
 } from "@/lib/types";
+import { exerciseKind } from "@/lib/workout/exercise-kind";
 import { listTracksByExercise } from "@/lib/workout/exercise-tracks";
 import { listExercises } from "@/lib/workout/exercises";
 import { listCurrentPhaseMaxes } from "@/lib/workout/macros";
@@ -138,7 +139,7 @@ export async function insertSessionExercise(
   const track = ctx.trackByExercise.get(exercise.id) ?? null;
   const maxWeight = ctx.maxByExercise.get(exercise.id) ?? null;
   const planned = plannedSetsForSlot(plan, {
-    kind: session.workout_type,
+    kind: exerciseKind(exercise.workout_type, session.workout_type),
     exercise,
     formulas: ctx.formulas,
     phaseKey: ctx.phaseKey,

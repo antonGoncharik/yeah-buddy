@@ -2,6 +2,7 @@ import type { FormulaSetSpec, WorkoutFormulas } from "@/lib/types";
 import { DEFAULT_WARMUP_PRESETS } from "@/lib/workout/formula-warmups";
 import { calcPlannedWeight } from "@/lib/workout/formulas";
 import {
+  decideTest,
   dropMaxFivePercent,
   dynamicTestMax,
   heaviestWorkIndexes,
@@ -9,6 +10,7 @@ import {
   maxShownForPhase,
   plannedTestMax,
   staticTestMax,
+  testSetId,
 } from "@/lib/workout/test-raise";
 
 function assertEqual(actual: unknown, expected: unknown, label: string) {
@@ -64,25 +66,90 @@ assertEqual(
 );
 
 assertEqual(
-  staticTestMax({
-    maxKg: 47,
-    stepKg: 1,
-    seconds: 8,
-    requiredSeconds: 8,
-  }),
-  48,
-  "clean 8s hold adds one step",
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 5 }),
+  47,
+  "a clean 5s hold confirms the max",
 );
-
 assertEqual(
-  staticTestMax({
-    maxKg: 47,
-    stepKg: 1,
-    seconds: 7,
-    requiredSeconds: 8,
-  }),
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 6 }),
+  48,
+  "6s hold adds one step",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 7 }),
+  48,
+  "7s hold adds one step",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 8 }),
+  49,
+  "8s hold adds two steps",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 12 }),
+  49,
+  "past 8s still adds two steps",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 4 }),
   null,
   "short hold does not raise",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 5, weightKg: 54 }),
+  54,
+  "a 5s hold of a heavier load becomes the max",
+);
+assertEqual(
+  staticTestMax({ maxKg: 47, stepKg: 1, seconds: 8, weightKg: 40 }),
+  47,
+  "a light long hold does not lower the max",
+);
+assertEqual(
+  decideTest({
+    maxKg: 47,
+    stepKg: 1,
+    previousFailed: false,
+    attempts: [
+      {
+        kind: "static",
+        weight: 47,
+        reps: null,
+        seconds: 5,
+        requiredReps: null,
+        requiredSeconds: 8,
+      },
+    ],
+  }).note,
+  "5 с, тот же",
+  "five seconds is a confirmation",
+);
+assertEqual(
+  testSetId([
+    {
+      id: "warm",
+      set_type: "warmup",
+      planned_weight: 20,
+      planned_reps: null,
+      planned_seconds: 2,
+    },
+    {
+      id: "test",
+      set_type: "work",
+      planned_weight: 47,
+      planned_reps: null,
+      planned_seconds: 8,
+    },
+    {
+      id: "back",
+      set_type: "work",
+      planned_weight: 42,
+      planned_reps: null,
+      planned_seconds: 5,
+    },
+  ]),
+  "test",
+  "the heavier hold is the test",
 );
 
 assertEqual(
@@ -109,7 +176,7 @@ assertEqual(
       },
     ],
   }),
-  245,
+  280,
   "shared max takes the higher result",
 );
 
@@ -129,8 +196,8 @@ assertEqual(
       },
     ],
   }),
-  48,
-  "static-only test adds a step",
+  56,
+  "static 8s test is the load held plus two steps",
 );
 
 assertEqual(
@@ -205,8 +272,8 @@ assertEqual(
 );
 assertEqual(
   plannedTestMax({ maxKg: 47, stepKg: 1, kind: "static", work: staticVolume }),
-  48,
-  "planned pronation test is 48",
+  56,
+  "planned 8s hold is that load plus two steps",
 );
 assertEqual(
   plannedTestMax({
@@ -215,7 +282,7 @@ assertEqual(
     kind: "static",
     work: [seconds(115, 6), seconds(115, 6), seconds(115, 8)],
   }),
-  48,
+  56,
   "the last 8s hold is the test",
 );
 assertEqual(
@@ -223,10 +290,20 @@ assertEqual(
     maxKg: 47,
     stepKg: 1,
     kind: "static",
-    work: [seconds(115, 6), seconds(115, 6), seconds(115, 6)],
+    work: [seconds(90, 5), seconds(90, 5)],
+  }),
+  47,
+  "a made 5s hold confirms and does not raise",
+);
+assertEqual(
+  plannedTestMax({
+    maxKg: 47,
+    stepKg: 1,
+    kind: "static",
+    work: [seconds(80, 3), seconds(80, 3)],
   }),
   null,
-  "a 6s plan has no test",
+  "a 3s plan has no test",
 );
 
 assertEqual(calcPlannedWeight(240, 85, 2.5), 202.5, "squat ramp top");
@@ -321,8 +398,8 @@ assertEqual(
     maxKg: 47,
     stepKg: 1,
   }),
-  48,
-  "static peak example is one step up",
+  56,
+  "static peak example uses the held load plus two steps",
 );
 
 console.log("test raise ok");

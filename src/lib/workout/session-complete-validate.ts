@@ -3,6 +3,7 @@ import { exerciseShortLabel } from "@/lib/workout/labels";
 import { setUsesSeconds } from "@/lib/workout/session-format";
 import type { CompleteSessionInput } from "@/lib/workout/session-schema";
 import { completedSetWeight } from "@/lib/workout/set-log";
+import { testSetId } from "@/lib/workout/test-raise";
 
 type SetOverride = NonNullable<CompleteSessionInput["sets"]>[number];
 
@@ -50,6 +51,7 @@ export function resolveSetActuals(
 export function validateSessionBeforeComplete(
   detail: SessionDetail,
   input: CompleteSessionInput = {},
+  options: { requireTest?: boolean } = {},
 ): void {
   const overrides = new Map(
     (input.sets ?? []).map((set) => [set.id, set] as const),
@@ -60,7 +62,11 @@ export function validateSessionBeforeComplete(
       item.exercise.short_name,
       item.exercise.name,
     );
+    const testId = options.requireTest ? testSetId(item.sets) : null;
     for (const set of item.sets) {
+      if (set.id === testId && !set.logged && !overrides.has(set.id)) {
+        throw new Error(`«${name}»: запиши тест. Он решает максимум.`);
+      }
       const override = overrides.get(set.id);
       if (shouldSkipSetOnComplete(set, override)) {
         continue;
