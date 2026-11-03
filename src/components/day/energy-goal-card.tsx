@@ -92,21 +92,24 @@ export function EnergyGoalCard({
           зале углеводов больше.
         </p>
       </div>
-      <Button
-        className="h-12 w-full text-base"
-        disabled={busy}
-        onClick={onApply}
-      >
-        Поставить цель
-      </Button>
-      <button
-        type="button"
-        className="text-sm text-muted-foreground disabled:opacity-50"
-        disabled={busy}
-        onClick={onDismiss}
-      >
-        Оставить как есть
-      </button>
+      <div className="flex flex-col gap-2">
+        <Button
+          className="h-12 w-full text-base"
+          disabled={busy}
+          onClick={onApply}
+        >
+          Поставить цель
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-12 w-full text-base"
+          disabled={busy}
+          onClick={onDismiss}
+        >
+          Оставить как есть
+        </Button>
+      </div>
     </section>
   );
 }
