@@ -135,6 +135,9 @@ export function firstPhaseLine(
     return `${name || "Рывок"}. Не плюсуй сгоряча.`;
   }
   if (circle.phase_type === "volume") {
+    if (circle.increases_on_end) {
+      return `${name || "Тест"}. Здесь решается максимум.`;
+    }
     return `${name || "Набор"}. Тот же максимум, больше работы.`;
   }
   if (circle.phase_type === "ramp") {

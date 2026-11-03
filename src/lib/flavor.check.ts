@@ -179,6 +179,16 @@ assertEqual(
   "first volume",
 );
 assertEqual(
+  firstPhaseLine({
+    ...deload,
+    phase_type: "volume",
+    phase_name: "Тест",
+    increases_on_end: true,
+  }),
+  "Тест. Здесь решается максимум.",
+  "first test week",
+);
+assertEqual(
   firstPhaseLine({ ...deload, phase_type: "ramp", phase_name: "Разгон" }),
   "Разгон. Не гони вес.",
   "first ramp",
