@@ -15,19 +15,14 @@ export function WorkoutsHubNavSections({
   phaseHint: string | null;
 }) {
   return (
-    <details className="card-surface animate-rise px-5 py-3">
-      <summary className="cursor-pointer text-lg font-semibold">
-        Прогресс
-      </summary>
-      <div className="mt-4 flex flex-col gap-6">
-        <WorkoutsHubMacroCard
-          macro={macro}
-          phaseCircle={phaseCircle}
-          phaseHint={phaseHint}
-        />
-        <WorkoutsHubToolNav />
-        <WorkoutsHubBarbellCard />
-      </div>
-    </details>
+    <section className="card-surface animate-rise divide-y divide-border/70 px-5 py-2">
+      <WorkoutsHubMacroCard
+        macro={macro}
+        phaseCircle={phaseCircle}
+        phaseHint={phaseHint}
+      />
+      <WorkoutsHubToolNav />
+      <WorkoutsHubBarbellCard />
+    </section>
   );
 }

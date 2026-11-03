@@ -1,10 +1,7 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
-
 import { BarbellDoodle } from "@/components/layout/doodles";
-import { MarkBadge } from "@/components/layout/mark-badge";
+import { NavRow } from "@/components/layout/nav-row";
 import { calendarToday } from "@/lib/day/dates";
 import {
   BARBELL_GAME_HINT,
@@ -29,30 +26,20 @@ export function WorkoutsHubBarbellCard() {
       : "Собрано · поделиться"
     : `${plateLabel(challenge.targetKg)} кг · ${BARBELL_GAME_HINT}`;
 
+  const streak =
+    progress.streak > 0
+      ? `Серия ${progress.streak} ${streakDayWord(progress.streak)}`
+      : null;
+  const line = progress.completed
+    ? `${plateLabel(challenge.targetKg)} кг · ${hint}`
+    : hint;
+
   return (
-    <Link
+    <NavRow
       href={BARBELL_GAME_HREF}
-      className="card-surface flex items-center gap-3 px-5 py-4 transition-colors hover:bg-muted/40"
-    >
-      <MarkBadge className="size-10 rounded-xl">
-        <BarbellDoodle />
-      </MarkBadge>
-      <span className="min-w-0 flex-1">
-        <span className="block text-lg font-semibold">
-          {BARBELL_GAME_TITLE}
-        </span>
-        <span className="block text-sm text-muted-foreground">
-          {progress.completed
-            ? `${plateLabel(challenge.targetKg)} кг · ${hint}`
-            : hint}
-        </span>
-        {progress.streak > 0 ? (
-          <span className="mt-0.5 block text-xs text-muted-foreground">
-            Серия {progress.streak} {streakDayWord(progress.streak)}
-          </span>
-        ) : null}
-      </span>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
+      title={BARBELL_GAME_TITLE}
+      hint={streak ? `${line}. ${streak}` : line}
+      icon={<BarbellDoodle />}
+    />
   );
 }

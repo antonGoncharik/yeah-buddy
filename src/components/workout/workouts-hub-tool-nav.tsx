@@ -12,7 +12,7 @@ import { HUB_WEIGHT_NAV_HINT } from "@/lib/workout/user-copy";
 
 export function WorkoutsHubToolNav() {
   return (
-    <section className="card-surface divide-y divide-border/70 px-5 py-2">
+    <>
       <NavRow
         href="/workouts/exercises"
         title="Упражнения"
@@ -37,6 +37,6 @@ export function WorkoutsHubToolNav() {
         hint="За 14, 30 или 90 дней"
         icon={<ChartDoodle />}
       />
-    </section>
+    </>
   );
 }

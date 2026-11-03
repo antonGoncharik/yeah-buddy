@@ -7,7 +7,9 @@ import {
   NavRowSkeleton,
   TextBone,
 } from "@/components/layout/skeleton";
+import { BARBELL_GAME_TITLE } from "@/lib/share/barbell-daily";
 import {
+  CYCLE_LABEL,
   QUEUE_LABEL,
   REVIEW_LABEL,
   STRENGTH_LABEL,
@@ -104,6 +106,7 @@ export function WorkoutsHubSkeleton() {
       </section>
 
       <section className="card-surface divide-y divide-border/70 px-5 py-2">
+        <NavRowSkeleton title={CYCLE_LABEL} hint="№1 · сила · 2 из 6" />
         <NavRowSkeleton title="Упражнения" hint={HUB_WEIGHT_NAV_HINT} />
         <NavRowSkeleton
           title={STRENGTH_LABEL}
@@ -111,6 +114,10 @@ export function WorkoutsHubSkeleton() {
         />
         <NavRowSkeleton title="Мышцы" hint="Схема нагрузки и пропусков" />
         <NavRowSkeleton title={REVIEW_LABEL} hint="За 14, 30 или 90 дней" />
+        <NavRowSkeleton
+          title={BARBELL_GAME_TITLE}
+          hint="105 кг · Задача дня · блины со стойки"
+        />
       </section>
 
       <section className="flex flex-col gap-2">
@@ -136,18 +143,6 @@ export function WorkoutsHubSkeleton() {
         </ul>
       </section>
 
-      <div className="card-surface flex items-center gap-3 px-5 py-4">
-        <IconBone className="size-10 rounded-xl" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-lg font-medium">
-            <TextBone text="Собери штангу" />
-          </span>
-          <span className="mt-0.5 block text-sm">
-            <TextBone text="105 кг · Задача дня · блины со стойки" />
-          </span>
-        </span>
-        <IconBone className="size-5" />
-      </div>
       <p className="sr-only">Загрузка…</p>
     </div>
   );
