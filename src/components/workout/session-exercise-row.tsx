@@ -18,6 +18,7 @@ import type { SetDraft } from "@/lib/workout/session-set-drafts";
 
 export function SessionExerciseRow({
   item,
+  quiet = false,
   compact = false,
   openSetIds,
   warmupOpen,
@@ -45,6 +46,7 @@ export function SessionExerciseRow({
   priorOn = null,
 }: {
   item: SessionExerciseDetail;
+  quiet?: boolean;
   compact?: boolean;
   track?: SessionTrackInfo | null;
   openSetIds: string[];
@@ -114,6 +116,29 @@ export function SessionExerciseRow({
     }
   }, [display.recordLine]);
 
+  if (quiet) {
+    const name = item.exercise.short_name || item.exercise.name;
+    const done = display.work.filter((set) => set.is_completed).length;
+    const openId = display.work[0]?.id;
+    return (
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 border-b border-border/70 px-3 py-3 text-left last:border-b-0"
+        disabled={disabled || openId == null}
+        onClick={() => {
+          if (openId) {
+            onOpenSets([openId]);
+          }
+        }}
+      >
+        <span className="min-w-0 flex-1 truncate text-base">{name}</span>
+        <span className="text-sm text-muted-foreground" aria-hidden>
+          {"✓".repeat(done)}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -154,11 +179,11 @@ export function SessionExerciseRow({
             {display.canLogPlan && onLogPlan ? (
               <button
                 type="button"
-                className="min-h-11 rounded-lg bg-muted/60 px-3 text-base font-medium disabled:opacity-50"
+                className="min-h-16 w-full rounded-2xl bg-primary px-3 text-lg font-semibold text-primary-foreground disabled:opacity-50"
                 disabled={disabled}
                 onClick={onLogPlan}
               >
-                Как по плану
+                Сделал как в плане
               </button>
             ) : null}
             {onPair ? (

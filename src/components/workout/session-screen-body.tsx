@@ -97,6 +97,21 @@ export function SessionScreenBody({
 
   return (
     <>
+      {session.status === "planned" || session.status === "skipped" ? (
+        <details className="px-1 text-base text-muted-foreground">
+          <summary className="cursor-pointer py-2">Ещё</summary>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 px-0 text-base text-muted-foreground"
+            disabled={busy}
+            onClick={() => void cancelToday()}
+          >
+            {busy ? "Убираю…" : SKIP_SESSION_LABEL}
+          </Button>
+        </details>
+      ) : null}
+
       <SessionScreenPlannedTools
         sessionId={session.id}
         detail={detail}
@@ -203,18 +218,6 @@ export function SessionScreenBody({
           onEase={() => easeWeekNow()}
           sessionExercises={detail.exercises}
         />
-      ) : null}
-
-      {session.status === "planned" || session.status === "skipped" ? (
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-11 text-base text-muted-foreground"
-          disabled={busy}
-          onClick={() => void cancelToday()}
-        >
-          {busy ? "Убираю…" : SKIP_SESSION_LABEL}
-        </Button>
       ) : null}
     </>
   );

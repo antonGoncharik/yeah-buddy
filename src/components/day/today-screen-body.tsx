@@ -15,6 +15,7 @@ import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
   CopyDayHint,
+  DayType,
   MealItem,
   MealType,
   NamedMealHint,
@@ -72,6 +73,7 @@ export function TodayScreenBody({
   gym,
   saveBodyWeight,
   saveWaist,
+  switchType,
   saveDayAsTemplate,
   fillMealFromTemplate,
   copyMealFromDate,
@@ -135,6 +137,7 @@ export function TodayScreenBody({
   gym: GymLoop;
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
+  switchType: (dayType: DayType) => Promise<void>;
   saveDayAsTemplate: (dayId: string) => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
   copyMealFromDate: (
@@ -158,7 +161,7 @@ export function TodayScreenBody({
   return (
     <div className="flex flex-col gap-4 pb-4">
       {contentReady && isToday && !viewOnly ? <TodayPauseBanner /> : null}
-      {showLoading ? <TodayLoadingSkeleton gym={gymEnabled} /> : null}
+      {showLoading ? <TodayLoadingSkeleton /> : null}
 
       {contentReady && loadError ? (
         <ScreenError message={LOAD_FAILED} onRetry={() => void load()} />
@@ -237,6 +240,7 @@ export function TodayScreenBody({
           busy={busy}
           saveBodyWeight={saveBodyWeight}
           saveWaist={saveWaist}
+          switchType={switchType}
           copyYesterday={copyYesterday}
           saveDayAsTemplate={() => saveDayAsTemplate(shownDay.id)}
           fillMealFromTemplate={fillMealFromTemplate}

@@ -1,14 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  CookieMark,
-  Doodle,
-  DUMBBELL_VIEWBOX,
-  DumbbellMark,
-} from "@/components/layout/doodles";
+
 import { Button } from "@/components/ui/button";
-import { Segmented } from "@/components/ui/segmented";
 import { todayHomeHref } from "@/lib/day/dates";
 import { CATCH_UP_TITLE, PAST_DAY_LOCKED } from "@/lib/messages";
 import { DAY_TYPE_LABELS } from "@/lib/nutrition";
@@ -67,37 +61,8 @@ export function TodayDayHeader({
     );
   }
 
-  if (!showDayTypeSwitch) {
-    return null;
-  }
-
-  return (
-    <div className="animate-rise">
-      <Segmented
-        value={isTrainingDay ? "training" : "rest"}
-        disabled={busy}
-        options={[
-          {
-            id: "rest",
-            label: DAY_TYPE_LABELS.rest,
-            icon: (
-              <Doodle className="size-4" viewBox="-12 -12 24 24">
-                <CookieMark />
-              </Doodle>
-            ),
-          },
-          {
-            id: "training",
-            label: DAY_TYPE_LABELS.training,
-            icon: (
-              <Doodle className="size-4" viewBox={DUMBBELL_VIEWBOX}>
-                <DumbbellMark />
-              </Doodle>
-            ),
-          },
-        ]}
-        onChange={(dayType) => void switchType(dayType)}
-      />
-    </div>
-  );
+  void busy;
+  void switchType;
+  void showDayTypeSwitch;
+  return null;
 }

@@ -235,8 +235,9 @@ export const BOT_OPEN_DIARY = "Открыть дневник";
 export const BOT_OPEN_SETTINGS = "Открыть настройки";
 export const BOT_OPEN_WEEK = "Открыть неделю";
 export const BOT_HELP =
-  "Команды: /today — дневник, /weight 82.5 — вес, /week — неделя, /settings — настройки, /donate — звёзды. Еду можно писать текстом или голосом.";
-export const BOT_WEIGHT_USAGE = "Напиши вес: /weight 82.5";
+  "Команды: /today — дневник, /weight 82.5 — вес, /week — неделя, /settings — настройки, /donate — звёзды. Вес можно просто числом, например 81,4. Еду можно писать текстом или голосом.";
+export const BOT_WEIGHT_USAGE =
+  "Напиши вес числом, например 81,4. От 20 до 400 кг.";
 export const BOT_WEIGHT_RECORDED = (kg: string) =>
   `Записал ${kg} кг на сегодня.`;
 export const BOT_WEIGHT_WRITE_LOCKED =

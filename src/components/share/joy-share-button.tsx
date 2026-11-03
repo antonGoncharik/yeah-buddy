@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api-cache";
@@ -34,6 +35,7 @@ export function JoyShareButton({
   moment: JoyMoment;
   lift?: JoyLift | null;
 }) {
+  const confirm = useConfirm();
   const [inTelegram, setInTelegram] = useState(false);
   const [storyOk, setStoryOk] = useState(false);
   const [busy, setBusy] = useState<"chat" | "story" | null>(null);
@@ -89,7 +91,21 @@ export function JoyShareButton({
     return payload;
   }
 
+  async function confirmSend(): Promise<boolean> {
+    return confirm({
+      message: writeKg
+        ? "Попадут рабочие кг. Вес тела и талия не попадут."
+        : "Не попадёт: вес, талия, килограммы.",
+      confirmLabel: "Отправить",
+      cancelLabel: "Не сейчас",
+    });
+  }
+
   async function shareChat() {
+    const ok = await confirmSend();
+    if (!ok) {
+      return;
+    }
     setBusy("chat");
     setError(null);
     haptic("commit");
@@ -109,6 +125,10 @@ export function JoyShareButton({
   }
 
   async function shareStory() {
+    const ok = await confirmSend();
+    if (!ok) {
+      return;
+    }
     setBusy("story");
     setError(null);
     haptic("commit");
@@ -149,6 +169,9 @@ export function JoyShareButton({
           <span className="text-base text-muted-foreground">кг</span>
         </div>
       ) : null}
+      <p className="text-sm text-muted-foreground">
+        {writeKg ? "Попадут рабочие кг" : "Не попадёт: вес, талия, килограммы"}
+      </p>
       <div className="grid grid-cols-2 gap-2">
         <Button
           type="button"

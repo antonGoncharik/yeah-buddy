@@ -2,14 +2,14 @@
 
 import { Camera, Mic, Plus } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import {
   mealActionFullButtonClass,
   mealActionIconSegmentClass,
   mealActionPrimarySegmentClass,
 } from "@/components/day/meal-action-bar";
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
 import { AlignedPair } from "@/components/ui/aligned-pair";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { RemoveRowButton } from "@/components/ui/remove-row-button";
 import { lumpHref } from "@/lib/day/lump";
 import { formatGrams, formatKcal, formatMacro } from "@/lib/nutrition";
@@ -41,20 +41,16 @@ export function MealItemRow({
   /** Show the full product name (multi-line); default is one truncated line. */
   wrapName?: boolean;
 }) {
-  const { density } = useDiaryDensity();
-  const expanded = density === "expanded";
+  const [macrosOpen, setMacrosOpen] = useState(false);
   const amount = item.lump
-    ? expanded
-      ? `${formatKcal(item.kcal)} ккал`
-      : null
+    ? null
     : `${formatGrams(item.grams)} г · ${formatKcal(item.kcal)} ккал`;
   const macros = `Б ${formatMacro(item.protein)} · Ж ${formatMacro(item.fat)} · У ${formatMacro(item.carbs)}`;
-  const showMacros = expanded || Boolean(item.lump);
+  const showMacros = macrosOpen || Boolean(item.lump);
 
   if (onEditGrams) {
     const nameClassName = cn(
-      "min-w-0 truncate rounded-xl px-1 font-medium",
-      expanded ? "py-3 text-lg" : "py-2 text-base",
+      "min-w-0 truncate rounded-xl px-1 py-2 text-base font-medium",
       href &&
         "transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
     );
@@ -68,12 +64,21 @@ export function MealItemRow({
           ) : (
             <p className={nameClassName}>{item.name}</p>
           )}
-          {expanded ? (
+          {macrosOpen ? (
             <p className="px-1 text-sm text-muted-foreground tabular-nums">
               {macros}
             </p>
           ) : null}
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          className="min-h-11 shrink-0 px-2 text-sm"
+          aria-expanded={macrosOpen}
+          onClick={() => setMacrosOpen((open) => !open)}
+        >
+          БЖУ
+        </Button>
         <button
           type="button"
           className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-medium text-muted-foreground tabular-nums transition-colors hover:bg-muted/60"
@@ -84,12 +89,7 @@ export function MealItemRow({
             : `${formatGrams(item.grams)} г`}
         </button>
         {item.lump ? null : (
-          <span
-            className={cn(
-              "w-14 shrink-0 text-right font-semibold tabular-nums",
-              expanded ? "text-lg" : "text-base",
-            )}
-          >
+          <span className="w-14 shrink-0 text-right text-base font-semibold tabular-nums">
             {formatKcal(item.kcal)}
           </span>
         )}
@@ -106,22 +106,11 @@ export function MealItemRow({
     .filter((line) => line != null)
     .join(" · ");
   const nameClass = cn(
-    "min-w-0 font-medium",
-    expanded ? "text-lg" : "text-base",
+    "min-w-0 text-base font-medium",
     wrapName ? "break-words" : "flex-1 truncate",
   );
 
-  const body = expanded ? (
-    <>
-      <p className={nameClass}>{item.name}</p>
-      {amount ? (
-        <p className="text-sm text-muted-foreground tabular-nums">{amount}</p>
-      ) : null}
-      {showMacros ? (
-        <p className="text-sm text-muted-foreground tabular-nums">{macros}</p>
-      ) : null}
-    </>
-  ) : item.lump ? (
+  const body = item.lump ? (
     wrapName ? (
       <span className="flex w-full min-w-0 flex-col gap-0.5">
         <span className={nameClass}>{item.name}</span>
@@ -157,23 +146,35 @@ export function MealItemRow({
           </span>
         }
       />
+      {macrosOpen ? (
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {macros}
+        </span>
+      ) : null}
     </span>
   ) : (
-    <span className="flex w-full min-w-0 items-baseline justify-between gap-3 overflow-hidden">
-      <span className={nameClass}>{item.name}</span>
-      <AlignedPair
-        className="grid-cols-[4.75rem_3.5rem]"
-        leading={
-          <span className="text-sm font-medium text-muted-foreground">
-            {formatGrams(item.grams)} г
-          </span>
-        }
-        trailing={
-          <span className="text-base font-semibold">
-            {formatKcal(item.kcal)}
-          </span>
-        }
-      />
+    <span className="flex w-full min-w-0 flex-col gap-0.5 overflow-hidden">
+      <span className="flex w-full min-w-0 items-baseline justify-between gap-3">
+        <span className={nameClass}>{item.name}</span>
+        <AlignedPair
+          className="grid-cols-[4.75rem_3.5rem]"
+          leading={
+            <span className="text-sm font-medium text-muted-foreground">
+              {formatGrams(item.grams)} г
+            </span>
+          }
+          trailing={
+            <span className="text-base font-semibold">
+              {formatKcal(item.kcal)}
+            </span>
+          }
+        />
+      </span>
+      {macrosOpen ? (
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {macros}
+        </span>
+      ) : null}
     </span>
   );
 
@@ -183,22 +184,25 @@ export function MealItemRow({
         <Link
           href={href}
           className={cn(
-            "flex min-w-0 flex-1 items-center rounded-xl px-1 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
-            expanded ? "py-3" : "py-2",
+            "flex min-w-0 flex-1 items-center rounded-xl px-1 py-2 transition-colors duration-200 ease-[var(--ease-out-soft)] hover:bg-muted/60",
           )}
         >
           <div className="min-w-0 w-full">{body}</div>
         </Link>
       ) : (
-        <div
-          className={cn(
-            "flex min-w-0 flex-1 items-center px-1",
-            expanded ? "py-3" : "py-2",
-          )}
-        >
+        <div className={cn("flex min-w-0 flex-1 items-center px-1 py-2")}>
           <div className="min-w-0 w-full">{body}</div>
         </div>
       )}
+      <Button
+        type="button"
+        variant="ghost"
+        className="min-h-11 shrink-0 self-center px-2 text-sm"
+        aria-expanded={macrosOpen}
+        onClick={() => setMacrosOpen((open) => !open)}
+      >
+        БЖУ
+      </Button>
       {onDelete ? (
         <div className="self-center">
           <RemoveRowButton onClick={onDelete} />

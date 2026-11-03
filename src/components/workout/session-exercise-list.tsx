@@ -66,6 +66,13 @@ export function SessionExerciseList({
     return <SessionExerciseListEmpty detail={detail} />;
   }
 
+  const currentId =
+    session.status === "planned"
+      ? (detail.exercises.find((row) =>
+          row.sets.some((set) => set.set_type === "work" && !set.is_completed),
+        )?.id ?? null)
+      : null;
+
   return (
     <section className="card-surface animate-rise">
       <SortableList
@@ -81,9 +88,14 @@ export function SessionExerciseList({
           const partner = detail.exercises.find(
             (row) => row.id === pairs?.[item.id],
           );
+          const rowOpen =
+            item.sets.some((set) => openSetIds.includes(set.id)) ||
+            warmupOpen[item.id] === true;
+          const quiet = currentId != null && item.id !== currentId && !rowOpen;
           return (
             <SessionExerciseRow
               item={item}
+              quiet={quiet}
               compact
               priorPeak={peak?.prior_peak ?? null}
               priorOn={peak?.prior_on ?? null}

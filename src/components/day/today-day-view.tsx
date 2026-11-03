@@ -1,33 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { ReviewCta } from "@/components/ai/review-cta";
 import { useReviewOffer } from "@/components/ai/use-review-offer";
+import { PlateFill } from "@/components/day/plate-fill";
 import { SaveDayTemplateButton } from "@/components/day/save-day-template-button";
 import { TodayDayMeals } from "@/components/day/today-day-meals";
+import { TodayDayStrip } from "@/components/day/today-day-strip";
 import { TodayDayViewCloseBlock } from "@/components/day/today-day-view-close-block";
-import { TodayDayViewEmptyNudges } from "@/components/day/today-day-view-empty-nudges";
 import { TodayDayViewSummaryCard } from "@/components/day/today-day-view-summary-card";
 import { TodayDiaryLinks } from "@/components/day/today-diary-links";
 import { TodayEmptyStart } from "@/components/day/today-empty-start";
 import { TodayExtrasSection } from "@/components/day/today-extras-section";
+import { TodayGymAsk } from "@/components/day/today-gym-ask";
+import { TodayHintSlot } from "@/components/day/today-hint-slot";
+import { TodayNextSession } from "@/components/day/today-next-session";
 import { useTodayDayDerived } from "@/components/day/use-today-day-derived";
-import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { useTodayOrder } from "@/components/layout/today-order-provider";
+import { useTodayWorkoutPeek } from "@/components/day/use-today-workout-peek";
+import { useUndoToast } from "@/components/layout/undo-toast-provider";
 import { WeekProgressShare } from "@/components/share/week-progress-share";
 import type { GymLoop } from "@/lib/day/loop";
 import type { DayWithMeals } from "@/lib/day/map";
 import type { MacroGoals } from "@/lib/day/today-payload";
+import { clearTrainingFlip, readTrainingFlip } from "@/lib/day/training-flip";
 import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import { todayStatusLine } from "@/lib/nutrition/macro-gap-hint";
 import type { EarlyHabitSnapshot } from "@/lib/retention/habit";
 import type { HabitBridgeSnapshot } from "@/lib/retention/habit-bridge";
 import type {
   CopyDayHint,
+  DayType,
   MealItem,
   MealType,
   NamedMealHint,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export function TodayDayView({
   date,
@@ -72,6 +79,7 @@ export function TodayDayView({
   busy,
   saveBodyWeight,
   saveWaist,
+  switchType,
   copyYesterday,
   saveDayAsTemplate,
   fillMealFromTemplate,
@@ -127,6 +135,7 @@ export function TodayDayView({
   busy: boolean;
   saveBodyWeight: (value: number | null) => Promise<void>;
   saveWaist: (value: number | null) => Promise<void>;
+  switchType: (dayType: DayType) => Promise<void>;
   copyYesterday: () => Promise<void>;
   saveDayAsTemplate: () => Promise<void>;
   fillMealFromTemplate: (mealId: string) => Promise<void>;
@@ -148,10 +157,24 @@ export function TodayDayView({
   aiCapture?: boolean;
   aiText?: boolean;
 }) {
-  const { density } = useDiaryDensity();
-  const { order } = useTodayOrder();
-  const compact = density === "compact";
+  const undo = useUndoToast();
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const reviewOffer = useReviewOffer(reviewReady);
+  const peek = useTodayWorkoutPeek(
+    gymEnabled && date === today && !viewOnly,
+    date,
+  );
+  useEffect(() => {
+    if (viewOnly || readTrainingFlip() !== date) {
+      return;
+    }
+    clearTrainingFlip();
+    undo({
+      message: "День — тренировка.",
+      actionLabel: "Вернуть",
+      onUndo: () => switchType("rest"),
+    });
+  }, [date, switchType, undo, viewOnly]);
   const {
     setQuickMealChoice,
     hiddenNote,
@@ -202,8 +225,11 @@ export function TodayDayView({
     aiText,
   });
   const weekShare = showWeekShare ? (
-    <WeekProgressShare tone={compact ? "card" : "solid"} motion={!compact} />
+    <WeekProgressShare tone="card" motion={false} />
   ) : null;
+  const filledMeals = visibleMeals.filter(
+    (meal) => meal.items.length > 0,
+  ).length;
 
   const daySummary = (
     <TodayDayViewSummaryCard
@@ -258,26 +284,19 @@ export function TodayDayView({
       <p className="px-1 text-sm text-muted-foreground">{hiddenNote}</p>
     ) : null;
 
-  const numbersFirst = order === "numbers" && dayHasItems;
-
   const closeTheDay = (
     <TodayDayViewCloseBlock
       dayHasItems={dayHasItems}
       viewOnly={viewOnly}
       date={date}
-      today={today}
       shownDay={shownDay}
       fact={fact}
       quickLogMeals={quickLogMeals}
       quickLogMealId={quickLogMealId}
       proteinLogMealId={proteinLogMealId}
       remainingProtein={remainingProtein}
-      muscleNutritionHint={muscleNutritionHint}
-      energyGoal={energyGoal}
-      energyGoalHint={energyGoalHint}
-      energyGoalBusy={energyGoalBusy}
-      onApplyEnergyGoal={onApplyEnergyGoal}
-      onDismissEnergyGoal={onDismissEnergyGoal}
+      muscleNutritionHint={summaryOpen ? muscleNutritionHint : null}
+      showProtein={summaryOpen}
       onQuickMealChange={setQuickMealChoice}
       busy={busy}
       visibleMeals={visibleMeals}
@@ -304,15 +323,8 @@ export function TodayDayView({
       ) : null}
     </>
   );
-  const scoreBlock = dayHasItems ? (
-    <div
-      className={cn(
-        "animate-rise flex flex-col",
-        compact ? "gap-1.5" : "gap-3",
-      )}
-    >
-      {daySummary}
-    </div>
+  const scoreBlock = summaryOpen ? (
+    <div className="animate-rise flex flex-col gap-3">{daySummary}</div>
   ) : null;
 
   const todayLine =
@@ -332,24 +344,34 @@ export function TodayDayView({
     );
 
   return (
-    <div className={cn("flex w-full flex-col", compact ? "gap-1.5" : "gap-4")}>
-      <TodayDayViewEmptyNudges
-        dayHasItems={dayHasItems}
-        topNudge={topNudge}
-        habitSnapshot={habitSnapshot}
-        habitBridgeSnapshot={habitBridgeSnapshot}
-        compact={compact}
+    <div className="flex w-full flex-col gap-3">
+      <TodayDayStrip
+        training={effectiveTraining}
         gymEnabled={gymEnabled}
-        onOpenYesterday={onOpenYesterday}
-        date={date}
-        today={today}
+        busy={busy}
         viewOnly={viewOnly}
-        energyGoal={energyGoal}
-        energyGoalHint={energyGoalHint}
-        energyGoalBusy={energyGoalBusy}
-        onApplyEnergyGoal={onApplyEnergyGoal}
-        onDismissEnergyGoal={onDismissEnergyGoal}
+        remainingKcal={shownDay.target_kcal - fact.kcal}
+        remainingProtein={shownDay.target_protein - fact.protein}
+        summaryOpen={summaryOpen}
+        onToggleSummary={() => setSummaryOpen((open) => !open)}
+        onSwitchType={switchType}
       />
+      {scoreBlock}
+
+      {date === today && gymEnabled && effectiveTraining && !viewOnly ? (
+        <TodayNextSession peek={peek} />
+      ) : null}
+
+      {filledMeals < 4 ? <PlateFill filled={filledMeals} /> : null}
+
+      {showEmptyStart && date === today && gymEnabled ? (
+        <TodayGymAsk
+          date={date}
+          busy={busy}
+          peek={peek}
+          onSwitchType={switchType}
+        />
+      ) : null}
 
       {showEmptyStart ? (
         <div className="animate-rise">
@@ -364,21 +386,24 @@ export function TodayDayView({
         </div>
       ) : null}
 
-      {!dayHasItems ? <div className="animate-rise">{daySummary}</div> : null}
+      {foodBlock}
 
-      {numbersFirst ? (
-        <>
-          {scoreBlock}
-          {foodBlock}
-          {closeTheDay}
-        </>
-      ) : (
-        <>
-          {foodBlock}
-          {closeTheDay}
-          {scoreBlock}
-        </>
-      )}
+      <TodayHintSlot
+        dayHasItems={dayHasItems}
+        topNudge={topNudge}
+        habitSnapshot={habitSnapshot}
+        onOpenYesterday={onOpenYesterday}
+        date={date}
+        today={today}
+        viewOnly={viewOnly}
+        energyGoal={energyGoal}
+        energyGoalHint={energyGoalHint}
+        energyGoalBusy={energyGoalBusy}
+        onApplyEnergyGoal={onApplyEnergyGoal}
+        onDismissEnergyGoal={onDismissEnergyGoal}
+      />
+
+      {closeTheDay}
 
       {todayLine ? (
         <p className="text-sm leading-snug text-muted-foreground">

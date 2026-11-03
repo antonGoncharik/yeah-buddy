@@ -8,11 +8,25 @@ import {
 
 export function SettingsGoalsSkeleton() {
   return (
-    <div className="card-surface px-5 py-2">
-      <NavRowSkeleton
-        title="Цели на день"
-        hint="Отдых 1 975 · зал 2 175 ккал"
-      />
+    <div className="card-surface px-5 py-4">
+      <p className="text-base font-medium">
+        <TextBone text="Отдых: 1 975 / Б 140,0" />
+      </p>
+      <p className="text-base font-medium">
+        <TextBone text="Тренировка: 2 175 / Б 160,0" />
+      </p>
+    </div>
+  );
+}
+
+export function SettingsMenuSkeleton() {
+  return (
+    <div className="card-surface divide-y divide-border/70 px-5 py-2">
+      <NavRowSkeleton title="Еда" hint="Шаблон и свои продукты" />
+      <NavRowSkeleton title="Зал" hint="Вкладка тренировок" />
+      <NavRowSkeleton title="Люди" hint="Тренер, пара, паки" />
+      <NavRowSkeleton title="Вид и бот" hint="Тема и напоминания" />
+      <NavRowSkeleton title="Данные" hint="Пауза, экспорт, удаление" />
     </div>
   );
 }
@@ -89,28 +103,8 @@ export function SettingsRouteLoading() {
         aria-busy="true"
         className="flex flex-col gap-6 px-4 pb-4"
       >
-        <div className="card-surface px-5 py-2">
-          <NavRowSkeleton
-            title="Как пользоваться"
-            hint="Как устроены день и зал"
-          />
-        </div>
-        <section className="flex flex-col gap-2">
-          <SectionHeading title="Еда и цели" />
-          <SettingsGoalsSkeleton />
-          <div className="card-surface divide-y divide-border/70 px-5 py-2">
-            <NavRowSkeleton
-              title="Еда на день"
-              hint="Что подставлять в новый день"
-            />
-            <NavRowSkeleton
-              title="Продукты"
-              hint="Из них собирается еда на день"
-            />
-          </div>
-        </section>
-        <SettingsGymSkeleton />
-        <SettingsRemindersSkeleton />
+        <SettingsGoalsSkeleton />
+        <SettingsMenuSkeleton />
         <p className="sr-only">Загрузка…</p>
       </div>
     </div>

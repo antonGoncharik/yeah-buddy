@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useConfirm } from "@/components/layout/confirm-provider";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api-cache";
 import { SHARE_STORY_LABEL, SHARE_STORY_UNAVAILABLE } from "@/lib/share/joy";
@@ -30,6 +31,7 @@ export function WeekProgressShare({
   /** Rise animation shifts layout paint; disable at the bottom of a long scroll. */
   motion?: boolean;
 }) {
+  const confirm = useConfirm();
   const [busy, setBusy] = useState<"chat" | "story" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [storyOk, setStoryOk] = useState(false);
@@ -52,7 +54,20 @@ export function WeekProgressShare({
     return payload;
   }
 
+  async function confirmSend(): Promise<boolean> {
+    return confirm({
+      message:
+        "Картинка недели. Не попадёт: талия и максимум на раз. Вес и рабочие кг остаются на картинке, если они уже в дневнике.",
+      confirmLabel: "Отправить",
+      cancelLabel: "Не сейчас",
+    });
+  }
+
   async function shareChat() {
+    const ok = await confirmSend();
+    if (!ok) {
+      return;
+    }
     setBusy("chat");
     setError(null);
     haptic("commit");
@@ -76,6 +91,10 @@ export function WeekProgressShare({
   }
 
   async function shareStory() {
+    const ok = await confirmSend();
+    if (!ok) {
+      return;
+    }
     setBusy("story");
     setError(null);
     haptic("commit");

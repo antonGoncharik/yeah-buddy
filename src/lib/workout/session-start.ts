@@ -5,6 +5,7 @@ import {
   writeCachedDay,
 } from "@/lib/day/cache";
 import { withDayType } from "@/lib/day/optimistic";
+import { markTrainingFlip } from "@/lib/day/training-flip";
 import { queueMutate } from "@/lib/offline-mutate";
 import type { WorkoutSession } from "@/lib/types";
 import { templateCanPlan } from "@/lib/workout/hints";
@@ -68,4 +69,5 @@ function markCachedDayTraining(date: string): void {
     date,
     withDayType(day, "training", targetsFromCache("training")),
   );
+  markTrainingFlip(date);
 }

@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { type DiaryDensity, persistDiaryDensity } from "@/lib/diary-density";
+import type { DiaryDensity } from "@/lib/diary-density";
 
 const DiaryDensityContext = createContext<{
   density: DiaryDensity;
@@ -23,12 +23,13 @@ export function DiaryDensityProvider({
   children: React.ReactNode;
   initialDensity: DiaryDensity;
 }) {
-  const [density, setDensityState] = useState(initialDensity);
+  void initialDensity;
+  const [density, setDensityState] = useState<DiaryDensity>("compact");
 
   const setDensity = useCallback((next: DiaryDensity) => {
-    persistDiaryDensity(next);
-    document.documentElement.dataset.density = next;
-    setDensityState(next);
+    void next;
+    document.documentElement.dataset.density = "compact";
+    setDensityState("compact");
   }, []);
 
   useEffect(() => {

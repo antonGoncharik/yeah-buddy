@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { DumbbellDoodle } from "@/components/layout/doodles";
 import { MarkBadge } from "@/components/layout/mark-badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ export function WorkoutsHubQueueCta({
   onSkip,
   onUnskip,
   onBackfill,
+  laterNames = [],
   phaseKey = null,
 }: {
   session: WorkoutSession | null;
@@ -44,6 +47,7 @@ export function WorkoutsHubQueueCta({
   onSkip: (following: WorkoutTemplateDetail) => void;
   onUnskip: () => void;
   onBackfill: () => void;
+  laterNames?: string[];
 }) {
   const busy = creating != null || skipping;
   const startLabel = creating === "today" ? "Открываю…" : "Начать";
@@ -107,11 +111,6 @@ export function WorkoutsHubQueueCta({
               {outlineLine}
             </p>
           ) : null}
-          {followingTemplate && followingTemplate.id !== nextTemplate.id ? (
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Потом {followingTemplate.name}
-            </p>
-          ) : null}
         </div>
       </div>
 
@@ -140,6 +139,23 @@ export function WorkoutsHubQueueCta({
       ) : null}
 
       <WorkoutsHubQueueSecondaryButtons actions={secondary} busy={busy} />
+
+      {laterNames.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          {laterNames.map((name, index) => (
+            <p key={name} className="text-sm text-muted-foreground">
+              {index === 0 ? "Потом" : "Дальше"} {name}
+            </p>
+          ))}
+        </div>
+      ) : null}
+
+      <Link
+        href="/workouts/schedule"
+        className="text-base font-medium text-foreground"
+      >
+        Изменить программу
+      </Link>
     </section>
   );
 }

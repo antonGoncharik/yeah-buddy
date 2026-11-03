@@ -24,6 +24,7 @@ import { getUserSettings } from "@/lib/settings";
 import { resolveDayTypeForUser } from "@/lib/settings/gym-mode";
 import { getMiniAppUrl } from "@/lib/telegram/bot";
 import { splitTelegramText } from "@/lib/telegram/reply-chunks";
+import { parseWeightReply } from "@/lib/telegram/weight-reply";
 
 export function registerBotCommands(bot: Bot, env: ServerEnv): void {
   bot.command("today", async (ctx) => {
@@ -65,31 +66,59 @@ export function registerBotCommands(bot: Bot, env: ServerEnv): void {
       await ctx.reply(BOT_WEIGHT_USAGE);
       return;
     }
+    await recordTodayWeight(ctx, env, kg);
+  });
 
-    const user = await findMealChatUser(ctx.from.id);
-    if (!user) {
-      await openMiniApp(ctx, env, BOT_OPEN_DIARY);
+  bot.on("message:text", async (ctx, next) => {
+    const text = ctx.message.text.trim();
+    if (text.startsWith("/") || !ctx.from || ctx.chat?.type !== "private") {
+      await next();
       return;
     }
-
-    try {
-      const today = await getUserCalendarToday(user.userId);
-      let day = await getDayByDate(user.userId, today);
-      if (!day) {
-        const settings = await getUserSettings(user.userId);
-        const dayType = resolveDayTypeForUser(settings, "rest");
-        day = await createDayFromTemplate(user.userId, today, dayType);
-      }
-      await setBodyWeight(user.userId, day.id, kg);
-      await ctx.reply(BOT_WEIGHT_RECORDED(formatBodyWeight(kg)));
-    } catch (error) {
-      if (error instanceof PastDayLockedError) {
-        await ctx.reply(BOT_WEIGHT_WRITE_LOCKED);
-        return;
-      }
-      console.error(error);
+    const reply = parseWeightReply(text);
+    if (reply.kind === "ignore") {
+      await next();
+      return;
     }
+    if (reply.kind === "ask") {
+      await ctx.reply(BOT_WEIGHT_USAGE);
+      return;
+    }
+    await recordTodayWeight(ctx, env, reply.kg);
   });
+}
+
+async function recordTodayWeight(
+  ctx: Context,
+  env: ServerEnv,
+  kg: number,
+): Promise<void> {
+  if (!ctx.from) {
+    return;
+  }
+  const user = await findMealChatUser(ctx.from.id);
+  if (!user) {
+    await openMiniApp(ctx, env, BOT_OPEN_DIARY);
+    return;
+  }
+
+  try {
+    const today = await getUserCalendarToday(user.userId);
+    let day = await getDayByDate(user.userId, today);
+    if (!day) {
+      const settings = await getUserSettings(user.userId);
+      const dayType = resolveDayTypeForUser(settings, "rest");
+      day = await createDayFromTemplate(user.userId, today, dayType);
+    }
+    await setBodyWeight(user.userId, day.id, kg);
+    await ctx.reply(BOT_WEIGHT_RECORDED(formatBodyWeight(kg)));
+  } catch (error) {
+    if (error instanceof PastDayLockedError) {
+      await ctx.reply(BOT_WEIGHT_WRITE_LOCKED);
+      return;
+    }
+    console.error(error);
+  }
 }
 
 export function registerAssistantChat(bot: Bot): void {

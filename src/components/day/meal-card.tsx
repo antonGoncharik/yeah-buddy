@@ -1,6 +1,7 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useRouter } from "next/navigation";
+import { type CSSProperties, useRef } from "react";
 
 import { mealActionButtonClass } from "@/components/day/meal-action-bar";
 import { MealCopyActions } from "@/components/day/meal-copy-actions";
@@ -85,6 +86,9 @@ export function MealCard({
 }) {
   const { density } = useDiaryDensity();
   const compact = density === "compact";
+  const router = useRouter();
+  const holdFired = useRef(false);
+  const holdTimer = useRef<number | null>(null);
   const totals = sumMealItems(items);
   const copy =
     !readOnly &&
@@ -265,7 +269,32 @@ export function MealCard({
               variant="outline"
               className={cn("w-full", mealActionButtonClass)}
               disabled={copyBusy}
-              onClick={onFillTemplate}
+              onPointerDown={() => {
+                holdFired.current = false;
+                holdTimer.current = window.setTimeout(() => {
+                  holdFired.current = true;
+                  router.push("/settings/meals");
+                }, 500);
+              }}
+              onPointerUp={() => {
+                if (holdTimer.current != null) {
+                  window.clearTimeout(holdTimer.current);
+                  holdTimer.current = null;
+                }
+              }}
+              onPointerLeave={() => {
+                if (holdTimer.current != null) {
+                  window.clearTimeout(holdTimer.current);
+                  holdTimer.current = null;
+                }
+              }}
+              onClick={() => {
+                if (holdFired.current) {
+                  holdFired.current = false;
+                  return;
+                }
+                onFillTemplate?.();
+              }}
             >
               Из шаблона
             </Button>

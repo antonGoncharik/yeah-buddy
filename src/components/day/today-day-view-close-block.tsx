@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  EnergyGoalCard,
-  EnergyGoalHintCard,
-} from "@/components/day/energy-goal-card";
 import { MacroGapHint } from "@/components/day/macro-gap-hint";
 import { ProteinCloseOffers } from "@/components/day/protein-close-offers";
 import { TodayQuickFoods } from "@/components/day/today-quick-foods";
 import type { DayWithMeals } from "@/lib/day/map";
-import type { EnergyGoalOffer } from "@/lib/nutrition/energy-goal";
 import { MACRO_GAP_PROTEIN_MIN } from "@/lib/nutrition/macro-gap-hint";
 import { macroRoomGrams } from "@/lib/nutrition/macro-hit";
 import type { MealType } from "@/lib/types";
@@ -17,7 +12,6 @@ export function TodayDayViewCloseBlock({
   dayHasItems,
   viewOnly,
   date,
-  today,
   shownDay,
   fact,
   quickLogMeals,
@@ -25,11 +19,7 @@ export function TodayDayViewCloseBlock({
   proteinLogMealId,
   remainingProtein,
   muscleNutritionHint,
-  energyGoal,
-  energyGoalHint,
-  energyGoalBusy,
-  onApplyEnergyGoal,
-  onDismissEnergyGoal,
+  showProtein = false,
   onQuickMealChange,
   busy,
   visibleMeals,
@@ -37,7 +27,6 @@ export function TodayDayViewCloseBlock({
   dayHasItems: boolean;
   viewOnly: boolean;
   date: string;
-  today: string;
   shownDay: DayWithMeals;
   fact: { protein: number; fat: number; carbs: number; kcal: number };
   quickLogMeals: Array<{ id: string; meal_type: MealType }>;
@@ -45,11 +34,7 @@ export function TodayDayViewCloseBlock({
   proteinLogMealId: string | null;
   remainingProtein: number;
   muscleNutritionHint: string | null;
-  energyGoal: EnergyGoalOffer | null;
-  energyGoalHint: string | null;
-  energyGoalBusy: boolean;
-  onApplyEnergyGoal: () => void;
-  onDismissEnergyGoal: (dismissedKcal: number) => void;
+  showProtein?: boolean;
   onQuickMealChange: (mealId: string) => void;
   busy: boolean;
   visibleMeals: DayWithMeals["meals"];
@@ -87,20 +72,10 @@ export function TodayDayViewCloseBlock({
 
   return (
     <>
-      {date === today && energyGoal ? (
-        <EnergyGoalCard
-          offer={energyGoal}
-          busy={energyGoalBusy}
-          onApply={onApplyEnergyGoal}
-          onDismiss={() => onDismissEnergyGoal(energyGoal.restKcal)}
-        />
-      ) : null}
-      {date === today && !energyGoal && energyGoalHint ? (
-        <EnergyGoalHintCard line={energyGoalHint} />
-      ) : null}
       {muscleNutritionHint ? (
         <p className="text-sm text-muted-foreground">{muscleNutritionHint}</p>
       ) : null}
+      {showProtein ? proteinCloseBlock : null}
       {quickLogMealId ? (
         <TodayQuickFoods
           date={date}
@@ -113,7 +88,6 @@ export function TodayDayViewCloseBlock({
           busy={busy}
         />
       ) : null}
-      {proteinCloseBlock}
     </>
   );
 }

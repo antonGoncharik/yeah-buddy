@@ -6,7 +6,6 @@ import { PauseReturnCard } from "@/components/workout/pause-return-card";
 import { ProgramEditableHintCard } from "@/components/workout/program-editable-hint-card";
 import type { useProgramEditableHint } from "@/components/workout/use-program-editable-hint";
 import type { WorkoutsHubModel } from "@/components/workout/use-workouts-hub";
-import { WorkoutsHubBarbellCard } from "@/components/workout/workouts-hub-barbell-card";
 import { WorkoutsHubEmpty } from "@/components/workout/workouts-hub-empty";
 import { WorkoutsHubNavSections } from "@/components/workout/workouts-hub-nav-sections";
 import { WorkoutsHubQueueCta } from "@/components/workout/workouts-hub-queue-cta";
@@ -88,6 +87,7 @@ export function WorkoutsHubBody({
             "yesterday",
           )
         }
+        laterNames={laterQueueNames(activeTemplates, nextTemplate?.id ?? null)}
       />
 
       {editableHint.open ? (
@@ -106,17 +106,28 @@ export function WorkoutsHubBody({
       {exercises.length > 0 ? (
         <WorkoutsHubNavSections
           macro={macro}
-          session={session}
-          sessionTemplate={sessionTemplate}
-          nextTemplate={nextTemplate}
           phaseCircle={phaseCircle}
           phaseHint={phaseHint}
-          activeTemplates={activeTemplates}
         />
       ) : null}
 
       <WorkoutsHubRecent recent={recent} />
-      <WorkoutsHubBarbellCard />
     </>
   );
+}
+
+function laterQueueNames(
+  active: { id: string; name: string }[],
+  nextId: string | null,
+): string[] {
+  if (active.length === 0) {
+    return [];
+  }
+  const index =
+    nextId == null ? -1 : active.findIndex((item) => item.id === nextId);
+  const ordered =
+    index >= 0
+      ? [...active.slice(index + 1), ...active.slice(0, index)]
+      : active;
+  return ordered.slice(0, 2).map((item) => item.name);
 }

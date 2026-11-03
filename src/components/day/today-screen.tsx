@@ -13,7 +13,6 @@ import { useTodayScreen } from "@/components/day/use-today-screen";
 import { AppHeader } from "@/components/layout/app-header";
 import { useDayMood } from "@/components/layout/day-mood";
 import { useDiaryDensity } from "@/components/layout/diary-density-provider";
-import { TodayDayTypeSkeleton } from "@/components/layout/today-loading-skeleton";
 import { nutritionHistoryHref } from "@/lib/day/dates";
 import { isTempId } from "@/lib/day/optimistic";
 import { CATCH_UP_TITLE } from "@/lib/messages";
@@ -162,8 +161,6 @@ export function TodayScreen({
             switchType={switchType}
             showDayTypeSwitch={gymEnabled}
           />
-        ) : showLoading && gymEnabled && !viewOnly ? (
-          <TodayDayTypeSkeleton />
         ) : null}
       </div>
       {pickerOpen ? (
@@ -232,6 +229,7 @@ export function TodayScreen({
         gym={gym}
         saveBodyWeight={saveBodyWeight}
         saveWaist={saveWaist}
+        switchType={switchType}
         saveDayAsTemplate={saveDayAsTemplate}
         fillMealFromTemplate={fillMealFromTemplate}
         copyMealFromDate={copyMealFromDate}
